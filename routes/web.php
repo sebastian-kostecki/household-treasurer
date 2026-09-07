@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OwnTransferController;
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');
     Route::get('operations', [OperationsController::class, 'index'])->name('operations');
     Route::post('incomes', [IncomeController::class, 'store'])->name('incomes.store');
+    Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::resource('own-transfers', OwnTransferController::class)->only(['store', 'update', 'destroy']);
 });
 

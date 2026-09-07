@@ -3,8 +3,11 @@ import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import { Plus, Upload } from '@lucide/vue';
 import { ref } from 'vue';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
+import ExpenseFormDialog, {
+    type ExpenseFormAccount,
+    type ExpenseFormCategory,
+} from '@/components/ExpenseFormDialog.vue';
 import IncomeFormDialog, {
-    type IncomeFormAccount,
     type IncomeFormCategory,
 } from '@/components/IncomeFormDialog.vue';
 import OwnTransferFormDialog, {
@@ -37,7 +40,7 @@ type OperationRow = {
     id: number;
     operation_date: string;
     description: string;
-    type: 'income';
+    type: 'income' | 'expense';
     amount_grosze: number;
     account_name: string;
     category_name: string;
@@ -48,7 +51,7 @@ type OwnTransferRow = OwnTransferFormTransfer & {
     destination_account_name: string;
 };
 
-type AccountRow = IncomeFormAccount & {
+type AccountRow = ExpenseFormAccount & {
     type: 'bank' | 'cash';
 };
 
@@ -57,15 +60,18 @@ const {
     ownTransfers,
     accounts,
     incomeCategories,
+    expenseCategories,
 } = defineProps<{
     operations: OperationRow[];
     ownTransfers: OwnTransferRow[];
     accounts: AccountRow[];
     incomeCategories: IncomeFormCategory[];
+    expenseCategories: ExpenseFormCategory[];
 }>();
 
 const t = useTranslations();
 const incomeDialogOpen = ref(false);
+const expenseDialogOpen = ref(false);
 const createDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingTransfer = ref<OwnTransferRow | null>(null);
@@ -79,8 +85,24 @@ setLayoutProps({
     ],
 });
 
-function operationTypeLabel(type: OperationRow['type']): string {
-    return type === 'income' ? t.operations.type_income : type;
+function operationTypeLabel(operation: OperationRow): string {
+    if (operation.type === 'income') {
+        return t.operations.type_income;
+    }
+
+    if (operation.amount_grosze < 0) {
+        return t.operations.type_refund;
+    }
+
+    return t.operations.type_expense;
+}
+
+function operationAmountClass(operation: OperationRow): string {
+    if (operation.type === 'income' || operation.amount_grosze < 0) {
+        return 'text-success';
+    }
+
+    return 'text-destructive';
 }
 
 function openEditDialog(transfer: OwnTransferRow): void {
@@ -99,6 +121,10 @@ function openEditDialog(transfer: OwnTransferRow): void {
                 <Button @click="incomeDialogOpen = true">
                     <Plus class="mr-2 size-4" />
                     {{ t.operations.add_income }}
+                </Button>
+                <Button @click="expenseDialogOpen = true">
+                    <Plus class="mr-2 size-4" />
+                    {{ t.operations.add_expense }}
                 </Button>
                 <Button
                     :disabled="accounts.length < 2"
@@ -172,11 +198,14 @@ function openEditDialog(transfer: OwnTransferRow): void {
                             <td class="py-3">{{ operation.description }}</td>
                             <td class="py-3">
                                 <Badge variant="secondary">
-                                    {{ operationTypeLabel(operation.type) }}
+                                    {{ operationTypeLabel(operation) }}
                                 </Badge>
                             </td>
                             <td class="py-3">{{ operation.account_name }}</td>
-                            <td class="py-3 text-right text-success">
+                            <td
+                                class="py-3 text-right font-medium"
+                                :class="operationAmountClass(operation)"
+                            >
                                 {{ formatMoney(operation.amount_grosze) }}
                             </td>
                         </tr>
@@ -208,9 +237,12 @@ function openEditDialog(transfer: OwnTransferRow): void {
                 </CardHeader>
                 <CardContent class="flex items-center justify-between">
                     <Badge variant="secondary">
-                        {{ operationTypeLabel(operation.type) }}
+                        {{ operationTypeLabel(operation) }}
                     </Badge>
-                    <span class="text-success font-medium">
+                    <span
+                        class="font-medium"
+                        :class="operationAmountClass(operation)"
+                    >
                         {{ formatMoney(operation.amount_grosze) }}
                     </span>
                 </CardContent>
@@ -434,6 +466,12 @@ function openEditDialog(transfer: OwnTransferRow): void {
         v-model:open="incomeDialogOpen"
         :accounts="accounts"
         :income-categories="incomeCategories"
+    />
+
+    <ExpenseFormDialog
+        v-model:open="expenseDialogOpen"
+        :accounts="accounts"
+        :expense-categories="expenseCategories"
     />
 
     <OwnTransferFormDialog
