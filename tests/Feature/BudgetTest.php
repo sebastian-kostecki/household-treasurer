@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
+use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
@@ -284,6 +285,210 @@ class BudgetTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('shell.firstRun.hasCategories', true),
+            );
+    }
+
+    public function test_user_can_start_execution_of_draft_budget(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 500000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 300000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $this->assertDatabaseHas('budgets', [
+            'id' => $budget->id,
+            'phase' => BudgetPhase::Execution->value,
+        ]);
+    }
+
+    public function test_starting_execution_freezes_initial_plan_from_planned_amounts(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $income = Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 500000,
+        ]);
+        $expense = Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 300000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $income->id,
+            'initial_plan_grosze' => 500000,
+            'planned_amount_grosze' => 500000,
+            'execution_grosze' => 0,
+        ]);
+        $this->assertDatabaseHas('categories', [
+            'id' => $expense->id,
+            'initial_plan_grosze' => 300000,
+            'planned_amount_grosze' => 300000,
+            'execution_grosze' => 0,
+        ]);
+    }
+
+    public function test_starting_execution_is_irreversible(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->create();
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget))
+            ->assertForbidden();
+    }
+
+    public function test_execution_budget_cannot_be_deleted(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->delete(route('budgets.destroy', $budget))
+            ->assertForbidden();
+    }
+
+    public function test_budget_page_shows_deficit_warning_when_planned_deficit_exceeds_liquidity(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 100000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 500000,
+        ]);
+        Account::factory()->for($user)->create([
+            'opening_date' => '2025-12-01',
+            'opening_balance_grosze' => 50000,
+            'current_balance_grosze' => 50000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('deficitWarning.planned_deficit_grosze', 400000)
+                ->where('deficitWarning.liquidity_at_year_start_grosze', 50000)
+                ->where('deficitWarning.uncovered_deficit_grosze', 350000),
+            );
+    }
+
+    public function test_budget_page_has_no_deficit_warning_when_liquidity_covers_deficit(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 100000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 500000,
+        ]);
+        Account::factory()->for($user)->create([
+            'opening_date' => '2025-12-01',
+            'opening_balance_grosze' => 500000,
+            'current_balance_grosze' => 500000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('deficitWarning', null),
+            );
+    }
+
+    public function test_user_can_start_execution_despite_deficit_warning(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 100000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 500000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $this->assertDatabaseHas('budgets', [
+            'id' => $budget->id,
+            'phase' => BudgetPhase::Execution->value,
+        ]);
+    }
+
+    public function test_after_start_budget_page_shows_initial_plan_equal_to_current_plan(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_grosze' => 500000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget));
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget.phase', BudgetPhase::Execution->value)
+                ->where('incomeCategories.0.initial_plan_grosze', 500000)
+                ->where('incomeCategories.0.current_plan_grosze', 500000)
+                ->where('incomeCategories.0.execution_grosze', 0),
+            );
+    }
+
+    public function test_user_cannot_start_execution_of_another_users_budget(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $budget = Budget::factory()->for($owner)->create();
+        Category::factory()->for($budget)->create();
+
+        $this->actingAs($otherUser)
+            ->post(route('budgets.start-execution', $budget))
+            ->assertForbidden();
+    }
+
+    public function test_shell_reflects_execution_started_after_start(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->create();
+
+        $this->actingAs($user)
+            ->post(route('budgets.start-execution', $budget));
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.executionStarted', true),
             );
     }
 }

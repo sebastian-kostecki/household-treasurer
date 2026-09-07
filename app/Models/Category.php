@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property CategoryType $type
  * @property int $planned_amount_grosze
+ * @property int $initial_plan_grosze
  * @property int $execution_grosze
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -25,6 +26,7 @@ use Illuminate\Support\Carbon;
     'name',
     'type',
     'planned_amount_grosze',
+    'initial_plan_grosze',
     'execution_grosze',
 ])]
 class Category extends Model
@@ -40,6 +42,7 @@ class Category extends Model
         return [
             'type' => CategoryType::class,
             'planned_amount_grosze' => 'integer',
+            'initial_plan_grosze' => 'integer',
             'execution_grosze' => 'integer',
         ];
     }

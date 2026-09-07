@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('type');
             $table->unsignedBigInteger('planned_amount_grosze');
+            $table->unsignedBigInteger('initial_plan_grosze')->default(0);
             $table->bigInteger('execution_grosze')->default(0);
             $table->timestamps();
 
