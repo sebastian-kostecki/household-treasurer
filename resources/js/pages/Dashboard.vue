@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, setLayoutProps } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -16,8 +17,53 @@ import {
 import { formatMoney } from '@/lib/format';
 import { dashboard } from '@/routes';
 
+type AccountSummary = {
+    id: number;
+    name: string;
+    type: 'bank' | 'cash';
+    current_balance_grosze: number;
+    is_negative: boolean;
+    is_archived: boolean;
+};
+
+type CategorySummary = {
+    id: number;
+    name: string;
+    initial_plan_grosze: number;
+    current_plan_grosze: number;
+    execution_grosze: number;
+    remaining_grosze: number;
+    percent_complete: number | null;
+    is_over_limit: boolean;
+    is_archived: boolean;
+};
+
+type BudgetSummary = {
+    year: number;
+    phase: 'draft' | 'execution';
+};
+
+type Totals = {
+    current_plan_grosze: number;
+    execution_grosze: number;
+};
+
+const props = defineProps<{
+    accounts: AccountSummary[];
+    liquidity_total_grosze: number;
+    budget: BudgetSummary | null;
+    incomeCategories: CategorySummary[];
+    expenseCategories: CategorySummary[];
+    incomeTotals: Totals;
+    expenseTotals: Totals;
+}>();
+
 const t = useTranslations();
 const checklist = useFirstRunChecklist();
+
+const liquidityClass = computed(() =>
+    props.liquidity_total_grosze < 0 ? 'text-destructive' : 'text-success',
+);
 
 setLayoutProps({
     breadcrumbs: [
@@ -27,6 +73,46 @@ setLayoutProps({
         },
     ],
 });
+
+function accountTypeLabel(type: AccountSummary['type']): string {
+    return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
+}
+
+function balanceClass(account: AccountSummary): string {
+    if (account.is_negative) {
+        return 'text-destructive';
+    }
+
+    if (account.current_balance_grosze > 0) {
+        return 'text-success';
+    }
+
+    return '';
+}
+
+function remainingClass(category: CategorySummary): string {
+    if (category.is_over_limit) {
+        return 'text-destructive';
+    }
+
+    return '';
+}
+
+function progressWidth(category: CategorySummary): string {
+    if (category.percent_complete === null) {
+        return '0%';
+    }
+
+    return `${Math.min(category.percent_complete, 100)}%`;
+}
+
+function progressBarClass(category: CategorySummary): string {
+    if (category.is_over_limit) {
+        return 'bg-destructive';
+    }
+
+    return 'bg-primary';
+}
 </script>
 
 <template>
@@ -79,12 +165,40 @@ setLayoutProps({
                         <CardDescription>
                             {{ t.dashboard.total_funds }}
                         </CardDescription>
-                        <CardTitle class="text-success text-2xl">
-                            {{ formatMoney(0) }}
+                        <CardTitle class="text-2xl" :class="liquidityClass">
+                            {{ formatMoney(liquidity_total_grosze) }}
                         </CardTitle>
                     </CardHeader>
                 </Card>
-                <Card class="sm:col-span-1 xl:col-span-2">
+                <Card
+                    v-for="account in accounts"
+                    :key="account.id"
+                    :class="account.is_archived ? 'opacity-70' : ''"
+                >
+                    <CardHeader class="pb-2">
+                        <div class="flex items-center gap-2">
+                            <CardDescription>
+                                {{ account.name }}
+                            </CardDescription>
+                            <Badge
+                                v-if="account.is_archived"
+                                variant="secondary"
+                            >
+                                {{ t.budget.archived_badge }}
+                            </Badge>
+                        </div>
+                        <CardTitle
+                            class="text-xl"
+                            :class="balanceClass(account)"
+                        >
+                            {{ formatMoney(account.current_balance_grosze) }}
+                        </CardTitle>
+                        <p class="text-muted-foreground text-xs">
+                            {{ accountTypeLabel(account.type) }}
+                        </p>
+                    </CardHeader>
+                </Card>
+                <Card v-if="accounts.length === 0">
                     <CardHeader class="pb-2">
                         <CardDescription>
                             {{ t.dashboard.no_accounts }}
@@ -103,45 +217,208 @@ setLayoutProps({
             <h2 class="text-sm font-semibold">
                 {{ t.dashboard.execution_title }}
             </h2>
-            <div class="grid gap-3 lg:grid-cols-2">
+
+            <p
+                v-if="budget === null"
+                class="text-muted-foreground text-sm"
+            >
+                {{ t.dashboard.no_budget }}
+            </p>
+
+            <div
+                v-else
+                class="grid gap-3 lg:grid-cols-2"
+            >
                 <Card>
                     <CardHeader class="pb-2">
                         <CardTitle class="text-base">
                             {{ t.dashboard.income }}
                         </CardTitle>
+                        <CardDescription>
+                            {{ t.dashboard.income_totals }}:
+                            {{ formatMoney(incomeTotals.current_plan_grosze) }}
+                            /
+                            {{ formatMoney(incomeTotals.execution_grosze) }}
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <p class="text-muted-foreground text-sm">
+                    <CardContent class="space-y-4">
+                        <p
+                            v-if="incomeCategories.length === 0"
+                            class="text-muted-foreground text-sm"
+                        >
                             {{ t.dashboard.no_categories }}
                         </p>
+                        <div
+                            v-for="category in incomeCategories"
+                            :key="category.id"
+                            class="space-y-2 rounded-md border p-3"
+                            :class="category.is_archived ? 'opacity-70' : ''"
+                        >
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium">
+                                        {{ category.name }}
+                                    </span>
+                                    <Badge
+                                        v-if="category.is_archived"
+                                        variant="secondary"
+                                    >
+                                        {{ t.budget.archived_badge }}
+                                    </Badge>
+                                </div>
+                                <Badge
+                                    v-if="category.percent_complete === null"
+                                    variant="secondary"
+                                >
+                                    {{ t.common.not_applicable }}
+                                </Badge>
+                                <Badge
+                                    v-else
+                                    variant="secondary"
+                                >
+                                    {{ category.percent_complete }}%
+                                </Badge>
+                            </div>
+                            <dl class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.initial_plan }}
+                                </dt>
+                                <dd class="text-right">
+                                    {{ formatMoney(category.initial_plan_grosze) }}
+                                </dd>
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.current_plan }}
+                                </dt>
+                                <dd class="text-right">
+                                    {{ formatMoney(category.current_plan_grosze) }}
+                                </dd>
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.execution }}
+                                </dt>
+                                <dd class="text-right text-success">
+                                    {{ formatMoney(category.execution_grosze) }}
+                                </dd>
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.remaining }}
+                                </dt>
+                                <dd
+                                    class="text-right"
+                                    :class="remainingClass(category)"
+                                >
+                                    {{ formatMoney(category.remaining_grosze) }}
+                                </dd>
+                            </dl>
+                        </div>
                     </CardContent>
                 </Card>
+
                 <Card>
                     <CardHeader class="pb-2">
                         <CardTitle class="text-base">
                             {{ t.dashboard.expenses }}
                         </CardTitle>
+                        <CardDescription>
+                            {{ t.dashboard.expense_totals }}:
+                            {{ formatMoney(expenseTotals.current_plan_grosze) }}
+                            /
+                            {{ formatMoney(expenseTotals.execution_grosze) }}
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent class="space-y-3">
-                        <p class="text-muted-foreground text-sm">
+                    <CardContent class="space-y-4">
+                        <p
+                            v-if="expenseCategories.length === 0"
+                            class="text-muted-foreground text-sm"
+                        >
                             {{ t.dashboard.no_categories }}
                         </p>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="text-muted-foreground">
-                                    {{ t.dashboard.planned }}:
-                                    {{ formatMoney(0) }}
-                                </span>
-                                <Badge variant="secondary">
+                        <div
+                            v-for="category in expenseCategories"
+                            :key="category.id"
+                            class="space-y-2 rounded-md border p-3"
+                            :class="category.is_archived ? 'opacity-70' : ''"
+                        >
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium">
+                                        {{ category.name }}
+                                    </span>
+                                    <Badge
+                                        v-if="category.is_archived"
+                                        variant="secondary"
+                                    >
+                                        {{ t.budget.archived_badge }}
+                                    </Badge>
+                                </div>
+                                <Badge
+                                    v-if="category.percent_complete === null"
+                                    variant="secondary"
+                                >
                                     {{ t.common.not_applicable }}
                                 </Badge>
+                                <Badge
+                                    v-else-if="category.is_over_limit"
+                                    variant="destructive"
+                                >
+                                    {{ t.dashboard.over_limit }}
+                                </Badge>
+                                <Badge
+                                    v-else
+                                    variant="secondary"
+                                >
+                                    {{ category.percent_complete }}%
+                                </Badge>
                             </div>
-                            <div
-                                class="bg-muted h-2 overflow-hidden rounded-full"
-                            >
+                            <dl class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.initial_plan }}
+                                </dt>
+                                <dd class="text-right">
+                                    {{ formatMoney(category.initial_plan_grosze) }}
+                                </dd>
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.current_plan }}
+                                </dt>
+                                <dd class="text-right">
+                                    {{ formatMoney(category.current_plan_grosze) }}
+                                </dd>
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.execution }}
+                                </dt>
+                                <dd class="text-right">
+                                    {{ formatMoney(category.execution_grosze) }}
+                                </dd>
+                                <dt class="text-muted-foreground">
+                                    {{ t.dashboard.remaining }}
+                                </dt>
+                                <dd
+                                    class="text-right"
+                                    :class="remainingClass(category)"
+                                >
+                                    {{ formatMoney(category.remaining_grosze) }}
+                                </dd>
+                            </dl>
+                            <div class="space-y-1">
                                 <div
-                                    class="bg-primary h-full w-0 rounded-full"
-                                />
+                                    class="flex items-center justify-between text-xs"
+                                >
+                                    <span class="text-muted-foreground">
+                                        {{ t.dashboard.planned }}:
+                                        {{ formatMoney(category.current_plan_grosze) }}
+                                    </span>
+                                    <span class="text-muted-foreground">
+                                        {{ t.dashboard.executed }}:
+                                        {{ formatMoney(category.execution_grosze) }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="bg-muted h-2 overflow-hidden rounded-full"
+                                >
+                                    <div
+                                        class="h-full rounded-full transition-all"
+                                        :class="progressBarClass(category)"
+                                        :style="{ width: progressWidth(category) }"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </CardContent>
