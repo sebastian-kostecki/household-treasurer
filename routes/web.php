@@ -1,13 +1,21 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-    Route::inertia('budget', 'Budget')->name('budget');
+    Route::get('budget', [BudgetController::class, 'show'])->name('budget');
+    Route::post('budgets', [BudgetController::class, 'store'])->name('budgets.store');
+    Route::delete('budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
+    Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
+    Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::inertia('operations', 'Operations')->name('operations');
 });
