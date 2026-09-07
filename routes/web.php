@@ -3,8 +3,9 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\FinancialOperationController;
 use App\Http\Controllers\IncomeController;
+use App\Http\Controllers\OperationsController;
+use App\Http\Controllers\OwnTransferController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -20,8 +21,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::get('operations', [FinancialOperationController::class, 'index'])->name('operations');
+    Route::get('operations', [OperationsController::class, 'index'])->name('operations');
     Route::post('incomes', [IncomeController::class, 'store'])->name('incomes.store');
+    Route::resource('own-transfers', OwnTransferController::class)->only(['store', 'update', 'destroy']);
 });
 
 require __DIR__.'/settings.php';

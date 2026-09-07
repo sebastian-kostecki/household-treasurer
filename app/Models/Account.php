@@ -67,9 +67,27 @@ class Account extends Model
         return $this->hasMany(FinancialOperation::class);
     }
 
+    /**
+     * @return HasMany<OwnTransfer, $this>
+     */
+    public function outgoingOwnTransfers(): HasMany
+    {
+        return $this->hasMany(OwnTransfer::class, 'source_account_id');
+    }
+
+    /**
+     * @return HasMany<OwnTransfer, $this>
+     */
+    public function incomingOwnTransfers(): HasMany
+    {
+        return $this->hasMany(OwnTransfer::class, 'destination_account_id');
+    }
+
     public function hasFinancialHistory(): bool
     {
-        return $this->financialOperations()->exists();
+        return $this->financialOperations()->exists()
+            || $this->outgoingOwnTransfers()->exists()
+            || $this->incomingOwnTransfers()->exists();
     }
 
     public function isArchived(): bool
