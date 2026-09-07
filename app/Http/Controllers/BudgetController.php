@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\StartBudgetExecution;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Http\Requests\SelectBudgetYearRequest;
@@ -9,6 +10,7 @@ use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\BudgetDeficitWarning;
 use App\Support\SelectedBudgetYear;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +33,7 @@ class BudgetController extends Controller
                 'budget' => null,
                 'incomeCategories' => [],
                 'expenseCategories' => [],
+                'deficitWarning' => null,
             ]);
         }
 
@@ -44,6 +47,7 @@ class BudgetController extends Controller
                 'year' => $budget->year,
                 'phase' => $budget->phase->value,
                 'can_delete' => $budget->isDraft(),
+                'can_start_execution' => $budget->isDraft(),
             ],
             'incomeCategories' => $categories
                 ->where('type', CategoryType::Income)
@@ -55,6 +59,9 @@ class BudgetController extends Controller
                 ->values()
                 ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all(),
+            'deficitWarning' => $budget->isDraft()
+                ? BudgetDeficitWarning::forBudget($budget, $user, $categories)
+                : null,
         ]);
     }
 
@@ -104,6 +111,20 @@ class BudgetController extends Controller
         return to_route('budget');
     }
 
+    public function startExecution(Request $request, Budget $budget, StartBudgetExecution $startBudgetExecution): RedirectResponse
+    {
+        $this->authorize('startExecution', $budget);
+
+        $startBudgetExecution->handle($budget);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Budget execution started.'),
+        ]);
+
+        return to_route('budget');
+    }
+
     private function findBudgetForYear(User $user, ?int $year): ?Budget
     {
         if ($year === null) {
@@ -128,12 +149,16 @@ class BudgetController extends Controller
      */
     private function categoryPayload(Category $category, Budget $budget): array
     {
+        $initialPlanGrosze = $budget->isExecution()
+            ? $category->initial_plan_grosze
+            : $category->planned_amount_grosze;
+
         return [
             'id' => $category->id,
             'name' => $category->name,
             'type' => $category->type->value,
             'planned_amount_grosze' => $category->planned_amount_grosze,
-            'initial_plan_grosze' => $category->planned_amount_grosze,
+            'initial_plan_grosze' => $initialPlanGrosze,
             'current_plan_grosze' => $category->planned_amount_grosze,
             'execution_grosze' => $category->execution_grosze,
             'can_edit' => $budget->isDraft(),

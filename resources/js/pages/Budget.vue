@@ -38,6 +38,13 @@ type BudgetSummary = {
     year: number;
     phase: 'draft' | 'execution';
     can_delete: boolean;
+    can_start_execution: boolean;
+};
+
+type DeficitWarning = {
+    planned_deficit_grosze: number;
+    liquidity_at_year_start_grosze: number;
+    uncovered_deficit_grosze: number;
 };
 
 type CategoryRow = CategoryFormCategory & {
@@ -52,6 +59,7 @@ const props = defineProps<{
     budget: BudgetSummary | null;
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
+    deficitWarning: DeficitWarning | null;
 }>();
 
 const t = useTranslations();
@@ -68,6 +76,23 @@ const phaseLabel = computed(() =>
 );
 
 const isDraft = computed(() => props.budget?.phase === 'draft');
+
+const deficitWarningMessage = computed(() => {
+    if (props.deficitWarning === null) {
+        return null;
+    }
+
+    return t.budget.deficit_warning
+        .replace(':deficit', formatMoney(props.deficitWarning.planned_deficit_grosze))
+        .replace(
+            ':liquidity',
+            formatMoney(props.deficitWarning.liquidity_at_year_start_grosze),
+        )
+        .replace(
+            ':uncovered',
+            formatMoney(props.deficitWarning.uncovered_deficit_grosze),
+        );
+});
 
 setLayoutProps({
     breadcrumbs: [
@@ -178,9 +203,44 @@ function openEditDialog(category: CategoryRow): void {
                     >
                         {{ t.budget.add_expense }}
                     </Button>
-                    <Button disabled :title="t.budget.start_execution_hint">
-                        {{ t.budget.start_execution }}
-                    </Button>
+                    <Dialog v-if="budget.can_start_execution">
+                        <DialogTrigger as-child>
+                            <Button>
+                                {{ t.budget.start_execution }}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <Form
+                                v-bind="BudgetController.startExecution.form(budget)"
+                                v-slot="{ processing }"
+                            >
+                                <DialogHeader>
+                                    <DialogTitle>
+                                        {{ t.budget.start_execution_title }}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {{ t.budget.start_execution_description }}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <p
+                                    v-if="deficitWarningMessage"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ deficitWarningMessage }}
+                                </p>
+                                <DialogFooter class="gap-2">
+                                    <DialogClose as-child>
+                                        <Button type="button" variant="secondary">
+                                            {{ t.budget.cancel }}
+                                        </Button>
+                                    </DialogClose>
+                                    <Button type="submit" :disabled="processing">
+                                        {{ t.budget.start_execution_confirm }}
+                                    </Button>
+                                </DialogFooter>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
                     <Dialog v-if="budget.can_delete">
                         <DialogTrigger as-child>
                             <Button variant="destructive">

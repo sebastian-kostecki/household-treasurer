@@ -56,4 +56,9 @@ class Budget extends Model
     {
         return $this->phase === BudgetPhase::Draft;
     }
+
+    public function isExecution(): bool
+    {
+        return $this->phase === BudgetPhase::Execution;
+    }
 }

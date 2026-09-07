@@ -27,6 +27,11 @@ class BudgetPolicy
         return $this->ownsBudget($user, $budget) && $budget->isDraft();
     }
 
+    public function startExecution(User $user, Budget $budget): bool
+    {
+        return $this->ownsBudget($user, $budget) && $budget->isDraft();
+    }
+
     private function ownsBudget(User $user, Budget $budget): bool
     {
         return $user->id === $budget->user_id;
