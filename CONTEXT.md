@@ -1,0 +1,49 @@
+# Household Treasurer
+
+A single-user household budget and liquidity tracker: annual category plans versus real cash on bank and cash accounts. UI is Polish; this glossary is the English domain language used in code and agent docs.
+
+## Language
+
+**User**:
+The person who signs in. Owns an isolated data space. Not shared with household members in MVP.
+_Avoid_: Account (for the login identity), Customer, Member
+
+**Account**:
+A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year.
+_Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User
+
+**Budget**:
+The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution.
+_Avoid_: Year, Period, Wallet
+
+**Initial Plan**:
+The planned income amounts and expense limits frozen when execution starts. Immutable afterwards.
+_Avoid_: Original budget, Baseline (in UI copy)
+
+**Current Plan**:
+The live planned income amounts and expense limits. May change during execution without touching the Initial Plan.
+_Avoid_: Revised budget, Forecast
+
+**Category**:
+An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit.
+_Avoid_: Tag, Label, Envelope
+
+**Execution**:
+Booked income and expense amounts against a Category in a Budget that has started execution.
+_Avoid_: Actuals (in code names; UI may say “wykonanie”)
+
+**Available Limit**:
+Current Plan of an expense Category minus booked expenses. Not cash on Accounts.
+_Avoid_: Balance, Available funds, Remaining cash
+
+**Financial Operation**:
+An income, expense, or expense refund: dated, non-zero amount, description, one Account, one Category of matching type. Affects both Account balance and Category Execution.
+_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type)
+
+**Own Transfer**:
+A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash.
+_Avoid_: Internal transfer, Move (as the type name)
+
+**Liquidity**:
+The current balances of Accounts and their sum. A separate plane from Budget Execution.
+_Avoid_: Net worth, Wealth, Portfolio
