@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -55,9 +56,26 @@ class Account extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<OwnTransfer, $this>
+     */
+    public function outgoingOwnTransfers(): HasMany
+    {
+        return $this->hasMany(OwnTransfer::class, 'source_account_id');
+    }
+
+    /**
+     * @return HasMany<OwnTransfer, $this>
+     */
+    public function incomingOwnTransfers(): HasMany
+    {
+        return $this->hasMany(OwnTransfer::class, 'destination_account_id');
+    }
+
     public function hasFinancialHistory(): bool
     {
-        return false;
+        return $this->outgoingOwnTransfers()->exists()
+            || $this->incomingOwnTransfers()->exists();
     }
 
     public function isNegative(): bool
