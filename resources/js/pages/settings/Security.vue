@@ -6,6 +6,7 @@ import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/security';
 import type { Props as ManagePasskeysProps } from '@/components/ManagePasskeys.vue';
 import ManagePasskeys from '@/components/ManagePasskeys.vue';
@@ -19,12 +20,13 @@ type Props = {
     ManageTwoFactorProps;
 
 const props = defineProps<Props>();
+const t = useTranslations();
 
 defineOptions({
     layout: {
         breadcrumbs: [
             {
-                title: 'Security settings',
+                title: t.settings.security,
                 href: edit(),
             },
         ],
@@ -33,9 +35,9 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Security settings" />
+    <Head :title="t.settings.security_title" />
 
-    <h1 class="sr-only">Security settings</h1>
+    <h1 class="sr-only">{{ t.settings.security_title }}</h1>
 
     <div class="space-y-6">
         <Heading

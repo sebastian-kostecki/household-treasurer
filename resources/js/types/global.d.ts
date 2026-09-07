@@ -19,6 +19,8 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            shell: import('@/types/shell').ShellState;
+            translations: import('@/types/shell').UiTranslations;
             [key: string]: unknown;
         };
     }

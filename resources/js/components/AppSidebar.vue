@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import {
+    ArrowLeftRight,
+    LayoutGrid,
+    PiggyBank,
+    Settings,
+    Wallet,
+} from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
-import NavFooter from '@/components/NavFooter.vue';
+import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -13,28 +19,45 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { useTranslations } from '@/composables/useTranslations';
+import {
+    accounts,
+    budget,
+    dashboard,
+    operations,
+} from '@/routes';
+import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
+
+const t = useTranslations();
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: t.nav.dashboard,
         href: dashboard(),
         icon: LayoutGrid,
     },
-];
-
-const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
+        title: t.nav.budget,
+        href: budget(),
+        icon: PiggyBank,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
+        title: t.nav.accounts,
+        href: accounts(),
+        icon: Wallet,
+    },
+    {
+        title: t.nav.operations,
+        href: operations(),
+        icon: ArrowLeftRight,
+    },
+    {
+        title: t.nav.settings,
+        href: editProfile(),
+        icon: Settings,
     },
 ];
 </script>
@@ -51,14 +74,15 @@ const footerNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
+            <BudgetYearSwitcher />
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="mainNavItems" :label="t.nav.menu" />
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
+            <SidebarSeparator />
             <NavUser />
         </SidebarFooter>
     </Sidebar>
