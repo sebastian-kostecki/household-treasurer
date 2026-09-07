@@ -28,6 +28,8 @@ class OperationsController extends Controller
                 'description' => $operation->description,
                 'type' => $operation->type->value,
                 'amount_grosze' => $operation->amount_grosze,
+                'account_id' => $operation->account_id,
+                'category_id' => $operation->category_id,
                 'account_name' => $operation->account->name,
                 'category_name' => $operation->category->name,
             ]);
