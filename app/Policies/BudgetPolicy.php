@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Budget;
+use App\Models\User;
+
+class BudgetPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function view(User $user, Budget $budget): bool
+    {
+        return $this->ownsBudget($user, $budget);
+    }
+
+    public function create(User $user): bool
+    {
+        return true;
+    }
+
+    public function delete(User $user, Budget $budget): bool
+    {
+        return $this->ownsBudget($user, $budget) && $budget->isDraft();
+    }
+
+    private function ownsBudget(User $user, Budget $budget): bool
+    {
+        return $user->id === $budget->user_id;
+    }
+}
