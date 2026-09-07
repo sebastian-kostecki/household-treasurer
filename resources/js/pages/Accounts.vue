@@ -28,7 +28,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatDate, formatMoney } from '@/lib/format';
-import { index as accounts } from '@/routes/accounts';
+import { index as accountsRoute } from '@/routes/accounts';
 
 type AccountRow = AccountFormAccount & {
     current_balance_grosze: number;
@@ -55,7 +55,7 @@ setLayoutProps({
     breadcrumbs: [
         {
             title: t.nav.accounts,
-            href: accounts(),
+            href: accountsRoute(),
         },
     ],
 });
