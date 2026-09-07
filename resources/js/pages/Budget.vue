@@ -31,7 +31,7 @@ import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney } from '@/lib/format';
-import { budget } from '@/routes';
+import { budget as budgetRoute } from '@/routes';
 
 type BudgetSummary = {
     id: number;
@@ -73,7 +73,7 @@ setLayoutProps({
     breadcrumbs: [
         {
             title: t.nav.budget,
-            href: budget(),
+            href: budgetRoute(),
         },
     ],
 });
