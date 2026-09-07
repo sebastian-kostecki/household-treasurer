@@ -145,6 +145,7 @@ class BudgetController extends Controller
      *     execution_grosze: int,
      *     can_edit: bool,
      *     can_delete: bool,
+     *     can_change_type: bool,
      * }
      */
     private function categoryPayload(Category $category, Budget $budget): array
@@ -161,8 +162,9 @@ class BudgetController extends Controller
             'initial_plan_grosze' => $initialPlanGrosze,
             'current_plan_grosze' => $category->planned_amount_grosze,
             'execution_grosze' => $category->execution_grosze,
-            'can_edit' => $budget->isDraft(),
+            'can_edit' => $budget->isDraft() || $budget->isExecution(),
             'can_delete' => $budget->isDraft(),
+            'can_change_type' => $budget->isDraft(),
         ];
     }
 }

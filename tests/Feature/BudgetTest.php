@@ -491,4 +491,205 @@ class BudgetTest extends TestCase
                 ->where('shell.firstRun.executionStarted', true),
             );
     }
+
+    public function test_user_can_change_current_plan_after_execution_started(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $income = Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 500000,
+        ]);
+        $expense = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'planned_amount_grosze' => 300000,
+            'initial_plan_grosze' => 300000,
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', $income), [
+                'name' => 'Salary',
+                'type' => CategoryType::Income->value,
+                'planned_amount_grosze' => 750000,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', $expense), [
+                'name' => 'Groceries',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_grosze' => 200000,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $income->id,
+            'planned_amount_grosze' => 750000,
+        ]);
+        $this->assertDatabaseHas('categories', [
+            'id' => $expense->id,
+            'planned_amount_grosze' => 200000,
+        ]);
+    }
+
+    public function test_changing_current_plan_does_not_modify_initial_plan(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 500000,
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', $category), [
+                'name' => 'Salary',
+                'type' => CategoryType::Income->value,
+                'planned_amount_grosze' => 750000,
+                'initial_plan_grosze' => 1,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'planned_amount_grosze' => 750000,
+            'initial_plan_grosze' => 500000,
+        ]);
+    }
+
+    public function test_user_can_add_category_during_execution_with_zero_initial_plan(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $budget), [
+                'name' => 'Bonus',
+                'type' => CategoryType::Income->value,
+                'planned_amount_grosze' => 120000,
+                'initial_plan_grosze' => 999999,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $this->assertDatabaseHas('categories', [
+            'budget_id' => $budget->id,
+            'name' => 'Bonus',
+            'type' => CategoryType::Income->value,
+            'planned_amount_grosze' => 120000,
+            'initial_plan_grosze' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories.0.initial_plan_grosze', 0)
+                ->where('incomeCategories.0.current_plan_grosze', 120000),
+            );
+    }
+
+    public function test_user_cannot_change_category_type_after_execution_started(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 500000,
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->patch(route('categories.update', $category), [
+                'name' => 'Salary',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_grosze' => 500000,
+            ])
+            ->assertSessionHasErrors('type');
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'type' => CategoryType::Income->value,
+            'planned_amount_grosze' => 500000,
+        ]);
+    }
+
+    public function test_user_cannot_delete_category_after_execution_started(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->create([
+            'initial_plan_grosze' => 10000,
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('categories.destroy', $category))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('categories', ['id' => $category->id]);
+    }
+
+    public function test_user_cannot_change_current_plan_on_another_users_budget(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 500000,
+        ]);
+
+        $this->actingAs($otherUser)
+            ->patch(route('categories.update', $category), [
+                'name' => 'Stolen',
+                'type' => CategoryType::Income->value,
+                'planned_amount_grosze' => 1,
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($otherUser)
+            ->post(route('categories.store', $budget), [
+                'name' => 'Stolen',
+                'type' => CategoryType::Income->value,
+                'planned_amount_grosze' => 1,
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 500000,
+        ]);
+        $this->assertDatabaseMissing('categories', [
+            'budget_id' => $budget->id,
+            'name' => 'Stolen',
+        ]);
+    }
+
+    public function test_budget_page_allows_editing_current_plan_but_not_deleting_during_execution(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 500000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories.0.can_edit', true)
+                ->where('incomeCategories.0.can_delete', false)
+                ->where('incomeCategories.0.can_change_type', false),
+            );
+    }
 }

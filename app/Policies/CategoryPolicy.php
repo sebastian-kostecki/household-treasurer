@@ -9,18 +9,16 @@ class CategoryPolicy
 {
     public function update(User $user, Category $category): bool
     {
-        return $this->ownsDraftCategory($user, $category);
+        return $this->ownsCategory($user, $category);
     }
 
     public function delete(User $user, Category $category): bool
     {
-        return $this->ownsDraftCategory($user, $category);
+        return $this->ownsCategory($user, $category) && $category->budget->isDraft();
     }
 
-    private function ownsDraftCategory(User $user, Category $category): bool
+    private function ownsCategory(User $user, Category $category): bool
     {
-        $budget = $category->budget;
-
-        return $user->id === $budget->user_id && $budget->isDraft();
+        return $user->id === $category->budget->user_id;
     }
 }

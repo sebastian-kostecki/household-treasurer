@@ -34,6 +34,7 @@ const props = defineProps<{
     budgetId: number;
     defaultType: 'income' | 'expense';
     category?: CategoryFormCategory | null;
+    lockType?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -114,7 +115,9 @@ function closeDialog(): void {
                         {{
                             mode === 'create'
                                 ? t.budget.create_category_description
-                                : t.budget.edit_category_description
+                                : lockType
+                                  ? t.budget.edit_category_description_execution
+                                  : t.budget.edit_category_description
                         }}
                     </DialogDescription>
                 </DialogHeader>
@@ -137,7 +140,8 @@ function closeDialog(): void {
                         id="category-type"
                         name="type"
                         v-model="type"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        :disabled="lockType"
+                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="income">
                             {{ t.budget.type_income }}
@@ -146,6 +150,12 @@ function closeDialog(): void {
                             {{ t.budget.type_expense }}
                         </option>
                     </select>
+                    <input
+                        v-if="lockType"
+                        type="hidden"
+                        name="type"
+                        :value="type"
+                    />
                     <InputError :message="errors.type" />
                 </div>
 

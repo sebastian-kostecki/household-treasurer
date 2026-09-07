@@ -6,6 +6,7 @@ use App\Concerns\CategoryValidationRules;
 use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -27,6 +28,13 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->updateCategoryRules();
+        $rules = $this->updateCategoryRules();
+        $category = $this->route('category');
+
+        if ($category instanceof Category && $category->budget->isExecution()) {
+            $rules['type'] = ['required', Rule::in([$category->type->value])];
+        }
+
+        return $rules;
     }
 }
