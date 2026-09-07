@@ -7,6 +7,7 @@ export type FirstRunState = {
 
 export type ShellState = {
     budgetYear: number | null;
+    budgetYears: number[];
     firstRun: FirstRunState;
 };
 
@@ -23,6 +24,7 @@ export type UiTranslations = {
         budget_year: string;
         no_budget_year: string;
         add_budget_year: string;
+        select_year: string;
     };
     auth: Record<string, Record<string, string>>;
     settings: Record<string, string>;

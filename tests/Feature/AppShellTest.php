@@ -43,6 +43,7 @@ class AppShellTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component($component)
                 ->where('shell.budgetYear', null)
+                ->where('shell.budgetYears', [])
                 ->where('shell.firstRun.hasAccount', false)
                 ->where('shell.firstRun.hasBudget', false)
                 ->where('shell.firstRun.hasCategories', false)
