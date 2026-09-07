@@ -17,15 +17,24 @@ class AccountController extends Controller
 
     public function index(Request $request): Response
     {
-        $accounts = $request->user()
+        $showArchived = $request->boolean('show_archived');
+
+        $allAccounts = $request->user()
             ->accounts()
             ->orderBy('name')
-            ->get()
+            ->get();
+
+        $accounts = $allAccounts
+            ->when(! $showArchived, fn ($collection) => $collection->filter(
+                fn (Account $account): bool => ! $account->isArchived(),
+            ))
+            ->values()
             ->map(fn (Account $account): array => $this->accountPayload($account));
 
         return Inertia::render('Accounts', [
             'accounts' => $accounts,
-            'liquidity_total_grosze' => $accounts->sum('current_balance_grosze'),
+            'liquidity_total_grosze' => $allAccounts->sum('current_balance_grosze'),
+            'show_archived' => $showArchived,
         ]);
     }
 
@@ -85,6 +94,34 @@ class AccountController extends Controller
         return to_route('accounts.index');
     }
 
+    public function archive(Request $request, Account $account): RedirectResponse
+    {
+        $this->authorize('archive', $account);
+
+        $account->update(['archived_at' => now()]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Account archived.'),
+        ]);
+
+        return to_route('accounts.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
+    public function restore(Request $request, Account $account): RedirectResponse
+    {
+        $this->authorize('restore', $account);
+
+        $account->update(['archived_at' => null]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Account restored.'),
+        ]);
+
+        return to_route('accounts.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
     /**
      * @return array{
      *     id: int,
@@ -94,7 +131,10 @@ class AccountController extends Controller
      *     opening_balance_grosze: int,
      *     current_balance_grosze: int,
      *     is_negative: bool,
+     *     is_archived: bool,
      *     can_delete: bool,
+     *     can_archive: bool,
+     *     can_restore: bool,
      * }
      */
     private function accountPayload(Account $account): array
@@ -107,7 +147,10 @@ class AccountController extends Controller
             'opening_balance_grosze' => $account->opening_balance_grosze,
             'current_balance_grosze' => $account->current_balance_grosze,
             'is_negative' => $account->isNegative(),
-            'can_delete' => ! $account->hasFinancialHistory(),
+            'is_archived' => $account->isArchived(),
+            'can_delete' => ! $account->hasFinancialHistory() && ! $account->isArchived(),
+            'can_archive' => $account->hasFinancialHistory() && ! $account->isArchived(),
+            'can_restore' => $account->isArchived(),
         ];
     }
 }

@@ -287,6 +287,54 @@ class OwnTransferTest extends TestCase
             ->assertSessionHasErrors('source_account_id');
     }
 
+    public function test_own_transfer_cannot_use_archived_source_account(): void
+    {
+        $user = User::factory()->create();
+        $source = Account::factory()->for($user)->archived()->create([
+            'opening_date' => '2026-01-01',
+            'current_balance_grosze' => 100000,
+            'opening_balance_grosze' => 100000,
+        ]);
+        $destination = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('operations'))
+            ->post(route('own-transfers.store'), [
+                'transfer_date' => '2026-03-01',
+                'amount_grosze' => 1000,
+                'description' => 'Transfer',
+                'source_account_id' => $source->id,
+                'destination_account_id' => $destination->id,
+            ])
+            ->assertSessionHasErrors('source_account_id');
+    }
+
+    public function test_own_transfer_cannot_use_archived_destination_account(): void
+    {
+        $user = User::factory()->create();
+        $source = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'current_balance_grosze' => 100000,
+            'opening_balance_grosze' => 100000,
+        ]);
+        $destination = Account::factory()->for($user)->archived()->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('operations'))
+            ->post(route('own-transfers.store'), [
+                'transfer_date' => '2026-03-01',
+                'amount_grosze' => 1000,
+                'description' => 'Transfer',
+                'source_account_id' => $source->id,
+                'destination_account_id' => $destination->id,
+            ])
+            ->assertSessionHasErrors('destination_account_id');
+    }
+
     public function test_operations_page_lists_own_transfers(): void
     {
         $user = User::factory()->create();

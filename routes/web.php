@@ -20,7 +20,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
+    Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
+    Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');
     Route::get('operations', [OperationsController::class, 'index'])->name('operations');
     Route::post('incomes', [IncomeController::class, 'store'])->name('incomes.store');
     Route::resource('own-transfers', OwnTransferController::class)->only(['store', 'update', 'destroy']);
