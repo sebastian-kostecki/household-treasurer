@@ -18,7 +18,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoney, parseMoneyInputToGrosze } from '@/lib/format';
+import {
+    formatMoney,
+    groszeToMoneyInput,
+    parseMoneyInputToGrosze,
+} from '@/lib/format';
 
 export type ExpenseFormAccount = {
     id: number;
@@ -35,8 +39,19 @@ export type ExpenseFormCategory = {
     execution_grosze: number;
 };
 
+export type ExpenseFormOperation = {
+    id: number;
+    operation_date: string;
+    amount_grosze: number;
+    description: string;
+    account_id: number;
+    category_id: number;
+};
+
 const props = defineProps<{
     open: boolean;
+    mode: 'create' | 'edit';
+    operation?: ExpenseFormOperation | null;
     accounts: ExpenseFormAccount[];
     expenseCategories: ExpenseFormCategory[];
 }>();
@@ -54,6 +69,15 @@ const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountGrosze = ref(0);
 const isRefund = ref(false);
+const originalAmountGrosze = ref(0);
+const originalAccountId = ref<number | null>(null);
+const originalCategoryId = ref<number | null>(null);
+
+const formBinding = computed(() =>
+    props.mode === 'create'
+        ? ExpenseController.store.form()
+        : ExpenseController.update.form(props.operation ?? { id: 0 }),
+);
 
 const availableCategories = computed(() => {
     if (!operationDate.value) {
@@ -83,6 +107,18 @@ const signedAmountGrosze = computed(() => {
     return isRefund.value ? -absoluteAmount : absoluteAmount;
 });
 
+const executionAdjustmentGrosze = computed(() => {
+    if (props.mode !== 'edit' || originalCategoryId.value === null) {
+        return 0;
+    }
+
+    if (categoryId.value === originalCategoryId.value) {
+        return originalAmountGrosze.value;
+    }
+
+    return 0;
+});
+
 const availableLimitGrosze = computed(() => {
     if (!selectedCategory.value) {
         return null;
@@ -90,7 +126,8 @@ const availableLimitGrosze = computed(() => {
 
     return (
         selectedCategory.value.planned_amount_grosze -
-        selectedCategory.value.execution_grosze
+        selectedCategory.value.execution_grosze +
+        executionAdjustmentGrosze.value
     );
 });
 
@@ -102,13 +139,26 @@ const predictedLimitGrosze = computed(() => {
     return availableLimitGrosze.value - signedAmountGrosze.value;
 });
 
+const accountBalanceAdjustmentGrosze = computed(() => {
+    if (props.mode !== 'edit' || originalAccountId.value === null) {
+        return 0;
+    }
+
+    if (accountId.value === originalAccountId.value) {
+        return originalAmountGrosze.value;
+    }
+
+    return 0;
+});
+
 const predictedBalanceGrosze = computed(() => {
     if (!selectedAccount.value) {
         return null;
     }
 
     return (
-        selectedAccount.value.current_balance_grosze -
+        selectedAccount.value.current_balance_grosze +
+        accountBalanceAdjustmentGrosze.value -
         signedAmountGrosze.value
     );
 });
@@ -127,9 +177,26 @@ const showNegativeBalanceWarning = computed(
 );
 
 watch(
-    () => props.open,
-    (open) => {
+    () => [props.open, props.mode, props.operation] as const,
+    ([open]) => {
         if (!open) {
+            return;
+        }
+
+        if (props.mode === 'edit' && props.operation) {
+            operationDate.value = props.operation.operation_date;
+            description.value = props.operation.description;
+            accountId.value = props.operation.account_id;
+            categoryId.value = props.operation.category_id;
+            isRefund.value = props.operation.amount_grosze < 0;
+            amountGrosze.value = Math.abs(props.operation.amount_grosze);
+            amountInput.value = groszeToMoneyInput(
+                Math.abs(props.operation.amount_grosze),
+            );
+            originalAmountGrosze.value = props.operation.amount_grosze;
+            originalAccountId.value = props.operation.account_id;
+            originalCategoryId.value = props.operation.category_id;
+
             return;
         }
 
@@ -140,6 +207,9 @@ watch(
         amountGrosze.value = 0;
         amountInput.value = '0,00';
         isRefund.value = false;
+        originalAmountGrosze.value = 0;
+        originalAccountId.value = null;
+        originalCategoryId.value = null;
     },
     { immediate: true },
 );
@@ -149,7 +219,8 @@ watch(availableCategories, (categories) => {
         categoryId.value !== '' &&
         !categories.some((category) => category.id === categoryId.value)
     ) {
-        categoryId.value = categories[0]?.id ?? '';
+        categoryId.value =
+            props.mode === 'edit' ? '' : (categories[0]?.id ?? '');
     }
 });
 
@@ -175,7 +246,7 @@ function closeDialog(): void {
     <Dialog :open="open" @update:open="emit('update:open', $event)">
         <DialogContent>
             <Form
-                v-bind="ExpenseController.store.form()"
+                v-bind="formBinding"
                 class="space-y-4"
                 reset-on-success
                 @success="closeDialog"
@@ -185,13 +256,21 @@ function closeDialog(): void {
                 <DialogHeader>
                     <DialogTitle>
                         {{
-                            isRefund
-                                ? t.operations.add_refund_title
-                                : t.operations.add_expense_title
+                            mode === 'create'
+                                ? isRefund
+                                    ? t.operations.add_refund_title
+                                    : t.operations.add_expense_title
+                                : isRefund
+                                  ? t.operations.edit_refund_title
+                                  : t.operations.edit_expense_title
                         }}
                     </DialogTitle>
                     <DialogDescription>
-                        {{ t.operations.add_expense_description }}
+                        {{
+                            mode === 'create'
+                                ? t.operations.add_expense_description
+                                : t.operations.edit_expense_description
+                        }}
                     </DialogDescription>
                 </DialogHeader>
 

@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { Plus, Upload } from '@lucide/vue';
 import { ref } from 'vue';
+import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
+import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
+import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
+    type ExpenseFormOperation,
 } from '@/components/ExpenseFormDialog.vue';
 import IncomeFormDialog, {
     type IncomeFormCategory,
+    type IncomeFormOperation,
 } from '@/components/IncomeFormDialog.vue';
 import OwnTransferFormDialog, {
     type OwnTransferFormTransfer,
@@ -36,12 +41,9 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatDate, formatMoney } from '@/lib/format';
 import { operations as operationsRoute } from '@/routes';
 
-type OperationRow = {
-    id: number;
-    operation_date: string;
-    description: string;
+type OperationRow = IncomeFormOperation &
+    ExpenseFormOperation & {
     type: 'income' | 'expense';
-    amount_grosze: number;
     account_name: string;
     category_name: string;
 };
@@ -72,8 +74,12 @@ const {
 const t = useTranslations();
 const incomeDialogOpen = ref(false);
 const expenseDialogOpen = ref(false);
+const incomeEditDialogOpen = ref(false);
+const expenseEditDialogOpen = ref(false);
 const createDialogOpen = ref(false);
 const editDialogOpen = ref(false);
+const editingIncome = ref<OperationRow | null>(null);
+const editingExpense = ref<OperationRow | null>(null);
 const editingTransfer = ref<OwnTransferRow | null>(null);
 
 setLayoutProps({
@@ -109,6 +115,16 @@ function openEditDialog(transfer: OwnTransferRow): void {
     editingTransfer.value = transfer;
     editDialogOpen.value = true;
 }
+
+function openIncomeEditDialog(operation: OperationRow): void {
+    editingIncome.value = operation;
+    incomeEditDialogOpen.value = true;
+}
+
+function openExpenseEditDialog(operation: OperationRow): void {
+    editingExpense.value = operation;
+    expenseEditDialogOpen.value = true;
+}
 </script>
 
 <template>
@@ -137,9 +153,11 @@ function openEditDialog(transfer: OwnTransferRow): void {
                 >
                     {{ t.operations.add_transfer }}
                 </Button>
-                <Button disabled :title="t.operations.import_hint">
-                    <Upload class="mr-2 size-4" />
-                    {{ t.operations.import_csv }}
+                <Button as-child>
+                    <Link :href="CsvImportController.create.url()">
+                        <Upload class="mr-2 size-4" />
+                        {{ t.operations.import_csv }}
+                    </Link>
                 </Button>
             </div>
         </div>
@@ -176,12 +194,15 @@ function openEditDialog(transfer: OwnTransferRow): void {
                             <th class="pb-2 text-right font-medium">
                                 {{ t.operations.amount }}
                             </th>
+                            <th class="pb-2 text-right font-medium">
+                                {{ t.operations.actions }}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="operationRows.length === 0">
                             <td
-                                colspan="5"
+                                colspan="6"
                                 class="text-muted-foreground py-6 text-center"
                             >
                                 {{ t.operations.empty }}
@@ -207,6 +228,87 @@ function openEditDialog(transfer: OwnTransferRow): void {
                                 :class="operationAmountClass(operation)"
                             >
                                 {{ formatMoney(operation.amount_grosze) }}
+                            </td>
+                            <td class="py-3">
+                                <div class="flex justify-end gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        @click="
+                                            operation.type === 'income'
+                                                ? openIncomeEditDialog(operation)
+                                                : openExpenseEditDialog(operation)
+                                        "
+                                    >
+                                        {{ t.accounts.edit }}
+                                    </Button>
+                                    <Dialog>
+                                        <DialogTrigger as-child>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                            >
+                                                {{ t.accounts.delete }}
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <Form
+                                                v-bind="
+                                                    operation.type === 'income'
+                                                        ? IncomeController.destroy.form(
+                                                              operation,
+                                                          )
+                                                        : ExpenseController.destroy.form(
+                                                              operation,
+                                                          )
+                                                "
+                                                v-slot="{ processing }"
+                                            >
+                                                <DialogHeader>
+                                                    <DialogTitle>
+                                                        {{
+                                                            operation.type ===
+                                                            'income'
+                                                                ? t.operations
+                                                                      .delete_income_confirm_title
+                                                                : t.operations
+                                                                      .delete_expense_confirm_title
+                                                        }}
+                                                    </DialogTitle>
+                                                    <DialogDescription>
+                                                        {{
+                                                            operation.type ===
+                                                            'income'
+                                                                ? t.operations
+                                                                      .delete_income_confirm_body
+                                                                : t.operations
+                                                                      .delete_expense_confirm_body
+                                                        }}
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <DialogFooter class="gap-2">
+                                                    <DialogClose as-child>
+                                                        <Button
+                                                            type="button"
+                                                            variant="secondary"
+                                                        >
+                                                            {{
+                                                                t.accounts.cancel
+                                                            }}
+                                                        </Button>
+                                                    </DialogClose>
+                                                    <Button
+                                                        type="submit"
+                                                        variant="destructive"
+                                                        :disabled="processing"
+                                                    >
+                                                        {{ t.accounts.delete }}
+                                                    </Button>
+                                                </DialogFooter>
+                                            </Form>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -235,16 +337,90 @@ function openEditDialog(transfer: OwnTransferRow): void {
                         · {{ operation.account_name }}
                     </CardDescription>
                 </CardHeader>
-                <CardContent class="flex items-center justify-between">
-                    <Badge variant="secondary">
-                        {{ operationTypeLabel(operation) }}
-                    </Badge>
-                    <span
-                        class="font-medium"
-                        :class="operationAmountClass(operation)"
-                    >
-                        {{ formatMoney(operation.amount_grosze) }}
-                    </span>
+                <CardContent class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <Badge variant="secondary">
+                            {{ operationTypeLabel(operation) }}
+                        </Badge>
+                        <span
+                            class="font-medium"
+                            :class="operationAmountClass(operation)"
+                        >
+                            {{ formatMoney(operation.amount_grosze) }}
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            @click="
+                                operation.type === 'income'
+                                    ? openIncomeEditDialog(operation)
+                                    : openExpenseEditDialog(operation)
+                            "
+                        >
+                            {{ t.accounts.edit }}
+                        </Button>
+                        <Dialog>
+                            <DialogTrigger as-child>
+                                <Button variant="destructive" size="sm">
+                                    {{ t.accounts.delete }}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <Form
+                                    v-bind="
+                                        operation.type === 'income'
+                                            ? IncomeController.destroy.form(
+                                                  operation,
+                                              )
+                                            : ExpenseController.destroy.form(
+                                                  operation,
+                                              )
+                                    "
+                                    v-slot="{ processing }"
+                                >
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {{
+                                                operation.type === 'income'
+                                                    ? t.operations
+                                                          .delete_income_confirm_title
+                                                    : t.operations
+                                                          .delete_expense_confirm_title
+                                            }}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {{
+                                                operation.type === 'income'
+                                                    ? t.operations
+                                                          .delete_income_confirm_body
+                                                    : t.operations
+                                                          .delete_expense_confirm_body
+                                            }}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter class="gap-2">
+                                        <DialogClose as-child>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                            >
+                                                {{ t.accounts.cancel }}
+                                            </Button>
+                                        </DialogClose>
+                                        <Button
+                                            type="submit"
+                                            variant="destructive"
+                                            :disabled="processing"
+                                        >
+                                            {{ t.accounts.delete }}
+                                        </Button>
+                                    </DialogFooter>
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -464,12 +640,30 @@ function openEditDialog(transfer: OwnTransferRow): void {
 
     <IncomeFormDialog
         v-model:open="incomeDialogOpen"
+        mode="create"
+        :accounts="accounts"
+        :income-categories="incomeCategories"
+    />
+
+    <IncomeFormDialog
+        v-model:open="incomeEditDialogOpen"
+        mode="edit"
+        :operation="editingIncome"
         :accounts="accounts"
         :income-categories="incomeCategories"
     />
 
     <ExpenseFormDialog
         v-model:open="expenseDialogOpen"
+        mode="create"
+        :accounts="accounts"
+        :expense-categories="expenseCategories"
+    />
+
+    <ExpenseFormDialog
+        v-model:open="expenseEditDialogOpen"
+        mode="edit"
+        :operation="editingExpense"
         :accounts="accounts"
         :expense-categories="expenseCategories"
     />

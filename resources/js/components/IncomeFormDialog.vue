@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
 
@@ -32,8 +33,19 @@ export type IncomeFormCategory = {
     budget_year: number;
 };
 
+export type IncomeFormOperation = {
+    id: number;
+    operation_date: string;
+    amount_grosze: number;
+    description: string;
+    account_id: number;
+    category_id: number;
+};
+
 const props = defineProps<{
     open: boolean;
+    mode: 'create' | 'edit';
+    operation?: IncomeFormOperation | null;
     accounts: IncomeFormAccount[];
     incomeCategories: IncomeFormCategory[];
 }>();
@@ -51,6 +63,12 @@ const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountGrosze = ref(0);
 
+const formBinding = computed(() =>
+    props.mode === 'create'
+        ? IncomeController.store.form()
+        : IncomeController.update.form(props.operation ?? { id: 0 }),
+);
+
 const availableCategories = computed(() => {
     if (!operationDate.value) {
         return [];
@@ -64,9 +82,20 @@ const availableCategories = computed(() => {
 });
 
 watch(
-    () => props.open,
-    (open) => {
+    () => [props.open, props.mode, props.operation] as const,
+    ([open]) => {
         if (!open) {
+            return;
+        }
+
+        if (props.mode === 'edit' && props.operation) {
+            operationDate.value = props.operation.operation_date;
+            description.value = props.operation.description;
+            accountId.value = props.operation.account_id;
+            categoryId.value = props.operation.category_id;
+            amountGrosze.value = props.operation.amount_grosze;
+            amountInput.value = groszeToMoneyInput(props.operation.amount_grosze);
+
             return;
         }
 
@@ -85,7 +114,8 @@ watch(availableCategories, (categories) => {
         categoryId.value !== '' &&
         !categories.some((category) => category.id === categoryId.value)
     ) {
-        categoryId.value = categories[0]?.id ?? '';
+        categoryId.value =
+            props.mode === 'edit' ? '' : (categories[0]?.id ?? '');
     }
 });
 
@@ -106,7 +136,7 @@ function closeDialog(): void {
     <Dialog :open="open" @update:open="emit('update:open', $event)">
         <DialogContent>
             <Form
-                v-bind="IncomeController.store.form()"
+                v-bind="formBinding"
                 class="space-y-4"
                 reset-on-success
                 @success="closeDialog"
@@ -114,9 +144,19 @@ function closeDialog(): void {
                 v-slot="{ errors, processing, reset, clearErrors }"
             >
                 <DialogHeader>
-                    <DialogTitle>{{ t.operations.add_income_title }}</DialogTitle>
+                    <DialogTitle>
+                        {{
+                            mode === 'create'
+                                ? t.operations.add_income_title
+                                : t.operations.edit_income_title
+                        }}
+                    </DialogTitle>
                     <DialogDescription>
-                        {{ t.operations.add_income_description }}
+                        {{
+                            mode === 'create'
+                                ? t.operations.add_income_description
+                                : t.operations.edit_income_description
+                        }}
                     </DialogDescription>
                 </DialogHeader>
 
