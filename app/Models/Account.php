@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -18,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $opening_date
  * @property int $opening_balance_grosze
  * @property int $current_balance_grosze
+ * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -28,6 +30,7 @@ use Illuminate\Support\Carbon;
     'opening_date',
     'opening_balance_grosze',
     'current_balance_grosze',
+    'archived_at',
 ])]
 class Account extends Model
 {
@@ -44,6 +47,7 @@ class Account extends Model
             'opening_date' => 'date',
             'opening_balance_grosze' => 'integer',
             'current_balance_grosze' => 'integer',
+            'archived_at' => 'datetime',
         ];
     }
 
@@ -55,9 +59,22 @@ class Account extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<FinancialOperation, $this>
+     */
+    public function financialOperations(): HasMany
+    {
+        return $this->hasMany(FinancialOperation::class);
+    }
+
     public function hasFinancialHistory(): bool
     {
-        return false;
+        return $this->financialOperations()->exists();
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
     }
 
     public function isNegative(): bool

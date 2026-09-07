@@ -50,9 +50,11 @@ class AccountController extends Controller
     {
         $validated = $request->validated();
 
+        $openingBalanceDelta = $validated['opening_balance_grosze'] - $account->opening_balance_grosze;
+
         $account->update([
             ...$validated,
-            'current_balance_grosze' => $validated['opening_balance_grosze'],
+            'current_balance_grosze' => $account->current_balance_grosze + $openingBalanceDelta,
         ]);
 
         Inertia::flash('toast', [
