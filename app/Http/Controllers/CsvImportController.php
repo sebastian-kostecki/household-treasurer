@@ -1,0 +1,240 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Actions\ImportFinancialOperations;
+use App\Enums\BudgetPhase;
+use App\Enums\CategoryType;
+use App\Http\Requests\PreviewCsvImportRequest;
+use App\Http\Requests\StoreCsvImportRequest;
+use App\Models\Account;
+use App\Models\FinancialOperation;
+use App\Support\CsvImport\CsvImportParser;
+use App\Support\CsvImport\CsvImportPreviewValidator;
+use App\Support\CsvImport\CsvImportSession;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+use InvalidArgumentException;
+
+class CsvImportController extends Controller
+{
+    use AuthorizesRequests;
+
+    public function create(Request $request): Response
+    {
+        $this->authorize('create', FinancialOperation::class);
+
+        return Inertia::render('OperationsImport', [
+            'accounts' => $this->accounts($request),
+        ]);
+    }
+
+    public function preview(
+        PreviewCsvImportRequest $request,
+        CsvImportParser $parser,
+        CsvImportPreviewValidator $previewValidator,
+    ): RedirectResponse {
+        $this->authorize('create', FinancialOperation::class);
+
+        $account = Account::query()
+            ->whereKey($request->integer('account_id'))
+            ->where('user_id', $request->user()->id)
+            ->whereNull('archived_at')
+            ->firstOrFail();
+
+        $contents = $request->file('file')?->get();
+
+        if (! is_string($contents)) {
+            throw ValidationException::withMessages([
+                'file' => __('The uploaded file could not be read.'),
+            ]);
+        }
+
+        try {
+            $parsedRows = $parser->parse($contents, $request->mapping());
+        } catch (InvalidArgumentException $exception) {
+            throw ValidationException::withMessages([
+                'file' => $exception->getMessage(),
+            ]);
+        }
+
+        $rows = array_map(function (array $row) use ($previewValidator, $account): array {
+            $validated = $previewValidator->validate($row, $account);
+
+            return [
+                'index' => $row['index'],
+                'operation_date' => $row['operation_date'],
+                'description' => $row['description'],
+                'amount_grosze' => $row['amount_grosze'],
+                'valid' => $validated['valid'],
+                'invalid_reason' => $validated['invalid_reason'],
+            ];
+        }, $parsedRows);
+
+        CsvImportSession::put($request->user(), [
+            'account_id' => $account->id,
+            'rows' => $rows,
+        ]);
+
+        return to_route('operations.import.preview');
+    }
+
+    public function showPreview(Request $request): Response|RedirectResponse
+    {
+        $this->authorize('create', FinancialOperation::class);
+
+        $import = CsvImportSession::get($request->user());
+
+        if ($import === null) {
+            return to_route('operations.import.create');
+        }
+
+        $account = Account::query()
+            ->whereKey($import['account_id'])
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        return Inertia::render('OperationsImportPreview', [
+            'account' => [
+                'id' => $account->id,
+                'name' => $account->name,
+            ],
+            'rows' => $import['rows'],
+            'incomeCategories' => $this->incomeCategories($request),
+            'expenseCategories' => $this->expenseCategories($request),
+        ]);
+    }
+
+    public function store(
+        StoreCsvImportRequest $request,
+        ImportFinancialOperations $importFinancialOperations,
+    ): RedirectResponse {
+        $this->authorize('create', FinancialOperation::class);
+
+        $import = CsvImportSession::get($request->user());
+
+        if ($import === null) {
+            return to_route('operations.import.create');
+        }
+
+        $rowsByIndex = collect($import['rows'])->keyBy('index');
+        $selectedRows = [];
+
+        foreach ($request->rowSelections() as $selection) {
+            if (! $selection['selected']) {
+                continue;
+            }
+
+            $parsedRow = $rowsByIndex->get($selection['index']);
+
+            if (! is_array($parsedRow) || ($parsedRow['valid'] ?? false) !== true) {
+                throw ValidationException::withMessages([
+                    'rows' => __('One or more selected rows are invalid.'),
+                ]);
+            }
+
+            if ($selection['category_id'] === null) {
+                throw ValidationException::withMessages([
+                    'rows' => __('Each selected row must have a category.'),
+                ]);
+            }
+
+            $selectedRows[] = [
+                'index' => $selection['index'],
+                'operation_date' => (string) $parsedRow['operation_date'],
+                'description' => (string) $parsedRow['description'],
+                'amount_grosze' => (int) $parsedRow['amount_grosze'],
+                'type' => $selection['type'],
+                'category_id' => $selection['category_id'],
+            ];
+        }
+
+        $created = $importFinancialOperations->handle(
+            $request->user(),
+            (int) $import['account_id'],
+            $selectedRows,
+        );
+
+        CsvImportSession::forget();
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => trans_choice(':count financial operation imported.|:count financial operations imported.', $created, [
+                'count' => $created,
+            ]),
+        ]);
+
+        return to_route('operations');
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string, opening_date: string}>
+     */
+    private function accounts(Request $request): array
+    {
+        return $request->user()
+            ->accounts()
+            ->whereNull('archived_at')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Account $account): array => [
+                'id' => $account->id,
+                'name' => $account->name,
+                'opening_date' => $account->opening_date->toDateString(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string, budget_year: int}>
+     */
+    private function incomeCategories(Request $request): array
+    {
+        return $request->user()
+            ->budgets()
+            ->where('phase', BudgetPhase::Execution)
+            ->with(['categories' => fn ($query) => $query
+                ->where('type', CategoryType::Income)
+                ->whereNull('archived_at')
+                ->orderBy('name'),
+            ])
+            ->orderBy('year')
+            ->get()
+            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'budget_year' => $budget->year,
+            ]))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string, budget_year: int}>
+     */
+    private function expenseCategories(Request $request): array
+    {
+        return $request->user()
+            ->budgets()
+            ->where('phase', BudgetPhase::Execution)
+            ->with(['categories' => fn ($query) => $query
+                ->where('type', CategoryType::Expense)
+                ->whereNull('archived_at')
+                ->orderBy('name'),
+            ])
+            ->orderBy('year')
+            ->get()
+            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'budget_year' => $budget->year,
+            ]))
+            ->values()
+            ->all();
+    }
+}

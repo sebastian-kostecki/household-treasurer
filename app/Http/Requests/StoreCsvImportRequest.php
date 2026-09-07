@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StoreCsvImportRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function rules(): array
+    {
+        return [
+            'rows' => ['required', 'array', 'min:1'],
+            'rows.*.index' => ['required', 'integer', 'min:0'],
+            'rows.*.selected' => ['required', 'boolean'],
+            'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund'])],
+            'rows.*.category_id' => ['nullable', 'integer'],
+            'duplicate_warning_acknowledged' => ['accepted'],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = $this->input('rows', []);
+
+        $this->merge([
+            'rows' => collect($rows)
+                ->map(fn (array $row): array => [
+                    'index' => $row['index'] ?? null,
+                    'selected' => filter_var($row['selected'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'type' => $row['type'] ?? null,
+                    'category_id' => isset($row['category_id']) && $row['category_id'] !== ''
+                        ? $row['category_id']
+                        : null,
+                ])
+                ->all(),
+        ]);
+    }
+
+    /**
+     * @return array<int, array{
+     *     index: int,
+     *     selected: bool,
+     *     type: 'income'|'expense'|'refund',
+     *     category_id: int|null,
+     * }>
+     */
+    public function rowSelections(): array
+    {
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = $this->input('rows', []);
+
+        return array_values(array_map(function (array $row): array {
+            return [
+                'index' => (int) $row['index'],
+                'selected' => (bool) ($row['selected'] ?? false),
+                'type' => (string) $row['type'],
+                'category_id' => isset($row['category_id']) ? (int) $row['category_id'] : null,
+            ];
+        }, $rows));
+    }
+}
