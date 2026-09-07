@@ -53,6 +53,7 @@ type CategoryRow = CategoryFormCategory & {
     execution_grosze: number;
     can_edit: boolean;
     can_delete: boolean;
+    can_change_type: boolean;
 };
 
 const props = defineProps<{
@@ -74,8 +75,6 @@ const phaseLabel = computed(() =>
         ? t.budget.phase_execution
         : t.budget.phase_draft,
 );
-
-const isDraft = computed(() => props.budget?.phase === 'draft');
 
 const deficitWarningMessage = computed(() => {
     if (props.deficitWarning === null) {
@@ -190,14 +189,12 @@ function openEditDialog(category: CategoryRow): void {
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <Button
-                        v-if="isDraft"
                         variant="outline"
                         @click="createIncomeDialogOpen = true"
                     >
                         {{ t.budget.add_income }}
                     </Button>
                     <Button
-                        v-if="isDraft"
                         variant="outline"
                         @click="createExpenseDialogOpen = true"
                     >
@@ -320,10 +317,7 @@ function openEditDialog(category: CategoryRow): void {
                                     <th class="pb-2 text-right font-medium">
                                         {{ t.budget.execution }}
                                     </th>
-                                    <th
-                                        v-if="isDraft"
-                                        class="pb-2 text-right font-medium"
-                                    />
+                                    <th class="pb-2 text-right font-medium" />
                                 </tr>
                             </thead>
                             <tbody>
@@ -362,14 +356,12 @@ function openEditDialog(category: CategoryRow): void {
                                             )
                                         }}
                                     </td>
-                                    <td
-                                        v-if="isDraft"
-                                        class="py-2 text-right"
-                                    >
+                                    <td class="py-2 text-right">
                                         <div
                                             class="flex justify-end gap-1"
                                         >
                                             <Button
+                                                v-if="category.can_edit"
                                                 variant="ghost"
                                                 size="sm"
                                                 @click="
@@ -473,10 +465,7 @@ function openEditDialog(category: CategoryRow): void {
                                     <th class="pb-2 text-right font-medium">
                                         {{ t.budget.execution }}
                                     </th>
-                                    <th
-                                        v-if="isDraft"
-                                        class="pb-2 text-right font-medium"
-                                    />
+                                    <th class="pb-2 text-right font-medium" />
                                 </tr>
                             </thead>
                             <tbody>
@@ -515,14 +504,12 @@ function openEditDialog(category: CategoryRow): void {
                                             )
                                         }}
                                     </td>
-                                    <td
-                                        v-if="isDraft"
-                                        class="py-2 text-right"
-                                    >
+                                    <td class="py-2 text-right">
                                         <div
                                             class="flex justify-end gap-1"
                                         >
                                             <Button
+                                                v-if="category.can_edit"
                                                 variant="ghost"
                                                 size="sm"
                                                 @click="
@@ -630,5 +617,6 @@ function openEditDialog(category: CategoryRow): void {
         :budget-id="budget.id"
         default-type="income"
         :category="editingCategory"
+        :lock-type="editingCategory?.can_change_type === false"
     />
 </template>

@@ -19,8 +19,7 @@ class StoreCategoryRequest extends FormRequest
             return false;
         }
 
-        return $this->user()?->can('view', $budget) === true
-            && $budget->isDraft();
+        return $this->user()?->can('view', $budget) === true;
     }
 
     /**

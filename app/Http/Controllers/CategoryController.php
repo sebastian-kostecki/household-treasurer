@@ -17,7 +17,13 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request, Budget $budget): RedirectResponse
     {
-        $budget->categories()->create($request->validated());
+        $attributes = $request->validated();
+
+        if ($budget->isExecution()) {
+            $attributes['initial_plan_grosze'] = 0;
+        }
+
+        $budget->categories()->create($attributes);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -29,7 +35,11 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $category->update($request->validated());
+        $category->update($request->safe()->only([
+            'name',
+            'type',
+            'planned_amount_grosze',
+        ]));
 
         Inertia::flash('toast', [
             'type' => 'success',
