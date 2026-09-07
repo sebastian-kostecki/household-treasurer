@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import AccountFormDialog, {
@@ -33,12 +33,16 @@ import { index as accountsRoute } from '@/routes/accounts';
 type AccountRow = AccountFormAccount & {
     current_balance_grosze: number;
     is_negative: boolean;
+    is_archived: boolean;
     can_delete: boolean;
+    can_archive: boolean;
+    can_restore: boolean;
 };
 
 const props = defineProps<{
     accounts: AccountRow[];
     liquidity_total_grosze: number;
+    show_archived: boolean;
 }>();
 
 const t = useTranslations();
@@ -80,6 +84,14 @@ function openEditDialog(account: AccountRow): void {
     editingAccount.value = account;
     editDialogOpen.value = true;
 }
+
+function toggleShowArchived(checked: boolean): void {
+    router.get(
+        accountsRoute({ query: { show_archived: checked ? 1 : undefined } }),
+        {},
+        { preserveState: true, preserveScroll: true },
+    );
+}
 </script>
 
 <template>
@@ -105,7 +117,11 @@ function openEditDialog(account: AccountRow): void {
         </Card>
 
         <div class="flex items-center gap-2">
-            <Checkbox id="show-archived-accounts" disabled />
+            <Checkbox
+                id="show-archived-accounts"
+                :checked="show_archived"
+                @update:checked="toggleShowArchived"
+            />
             <Label
                 for="show-archived-accounts"
                 class="text-muted-foreground text-sm"
@@ -127,10 +143,22 @@ function openEditDialog(account: AccountRow): void {
         </Card>
 
         <div v-else class="space-y-3">
-            <Card v-for="account in accounts" :key="account.id">
+            <Card
+                v-for="account in accounts"
+                :key="account.id"
+                :class="account.is_archived ? 'opacity-60' : ''"
+            >
                 <CardHeader class="gap-3 pb-3 sm:flex-row sm:items-start sm:justify-between">
                     <div class="space-y-1">
-                        <CardTitle class="text-base">{{ account.name }}</CardTitle>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <CardTitle class="text-base">{{ account.name }}</CardTitle>
+                            <Badge
+                                v-if="account.is_archived"
+                                variant="secondary"
+                            >
+                                {{ t.accounts.archived_badge }}
+                            </Badge>
+                        </div>
                         <CardDescription>
                             {{ accountTypeLabel(account.type) }}
                             · {{ t.accounts.opening_date }}
@@ -139,6 +167,7 @@ function openEditDialog(account: AccountRow): void {
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <Button
+                            v-if="!account.is_archived"
                             variant="outline"
                             size="sm"
                             @click="openEditDialog(account)"
@@ -185,6 +214,94 @@ function openEditDialog(account: AccountRow): void {
                                             :disabled="processing"
                                         >
                                             {{ t.accounts.delete }}
+                                        </Button>
+                                    </DialogFooter>
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog v-if="account.can_archive">
+                            <DialogTrigger as-child>
+                                <Button variant="outline" size="sm">
+                                    {{ t.accounts.archive }}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <Form
+                                    v-bind="
+                                        AccountController.archive.form(account)
+                                    "
+                                    v-slot="{ processing }"
+                                >
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {{
+                                                t.accounts.archive_confirm_title
+                                            }}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {{
+                                                t.accounts.archive_confirm_body
+                                            }}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter class="gap-2">
+                                        <DialogClose as-child>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                            >
+                                                {{ t.accounts.cancel }}
+                                            </Button>
+                                        </DialogClose>
+                                        <Button
+                                            type="submit"
+                                            :disabled="processing"
+                                        >
+                                            {{ t.accounts.archive }}
+                                        </Button>
+                                    </DialogFooter>
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                        <Dialog v-if="account.can_restore">
+                            <DialogTrigger as-child>
+                                <Button variant="outline" size="sm">
+                                    {{ t.accounts.restore }}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <Form
+                                    v-bind="
+                                        AccountController.restore.form(account)
+                                    "
+                                    v-slot="{ processing }"
+                                >
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {{
+                                                t.accounts.restore_confirm_title
+                                            }}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {{
+                                                t.accounts.restore_confirm_body
+                                            }}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter class="gap-2">
+                                        <DialogClose as-child>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                            >
+                                                {{ t.accounts.cancel }}
+                                            </Button>
+                                        </DialogClose>
+                                        <Button
+                                            type="submit"
+                                            :disabled="processing"
+                                        >
+                                            {{ t.accounts.restore }}
                                         </Button>
                                     </DialogFooter>
                                 </Form>

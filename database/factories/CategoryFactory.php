@@ -39,4 +39,11 @@ class CategoryFactory extends Factory
             'type' => CategoryType::Expense,
         ]);
     }
+
+    public function archived(): static
+    {
+        return $this->state(fn (): array => [
+            'archived_at' => now(),
+        ]);
+    }
 }

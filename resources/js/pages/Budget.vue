@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog, {
@@ -54,6 +54,9 @@ type CategoryRow = CategoryFormCategory & {
     can_edit: boolean;
     can_delete: boolean;
     can_change_type: boolean;
+    is_archived: boolean;
+    can_archive: boolean;
+    can_restore: boolean;
 };
 
 const props = defineProps<{
@@ -61,6 +64,7 @@ const props = defineProps<{
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
     deficitWarning: DeficitWarning | null;
+    show_archived: boolean;
 }>();
 
 const t = useTranslations();
@@ -105,6 +109,14 @@ setLayoutProps({
 function openEditDialog(category: CategoryRow): void {
     editingCategory.value = category;
     editDialogOpen.value = true;
+}
+
+function toggleShowArchived(checked: boolean): void {
+    router.get(
+        budgetRoute({ query: { show_archived: checked ? 1 : undefined } }),
+        {},
+        { preserveState: true, preserveScroll: true },
+    );
 }
 </script>
 
@@ -285,7 +297,11 @@ function openEditDialog(category: CategoryRow): void {
             </div>
 
             <div class="flex items-center gap-2">
-                <Checkbox id="show-archived-budget" disabled />
+                <Checkbox
+                    id="show-archived-budget"
+                    :checked="show_archived"
+                    @update:checked="toggleShowArchived"
+                />
                 <Label
                     for="show-archived-budget"
                     class="text-muted-foreground text-sm"
@@ -333,8 +349,19 @@ function openEditDialog(category: CategoryRow): void {
                                     v-for="category in incomeCategories"
                                     :key="category.id"
                                     class="border-b last:border-0"
+                                    :class="category.is_archived ? 'text-muted-foreground' : ''"
                                 >
-                                    <td class="py-2">{{ category.name }}</td>
+                                    <td class="py-2">
+                                        <div class="flex items-center gap-2">
+                                            <span>{{ category.name }}</span>
+                                            <Badge
+                                                v-if="category.is_archived"
+                                                variant="secondary"
+                                            >
+                                                {{ t.budget.archived_badge }}
+                                            </Badge>
+                                        </div>
+                                    </td>
                                     <td class="py-2 text-right text-success">
                                         {{
                                             formatMoney(
@@ -435,6 +462,132 @@ function openEditDialog(category: CategoryRow): void {
                                                     </Form>
                                                 </DialogContent>
                                             </Dialog>
+                                            <Dialog
+                                                v-if="category.can_archive"
+                                            >
+                                                <DialogTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        {{ t.budget.archive }}
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <Form
+                                                        v-bind="
+                                                            CategoryController.archive.form(
+                                                                category,
+                                                            )
+                                                        "
+                                                        v-slot="{
+                                                            processing,
+                                                        }"
+                                                    >
+                                                        <DialogHeader>
+                                                            <DialogTitle>
+                                                                {{
+                                                                    t.budget.archive_confirm_title
+                                                                }}
+                                                            </DialogTitle>
+                                                            <DialogDescription>
+                                                                {{
+                                                                    t.budget.archive_confirm_body
+                                                                }}
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <DialogFooter
+                                                            class="gap-2"
+                                                        >
+                                                            <DialogClose
+                                                                as-child
+                                                            >
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="secondary"
+                                                                >
+                                                                    {{
+                                                                        t.budget.cancel
+                                                                    }}
+                                                                </Button>
+                                                            </DialogClose>
+                                                            <Button
+                                                                type="submit"
+                                                                :disabled="
+                                                                    processing
+                                                                "
+                                                            >
+                                                                {{
+                                                                    t.budget.archive
+                                                                }}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </Form>
+                                                </DialogContent>
+                                            </Dialog>
+                                            <Dialog
+                                                v-if="category.can_restore"
+                                            >
+                                                <DialogTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        {{ t.budget.restore }}
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <Form
+                                                        v-bind="
+                                                            CategoryController.restore.form(
+                                                                category,
+                                                            )
+                                                        "
+                                                        v-slot="{
+                                                            processing,
+                                                        }"
+                                                    >
+                                                        <DialogHeader>
+                                                            <DialogTitle>
+                                                                {{
+                                                                    t.budget.restore_confirm_title
+                                                                }}
+                                                            </DialogTitle>
+                                                            <DialogDescription>
+                                                                {{
+                                                                    t.budget.restore_confirm_body
+                                                                }}
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <DialogFooter
+                                                            class="gap-2"
+                                                        >
+                                                            <DialogClose
+                                                                as-child
+                                                            >
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="secondary"
+                                                                >
+                                                                    {{
+                                                                        t.budget.cancel
+                                                                    }}
+                                                                </Button>
+                                                            </DialogClose>
+                                                            <Button
+                                                                type="submit"
+                                                                :disabled="
+                                                                    processing
+                                                                "
+                                                            >
+                                                                {{
+                                                                    t.budget.restore
+                                                                }}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </Form>
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     </td>
                                 </tr>
@@ -481,8 +634,19 @@ function openEditDialog(category: CategoryRow): void {
                                     v-for="category in expenseCategories"
                                     :key="category.id"
                                     class="border-b last:border-0"
+                                    :class="category.is_archived ? 'text-muted-foreground' : ''"
                                 >
-                                    <td class="py-2">{{ category.name }}</td>
+                                    <td class="py-2">
+                                        <div class="flex items-center gap-2">
+                                            <span>{{ category.name }}</span>
+                                            <Badge
+                                                v-if="category.is_archived"
+                                                variant="secondary"
+                                            >
+                                                {{ t.budget.archived_badge }}
+                                            </Badge>
+                                        </div>
+                                    </td>
                                     <td class="py-2 text-right">
                                         {{
                                             formatMoney(
@@ -577,6 +741,132 @@ function openEditDialog(category: CategoryRow): void {
                                                             >
                                                                 {{
                                                                     t.budget.delete
+                                                                }}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </Form>
+                                                </DialogContent>
+                                            </Dialog>
+                                            <Dialog
+                                                v-if="category.can_archive"
+                                            >
+                                                <DialogTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        {{ t.budget.archive }}
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <Form
+                                                        v-bind="
+                                                            CategoryController.archive.form(
+                                                                category,
+                                                            )
+                                                        "
+                                                        v-slot="{
+                                                            processing,
+                                                        }"
+                                                    >
+                                                        <DialogHeader>
+                                                            <DialogTitle>
+                                                                {{
+                                                                    t.budget.archive_confirm_title
+                                                                }}
+                                                            </DialogTitle>
+                                                            <DialogDescription>
+                                                                {{
+                                                                    t.budget.archive_confirm_body
+                                                                }}
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <DialogFooter
+                                                            class="gap-2"
+                                                        >
+                                                            <DialogClose
+                                                                as-child
+                                                            >
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="secondary"
+                                                                >
+                                                                    {{
+                                                                        t.budget.cancel
+                                                                    }}
+                                                                </Button>
+                                                            </DialogClose>
+                                                            <Button
+                                                                type="submit"
+                                                                :disabled="
+                                                                    processing
+                                                                "
+                                                            >
+                                                                {{
+                                                                    t.budget.archive
+                                                                }}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </Form>
+                                                </DialogContent>
+                                            </Dialog>
+                                            <Dialog
+                                                v-if="category.can_restore"
+                                            >
+                                                <DialogTrigger as-child>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        {{ t.budget.restore }}
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <Form
+                                                        v-bind="
+                                                            CategoryController.restore.form(
+                                                                category,
+                                                            )
+                                                        "
+                                                        v-slot="{
+                                                            processing,
+                                                        }"
+                                                    >
+                                                        <DialogHeader>
+                                                            <DialogTitle>
+                                                                {{
+                                                                    t.budget.restore_confirm_title
+                                                                }}
+                                                            </DialogTitle>
+                                                            <DialogDescription>
+                                                                {{
+                                                                    t.budget.restore_confirm_body
+                                                                }}
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <DialogFooter
+                                                            class="gap-2"
+                                                        >
+                                                            <DialogClose
+                                                                as-child
+                                                            >
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="secondary"
+                                                                >
+                                                                    {{
+                                                                        t.budget.cancel
+                                                                    }}
+                                                                </Button>
+                                                            </DialogClose>
+                                                            <Button
+                                                                type="submit"
+                                                                :disabled="
+                                                                    processing
+                                                                "
+                                                            >
+                                                                {{
+                                                                    t.budget.restore
                                                                 }}
                                                             </Button>
                                                         </DialogFooter>

@@ -62,4 +62,32 @@ class CategoryController extends Controller
 
         return to_route('budget');
     }
+
+    public function archive(Request $request, Category $category): RedirectResponse
+    {
+        $this->authorize('archive', $category);
+
+        $category->update(['archived_at' => now()]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Category archived.'),
+        ]);
+
+        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
+    public function restore(Request $request, Category $category): RedirectResponse
+    {
+        $this->authorize('restore', $category);
+
+        $category->update(['archived_at' => null]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Category restored.'),
+        ]);
+
+        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
 }

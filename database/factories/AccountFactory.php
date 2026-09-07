@@ -54,4 +54,11 @@ class AccountFactory extends Factory
             ];
         });
     }
+
+    public function archived(): static
+    {
+        return $this->state(fn (): array => [
+            'archived_at' => now(),
+        ]);
+    }
 }

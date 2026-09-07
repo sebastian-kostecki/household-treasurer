@@ -34,12 +34,21 @@ class BudgetController extends Controller
                 'incomeCategories' => [],
                 'expenseCategories' => [],
                 'deficitWarning' => null,
+                'show_archived' => false,
             ]);
         }
 
         $categories = $budget->categories()
             ->orderBy('name')
             ->get();
+
+        $showArchived = $request->boolean('show_archived');
+
+        if (! $showArchived) {
+            $categories = $categories->filter(
+                fn (Category $category): bool => ! $category->isArchived(),
+            );
+        }
 
         return Inertia::render('Budget', [
             'budget' => [
@@ -62,6 +71,7 @@ class BudgetController extends Controller
             'deficitWarning' => $budget->isDraft()
                 ? BudgetDeficitWarning::forBudget($budget, $user, $categories)
                 : null,
+            'show_archived' => $showArchived,
         ]);
     }
 
@@ -146,6 +156,9 @@ class BudgetController extends Controller
      *     can_edit: bool,
      *     can_delete: bool,
      *     can_change_type: bool,
+     *     is_archived: bool,
+     *     can_archive: bool,
+     *     can_restore: bool,
      * }
      */
     private function categoryPayload(Category $category, Budget $budget): array
@@ -162,9 +175,12 @@ class BudgetController extends Controller
             'initial_plan_grosze' => $initialPlanGrosze,
             'current_plan_grosze' => $category->planned_amount_grosze,
             'execution_grosze' => $category->execution_grosze,
-            'can_edit' => $budget->isDraft() || $budget->isExecution(),
-            'can_delete' => $budget->isDraft(),
-            'can_change_type' => $budget->isDraft(),
+            'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
+            'can_delete' => $budget->isDraft() && ! $category->isArchived(),
+            'can_change_type' => $budget->isDraft() && ! $category->isArchived(),
+            'is_archived' => $category->isArchived(),
+            'can_archive' => $budget->isExecution() && ! $category->isArchived(),
+            'can_restore' => $category->isArchived(),
         ];
     }
 }

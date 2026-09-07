@@ -55,6 +55,14 @@ trait OwnTransferValidationRules
                     $validator->errors()->add('destination_account_id', __('The selected destination account is invalid.'));
                 }
 
+                if ($sourceAccount?->isArchived()) {
+                    $validator->errors()->add('source_account_id', __('The selected source account is invalid.'));
+                }
+
+                if ($destinationAccount?->isArchived()) {
+                    $validator->errors()->add('destination_account_id', __('The selected destination account is invalid.'));
+                }
+
                 if ($sourceAccount === null || $destinationAccount === null) {
                     return;
                 }
