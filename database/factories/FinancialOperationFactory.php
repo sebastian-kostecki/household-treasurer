@@ -1,0 +1,41 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Enums\FinancialOperationType;
+use App\Models\Account;
+use App\Models\Budget;
+use App\Models\Category;
+use App\Models\FinancialOperation;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<FinancialOperation>
+ */
+class FinancialOperationFactory extends Factory
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'user_id' => User::factory(),
+            'type' => FinancialOperationType::Income,
+            'account_id' => Account::factory(),
+            'category_id' => Category::factory()->income(),
+            'budget_id' => Budget::factory(),
+            'operation_date' => fake()->date(),
+            'amount_grosze' => fake()->numberBetween(100, 500000),
+            'description' => fake()->sentence(),
+        ];
+    }
+
+    public function income(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => FinancialOperationType::Income,
+        ]);
+    }
+}

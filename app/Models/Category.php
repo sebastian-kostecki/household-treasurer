@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property int $planned_amount_grosze
  * @property int $initial_plan_grosze
  * @property int $execution_grosze
+ * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
     'planned_amount_grosze',
     'initial_plan_grosze',
     'execution_grosze',
+    'archived_at',
 ])]
 class Category extends Model
 {
@@ -44,7 +46,13 @@ class Category extends Model
             'planned_amount_grosze' => 'integer',
             'initial_plan_grosze' => 'integer',
             'execution_grosze' => 'integer',
+            'archived_at' => 'datetime',
         ];
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
     }
 
     /**

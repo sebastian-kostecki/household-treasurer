@@ -3,6 +3,8 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\FinancialOperationController;
+use App\Http\Controllers\IncomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -18,7 +20,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::inertia('operations', 'Operations')->name('operations');
+    Route::get('operations', [FinancialOperationController::class, 'index'])->name('operations');
+    Route::post('incomes', [IncomeController::class, 'store'])->name('incomes.store');
 });
 
 require __DIR__.'/settings.php';
