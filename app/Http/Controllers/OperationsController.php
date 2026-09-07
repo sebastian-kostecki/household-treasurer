@@ -57,6 +57,7 @@ class OperationsController extends Controller
                 'name' => $account->name,
                 'type' => $account->type->value,
                 'opening_date' => $account->opening_date->toDateString(),
+                'current_balance_grosze' => $account->current_balance_grosze,
             ]);
 
         $incomeCategories = $user->budgets()
@@ -75,11 +76,30 @@ class OperationsController extends Controller
             ]))
             ->values();
 
+        $expenseCategories = $user->budgets()
+            ->where('phase', BudgetPhase::Execution)
+            ->with(['categories' => fn ($query) => $query
+                ->where('type', CategoryType::Expense)
+                ->whereNull('archived_at')
+                ->orderBy('name'),
+            ])
+            ->orderBy('year')
+            ->get()
+            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'budget_year' => $budget->year,
+                'planned_amount_grosze' => $category->planned_amount_grosze,
+                'execution_grosze' => $category->execution_grosze,
+            ]))
+            ->values();
+
         return Inertia::render('Operations', [
             'operations' => $operations,
             'ownTransfers' => $ownTransfers,
             'accounts' => $accounts,
             'incomeCategories' => $incomeCategories,
+            'expenseCategories' => $expenseCategories,
         ]);
     }
 }

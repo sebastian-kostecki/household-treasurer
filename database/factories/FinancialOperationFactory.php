@@ -38,4 +38,12 @@ class FinancialOperationFactory extends Factory
             'type' => FinancialOperationType::Income,
         ]);
     }
+
+    public function expense(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => FinancialOperationType::Expense,
+            'category_id' => Category::factory()->expense(),
+        ]);
+    }
 }
