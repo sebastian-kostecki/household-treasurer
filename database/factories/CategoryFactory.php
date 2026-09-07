@@ -1,0 +1,42 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Enums\CategoryType;
+use App\Models\Budget;
+use App\Models\Category;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Category>
+ */
+class CategoryFactory extends Factory
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'budget_id' => Budget::factory(),
+            'name' => fake()->words(2, true),
+            'type' => fake()->randomElement(CategoryType::cases()),
+            'planned_amount_grosze' => fake()->numberBetween(0, 500000),
+            'execution_grosze' => 0,
+        ];
+    }
+
+    public function income(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => CategoryType::Income,
+        ]);
+    }
+
+    public function expense(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => CategoryType::Expense,
+        ]);
+    }
+}
