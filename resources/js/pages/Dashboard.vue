@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, setLayoutProps } from '@inertiajs/vue3';
 import { Check, Circle } from '@lucide/vue';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,15 +19,13 @@ import { dashboard } from '@/routes';
 const t = useTranslations();
 const checklist = useFirstRunChecklist();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: t.nav.dashboard,
-                href: dashboard(),
-            },
-        ],
-    },
+setLayoutProps({
+    breadcrumbs: [
+        {
+            title: t.nav.dashboard,
+            href: dashboard(),
+        },
+    ],
 });
 </script>
 

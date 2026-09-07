@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\ShellState;
+use App\Support\UiTranslations;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,7 +45,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'shell' => ShellState::forRequest(),
-            'translations' => fn (): array => trans('ui'),
+            'translations' => fn (): array => UiTranslations::all(),
         ];
     }
 }

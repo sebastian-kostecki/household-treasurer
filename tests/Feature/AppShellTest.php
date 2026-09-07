@@ -50,6 +50,19 @@ class AppShellTest extends TestCase
             );
     }
 
+    public function test_login_page_includes_polish_translations_when_app_locale_is_english(): void
+    {
+        config(['app.locale' => 'en']);
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/Login')
+                ->where('translations.auth.login.title', 'Zaloguj się')
+                ->where('translations.auth.login.submit', 'Zaloguj się'),
+            );
+    }
+
     public function test_login_page_includes_polish_translations(): void
     {
         $this->get(route('login'))
