@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, setLayoutProps } from '@inertiajs/vue3';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,15 +16,13 @@ import { budget } from '@/routes';
 
 const t = useTranslations();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: t.nav.budget,
-                href: budget(),
-            },
-        ],
-    },
+setLayoutProps({
+    breadcrumbs: [
+        {
+            title: t.nav.budget,
+            href: budget(),
+        },
+    ],
 });
 </script>
 

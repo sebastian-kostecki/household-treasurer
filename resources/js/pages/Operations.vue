@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, setLayoutProps } from '@inertiajs/vue3';
 import { Upload } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,15 +15,13 @@ import { operations } from '@/routes';
 
 const t = useTranslations();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: t.nav.operations,
-                href: operations(),
-            },
-        ],
-    },
+setLayoutProps({
+    breadcrumbs: [
+        {
+            title: t.nav.operations,
+            href: operations(),
+        },
+    ],
 });
 </script>
 

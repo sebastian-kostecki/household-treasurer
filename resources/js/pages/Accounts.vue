@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, setLayoutProps } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -15,15 +15,13 @@ import { accounts } from '@/routes';
 
 const t = useTranslations();
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: t.nav.accounts,
-                href: accounts(),
-            },
-        ],
-    },
+setLayoutProps({
+    breadcrumbs: [
+        {
+            title: t.nav.accounts,
+            href: accounts(),
+        },
+    ],
 });
 </script>
 

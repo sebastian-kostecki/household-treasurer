@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, usePage } from '@inertiajs/vue3';
+import { Form, Head, setLayoutProps, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
@@ -15,15 +15,13 @@ const t = useTranslations();
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Profil',
-                href: edit(),
-            },
-        ],
-    },
+setLayoutProps({
+    breadcrumbs: [
+        {
+            title: t.settings.profile,
+            href: edit(),
+        },
+    ],
 });
 </script>
 
