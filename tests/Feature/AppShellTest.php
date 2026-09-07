@@ -20,7 +20,7 @@ class AppShellTest extends TestCase
         return [
             'dashboard' => ['dashboard', 'Dashboard'],
             'budget' => ['budget', 'Budget'],
-            'accounts' => ['accounts', 'Accounts'],
+            'accounts' => ['accounts.index', 'Accounts'],
             'operations' => ['operations', 'Operations'],
         ];
     }

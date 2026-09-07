@@ -22,8 +22,8 @@ import {
     SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
+import { index as accounts } from '@/routes/accounts';
 import {
-    accounts,
     budget,
     dashboard,
     operations,

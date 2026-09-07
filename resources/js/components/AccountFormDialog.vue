@@ -1,0 +1,210 @@
+<script setup lang="ts">
+import { Form } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useTranslations } from '@/composables/useTranslations';
+import {
+    groszeToMoneyInput,
+    parseMoneyInputToGrosze,
+} from '@/lib/format';
+
+export type AccountFormAccount = {
+    id: number;
+    name: string;
+    type: 'bank' | 'cash';
+    opening_date: string;
+    opening_balance_grosze: number;
+};
+
+const props = defineProps<{
+    open: boolean;
+    mode: 'create' | 'edit';
+    account?: AccountFormAccount | null;
+}>();
+
+const emit = defineEmits<{
+    'update:open': [value: boolean];
+}>();
+
+const t = useTranslations();
+
+const name = ref('');
+const type = ref<'bank' | 'cash'>('bank');
+const openingDate = ref('');
+const openingBalanceInput = ref('0,00');
+const openingBalanceGrosze = ref(0);
+
+const formBinding = computed(() =>
+    props.mode === 'create'
+        ? AccountController.store.form()
+        : AccountController.update.form(props.account ?? { id: 0 }),
+);
+
+watch(
+    () => [props.open, props.mode, props.account] as const,
+    ([open]) => {
+        if (!open) {
+            return;
+        }
+
+        if (props.mode === 'edit' && props.account) {
+            name.value = props.account.name;
+            type.value = props.account.type;
+            openingDate.value = props.account.opening_date;
+            openingBalanceGrosze.value = props.account.opening_balance_grosze;
+            openingBalanceInput.value = groszeToMoneyInput(
+                props.account.opening_balance_grosze,
+            );
+
+            return;
+        }
+
+        name.value = '';
+        type.value = 'bank';
+        openingDate.value = new Date().toISOString().slice(0, 10);
+        openingBalanceGrosze.value = 0;
+        openingBalanceInput.value = '0,00';
+    },
+    { immediate: true },
+);
+
+function syncOpeningBalance(): void {
+    const parsed = parseMoneyInputToGrosze(openingBalanceInput.value);
+
+    if (parsed !== null) {
+        openingBalanceGrosze.value = parsed;
+    }
+}
+
+function closeDialog(): void {
+    emit('update:open', false);
+}
+</script>
+
+<template>
+    <Dialog :open="open" @update:open="emit('update:open', $event)">
+        <DialogContent>
+            <Form
+                v-bind="formBinding"
+                class="space-y-4"
+                reset-on-success
+                @success="closeDialog"
+                v-slot="{ errors, processing, reset, clearErrors }"
+            >
+                <DialogHeader>
+                    <DialogTitle>
+                        {{
+                            mode === 'create'
+                                ? t.accounts.create_title
+                                : t.accounts.edit_title
+                        }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{
+                            mode === 'create'
+                                ? t.accounts.create_description
+                                : t.accounts.edit_description
+                        }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="grid gap-2">
+                    <Label for="account-name">{{ t.accounts.name }}</Label>
+                    <Input
+                        id="account-name"
+                        name="name"
+                        v-model="name"
+                        required
+                        autocomplete="off"
+                    />
+                    <InputError :message="errors.name" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="account-type">{{ t.accounts.type }}</Label>
+                    <select
+                        id="account-type"
+                        name="type"
+                        v-model="type"
+                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                    >
+                        <option value="bank">
+                            {{ t.accounts.type_bank }}
+                        </option>
+                        <option value="cash">
+                            {{ t.accounts.type_cash }}
+                        </option>
+                    </select>
+                    <InputError :message="errors.type" />
+                </div>
+
+                <div v-if="mode === 'create'" class="grid gap-2">
+                    <Label for="account-opening-date">
+                        {{ t.accounts.opening_date }}
+                    </Label>
+                    <Input
+                        id="account-opening-date"
+                        name="opening_date"
+                        v-model="openingDate"
+                        type="date"
+                        required
+                    />
+                    <InputError :message="errors.opening_date" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="account-opening-balance">
+                        {{ t.accounts.opening_balance }}
+                    </Label>
+                    <Input
+                        id="account-opening-balance"
+                        v-model="openingBalanceInput"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        @blur="syncOpeningBalance"
+                    />
+                    <input
+                        type="hidden"
+                        name="opening_balance_grosze"
+                        :value="openingBalanceGrosze"
+                    />
+                    <InputError :message="errors.opening_balance_grosze" />
+                </div>
+
+                <DialogFooter class="gap-2">
+                    <DialogClose as-child>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            @click="
+                                () => {
+                                    clearErrors();
+                                    reset();
+                                    closeDialog();
+                                }
+                            "
+                        >
+                            {{ t.accounts.cancel }}
+                        </Button>
+                    </DialogClose>
+                    <Button type="submit" :disabled="processing">
+                        {{ t.accounts.save }}
+                    </Button>
+                </DialogFooter>
+            </Form>
+        </DialogContent>
+    </Dialog>
+</template>
