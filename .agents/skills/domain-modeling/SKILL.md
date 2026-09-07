@@ -9,12 +9,12 @@ Actively build and sharpen the project's domain model as you design. This is the
 
 ## File structure
 
-Most repos have a single context:
+Most repos have a single context. This repo keeps ADRs under `.docs/adr/` (not `docs/adr/`):
 
 ```
 /
 ├── CONTEXT.md
-├── docs/
+├── .docs/
 │   └── adr/
 │       ├── 0001-event-sourced-orders.md
 │       └── 0002-postgres-for-write-model.md
@@ -26,18 +26,18 @@ If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The ma
 ```
 /
 ├── CONTEXT-MAP.md
-├── docs/
+├── .docs/
 │   └── adr/                          ← system-wide decisions
 ├── src/
 │   ├── ordering/
 │   │   ├── CONTEXT.md
-│   │   └── docs/adr/                 ← context-specific decisions
+│   │   └── .docs/adr/                 ← context-specific decisions
 │   └── billing/
 │       ├── CONTEXT.md
-│       └── docs/adr/
+│       └── .docs/adr/
 ```
 
-Create files lazily: only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Create files lazily: only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `.docs/adr/` exists, create it when the first ADR is needed.
 
 ## During the session
 
