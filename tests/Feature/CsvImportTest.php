@@ -39,6 +39,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -76,6 +77,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -112,6 +114,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -145,6 +148,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -179,6 +183,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -216,6 +221,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -251,6 +257,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -295,6 +302,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -371,6 +379,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -420,6 +429,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -443,6 +453,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -479,6 +490,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -513,6 +525,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -852,6 +865,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,
@@ -859,6 +873,121 @@ CSV;
                 'amount_column' => 2,
             ])
             ->assertSessionHasErrors('account_id');
+    }
+
+    public function test_preview_requires_explicit_import_format(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertSessionHasErrors('import_format');
+    }
+
+    public function test_mbank_import_produces_statement_operations_from_fixture(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+        $csv = file_get_contents(base_path('tests/Fixtures/mbank-basic.csv'));
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('mbank.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'mbank',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 7)
+                ->where('rows.0.operation_date', '2025-01-09')
+                ->where('rows.0.amount_grosze', -35591)
+                ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'C&A MODE'))
+                ->where('rows.0.valid', true)
+                ->where('rows.1.operation_date', '2025-01-09')
+                ->where('rows.1.amount_grosze', 100000)
+                ->where('rows.1.valid', true)
+                ->where('rows.6.operation_date', '2025-01-02')
+                ->where('rows.6.amount_grosze', -4104)
+                ->where('rows.6.valid', true),
+            );
+    }
+
+    public function test_mbank_import_rejects_csv_without_data_operacji_header(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2025-01-09,Expense,-10.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('mbank.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'mbank',
+            ])
+            ->assertSessionHasErrors('file');
+    }
+
+    public function test_mbank_import_rejects_xlsx_files(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->create('statement.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                'account_id' => $account->id,
+                'import_format' => 'mbank',
+            ])
+            ->assertSessionHasErrors('file');
+    }
+
+    public function test_other_import_still_requires_column_mapping(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+            ])
+            ->assertSessionHasErrors(['has_header', 'date_column', 'description_column', 'amount_layout']);
     }
 
     /**
@@ -892,6 +1021,7 @@ CSV;
             ->post(route('operations.import.preview.store'), [
                 'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
                 'account_id' => $account->id,
+                'import_format' => 'other',
                 'has_header' => true,
                 'date_column' => 0,
                 'description_column' => 1,

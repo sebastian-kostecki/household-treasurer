@@ -156,7 +156,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                 <Button as-child>
                     <Link :href="CsvImportController.create.url()">
                         <Upload class="mr-2 size-4" />
-                        {{ t.operations.import_csv }}
+                        {{ t.operations.import_title }}
                     </Link>
                 </Button>
             </div>

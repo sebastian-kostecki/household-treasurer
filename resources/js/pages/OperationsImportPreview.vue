@@ -122,7 +122,7 @@ setLayoutProps({
             href: operationsRoute(),
         },
         {
-            title: t.operations.import_csv,
+            title: t.operations.import_title,
             href: CsvImportController.create.url(),
         },
         {
