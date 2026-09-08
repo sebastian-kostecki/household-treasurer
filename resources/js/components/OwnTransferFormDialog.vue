@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
+import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
 import InputError from '@/components/InputError.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -34,6 +36,7 @@ export type OwnTransferFormAccount = {
     id: number;
     name: string;
     type: 'bank' | 'cash';
+    current_balance_grosze: number;
 };
 
 const props = defineProps<{
@@ -55,6 +58,8 @@ const sourceAccountId = ref<number | ''>('');
 const destinationAccountId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountGrosze = ref(0);
+const originalAmountGrosze = ref(0);
+const originalSourceAccountId = ref<number | null>(null);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -68,6 +73,40 @@ const bankAccounts = computed(() =>
 
 const cashAccounts = computed(() =>
     props.accounts.filter((account) => account.type === 'cash'),
+);
+
+const selectedSourceAccount = computed(() =>
+    props.accounts.find((account) => account.id === sourceAccountId.value),
+);
+
+const sourceBalanceAdjustmentGrosze = computed(() => {
+    if (props.mode !== 'edit' || originalSourceAccountId.value === null) {
+        return 0;
+    }
+
+    if (sourceAccountId.value === originalSourceAccountId.value) {
+        return originalAmountGrosze.value;
+    }
+
+    return 0;
+});
+
+const predictedBalanceGrosze = computed(() => {
+    if (!selectedSourceAccount.value) {
+        return null;
+    }
+
+    return (
+        selectedSourceAccount.value.current_balance_grosze +
+        sourceBalanceAdjustmentGrosze.value -
+        amountGrosze.value
+    );
+});
+
+const showNegativeBalanceWarning = computed(
+    () =>
+        predictedBalanceGrosze.value !== null &&
+        predictedBalanceGrosze.value < 0,
 );
 
 watch(
@@ -84,6 +123,8 @@ watch(
             destinationAccountId.value = props.transfer.destination_account_id;
             amountGrosze.value = props.transfer.amount_grosze;
             amountInput.value = groszeToMoneyInput(props.transfer.amount_grosze);
+            originalAmountGrosze.value = props.transfer.amount_grosze;
+            originalSourceAccountId.value = props.transfer.source_account_id;
 
             return;
         }
@@ -94,6 +135,8 @@ watch(
         destinationAccountId.value = cashAccounts.value[0]?.id ?? '';
         amountGrosze.value = 0;
         amountInput.value = '0,00';
+        originalAmountGrosze.value = 0;
+        originalSourceAccountId.value = null;
     },
     { immediate: true },
 );
@@ -228,6 +271,14 @@ function closeDialog(): void {
                     />
                     <InputError :message="errors.amount_grosze" />
                 </div>
+
+                <Alert v-if="showNegativeBalanceWarning" variant="destructive">
+                    <AlertTriangle class="size-4" />
+                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertDescription>
+                        {{ t.operations.negative_balance_warning }}
+                    </AlertDescription>
+                </Alert>
 
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>

@@ -352,11 +352,11 @@ class OwnTransferTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Operations')
-                ->has('ownTransfers', 1)
-                ->where('ownTransfers.0.description', 'ATM withdrawal')
-                ->where('ownTransfers.0.amount_grosze', 12000)
-                ->where('ownTransfers.0.source_account_name', $source->name)
-                ->where('ownTransfers.0.destination_account_name', $destination->name),
+                ->has('ownTransfers.data', 1)
+                ->where('ownTransfers.data.0.description', 'ATM withdrawal')
+                ->where('ownTransfers.data.0.amount_grosze', 12000)
+                ->where('ownTransfers.data.0.source_account_name', $source->name)
+                ->where('ownTransfers.data.0.destination_account_name', $destination->name),
             );
     }
 

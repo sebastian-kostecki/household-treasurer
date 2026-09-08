@@ -401,7 +401,7 @@ class ExpenseTest extends TestCase
             ->get(route('operations'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('operations', 0),
+                ->has('operations.data', 0),
             );
     }
 
