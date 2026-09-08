@@ -266,4 +266,57 @@
     .operations-cell-actions {
         grid-area: actions;
     }
+
+    .category-meter-row {
+        @apply grid w-full items-center gap-x-3 gap-y-1.5 py-2.5;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            'category category'
+            'plan execution'
+            'remaining remaining'
+            'bar bar'
+            'percent percent';
+    }
+
+    @variant md {
+        .category-meter-row {
+            min-height: 2.75rem;
+            grid-template-columns:
+                minmax(0, 1.4fr)
+                5.75rem
+                5.75rem
+                5.75rem
+                minmax(3rem, 1fr)
+                3.25rem;
+            grid-template-areas: 'category plan execution remaining bar percent';
+        }
+    }
+
+    .category-meter-cell-category {
+        grid-area: category;
+    }
+
+    .category-meter-cell-plan {
+        grid-area: plan;
+        @apply text-right;
+    }
+
+    .category-meter-cell-execution {
+        grid-area: execution;
+        @apply text-right;
+    }
+
+    .category-meter-cell-remaining {
+        grid-area: remaining;
+        @apply text-right;
+    }
+
+    .category-meter-cell-bar {
+        grid-area: bar;
+        @apply min-w-0;
+    }
+
+    .category-meter-cell-percent {
+        grid-area: percent;
+    }
 }

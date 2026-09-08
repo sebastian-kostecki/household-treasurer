@@ -125,6 +125,11 @@ return [
         'income_totals' => 'Suma dochodów',
         'expense_totals' => 'Suma wydatków',
         'no_budget' => 'Brak budżetu na wybrany rok',
+        'show_more_categories' => 'Pokaż jeszcze :count',
+        'show_fewer_categories' => 'Pokaż mniej',
+        'order_risk' => 'Ryzyko',
+        'order_budget' => 'Kolejność budżetu',
+        'plan_changed' => 'Plan zmieniony',
     ],
     'budget' => [
         'title' => 'Budżet',
