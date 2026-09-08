@@ -23,6 +23,7 @@ trait ExpenseValidationRules
             'operation_date' => ['required', 'date', 'before_or_equal:today'],
             'amount_grosze' => ['required', 'integer', Rule::notIn([0])],
             'description' => ['required', 'string', 'max:255'],
+            'counterparty' => ['nullable', 'string', 'max:255'],
             'account_id' => [
                 'required',
                 'integer',

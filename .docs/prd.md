@@ -92,7 +92,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 ### 6.2. Bieżąca ewidencja
 
 1. Użytkownik wybiera ręczne dodanie operacji albo Import z pliku.
-2. Wskazuje datę, kwotę, opis, konto oraz właściwą kategorię.
+2. Wskazuje datę, kwotę, opis, opcjonalnie nadawcę / odbiorcę, konto oraz właściwą kategorię.
 3. Przed zapisaniem wydatku widzi dostępny limit i wartość po operacji.
 4. Zapisana operacja zmienia saldo konta i wykonanie kategorii.
 5. Transfer własny zmienia wyłącznie salda dwóch kont.
@@ -156,15 +156,15 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 ### 7.5. Dochody, wydatki i zwroty
 
 - **FR-TRX-01**: Użytkownik może ręcznie utworzyć dochód albo wydatek.
-- **FR-TRX-02**: Operacja zawiera datę, niezerową kwotę, opis, konto i kategorię odpowiedniego typu.
+- **FR-TRX-02**: Operacja zawiera datę, niezerową kwotę, opis, konto i kategorię odpowiedniego typu; może też zawierać opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-03**: Data operacji nie może przypadać w przyszłości.
 - **FR-TRX-04**: Data operacji wskazuje budżet roczny, na którego wykonanie operacja wpływa.
 - **FR-TRX-05**: Dochód albo wydatek można zapisać tylko dla roku z budżetem w fazie wykonania.
 - **FR-TRX-06**: Zwykły dochód i zwykły wydatek mają kwotę dodatnią.
-- **FR-TRX-07**: Zwrot wydatku jest ujemnym wydatkiem przypisanym do kategorii wydatkowej.
+- **FR-TRX-07**: Zwrot wydatku jest ujemnym wydatkiem przypisanym do kategorii wydatkowej; może też zawierać opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny dostępny limit i przewidywany limit po operacji.
 - **FR-TRX-09**: Przekroczenie limitu nie blokuje zapisu operacji.
-- **FR-TRX-10**: Użytkownik może edytować i usuwać operacje w budżecie znajdującym się w fazie wykonania.
+- **FR-TRX-10**: Użytkownik może edytować i usuwać operacje w budżecie znajdującym się w fazie wykonania, w tym opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-11**: Zmiana daty na inny rok wymaga wskazania kategorii z docelowego budżetu będącego w fazie wykonania.
 - **FR-TRX-12**: Edycja i usunięcie operacji przelicza saldo konta oraz wykonanie kategorii.
 

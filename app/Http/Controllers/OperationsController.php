@@ -29,6 +29,7 @@ class OperationsController extends Controller
                 'id' => $operation->id,
                 'operation_date' => $operation->operation_date->toDateString(),
                 'description' => $operation->description,
+                'counterparty' => $operation->counterparty,
                 'type' => $operation->type->value,
                 'amount_grosze' => $operation->amount_grosze,
                 'account_id' => $operation->account_id,

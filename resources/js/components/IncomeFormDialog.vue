@@ -38,6 +38,7 @@ export type IncomeFormOperation = {
     operation_date: string;
     amount_grosze: number;
     description: string;
+    counterparty?: string | null;
     account_id: number;
     category_id: number;
 };
@@ -58,6 +59,7 @@ const t = useTranslations();
 
 const operationDate = ref('');
 const description = ref('');
+const counterparty = ref('');
 const accountId = ref<number | ''>('');
 const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
@@ -91,6 +93,7 @@ watch(
         if (props.mode === 'edit' && props.operation) {
             operationDate.value = props.operation.operation_date;
             description.value = props.operation.description;
+            counterparty.value = props.operation.counterparty ?? '';
             accountId.value = props.operation.account_id;
             categoryId.value = props.operation.category_id;
             amountGrosze.value = props.operation.amount_grosze;
@@ -101,6 +104,7 @@ watch(
 
         operationDate.value = new Date().toISOString().slice(0, 10);
         description.value = '';
+        counterparty.value = '';
         accountId.value = props.accounts[0]?.id ?? '';
         categoryId.value = '';
         amountGrosze.value = 0;
@@ -186,6 +190,19 @@ function closeDialog(): void {
                         autocomplete="off"
                     />
                     <InputError :message="errors.description" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="income-counterparty">
+                        {{ t.operations.counterparty }}
+                    </Label>
+                    <Input
+                        id="income-counterparty"
+                        name="counterparty"
+                        v-model="counterparty"
+                        autocomplete="off"
+                    />
+                    <InputError :message="errors.counterparty" />
                 </div>
 
                 <div class="grid gap-2">

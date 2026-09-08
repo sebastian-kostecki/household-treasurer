@@ -288,6 +288,7 @@ return [
         'import_confirm' => 'Zatwierdź import',
         'date' => 'Data',
         'description' => 'Opis',
+        'counterparty' => 'Nadawca / odbiorca',
         'amount' => 'Kwota',
         'type' => 'Typ',
         'type_income' => 'Dochód',
