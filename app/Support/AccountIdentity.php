@@ -15,6 +15,19 @@ class AccountIdentity
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    public static function prefixedRowFields(Account $account, string $prefix): array
+    {
+        return [
+            "{$prefix}_name" => $account->name,
+            "{$prefix}_type" => $account->type->value,
+            "{$prefix}_bank" => $account->bank?->value,
+            "{$prefix}_mark_url" => self::markUrl($account->bank),
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $extra
      * @return array<string, mixed>
      */

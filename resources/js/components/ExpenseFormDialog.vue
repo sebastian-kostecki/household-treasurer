@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
+import AccountSelect from '@/components/AccountSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -23,10 +24,9 @@ import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
+import type { AccountPickerOption } from '@/lib/account-identity';
 
-export type ExpenseFormAccount = {
-    id: number;
-    name: string;
+export type ExpenseFormAccount = AccountPickerOption & {
     opening_date: string;
     current_balance_grosze: number;
 };
@@ -304,24 +304,14 @@ function closeDialog(): void {
 
                 <div class="grid gap-2">
                     <Label for="expense-account">{{ t.operations.account }}</Label>
-                    <select
+                    <AccountSelect
                         id="expense-account"
                         name="account_id"
                         v-model="accountId"
-                        class="native-select"
+                        :accounts="accounts"
+                        :placeholder="t.operations.select_account"
                         required
-                    >
-                        <option value="" disabled>
-                            {{ t.operations.select_account }}
-                        </option>
-                        <option
-                            v-for="account in accounts"
-                            :key="account.id"
-                            :value="account.id"
-                        >
-                            {{ account.name }}
-                        </option>
-                    </select>
+                    />
                     <InputError :message="errors.account_id" />
                 </div>
 

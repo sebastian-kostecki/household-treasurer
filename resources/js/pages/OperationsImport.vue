@@ -2,6 +2,7 @@
 import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
+import AccountSelect from '@/components/AccountSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,11 +16,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountPickerOption } from '@/lib/account-identity';
 import { operations as operationsRoute } from '@/routes';
 
-type AccountRow = {
-    id: number;
-    name: string;
+type AccountRow = AccountPickerOption & {
     opening_date: string;
 };
 
@@ -278,24 +278,14 @@ function onFileChange(event: Event): void {
                         <Label for="import-account">
                             {{ t.operations.account }}
                         </Label>
-                        <select
+                        <AccountSelect
                             id="import-account"
                             name="account_id"
                             v-model="accountId"
-                            class="native-select"
+                            :accounts="accounts"
+                            :placeholder="t.operations.select_account"
                             required
-                        >
-                            <option value="" disabled>
-                                {{ t.operations.select_account }}
-                            </option>
-                            <option
-                                v-for="account in accounts"
-                                :key="account.id"
-                                :value="account.id"
-                            >
-                                {{ account.name }}
-                            </option>
-                        </select>
+                        />
                         <InputError :message="errors.account_id" />
                     </div>
 

@@ -2,6 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
+import AccountSelect from '@/components/AccountSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,10 +21,9 @@ import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
+import type { AccountPickerOption } from '@/lib/account-identity';
 
-export type IncomeFormAccount = {
-    id: number;
-    name: string;
+export type IncomeFormAccount = AccountPickerOption & {
     opening_date: string;
 };
 
@@ -190,24 +190,14 @@ function closeDialog(): void {
 
                 <div class="grid gap-2">
                     <Label for="income-account">{{ t.operations.account }}</Label>
-                    <select
+                    <AccountSelect
                         id="income-account"
                         name="account_id"
                         v-model="accountId"
-                        class="native-select"
+                        :accounts="accounts"
+                        :placeholder="t.operations.select_account"
                         required
-                    >
-                        <option value="" disabled>
-                            {{ t.operations.select_account }}
-                        </option>
-                        <option
-                            v-for="account in accounts"
-                            :key="account.id"
-                            :value="account.id"
-                        >
-                            {{ account.name }}
-                        </option>
-                    </select>
+                    />
                     <InputError :message="errors.account_id" />
                 </div>
 

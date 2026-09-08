@@ -3,6 +3,7 @@ import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { AlertTriangle } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
+import AccountSelect from '@/components/AccountSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatDate, formatMoney } from '@/lib/format';
+import type { AccountPickerOption } from '@/lib/account-identity';
 import { operations as operationsRoute } from '@/routes';
 
 type ImportRow = {
@@ -36,10 +38,7 @@ type CategoryRow = {
     budget_year: number;
 };
 
-type OtherAccountRow = {
-    id: number;
-    name: string;
-};
+type OtherAccountRow = AccountPickerOption;
 
 type RowSelection = {
     selected: boolean;
@@ -55,10 +54,7 @@ const {
     expenseCategories,
     otherAccounts,
 } = defineProps<{
-    account: {
-        id: number;
-        name: string;
-    };
+    account: AccountPickerOption;
     rows: ImportRow[];
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
@@ -345,30 +341,21 @@ function onTypeChange(row: ImportRow): void {
                                     </select>
                                 </td>
                                 <td>
-                                    <select
+                                    <AccountSelect
                                         v-if="
                                             row.valid &&
                                             selections[row.index].type ===
                                                 'own_transfer'
                                         "
                                         :id="`row-other-account-${row.index}`"
+                                        :name="`rows[${row.index}][other_account_id]`"
                                         v-model="
                                             selections[row.index].other_account_id
                                         "
-                                        :name="`rows[${row.index}][other_account_id]`"
-                                        class="native-select min-w-44"
-                                    >
-                                        <option value="" disabled>
-                                            {{ t.operations.import_other_account }}
-                                        </option>
-                                        <option
-                                            v-for="otherAccount in otherAccounts"
-                                            :key="otherAccount.id"
-                                            :value="otherAccount.id"
-                                        >
-                                            {{ otherAccount.name }}
-                                        </option>
-                                    </select>
+                                        :accounts="otherAccounts"
+                                        :placeholder="t.operations.import_other_account"
+                                        class="min-w-44"
+                                    />
                                     <select
                                         v-else-if="row.valid"
                                         :id="`row-category-${row.index}`"

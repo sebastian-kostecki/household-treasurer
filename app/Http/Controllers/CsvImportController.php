@@ -10,6 +10,7 @@ use App\Http\Requests\PreviewCsvImportRequest;
 use App\Http\Requests\StoreCsvImportRequest;
 use App\Models\Account;
 use App\Models\FinancialOperation;
+use App\Support\AccountIdentity;
 use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
@@ -115,10 +116,7 @@ class CsvImportController extends Controller
             ->firstOrFail();
 
         return Inertia::render('OperationsImportPreview', [
-            'account' => [
-                'id' => $account->id,
-                'name' => $account->name,
-            ],
+            'account' => AccountIdentity::payload($account),
             'rows' => $import['rows'],
             'incomeCategories' => $this->incomeCategories($request),
             'expenseCategories' => $this->expenseCategories($request),
@@ -222,10 +220,7 @@ class CsvImportController extends Controller
             ->whereKeyNot($importAccount->id)
             ->orderBy('name')
             ->get()
-            ->map(fn (Account $account): array => [
-                'id' => $account->id,
-                'name' => $account->name,
-            ])
+            ->map(fn (Account $account): array => AccountIdentity::payload($account))
             ->values()
             ->all();
     }
@@ -273,7 +268,7 @@ class CsvImportController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, name: string, opening_date: string}>
+     * @return array<int, array<string, mixed>>
      */
     private function accounts(Request $request): array
     {
@@ -282,11 +277,9 @@ class CsvImportController extends Controller
             ->whereNull('archived_at')
             ->orderBy('name')
             ->get()
-            ->map(fn (Account $account): array => [
-                'id' => $account->id,
-                'name' => $account->name,
+            ->map(fn (Account $account): array => AccountIdentity::payload($account, [
                 'opening_date' => $account->opening_date->toDateString(),
-            ])
+            ]))
             ->values()
             ->all();
     }
