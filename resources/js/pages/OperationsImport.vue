@@ -243,7 +243,7 @@ function onFileChange(event: Event): void {
                             id="import-format"
                             name="import_format"
                             v-model="importFormat"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                            class="native-select"
                             required
                         >
                             <option value="mbank">
@@ -282,7 +282,7 @@ function onFileChange(event: Event): void {
                             id="import-account"
                             name="account_id"
                             v-model="accountId"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                            class="native-select"
                             required
                         >
                             <option value="" disabled>
@@ -367,7 +367,7 @@ function onFileChange(event: Event): void {
                                     id="import-date-column"
                                     name="date_column"
                                     v-model="dateColumn"
-                                    class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                    class="native-select"
                                     required
                                 >
                                     <option
@@ -389,7 +389,7 @@ function onFileChange(event: Event): void {
                                     id="import-description-column"
                                     name="description_column"
                                     v-model="descriptionColumn"
-                                    class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                    class="native-select"
                                     required
                                 >
                                     <option
@@ -446,7 +446,7 @@ function onFileChange(event: Event): void {
                                     id="import-amount-column"
                                     name="amount_column"
                                     v-model="amountColumn"
-                                    class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                    class="native-select"
                                     required
                                 >
                                     <option
@@ -469,7 +469,7 @@ function onFileChange(event: Event): void {
                                         id="import-inflow-column"
                                         name="inflow_column"
                                         v-model="inflowColumn"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                        class="native-select"
                                         required
                                     >
                                         <option
@@ -493,7 +493,7 @@ function onFileChange(event: Event): void {
                                         id="import-outflow-column"
                                         name="outflow_column"
                                         v-model="outflowColumn"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                        class="native-select"
                                         required
                                     >
                                         <option

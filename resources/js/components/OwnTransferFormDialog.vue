@@ -219,7 +219,7 @@ function closeDialog(): void {
                         id="source-account"
                         name="source_account_id"
                         v-model="sourceAccountId"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        class="native-select"
                         required
                     >
                         <option
@@ -241,7 +241,7 @@ function closeDialog(): void {
                         id="destination-account"
                         name="destination_account_id"
                         v-model="destinationAccountId"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        class="native-select"
                         required
                     >
                         <option

@@ -93,7 +93,7 @@
 }
 
 :root {
-    --background: hsl(0 0% 100%);
+    --background: hsl(0 0% 96.5%);
     --foreground: hsl(0 0% 3.9%);
     --card: hsl(0 0% 100%);
     --card-foreground: hsl(0 0% 3.9%);
@@ -111,15 +111,15 @@
     --destructive-foreground: hsl(0 0% 98%);
     --success: hsl(142 71% 35%);
     --success-foreground: hsl(0 0% 98%);
-    --border: hsl(0 0% 92.8%);
-    --input: hsl(0 0% 89.8%);
+    --border: hsl(0 0% 90%);
+    --input: hsl(0 0% 91%);
     --ring: hsl(189 85% 28%);
     --chart-1: hsl(189 85% 28%);
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
-    --radius: 0.375rem;
+    --radius: 0.75rem;
     --sidebar-background: hsl(0 0% 98%);
     --sidebar-foreground: hsl(240 5.3% 26.1%);
     --sidebar-primary: hsl(189 85% 28%);
@@ -175,5 +175,11 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+@layer components {
+    .native-select {
+        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
     }
 }

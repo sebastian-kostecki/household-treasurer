@@ -308,7 +308,7 @@ function closeDialog(): void {
                         id="expense-account"
                         name="account_id"
                         v-model="accountId"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        class="native-select"
                         required
                     >
                         <option value="" disabled>
@@ -333,7 +333,7 @@ function closeDialog(): void {
                         id="expense-category"
                         name="category_id"
                         v-model="categoryId"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        class="native-select"
                         required
                         :disabled="availableCategories.length === 0"
                     >
