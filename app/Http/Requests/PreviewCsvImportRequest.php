@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\ImportFormat;
+use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\MbankCsvMappingResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -39,9 +40,17 @@ class PreviewCsvImportRequest extends FormRequest
     {
         $userId = $this->user()?->id;
 
+        $fileRules = ['required', 'file', 'max:5120'];
+
+        if ($this->requestedImportFormat() === ImportFormat::BnpParibas->value) {
+            $fileRules[] = 'mimes:xlsx';
+        } else {
+            $fileRules[] = 'mimes:csv,txt';
+        }
+
         return [
             'import_format' => ['required', Rule::enum(ImportFormat::class)],
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+            'file' => $fileRules,
             'account_id' => [
                 'required',
                 'integer',
@@ -66,24 +75,48 @@ class PreviewCsvImportRequest extends FormRequest
                 return;
             }
 
-            if ($this->importFormat() !== ImportFormat::Mbank) {
-                return;
-            }
-
+            $format = $this->importFormat();
             $extension = strtolower($this->file('file')?->getClientOriginalExtension() ?? '');
 
-            if (in_array($extension, ['xlsx', 'xls'], true)) {
-                $validator->errors()->add('file', __('Only CSV files are supported for the mBank import format.'));
+            if ($format === ImportFormat::Mbank || $format === ImportFormat::Other) {
+                if (in_array($extension, ['xlsx', 'xls'], true)) {
+                    $validator->errors()->add('file', __('Only CSV files are supported for this import format.'));
 
-                return;
+                    return;
+                }
+            }
+
+            if ($format === ImportFormat::BnpParibas) {
+                if ($extension === 'csv' || $extension === 'txt') {
+                    $validator->errors()->add('file', __('Only XLSX files are supported for the BNP Paribas import format.'));
+
+                    return;
+                }
             }
 
             try {
-                $this->parsedImport();
+                if ($format === ImportFormat::BnpParibas) {
+                    $path = $this->file('file')?->getRealPath();
+
+                    if (! is_string($path)) {
+                        throw new InvalidArgumentException(__('The uploaded file could not be read.'));
+                    }
+
+                    app(BnpParibasXlsxParser::class)->parse($path);
+                } else {
+                    $this->parsedImport();
+                }
             } catch (InvalidArgumentException $exception) {
                 $validator->errors()->add('file', $exception->getMessage());
             }
         });
+    }
+
+    private function requestedImportFormat(): ?string
+    {
+        $format = $this->input('import_format');
+
+        return is_string($format) ? $format : null;
     }
 
     public function importFormat(): ImportFormat

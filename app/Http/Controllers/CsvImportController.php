@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Actions\ImportFinancialOperations;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
+use App\Enums\ImportFormat;
 use App\Http\Requests\PreviewCsvImportRequest;
 use App\Http\Requests\StoreCsvImportRequest;
 use App\Models\Account;
 use App\Models\FinancialOperation;
+use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
 use App\Support\CsvImport\CsvImportSession;
@@ -36,6 +38,7 @@ class CsvImportController extends Controller
     public function preview(
         PreviewCsvImportRequest $request,
         CsvImportParser $parser,
+        BnpParibasXlsxParser $bnpParibasXlsxParser,
         CsvImportPreviewValidator $previewValidator,
     ): RedirectResponse {
         $this->authorize('create', FinancialOperation::class);
@@ -47,8 +50,18 @@ class CsvImportController extends Controller
             ->firstOrFail();
 
         try {
-            $import = $request->parsedImport();
-            $parsedRows = $parser->parse($import['contents'], $import['mapping']);
+            if ($request->importFormat() === ImportFormat::BnpParibas) {
+                $path = $request->file('file')?->getRealPath();
+
+                if (! is_string($path)) {
+                    throw new InvalidArgumentException(__('The uploaded file could not be read.'));
+                }
+
+                $parsedRows = $bnpParibasXlsxParser->parse($path);
+            } else {
+                $import = $request->parsedImport();
+                $parsedRows = $parser->parse($import['contents'], $import['mapping']);
+            }
         } catch (InvalidArgumentException $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
