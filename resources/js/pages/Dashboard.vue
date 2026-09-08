@@ -2,6 +2,7 @@
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Check, Circle } from '@lucide/vue';
+import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -14,6 +15,7 @@ import {
     useFirstRunChecklist,
     useTranslations,
 } from '@/composables/useTranslations';
+import type { AccountBank } from '@/lib/account-identity';
 import { formatMoney } from '@/lib/format';
 import { dashboard } from '@/routes';
 
@@ -21,6 +23,8 @@ type AccountSummary = {
     id: number;
     name: string;
     type: 'bank' | 'cash';
+    bank: AccountBank | null;
+    mark_url: string | null;
     current_balance_grosze: number;
     is_negative: boolean;
     is_archived: boolean;
@@ -175,27 +179,34 @@ function progressBarClass(category: CategorySummary): string {
                     :key="account.id"
                     :class="account.is_archived ? 'opacity-70' : ''"
                 >
-                    <CardHeader class="pb-2">
-                        <div class="flex items-center gap-2">
-                            <CardDescription>
-                                {{ account.name }}
-                            </CardDescription>
-                            <Badge
-                                v-if="account.is_archived"
-                                variant="secondary"
-                            >
-                                {{ t.budget.archived_badge }}
-                            </Badge>
-                        </div>
+                    <CardHeader class="space-y-3 pb-2">
+                        <AccountIdentityBlock
+                            :name="account.name"
+                            :type="account.type"
+                            :bank="account.bank"
+                            :mark_url="account.mark_url"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <p class="text-sm font-medium">
+                                    {{ account.name }}
+                                </p>
+                                <Badge
+                                    v-if="account.is_archived"
+                                    variant="secondary"
+                                >
+                                    {{ t.budget.archived_badge }}
+                                </Badge>
+                            </div>
+                            <p class="text-muted-foreground text-xs">
+                                {{ accountTypeLabel(account.type) }}
+                            </p>
+                        </AccountIdentityBlock>
                         <CardTitle
                             class="text-xl"
                             :class="balanceClass(account)"
                         >
                             {{ formatMoney(account.current_balance_grosze) }}
                         </CardTitle>
-                        <p class="text-muted-foreground text-xs">
-                            {{ accountTypeLabel(account.type) }}
-                        </p>
                     </CardHeader>
                 </Card>
                 <Card v-if="accounts.length === 0">
