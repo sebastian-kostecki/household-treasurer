@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
@@ -34,8 +35,10 @@ class DashboardController extends Controller
 
         $incomeCategories = [];
         $expenseCategories = [];
-        $incomeTotals = ['planned_grosze' => 0, 'execution_grosze' => 0];
-        $expenseTotals = ['planned_grosze' => 0, 'execution_grosze' => 0];
+        $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
+        $incomeTotals = [...$emptyTotals];
+        $expenseTotals = [...$emptyTotals];
+        $planSummary = null;
 
         if ($budget !== null) {
             $categories = $budget->categories()
@@ -54,23 +57,9 @@ class DashboardController extends Controller
                 ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all();
 
-            $incomeTotals = [
-                'current_plan_grosze' => (int) $categories
-                    ->where('type', CategoryType::Income)
-                    ->sum('planned_amount_grosze'),
-                'execution_grosze' => (int) $categories
-                    ->where('type', CategoryType::Income)
-                    ->sum('execution_grosze'),
-            ];
-
-            $expenseTotals = [
-                'current_plan_grosze' => (int) $categories
-                    ->where('type', CategoryType::Expense)
-                    ->sum('planned_amount_grosze'),
-                'execution_grosze' => (int) $categories
-                    ->where('type', CategoryType::Expense)
-                    ->sum('execution_grosze'),
-            ];
+            $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
+            $incomeTotals = $planSummary['income'];
+            $expenseTotals = $planSummary['expense'];
         }
 
         return Inertia::render('Dashboard', [
@@ -82,6 +71,7 @@ class DashboardController extends Controller
             ],
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
+            'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,
         ]);

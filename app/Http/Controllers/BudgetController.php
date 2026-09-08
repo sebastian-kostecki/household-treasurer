@@ -11,6 +11,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
+use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\SelectedBudgetYear;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -34,6 +35,9 @@ class BudgetController extends Controller
                 'budget' => null,
                 'incomeCategories' => [],
                 'expenseCategories' => [],
+                'planSummary' => null,
+                'incomeTotals' => BudgetPlanSummary::emptyTypeTotals(),
+                'expenseTotals' => BudgetPlanSummary::emptyTypeTotals(),
                 'deficitWarning' => null,
                 'show_archived' => false,
                 'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
@@ -51,6 +55,8 @@ class BudgetController extends Controller
                 fn (Category $category): bool => ! $category->isArchived(),
             );
         }
+
+        $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
 
         return Inertia::render('Budget', [
             'budget' => [
@@ -71,6 +77,9 @@ class BudgetController extends Controller
                 ->values()
                 ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all(),
+            'planSummary' => $planSummary,
+            'incomeTotals' => $planSummary['income'],
+            'expenseTotals' => $planSummary['expense'],
             'deficitWarning' => $budget->isDraft()
                 ? BudgetDeficitWarning::forBudget($budget, $user, $categories)
                 : null,
