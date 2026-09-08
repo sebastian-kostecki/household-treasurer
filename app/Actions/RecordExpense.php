@@ -16,6 +16,7 @@ class RecordExpense
      *     operation_date: string,
      *     amount_grosze: int,
      *     description: string,
+     *     counterparty?: string|null,
      *     account_id: int,
      *     category_id: int,
      * }  $validated
@@ -45,6 +46,7 @@ class RecordExpense
                 'operation_date' => $validated['operation_date'],
                 'amount_grosze' => $validated['amount_grosze'],
                 'description' => $validated['description'],
+                'counterparty' => $validated['counterparty'] ?? null,
             ]);
 
             $account->increment('current_balance_grosze', -$validated['amount_grosze']);

@@ -52,6 +52,7 @@ type OperationRow = IncomeFormOperation &
     ExpenseFormOperation & {
     type: 'income' | 'expense';
     category_name: string;
+    counterparty: string | null;
 } & PrefixedAccountIdentityFields<'account'>;
 
 type OwnTransferRow = OwnTransferFormTransfer &
@@ -217,7 +218,17 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                 <td>
                                     {{ formatDate(operation.operation_date) }}
                                 </td>
-                                <td>{{ operation.description }}</td>
+                                <td>
+                                    <div>
+                                        <p>{{ operation.description }}</p>
+                                        <p
+                                            v-if="operation.counterparty"
+                                            class="text-muted-foreground text-sm"
+                                        >
+                                            {{ operation.counterparty }}
+                                        </p>
+                                    </div>
+                                </td>
                                 <td>
                                     <Badge variant="secondary">
                                         {{ operationTypeLabel(operation) }}
@@ -329,6 +340,12 @@ function openExpenseEditDialog(operation: OperationRow): void {
                     <CardTitle class="text-base">
                         {{ operation.description }}
                     </CardTitle>
+                    <CardDescription
+                        v-if="operation.counterparty"
+                        class="text-foreground"
+                    >
+                        {{ operation.counterparty }}
+                    </CardDescription>
                     <CardDescription class="flex flex-wrap items-center gap-1">
                         <span>{{ formatDate(operation.operation_date) }}</span>
                         <span>·</span>
