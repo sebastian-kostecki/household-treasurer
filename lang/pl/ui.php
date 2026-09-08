@@ -265,6 +265,7 @@ return [
         'import_outflow_column' => 'Kolumna obciążeń',
         'import_preview' => 'Pokaż podgląd',
         'import_preview_description' => 'Krok 2: wybierz poprawne wiersze, przypisz typ oraz kategorię lub drugie konto, a następnie zatwierdź import.',
+        'import_preview_empty' => 'Brak wierszy do podglądu w wybranym pliku.',
         'import_summary_title' => 'Podgląd importu',
         'import_summary_description' => 'Import dotyczy konta :account.',
         'import_valid_rows' => 'Poprawne wiersze: :count',
