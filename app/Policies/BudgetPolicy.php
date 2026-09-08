@@ -32,6 +32,12 @@ class BudgetPolicy
         return $this->ownsBudget($user, $budget) && $budget->isDraft();
     }
 
+    public function reorder(User $user, Budget $budget): bool
+    {
+        return $this->ownsBudget($user, $budget)
+            && ($budget->isDraft() || $budget->isExecution());
+    }
+
     private function ownsBudget(User $user, Budget $budget): bool
     {
         return $user->id === $budget->user_id;

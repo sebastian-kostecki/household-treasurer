@@ -3,6 +3,8 @@
 namespace App\Concerns;
 
 use App\Enums\CategoryType;
+use App\Support\Categories\CategoryColors;
+use App\Support\Categories\CategoryIcons;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -15,6 +17,8 @@ trait CategoryValidationRules
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'icon' => ['required', 'string', Rule::in(CategoryIcons::values())],
+            'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
             'planned_amount_grosze' => ['required', 'integer', 'min:0'],
         ];

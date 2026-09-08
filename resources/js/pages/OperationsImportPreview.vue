@@ -4,6 +4,7 @@ import { AlertTriangle } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import AccountSelect from '@/components/AccountSelect.vue';
+import CategorySelect from '@/components/CategorySelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,8 @@ type ImportRow = {
 type CategoryRow = {
     id: number;
     name: string;
+    icon: string;
+    color: string;
     budget_year: number;
 };
 
@@ -364,43 +367,37 @@ function onTypeChange(row: ImportRow): void {
                                         :placeholder="t.operations.import_other_account"
                                         class="min-w-44"
                                     />
-                                    <select
+                                    <CategorySelect
                                         v-else-if="row.valid"
                                         :id="`row-category-${row.index}`"
-                                        v-model="selections[row.index].category_id"
                                         :name="`rows[${row.index}][category_id]`"
-                                        class="native-select min-w-44"
+                                        v-model="selections[row.index].category_id"
+                                        :categories="
+                                            categoriesForRow(
+                                                row,
+                                                selections[row.index].type,
+                                            )
+                                        "
+                                        :placeholder="
+                                            rowCategoriesEmpty(
+                                                row,
+                                                selections[row.index].type,
+                                            )
+                                                ? emptyCategoryLabel(
+                                                      selections[row.index]
+                                                          .type,
+                                                  )
+                                                : t.operations.select_category
+                                        "
+                                        class="min-w-44"
                                         :disabled="
                                             rowCategoriesEmpty(
                                                 row,
                                                 selections[row.index].type,
                                             )
                                         "
-                                    >
-                                        <option value="" disabled>
-                                            {{
-                                                rowCategoriesEmpty(
-                                                    row,
-                                                    selections[row.index].type,
-                                                )
-                                                    ? emptyCategoryLabel(
-                                                          selections[row.index]
-                                                              .type,
-                                                      )
-                                                    : t.operations.select_category
-                                            }}
-                                        </option>
-                                        <option
-                                            v-for="category in categoriesForRow(
-                                                row,
-                                                selections[row.index].type,
-                                            )"
-                                            :key="category.id"
-                                            :value="category.id"
-                                        >
-                                            {{ category.name }}
-                                        </option>
-                                    </select>
+                                        required
+                                    />
                                 </td>
                                 <td>
                                     <Badge

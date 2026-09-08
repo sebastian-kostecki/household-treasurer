@@ -30,6 +30,7 @@ import { Input } from '@/components/ui/input';
 import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 import { formatMoney } from '@/lib/format';
 import { budget as budgetRoute } from '@/routes';
 
@@ -39,6 +40,7 @@ type BudgetSummary = {
     phase: 'draft' | 'execution';
     can_delete: boolean;
     can_start_execution: boolean;
+    can_reorder: boolean;
 };
 
 type DeficitWarning = {
@@ -53,6 +55,7 @@ const props = defineProps<{
     expenseCategories: BudgetCategoryRow[];
     deficitWarning: DeficitWarning | null;
     show_archived: boolean;
+    categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
 const t = useTranslations();
@@ -302,6 +305,9 @@ function toggleShowArchived(checked: boolean): void {
                 <BudgetCategoryList
                     :title="t.budget.income_table"
                     :categories="incomeCategories"
+                    :budget-id="budget.id"
+                    category-type="income"
+                    :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
                     :add-label="t.budget.add_income"
                     highlight-initial-plan
@@ -312,6 +318,9 @@ function toggleShowArchived(checked: boolean): void {
                 <BudgetCategoryList
                     :title="t.budget.expense_table"
                     :categories="expenseCategories"
+                    :budget-id="budget.id"
+                    category-type="expense"
+                    :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
                     :add-label="t.budget.add_expense"
                     @add="createExpenseDialogOpen = true"
@@ -327,6 +336,7 @@ function toggleShowArchived(checked: boolean): void {
         mode="create"
         :budget-id="budget.id"
         default-type="income"
+        :category-appearance-options="categoryAppearanceOptions"
     />
 
     <CategoryFormDialog
@@ -335,6 +345,7 @@ function toggleShowArchived(checked: boolean): void {
         mode="create"
         :budget-id="budget.id"
         default-type="expense"
+        :category-appearance-options="categoryAppearanceOptions"
     />
 
     <CategoryFormDialog
@@ -345,5 +356,6 @@ function toggleShowArchived(checked: boolean): void {
         default-type="income"
         :category="editingCategory"
         :lock-type="editingCategory?.can_change_type === false"
+        :category-appearance-options="categoryAppearanceOptions"
     />
 </template>

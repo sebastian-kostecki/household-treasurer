@@ -46,6 +46,8 @@ class OperationsRowRecipeTest extends TestCase
                 ->component('Operations')
                 ->has('operations.data', 1)
                 ->where('operations.data.0.category_name', 'Salary')
+                ->where('operations.data.0.category_icon', 'tag')
+                ->where('operations.data.0.category_color', '#868e96')
                 ->where('operations.data.0.counterparty', 'Acme Corp')
                 ->where('operations.data.0.raw_statement_description', 'ORIGINAL BANK TEXT'),
             );

@@ -2,6 +2,9 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
+import CategoryChip from '@/components/CategoryChip.vue';
+import CategoryColorPicker from '@/components/CategoryColorPicker.vue';
+import CategoryIconPicker from '@/components/CategoryIconPicker.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +20,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    DEFAULT_CATEGORY_COLOR,
+    DEFAULT_CATEGORY_ICON,
+    type CategoryAppearanceOptions,
+} from '@/lib/category-appearance';
+import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
@@ -24,6 +32,8 @@ import {
 export type CategoryFormCategory = {
     id: number;
     name: string;
+    icon: string;
+    color: string;
     type: 'income' | 'expense';
     planned_amount_grosze: number;
 };
@@ -35,6 +45,7 @@ const props = defineProps<{
     defaultType: 'income' | 'expense';
     category?: CategoryFormCategory | null;
     lockType?: boolean;
+    categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
 const emit = defineEmits<{
@@ -44,6 +55,8 @@ const emit = defineEmits<{
 const t = useTranslations();
 
 const name = ref('');
+const icon = ref(DEFAULT_CATEGORY_ICON);
+const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
 const plannedAmountGrosze = ref(0);
@@ -54,6 +67,20 @@ const formBinding = computed(() =>
         : CategoryController.update.form(props.category ?? { id: 0 }),
 );
 
+const previewName = computed(() => {
+    const trimmed = name.value.trim();
+
+    if (trimmed !== '') {
+        return trimmed;
+    }
+
+    if (props.mode === 'edit' && props.category) {
+        return props.category.name;
+    }
+
+    return t.budget.category_preview;
+});
+
 watch(
     () => [props.open, props.mode, props.category, props.defaultType] as const,
     ([open]) => {
@@ -63,6 +90,8 @@ watch(
 
         if (props.mode === 'edit' && props.category) {
             name.value = props.category.name;
+            icon.value = props.category.icon;
+            color.value = props.category.color;
             type.value = props.category.type;
             plannedAmountGrosze.value = props.category.planned_amount_grosze;
             plannedAmountInput.value = groszeToMoneyInput(
@@ -73,6 +102,8 @@ watch(
         }
 
         name.value = '';
+        icon.value = DEFAULT_CATEGORY_ICON;
+        color.value = DEFAULT_CATEGORY_COLOR;
         type.value = props.defaultType;
         plannedAmountGrosze.value = 0;
         plannedAmountInput.value = '0,00';
@@ -122,6 +153,20 @@ function closeDialog(): void {
                     </DialogDescription>
                 </DialogHeader>
 
+                <div
+                    class="flex items-center gap-4 rounded-xl border border-border/50 p-4"
+                >
+                    <CategoryChip
+                        v-if="color"
+                        :name="previewName"
+                        :icon="icon"
+                        :color="color"
+                    />
+                    <p v-else class="text-muted-foreground text-sm">
+                        {{ t.budget.category_preview_hint }}
+                    </p>
+                </div>
+
                 <div class="grid gap-2">
                     <Label for="category-name">{{ t.budget.name }}</Label>
                     <Input
@@ -157,6 +202,31 @@ function closeDialog(): void {
                         :value="type"
                     />
                     <InputError :message="errors.type" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label>{{ t.budget.category_color }}</Label>
+                    <CategoryColorPicker
+                        :colors="categoryAppearanceOptions.colors"
+                        v-model="color"
+                    />
+                    <input
+                        type="hidden"
+                        name="color"
+                        :value="color ?? ''"
+                    />
+                    <InputError :message="errors.color" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label>{{ t.budget.category_icon }}</Label>
+                    <CategoryIconPicker
+                        :icons="categoryAppearanceOptions.icons"
+                        v-model="icon"
+                        :color="color ?? DEFAULT_CATEGORY_COLOR"
+                    />
+                    <input type="hidden" name="icon" :value="icon" />
+                    <InputError :message="errors.icon" />
                 </div>
 
                 <div class="grid gap-2">

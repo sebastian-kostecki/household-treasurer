@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CategoryType;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,9 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $budget_id
  * @property string $name
+ * @property string $icon
+ * @property string $color
+ * @property int $sort_order
  * @property CategoryType $type
  * @property int $planned_amount_grosze
  * @property int $initial_plan_grosze
@@ -25,6 +29,9 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'budget_id',
     'name',
+    'icon',
+    'color',
+    'sort_order',
     'type',
     'planned_amount_grosze',
     'initial_plan_grosze',
@@ -43,6 +50,7 @@ class Category extends Model
     {
         return [
             'type' => CategoryType::class,
+            'sort_order' => 'integer',
             'planned_amount_grosze' => 'integer',
             'initial_plan_grosze' => 'integer',
             'execution_grosze' => 'integer',
@@ -53,6 +61,17 @@ class Category extends Model
     public function isArchived(): bool
     {
         return $this->archived_at !== null;
+    }
+
+    /**
+     * @param  Builder<Category>  $query
+     * @return Builder<Category>
+     */
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query
+            ->orderByRaw('CASE WHEN archived_at IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('sort_order');
     }
 
     /**

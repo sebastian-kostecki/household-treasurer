@@ -13,6 +13,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Support\AccountIdentity;
+use App\Support\CategoryAppearance;
 use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
@@ -304,13 +305,14 @@ class CsvImportController extends Controller
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Income)
                 ->whereNull('archived_at')
-                ->orderBy('name'),
+                ->ordered(),
             ])
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
+                ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
             ]))
             ->values()
@@ -328,13 +330,14 @@ class CsvImportController extends Controller
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
                 ->whereNull('archived_at')
-                ->orderBy('name'),
+                ->ordered(),
             ])
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
+                ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
             ]))
             ->values()

@@ -17,6 +17,8 @@ export type FinancialOperationRowData = IncomeFormOperation &
     ExpenseFormOperation & {
         type: 'income' | 'expense';
         category_name: string;
+        category_icon: string;
+        category_color: string;
         counterparty: string | null;
         raw_statement_description: string | null;
     } & PrefixedAccountIdentityFields<'account'>;
@@ -60,7 +62,12 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
         </div>
 
         <div class="operations-cell-category">
-            <CategoryChip :name="operation.category_name" />
+            <CategoryChip
+                :name="operation.category_name"
+                :icon="operation.category_icon"
+                :color="operation.category_color"
+                size="sm"
+            />
         </div>
 
         <CompactAccountIdentity

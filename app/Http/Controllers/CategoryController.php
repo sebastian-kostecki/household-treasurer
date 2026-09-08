@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ReorderCategories;
+use App\Enums\CategoryType;
+use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
@@ -9,6 +12,7 @@ use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
@@ -22,6 +26,8 @@ class CategoryController extends Controller
         if ($budget->isExecution()) {
             $attributes['initial_plan_grosze'] = 0;
         }
+
+        $attributes['sort_order'] = $this->nextSortOrder($budget, CategoryType::from($attributes['type']));
 
         $budget->categories()->create($attributes);
 
@@ -37,6 +43,8 @@ class CategoryController extends Controller
     {
         $category->update($request->safe()->only([
             'name',
+            'icon',
+            'color',
             'type',
             'planned_amount_grosze',
         ]));
@@ -89,5 +97,30 @@ class CategoryController extends Controller
         ]);
 
         return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
+    public function reorder(
+        ReorderCategoriesRequest $request,
+        Budget $budget,
+        ReorderCategories $reorderCategories,
+    ): Response {
+        $validated = $request->validated();
+
+        $reorderCategories->handle(
+            $budget,
+            CategoryType::from($validated['type']),
+            $validated['category_ids'],
+        );
+
+        return response()->noContent();
+    }
+
+    private function nextSortOrder(Budget $budget, CategoryType $type): int
+    {
+        $maxSortOrder = $budget->categories()
+            ->where('type', $type)
+            ->max('sort_order');
+
+        return ($maxSortOrder ?? -1) + 1;
     }
 }

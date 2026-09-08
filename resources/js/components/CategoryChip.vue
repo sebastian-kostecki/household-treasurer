@@ -1,13 +1,49 @@
 <script setup lang="ts">
-defineProps<{
-    name: string;
-}>();
+import CategoryIcon from '@/components/CategoryIcon.vue';
+import { categoryTileStyle } from '@/lib/category-appearance';
+import { computed } from 'vue';
+
+const props = withDefaults(
+    defineProps<{
+        name: string;
+        icon: string;
+        color: string;
+        size?: 'sm' | 'md';
+        showName?: boolean;
+    }>(),
+    {
+        size: 'md',
+        showName: true,
+    },
+);
+
+const tileSizeClass = computed(() =>
+    props.size === 'sm' ? 'size-6' : 'size-8',
+);
+
+const iconSizeClass = computed(() =>
+    props.size === 'sm' ? 'size-3.5' : 'size-4',
+);
+
+const tileStyle = computed(() => categoryTileStyle(props.color));
 </script>
 
 <template>
-    <span
-        class="inline-flex max-w-full items-center rounded-lg border border-border/60 bg-muted/50 px-2 py-0.5 text-xs font-medium text-foreground"
-    >
-        <span class="truncate">{{ name }}</span>
+    <span class="inline-flex min-w-0 max-w-full items-center gap-2">
+        <span
+            class="inline-flex shrink-0 items-center justify-center rounded-lg"
+            :class="tileSizeClass"
+            :style="tileStyle"
+            aria-hidden="true"
+        >
+            <CategoryIcon :name="icon" :class="iconSizeClass" />
+        </span>
+        <span
+            v-if="showName"
+            class="truncate text-sm font-medium"
+            :class="size === 'sm' ? 'text-xs' : ''"
+        >
+            {{ name }}
+        </span>
     </span>
 </template>

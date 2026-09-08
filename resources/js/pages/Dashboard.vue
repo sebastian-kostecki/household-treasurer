@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,6 +37,8 @@ type AccountSummary = {
 type CategorySummary = {
     id: number;
     name: string;
+    icon: string;
+    color: string;
     initial_plan_grosze: number;
     current_plan_grosze: number;
     execution_grosze: number;
@@ -297,9 +300,11 @@ function progressBarClass(category: CategorySummary): string {
                         >
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-medium">
-                                        {{ category.name }}
-                                    </span>
+                                    <CategoryChip
+                                        :name="category.name"
+                                        :icon="category.icon"
+                                        :color="category.color"
+                                    />
                                     <Badge
                                         v-if="category.is_archived"
                                         variant="secondary"
@@ -380,9 +385,11 @@ function progressBarClass(category: CategorySummary): string {
                         >
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-medium">
-                                        {{ category.name }}
-                                    </span>
+                                    <CategoryChip
+                                        :name="category.name"
+                                        :icon="category.icon"
+                                        :color="category.color"
+                                    />
                                     <Badge
                                         v-if="category.is_archived"
                                         variant="secondary"
