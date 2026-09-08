@@ -330,7 +330,7 @@ function onTypeChange(row: ImportRow): void {
                                         :id="`row-type-${row.index}`"
                                         v-model="selections[row.index].type"
                                         :name="`rows[${row.index}][type]`"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-36 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="native-select min-w-36"
                                         @change="onTypeChange(row)"
                                     >
                                         <option value="income">
@@ -359,7 +359,7 @@ function onTypeChange(row: ImportRow): void {
                                             selections[row.index].other_account_id
                                         "
                                         :name="`rows[${row.index}][other_account_id]`"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="native-select min-w-44"
                                     >
                                         <option value="" disabled>
                                             {{ t.operations.import_other_account }}
@@ -377,7 +377,7 @@ function onTypeChange(row: ImportRow): void {
                                         :id="`row-category-${row.index}`"
                                         v-model="selections[row.index].category_id"
                                         :name="`rows[${row.index}][category_id]`"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="native-select min-w-44"
                                         :disabled="
                                             rowCategoriesEmpty(
                                                 row,

@@ -139,7 +139,7 @@ function closeDialog(): void {
                         id="account-type"
                         name="type"
                         v-model="type"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                        class="native-select"
                     >
                         <option value="bank">
                             {{ t.accounts.type_bank }}

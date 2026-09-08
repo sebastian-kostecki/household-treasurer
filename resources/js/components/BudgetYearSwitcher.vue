@@ -103,7 +103,7 @@ const currentYear = new Date().getFullYear();
                 <select
                     id="shell-budget-year"
                     name="year"
-                    class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-8 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                    class="native-select h-8 px-2"
                     :value="shell.budgetYear ?? ''"
                     :disabled="processing"
                     @change="

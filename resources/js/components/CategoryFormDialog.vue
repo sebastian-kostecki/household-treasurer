@@ -141,7 +141,7 @@ function closeDialog(): void {
                         name="type"
                         v-model="type"
                         :disabled="lockType"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                        class="native-select"
                     >
                         <option value="income">
                             {{ t.budget.type_income }}
