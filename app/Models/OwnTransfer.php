@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $transfer_date
  * @property int $amount_grosze
  * @property string $description
+ * @property string|null $raw_statement_description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
     'transfer_date',
     'amount_grosze',
     'description',
+    'raw_statement_description',
 ])]
 class OwnTransfer extends Model
 {

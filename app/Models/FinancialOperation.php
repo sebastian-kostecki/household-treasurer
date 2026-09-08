@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $amount_grosze
  * @property string $description
  * @property string|null $counterparty
+ * @property string|null $raw_statement_description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -34,6 +35,7 @@ use Illuminate\Support\Carbon;
     'amount_grosze',
     'description',
     'counterparty',
+    'raw_statement_description',
 ])]
 class FinancialOperation extends Model
 {

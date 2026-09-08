@@ -1,63 +1,54 @@
 <script setup lang="ts">
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2, Upload } from '@lucide/vue';
+import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Plus, Upload } from '@lucide/vue';
 import { ref } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
-import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
-import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
-import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
+import CategoryChip from '@/components/CategoryChip.vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
     type ExpenseFormOperation,
 } from '@/components/ExpenseFormDialog.vue';
-import IconAction from '@/components/IconAction.vue';
+import FinancialOperationActions from '@/components/FinancialOperationActions.vue';
 import IncomeFormDialog, {
     type IncomeFormCategory,
     type IncomeFormOperation,
 } from '@/components/IncomeFormDialog.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import ListSurface from '@/components/ListSurface.vue';
+import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
+import OperationsDateCell from '@/components/OperationsDateCell.vue';
+import OwnTransferActions from '@/components/OwnTransferActions.vue';
 import OwnTransferFormDialog, {
     type OwnTransferFormTransfer,
 } from '@/components/OwnTransferFormDialog.vue';
-import IndexEmptyState from '@/components/IndexEmptyState.vue';
-import ListSurface from '@/components/ListSurface.vue';
-import PaginationLinks, {
+import {
     type PaginatedCollection,
 } from '@/components/PaginationLinks.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { useTranslations } from '@/composables/useTranslations';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
-import { formatDate, formatMoney } from '@/lib/format';
+import {
+    financialOperationAmountClass,
+    formatFinancialOperationAmount,
+    formatMoney,
+} from '@/lib/format';
 import { operations as operationsRoute } from '@/routes';
 
 type OperationRow = IncomeFormOperation &
     ExpenseFormOperation & {
-    type: 'income' | 'expense';
-    category_name: string;
-    counterparty: string | null;
-} & PrefixedAccountIdentityFields<'account'>;
+        type: 'income' | 'expense';
+        category_name: string;
+        counterparty: string | null;
+        raw_statement_description: string | null;
+    } & PrefixedAccountIdentityFields<'account'>;
 
 type OwnTransferRow = OwnTransferFormTransfer &
     PrefixedAccountIdentityFields<'source_account'> &
-    PrefixedAccountIdentityFields<'destination_account'>;
+    PrefixedAccountIdentityFields<'destination_account'> & {
+        raw_statement_description: string | null;
+    };
 
 type AccountRow = ExpenseFormAccount & {
     type: 'bank' | 'cash';
@@ -97,24 +88,18 @@ setLayoutProps({
     ],
 });
 
-function operationTypeLabel(operation: OperationRow): string {
+function operationTypeVariant(
+    operation: OperationRow,
+): 'income' | 'expense' | 'refund' {
     if (operation.type === 'income') {
-        return t.operations.type_income;
+        return 'income';
     }
 
     if (operation.amount_grosze < 0) {
-        return t.operations.type_refund;
+        return 'refund';
     }
 
-    return t.operations.type_expense;
-}
-
-function operationAmountClass(operation: OperationRow): string {
-    if (operation.type === 'income' || operation.amount_grosze < 0) {
-        return 'text-success';
-    }
-
-    return 'text-destructive';
+    return 'expense';
 }
 
 function openEditDialog(transfer: OwnTransferRow): void {
@@ -190,7 +175,6 @@ function openExpenseEditDialog(operation: OperationRow): void {
         <template v-else>
             <ListSurface
                 class="hidden md:block"
-                :title="t.operations.title"
                 :description="t.operations.list_description"
                 :paginator="operations"
             >
@@ -200,7 +184,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                             <tr>
                                 <th>{{ t.operations.date }}</th>
                                 <th>{{ t.operations.description }}</th>
-                                <th>{{ t.operations.type }}</th>
+                                <th>{{ t.operations.category }}</th>
                                 <th>{{ t.operations.account }}</th>
                                 <th class="text-right">
                                     {{ t.operations.amount }}
@@ -216,23 +200,26 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                 :key="operation.id"
                             >
                                 <td>
-                                    {{ formatDate(operation.operation_date) }}
+                                    <OperationsDateCell
+                                        :date="operation.operation_date"
+                                    />
                                 </td>
                                 <td>
-                                    <div>
-                                        <p>{{ operation.description }}</p>
-                                        <p
-                                            v-if="operation.counterparty"
-                                            class="text-muted-foreground text-sm"
-                                        >
-                                            {{ operation.counterparty }}
-                                        </p>
-                                    </div>
+                                    <OperationDescriptionCell
+                                        :variant="
+                                            operationTypeVariant(operation)
+                                        "
+                                        :description="operation.description"
+                                        :counterparty="operation.counterparty"
+                                        :raw-statement-description="
+                                            operation.raw_statement_description
+                                        "
+                                    />
                                 </td>
                                 <td>
-                                    <Badge variant="secondary">
-                                        {{ operationTypeLabel(operation) }}
-                                    </Badge>
+                                    <CategoryChip
+                                        :name="operation.category_name"
+                                    />
                                 </td>
                                 <td>
                                     <CompactAccountIdentity
@@ -244,86 +231,31 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                 </td>
                                 <td
                                     class="tabular-amount"
-                                    :class="operationAmountClass(operation)"
+                                    :class="
+                                        financialOperationAmountClass(
+                                            operation.type,
+                                            operation.amount_grosze,
+                                        )
+                                    "
                                 >
-                                    {{ formatMoney(operation.amount_grosze) }}
+                                    {{
+                                        formatFinancialOperationAmount(
+                                            operation.type,
+                                            operation.amount_grosze,
+                                        )
+                                    }}
                                 </td>
                                 <td>
-                                    <div class="flex justify-end gap-1">
-                                        <IconAction
-                                            :icon="Pencil"
-                                            :label="t.accounts.edit"
-                                            @click="
-                                                operation.type === 'income'
-                                                    ? openIncomeEditDialog(operation)
-                                                    : openExpenseEditDialog(operation)
-                                            "
-                                        />
-                                        <Dialog>
-                                            <IconAction
-                                                as-dialog-trigger
-                                                :icon="Trash2"
-                                                :label="t.accounts.delete"
-                                                destructive
-                                            />
-                                            <DialogContent>
-                                                <Form
-                                                    v-bind="
-                                                        operation.type === 'income'
-                                                            ? IncomeController.destroy.form(
-                                                                  operation,
-                                                              )
-                                                            : ExpenseController.destroy.form(
-                                                                  operation,
-                                                              )
-                                                    "
-                                                    v-slot="{ processing }"
-                                                >
-                                                    <DialogHeader>
-                                                        <DialogTitle>
-                                                            {{
-                                                                operation.type ===
-                                                                'income'
-                                                                    ? t.operations
-                                                                          .delete_income_confirm_title
-                                                                    : t.operations
-                                                                          .delete_expense_confirm_title
-                                                            }}
-                                                        </DialogTitle>
-                                                        <DialogDescription>
-                                                            {{
-                                                                operation.type ===
-                                                                'income'
-                                                                    ? t.operations
-                                                                          .delete_income_confirm_body
-                                                                    : t.operations
-                                                                          .delete_expense_confirm_body
-                                                            }}
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter class="gap-2">
-                                                        <DialogClose as-child>
-                                                            <Button
-                                                                type="button"
-                                                                variant="secondary"
-                                                            >
-                                                                {{
-                                                                    t.accounts.cancel
-                                                                }}
-                                                            </Button>
-                                                        </DialogClose>
-                                                        <Button
-                                                            type="submit"
-                                                            variant="destructive"
-                                                            :disabled="processing"
-                                                        >
-                                                            {{ t.accounts.delete }}
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </Form>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
+                                    <FinancialOperationActions
+                                        :operation="operation"
+                                        @edit="
+                                            operation.type === 'income'
+                                                ? openIncomeEditDialog(operation)
+                                                : openExpenseEditDialog(
+                                                      operation,
+                                                  )
+                                        "
+                                    />
                                 </td>
                             </tr>
                         </tbody>
@@ -331,119 +263,62 @@ function openExpenseEditDialog(operation: OperationRow): void {
                 </div>
             </ListSurface>
 
-            <div class="space-y-3 md:hidden">
-                <Card
+            <ListSurface class="md:hidden" :paginator="operations">
+                <div
                     v-for="operation in operations.data"
                     :key="operation.id"
+                    class="flex flex-col gap-3 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.03]"
                 >
-                <CardHeader class="pb-2">
-                    <CardTitle class="text-base">
-                        {{ operation.description }}
-                    </CardTitle>
-                    <CardDescription
-                        v-if="operation.counterparty"
-                        class="text-foreground"
+                    <div class="flex items-start justify-between gap-3">
+                        <OperationsDateCell
+                            :date="operation.operation_date"
+                        />
+                        <p
+                            class="shrink-0 font-medium tabular-nums"
+                            :class="
+                                financialOperationAmountClass(
+                                    operation.type,
+                                    operation.amount_grosze,
+                                )
+                            "
+                        >
+                            {{
+                                formatFinancialOperationAmount(
+                                    operation.type,
+                                    operation.amount_grosze,
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <OperationDescriptionCell
+                        :variant="operationTypeVariant(operation)"
+                        :description="operation.description"
+                        :counterparty="operation.counterparty"
+                        :raw-statement-description="
+                            operation.raw_statement_description
+                        "
+                    />
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3"
                     >
-                        {{ operation.counterparty }}
-                    </CardDescription>
-                    <CardDescription class="flex flex-wrap items-center gap-1">
-                        <span>{{ formatDate(operation.operation_date) }}</span>
-                        <span>·</span>
+                        <CategoryChip :name="operation.category_name" />
                         <CompactAccountIdentity
                             :name="operation.account_name"
                             :type="operation.account_type"
                             :bank="operation.account_bank"
                             :mark_url="operation.account_mark_url"
                         />
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <Badge variant="secondary">
-                            {{ operationTypeLabel(operation) }}
-                        </Badge>
-                        <span
-                            class="font-medium tabular-nums"
-                            :class="operationAmountClass(operation)"
-                        >
-                            {{ formatMoney(operation.amount_grosze) }}
-                        </span>
                     </div>
-                    <div class="flex gap-1">
-                        <IconAction
-                            :icon="Pencil"
-                            :label="t.accounts.edit"
-                            @click="
-                                operation.type === 'income'
-                                    ? openIncomeEditDialog(operation)
-                                    : openExpenseEditDialog(operation)
-                            "
-                        />
-                        <Dialog>
-                            <IconAction
-                                as-dialog-trigger
-                                :icon="Trash2"
-                                :label="t.accounts.delete"
-                                destructive
-                            />
-                            <DialogContent>
-                                <Form
-                                    v-bind="
-                                        operation.type === 'income'
-                                            ? IncomeController.destroy.form(
-                                                  operation,
-                                              )
-                                            : ExpenseController.destroy.form(
-                                                  operation,
-                                              )
-                                    "
-                                    v-slot="{ processing }"
-                                >
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            {{
-                                                operation.type === 'income'
-                                                    ? t.operations
-                                                          .delete_income_confirm_title
-                                                    : t.operations
-                                                          .delete_expense_confirm_title
-                                            }}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            {{
-                                                operation.type === 'income'
-                                                    ? t.operations
-                                                          .delete_income_confirm_body
-                                                    : t.operations
-                                                          .delete_expense_confirm_body
-                                            }}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter class="gap-2">
-                                        <DialogClose as-child>
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                            >
-                                                {{ t.accounts.cancel }}
-                                            </Button>
-                                        </DialogClose>
-                                        <Button
-                                            type="submit"
-                                            variant="destructive"
-                                            :disabled="processing"
-                                        >
-                                            {{ t.accounts.delete }}
-                                        </Button>
-                                    </DialogFooter>
-                                </Form>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </CardContent>
-            </Card>
-            <PaginationLinks :paginator="operations" />
-            </div>
+                    <FinancialOperationActions
+                        :operation="operation"
+                        @edit="
+                            operation.type === 'income'
+                                ? openIncomeEditDialog(operation)
+                                : openExpenseEditDialog(operation)
+                        "
+                    />
+                </div>
+            </ListSurface>
         </template>
 
         <ListSurface
@@ -458,6 +333,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                         <tr>
                             <th>{{ t.operations.date }}</th>
                             <th>{{ t.operations.description }}</th>
+                            <th>{{ t.operations.category }}</th>
                             <th>{{ t.operations.accounts }}</th>
                             <th class="text-right">
                                 {{ t.operations.amount }}
@@ -473,23 +349,40 @@ function openExpenseEditDialog(operation: OperationRow): void {
                             :key="transfer.id"
                         >
                             <td>
-                                {{ formatDate(transfer.transfer_date) }}
+                                <OperationsDateCell
+                                    :date="transfer.transfer_date"
+                                />
                             </td>
-                            <td>{{ transfer.description }}</td>
+                            <td>
+                                <OperationDescriptionCell
+                                    variant="transfer"
+                                    :description="transfer.description"
+                                    :raw-statement-description="
+                                        transfer.raw_statement_description
+                                    "
+                                />
+                            </td>
+                            <td>
+                                <span class="text-muted-foreground">—</span>
+                            </td>
                             <td>
                                 <div class="flex flex-wrap items-center gap-1">
                                     <CompactAccountIdentity
                                         :name="transfer.source_account_name"
                                         :type="transfer.source_account_type"
                                         :bank="transfer.source_account_bank"
-                                        :mark_url="transfer.source_account_mark_url"
+                                        :mark_url="
+                                            transfer.source_account_mark_url
+                                        "
                                     />
                                     <span class="text-muted-foreground">→</span>
                                     <CompactAccountIdentity
                                         :name="transfer.destination_account_name"
                                         :type="transfer.destination_account_type"
                                         :bank="transfer.destination_account_bank"
-                                        :mark_url="transfer.destination_account_mark_url"
+                                        :mark_url="
+                                            transfer.destination_account_mark_url
+                                        "
                                     />
                                 </div>
                             </td>
@@ -497,63 +390,10 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                 {{ formatMoney(transfer.amount_grosze) }}
                             </td>
                             <td>
-                                <div class="flex justify-end gap-1">
-                                    <IconAction
-                                        :icon="Pencil"
-                                        :label="t.accounts.edit"
-                                        @click="openEditDialog(transfer)"
-                                    />
-                                    <Dialog>
-                                        <IconAction
-                                            as-dialog-trigger
-                                            :icon="Trash2"
-                                            :label="t.accounts.delete"
-                                            destructive
-                                        />
-                                        <DialogContent>
-                                            <Form
-                                                v-bind="
-                                                    OwnTransferController.destroy.form(
-                                                        transfer,
-                                                    )
-                                                "
-                                                v-slot="{ processing }"
-                                            >
-                                                <DialogHeader>
-                                                    <DialogTitle>
-                                                        {{
-                                                            t.operations.delete_transfer_confirm_title
-                                                        }}
-                                                    </DialogTitle>
-                                                    <DialogDescription>
-                                                        {{
-                                                            t.operations.delete_transfer_confirm_body
-                                                        }}
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <DialogFooter class="gap-2">
-                                                    <DialogClose as-child>
-                                                        <Button
-                                                            type="button"
-                                                            variant="secondary"
-                                                        >
-                                                            {{
-                                                                t.accounts.cancel
-                                                            }}
-                                                        </Button>
-                                                    </DialogClose>
-                                                    <Button
-                                                        type="submit"
-                                                        variant="destructive"
-                                                        :disabled="processing"
-                                                    >
-                                                        {{ t.accounts.delete }}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </Form>
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
+                                <OwnTransferActions
+                                    :transfer="transfer"
+                                    @edit="openEditDialog(transfer)"
+                                />
                             </td>
                         </tr>
                     </tbody>
@@ -561,94 +401,51 @@ function openExpenseEditDialog(operation: OperationRow): void {
             </div>
         </ListSurface>
 
-        <div v-if="ownTransfers.total > 0" class="space-y-3 md:hidden">
-            <Card v-for="transfer in ownTransfers.data" :key="transfer.id">
-                <CardHeader class="gap-3 pb-3">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <CardTitle class="text-base">
-                                {{ transfer.description }}
-                            </CardTitle>
-                            <CardDescription>
-                                {{ formatDate(transfer.transfer_date) }}
-                            </CardDescription>
-                        </div>
-                        <p class="font-semibold tabular-nums">
-                            {{ formatMoney(transfer.amount_grosze) }}
-                        </p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-1">
-                        <CompactAccountIdentity
-                            :name="transfer.source_account_name"
-                            :type="transfer.source_account_type"
-                            :bank="transfer.source_account_bank"
-                            :mark_url="transfer.source_account_mark_url"
-                        />
-                        <span class="text-muted-foreground">→</span>
-                        <CompactAccountIdentity
-                            :name="transfer.destination_account_name"
-                            :type="transfer.destination_account_type"
-                            :bank="transfer.destination_account_bank"
-                            :mark_url="transfer.destination_account_mark_url"
-                        />
-                    </div>
-                </CardHeader>
-                <CardContent class="flex gap-1">
-                    <IconAction
-                        :icon="Pencil"
-                        :label="t.accounts.edit"
-                        @click="openEditDialog(transfer)"
+        <ListSurface
+            v-if="ownTransfers.total > 0"
+            class="md:hidden"
+            :title="t.operations.own_transfers"
+            :paginator="ownTransfers"
+        >
+            <div
+                v-for="transfer in ownTransfers.data"
+                :key="transfer.id"
+                class="flex flex-col gap-3 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.03]"
+            >
+                <div class="flex items-start justify-between gap-3">
+                    <OperationsDateCell :date="transfer.transfer_date" />
+                    <p class="shrink-0 font-medium tabular-nums">
+                        {{ formatMoney(transfer.amount_grosze) }}
+                    </p>
+                </div>
+                <OperationDescriptionCell
+                    variant="transfer"
+                    :description="transfer.description"
+                    :raw-statement-description="
+                        transfer.raw_statement_description
+                    "
+                />
+                <div class="flex flex-wrap items-center gap-1">
+                    <CompactAccountIdentity
+                        :name="transfer.source_account_name"
+                        :type="transfer.source_account_type"
+                        :bank="transfer.source_account_bank"
+                        :mark_url="transfer.source_account_mark_url"
                     />
-                    <Dialog>
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="Trash2"
-                            :label="t.accounts.delete"
-                            destructive
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="
-                                    OwnTransferController.destroy.form(transfer)
-                                "
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{
-                                            t.operations.delete_transfer_confirm_title
-                                        }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.operations.delete_transfer_confirm_body
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.accounts.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.accounts.delete }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
-                </CardContent>
-            </Card>
-            <PaginationLinks :paginator="ownTransfers" />
-        </div>
+                    <span class="text-muted-foreground">→</span>
+                    <CompactAccountIdentity
+                        :name="transfer.destination_account_name"
+                        :type="transfer.destination_account_type"
+                        :bank="transfer.destination_account_bank"
+                        :mark_url="transfer.destination_account_mark_url"
+                    />
+                </div>
+                <OwnTransferActions
+                    :transfer="transfer"
+                    @edit="openEditDialog(transfer)"
+                />
+            </div>
+        </ListSurface>
     </div>
 
     <IncomeFormDialog
