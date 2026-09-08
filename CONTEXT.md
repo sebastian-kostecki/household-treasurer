@@ -41,8 +41,12 @@ An income, expense, or expense refund: dated, non-zero amount, description, one 
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type)
 
 **Own Transfer**:
-A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash.
+A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash. May make the source Account’s current balance negative.
 _Avoid_: Internal transfer, Move (as the type name)
+
+**Negative Balance Warning**:
+A non-blocking notice before saving a Financial Operation or Own Transfer that would make an Account’s current balance negative. Distinct from exceeding an Available Limit.
+_Avoid_: Overdraft, insufficient funds (both imply a block)
 
 **Liquidity**:
 The current balances of Accounts and their sum. A separate plane from Budget Execution.
