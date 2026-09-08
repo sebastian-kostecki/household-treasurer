@@ -45,36 +45,38 @@ const selectedAccount = computed(() =>
 </script>
 
 <template>
-    <Select v-model="selectedAccountId" :disabled="disabled">
-        <SelectTrigger :id="id" :class="['w-full', props.class]">
-            <SelectValue :placeholder="placeholder">
-                <span
-                    v-if="selectedAccount"
-                    class="flex items-center gap-2"
+    <div>
+        <Select v-model="selectedAccountId" :disabled="disabled">
+            <SelectTrigger :id="id" :class="['w-full', props.class]">
+                <SelectValue :placeholder="placeholder">
+                    <span
+                        v-if="selectedAccount"
+                        class="flex items-center gap-2"
+                    >
+                        <AccountMarkCompact v-bind="selectedAccount" />
+                        <span>{{ selectedAccount.name }}</span>
+                    </span>
+                </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem
+                    v-for="account in accounts"
+                    :key="account.id"
+                    :value="String(account.id)"
                 >
-                    <AccountMarkCompact v-bind="selectedAccount" />
-                    <span>{{ selectedAccount.name }}</span>
-                </span>
-            </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-            <SelectItem
-                v-for="account in accounts"
-                :key="account.id"
-                :value="String(account.id)"
-            >
-                <span class="flex items-center gap-2">
-                    <AccountMarkCompact v-bind="account" />
-                    <span>{{ account.name }}</span>
-                </span>
-            </SelectItem>
-        </SelectContent>
-    </Select>
-    <input
-        v-if="name"
-        type="hidden"
-        :name="name"
-        :value="modelValue"
-        :required="required"
-    />
+                    <span class="flex items-center gap-2">
+                        <AccountMarkCompact v-bind="account" />
+                        <span>{{ account.name }}</span>
+                    </span>
+                </SelectItem>
+            </SelectContent>
+        </Select>
+        <input
+            v-if="name"
+            type="hidden"
+            :name="name"
+            :value="modelValue"
+            :required="required"
+        />
+    </div>
 </template>
