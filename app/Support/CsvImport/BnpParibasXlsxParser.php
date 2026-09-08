@@ -15,6 +15,10 @@ class BnpParibasXlsxParser
 
     private const SENDER_HEADER = 'nadawca / odbiorca';
 
+    private const SENDER_ONLY_HEADER = 'nadawca';
+
+    private const RECIPIENT_ONLY_HEADER = 'odbiorca';
+
     private const DESCRIPTION_HEADER = 'opis';
 
     /**
@@ -40,7 +44,7 @@ class BnpParibasXlsxParser
             $operationDate = $this->parseDateCell($sheet, $columns['date'], $rowIndex);
             $amount = $this->parseAmountCell($sheet, $columns['amount'], $rowIndex);
             $fields = ImportRowFields::fromBnpParibas(
-                $this->cellValue($sheet, $columns['sender'], $rowIndex),
+                $this->counterpartyCell($sheet, $columns, $rowIndex, $amount['amount_grosze']),
                 $this->cellValue($sheet, $columns['description'], $rowIndex),
             );
 
@@ -65,7 +69,7 @@ class BnpParibasXlsxParser
     }
 
     /**
-     * @return array{date: string, amount: string, sender: string, description: string}
+     * @return array{date: string, amount: string, sender: string, recipient: ?string, description: string}
      */
     private function resolveColumns(Worksheet $sheet): array
     {
@@ -83,19 +87,56 @@ class BnpParibasXlsxParser
 
         $dateColumn = $headers[self::DATE_HEADER] ?? null;
         $amountColumn = $headers[self::AMOUNT_HEADER] ?? null;
-        $senderColumn = $headers[self::SENDER_HEADER] ?? null;
         $descriptionColumn = $headers[self::DESCRIPTION_HEADER] ?? null;
+        $combinedSenderColumn = $headers[self::SENDER_HEADER] ?? null;
+        $senderColumn = $headers[self::SENDER_ONLY_HEADER] ?? null;
+        $recipientColumn = $headers[self::RECIPIENT_ONLY_HEADER] ?? null;
 
-        if ($dateColumn === null || $amountColumn === null || $senderColumn === null || $descriptionColumn === null) {
+        if ($dateColumn === null || $amountColumn === null || $descriptionColumn === null) {
             throw new InvalidArgumentException(__('The BNP Paribas export header was not found in the file.'));
         }
 
-        return [
-            'date' => $dateColumn,
-            'amount' => $amountColumn,
-            'sender' => $senderColumn,
-            'description' => $descriptionColumn,
-        ];
+        if ($combinedSenderColumn !== null) {
+            return [
+                'date' => $dateColumn,
+                'amount' => $amountColumn,
+                'sender' => $combinedSenderColumn,
+                'recipient' => null,
+                'description' => $descriptionColumn,
+            ];
+        }
+
+        if ($senderColumn !== null && $recipientColumn !== null) {
+            return [
+                'date' => $dateColumn,
+                'amount' => $amountColumn,
+                'sender' => $senderColumn,
+                'recipient' => $recipientColumn,
+                'description' => $descriptionColumn,
+            ];
+        }
+
+        throw new InvalidArgumentException(__('The BNP Paribas export header was not found in the file.'));
+    }
+
+    /**
+     * @param  array{date: string, amount: string, sender: string, recipient: ?string, description: string}  $columns
+     */
+    private function counterpartyCell(Worksheet $sheet, array $columns, int $rowIndex, ?int $amountGrosze): ?string
+    {
+        $sender = $this->cellValue($sheet, $columns['sender'], $rowIndex);
+
+        if ($columns['recipient'] === null) {
+            return $sender;
+        }
+
+        $recipient = $this->cellValue($sheet, $columns['recipient'], $rowIndex);
+
+        if ($amountGrosze !== null && $amountGrosze > 0) {
+            return $sender ?? $recipient;
+        }
+
+        return $recipient ?? $sender;
     }
 
     private function normalizeHeader(string $value): string

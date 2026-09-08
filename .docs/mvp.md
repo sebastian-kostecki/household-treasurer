@@ -91,7 +91,7 @@ Import przebiega w trzech krokach:
 2. wskazanie konta oraz podgląd pozycji,
 3. zatwierdzenie pozycji, które mają zostać utworzone jako operacje.
 
-Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku i arkusz BNP). Format Inny zostaje dla nieznanych CSV. MVP nie dopasowuje automatycznie obu stron transferów i nie zapewnia zaawansowanego wykrywania duplikatów. Za kontrolę podglądu przed zatwierdzeniem odpowiada użytkownik.
+Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku oraz arkusz BNP z kolumną Nadawca / odbiorca albo rozdzielonymi Nadawcą i Odbiorcą). Format Inny zostaje dla nieznanych CSV. MVP nie dopasowuje automatycznie obu stron transferów i nie zapewnia zaawansowanego wykrywania duplikatów. Za kontrolę podglądu przed zatwierdzeniem odpowiada użytkownik.
 
 ### 3.6. Podstawowe raportowanie
 
