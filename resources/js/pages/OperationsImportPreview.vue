@@ -7,6 +7,7 @@ import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ListSurface from '@/components/ListSurface.vue';
 import {
     Card,
     CardContent,
@@ -249,41 +250,39 @@ function onTypeChange(row: ImportRow): void {
             v-slot="{ errors, processing }"
             class="space-y-4"
         >
-            <Card>
-                <CardContent class="overflow-x-auto pt-6">
-                    <table class="w-full text-sm">
+            <ListSurface>
+                <div class="overflow-x-auto">
+                    <table class="list-surface-table">
                         <thead>
-                            <tr class="border-b text-left">
-                                <th class="pb-2 pr-3 font-medium">
+                            <tr>
+                                <th class="pr-3">
                                     {{ t.operations.import_select }}
                                 </th>
-                                <th class="pb-2 font-medium">
-                                    {{ t.operations.date }}
-                                </th>
-                                <th class="pb-2 font-medium">
-                                    {{ t.operations.description }}
-                                </th>
-                                <th class="pb-2 text-right font-medium">
+                                <th>{{ t.operations.date }}</th>
+                                <th>{{ t.operations.description }}</th>
+                                <th class="text-right">
                                     {{ t.operations.amount }}
                                 </th>
-                                <th class="pb-2 font-medium">
-                                    {{ t.operations.type }}
-                                </th>
-                                <th class="pb-2 font-medium">
-                                    {{ t.operations.import_classification }}
-                                </th>
-                                <th class="pb-2 font-medium">
-                                    {{ t.operations.import_status }}
-                                </th>
+                                <th>{{ t.operations.type }}</th>
+                                <th>{{ t.operations.import_classification }}</th>
+                                <th>{{ t.operations.import_status }}</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <tr v-if="rows.length === 0">
+                                <td
+                                    colspan="7"
+                                    class="text-muted-foreground py-6 text-center"
+                                >
+                                    {{ t.operations.import_preview_empty }}
+                                </td>
+                            </tr>
                             <tr
                                 v-for="row in rows"
                                 :key="row.index"
-                                class="border-b align-top"
+                                class="align-top"
                             >
-                                <td class="py-3 pr-3">
+                                <td class="pr-3">
                                     <Checkbox
                                         :id="`row-selected-${row.index}`"
                                         v-model="selections[row.index].selected"
@@ -304,18 +303,16 @@ function onTypeChange(row: ImportRow): void {
                                         "
                                     />
                                 </td>
-                                <td class="py-3">
+                                <td>
                                     {{
                                         row.operation_date
                                             ? formatDate(row.operation_date)
                                             : '—'
                                     }}
                                 </td>
-                                <td class="py-3">
-                                    {{ row.description ?? '—' }}
-                                </td>
+                                <td>{{ row.description ?? '—' }}</td>
                                 <td
-                                    class="py-3 text-right font-medium"
+                                    class="tabular-amount"
                                     :class="rowAmountClass(row)"
                                 >
                                     {{
@@ -324,7 +321,7 @@ function onTypeChange(row: ImportRow): void {
                                             : '—'
                                     }}
                                 </td>
-                                <td class="py-3">
+                                <td>
                                     <select
                                         v-if="row.valid"
                                         :id="`row-type-${row.index}`"
@@ -347,7 +344,7 @@ function onTypeChange(row: ImportRow): void {
                                         </option>
                                     </select>
                                 </td>
-                                <td class="py-3">
+                                <td>
                                     <select
                                         v-if="
                                             row.valid &&
@@ -410,7 +407,7 @@ function onTypeChange(row: ImportRow): void {
                                         </option>
                                     </select>
                                 </td>
-                                <td class="py-3">
+                                <td>
                                     <Badge
                                         v-if="row.valid"
                                         variant="secondary"
@@ -429,8 +426,8 @@ function onTypeChange(row: ImportRow): void {
                             </tr>
                         </tbody>
                     </table>
-                </CardContent>
-            </Card>
+                </div>
+            </ListSurface>
 
             <div class="flex items-center gap-2">
                 <Checkbox
