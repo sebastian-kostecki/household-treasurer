@@ -6,7 +6,6 @@ return [
         'budget' => 'Budżet',
         'accounts' => 'Konta',
         'operations' => 'Operacje',
-        'settings' => 'Ustawienia',
         'menu' => 'Menu',
     ],
     'shell' => [

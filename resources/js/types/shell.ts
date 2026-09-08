@@ -17,7 +17,6 @@ export type UiTranslations = {
         budget: string;
         accounts: string;
         operations: string;
-        settings: string;
         menu: string;
     };
     shell: {
