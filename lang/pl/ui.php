@@ -216,6 +216,8 @@ return [
     'operations' => [
         'title' => 'Operacje',
         'empty' => 'Brak operacji finansowych',
+        'empty_title' => 'Brak operacji finansowych',
+        'empty_description' => 'Dodaj pierwszą operację lub zaimportuj historię z pliku.',
         'list_description' => 'Zarejestrowane dochody i wydatki.',
         'own_transfers' => 'Transfery własne',
         'add_transfer' => 'Dodaj transfer',

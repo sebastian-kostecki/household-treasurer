@@ -182,4 +182,28 @@
     .native-select {
         @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
     }
+
+    .list-surface-table {
+        @apply w-full text-sm;
+    }
+
+    .list-surface-table thead tr {
+        @apply border-b border-border/60;
+    }
+
+    .list-surface-table thead th {
+        @apply pb-2.5 text-left text-[11px] font-medium tracking-wider text-muted-foreground uppercase;
+    }
+
+    .list-surface-table tbody tr {
+        @apply border-b border-border/60 transition-colors last:border-b-0 hover:bg-foreground/[0.03];
+    }
+
+    .list-surface-table tbody td {
+        @apply py-3;
+    }
+
+    .list-surface-table .tabular-amount {
+        @apply text-right font-medium tabular-nums;
+    }
 }
