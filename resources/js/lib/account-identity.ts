@@ -9,6 +9,14 @@ export type AccountIdentityFields = {
     mark_url: string | null;
 };
 
+export type PrefixedAccountIdentityFields<Prefix extends string> = {
+    [K in keyof AccountIdentityFields as `${Prefix}_${K}`]: AccountIdentityFields[K];
+};
+
+export type AccountPickerOption = AccountIdentityFields & {
+    id: number;
+};
+
 export const bankOptions: AccountBank[] = ['mbank', 'bnp_paribas', 'other'];
 
 export function bankMarkPath(bank: AccountBank): string | null {

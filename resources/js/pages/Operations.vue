@@ -6,6 +6,7 @@ import CsvImportController from '@/actions/App/Http/Controllers/CsvImportControl
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
 import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
 import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
+import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
@@ -43,20 +44,19 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useTranslations } from '@/composables/useTranslations';
+import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
 import { formatDate, formatMoney } from '@/lib/format';
 import { operations as operationsRoute } from '@/routes';
 
 type OperationRow = IncomeFormOperation &
     ExpenseFormOperation & {
     type: 'income' | 'expense';
-    account_name: string;
     category_name: string;
-};
+} & PrefixedAccountIdentityFields<'account'>;
 
-type OwnTransferRow = OwnTransferFormTransfer & {
-    source_account_name: string;
-    destination_account_name: string;
-};
+type OwnTransferRow = OwnTransferFormTransfer &
+    PrefixedAccountIdentityFields<'source_account'> &
+    PrefixedAccountIdentityFields<'destination_account'>;
 
 type AccountRow = ExpenseFormAccount & {
     type: 'bank' | 'cash';
@@ -223,7 +223,14 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                         {{ operationTypeLabel(operation) }}
                                     </Badge>
                                 </td>
-                                <td>{{ operation.account_name }}</td>
+                                <td>
+                                    <CompactAccountIdentity
+                                        :name="operation.account_name"
+                                        :type="operation.account_type"
+                                        :bank="operation.account_bank"
+                                        :mark_url="operation.account_mark_url"
+                                    />
+                                </td>
                                 <td
                                     class="tabular-amount"
                                     :class="operationAmountClass(operation)"
@@ -322,9 +329,15 @@ function openExpenseEditDialog(operation: OperationRow): void {
                     <CardTitle class="text-base">
                         {{ operation.description }}
                     </CardTitle>
-                    <CardDescription>
-                        {{ formatDate(operation.operation_date) }}
-                        · {{ operation.account_name }}
+                    <CardDescription class="flex flex-wrap items-center gap-1">
+                        <span>{{ formatDate(operation.operation_date) }}</span>
+                        <span>·</span>
+                        <CompactAccountIdentity
+                            :name="operation.account_name"
+                            :type="operation.account_type"
+                            :bank="operation.account_bank"
+                            :mark_url="operation.account_mark_url"
+                        />
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="flex items-center justify-between gap-3">
@@ -447,14 +460,20 @@ function openExpenseEditDialog(operation: OperationRow): void {
                             </td>
                             <td>{{ transfer.description }}</td>
                             <td>
-                                <div class="flex flex-wrap gap-1">
-                                    <Badge variant="secondary">
-                                        {{ transfer.source_account_name }}
-                                    </Badge>
+                                <div class="flex flex-wrap items-center gap-1">
+                                    <CompactAccountIdentity
+                                        :name="transfer.source_account_name"
+                                        :type="transfer.source_account_type"
+                                        :bank="transfer.source_account_bank"
+                                        :mark_url="transfer.source_account_mark_url"
+                                    />
                                     <span class="text-muted-foreground">→</span>
-                                    <Badge variant="secondary">
-                                        {{ transfer.destination_account_name }}
-                                    </Badge>
+                                    <CompactAccountIdentity
+                                        :name="transfer.destination_account_name"
+                                        :type="transfer.destination_account_type"
+                                        :bank="transfer.destination_account_bank"
+                                        :mark_url="transfer.destination_account_mark_url"
+                                    />
                                 </div>
                             </td>
                             <td class="tabular-amount">
@@ -541,14 +560,20 @@ function openExpenseEditDialog(operation: OperationRow): void {
                             {{ formatMoney(transfer.amount_grosze) }}
                         </p>
                     </div>
-                    <div class="flex flex-wrap gap-1">
-                        <Badge variant="secondary">
-                            {{ transfer.source_account_name }}
-                        </Badge>
+                    <div class="flex flex-wrap items-center gap-1">
+                        <CompactAccountIdentity
+                            :name="transfer.source_account_name"
+                            :type="transfer.source_account_type"
+                            :bank="transfer.source_account_bank"
+                            :mark_url="transfer.source_account_mark_url"
+                        />
                         <span class="text-muted-foreground">→</span>
-                        <Badge variant="secondary">
-                            {{ transfer.destination_account_name }}
-                        </Badge>
+                        <CompactAccountIdentity
+                            :name="transfer.destination_account_name"
+                            :type="transfer.destination_account_type"
+                            :bank="transfer.destination_account_bank"
+                            :mark_url="transfer.destination_account_mark_url"
+                        />
                     </div>
                 </CardHeader>
                 <CardContent class="flex gap-1">

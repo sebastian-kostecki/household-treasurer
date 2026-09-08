@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
+import AccountSelect from '@/components/AccountSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
+import type { AccountPickerOption } from '@/lib/account-identity';
 
 export type OwnTransferFormTransfer = {
     id: number;
@@ -32,10 +34,7 @@ export type OwnTransferFormTransfer = {
     destination_account_id: number;
 };
 
-export type OwnTransferFormAccount = {
-    id: number;
-    name: string;
-    type: 'bank' | 'cash';
+export type OwnTransferFormAccount = AccountPickerOption & {
     current_balance_grosze: number;
 };
 
@@ -149,10 +148,6 @@ function syncAmount(): void {
     }
 }
 
-function accountTypeLabel(type: OwnTransferFormAccount['type']): string {
-    return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
-}
-
 function closeDialog(): void {
     emit('update:open', false);
 }
@@ -215,21 +210,13 @@ function closeDialog(): void {
                     <Label for="source-account">
                         {{ t.operations.source_account }}
                     </Label>
-                    <select
+                    <AccountSelect
                         id="source-account"
                         name="source_account_id"
                         v-model="sourceAccountId"
-                        class="native-select"
+                        :accounts="accounts"
                         required
-                    >
-                        <option
-                            v-for="account in accounts"
-                            :key="`source-${account.id}`"
-                            :value="account.id"
-                        >
-                            {{ account.name }} ({{ accountTypeLabel(account.type) }})
-                        </option>
-                    </select>
+                    />
                     <InputError :message="errors.source_account_id" />
                 </div>
 
@@ -237,21 +224,13 @@ function closeDialog(): void {
                     <Label for="destination-account">
                         {{ t.operations.destination_account }}
                     </Label>
-                    <select
+                    <AccountSelect
                         id="destination-account"
                         name="destination_account_id"
                         v-model="destinationAccountId"
-                        class="native-select"
+                        :accounts="accounts"
                         required
-                    >
-                        <option
-                            v-for="account in accounts"
-                            :key="`destination-${account.id}`"
-                            :value="account.id"
-                        >
-                            {{ account.name }} ({{ accountTypeLabel(account.type) }})
-                        </option>
-                    </select>
+                    />
                     <InputError :message="errors.destination_account_id" />
                 </div>
 
