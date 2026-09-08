@@ -16,6 +16,7 @@ class ManageOwnTransfer
      *     transfer_date: string,
      *     amount_grosze: int,
      *     description: string,
+     *     raw_statement_description?: string|null,
      * }  $validated
      */
     public function create(User $user, array $validated): OwnTransfer
@@ -38,6 +39,7 @@ class ManageOwnTransfer
      *     transfer_date: string,
      *     amount_grosze: int,
      *     description: string,
+     *     raw_statement_description?: string|null,
      * }  $validated
      */
     public function update(OwnTransfer $ownTransfer, array $validated): OwnTransfer

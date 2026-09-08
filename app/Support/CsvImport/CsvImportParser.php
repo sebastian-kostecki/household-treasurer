@@ -16,12 +16,15 @@ class CsvImportParser
      *     amount_column?: int,
      *     inflow_column?: int,
      *     outflow_column?: int,
+     *     counterparty_column?: int,
      *     has_header: bool,
      * }  $mapping
      * @return array<int, array{
      *     index: int,
      *     operation_date: ?string,
      *     description: ?string,
+     *     counterparty: ?string,
+     *     raw_statement_description: ?string,
      *     amount_grosze: ?int,
      *     amount_has_foreign_currency: bool,
      * }>
@@ -49,11 +52,20 @@ class CsvImportParser
             $rowIndex = count($rows);
 
             $amount = $this->parseAmount($cells, $mapping);
+            $descriptionCell = $this->cell($cells, $mapping['description_column']);
+            $fields = array_key_exists('counterparty_column', $mapping)
+                ? ImportRowFields::fromOther(
+                    $descriptionCell,
+                    $this->cell($cells, (int) $mapping['counterparty_column']),
+                )
+                : ImportRowFields::fromMbank($descriptionCell);
 
             $rows[] = [
                 'index' => $rowIndex,
                 'operation_date' => $this->parseDate($this->cell($cells, $mapping['date_column'])),
-                'description' => $this->parseDescription($this->cell($cells, $mapping['description_column'])),
+                'description' => $fields['description'],
+                'counterparty' => $fields['counterparty'],
+                'raw_statement_description' => $fields['raw_statement_description'],
                 'amount_grosze' => $amount['amount_grosze'],
                 'amount_has_foreign_currency' => $amount['amount_has_foreign_currency'],
             ];
@@ -124,15 +136,6 @@ class CsvImportParser
         [$year, $month, $day] = array_map(intval(...), explode('-', $value));
 
         return checkdate($month, $day, $year);
-    }
-
-    private function parseDescription(?string $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        return mb_substr($value, 0, 255);
     }
 
     /**

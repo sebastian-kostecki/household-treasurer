@@ -22,6 +22,7 @@ class PreviewCsvImportRequest extends FormRequest
      *         amount_column?: int,
      *         inflow_column?: int,
      *         outflow_column?: int,
+     *         counterparty_column?: int,
      *         has_header: bool,
      *     },
      * }|null
@@ -65,6 +66,7 @@ class PreviewCsvImportRequest extends FormRequest
             'amount_column' => ['required_if:amount_layout,signed', 'nullable', 'integer', 'min:0'],
             'inflow_column' => ['required_if:amount_layout,split', 'nullable', 'integer', 'min:0'],
             'outflow_column' => ['required_if:amount_layout,split', 'nullable', 'integer', 'min:0'],
+            'counterparty_column' => ['nullable', 'integer', 'min:0'],
         ];
     }
 
@@ -134,6 +136,7 @@ class PreviewCsvImportRequest extends FormRequest
      *         amount_column?: int,
      *         inflow_column?: int,
      *         outflow_column?: int,
+     *         counterparty_column?: int,
      *         has_header: bool,
      *     },
      * }
@@ -189,6 +192,10 @@ class PreviewCsvImportRequest extends FormRequest
         } else {
             $mapping['inflow_column'] = (int) $this->input('inflow_column');
             $mapping['outflow_column'] = (int) $this->input('outflow_column');
+        }
+
+        if ($this->filled('counterparty_column')) {
+            $mapping['counterparty_column'] = (int) $this->input('counterparty_column');
         }
 
         return $mapping;

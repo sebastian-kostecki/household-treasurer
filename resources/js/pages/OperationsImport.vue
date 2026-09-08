@@ -38,6 +38,7 @@ const accountId = ref<number | ''>(accounts[0]?.id ?? '');
 const amountLayout = ref<'signed' | 'split'>('signed');
 const dateColumn = ref<number | ''>('');
 const descriptionColumn = ref<number | ''>('');
+const counterpartyColumn = ref<number | ''>('');
 const amountColumn = ref<number | ''>('');
 const inflowColumn = ref<number | ''>('');
 const outflowColumn = ref<number | ''>('');
@@ -86,6 +87,7 @@ watch(selectedFile, async (file) => {
     if (file === null) {
         dateColumn.value = '';
         descriptionColumn.value = '';
+        counterpartyColumn.value = '';
         amountColumn.value = '';
         inflowColumn.value = '';
         outflowColumn.value = '';
@@ -130,6 +132,7 @@ watch(selectedFile, async (file) => {
 
     dateColumn.value = 0;
     descriptionColumn.value = Math.min(1, columnLabels.value.length - 1);
+    counterpartyColumn.value = '';
     amountColumn.value = Math.min(2, columnLabels.value.length - 1);
     inflowColumn.value = Math.min(2, columnLabels.value.length - 1);
     outflowColumn.value = Math.min(3, columnLabels.value.length - 1);
@@ -315,6 +318,9 @@ function onFileChange(event: Event): void {
                         <ul class="text-muted-foreground mt-2 list-inside list-disc space-y-1">
                             <li>{{ t.operations.import_bnp_paribas_field_date }}</li>
                             <li>
+                                {{ t.operations.import_bnp_paribas_field_counterparty }}
+                            </li>
+                            <li>
                                 {{ t.operations.import_bnp_paribas_field_description }}
                             </li>
                             <li>{{ t.operations.import_bnp_paribas_field_amount }}</li>
@@ -392,6 +398,35 @@ function onFileChange(event: Event): void {
                                 </select>
                                 <InputError
                                     :message="errors.description_column"
+                                />
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label for="import-counterparty-column">
+                                    {{ t.operations.counterparty }}
+                                    <span class="text-muted-foreground">
+                                        ({{ t.operations.import_optional_column }})
+                                    </span>
+                                </Label>
+                                <select
+                                    id="import-counterparty-column"
+                                    name="counterparty_column"
+                                    v-model="counterpartyColumn"
+                                    class="native-select"
+                                >
+                                    <option value="">
+                                        {{ t.operations.import_no_column }}
+                                    </option>
+                                    <option
+                                        v-for="(label, index) in columnLabels"
+                                        :key="`counterparty-${index}`"
+                                        :value="index"
+                                    >
+                                        {{ label }}
+                                    </option>
+                                </select>
+                                <InputError
+                                    :message="errors.counterparty_column"
                                 />
                             </div>
 

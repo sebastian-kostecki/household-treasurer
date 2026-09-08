@@ -17,6 +17,7 @@ class RecordIncome
      *     amount_grosze: int,
      *     description: string,
      *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
      *     account_id: int,
      *     category_id: int,
      * }  $validated
@@ -47,6 +48,7 @@ class RecordIncome
                 'amount_grosze' => $validated['amount_grosze'],
                 'description' => $validated['description'],
                 'counterparty' => $validated['counterparty'] ?? null,
+                'raw_statement_description' => $validated['raw_statement_description'] ?? null,
             ]);
 
             $account->increment('current_balance_grosze', $validated['amount_grosze']);

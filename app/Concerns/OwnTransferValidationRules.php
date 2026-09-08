@@ -17,6 +17,7 @@ trait OwnTransferValidationRules
             'transfer_date' => ['required', 'date', 'before_or_equal:today'],
             'amount_grosze' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
+            'raw_statement_description' => ['prohibited'],
             'source_account_id' => ['required', 'integer', 'different:destination_account_id'],
             'destination_account_id' => ['required', 'integer'],
         ];

@@ -25,6 +25,8 @@ class ImportFinancialOperations
      *     index: int,
      *     operation_date: string,
      *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
      *     amount_grosze: int,
      *     type: 'income'|'expense'|'refund'|'own_transfer',
      *     category_id?: int,
@@ -53,6 +55,7 @@ class ImportFinancialOperations
                         $row['description'],
                         $row['amount_grosze'],
                     );
+                    $validated['raw_statement_description'] = $row['raw_statement_description'] ?? null;
 
                     $errors = $this->ownTransferValidator->validate($user, $validated);
 
@@ -78,6 +81,8 @@ class ImportFinancialOperations
                     'operation_date' => $row['operation_date'],
                     'amount_grosze' => $amountGrosze,
                     'description' => $row['description'],
+                    'counterparty' => $row['counterparty'] ?? null,
+                    'raw_statement_description' => $row['raw_statement_description'] ?? null,
                     'account_id' => $accountId,
                     'category_id' => $row['category_id'],
                 ];

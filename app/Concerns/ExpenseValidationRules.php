@@ -24,6 +24,7 @@ trait ExpenseValidationRules
             'amount_grosze' => ['required', 'integer', Rule::notIn([0])],
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['nullable', 'string', 'max:255'],
+            'raw_statement_description' => ['prohibited'],
             'account_id' => [
                 'required',
                 'integer',

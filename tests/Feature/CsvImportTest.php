@@ -6,6 +6,7 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -995,16 +996,20 @@ CSV;
                 ->where('rows.0.operation_date', '2025-01-11')
                 ->where('rows.0.amount_grosze', -3739)
                 ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'JMP S.A. BIEDRO'))
+                ->where('rows.0.counterparty', null)
+                ->where('rows.0.raw_statement_description', fn (?string $value) => str_contains((string) $value, 'JMP S.A. BIEDRO'))
                 ->where('rows.0.valid', true)
                 ->where('rows.1.operation_date', '2025-01-11')
                 ->where('rows.1.amount_grosze', -2999)
                 ->where('rows.1.valid', true)
                 ->where('rows.4.operation_date', '2025-01-09')
                 ->where('rows.4.amount_grosze', -93900)
-                ->where('rows.4.description', 'Przedszkole Niepubliczne Odkrywcy Talentów')
+                ->where('rows.4.counterparty', 'Przedszkole Niepubliczne Odkrywcy Talentów')
+                ->where('rows.4.description', 'Jan Nowak')
                 ->where('rows.5.operation_date', '2025-01-09')
                 ->where('rows.5.amount_grosze', 1000000)
-                ->where('rows.5.description', 'Employer')
+                ->where('rows.5.counterparty', 'Employer')
+                ->where('rows.5.description', 'WYPŁATA GRUDZIEŃ 2024')
                 ->where('rows.5.valid', true)
                 ->where('rows.6.operation_date', '2025-01-09')
                 ->where('rows.6.amount_grosze', 500000)
@@ -1089,6 +1094,217 @@ CSV;
                 'import_format' => 'other',
             ])
             ->assertSessionHasErrors(['has_header', 'date_column', 'description_column', 'amount_layout']);
+    }
+
+    public function test_mbank_preview_exposes_raw_statement_description_and_empty_counterparty(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+        $csv = file_get_contents(base_path('tests/Fixtures/mbank-basic.csv'));
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('mbank.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'mbank',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.counterparty', null)
+                ->where('rows.0.raw_statement_description', fn (?string $value) => str_contains((string) $value, 'C&A MODE'))
+                ->where('rows.0.description', fn (?string $value) => str_contains((string) $value, 'C&A MODE')),
+            );
+    }
+
+    public function test_other_format_preview_maps_optional_counterparty_column(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,counterparty,amount
+2026-03-15,Salary,Acme Corp,2500.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'counterparty_column' => 2,
+                'amount_layout' => 'signed',
+                'amount_column' => 3,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.counterparty', 'Acme Corp')
+                ->where('rows.0.description', 'Salary')
+                ->where('rows.0.raw_statement_description', "Salary\nAcme Corp"),
+            );
+    }
+
+    public function test_import_commit_persists_counterparty_and_raw_statement_description(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,counterparty,amount
+2026-03-15,Salary,Acme Corp,2500.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'counterparty_column' => 2,
+                'amount_layout' => 'signed',
+                'amount_column' => 3,
+            ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseHas('financial_operations', [
+            'description' => 'Salary',
+            'counterparty' => 'Acme Corp',
+            'raw_statement_description' => "Salary\nAcme Corp",
+        ]);
+    }
+
+    public function test_own_transfer_import_persists_raw_statement_description_without_counterparty(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseHas('own_transfers', [
+            'description' => 'Transfer to savings',
+            'raw_statement_description' => 'Transfer to savings',
+        ]);
+    }
+
+    public function test_editing_imported_operation_does_not_change_raw_statement_description(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $operation = FinancialOperation::factory()
+            ->for($user)
+            ->for($account)
+            ->for($incomeCategory->budget)
+            ->for($incomeCategory)
+            ->income()
+            ->create([
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Imported description',
+                'counterparty' => 'Original counterparty',
+                'raw_statement_description' => 'Original snapshot',
+            ]);
+
+        $this->actingAs($user)
+            ->patch(route('incomes.update', $operation), [
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Edited description',
+                'counterparty' => 'Edited counterparty',
+                'account_id' => $account->id,
+                'category_id' => $incomeCategory->id,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('operations'));
+
+        $operation->refresh();
+
+        $this->assertSame('Edited description', $operation->description);
+        $this->assertSame('Edited counterparty', $operation->counterparty);
+        $this->assertSame('Original snapshot', $operation->raw_statement_description);
+    }
+
+    public function test_user_cannot_set_raw_statement_description_on_manual_create(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+
+        $this->actingAs($user)
+            ->post(route('incomes.store'), [
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Manual income',
+                'counterparty' => 'Acme Corp',
+                'raw_statement_description' => 'Should not persist',
+                'account_id' => $account->id,
+                'category_id' => $incomeCategory->id,
+            ])
+            ->assertSessionHasErrors('raw_statement_description');
+
+        $this->assertDatabaseCount('financial_operations', 0);
     }
 
     /**
