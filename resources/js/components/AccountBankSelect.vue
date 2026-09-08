@@ -48,7 +48,7 @@ function bankLabel(bank: AccountBank): string {
             <SelectValue>
                 <span class="flex items-center gap-2">
                     <span
-                        class="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted"
+                        class="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted"
                     >
                         <img
                             v-if="bankMarkPath(selectedBank)"
@@ -75,7 +75,7 @@ function bankLabel(bank: AccountBank): string {
             >
                 <span class="flex items-center gap-2">
                     <span
-                        class="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted"
+                        class="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted"
                     >
                         <img
                             v-if="bankMarkPath(bank)"
