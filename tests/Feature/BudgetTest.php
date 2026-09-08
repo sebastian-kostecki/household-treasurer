@@ -694,4 +694,136 @@ class BudgetTest extends TestCase
                 ->where('incomeCategories.0.can_change_type', false),
             );
     }
+
+    public function test_budget_page_without_budget_exposes_empty_plan_totals(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('planSummary', null)
+                ->where('incomeTotals', [
+                    'initial_plan_grosze' => 0,
+                    'current_plan_grosze' => 0,
+                    'execution_grosze' => 0,
+                    'remaining_grosze' => 0,
+                    'percent_complete' => null,
+                ])
+                ->where('expenseTotals', [
+                    'initial_plan_grosze' => 0,
+                    'current_plan_grosze' => 0,
+                    'execution_grosze' => 0,
+                    'remaining_grosze' => 0,
+                    'percent_complete' => null,
+                ]),
+            );
+    }
+
+    public function test_budget_page_exposes_plan_summary_and_list_totals(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 500000,
+            'initial_plan_grosze' => 400000,
+            'execution_grosze' => 250000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 100000,
+            'initial_plan_grosze' => 80000,
+            'execution_grosze' => 120000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('planSummary.planned_balance_grosze', 400000)
+                ->where('incomeTotals.initial_plan_grosze', 400000)
+                ->where('incomeTotals.current_plan_grosze', 500000)
+                ->where('incomeTotals.execution_grosze', 250000)
+                ->where('incomeTotals.remaining_grosze', 250000)
+                ->where('incomeTotals.percent_complete', 50)
+                ->where('expenseTotals.initial_plan_grosze', 80000)
+                ->where('expenseTotals.remaining_grosze', -20000),
+            );
+    }
+
+    public function test_budget_totals_exclude_archived_categories_by_default(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->archived()->create([
+            'planned_amount_grosze' => 50000,
+            'initial_plan_grosze' => 50000,
+            'execution_grosze' => 10000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 30000,
+            'initial_plan_grosze' => 30000,
+            'execution_grosze' => 5000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 1)
+                ->where('expenseTotals.current_plan_grosze', 30000),
+            );
+    }
+
+    public function test_budget_totals_include_archived_categories_when_requested(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->archived()->create([
+            'planned_amount_grosze' => 50000,
+            'initial_plan_grosze' => 50000,
+            'execution_grosze' => 10000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 30000,
+            'initial_plan_grosze' => 30000,
+            'execution_grosze' => 5000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['show_archived' => 1]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 2)
+                ->where('expenseTotals.current_plan_grosze', 80000),
+            );
+    }
+
+    public function test_user_sees_only_their_own_budget_plan_summary(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 100000,
+        ]);
+
+        $otherBudget = Budget::factory()->for($otherUser)->create(['year' => 2026]);
+        Category::factory()->for($otherBudget)->income()->create([
+            'planned_amount_grosze' => 900000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('planSummary.income.current_plan_grosze', 100000)
+                ->where('planSummary.planned_balance_grosze', 100000),
+            );
+    }
 }

@@ -35,6 +35,21 @@ class DashboardTest extends TestCase
                 ->where('accounts', [])
                 ->where('liquidity_total_grosze', 0)
                 ->where('budget', null)
+                ->where('planSummary', null)
+                ->where('incomeTotals', [
+                    'initial_plan_grosze' => 0,
+                    'current_plan_grosze' => 0,
+                    'execution_grosze' => 0,
+                    'remaining_grosze' => 0,
+                    'percent_complete' => null,
+                ])
+                ->where('expenseTotals', [
+                    'initial_plan_grosze' => 0,
+                    'current_plan_grosze' => 0,
+                    'execution_grosze' => 0,
+                    'remaining_grosze' => 0,
+                    'percent_complete' => null,
+                ])
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', []),
             );
@@ -180,8 +195,15 @@ class DashboardTest extends TestCase
                 ->where('expenseCategories.0.is_over_limit', true)
                 ->where('incomeTotals.current_plan_grosze', 500000)
                 ->where('incomeTotals.execution_grosze', 250000)
+                ->where('incomeTotals.initial_plan_grosze', 400000)
+                ->where('incomeTotals.remaining_grosze', 250000)
+                ->where('incomeTotals.percent_complete', 50)
                 ->where('expenseTotals.current_plan_grosze', 100000)
-                ->where('expenseTotals.execution_grosze', 120000),
+                ->where('expenseTotals.execution_grosze', 120000)
+                ->where('expenseTotals.initial_plan_grosze', 80000)
+                ->where('expenseTotals.remaining_grosze', -20000)
+                ->where('expenseTotals.percent_complete', 120)
+                ->where('planSummary.planned_balance_grosze', 400000)
             );
     }
 
@@ -238,14 +260,67 @@ class DashboardTest extends TestCase
             'initial_plan_grosze' => 50000,
             'execution_grosze' => 10000,
         ]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Active category',
+            'planned_amount_grosze' => 30000,
+            'initial_plan_grosze' => 30000,
+            'execution_grosze' => 5000,
+        ]);
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('expenseCategories', 1)
-                ->where('expenseCategories.0.is_archived', true),
+                ->has('expenseCategories', 2)
+                ->where('expenseTotals.current_plan_grosze', 80000)
+                ->where('expenseTotals.execution_grosze', 15000),
+            );
+    }
+
+    public function test_dashboard_plan_summary_shows_negative_planned_balance(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 300000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 450000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('planSummary.planned_balance_grosze', -150000)
+                ->where('planSummary.income.initial_plan_grosze', 300000)
+                ->where('planSummary.expense.initial_plan_grosze', 450000),
+            );
+    }
+
+    public function test_dashboard_draft_budget_uses_current_plan_for_initial_plan_totals(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_grosze' => 400000,
+            'initial_plan_grosze' => 0,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_grosze' => 250000,
+            'initial_plan_grosze' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeTotals.initial_plan_grosze', 400000)
+                ->where('expenseTotals.initial_plan_grosze', 250000)
+                ->where('planSummary.planned_balance_grosze', 150000),
             );
     }
 
@@ -328,7 +403,9 @@ class DashboardTest extends TestCase
                 ->where('accounts.0.name', 'Mine')
                 ->where('liquidity_total_grosze', 10000)
                 ->has('incomeCategories', 1)
-                ->where('incomeCategories.0.name', 'My income'),
+                ->where('incomeCategories.0.name', 'My income')
+                ->where('planSummary.income.current_plan_grosze', 100000)
+                ->where('planSummary.planned_balance_grosze', 100000),
             );
     }
 

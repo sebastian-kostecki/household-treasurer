@@ -40,6 +40,10 @@ _Avoid_: Actuals (in code names; UI may say “wykonanie”)
 Current Plan of an expense Category minus booked expenses. Not cash on Accounts.
 _Avoid_: Balance, Available funds, Remaining cash
 
+**Planned Balance**:
+Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.
+_Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Polish UI copy: „Bilans”.
+
 **Financial Operation**:
 An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import.
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type)
