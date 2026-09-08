@@ -13,7 +13,7 @@ Produkt łączy planowanie według kategorii z ewidencją rzeczywistych przepły
 - Jeden budżet roczny korzysta z jednej waluty.
 - MVP obsługuje rachunki bankowe i konta gotówkowe w walucie budżetu.
 - Dochody i wydatki są ujmowane w momencie zapłaty.
-- Operacje można dodawać ręcznie albo tworzyć z pozycji importowanych z pliku CSV.
+- Operacje można dodawać ręcznie albo tworzyć z pozycji importowanych z pliku CSV albo XLSX.
 - Aplikacja wymaga logowania, trwałego zapisu danych i izolacji danych użytkowników.
 
 ### 2.1. Założenia budżetowe
@@ -83,15 +83,15 @@ Dla kategorii wydatkowej obowiązuje reguła:
 
 Przekroczenie limitu jest dozwolone i wyświetlane jako wartość ujemna. Użytkownik może następnie zmienić aktualny limit albo pozostawić widoczne przekroczenie.
 
-### 3.5. Import CSV
+### 3.5. Import
 
 Import przebiega w trzech krokach:
 
-1. wczytanie pliku i przypisanie podstawowych kolumn, takich jak data, kwota i opis,
+1. wczytanie pliku CSV albo XLSX, wybór Import format (mBank, BNP Paribas albo Inny) i — dla formatu Inny — mapowanie kolumn daty, kwoty i opisu,
 2. wskazanie konta oraz podgląd pozycji,
 3. zatwierdzenie pozycji, które mają zostać utworzone jako operacje.
 
-Przed zatwierdzeniem użytkownik może przypisać typ i kategorię operacji. MVP nie dopasowuje automatycznie obu stron transferów i nie zapewnia zaawansowanego wykrywania duplikatów. Za kontrolę podglądu przed zatwierdzeniem odpowiada użytkownik.
+Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku i arkusz BNP). Format Inny zostaje dla nieznanych CSV. MVP nie dopasowuje automatycznie obu stron transferów i nie zapewnia zaawansowanego wykrywania duplikatów. Za kontrolę podglądu przed zatwierdzeniem odpowiada użytkownik.
 
 ### 3.6. Podstawowe raportowanie
 
@@ -113,7 +113,7 @@ System udostępnia:
 - Plan aktualny
 - Operacja finansowa
 - Transfer własny
-- Import CSV
+- Import
 
 ## 5. Główny przebieg użytkownika
 
@@ -162,6 +162,6 @@ MVP jest kompletne, gdy użytkownik może:
 3. prowadzić salda rachunków bankowych i kont gotówkowych,
 4. rejestrować dochody i wydatki przypisane do kont oraz kategorii,
 5. przenosić środki między własnymi kontami bez wpływu na wykonanie budżetu,
-6. importować podstawowe operacje z pliku CSV po sprawdzeniu podglądu,
+6. importować podstawowe operacje z pliku CSV albo XLSX po sprawdzeniu podglądu,
 7. porównywać plan początkowy, plan aktualny i wykonanie,
 8. rozróżniać wykonanie budżetu od bieżącego stanu środków.
