@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\CategoryType;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Support\CategoryAppearance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,6 +21,8 @@ class CategoryFactory extends Factory
         return [
             'budget_id' => Budget::factory(),
             'name' => fake()->words(2, true),
+            'icon' => CategoryAppearance::DEFAULT_ICON,
+            'color' => CategoryAppearance::DEFAULT_COLOR,
             'type' => fake()->randomElement(CategoryType::cases()),
             'planned_amount_grosze' => fake()->numberBetween(0, 500000),
             'execution_grosze' => 0,

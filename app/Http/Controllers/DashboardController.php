@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
 use App\Support\ShellState;
@@ -38,7 +39,7 @@ class DashboardController extends Controller
 
         if ($budget !== null) {
             $categories = $budget->categories()
-                ->orderBy('name')
+                ->ordered()
                 ->get();
 
             $incomeCategories = $categories
@@ -130,6 +131,8 @@ class DashboardController extends Controller
      * @return array{
      *     id: int,
      *     name: string,
+     *     icon: string,
+     *     color: string,
      *     initial_plan_grosze: int,
      *     current_plan_grosze: int,
      *     execution_grosze: int,
@@ -150,6 +153,7 @@ class DashboardController extends Controller
         return [
             'id' => $category->id,
             'name' => $category->name,
+            ...CategoryAppearance::fields($category),
             'initial_plan_grosze' => $initialPlanGrosze,
             'current_plan_grosze' => $currentPlanGrosze,
             'execution_grosze' => $executionGrosze,

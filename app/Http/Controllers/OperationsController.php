@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Support\AccountIdentity;
+use App\Support\CategoryAppearance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,7 +24,7 @@ class OperationsController extends Controller
         $user = $request->user();
 
         $operations = $user->financialOperations()
-            ->with(['account:id,name,type,bank', 'category:id,name'])
+            ->with(['account:id,name,type,bank', 'category:id,name,icon,color'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
@@ -38,6 +39,8 @@ class OperationsController extends Controller
                 'account_id' => $operation->account_id,
                 'category_id' => $operation->category_id,
                 'category_name' => $operation->category->name,
+                'category_icon' => $operation->category->icon,
+                'category_color' => $operation->category->color,
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 
@@ -73,13 +76,14 @@ class OperationsController extends Controller
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Income)
                 ->whereNull('archived_at')
-                ->orderBy('name'),
+                ->ordered(),
             ])
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
+                ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
             ]))
             ->values();
@@ -89,13 +93,14 @@ class OperationsController extends Controller
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
                 ->whereNull('archived_at')
-                ->orderBy('name'),
+                ->ordered(),
             ])
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
+                ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
                 'planned_amount_grosze' => $category->planned_amount_grosze,
                 'execution_grosze' => $category->execution_grosze,

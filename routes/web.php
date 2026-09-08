@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budgets/{budget}/start-execution', [BudgetController::class, 'startExecution'])->name('budgets.start-execution');
     Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');

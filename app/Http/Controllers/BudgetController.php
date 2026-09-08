@@ -11,6 +11,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
+use App\Support\CategoryAppearance;
 use App\Support\SelectedBudgetYear;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -35,11 +36,12 @@ class BudgetController extends Controller
                 'expenseCategories' => [],
                 'deficitWarning' => null,
                 'show_archived' => false,
+                'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
             ]);
         }
 
         $categories = $budget->categories()
-            ->orderBy('name')
+            ->ordered()
             ->get();
 
         $showArchived = $request->boolean('show_archived');
@@ -57,6 +59,7 @@ class BudgetController extends Controller
                 'phase' => $budget->phase->value,
                 'can_delete' => $budget->isDraft(),
                 'can_start_execution' => $budget->isDraft(),
+                'can_reorder' => $budget->isDraft() || $budget->isExecution(),
             ],
             'incomeCategories' => $categories
                 ->where('type', CategoryType::Income)
@@ -72,6 +75,7 @@ class BudgetController extends Controller
                 ? BudgetDeficitWarning::forBudget($budget, $user, $categories)
                 : null,
             'show_archived' => $showArchived,
+            'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);
     }
 
@@ -148,6 +152,8 @@ class BudgetController extends Controller
      * @return array{
      *     id: int,
      *     name: string,
+     *     icon: string,
+     *     color: string,
      *     type: string,
      *     planned_amount_grosze: int,
      *     initial_plan_grosze: int,
@@ -170,6 +176,7 @@ class BudgetController extends Controller
         return [
             'id' => $category->id,
             'name' => $category->name,
+            ...CategoryAppearance::fields($category),
             'type' => $category->type->value,
             'planned_amount_grosze' => $category->planned_amount_grosze,
             'initial_plan_grosze' => $initialPlanGrosze,

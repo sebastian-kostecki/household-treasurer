@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
 import AccountSelect from '@/components/AccountSelect.vue';
+import CategorySelect from '@/components/CategorySelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,6 +31,8 @@ export type IncomeFormAccount = AccountPickerOption & {
 export type IncomeFormCategory = {
     id: number;
     name: string;
+    icon: string;
+    color: string;
     budget_year: number;
 };
 
@@ -239,29 +242,19 @@ function closeDialog(): void {
                     <Label for="income-category">
                         {{ t.operations.income_category }}
                     </Label>
-                    <select
+                    <CategorySelect
                         id="income-category"
                         name="category_id"
                         v-model="categoryId"
-                        class="native-select"
+                        :categories="availableCategories"
+                        :placeholder="
+                            availableCategories.length === 0
+                                ? t.operations.no_income_category_for_year
+                                : t.operations.select_category
+                        "
                         required
                         :disabled="availableCategories.length === 0"
-                    >
-                        <option value="" disabled>
-                            {{
-                                availableCategories.length === 0
-                                    ? t.operations.no_income_category_for_year
-                                    : t.operations.select_category
-                            }}
-                        </option>
-                        <option
-                            v-for="category in availableCategories"
-                            :key="category.id"
-                            :value="category.id"
-                        >
-                            {{ category.name }}
-                        </option>
-                    </select>
+                    />
                     <InputError :message="errors.category_id" />
                 </div>
 

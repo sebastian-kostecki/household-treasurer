@@ -76,11 +76,11 @@ class BudgetTest extends TestCase
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
 
         $this->actingAs($user)
-            ->post(route('categories.store', $budget), [
+            ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 500000,
-            ])
+            ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -98,11 +98,11 @@ class BudgetTest extends TestCase
         $budget = Budget::factory()->for($user)->create();
 
         $this->actingAs($user)
-            ->post(route('categories.store', $budget), [
+            ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Groceries',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_grosze' => 120000,
-            ])
+            ]))
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('categories', [
@@ -119,11 +119,11 @@ class BudgetTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('budget'))
-            ->post(route('categories.store', $budget), [
+            ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Invalid',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => -100,
-            ])
+            ]))
             ->assertSessionHasErrors('planned_amount_grosze');
     }
 
@@ -137,11 +137,11 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $category), [
+            ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => 'New name',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_grosze' => 20000,
-            ])
+            ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -201,6 +201,8 @@ class BudgetTest extends TestCase
                 ->where('budget.phase', BudgetPhase::Draft->value)
                 ->has('incomeCategories', 1)
                 ->where('incomeCategories.0.name', 'Salary')
+                ->where('incomeCategories.0.icon', 'tag')
+                ->where('incomeCategories.0.color', '#868e96')
                 ->where('incomeCategories.0.planned_amount_grosze', 300000),
             );
     }
@@ -249,19 +251,19 @@ class BudgetTest extends TestCase
         $category = Category::factory()->for($budget)->create();
 
         $this->actingAs($otherUser)
-            ->post(route('categories.store', $budget), [
+            ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Stolen',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 1,
-            ])
+            ]))
             ->assertForbidden();
 
         $this->actingAs($otherUser)
-            ->patch(route('categories.update', $category), [
+            ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => 'Stolen',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 1,
-            ])
+            ]))
             ->assertForbidden();
 
         $this->actingAs($otherUser)
@@ -508,20 +510,20 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $income), [
+            ->patch(route('categories.update', $income), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 750000,
-            ])
+            ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $expense), [
+            ->patch(route('categories.update', $expense), $this->categoryFields([
                 'name' => 'Groceries',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_grosze' => 200000,
-            ])
+            ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -546,12 +548,12 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $category), [
+            ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 750000,
                 'initial_plan_grosze' => 1,
-            ])
+            ]))
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('categories', [
@@ -567,12 +569,12 @@ class BudgetTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
 
         $this->actingAs($user)
-            ->post(route('categories.store', $budget), [
+            ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Bonus',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 120000,
                 'initial_plan_grosze' => 999999,
-            ])
+            ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -606,11 +608,11 @@ class BudgetTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('budget'))
-            ->patch(route('categories.update', $category), [
+            ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_grosze' => 500000,
-            ])
+            ]))
             ->assertSessionHasErrors('type');
 
         $this->assertDatabaseHas('categories', [
@@ -646,19 +648,19 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($otherUser)
-            ->patch(route('categories.update', $category), [
+            ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => 'Stolen',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 1,
-            ])
+            ]))
             ->assertForbidden();
 
         $this->actingAs($otherUser)
-            ->post(route('categories.store', $budget), [
+            ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Stolen',
                 'type' => CategoryType::Income->value,
                 'planned_amount_grosze' => 1,
-            ])
+            ]))
             ->assertForbidden();
 
         $this->assertDatabaseHas('categories', [

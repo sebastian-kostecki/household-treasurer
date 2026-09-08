@@ -4,6 +4,7 @@ import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
 import AccountSelect from '@/components/AccountSelect.vue';
+import CategorySelect from '@/components/CategorySelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,8 @@ export type ExpenseFormAccount = AccountPickerOption & {
 export type ExpenseFormCategory = {
     id: number;
     name: string;
+    icon: string;
+    color: string;
     budget_year: number;
     planned_amount_grosze: number;
     execution_grosze: number;
@@ -353,29 +356,19 @@ function closeDialog(): void {
                     <Label for="expense-category">
                         {{ t.operations.expense_category }}
                     </Label>
-                    <select
+                    <CategorySelect
                         id="expense-category"
                         name="category_id"
                         v-model="categoryId"
-                        class="native-select"
+                        :categories="availableCategories"
+                        :placeholder="
+                            availableCategories.length === 0
+                                ? t.operations.no_expense_category_for_year
+                                : t.operations.select_category
+                        "
                         required
                         :disabled="availableCategories.length === 0"
-                    >
-                        <option value="" disabled>
-                            {{
-                                availableCategories.length === 0
-                                    ? t.operations.no_expense_category_for_year
-                                    : t.operations.select_category
-                            }}
-                        </option>
-                        <option
-                            v-for="category in availableCategories"
-                            :key="category.id"
-                            :value="category.id"
-                        >
-                            {{ category.name }}
-                        </option>
-                    </select>
+                    />
                     <InputError :message="errors.category_id" />
                 </div>
 
