@@ -11,6 +11,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 class CsvImportTest extends TestCase
@@ -1017,6 +1019,51 @@ CSV;
             );
     }
 
+    public function test_bnp_paribas_import_maps_split_sender_and_recipient_columns(): void
+    {
+        $this->travelTo('2026-09-08');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => $this->bnpParibasSplitPartiesUpload(),
+                'account_id' => $account->id,
+                'import_format' => 'bnp_paribas',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 4)
+                ->where('rows.0.operation_date', '2026-09-07')
+                ->where('rows.0.amount_grosze', -3735)
+                ->where('rows.0.counterparty', 'Grocery Store')
+                ->where('rows.0.description', 'BLIK payment')
+                ->where('rows.0.raw_statement_description', "Grocery Store\nBLIK payment")
+                ->where('rows.0.valid', true)
+                ->where('rows.1.operation_date', '2026-09-07')
+                ->where('rows.1.amount_grosze', 500000)
+                ->where('rows.1.counterparty', 'Employer Sp. z o.o.')
+                ->where('rows.1.description', 'Salary September')
+                ->where('rows.1.valid', true)
+                ->where('rows.2.operation_date', '2026-09-07')
+                ->where('rows.2.amount_grosze', -3836)
+                ->where('rows.2.counterparty', null)
+                ->where('rows.2.description', 'STOKROTKA NR 06 LUBLIN')
+                ->where('rows.2.valid', true)
+                ->where('rows.3.operation_date', '2026-09-06')
+                ->where('rows.3.amount_grosze', -199)
+                ->where('rows.3.counterparty', '48160000000000000000000000')
+                ->where('rows.3.description', 'Account fee')
+                ->where('rows.3.valid', true),
+            );
+    }
+
     public function test_bnp_paribas_import_rejects_csv_files(): void
     {
         $this->travelTo('2025-01-10');
@@ -1353,6 +1400,46 @@ CSV;
         return new UploadedFile(
             base_path('tests/Fixtures/bnp-paribas-basic.xlsx'),
             'bnp-paribas-basic.xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            UPLOAD_ERR_OK,
+            true,
+        );
+    }
+
+    private function bnpParibasSplitPartiesUpload(): UploadedFile
+    {
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('ExcelExportFile');
+        $sheet->fromArray([
+            [
+                'Data transakcji',
+                'Data zaksięgowania',
+                'Data odrzucenia',
+                'Kwota',
+                'Waluta',
+                'Nadawca',
+                'Odbiorca',
+                'Opis',
+                'Produkt',
+                'Typ transakcji',
+                'Kwota zlecenia',
+                'Waluta zlecenia',
+                'Status',
+                'Saldo po transakcji',
+            ],
+            [46272, 46272, null, -37.35, 'PLN', 'Account Holder', 'Grocery Store', 'BLIK payment', 'Konto Osobiste', 'Transakcja BLIK', -37.35, 'PLN', 'Zrealizowana', 308.58],
+            [46272, 46272, null, 5000, 'PLN', 'Employer Sp. z o.o.', 'Account Holder', 'Salary September', 'Konto Osobiste', 'Przelew przychodzący', 5000, 'PLN', 'Zrealizowana', 5308.58],
+            [46272, null, null, -38.36, 'PLN', null, null, 'STOKROTKA NR 06 LUBLIN', 'Konto Osobiste', 'Blokada środków', -38.36, 'PLN', 'W trakcie realizacji', null],
+            [46271, 46272, null, -1.99, 'PLN', '48160000000000000000000000', null, 'Account fee', 'Konto Osobiste', 'Prowizje i opłaty', -1.99, 'PLN', 'Zrealizowana', 872.27],
+        ]);
+
+        $path = tempnam(sys_get_temp_dir(), 'bnp-split-').'.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+
+        return new UploadedFile(
+            $path,
+            'paribas-osobiste.xlsx',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             UPLOAD_ERR_OK,
             true,
