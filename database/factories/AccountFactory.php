@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\AccountType;
+use App\Enums\Bank;
 use App\Models\Account;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -18,11 +19,13 @@ class AccountFactory extends Factory
     public function definition(): array
     {
         $openingBalanceGrosze = fake()->numberBetween(0, 500000);
+        $type = fake()->randomElement(AccountType::cases());
 
         return [
             'user_id' => User::factory(),
             'name' => fake()->words(2, true),
-            'type' => fake()->randomElement(AccountType::cases()),
+            'type' => $type,
+            'bank' => $type === AccountType::Bank ? Bank::Other : null,
             'opening_date' => fake()->date(),
             'opening_balance_grosze' => $openingBalanceGrosze,
             'current_balance_grosze' => $openingBalanceGrosze,
@@ -33,6 +36,7 @@ class AccountFactory extends Factory
     {
         return $this->state(fn (): array => [
             'type' => AccountType::Bank,
+            'bank' => Bank::Other,
         ]);
     }
 
@@ -40,6 +44,7 @@ class AccountFactory extends Factory
     {
         return $this->state(fn (): array => [
             'type' => AccountType::Cash,
+            'bank' => null,
         ]);
     }
 

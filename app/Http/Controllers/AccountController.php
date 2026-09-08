@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AccountType;
 use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Models\Account;
+use App\Support\AccountIdentity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +45,7 @@ class AccountController extends Controller
         $validated = $request->validated();
 
         $request->user()->accounts()->create([
-            ...$validated,
+            ...$this->accountAttributes($validated),
             'current_balance_grosze' => $validated['opening_balance_grosze'],
         ]);
 
@@ -62,7 +64,7 @@ class AccountController extends Controller
         $openingBalanceDelta = $validated['opening_balance_grosze'] - $account->opening_balance_grosze;
 
         $account->update([
-            ...$validated,
+            ...$this->accountAttributes($validated),
             'current_balance_grosze' => $account->current_balance_grosze + $openingBalanceDelta,
         ]);
 
@@ -123,10 +125,25 @@ class AccountController extends Controller
     }
 
     /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function accountAttributes(array $validated): array
+    {
+        if ($validated['type'] === AccountType::Cash->value) {
+            $validated['bank'] = null;
+        }
+
+        return $validated;
+    }
+
+    /**
      * @return array{
      *     id: int,
      *     name: string,
      *     type: string,
+     *     bank: string|null,
+     *     mark_url: string|null,
      *     opening_date: string,
      *     opening_balance_grosze: int,
      *     current_balance_grosze: int,
@@ -139,10 +156,7 @@ class AccountController extends Controller
      */
     private function accountPayload(Account $account): array
     {
-        return [
-            'id' => $account->id,
-            'name' => $account->name,
-            'type' => $account->type->value,
+        return AccountIdentity::payload($account, [
             'opening_date' => $account->opening_date->toDateString(),
             'opening_balance_grosze' => $account->opening_balance_grosze,
             'current_balance_grosze' => $account->current_balance_grosze,
@@ -151,6 +165,6 @@ class AccountController extends Controller
             'can_delete' => ! $account->hasFinancialHistory() && ! $account->isArchived(),
             'can_archive' => $account->hasFinancialHistory() && ! $account->isArchived(),
             'can_restore' => $account->isArchived(),
-        ];
+        ]);
     }
 }
