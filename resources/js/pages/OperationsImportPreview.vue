@@ -27,6 +27,8 @@ type ImportRow = {
     index: number;
     operation_date: string | null;
     description: string | null;
+    counterparty: string | null;
+    raw_statement_description: string | null;
     amount_grosze: number | null;
     valid: boolean;
     invalid_reason: string | null;
@@ -256,6 +258,8 @@ function onTypeChange(row: ImportRow): void {
                                 </th>
                                 <th>{{ t.operations.date }}</th>
                                 <th>{{ t.operations.description }}</th>
+                                <th>{{ t.operations.counterparty }}</th>
+                                <th>{{ t.operations.raw_statement_description }}</th>
                                 <th class="text-right">
                                     {{ t.operations.amount }}
                                 </th>
@@ -267,7 +271,7 @@ function onTypeChange(row: ImportRow): void {
                         <tbody>
                             <tr v-if="rows.length === 0">
                                 <td
-                                    colspan="7"
+                                    colspan="9"
                                     class="text-muted-foreground py-6 text-center"
                                 >
                                     {{ t.operations.import_preview_empty }}
@@ -307,6 +311,10 @@ function onTypeChange(row: ImportRow): void {
                                     }}
                                 </td>
                                 <td>{{ row.description ?? '—' }}</td>
+                                <td>{{ row.counterparty ?? '—' }}</td>
+                                <td class="max-w-xs whitespace-pre-wrap">
+                                    {{ row.raw_statement_description ?? '—' }}
+                                </td>
                                 <td
                                     class="tabular-amount"
                                     :class="rowAmountClass(row)"

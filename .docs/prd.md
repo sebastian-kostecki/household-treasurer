@@ -188,9 +188,9 @@ Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **I
 - **FR-IMP-02**: Użytkownik wybiera Import format: mBank, BNP Paribas albo Inny. System może wstępnie zaznaczyć format na podstawie rozszerzenia pliku; użytkownik może to zmienić. System nie importuje po cichej autodetekcji.
 - **FR-IMP-03**: Plik musi pasować do wybranego formatu: mBank i Inny wymagają CSV, BNP Paribas wymaga XLSX. Niezgodność jest błędem pliku.
 - **FR-IMP-04**: Użytkownik wskazuje konto, którego dotyczy Import.
-- **FR-IMP-05**: Format mBank: CSV. System znajduje wiersz nagłówka `#Data operacji`. Linie przed nim nie trafiają do podglądu. Data = Data operacji, opis = Opis operacji, kwota = Kwota (kolumna ze znakiem).
-- **FR-IMP-06**: Format BNP Paribas: XLSX, wyłącznie pierwszy arkusz, nagłówek w pierwszym wierszu. Data = Data transakcji (w tym daty seryjne Excela). Opis = Nadawca, gdy niepusty, w przeciwnym razie Opis. Kwota = Kwota (kolumna ze znakiem). Wiersze blokad i statusu „W trakcie realizacji” pozostają w podglądzie; użytkownik je odznacza.
-- **FR-IMP-07**: Format Inny: wyłącznie CSV. Użytkownik mapuje kolumny daty, opisu i kwoty oraz oznacza, czy plik ma nagłówek. Kwota może być jedną kolumną ze znakiem albo osobnymi kolumnami wpływów i obciążeń. Dla tego formatu pokazywany jest ekran mapowania kolumn. Formaty nazwane nie pokazują mapowania kolumn; mogą pokazać nieedytowalny skrót użytych pól.
+- **FR-IMP-05**: Format mBank: CSV. System znajduje wiersz nagłówka `#Data operacji`. Linie przed nim nie trafiają do podglądu. Data = Data operacji, opis = Opis operacji, kwota = Kwota (kolumna ze znakiem). Nadawca / odbiorca pozostaje pusty. Oryginalny opis z wyciągu = Opis operacji.
+- **FR-IMP-06**: Format BNP Paribas: XLSX, wyłącznie pierwszy arkusz, nagłówek w pierwszym wierszu. Data = Data transakcji (w tym daty seryjne Excela). Nadawca / odbiorca → nadawca / odbiorca (pusty dozwolony). Opis → opis. Gdy Opis jest pusty, a Nadawca nie — opis i nadawca / odbiorca równe Nadawcy. Gdy oba puste — wiersz niepoprawny (brak opisu). Oryginalny opis z wyciągu = niepusty Nadawca i Opis połączone (nowa linia, gdy oba). Kwota = Kwota (kolumna ze znakiem). Wiersze blokad i statusu „W trakcie realizacji” pozostają w podglądzie; użytkownik je odznacza.
+- **FR-IMP-07**: Format Inny: wyłącznie CSV. Użytkownik mapuje kolumny daty, opisu i kwoty oraz oznacza, czy plik ma nagłówek. Opcjonalnie mapuje kolumnę nadawcy / odbiorcy. Pliki trzykolumnowe nadal działają. Oryginalny opis z wyciągu = zmapowana komórka opisu plus zmapowana komórka nadawcy / odbiorcy, gdy jest. Kwota może być jedną kolumną ze znakiem albo osobnymi kolumnami wpływów i obciążeń. Dla tego formatu pokazywany jest ekran mapowania kolumn. Formaty nazwane nie pokazują mapowania kolumn; mogą pokazać nieedytowalny skrót użytych pól.
 - **FR-IMP-08**: Po nagłówku formatu (albo po starcie wynikającym z mapowania) wiersze, w których zmapowana data nie jest datą albo zmapowana kwota nie jest kwotą, są pomijane i nie pojawiają się w podglądzie jako błędy.
 - **FR-IMP-09**: Wiersz, który wygląda jak operacja, ale łamie reguły biznesowe, jest oznaczony jako niepoprawny wraz z przyczyną i nie może zostać wybrany do Importu.
 - **FR-IMP-10**: Z komórki kwoty zdejmowane są suffiksy `PLN` i `zł`. Inny kod waluty w tej komórce czyni wiersz niepoprawnym. Osobna kolumna waluty nie wchodzi do mapowania.
@@ -307,14 +307,17 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 
 ### 11.6. Import
 
-1. Użytkownik wybiera Import format. mBank pomija preambułę CSV i wczytuje operacje z kolumn Data operacji, Opis operacji i Kwota.
-2. BNP Paribas wczytuje pierwszy arkusz XLSX; data pochodzi z Data transakcji, opis z Nadawcy albo Opisu, kwota z Kwoty. Blokady pozostają w podglądzie do odznaczenia.
-3. Format Inny pozwala zmapować wymagane kolumny CSV dla obu obsługiwanych układów kwot i pomija linie bez daty i kwoty.
+1. Użytkownik wybiera Import format. mBank pomija preambułę CSV i wczytuje operacje z kolumn Data operacji, Opis operacji i Kwota. Nadawca / odbiorca pozostaje pusty; oryginalny opis z wyciągu to Opis operacji.
+2. BNP Paribas wczytuje pierwszy arkusz XLSX; data pochodzi z Data transakcji, nadawca / odbiorca z Nadawcy / odbiorcy, opis z Opisu (gdy Opis pusty i Nadawca nie — oba równe Nadawcy), oryginalny opis z wyciągu z połączenia niepustych Nadawcy i Opisu, kwota z Kwoty. Blokady pozostają w podglądzie do odznaczenia.
+3. Format Inny pozwala zmapować wymagane kolumny CSV dla obu obsługiwanych układów kwot, opcjonalnie kolumnę nadawcy / odbiorcy, i pomija linie bez daty i kwoty.
 4. Podgląd odróżnia poprawne i niepoprawne wiersze operacji oraz podaje przyczyny błędów; linie niebędące operacją nie są pokazywane jako błędy.
 5. Zatwierdzenie tworzy operacje wyłącznie z wybranych poprawnych wierszy.
 6. Transfer utworzony z Importu jest jedną atomową operacją między wskazanymi kontami.
 7. Błąd zapisu jednej wybranej pozycji nie pozostawia częściowo zapisanego Importu.
 8. Przed zatwierdzeniem użytkownik otrzymuje ostrzeżenie, że duplikaty mogą nie zostać wykryte.
+9. Podgląd pokazuje nadawcę / odbiorcę i oryginalny opis z wyciągu dla każdego wiersza.
+10. Import zapisuje oryginalny opis z wyciągu jednorazowo przy utworzeniu operacji finansowej lub transferu własnego. Ręczne tworzenie pozostawia go pustym. Edycja opisu lub nadawcy / odbiorcy nie zmienia oryginalnego opisu z wyciągu.
+11. Dialog edycji pokazuje oryginalny opis z wyciągu jako pole tylko do odczytu, gdy jest ustawiony.
 
 ### 11.7. Raportowanie
 

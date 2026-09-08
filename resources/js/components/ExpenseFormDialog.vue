@@ -45,6 +45,7 @@ export type ExpenseFormOperation = {
     amount_grosze: number;
     description: string;
     counterparty?: string | null;
+    raw_statement_description?: string | null;
     account_id: number;
     category_id: number;
 };
@@ -317,6 +318,22 @@ function closeDialog(): void {
                         autocomplete="off"
                     />
                     <InputError :message="errors.counterparty" />
+                </div>
+
+                <div
+                    v-if="mode === 'edit' && operation?.raw_statement_description"
+                    class="grid gap-2"
+                >
+                    <Label for="expense-raw-statement-description">
+                        {{ t.operations.raw_statement_description }}
+                    </Label>
+                    <textarea
+                        id="expense-raw-statement-description"
+                        :value="operation.raw_statement_description"
+                        readonly
+                        rows="3"
+                        class="border-input w-full rounded-xl border bg-transparent px-3 py-2 text-base md:text-sm"
+                    />
                 </div>
 
                 <div class="grid gap-2">

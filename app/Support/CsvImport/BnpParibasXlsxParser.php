@@ -22,6 +22,8 @@ class BnpParibasXlsxParser
      *     index: int,
      *     operation_date: ?string,
      *     description: ?string,
+     *     counterparty: ?string,
+     *     raw_statement_description: ?string,
      *     amount_grosze: ?int,
      *     amount_has_foreign_currency: bool,
      * }>
@@ -37,7 +39,7 @@ class BnpParibasXlsxParser
         for ($rowIndex = 2; $rowIndex <= $highestRow; $rowIndex++) {
             $operationDate = $this->parseDateCell($sheet, $columns['date'], $rowIndex);
             $amount = $this->parseAmountCell($sheet, $columns['amount'], $rowIndex);
-            $description = $this->parseDescription(
+            $fields = ImportRowFields::fromBnpParibas(
                 $this->cellValue($sheet, $columns['sender'], $rowIndex),
                 $this->cellValue($sheet, $columns['description'], $rowIndex),
             );
@@ -45,7 +47,9 @@ class BnpParibasXlsxParser
             $rows[] = [
                 'index' => count($rows),
                 'operation_date' => $operationDate,
-                'description' => $description,
+                'description' => $fields['description'],
+                'counterparty' => $fields['counterparty'],
+                'raw_statement_description' => $fields['raw_statement_description'],
                 'amount_grosze' => $amount['amount_grosze'],
                 'amount_has_foreign_currency' => $amount['amount_has_foreign_currency'],
             ];
@@ -192,17 +196,6 @@ class BnpParibasXlsxParser
             'amount_grosze' => $this->parseMoney($trimmed),
             'amount_has_foreign_currency' => false,
         ];
-    }
-
-    private function parseDescription(?string $sender, ?string $description): ?string
-    {
-        $value = $sender ?? $description;
-
-        if ($value === null) {
-            return null;
-        }
-
-        return mb_substr($value, 0, 255);
     }
 
     private function validDate(string $value): bool

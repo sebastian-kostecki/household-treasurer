@@ -24,6 +24,7 @@ trait IncomeValidationRules
             'amount_grosze' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['nullable', 'string', 'max:255'],
+            'raw_statement_description' => ['prohibited'],
             'account_id' => [
                 'required',
                 'integer',
