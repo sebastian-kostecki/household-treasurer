@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AccountType;
+use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Models\Account;
 use App\Models\Budget;
@@ -78,6 +80,68 @@ class DashboardTest extends TestCase
                 ->has('accounts', 1)
                 ->where('accounts.0.is_archived', true)
                 ->where('liquidity_total_grosze', 10000),
+            );
+    }
+
+    public function test_dashboard_exposes_bank_and_mark_url_for_each_account_type(): void
+    {
+        $user = User::factory()->create();
+
+        Account::factory()->for($user)->create([
+            'name' => 'mBank konto',
+            'type' => AccountType::Bank,
+            'bank' => Bank::Mbank,
+        ]);
+        Account::factory()->for($user)->create([
+            'name' => 'BNP konto',
+            'type' => AccountType::Bank,
+            'bank' => Bank::BnpParibas,
+        ]);
+        Account::factory()->for($user)->create([
+            'name' => 'Inne bank',
+            'type' => AccountType::Bank,
+            'bank' => Bank::Other,
+        ]);
+        Account::factory()->for($user)->cash()->create([
+            'name' => 'Gotówka',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('accounts', 4)
+                ->where('accounts.0.name', 'BNP konto')
+                ->where('accounts.0.bank', Bank::BnpParibas->value)
+                ->where('accounts.0.mark_url', url('/marks/bnp-paribas.jpg'))
+                ->where('accounts.1.name', 'Gotówka')
+                ->where('accounts.1.bank', null)
+                ->where('accounts.1.mark_url', null)
+                ->where('accounts.2.name', 'Inne bank')
+                ->where('accounts.2.bank', Bank::Other->value)
+                ->where('accounts.2.mark_url', null)
+                ->where('accounts.3.name', 'mBank konto')
+                ->where('accounts.3.bank', Bank::Mbank->value)
+                ->where('accounts.3.mark_url', url('/marks/mbank.jpg')),
+            );
+    }
+
+    public function test_archived_account_keeps_bank_identity_on_dashboard(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->archived()->create([
+            'name' => 'Archived mBank',
+            'type' => AccountType::Bank,
+            'bank' => Bank::Mbank,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('accounts.0.bank', Bank::Mbank->value)
+                ->where('accounts.0.mark_url', url('/marks/mbank.jpg'))
+                ->where('accounts.0.is_archived', true),
             );
     }
 

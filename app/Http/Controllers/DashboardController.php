@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
 use Illuminate\Http\Request;
@@ -93,27 +94,16 @@ class DashboardController extends Controller
     }
 
     /**
-     * @return array{
-     *     id: int,
-     *     name: string,
-     *     type: string,
-     *     opening_date: string,
-     *     current_balance_grosze: int,
-     *     is_negative: bool,
-     *     is_archived: bool,
-     * }
+     * @return array<string, mixed>
      */
     private function accountPayload(Account $account): array
     {
-        return [
-            'id' => $account->id,
-            'name' => $account->name,
-            'type' => $account->type->value,
+        return AccountIdentity::payload($account, [
             'opening_date' => $account->opening_date->toDateString(),
             'current_balance_grosze' => $account->current_balance_grosze,
             'is_negative' => $account->isNegative(),
             'is_archived' => $account->isArchived(),
-        ];
+        ]);
     }
 
     /**
