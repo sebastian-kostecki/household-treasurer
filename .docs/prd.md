@@ -116,8 +116,8 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 ### 7.2. Konta
 
 - **FR-ACC-01**: Użytkownik może utworzyć rachunek bankowy albo konto gotówkowe.
-- **FR-ACC-02**: Konto zawiera nazwę, typ, datę otwarcia, saldo otwarcia i saldo bieżące.
-- **FR-ACC-03**: Użytkownik może edytować nazwę, typ i saldo otwarcia konta.
+- **FR-ACC-02**: Konto zawiera nazwę, typ, datę otwarcia, saldo otwarcia i saldo bieżące. Rachunek bankowy zawiera także Bank (mBank, BNP Paribas albo Inny).
+- **FR-ACC-03**: Użytkownik może edytować nazwę, typ i saldo otwarcia konta. Na rachunku bankowym może edytować także Bank.
 - **FR-ACC-04**: Data otwarcia nie może być późniejsza niż najstarsza operacja zapisana na koncie.
 - **FR-ACC-05**: Operacja nie może mieć daty wcześniejszej niż data otwarcia użytego konta.
 - **FR-ACC-06**: Konto bez operacji może zostać usunięte.

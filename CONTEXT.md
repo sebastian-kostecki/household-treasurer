@@ -9,8 +9,12 @@ The person who signs in. Owns an isolated data space. Not shared with household 
 _Avoid_: Account (for the login identity), Customer, Member
 
 **Account**:
-A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year.
+A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank.
 _Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User
+
+**Bank**:
+The named institution of a bank Account: mBank, BNP Paribas, or Other. Required on bank Accounts, absent on cash Accounts. Distinct from Import format (file layout of an export); Other here is not Import format Other.
+_Avoid_: Import format, Connector, Integration, BankAccount (as this field’s name)
 
 **Budget**:
 The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution.

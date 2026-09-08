@@ -1,0 +1,99 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useTranslations } from '@/composables/useTranslations';
+import {
+    type AccountBank,
+    bankMarkPath,
+    bankOptions,
+} from '@/lib/account-identity';
+
+const props = defineProps<{
+    modelValue: AccountBank;
+}>();
+
+const emit = defineEmits<{
+    'update:modelValue': [value: AccountBank];
+}>();
+
+const t = useTranslations();
+
+const selectedBank = computed({
+    get: () => props.modelValue,
+    set: (value: AccountBank) => emit('update:modelValue', value),
+});
+
+function bankLabel(bank: AccountBank): string {
+    if (bank === 'mbank') {
+        return t.accounts.bank_mbank;
+    }
+
+    if (bank === 'bnp_paribas') {
+        return t.accounts.bank_bnp_paribas;
+    }
+
+    return t.accounts.bank_other;
+}
+</script>
+
+<template>
+    <Select v-model="selectedBank">
+        <SelectTrigger id="account-bank" class="w-full">
+            <SelectValue>
+                <span class="flex items-center gap-2">
+                    <span
+                        class="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted"
+                    >
+                        <img
+                            v-if="bankMarkPath(selectedBank)"
+                            :src="bankMarkPath(selectedBank)!"
+                            :alt="bankLabel(selectedBank)"
+                            class="size-full object-cover"
+                        />
+                        <span
+                            v-else
+                            class="text-muted-foreground text-[10px] font-medium"
+                        >
+                            •
+                        </span>
+                    </span>
+                    <span>{{ bankLabel(selectedBank) }}</span>
+                </span>
+            </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+            <SelectItem
+                v-for="bank in bankOptions"
+                :key="bank"
+                :value="bank"
+            >
+                <span class="flex items-center gap-2">
+                    <span
+                        class="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted"
+                    >
+                        <img
+                            v-if="bankMarkPath(bank)"
+                            :src="bankMarkPath(bank)!"
+                            :alt="bankLabel(bank)"
+                            class="size-full object-cover"
+                        />
+                        <span
+                            v-else
+                            class="text-muted-foreground text-[10px] font-medium"
+                        >
+                            •
+                        </span>
+                    </span>
+                    <span>{{ bankLabel(bank) }}</span>
+                </span>
+            </SelectItem>
+        </SelectContent>
+    </Select>
+    <input type="hidden" name="bank" :value="selectedBank" />
+</template>

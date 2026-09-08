@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccountType;
+use App\Enums\Bank;
 use Database\Factories\AccountFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $user_id
  * @property string $name
  * @property AccountType $type
+ * @property Bank|null $bank
  * @property Carbon $opening_date
  * @property int $opening_balance_grosze
  * @property int $current_balance_grosze
@@ -27,6 +29,7 @@ use Illuminate\Support\Carbon;
     'user_id',
     'name',
     'type',
+    'bank',
     'opening_date',
     'opening_balance_grosze',
     'current_balance_grosze',
@@ -44,6 +47,7 @@ class Account extends Model
     {
         return [
             'type' => AccountType::class,
+            'bank' => Bank::class,
             'opening_date' => 'date',
             'opening_balance_grosze' => 'integer',
             'current_balance_grosze' => 'integer',

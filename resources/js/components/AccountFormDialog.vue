@@ -2,6 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
+import AccountBankSelect from '@/components/AccountBankSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    type AccountBank,
+    type AccountTypeValue,
+} from '@/lib/account-identity';
+import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
@@ -24,7 +29,8 @@ import {
 export type AccountFormAccount = {
     id: number;
     name: string;
-    type: 'bank' | 'cash';
+    type: AccountTypeValue;
+    bank: AccountBank | null;
     opening_date: string;
     opening_balance_grosze: number;
 };
@@ -42,7 +48,8 @@ const emit = defineEmits<{
 const t = useTranslations();
 
 const name = ref('');
-const type = ref<'bank' | 'cash'>('bank');
+const type = ref<AccountTypeValue>('bank');
+const bank = ref<AccountBank>('other');
 const openingDate = ref('');
 const openingBalanceInput = ref('0,00');
 const openingBalanceGrosze = ref(0);
@@ -63,6 +70,7 @@ watch(
         if (props.mode === 'edit' && props.account) {
             name.value = props.account.name;
             type.value = props.account.type;
+            bank.value = props.account.bank ?? 'other';
             openingDate.value = props.account.opening_date;
             openingBalanceGrosze.value = props.account.opening_balance_grosze;
             openingBalanceInput.value = groszeToMoneyInput(
@@ -74,12 +82,19 @@ watch(
 
         name.value = '';
         type.value = 'bank';
+        bank.value = 'other';
         openingDate.value = new Date().toISOString().slice(0, 10);
         openingBalanceGrosze.value = 0;
         openingBalanceInput.value = '0,00';
     },
     { immediate: true },
 );
+
+watch(type, (nextType, previousType) => {
+    if (nextType === 'bank' && previousType === 'cash') {
+        bank.value = 'other';
+    }
+});
 
 function syncOpeningBalance(): void {
     const parsed = parseMoneyInputToGrosze(openingBalanceInput.value);
@@ -149,6 +164,12 @@ function closeDialog(): void {
                         </option>
                     </select>
                     <InputError :message="errors.type" />
+                </div>
+
+                <div v-if="type === 'bank'" class="grid gap-2">
+                    <Label for="account-bank">{{ t.accounts.bank }}</Label>
+                    <AccountBankSelect v-model="bank" />
+                    <InputError :message="errors.bank" />
                 </div>
 
                 <div v-if="mode === 'create'" class="grid gap-2">

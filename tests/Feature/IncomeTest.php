@@ -256,6 +256,7 @@ class IncomeTest extends TestCase
         $this->actingAs($user)->patch(route('accounts.update', $account), [
             'name' => $account->name,
             'type' => $account->type->value,
+            'bank' => $account->bank?->value,
             'opening_balance_grosze' => 120000,
         ])->assertSessionHasNoErrors();
 

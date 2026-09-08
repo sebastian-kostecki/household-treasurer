@@ -6,6 +6,7 @@ import AccountController from '@/actions/App/Http/Controllers/AccountController'
 import AccountFormDialog, {
     type AccountFormAccount,
 } from '@/components/AccountFormDialog.vue';
+import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
@@ -33,6 +34,7 @@ import { formatMoney } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
 
 type AccountRow = AccountFormAccount & {
+    mark_url: string | null;
     current_balance_grosze: number;
     is_negative: boolean;
     is_archived: boolean;
@@ -155,7 +157,13 @@ function toggleShowArchived(checked: boolean): void {
                 class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.03]"
                 :class="account.is_archived ? 'opacity-60' : ''"
             >
-                <div class="min-w-0 flex-1 basis-40">
+                <AccountIdentityBlock
+                    class="min-w-0 flex-1 basis-40"
+                    :name="account.name"
+                    :type="account.type"
+                    :bank="account.bank"
+                    :mark_url="account.mark_url"
+                >
                     <div class="flex flex-wrap items-center gap-2">
                         <p class="font-medium">{{ account.name }}</p>
                         <Badge
@@ -168,7 +176,7 @@ function toggleShowArchived(checked: boolean): void {
                     <p class="text-muted-foreground text-sm">
                         {{ accountTypeLabel(account.type) }}
                     </p>
-                </div>
+                </AccountIdentityBlock>
 
                 <p
                     class="shrink-0 font-medium tabular-nums"
