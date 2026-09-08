@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Actions\ResetUserData;
-use App\Models\User;
+use App\Support\Console\ResolvesConsoleUser;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 #[Description('Delete all domain data for a user while keeping the user account')]
 class ResetUserDataCommand extends Command
 {
+    use ResolvesConsoleUser;
+
     public function handle(ResetUserData $resetUserData): int
     {
         try {
@@ -34,18 +36,5 @@ class ResetUserDataCommand extends Command
         $this->components->info("Reset all data for {$user->email}.");
 
         return self::SUCCESS;
-    }
-
-    private function resolveUser(string $identifier): User
-    {
-        $user = str_contains($identifier, '@')
-            ? User::query()->where('email', $identifier)->first()
-            : User::query()->find($identifier);
-
-        if ($user === null) {
-            throw (new ModelNotFoundException)->setModel(User::class, [$identifier]);
-        }
-
-        return $user;
     }
 }
