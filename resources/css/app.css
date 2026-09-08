@@ -206,4 +206,65 @@
     .list-surface-table .tabular-amount {
         @apply text-right font-medium tabular-nums;
     }
+
+    .operations-grid {
+        @apply grid gap-x-4;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            'date amount'
+            'description description'
+            'category account'
+            'actions actions';
+    }
+
+    .operations-grid-transfer {
+        grid-template-areas:
+            'date amount'
+            'description description'
+            'account account'
+            'actions actions';
+    }
+
+    @variant md {
+        .operations-grid {
+            align-items: center;
+            grid-template-columns:
+                6.5rem minmax(0, 1fr) minmax(0, 8rem) minmax(0, 9rem) 7rem
+                4.5rem;
+            grid-template-areas: 'date description category account amount actions';
+        }
+
+        .operations-grid-transfer {
+            grid-template-columns: 6.5rem minmax(0, 1fr) minmax(0, 18rem) 7rem 4.5rem;
+            grid-template-areas: 'date description account amount actions';
+        }
+    }
+
+    .operations-cell-date {
+        grid-area: date;
+    }
+
+    .operations-cell-description {
+        grid-area: description;
+        @apply min-w-0;
+    }
+
+    .operations-cell-category {
+        grid-area: category;
+        @apply min-w-0;
+    }
+
+    .operations-cell-account {
+        grid-area: account;
+        @apply min-w-0;
+    }
+
+    .operations-cell-amount {
+        grid-area: amount;
+        @apply text-right font-medium tabular-nums;
+    }
+
+    .operations-cell-actions {
+        grid-area: actions;
+    }
 }
