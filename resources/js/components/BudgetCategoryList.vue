@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
+import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
+import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +22,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney } from '@/lib/format';
@@ -82,7 +83,9 @@ const t = useTranslations();
                             <th class="text-right">
                                 {{ t.budget.execution }}
                             </th>
-                            <th class="text-right" />
+                            <th class="text-right">
+                                {{ t.budget.actions }}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,24 +128,20 @@ const t = useTranslations();
                                 {{ formatMoney(category.execution_grosze) }}
                             </td>
                             <td>
-                                <div class="flex justify-end gap-2">
-                                    <Button
+                                <div class="flex justify-end gap-1">
+                                    <IconAction
                                         v-if="category.can_edit"
-                                        variant="outline"
-                                        size="sm"
+                                        :icon="Pencil"
+                                        :label="t.budget.edit"
                                         @click="emit('edit', category)"
-                                    >
-                                        {{ t.budget.edit }}
-                                    </Button>
+                                    />
                                     <Dialog v-if="category.can_delete">
-                                        <DialogTrigger as-child>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                            >
-                                                {{ t.budget.delete }}
-                                            </Button>
-                                        </DialogTrigger>
+                                        <IconAction
+                                            as-dialog-trigger
+                                            :icon="Trash2"
+                                            :label="t.budget.delete"
+                                            destructive
+                                        />
                                         <DialogContent>
                                             <Form
                                                 v-bind="
@@ -185,14 +184,11 @@ const t = useTranslations();
                                         </DialogContent>
                                     </Dialog>
                                     <Dialog v-if="category.can_archive">
-                                        <DialogTrigger as-child>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                {{ t.budget.archive }}
-                                            </Button>
-                                        </DialogTrigger>
+                                        <IconAction
+                                            as-dialog-trigger
+                                            :icon="Archive"
+                                            :label="t.budget.archive"
+                                        />
                                         <DialogContent>
                                             <Form
                                                 v-bind="
@@ -234,14 +230,11 @@ const t = useTranslations();
                                         </DialogContent>
                                     </Dialog>
                                     <Dialog v-if="category.can_restore">
-                                        <DialogTrigger as-child>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                            >
-                                                {{ t.budget.restore }}
-                                            </Button>
-                                        </DialogTrigger>
+                                        <IconAction
+                                            as-dialog-trigger
+                                            :icon="ArchiveRestore"
+                                            :label="t.budget.restore"
+                                        />
                                         <DialogContent>
                                             <Form
                                                 v-bind="
@@ -345,21 +338,20 @@ const t = useTranslations();
                             </p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                    <Button
+                    <div class="flex flex-wrap gap-1">
+                    <IconAction
                         v-if="category.can_edit"
-                        variant="outline"
-                        size="sm"
+                        :icon="Pencil"
+                        :label="t.budget.edit"
                         @click="emit('edit', category)"
-                    >
-                        {{ t.budget.edit }}
-                    </Button>
+                    />
                     <Dialog v-if="category.can_delete">
-                        <DialogTrigger as-child>
-                            <Button variant="destructive" size="sm">
-                                {{ t.budget.delete }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="Trash2"
+                            :label="t.budget.delete"
+                            destructive
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="
@@ -400,11 +392,11 @@ const t = useTranslations();
                         </DialogContent>
                     </Dialog>
                     <Dialog v-if="category.can_archive">
-                        <DialogTrigger as-child>
-                            <Button variant="outline" size="sm">
-                                {{ t.budget.archive }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="Archive"
+                            :label="t.budget.archive"
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="
@@ -440,11 +432,11 @@ const t = useTranslations();
                         </DialogContent>
                     </Dialog>
                     <Dialog v-if="category.can_restore">
-                        <DialogTrigger as-child>
-                            <Button variant="outline" size="sm">
-                                {{ t.budget.restore }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="ArchiveRestore"
+                            :label="t.budget.restore"
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import AccountFormDialog, {
     type AccountFormAccount,
 } from '@/components/AccountFormDialog.vue';
+import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +26,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
@@ -176,21 +177,20 @@ function toggleShowArchived(checked: boolean): void {
                     {{ formatMoney(account.current_balance_grosze) }}
                 </p>
 
-                <div class="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-                    <Button
+                <div class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end">
+                    <IconAction
                         v-if="!account.is_archived"
-                        variant="outline"
-                        size="sm"
+                        :icon="Pencil"
+                        :label="t.accounts.edit"
                         @click="openEditDialog(account)"
-                    >
-                        {{ t.accounts.edit }}
-                    </Button>
+                    />
                     <Dialog v-if="account.can_delete">
-                        <DialogTrigger as-child>
-                            <Button variant="destructive" size="sm">
-                                {{ t.accounts.delete }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="Trash2"
+                            :label="t.accounts.delete"
+                            destructive
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="AccountController.destroy.form(account)"
@@ -225,11 +225,11 @@ function toggleShowArchived(checked: boolean): void {
                         </DialogContent>
                     </Dialog>
                     <Dialog v-if="account.can_archive">
-                        <DialogTrigger as-child>
-                            <Button variant="outline" size="sm">
-                                {{ t.accounts.archive }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="Archive"
+                            :label="t.accounts.archive"
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="AccountController.archive.form(account)"
@@ -263,11 +263,11 @@ function toggleShowArchived(checked: boolean): void {
                         </DialogContent>
                     </Dialog>
                     <Dialog v-if="account.can_restore">
-                        <DialogTrigger as-child>
-                            <Button variant="outline" size="sm">
-                                {{ t.accounts.restore }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="ArchiveRestore"
+                            :label="t.accounts.restore"
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="AccountController.restore.form(account)"
