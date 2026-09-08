@@ -971,6 +971,107 @@ CSV;
             ->assertSessionHasErrors('file');
     }
 
+    public function test_bnp_paribas_import_produces_statement_operations_from_fixture(): void
+    {
+        $this->travelTo('2025-01-11');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => $this->bnpParibasFixtureUpload(),
+                'account_id' => $account->id,
+                'import_format' => 'bnp_paribas',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 7)
+                ->where('rows.0.operation_date', '2025-01-11')
+                ->where('rows.0.amount_grosze', -3739)
+                ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'JMP S.A. BIEDRO'))
+                ->where('rows.0.valid', true)
+                ->where('rows.1.operation_date', '2025-01-11')
+                ->where('rows.1.amount_grosze', -2999)
+                ->where('rows.1.valid', true)
+                ->where('rows.4.operation_date', '2025-01-09')
+                ->where('rows.4.amount_grosze', -93900)
+                ->where('rows.4.description', 'Przedszkole Niepubliczne Odkrywcy Talentów')
+                ->where('rows.5.operation_date', '2025-01-09')
+                ->where('rows.5.amount_grosze', 1000000)
+                ->where('rows.5.description', 'Employer')
+                ->where('rows.5.valid', true)
+                ->where('rows.6.operation_date', '2025-01-09')
+                ->where('rows.6.amount_grosze', 500000)
+                ->where('rows.6.valid', true),
+            );
+    }
+
+    public function test_bnp_paribas_import_rejects_csv_files(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2025-01-09,Expense,-10.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('statement.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'bnp_paribas',
+            ])
+            ->assertSessionHasErrors('file');
+    }
+
+    public function test_other_import_rejects_xlsx_files(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->create('statement.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertSessionHasErrors('file');
+    }
+
+    public function test_bnp_paribas_import_rejects_xlsx_without_expected_header(): void
+    {
+        $this->travelTo('2025-01-10');
+
+        [$user, $account] = $this->createImportFixture([
+            'opening_date' => '2025-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->create('statement.xlsx', 100, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+                'account_id' => $account->id,
+                'import_format' => 'bnp_paribas',
+            ])
+            ->assertSessionHasErrors('file');
+    }
+
     public function test_other_import_still_requires_column_mapping(): void
     {
         $this->travelTo('2026-06-01');
@@ -1029,5 +1130,16 @@ CSV;
                 'amount_column' => 2,
             ])
             ->assertRedirect(route('operations.import.preview'));
+    }
+
+    private function bnpParibasFixtureUpload(): UploadedFile
+    {
+        return new UploadedFile(
+            base_path('tests/Fixtures/bnp-paribas-basic.xlsx'),
+            'bnp-paribas-basic.xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            UPLOAD_ERR_OK,
+            true,
+        );
     }
 }

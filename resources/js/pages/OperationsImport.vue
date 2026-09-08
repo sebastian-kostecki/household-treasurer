@@ -23,7 +23,7 @@ type AccountRow = {
     opening_date: string;
 };
 
-type ImportFormat = 'mbank' | 'other';
+type ImportFormat = 'mbank' | 'bnp_paribas' | 'other';
 
 const { accounts } = defineProps<{
     accounts: AccountRow[];
@@ -44,13 +44,17 @@ const outflowColumn = ref<number | ''>('');
 const columnLabels = ref<string[]>([]);
 
 const isMbankFormat = computed(() => importFormat.value === 'mbank');
+const isBnpParibasFormat = computed(() => importFormat.value === 'bnp_paribas');
+const isNamedFormat = computed(
+    () => isMbankFormat.value || isBnpParibasFormat.value,
+);
 
 const canSubmit = computed(() => {
     if (selectedFile.value === null || accountId.value === '') {
         return false;
     }
 
-    if (isMbankFormat.value) {
+    if (isNamedFormat.value) {
         return true;
     }
 
@@ -91,9 +95,11 @@ watch(selectedFile, async (file) => {
 
     if (file.name.toLowerCase().endsWith('.csv')) {
         importFormat.value = 'mbank';
+    } else if (file.name.toLowerCase().endsWith('.xlsx')) {
+        importFormat.value = 'bnp_paribas';
     }
 
-    if (isMbankFormat.value) {
+    if (isNamedFormat.value) {
         return;
     }
 
@@ -130,7 +136,7 @@ watch(selectedFile, async (file) => {
 });
 
 watch(importFormat, () => {
-    if (selectedFile.value === null || isMbankFormat.value) {
+    if (selectedFile.value === null || isNamedFormat.value) {
         columnLabels.value = [];
 
         return;
@@ -142,7 +148,7 @@ watch(importFormat, () => {
 });
 
 watch(hasHeader, () => {
-    if (selectedFile.value !== null && !isMbankFormat.value) {
+    if (selectedFile.value !== null && !isNamedFormat.value) {
         const file = selectedFile.value;
         selectedFile.value = null;
         selectedFile.value = file;
@@ -208,14 +214,18 @@ function onFileChange(event: Event): void {
                     {{
                         isMbankFormat
                             ? t.operations.import_format_title
-                            : t.operations.import_mapping_title
+                            : isBnpParibasFormat
+                              ? t.operations.import_bnp_paribas_title
+                              : t.operations.import_mapping_title
                     }}
                 </CardTitle>
                 <CardDescription>
                     {{
                         isMbankFormat
                             ? t.operations.import_mbank_description
-                            : t.operations.import_mapping_description
+                            : isBnpParibasFormat
+                              ? t.operations.import_bnp_paribas_description
+                              : t.operations.import_mapping_description
                     }}
                 </CardDescription>
             </CardHeader>
@@ -239,6 +249,9 @@ function onFileChange(event: Event): void {
                             <option value="mbank">
                                 {{ t.operations.import_format_mbank }}
                             </option>
+                            <option value="bnp_paribas">
+                                {{ t.operations.import_format_bnp_paribas }}
+                            </option>
                             <option value="other">
                                 {{ t.operations.import_format_other }}
                             </option>
@@ -254,7 +267,7 @@ function onFileChange(event: Event): void {
                             id="import-file"
                             name="file"
                             type="file"
-                            accept=".csv,text/csv"
+                            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                             required
                             @change="onFileChange"
                         />
@@ -299,6 +312,22 @@ function onFileChange(event: Event): void {
                                 {{ t.operations.import_mbank_field_description }}
                             </li>
                             <li>{{ t.operations.import_mbank_field_amount }}</li>
+                        </ul>
+                    </div>
+
+                    <div
+                        v-else-if="isBnpParibasFormat"
+                        class="rounded-lg border p-4 text-sm"
+                    >
+                        <p class="font-medium">
+                            {{ t.operations.import_bnp_paribas_fields_title }}
+                        </p>
+                        <ul class="text-muted-foreground mt-2 list-inside list-disc space-y-1">
+                            <li>{{ t.operations.import_bnp_paribas_field_date }}</li>
+                            <li>
+                                {{ t.operations.import_bnp_paribas_field_description }}
+                            </li>
+                            <li>{{ t.operations.import_bnp_paribas_field_amount }}</li>
                         </ul>
                     </div>
 
