@@ -179,6 +179,7 @@ return [
         'restore_confirm_title' => 'Przywrócić kategorię?',
         'restore_confirm_body' => 'Kategoria będzie ponownie dostępna przy tworzeniu nowych operacji.',
         'archived_badge' => 'Zarchiwizowane',
+        'actions' => 'Akcje',
     ],
     'accounts' => [
         'title' => 'Konta',

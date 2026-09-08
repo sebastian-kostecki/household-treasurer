@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
-import { Plus, Upload } from '@lucide/vue';
+import { Pencil, Plus, Trash2, Upload } from '@lucide/vue';
 import { ref } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
@@ -11,6 +11,7 @@ import ExpenseFormDialog, {
     type ExpenseFormCategory,
     type ExpenseFormOperation,
 } from '@/components/ExpenseFormDialog.vue';
+import IconAction from '@/components/IconAction.vue';
 import IncomeFormDialog, {
     type IncomeFormCategory,
     type IncomeFormOperation,
@@ -40,7 +41,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatDate, formatMoney } from '@/lib/format';
@@ -231,27 +231,23 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                     {{ formatMoney(operation.amount_grosze) }}
                                 </td>
                                 <td>
-                                    <div class="flex justify-end gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
+                                    <div class="flex justify-end gap-1">
+                                        <IconAction
+                                            :icon="Pencil"
+                                            :label="t.accounts.edit"
                                             @click="
                                                 operation.type === 'income'
                                                     ? openIncomeEditDialog(operation)
                                                     : openExpenseEditDialog(operation)
                                             "
-                                        >
-                                            {{ t.accounts.edit }}
-                                        </Button>
+                                        />
                                         <Dialog>
-                                            <DialogTrigger as-child>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                >
-                                                    {{ t.accounts.delete }}
-                                                </Button>
-                                            </DialogTrigger>
+                                            <IconAction
+                                                as-dialog-trigger
+                                                :icon="Trash2"
+                                                :label="t.accounts.delete"
+                                                destructive
+                                            />
                                             <DialogContent>
                                                 <Form
                                                     v-bind="
@@ -343,24 +339,23 @@ function openExpenseEditDialog(operation: OperationRow): void {
                             {{ formatMoney(operation.amount_grosze) }}
                         </span>
                     </div>
-                    <div class="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
+                    <div class="flex gap-1">
+                        <IconAction
+                            :icon="Pencil"
+                            :label="t.accounts.edit"
                             @click="
                                 operation.type === 'income'
                                     ? openIncomeEditDialog(operation)
                                     : openExpenseEditDialog(operation)
                             "
-                        >
-                            {{ t.accounts.edit }}
-                        </Button>
+                        />
                         <Dialog>
-                            <DialogTrigger as-child>
-                                <Button variant="destructive" size="sm">
-                                    {{ t.accounts.delete }}
-                                </Button>
-                            </DialogTrigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="Trash2"
+                                :label="t.accounts.delete"
+                                destructive
+                            />
                             <DialogContent>
                                 <Form
                                     v-bind="
@@ -466,23 +461,19 @@ function openExpenseEditDialog(operation: OperationRow): void {
                                 {{ formatMoney(transfer.amount_grosze) }}
                             </td>
                             <td>
-                                <div class="flex justify-end gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
+                                <div class="flex justify-end gap-1">
+                                    <IconAction
+                                        :icon="Pencil"
+                                        :label="t.accounts.edit"
                                         @click="openEditDialog(transfer)"
-                                    >
-                                        {{ t.accounts.edit }}
-                                    </Button>
+                                    />
                                     <Dialog>
-                                        <DialogTrigger as-child>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                            >
-                                                {{ t.accounts.delete }}
-                                            </Button>
-                                        </DialogTrigger>
+                                        <IconAction
+                                            as-dialog-trigger
+                                            :icon="Trash2"
+                                            :label="t.accounts.delete"
+                                            destructive
+                                        />
                                         <DialogContent>
                                             <Form
                                                 v-bind="
@@ -560,20 +551,19 @@ function openExpenseEditDialog(operation: OperationRow): void {
                         </Badge>
                     </div>
                 </CardHeader>
-                <CardContent class="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
+                <CardContent class="flex gap-1">
+                    <IconAction
+                        :icon="Pencil"
+                        :label="t.accounts.edit"
                         @click="openEditDialog(transfer)"
-                    >
-                        {{ t.accounts.edit }}
-                    </Button>
+                    />
                     <Dialog>
-                        <DialogTrigger as-child>
-                            <Button variant="destructive" size="sm">
-                                {{ t.accounts.delete }}
-                            </Button>
-                        </DialogTrigger>
+                        <IconAction
+                            as-dialog-trigger
+                            :icon="Trash2"
+                            :label="t.accounts.delete"
+                            destructive
+                        />
                         <DialogContent>
                             <Form
                                 v-bind="
