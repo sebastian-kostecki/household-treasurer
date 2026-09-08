@@ -225,10 +225,6 @@ function balanceClass(account: AccountSummary): string {
         </section>
 
         <section class="space-y-3">
-            <h2 class="text-sm font-semibold">
-                {{ t.dashboard.execution_title }}
-            </h2>
-
             <p
                 v-if="budget === null"
                 class="text-muted-foreground text-sm"
