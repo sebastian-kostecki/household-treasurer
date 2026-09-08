@@ -46,16 +46,9 @@ class CsvImportController extends Controller
             ->whereNull('archived_at')
             ->firstOrFail();
 
-        $contents = $request->file('file')?->get();
-
-        if (! is_string($contents)) {
-            throw ValidationException::withMessages([
-                'file' => __('The uploaded file could not be read.'),
-            ]);
-        }
-
         try {
-            $parsedRows = $parser->parse($contents, $request->mapping());
+            $import = $request->parsedImport();
+            $parsedRows = $parser->parse($import['contents'], $import['mapping']);
         } catch (InvalidArgumentException $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),

@@ -23,6 +23,8 @@ type AccountRow = {
     opening_date: string;
 };
 
+type ImportFormat = 'mbank' | 'other';
+
 const { accounts } = defineProps<{
     accounts: AccountRow[];
 }>();
@@ -30,6 +32,7 @@ const { accounts } = defineProps<{
 const t = useTranslations();
 
 const selectedFile = ref<File | null>(null);
+const importFormat = ref<ImportFormat>('other');
 const hasHeader = ref(true);
 const accountId = ref<number | ''>(accounts[0]?.id ?? '');
 const amountLayout = ref<'signed' | 'split'>('signed');
@@ -40,16 +43,25 @@ const inflowColumn = ref<number | ''>('');
 const outflowColumn = ref<number | ''>('');
 const columnLabels = ref<string[]>([]);
 
-const canSubmit = computed(
-    () =>
-        selectedFile.value !== null &&
-        accountId.value !== '' &&
+const isMbankFormat = computed(() => importFormat.value === 'mbank');
+
+const canSubmit = computed(() => {
+    if (selectedFile.value === null || accountId.value === '') {
+        return false;
+    }
+
+    if (isMbankFormat.value) {
+        return true;
+    }
+
+    return (
         dateColumn.value !== '' &&
         descriptionColumn.value !== '' &&
         (amountLayout.value === 'signed'
             ? amountColumn.value !== ''
-            : inflowColumn.value !== '' && outflowColumn.value !== ''),
-);
+            : inflowColumn.value !== '' && outflowColumn.value !== '')
+    );
+});
 
 setLayoutProps({
     breadcrumbs: [
@@ -58,7 +70,7 @@ setLayoutProps({
             href: operationsRoute(),
         },
         {
-            title: t.operations.import_csv,
+            title: t.operations.import_title,
             href: CsvImportController.create.url(),
         },
     ],
@@ -74,6 +86,14 @@ watch(selectedFile, async (file) => {
         inflowColumn.value = '';
         outflowColumn.value = '';
 
+        return;
+    }
+
+    if (file.name.toLowerCase().endsWith('.csv')) {
+        importFormat.value = 'mbank';
+    }
+
+    if (isMbankFormat.value) {
         return;
     }
 
@@ -109,8 +129,20 @@ watch(selectedFile, async (file) => {
     outflowColumn.value = Math.min(3, columnLabels.value.length - 1);
 });
 
+watch(importFormat, () => {
+    if (selectedFile.value === null || isMbankFormat.value) {
+        columnLabels.value = [];
+
+        return;
+    }
+
+    const file = selectedFile.value;
+    selectedFile.value = null;
+    selectedFile.value = file;
+});
+
 watch(hasHeader, () => {
-    if (selectedFile.value !== null) {
+    if (selectedFile.value !== null && !isMbankFormat.value) {
         const file = selectedFile.value;
         selectedFile.value = null;
         selectedFile.value = file;
@@ -151,13 +183,13 @@ function onFileChange(event: Event): void {
 </script>
 
 <template>
-    <Head :title="t.operations.import_csv" />
+    <Head :title="t.operations.import_title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-lg font-semibold">
-                    {{ t.operations.import_csv }}
+                    {{ t.operations.import_title }}
                 </h1>
                 <p class="text-muted-foreground text-sm">
                     {{ t.operations.import_step_mapping }}
@@ -173,10 +205,18 @@ function onFileChange(event: Event): void {
         <Card>
             <CardHeader>
                 <CardTitle class="text-base">
-                    {{ t.operations.import_mapping_title }}
+                    {{
+                        isMbankFormat
+                            ? t.operations.import_format_title
+                            : t.operations.import_mapping_title
+                    }}
                 </CardTitle>
                 <CardDescription>
-                    {{ t.operations.import_mapping_description }}
+                    {{
+                        isMbankFormat
+                            ? t.operations.import_mbank_description
+                            : t.operations.import_mapping_description
+                    }}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -185,6 +225,27 @@ function onFileChange(event: Event): void {
                     v-slot="{ errors, processing }"
                     class="space-y-6"
                 >
+                    <div class="grid gap-2">
+                        <Label for="import-format">
+                            {{ t.operations.import_format }}
+                        </Label>
+                        <select
+                            id="import-format"
+                            name="import_format"
+                            v-model="importFormat"
+                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                            required
+                        >
+                            <option value="mbank">
+                                {{ t.operations.import_format_mbank }}
+                            </option>
+                            <option value="other">
+                                {{ t.operations.import_format_other }}
+                            </option>
+                        </select>
+                        <InputError :message="errors.import_format" />
+                    </div>
+
                     <div class="grid gap-2">
                         <Label for="import-file">
                             {{ t.operations.import_file }}
@@ -225,169 +286,202 @@ function onFileChange(event: Event): void {
                         <InputError :message="errors.account_id" />
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <Checkbox
-                            id="import-has-header"
-                            name="has_header"
-                            :checked="hasHeader"
-                            value="1"
-                            @update:checked="hasHeader = $event === true"
-                        />
-                        <Label for="import-has-header">
-                            {{ t.operations.import_has_header }}
-                        </Label>
-                    </div>
-                    <input
-                        v-if="!hasHeader"
-                        type="hidden"
-                        name="has_header"
-                        value="0"
-                    />
-
-                    <fieldset
-                        v-if="columnLabels.length > 0"
-                        class="grid gap-4 rounded-lg border p-4"
+                    <div
+                        v-if="isMbankFormat"
+                        class="rounded-lg border p-4 text-sm"
                     >
-                        <legend class="px-1 text-sm font-medium">
-                            {{ t.operations.import_columns }}
-                        </legend>
+                        <p class="font-medium">
+                            {{ t.operations.import_mbank_fields_title }}
+                        </p>
+                        <ul class="text-muted-foreground mt-2 list-inside list-disc space-y-1">
+                            <li>{{ t.operations.import_mbank_field_date }}</li>
+                            <li>
+                                {{ t.operations.import_mbank_field_description }}
+                            </li>
+                            <li>{{ t.operations.import_mbank_field_amount }}</li>
+                        </ul>
+                    </div>
 
-                        <div class="grid gap-2">
-                            <Label for="import-date-column">
-                                {{ t.operations.date }}
+                    <template v-else>
+                        <div class="flex items-center gap-2">
+                            <Checkbox
+                                id="import-has-header"
+                                name="has_header"
+                                :checked="hasHeader"
+                                value="1"
+                                @update:checked="hasHeader = $event === true"
+                            />
+                            <Label for="import-has-header">
+                                {{ t.operations.import_has_header }}
                             </Label>
-                            <select
-                                id="import-date-column"
-                                name="date_column"
-                                v-model="dateColumn"
-                                class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                                required
-                            >
-                                <option
-                                    v-for="(label, index) in columnLabels"
-                                    :key="`date-${index}`"
-                                    :value="index"
-                                >
-                                    {{ label }}
-                                </option>
-                            </select>
-                            <InputError :message="errors.date_column" />
                         </div>
+                        <input
+                            v-if="!hasHeader"
+                            type="hidden"
+                            name="has_header"
+                            value="0"
+                        />
 
-                        <div class="grid gap-2">
-                            <Label for="import-description-column">
-                                {{ t.operations.description }}
-                            </Label>
-                            <select
-                                id="import-description-column"
-                                name="description_column"
-                                v-model="descriptionColumn"
-                                class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                                required
-                            >
-                                <option
-                                    v-for="(label, index) in columnLabels"
-                                    :key="`description-${index}`"
-                                    :value="index"
-                                >
-                                    {{ label }}
-                                </option>
-                            </select>
-                            <InputError :message="errors.description_column" />
-                        </div>
+                        <fieldset
+                            v-if="columnLabels.length > 0"
+                            class="grid gap-4 rounded-lg border p-4"
+                        >
+                            <legend class="px-1 text-sm font-medium">
+                                {{ t.operations.import_columns }}
+                            </legend>
 
-                        <div class="grid gap-3">
-                            <Label>{{ t.operations.import_amount_layout }}</Label>
-                            <div class="flex flex-wrap gap-4">
-                                <label class="flex items-center gap-2 text-sm">
-                                    <input
-                                        v-model="amountLayout"
-                                        type="radio"
-                                        name="amount_layout"
-                                        value="signed"
-                                    />
-                                    {{ t.operations.import_amount_signed }}
-                                </label>
-                                <label class="flex items-center gap-2 text-sm">
-                                    <input
-                                        v-model="amountLayout"
-                                        type="radio"
-                                        name="amount_layout"
-                                        value="split"
-                                    />
-                                    {{ t.operations.import_amount_split }}
-                                </label>
-                            </div>
-                        </div>
-
-                        <div v-if="amountLayout === 'signed'" class="grid gap-2">
-                            <Label for="import-amount-column">
-                                {{ t.operations.amount }}
-                            </Label>
-                            <select
-                                id="import-amount-column"
-                                name="amount_column"
-                                v-model="amountColumn"
-                                class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                                required
-                            >
-                                <option
-                                    v-for="(label, index) in columnLabels"
-                                    :key="`amount-${index}`"
-                                    :value="index"
-                                >
-                                    {{ label }}
-                                </option>
-                            </select>
-                            <InputError :message="errors.amount_column" />
-                        </div>
-
-                        <template v-else>
                             <div class="grid gap-2">
-                                <Label for="import-inflow-column">
-                                    {{ t.operations.import_inflow_column }}
+                                <Label for="import-date-column">
+                                    {{ t.operations.date }}
                                 </Label>
                                 <select
-                                    id="import-inflow-column"
-                                    name="inflow_column"
-                                    v-model="inflowColumn"
+                                    id="import-date-column"
+                                    name="date_column"
+                                    v-model="dateColumn"
                                     class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                                     required
                                 >
                                     <option
                                         v-for="(label, index) in columnLabels"
-                                        :key="`inflow-${index}`"
+                                        :key="`date-${index}`"
                                         :value="index"
                                     >
                                         {{ label }}
                                     </option>
                                 </select>
-                                <InputError :message="errors.inflow_column" />
+                                <InputError :message="errors.date_column" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="import-outflow-column">
-                                    {{ t.operations.import_outflow_column }}
+                                <Label for="import-description-column">
+                                    {{ t.operations.description }}
                                 </Label>
                                 <select
-                                    id="import-outflow-column"
-                                    name="outflow_column"
-                                    v-model="outflowColumn"
+                                    id="import-description-column"
+                                    name="description_column"
+                                    v-model="descriptionColumn"
                                     class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
                                     required
                                 >
                                     <option
                                         v-for="(label, index) in columnLabels"
-                                        :key="`outflow-${index}`"
+                                        :key="`description-${index}`"
                                         :value="index"
                                     >
                                         {{ label }}
                                     </option>
                                 </select>
-                                <InputError :message="errors.outflow_column" />
+                                <InputError
+                                    :message="errors.description_column"
+                                />
                             </div>
-                        </template>
-                    </fieldset>
+
+                            <div class="grid gap-3">
+                                <Label>{{
+                                    t.operations.import_amount_layout
+                                }}</Label>
+                                <div class="flex flex-wrap gap-4">
+                                    <label
+                                        class="flex items-center gap-2 text-sm"
+                                    >
+                                        <input
+                                            v-model="amountLayout"
+                                            type="radio"
+                                            name="amount_layout"
+                                            value="signed"
+                                        />
+                                        {{ t.operations.import_amount_signed }}
+                                    </label>
+                                    <label
+                                        class="flex items-center gap-2 text-sm"
+                                    >
+                                        <input
+                                            v-model="amountLayout"
+                                            type="radio"
+                                            name="amount_layout"
+                                            value="split"
+                                        />
+                                        {{ t.operations.import_amount_split }}
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div
+                                v-if="amountLayout === 'signed'"
+                                class="grid gap-2"
+                            >
+                                <Label for="import-amount-column">
+                                    {{ t.operations.amount }}
+                                </Label>
+                                <select
+                                    id="import-amount-column"
+                                    name="amount_column"
+                                    v-model="amountColumn"
+                                    class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                    required
+                                >
+                                    <option
+                                        v-for="(label, index) in columnLabels"
+                                        :key="`amount-${index}`"
+                                        :value="index"
+                                    >
+                                        {{ label }}
+                                    </option>
+                                </select>
+                                <InputError :message="errors.amount_column" />
+                            </div>
+
+                            <template v-else>
+                                <div class="grid gap-2">
+                                    <Label for="import-inflow-column">
+                                        {{ t.operations.import_inflow_column }}
+                                    </Label>
+                                    <select
+                                        id="import-inflow-column"
+                                        name="inflow_column"
+                                        v-model="inflowColumn"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                        required
+                                    >
+                                        <option
+                                            v-for="(label, index) in columnLabels"
+                                            :key="`inflow-${index}`"
+                                            :value="index"
+                                        >
+                                            {{ label }}
+                                        </option>
+                                    </select>
+                                    <InputError
+                                        :message="errors.inflow_column"
+                                    />
+                                </div>
+
+                                <div class="grid gap-2">
+                                    <Label for="import-outflow-column">
+                                        {{ t.operations.import_outflow_column }}
+                                    </Label>
+                                    <select
+                                        id="import-outflow-column"
+                                        name="outflow_column"
+                                        v-model="outflowColumn"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                        required
+                                    >
+                                        <option
+                                            v-for="(label, index) in columnLabels"
+                                            :key="`outflow-${index}`"
+                                            :value="index"
+                                        >
+                                            {{ label }}
+                                        </option>
+                                    </select>
+                                    <InputError
+                                        :message="errors.outflow_column"
+                                    />
+                                </div>
+                            </template>
+                        </fieldset>
+                    </template>
 
                     <div class="flex justify-end gap-2">
                         <Button
