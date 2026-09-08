@@ -257,12 +257,14 @@ Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **I
 - **NFR-DAT-01**: Zapis transferu i zatwierdzenie importu zapewniają określoną w wymaganiach atomowość.
 - **NFR-DAT-02**: Ponowne odczytanie zapisanych danych daje te same kwoty i powiązania.
 - **NFR-DAT-03**: Wszystkie operacje zmieniające dane zachowują spójność sald oraz wykonania kategorii.
-- **NFR-PERF-01**: Przy 10 000 operacji użytkownika otwarcie listy kont, otwarcie podsumowania budżetu i zapis pojedynczej ręcznej operacji kończą się w ciągu 2 sekund w środowisku testów akceptacyjnych.
+- **NFR-PERF-01**: Przy 10 000 operacji finansowych użytkownika otwarcie listy kont, otwarcie podsumowania budżetu, otwarcie pierwszej strony listy operacji i zapis pojedynczej ręcznej operacji kończą się w ciągu 2 sekund w środowisku testów akceptacyjnych.
 - **NFR-PERF-02**: Import obsługuje plik zawierający do 5 000 wierszy.
 - **NFR-ACC-01**: Kluczowe przepływy logowania, budżetu, kont, operacji i importu spełniają WCAG 2.2 na poziomie AA.
 - **NFR-ACC-02**: Kluczowe przepływy są w pełni obsługiwalne za pomocą klawiatury.
 - **NFR-UX-01**: Interfejs dostosowuje się do ekranów komputerów i urządzeń mobilnych.
 - **NFR-UX-02**: Wartości pieniężne są prezentowane jednoznacznie jako PLN.
+
+Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; to wydanie nie zawiera formalnego audytu WCAG. NFR-PERF-02 oznacza górny limit 5 000 wierszy Importu i nie wprowadza osobnego limitu czasu.
 
 ## 11. Kryteria akceptacji
 
@@ -292,7 +294,7 @@ Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **I
 2. Wydatek zmniejsza saldo konta i dostępny limit właściwej kategorii wydatkowej o tę samą kwotę.
 3. Zwrot zwiększa saldo konta i dostępny limit kategorii wydatkowej o wartość zwrotu.
 4. Przed zapisaniem wydatku użytkownik widzi limit przed operacją i po niej.
-5. Operację przekraczającą limit lub powodującą ujemne saldo można zapisać po wyświetleniu ostrzeżenia.
+5. Operację finansową przekraczającą limit lub powodującą ujemne saldo można zapisać po wyświetleniu ostrzeżenia.
 6. Edycja albo usunięcie operacji odwraca jej poprzedni wpływ przed zastosowaniem nowego.
 
 ### 11.5. Transfery
@@ -301,6 +303,7 @@ Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **I
 2. Transfer nie zmienia wykonania żadnej kategorii.
 3. Niepowodzenie aktualizacji jednej strony nie pozostawia zmiany na drugiej stronie.
 4. Edycja i usunięcie transferu zachowują spójność obu kont.
+5. Transfer powodujący ujemne saldo konta źródłowego można zapisać po wyświetleniu ostrzeżenia.
 
 ### 11.6. Import
 
