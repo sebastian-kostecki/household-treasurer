@@ -35,10 +35,16 @@ type CategoryRow = {
     budget_year: number;
 };
 
+type OtherAccountRow = {
+    id: number;
+    name: string;
+};
+
 type RowSelection = {
     selected: boolean;
-    type: 'income' | 'expense' | 'refund';
+    type: 'income' | 'expense' | 'refund' | 'own_transfer';
     category_id: number | '';
+    other_account_id: number | '';
 };
 
 const {
@@ -46,6 +52,7 @@ const {
     rows,
     incomeCategories,
     expenseCategories,
+    otherAccounts,
 } = defineProps<{
     account: {
         id: number;
@@ -54,6 +61,7 @@ const {
     rows: ImportRow[];
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
+    otherAccounts: OtherAccountRow[];
 }>();
 
 const t = useTranslations();
@@ -66,6 +74,7 @@ const selections = ref<Record<number, RowSelection>>(
                 selected: false,
                 type: defaultType(row),
                 category_id: '',
+                other_account_id: '',
             },
         ]),
     ),
@@ -98,8 +107,10 @@ const canSubmit = computed(
 
             return (
                 row?.valid === true &&
-                selection.category_id !== '' &&
-                selection.type !== undefined
+                selection.type !== undefined &&
+                (selection.type === 'own_transfer'
+                    ? selection.other_account_id !== ''
+                    : selection.category_id !== '')
             );
         }),
 );
@@ -157,6 +168,7 @@ function onTypeChange(row: ImportRow): void {
     }
 
     selection.category_id = '';
+    selection.other_account_id = '';
 }
 </script>
 
@@ -248,7 +260,7 @@ function onTypeChange(row: ImportRow): void {
                                     {{ t.operations.type }}
                                 </th>
                                 <th class="pb-2 font-medium">
-                                    {{ t.operations.import_category }}
+                                    {{ t.operations.import_classification }}
                                 </th>
                                 <th class="pb-2 font-medium">
                                     {{ t.operations.import_status }}
@@ -325,11 +337,39 @@ function onTypeChange(row: ImportRow): void {
                                         <option value="refund">
                                             {{ t.operations.type_refund }}
                                         </option>
+                                        <option value="own_transfer">
+                                            {{ t.operations.type_own_transfer }}
+                                        </option>
                                     </select>
                                 </td>
                                 <td class="py-3">
                                     <select
-                                        v-if="row.valid"
+                                        v-if="
+                                            row.valid &&
+                                            selections[row.index].type ===
+                                                'own_transfer'
+                                        "
+                                        :id="`row-other-account-${row.index}`"
+                                        v-model="
+                                            selections[row.index].other_account_id
+                                        "
+                                        :name="`rows[${row.index}][other_account_id]`"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
+                                        :disabled="!selections[row.index]?.selected"
+                                    >
+                                        <option value="" disabled>
+                                            {{ t.operations.import_other_account }}
+                                        </option>
+                                        <option
+                                            v-for="otherAccount in otherAccounts"
+                                            :key="otherAccount.id"
+                                            :value="otherAccount.id"
+                                        >
+                                            {{ otherAccount.name }}
+                                        </option>
+                                    </select>
+                                    <select
+                                        v-else-if="row.valid"
                                         :id="`row-category-${row.index}`"
                                         v-model="selections[row.index].category_id"
                                         :name="`rows[${row.index}][category_id]`"

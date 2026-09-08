@@ -106,6 +106,7 @@ class CsvImportController extends Controller
             'rows' => $import['rows'],
             'incomeCategories' => $this->incomeCategories($request),
             'expenseCategories' => $this->expenseCategories($request),
+            'otherAccounts' => $this->otherAccounts($request, $account),
         ]);
     }
 
@@ -137,6 +138,31 @@ class CsvImportController extends Controller
                 ]);
             }
 
+            if ($selection['type'] === 'own_transfer') {
+                if ($selection['other_account_id'] === null) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('Each selected own transfer row must have another account.'),
+                    ]);
+                }
+
+                if ($selection['other_account_id'] === (int) $import['account_id']) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('The other account must be different from the import account.'),
+                    ]);
+                }
+
+                $selectedRows[] = [
+                    'index' => $selection['index'],
+                    'operation_date' => (string) $parsedRow['operation_date'],
+                    'description' => (string) $parsedRow['description'],
+                    'amount_grosze' => (int) $parsedRow['amount_grosze'],
+                    'type' => 'own_transfer',
+                    'other_account_id' => $selection['other_account_id'],
+                ];
+
+                continue;
+            }
+
             if ($selection['category_id'] === null) {
                 throw ValidationException::withMessages([
                     'rows' => __('Each selected row must have a category.'),
@@ -153,7 +179,7 @@ class CsvImportController extends Controller
             ];
         }
 
-        $created = $importFinancialOperations->handle(
+        $imported = $importFinancialOperations->handle(
             $request->user(),
             (int) $import['account_id'],
             $selectedRows,
@@ -163,12 +189,55 @@ class CsvImportController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => trans_choice(':count financial operation imported.|:count financial operations imported.', $created, [
-                'count' => $created,
-            ]),
+            'message' => $this->importSuccessMessage($imported),
         ]);
 
         return to_route('operations');
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string}>
+     */
+    private function otherAccounts(Request $request, Account $importAccount): array
+    {
+        return $request->user()
+            ->accounts()
+            ->whereNull('archived_at')
+            ->whereKeyNot($importAccount->id)
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Account $account): array => [
+                'id' => $account->id,
+                'name' => $account->name,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array{financial_operations: int, own_transfers: int}  $imported
+     */
+    private function importSuccessMessage(array $imported): string
+    {
+        $messages = [];
+
+        if ($imported['financial_operations'] > 0) {
+            $messages[] = trans_choice(
+                ':count financial operation imported.|:count financial operations imported.',
+                $imported['financial_operations'],
+                ['count' => $imported['financial_operations']],
+            );
+        }
+
+        if ($imported['own_transfers'] > 0) {
+            $messages[] = trans_choice(
+                ':count own transfer imported.|:count own transfers imported.',
+                $imported['own_transfers'],
+                ['count' => $imported['own_transfers']],
+            );
+        }
+
+        return implode(' ', $messages);
     }
 
     /**

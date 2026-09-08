@@ -21,8 +21,9 @@ class StoreCsvImportRequest extends FormRequest
             'rows' => ['required', 'array', 'min:1'],
             'rows.*.index' => ['required', 'integer', 'min:0'],
             'rows.*.selected' => ['required', 'boolean'],
-            'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund'])],
+            'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund', 'own_transfer'])],
             'rows.*.category_id' => ['nullable', 'integer'],
+            'rows.*.other_account_id' => ['nullable', 'integer'],
             'duplicate_warning_acknowledged' => ['accepted'],
         ];
     }
@@ -41,6 +42,9 @@ class StoreCsvImportRequest extends FormRequest
                     'category_id' => isset($row['category_id']) && $row['category_id'] !== ''
                         ? $row['category_id']
                         : null,
+                    'other_account_id' => isset($row['other_account_id']) && $row['other_account_id'] !== ''
+                        ? $row['other_account_id']
+                        : null,
                 ])
                 ->all(),
         ]);
@@ -50,8 +54,9 @@ class StoreCsvImportRequest extends FormRequest
      * @return array<int, array{
      *     index: int,
      *     selected: bool,
-     *     type: 'income'|'expense'|'refund',
+     *     type: 'income'|'expense'|'refund'|'own_transfer',
      *     category_id: int|null,
+     *     other_account_id: int|null,
      * }>
      */
     public function rowSelections(): array
@@ -65,6 +70,7 @@ class StoreCsvImportRequest extends FormRequest
                 'selected' => (bool) ($row['selected'] ?? false),
                 'type' => (string) $row['type'],
                 'category_id' => isset($row['category_id']) ? (int) $row['category_id'] : null,
+                'other_account_id' => isset($row['other_account_id']) ? (int) $row['other_account_id'] : null,
             ];
         }, $rows));
     }
