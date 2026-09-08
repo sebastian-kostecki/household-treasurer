@@ -32,7 +32,7 @@ Arkusze kalkulacyjne i oddzielne zestawienia rachunków wymagają ręcznego uzga
 - Zachować niezmienny plan początkowy i oddzielić go od planu aktualnego.
 - Powiązać rzeczywiste dochody i wydatki jednocześnie z kontem oraz kategorią.
 - Zapewnić poprawną ewidencję transferów między własnymi kontami.
-- Ułatwić wprowadzanie operacji przez kontrolowany import CSV.
+- Ułatwić wprowadzanie operacji przez kontrolowany Import z pliku CSV lub XLSX.
 - Zapewnić przejrzysty obraz wykonania budżetu i bieżącej płynności.
 
 ### 3.2. Mierniki sukcesu MVP
@@ -43,7 +43,7 @@ MVP spełnia cel produktowy, gdy użytkownik może samodzielnie:
 2. przygotować jeden budżet roczny z kategoriami, planowanymi dochodami i limitami wydatków,
 3. rozpocząć wykonanie i zachować niezmienny plan początkowy,
 4. rejestrować, edytować i usuwać dochody, wydatki, zwroty oraz transfery własne,
-5. importować wybrane operacje z CSV po sprawdzeniu podglądu,
+5. importować wybrane operacje z pliku CSV lub XLSX po sprawdzeniu podglądu,
 6. porównywać plan początkowy, plan aktualny i wykonanie każdej kategorii,
 7. odczytać salda poszczególnych kont i łączną wartość środków,
 8. rozpoznać przekroczenie limitu niezależnie od stanu środków na kontach.
@@ -91,7 +91,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 ### 6.2. Bieżąca ewidencja
 
-1. Użytkownik wybiera ręczne dodanie operacji albo import CSV.
+1. Użytkownik wybiera ręczne dodanie operacji albo Import z pliku.
 2. Wskazuje datę, kwotę, opis, konto oraz właściwą kategorię.
 3. Przed zapisaniem wydatku widzi dostępny limit i wartość po operacji.
 4. Zapisana operacja zmienia saldo konta i wykonanie kategorii.
@@ -180,22 +180,30 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-TRF-08**: Wypłata z bankomatu jest rejestrowana jako transfer z rachunku bankowego na konto gotówkowe.
 - **FR-TRF-09**: Data transferu nie może przypadać w przyszłości ani być wcześniejsza niż data otwarcia któregokolwiek z użytych kont.
 
-### 7.7. Import CSV
+### 7.7. Import
 
-- **FR-CSV-01**: Użytkownik może wczytać plik CSV.
-- **FR-CSV-02**: Użytkownik może zmapować kolumny daty, opisu i kwoty.
-- **FR-CSV-03**: Import obsługuje pojedynczą kolumnę kwoty ze znakiem albo osobne kolumny wpływów i obciążeń.
-- **FR-CSV-04**: Użytkownik wskazuje konto, którego dotyczy import.
-- **FR-CSV-05**: System pokazuje podgląd sparsowanych wierszy przed utworzeniem operacji.
-- **FR-CSV-06**: Niepoprawne wiersze są oznaczone wraz z przyczyną i nie mogą zostać wybrane do importu.
-- **FR-CSV-07**: Użytkownik wybiera poprawne wiersze przeznaczone do importu.
-- **FR-CSV-08**: Każdy wybrany wiersz musi otrzymać typ operacji oraz dane wymagane dla tego typu.
-- **FR-CSV-09**: Użytkownik może utworzyć z wiersza dochód, wydatek, zwrot albo transfer własny.
-- **FR-CSV-10**: Dla transferu użytkownik wskazuje drugie konto, a system tworzy cały transfer atomowo.
-- **FR-CSV-11**: System nie dopasowuje automatycznie dwóch pozycji CSV jako stron tego samego transferu.
-- **FR-CSV-12**: System ostrzega, że nie gwarantuje wykrycia duplikatów.
-- **FR-CSV-13**: Ponowne zatwierdzenie tej samej pozycji może utworzyć duplikat.
-- **FR-CSV-14**: Wszystkie wybrane poprawne pozycje są zapisywane atomowo albo żadna nie zostaje zapisana.
+Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **Import format**, wskazuje konto, przegląda podgląd i zatwierdza wybrane wiersze. To nie jest połączenie z bankiem.
+
+- **FR-IMP-01**: Użytkownik może wczytać plik CSV albo XLSX.
+- **FR-IMP-02**: Użytkownik wybiera Import format: mBank, BNP Paribas albo Inny. System może wstępnie zaznaczyć format na podstawie rozszerzenia pliku; użytkownik może to zmienić. System nie importuje po cichej autodetekcji.
+- **FR-IMP-03**: Plik musi pasować do wybranego formatu: mBank i Inny wymagają CSV, BNP Paribas wymaga XLSX. Niezgodność jest błędem pliku.
+- **FR-IMP-04**: Użytkownik wskazuje konto, którego dotyczy Import.
+- **FR-IMP-05**: Format mBank: CSV. System znajduje wiersz nagłówka `#Data operacji`. Linie przed nim nie trafiają do podglądu. Data = Data operacji, opis = Opis operacji, kwota = Kwota (kolumna ze znakiem).
+- **FR-IMP-06**: Format BNP Paribas: XLSX, wyłącznie pierwszy arkusz, nagłówek w pierwszym wierszu. Data = Data transakcji (w tym daty seryjne Excela). Opis = Nadawca, gdy niepusty, w przeciwnym razie Opis. Kwota = Kwota (kolumna ze znakiem). Wiersze blokad i statusu „W trakcie realizacji” pozostają w podglądzie; użytkownik je odznacza.
+- **FR-IMP-07**: Format Inny: wyłącznie CSV. Użytkownik mapuje kolumny daty, opisu i kwoty oraz oznacza, czy plik ma nagłówek. Kwota może być jedną kolumną ze znakiem albo osobnymi kolumnami wpływów i obciążeń. Dla tego formatu pokazywany jest ekran mapowania kolumn. Formaty nazwane nie pokazują mapowania kolumn; mogą pokazać nieedytowalny skrót użytych pól.
+- **FR-IMP-08**: Po nagłówku formatu (albo po starcie wynikającym z mapowania) wiersze, w których zmapowana data nie jest datą albo zmapowana kwota nie jest kwotą, są pomijane i nie pojawiają się w podglądzie jako błędy.
+- **FR-IMP-09**: Wiersz, który wygląda jak operacja, ale łamie reguły biznesowe, jest oznaczony jako niepoprawny wraz z przyczyną i nie może zostać wybrany do Importu.
+- **FR-IMP-10**: Z komórki kwoty zdejmowane są suffiksy `PLN` i `zł`. Inny kod waluty w tej komórce czyni wiersz niepoprawnym. Osobna kolumna waluty nie wchodzi do mapowania.
+- **FR-IMP-11**: Kolumny kategorii banku nie są mapowane na Category. Kategorię Household Treasurer użytkownik wskazuje w podglądzie.
+- **FR-IMP-12**: System pokazuje podgląd sparsowanych wierszy przed utworzeniem operacji.
+- **FR-IMP-13**: Użytkownik wybiera poprawne wiersze przeznaczone do Importu.
+- **FR-IMP-14**: Każdy wybrany wiersz musi otrzymać typ operacji oraz dane wymagane dla tego typu.
+- **FR-IMP-15**: Użytkownik może utworzyć z wiersza dochód, wydatek, zwrot albo transfer własny.
+- **FR-IMP-16**: Dla transferu użytkownik wskazuje drugie konto, a system tworzy cały transfer atomowo.
+- **FR-IMP-17**: System nie dopasowuje automatycznie dwóch pozycji pliku jako stron tego samego transferu.
+- **FR-IMP-18**: System ostrzega, że nie gwarantuje wykrycia duplikatów.
+- **FR-IMP-19**: Ponowne zatwierdzenie tej samej pozycji może utworzyć duplikat.
+- **FR-IMP-20**: Wszystkie wybrane poprawne pozycje są zapisywane atomowo albo żadna nie zostaje zapisana.
 
 ### 7.8. Raportowanie i kontrola wykonania
 
@@ -235,7 +243,9 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - Zmiana daty operacji na inny rok nie zachowuje kategorii ze starego budżetu; użytkownik wybiera kategorię docelową.
 - Błąd dowolnej strony transferu wycofuje całą zmianę.
 - Błąd zapisu dowolnej wybranej pozycji importu wycofuje cały zatwierdzany zestaw.
-- Niepoprawny wiersz CSV pozostaje w podglądzie z opisem błędu i nie blokuje wyboru pozostałych poprawnych wierszy.
+- Niepoprawny wiersz Importu pozostaje w podglądzie z opisem błędu i nie blokuje wyboru pozostałych poprawnych wierszy.
+- Preambuła, nagłówek i inne linie niebędące operacją nie pojawiają się w podglądzie jako błędy.
+- Wczytanie pliku niezgodnego z wybranym Import format (np. XLSX przy mBank) jest odrzucane przed podglądem.
 - Przed zatwierdzeniem importu użytkownik widzi ostrzeżenie o możliwych duplikatach i odpowiada za sprawdzenie podglądu.
 - Błędy formularzy są prezentowane przy odpowiednich polach bez utraty poprawnie wprowadzonych danych.
 
@@ -292,14 +302,16 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 3. Niepowodzenie aktualizacji jednej strony nie pozostawia zmiany na drugiej stronie.
 4. Edycja i usunięcie transferu zachowują spójność obu kont.
 
-### 11.6. Import CSV
+### 11.6. Import
 
-1. Użytkownik może zmapować wymagane kolumny dla obu obsługiwanych układów kwot.
-2. Podgląd odróżnia poprawne i niepoprawne wiersze oraz podaje przyczyny błędów.
-3. Zatwierdzenie tworzy operacje wyłącznie z wybranych poprawnych wierszy.
-4. Transfer utworzony z CSV jest jedną atomową operacją między wskazanymi kontami.
-5. Błąd zapisu jednej wybranej pozycji nie pozostawia częściowo zapisanego importu.
-6. Przed zatwierdzeniem użytkownik otrzymuje ostrzeżenie, że duplikaty mogą nie zostać wykryte.
+1. Użytkownik wybiera Import format. mBank pomija preambułę CSV i wczytuje operacje z kolumn Data operacji, Opis operacji i Kwota.
+2. BNP Paribas wczytuje pierwszy arkusz XLSX; data pochodzi z Data transakcji, opis z Nadawcy albo Opisu, kwota z Kwoty. Blokady pozostają w podglądzie do odznaczenia.
+3. Format Inny pozwala zmapować wymagane kolumny CSV dla obu obsługiwanych układów kwot i pomija linie bez daty i kwoty.
+4. Podgląd odróżnia poprawne i niepoprawne wiersze operacji oraz podaje przyczyny błędów; linie niebędące operacją nie są pokazywane jako błędy.
+5. Zatwierdzenie tworzy operacje wyłącznie z wybranych poprawnych wierszy.
+6. Transfer utworzony z Importu jest jedną atomową operacją między wskazanymi kontami.
+7. Błąd zapisu jednej wybranej pozycji nie pozostawia częściowo zapisanego Importu.
+8. Przed zatwierdzeniem użytkownik otrzymuje ostrzeżenie, że duplikaty mogą nie zostać wykryte.
 
 ### 11.7. Raportowanie
 
@@ -321,8 +333,12 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - kopiowanie kategorii i planów między latami,
 - raporty kwartalne i rozbudowane raporty okresowe,
 - automatyczne uzgadnianie transferów,
-- gwarantowane lub zaawansowane wykrywanie duplikatów CSV,
-- bezpośrednie integracje bankowe,
+- gwarantowane lub zaawansowane wykrywanie duplikatów Importu,
+- bezpośrednie integracje bankowe (API, logowanie do banku, pobieranie historii bez pliku),
+- kolejne Import format poza mBank CSV, BNP Paribas XLSX i Inny CSV,
+- generyczny Import XLSX z ręcznym mapowaniem kolumn,
+- automatyczne mapowanie kategorii banku na Category,
+- cicha autodetekcja formatu bez potwierdzenia użytkownika,
 - budżety współdzielone przez wielu domowników,
 - waluty inne niż PLN i przeliczanie walut,
 - natywne aplikacje mobilne,
@@ -333,8 +349,9 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 ## 13. Ryzyka i zależności
 
-- Różnice między formatami CSV banków mogą powodować błędy mapowania; podgląd i jawne błędy wierszy ograniczają to ryzyko.
-- Brak wykrywania duplikatów wymaga uważnej kontroli użytkownika przed zatwierdzeniem importu.
+- Bank może zmienić układ eksportu; nazwany Import format wtedy się rozjedzie, a format Inny oraz podgląd ograniczają skutki.
+- Blokady kart w podglądzie BNP mogą zostać omyłkowo zatwierdzone i później zdublować się z operacją zrealizowaną; użytkownik je odznacza.
+- Brak wykrywania duplikatów wymaga uważnej kontroli użytkownika przed zatwierdzeniem Importu.
 - Dopuszczenie korekt historycznych bez śladu audytowego może utrudniać wyjaśnienie zmian; jest to świadomy kompromis MVP.
 - Brak zamknięcia roku pozwala zmieniać dane historyczne; formalne zamykanie okresów pozostaje późniejszym rozszerzeniem.
 - Poprawność sald, wykonania i transferów zależy od atomowego i dokładnego przetwarzania kwot.
@@ -348,6 +365,7 @@ PRD nie narzuca:
 - schematu bazy danych,
 - dostawcy poczty i mechanizmu wysyłania resetu hasła,
 - szczegółowego wyglądu ekranów,
-- strategii wdrożenia i hostingu.
+- strategii wdrożenia i hostingu,
+- wyboru konkretnej biblioteki PHP do odczytu XLSX (musi być wyłącznie do odczytu).
 
 Wybrane rozwiązania muszą spełnić wymagania funkcjonalne, reguły biznesowe, wymagania niefunkcjonalne i kryteria akceptacji opisane w tym dokumencie.

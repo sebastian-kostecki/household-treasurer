@@ -160,6 +160,16 @@ function rowAmountClass(row: ImportRow): string {
     return 'text-success';
 }
 
+function rowCategoriesEmpty(row: ImportRow, type: RowSelection['type']): boolean {
+    return categoriesForRow(row, type).length === 0;
+}
+
+function emptyCategoryLabel(type: RowSelection['type']): string {
+    return type === 'income'
+        ? t.operations.no_income_category_for_year
+        : t.operations.no_expense_category_for_year;
+}
+
 function onTypeChange(row: ImportRow): void {
     const selection = selections.value[row.index];
 
@@ -276,12 +286,8 @@ function onTypeChange(row: ImportRow): void {
                                 <td class="py-3 pr-3">
                                     <Checkbox
                                         :id="`row-selected-${row.index}`"
-                                        :checked="selections[row.index]?.selected"
+                                        v-model="selections[row.index].selected"
                                         :disabled="!row.valid"
-                                        @update:checked="
-                                            selections[row.index].selected =
-                                                $event === true
-                                        "
                                     />
                                     <input
                                         type="hidden"
@@ -324,8 +330,7 @@ function onTypeChange(row: ImportRow): void {
                                         :id="`row-type-${row.index}`"
                                         v-model="selections[row.index].type"
                                         :name="`rows[${row.index}][type]`"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-36 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                                        :disabled="!selections[row.index]?.selected"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-36 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                                         @change="onTypeChange(row)"
                                     >
                                         <option value="income">
@@ -354,8 +359,7 @@ function onTypeChange(row: ImportRow): void {
                                             selections[row.index].other_account_id
                                         "
                                         :name="`rows[${row.index}][other_account_id]`"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                                        :disabled="!selections[row.index]?.selected"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <option value="" disabled>
                                             {{ t.operations.import_other_account }}
@@ -373,11 +377,26 @@ function onTypeChange(row: ImportRow): void {
                                         :id="`row-category-${row.index}`"
                                         v-model="selections[row.index].category_id"
                                         :name="`rows[${row.index}][category_id]`"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden"
-                                        :disabled="!selections[row.index]?.selected"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full min-w-44 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                                        :disabled="
+                                            rowCategoriesEmpty(
+                                                row,
+                                                selections[row.index].type,
+                                            )
+                                        "
                                     >
                                         <option value="" disabled>
-                                            {{ t.operations.select_category }}
+                                            {{
+                                                rowCategoriesEmpty(
+                                                    row,
+                                                    selections[row.index].type,
+                                                )
+                                                    ? emptyCategoryLabel(
+                                                          selections[row.index]
+                                                              .type,
+                                                      )
+                                                    : t.operations.select_category
+                                            }}
                                         </option>
                                         <option
                                             v-for="category in categoriesForRow(
@@ -417,11 +436,8 @@ function onTypeChange(row: ImportRow): void {
                 <Checkbox
                     id="duplicate-warning"
                     name="duplicate_warning_acknowledged"
-                    :checked="duplicateWarningAcknowledged"
+                    v-model="duplicateWarningAcknowledged"
                     value="1"
-                    @update:checked="
-                        duplicateWarningAcknowledged = $event === true
-                    "
                 />
                 <Label for="duplicate-warning">
                     {{ t.operations.import_duplicate_acknowledge }}

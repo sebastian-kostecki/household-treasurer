@@ -47,3 +47,11 @@ _Avoid_: Internal transfer, Move (as the type name)
 **Liquidity**:
 The current balances of Accounts and their sum. A separate plane from Budget Execution.
 _Avoid_: Net worth, Wealth, Portfolio
+
+**Import**:
+The controlled creation of Financial Operations and Own Transfers from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank.
+_Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration
+
+**Import format**:
+A named layout of a bank export file: file type, where the header row is, and which columns are date, description, and amount. MVP ships mBank (CSV), BNP Paribas (XLSX), and Other (manual CSV mapping).
+_Avoid_: Integration, Connector, Bank integration, Parser profile, Preset (in domain language; UI may say „format”)
