@@ -21,6 +21,10 @@ const tileSizeClass = computed(() =>
     props.size === 'sm' ? 'size-6' : 'size-8',
 );
 
+const tileRadiusClass = computed(() =>
+    props.size === 'sm' ? 'rounded-[2px]' : 'rounded-lg',
+);
+
 const iconSizeClass = computed(() =>
     props.size === 'sm' ? 'size-3.5' : 'size-4',
 );
@@ -31,8 +35,8 @@ const tileStyle = computed(() => categoryTileStyle(props.color));
 <template>
     <span class="inline-flex min-w-0 max-w-full items-center gap-2">
         <span
-            class="inline-flex shrink-0 items-center justify-center rounded-lg"
-            :class="tileSizeClass"
+            class="inline-flex shrink-0 items-center justify-center"
+            :class="[tileSizeClass, tileRadiusClass]"
             :style="tileStyle"
             aria-hidden="true"
         >

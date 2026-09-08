@@ -208,7 +208,7 @@
     }
 
     .operations-grid {
-        @apply grid gap-x-4;
+        @apply grid w-full gap-x-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'date amount'
@@ -229,13 +229,12 @@
         .operations-grid {
             align-items: center;
             grid-template-columns:
-                6.5rem minmax(0, 1fr) minmax(0, 8rem) minmax(0, 9rem) 7rem
-                4.5rem;
+                6.5rem minmax(0, 1fr) 13rem 9.5rem 7rem 4.5rem;
             grid-template-areas: 'date description category account amount actions';
         }
 
         .operations-grid-transfer {
-            grid-template-columns: 6.5rem minmax(0, 1fr) minmax(0, 18rem) 7rem 4.5rem;
+            grid-template-columns: 6.5rem minmax(0, 1fr) 18rem 7rem 4.5rem;
             grid-template-areas: 'date description account amount actions';
         }
     }
