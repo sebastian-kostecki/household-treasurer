@@ -4,7 +4,6 @@ import {
     ArrowLeftRight,
     LayoutGrid,
     PiggyBank,
-    Settings,
     Wallet,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
@@ -28,7 +27,6 @@ import {
     dashboard,
     operations,
 } from '@/routes';
-import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
 
 const t = useTranslations();
@@ -53,11 +51,6 @@ const mainNavItems: NavItem[] = [
         title: t.nav.operations,
         href: operations(),
         icon: ArrowLeftRight,
-    },
-    {
-        title: t.nav.settings,
-        href: editProfile(),
-        icon: Settings,
     },
 ];
 </script>
