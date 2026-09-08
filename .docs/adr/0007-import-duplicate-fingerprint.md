@@ -1,0 +1,3 @@
+# Import duplicate identity is a frozen commit-time digest
+
+An Import duplicate is User + Account + date + signed file amount + Raw Statement Description, stored as an immutable digest on the Financial Operation or Own Transfer at commit. We rejected matching live date/amount/Account (those fields are editable) and a delete-surviving log (delete means the movement is gone). We do not backfill: records committed before this column exist are not hits. Set match: one committed digest default-deselects every preview row with that identity. We rejected including type, Category, editable description, or Counterparty — those are User classification or already inside Raw Statement Description.

@@ -53,12 +53,12 @@ The other party of a Financial Operation: the payer on income, the payee on expe
 _Avoid_: Subject, Payee, Payer, Party (as this field’s name)
 
 **Raw Statement Description**:
-Immutable text captured from the Import file row that created a Financial Operation or Own Transfer. Null when the User created the record by hand. Not edited when description or Counterparty later change.
+Immutable text from the Import file row that created a Financial Operation or an Import-born Account on an Own Transfer. Null when that record or leg was created by hand; an Own Transfer may hold two after a cross-Import pair. Not edited when description or Counterparty later change.
 _Avoid_: raw_description, statement_description, Subject
 
 **Own Transfer**:
-A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash. May make the source Account’s current balance negative. May carry a Raw Statement Description when created by Import.
-_Avoid_: Internal transfer, Move (as the type name)
+A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash. An Import row becomes this record when the User classifies it and picks the other Account; both Accounts move on that commit — a later file is not required for it to exist. Cash is an Account like any other for a cross-Import pair. May make the source Account’s current balance negative. May carry a Raw Statement Description per Import-born Account (none, one, or two). A cross-Import pair leaves this single record: it replaces a first-leg Financial Operation and does not move balances twice.
+_Avoid_: Internal transfer, Move (as the type name), one-sided Own Transfer, pair (as a record type)
 
 **Negative Balance Warning**:
 A non-blocking notice before saving a Financial Operation or Own Transfer that would make an Account’s current balance negative. Distinct from exceeding an Available Limit.
@@ -79,3 +79,11 @@ _Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Impo
 **Import format**:
 A named layout of a bank export file: file type, where the header row is, and which columns are date, description, amount, and optionally Counterparty. MVP ships mBank (CSV), BNP Paribas (XLSX), and Other (manual CSV mapping).
 _Avoid_: Integration, Connector, Bank integration, Parser profile, Preset (in domain language; UI may say „format”)
+
+**Import duplicate**:
+A preview row that is the same Import row as an already-committed Import-born Financial Operation or Own Transfer: same User, Account, date, signed file amount, and Raw Statement Description, frozen at that commit. An Own Transfer may hold two frozen identities, one per Import-born Account, so a later preview row matching either leg is an Import duplicate. Hand-entered records (null Raw Statement Description) are never Import duplicates.
+_Avoid_: Transaction duplicate, bank transaction id
+
+**Import pair candidate**:
+A later Import row that is the other Account’s view of an existing Import-born Financial Operation or Own Transfer. Distinct from Import duplicate (same Account, same frozen row). Not a persisted record type; after the User opts in, commit leaves one Own Transfer.
+_Avoid_: Transaction match, transfer duplicate, link, pair (as a record type)
