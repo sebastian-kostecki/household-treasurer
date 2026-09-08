@@ -4,7 +4,7 @@ import { computed } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
-import CategoryChip from '@/components/CategoryChip.vue';
+import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +20,10 @@ import {
     useTranslations,
 } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
+import type {
+    DashboardCategory,
+    DashboardTypeTotals,
+} from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 import { dashboard } from '@/routes';
 
@@ -34,38 +38,19 @@ type AccountSummary = {
     is_archived: boolean;
 };
 
-type CategorySummary = {
-    id: number;
-    name: string;
-    icon: string;
-    color: string;
-    initial_plan_grosze: number;
-    current_plan_grosze: number;
-    execution_grosze: number;
-    remaining_grosze: number;
-    percent_complete: number | null;
-    is_over_limit: boolean;
-    is_archived: boolean;
-};
-
 type BudgetSummary = {
     year: number;
     phase: 'draft' | 'execution';
-};
-
-type Totals = {
-    current_plan_grosze: number;
-    execution_grosze: number;
 };
 
 const props = defineProps<{
     accounts: AccountSummary[];
     liquidity_total_grosze: number;
     budget: BudgetSummary | null;
-    incomeCategories: CategorySummary[];
-    expenseCategories: CategorySummary[];
-    incomeTotals: Totals;
-    expenseTotals: Totals;
+    incomeCategories: DashboardCategory[];
+    expenseCategories: DashboardCategory[];
+    incomeTotals: DashboardTypeTotals;
+    expenseTotals: DashboardTypeTotals;
 }>();
 
 const t = useTranslations();
@@ -103,30 +88,6 @@ function balanceClass(account: AccountSummary): string {
     }
 
     return '';
-}
-
-function remainingClass(category: CategorySummary): string {
-    if (category.is_over_limit) {
-        return 'text-destructive';
-    }
-
-    return '';
-}
-
-function progressWidth(category: CategorySummary): string {
-    if (category.percent_complete === null) {
-        return '0%';
-    }
-
-    return `${Math.min(category.percent_complete, 100)}%`;
-}
-
-function progressBarClass(category: CategorySummary): string {
-    if (category.is_over_limit) {
-        return 'bg-destructive';
-    }
-
-    return 'bg-primary';
 }
 </script>
 
@@ -196,17 +157,22 @@ function progressBarClass(category: CategorySummary): string {
             <h2 class="text-sm font-semibold">
                 {{ t.dashboard.liquidity_title }}
             </h2>
-            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ t.dashboard.total_funds }}
-                        </CardDescription>
-                        <CardTitle class="text-2xl" :class="liquidityClass">
-                            {{ formatMoney(liquidity_total_grosze) }}
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
+
+            <Card>
+                <CardHeader class="pb-2">
+                    <CardDescription>
+                        {{ t.dashboard.total_funds }}
+                    </CardDescription>
+                    <CardTitle class="text-3xl" :class="liquidityClass">
+                        {{ formatMoney(liquidity_total_grosze) }}
+                    </CardTitle>
+                </CardHeader>
+            </Card>
+
+            <div
+                v-if="accounts.length > 0"
+                class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+            >
                 <Card
                     v-for="account in accounts"
                     :key="account.id"
@@ -235,26 +201,27 @@ function progressBarClass(category: CategorySummary): string {
                             </p>
                         </AccountIdentityBlock>
                         <CardTitle
-                            class="text-xl"
+                            class="text-lg"
                             :class="balanceClass(account)"
                         >
                             {{ formatMoney(account.current_balance_grosze) }}
                         </CardTitle>
                     </CardHeader>
                 </Card>
-                <Card v-if="accounts.length === 0">
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ t.dashboard.no_accounts }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-muted-foreground text-sm">
-                            {{ t.accounts.empty }}
-                        </p>
-                    </CardContent>
-                </Card>
             </div>
+
+            <Card v-else>
+                <CardHeader class="pb-2">
+                    <CardDescription>
+                        {{ t.dashboard.no_accounts }}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p class="text-muted-foreground text-sm">
+                        {{ t.accounts.empty }}
+                    </p>
+                </CardContent>
+            </Card>
         </section>
 
         <section class="space-y-3">
@@ -271,206 +238,22 @@ function progressBarClass(category: CategorySummary): string {
 
             <div
                 v-else
-                class="grid gap-3 lg:grid-cols-2"
+                class="space-y-3"
             >
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="text-base">
-                            {{ t.dashboard.income }}
-                        </CardTitle>
-                        <CardDescription>
-                            {{ t.dashboard.income_totals }}:
-                            {{ formatMoney(incomeTotals.current_plan_grosze) }}
-                            /
-                            {{ formatMoney(incomeTotals.execution_grosze) }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="space-y-4">
-                        <p
-                            v-if="incomeCategories.length === 0"
-                            class="text-muted-foreground text-sm"
-                        >
-                            {{ t.dashboard.no_categories }}
-                        </p>
-                        <div
-                            v-for="category in incomeCategories"
-                            :key="category.id"
-                            class="space-y-2 rounded-md border p-3"
-                            :class="category.is_archived ? 'opacity-70' : ''"
-                        >
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <CategoryChip
-                                        :name="category.name"
-                                        :icon="category.icon"
-                                        :color="category.color"
-                                    />
-                                    <Badge
-                                        v-if="category.is_archived"
-                                        variant="secondary"
-                                    >
-                                        {{ t.budget.archived_badge }}
-                                    </Badge>
-                                </div>
-                                <Badge
-                                    v-if="category.percent_complete === null"
-                                    variant="secondary"
-                                >
-                                    {{ t.common.not_applicable }}
-                                </Badge>
-                                <Badge
-                                    v-else
-                                    variant="secondary"
-                                >
-                                    {{ category.percent_complete }}%
-                                </Badge>
-                            </div>
-                            <dl class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.initial_plan }}
-                                </dt>
-                                <dd class="text-right">
-                                    {{ formatMoney(category.initial_plan_grosze) }}
-                                </dd>
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.current_plan }}
-                                </dt>
-                                <dd class="text-right">
-                                    {{ formatMoney(category.current_plan_grosze) }}
-                                </dd>
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.execution }}
-                                </dt>
-                                <dd class="text-right text-success">
-                                    {{ formatMoney(category.execution_grosze) }}
-                                </dd>
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.remaining }}
-                                </dt>
-                                <dd
-                                    class="text-right"
-                                    :class="remainingClass(category)"
-                                >
-                                    {{ formatMoney(category.remaining_grosze) }}
-                                </dd>
-                            </dl>
-                        </div>
-                    </CardContent>
-                </Card>
+                <DashboardCategorySection
+                    :title="t.dashboard.income"
+                    category-type="income"
+                    :categories="incomeCategories"
+                    :totals="incomeTotals"
+                />
 
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardTitle class="text-base">
-                            {{ t.dashboard.expenses }}
-                        </CardTitle>
-                        <CardDescription>
-                            {{ t.dashboard.expense_totals }}:
-                            {{ formatMoney(expenseTotals.current_plan_grosze) }}
-                            /
-                            {{ formatMoney(expenseTotals.execution_grosze) }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="space-y-4">
-                        <p
-                            v-if="expenseCategories.length === 0"
-                            class="text-muted-foreground text-sm"
-                        >
-                            {{ t.dashboard.no_categories }}
-                        </p>
-                        <div
-                            v-for="category in expenseCategories"
-                            :key="category.id"
-                            class="space-y-2 rounded-md border p-3"
-                            :class="category.is_archived ? 'opacity-70' : ''"
-                        >
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <CategoryChip
-                                        :name="category.name"
-                                        :icon="category.icon"
-                                        :color="category.color"
-                                    />
-                                    <Badge
-                                        v-if="category.is_archived"
-                                        variant="secondary"
-                                    >
-                                        {{ t.budget.archived_badge }}
-                                    </Badge>
-                                </div>
-                                <Badge
-                                    v-if="category.percent_complete === null"
-                                    variant="secondary"
-                                >
-                                    {{ t.common.not_applicable }}
-                                </Badge>
-                                <Badge
-                                    v-else-if="category.is_over_limit"
-                                    variant="destructive"
-                                >
-                                    {{ t.dashboard.over_limit }}
-                                </Badge>
-                                <Badge
-                                    v-else
-                                    variant="secondary"
-                                >
-                                    {{ category.percent_complete }}%
-                                </Badge>
-                            </div>
-                            <dl class="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.initial_plan }}
-                                </dt>
-                                <dd class="text-right">
-                                    {{ formatMoney(category.initial_plan_grosze) }}
-                                </dd>
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.current_plan }}
-                                </dt>
-                                <dd class="text-right">
-                                    {{ formatMoney(category.current_plan_grosze) }}
-                                </dd>
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.execution }}
-                                </dt>
-                                <dd class="text-right">
-                                    {{ formatMoney(category.execution_grosze) }}
-                                </dd>
-                                <dt class="text-muted-foreground">
-                                    {{ t.dashboard.remaining }}
-                                </dt>
-                                <dd
-                                    class="text-right"
-                                    :class="remainingClass(category)"
-                                >
-                                    {{ formatMoney(category.remaining_grosze) }}
-                                </dd>
-                            </dl>
-                            <div class="space-y-1">
-                                <div
-                                    class="flex items-center justify-between text-xs"
-                                >
-                                    <span class="text-muted-foreground">
-                                        {{ t.dashboard.planned }}:
-                                        {{ formatMoney(category.current_plan_grosze) }}
-                                    </span>
-                                    <span class="text-muted-foreground">
-                                        {{ t.dashboard.executed }}:
-                                        {{ formatMoney(category.execution_grosze) }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="bg-muted h-2 overflow-hidden rounded-full"
-                                >
-                                    <div
-                                        class="h-full rounded-full transition-all"
-                                        :class="progressBarClass(category)"
-                                        :style="{ width: progressWidth(category) }"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <DashboardCategorySection
+                    :title="t.dashboard.expenses"
+                    category-type="expense"
+                    :categories="expenseCategories"
+                    :totals="expenseTotals"
+                    show-order-toggle
+                />
             </div>
         </section>
     </div>
