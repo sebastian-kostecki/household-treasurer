@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { MoreHorizontal } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
+import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,11 +28,18 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
+import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 import { budget as budgetRoute } from '@/routes';
 
@@ -49,10 +58,19 @@ type DeficitWarning = {
     uncovered_deficit_grosze: number;
 };
 
+type PlanSummary = {
+    income: DashboardTypeTotals;
+    expense: DashboardTypeTotals;
+    planned_balance_grosze: number;
+};
+
 const props = defineProps<{
     budget: BudgetSummary | null;
     incomeCategories: BudgetCategoryRow[];
     expenseCategories: BudgetCategoryRow[];
+    planSummary: PlanSummary | null;
+    incomeTotals: DashboardTypeTotals;
+    expenseTotals: DashboardTypeTotals;
     deficitWarning: DeficitWarning | null;
     show_archived: boolean;
     categoryAppearanceOptions: CategoryAppearanceOptions;
@@ -64,6 +82,7 @@ const createIncomeDialogOpen = ref(false);
 const createExpenseDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingCategory = ref<BudgetCategoryRow | null>(null);
+const deleteBudgetDialogOpen = ref(false);
 
 const phaseLabel = computed(() =>
     props.budget?.phase === 'execution'
@@ -108,6 +127,10 @@ function toggleShowArchived(checked: boolean): void {
         {},
         { preserveState: true, preserveScroll: true },
     );
+}
+
+function openDeleteBudgetDialog(): void {
+    deleteBudgetDialogOpen.value = true;
 }
 </script>
 
@@ -190,19 +213,7 @@ function toggleShowArchived(checked: boolean): void {
                     </h1>
                     <Badge variant="secondary">{{ phaseLabel }}</Badge>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <Button
-                        variant="outline"
-                        @click="createIncomeDialogOpen = true"
-                    >
-                        {{ t.budget.add_income }}
-                    </Button>
-                    <Button
-                        variant="outline"
-                        @click="createExpenseDialogOpen = true"
-                    >
-                        {{ t.budget.add_expense }}
-                    </Button>
+                <div class="flex flex-wrap items-center gap-2">
                     <Dialog v-if="budget.can_start_execution">
                         <DialogTrigger as-child>
                             <Button>
@@ -241,51 +252,35 @@ function toggleShowArchived(checked: boolean): void {
                             </Form>
                         </DialogContent>
                     </Dialog>
-                    <Dialog v-if="budget.can_delete">
-                        <DialogTrigger as-child>
-                            <Button variant="destructive">
-                                {{ t.budget.delete_budget }}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <Form
-                                v-bind="BudgetController.destroy.form(budget)"
-                                v-slot="{ processing }"
+                    <DropdownMenu v-if="budget.can_delete">
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                :aria-label="t.budget.budget_actions"
                             >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{
-                                            t.budget.delete_budget_confirm_title
-                                        }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.budget.delete_budget_confirm_body
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.budget.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.budget.delete_budget }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                                <MoreHorizontal class="size-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                class="text-destructive focus:text-destructive"
+                                @select="openDeleteBudgetDialog"
+                            >
+                                {{ t.budget.delete_budget }}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
+
+            <BudgetPlanSummaryStrip
+                v-if="planSummary"
+                :income-totals="incomeTotals"
+                :expense-totals="expenseTotals"
+                :planned-balance-grosze="planSummary.planned_balance_grosze"
+            />
 
             <div class="flex items-center gap-2">
                 <Checkbox
@@ -301,16 +296,17 @@ function toggleShowArchived(checked: boolean): void {
                 </Label>
             </div>
 
-            <div class="grid gap-4 lg:grid-cols-2">
+            <div class="flex flex-col gap-4">
                 <BudgetCategoryList
                     :title="t.budget.income_table"
                     :categories="incomeCategories"
                     :budget-id="budget.id"
                     category-type="income"
+                    :phase="budget.phase"
+                    :totals="incomeTotals"
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
                     :add-label="t.budget.add_income"
-                    highlight-initial-plan
                     @add="createIncomeDialogOpen = true"
                     @edit="openEditDialog"
                 />
@@ -320,6 +316,8 @@ function toggleShowArchived(checked: boolean): void {
                     :categories="expenseCategories"
                     :budget-id="budget.id"
                     category-type="expense"
+                    :phase="budget.phase"
+                    :totals="expenseTotals"
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
                     :add-label="t.budget.add_expense"
@@ -329,6 +327,38 @@ function toggleShowArchived(checked: boolean): void {
             </div>
         </template>
     </div>
+
+    <Dialog v-if="budget" v-model:open="deleteBudgetDialogOpen">
+        <DialogContent>
+            <Form
+                v-bind="BudgetController.destroy.form(budget)"
+                v-slot="{ processing }"
+            >
+                <DialogHeader>
+                    <DialogTitle>
+                        {{ t.budget.delete_budget_confirm_title }}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{ t.budget.delete_budget_confirm_body }}
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter class="gap-2">
+                    <DialogClose as-child>
+                        <Button type="button" variant="secondary">
+                            {{ t.budget.cancel }}
+                        </Button>
+                    </DialogClose>
+                    <Button
+                        type="submit"
+                        variant="destructive"
+                        :disabled="processing"
+                    >
+                        {{ t.budget.delete_budget }}
+                    </Button>
+                </DialogFooter>
+            </Form>
+        </DialogContent>
+    </Dialog>
 
     <CategoryFormDialog
         v-if="budget"
