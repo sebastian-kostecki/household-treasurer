@@ -1,0 +1,164 @@
+<?php
+
+namespace App\Actions;
+
+use App\Models\Account;
+use App\Models\Budget;
+use App\Models\Category;
+use App\Models\FinancialOperation;
+use App\Models\OwnTransfer;
+use App\Models\User;
+use Illuminate\Support\Facades\Storage;
+
+class BackupUserData
+{
+    public const SNAPSHOT_VERSION = 1;
+
+    public const SNAPSHOT_DIRECTORY = 'user-snapshots';
+
+    public function handle(User $user): string
+    {
+        $budgetIds = $user->budgets()->pluck('id');
+
+        $snapshot = [
+            'version' => self::SNAPSHOT_VERSION,
+            'source' => [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ],
+            'created_at' => now()->toIso8601String(),
+            'first_run_checklist_dismissed_at' => $user->first_run_checklist_dismissed_at?->toIso8601String(),
+            'accounts' => $user->accounts()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($account): array => $this->serializeAccount($account))
+                ->all(),
+            'budgets' => $user->budgets()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($budget): array => $this->serializeBudget($budget))
+                ->all(),
+            'categories' => Category::query()
+                ->whereIn('budget_id', $budgetIds)
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($category): array => $this->serializeCategory($category))
+                ->all(),
+            'financial_operations' => $user->financialOperations()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($operation): array => $this->serializeFinancialOperation($operation))
+                ->all(),
+            'own_transfers' => $user->ownTransfers()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($transfer): array => $this->serializeOwnTransfer($transfer))
+                ->all(),
+        ];
+
+        $filename = sprintf('%d-%s.json', $user->id, now()->format('YmdHis'));
+
+        Storage::disk('local')->makeDirectory(self::SNAPSHOT_DIRECTORY);
+
+        Storage::disk('local')->put(
+            self::SNAPSHOT_DIRECTORY.'/'.$filename,
+            json_encode($snapshot, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
+        );
+
+        return Storage::disk('local')->path(self::SNAPSHOT_DIRECTORY.'/'.$filename);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeAccount(Account $account): array
+    {
+        return [
+            'id' => $account->id,
+            'name' => $account->name,
+            'type' => $account->type->value,
+            'bank' => $account->bank?->value,
+            'opening_date' => $account->opening_date->toDateString(),
+            'opening_balance_grosze' => $account->opening_balance_grosze,
+            'current_balance_grosze' => $account->current_balance_grosze,
+            'archived_at' => $account->archived_at?->toIso8601String(),
+            'created_at' => $account->created_at?->toIso8601String(),
+            'updated_at' => $account->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeBudget(Budget $budget): array
+    {
+        return [
+            'id' => $budget->id,
+            'year' => $budget->year,
+            'phase' => $budget->phase->value,
+            'created_at' => $budget->created_at?->toIso8601String(),
+            'updated_at' => $budget->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeCategory(Category $category): array
+    {
+        return [
+            'id' => $category->id,
+            'budget_id' => $category->budget_id,
+            'name' => $category->name,
+            'icon' => $category->icon,
+            'color' => $category->color,
+            'sort_order' => $category->sort_order,
+            'type' => $category->type->value,
+            'planned_amount_grosze' => $category->planned_amount_grosze,
+            'initial_plan_grosze' => $category->initial_plan_grosze,
+            'execution_grosze' => $category->execution_grosze,
+            'archived_at' => $category->archived_at?->toIso8601String(),
+            'created_at' => $category->created_at?->toIso8601String(),
+            'updated_at' => $category->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeFinancialOperation(FinancialOperation $operation): array
+    {
+        return [
+            'id' => $operation->id,
+            'type' => $operation->type->value,
+            'account_id' => $operation->account_id,
+            'category_id' => $operation->category_id,
+            'budget_id' => $operation->budget_id,
+            'operation_date' => $operation->operation_date->toDateString(),
+            'amount_grosze' => $operation->amount_grosze,
+            'description' => $operation->description,
+            'counterparty' => $operation->counterparty,
+            'raw_statement_description' => $operation->raw_statement_description,
+            'created_at' => $operation->created_at?->toIso8601String(),
+            'updated_at' => $operation->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeOwnTransfer(OwnTransfer $transfer): array
+    {
+        return [
+            'id' => $transfer->id,
+            'source_account_id' => $transfer->source_account_id,
+            'destination_account_id' => $transfer->destination_account_id,
+            'transfer_date' => $transfer->transfer_date->toDateString(),
+            'amount_grosze' => $transfer->amount_grosze,
+            'description' => $transfer->description,
+            'raw_statement_description' => $transfer->raw_statement_description,
+            'created_at' => $transfer->created_at?->toIso8601String(),
+            'updated_at' => $transfer->updated_at?->toIso8601String(),
+        ];
+    }
+}

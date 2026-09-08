@@ -216,6 +216,15 @@ Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **I
 - **FR-REP-07**: System pokazuje salda kont niezależnie od wykonania kategorii.
 - **FR-REP-08**: Zarchiwizowane konta i kategorie pozostają widoczne w danych historycznych.
 
+### 7.9. Narzędzia operacyjne (Artisan)
+
+Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu webowego MVP. Produkcyjny backup całej bazy pozostaje zrzutem PostgreSQL poza VPS (por. tech stack); poniższe komendy eksportują i przywracają **dane domenowe jednego użytkownika** w formacie JSON.
+
+- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, budżety, kategorie, operacje finansowe, transfery własne oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 1 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`.
+- **FR-ADM-02**: Administrator może przywrócić snapshot na **istniejącego** użytkownika-cel (`user:restore {user} {path}`). Przed wgraniem system usuwa wszystkie dane domenowe użytkownika-celu (jak `user:reset-data`). Restore nadaje rekordom nowe identyfikatory i przepina powiązania, więc snapshot można przenieść między różnymi użytkownikami. Operacja wymaga potwierdzenia; opcja `--force` pomija pytanie.
+- **FR-ADM-03**: Administrator może wyczyścić dane domenowe użytkownika bez usuwania konta logowania (`user:reset-data {user}`). Komenda usuwa konta, budżety, operacje, transfery i sesje użytkownika oraz resetuje checklistę pierwszego uruchomienia.
+- **FR-ADM-04**: Restore odrzuca plik z nieobsługiwaną wersją formatu lub uszkodzonym JSON.
+
 ## 8. Reguły biznesowe
 
 - **BR-01**: Wszystkie kwoty są wyrażone w PLN i mają dokładność do jednego grosza.
