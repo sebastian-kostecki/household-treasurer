@@ -6,8 +6,8 @@ use App\Concerns\IncomeValidationRules;
 use App\Enums\FinancialOperationType;
 use App\Models\FinancialOperation;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class UpdateIncomeRequest extends FormRequest
 {

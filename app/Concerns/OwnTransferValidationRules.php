@@ -4,7 +4,7 @@ namespace App\Concerns;
 
 use App\Models\Account;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Validator;
+use Illuminate\Contracts\Validation\Validator;
 
 trait OwnTransferValidationRules
 {
@@ -85,6 +85,35 @@ trait OwnTransferValidationRules
                     );
                 }
             },
+        ];
+    }
+
+    /**
+     * @return array{
+     *     source_account_id: int,
+     *     destination_account_id: int,
+     *     transfer_date: string,
+     *     amount_grosze: int,
+     *     description: string,
+     *     raw_statement_description?: string|null,
+     * }
+     */
+    public function payload(): array
+    {
+        $validated = $this->safe()->only([
+            'source_account_id',
+            'destination_account_id',
+            'transfer_date',
+            'amount_grosze',
+            'description',
+        ]);
+
+        return [
+            'source_account_id' => (int) $validated['source_account_id'],
+            'destination_account_id' => (int) $validated['destination_account_id'],
+            'transfer_date' => (string) $validated['transfer_date'],
+            'amount_grosze' => (int) $validated['amount_grosze'],
+            'description' => (string) $validated['description'],
         ];
     }
 }

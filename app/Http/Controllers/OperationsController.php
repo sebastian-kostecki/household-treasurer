@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Account;
+use App\Models\Budget;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Support\AccountIdentity;
@@ -60,10 +62,11 @@ class OperationsController extends Controller
             ->whereNull('archived_at')
             ->orderBy('name')
             ->get()
-            ->map(fn (Account $account): array => AccountIdentity::payload($account, [
+            ->map(fn (Account $account): array => [
+                ...AccountIdentity::payload($account),
                 'opening_date' => $account->opening_date->toDateString(),
                 'current_balance_grosze' => $account->current_balance_grosze,
-            ]));
+            ]);
 
         $incomeCategories = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
@@ -74,7 +77,7 @@ class OperationsController extends Controller
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'budget_year' => $budget->year,
@@ -90,7 +93,7 @@ class OperationsController extends Controller
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'budget_year' => $budget->year,

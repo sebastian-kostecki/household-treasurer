@@ -38,7 +38,25 @@ class CsvImportSession
             return null;
         }
 
-        return $payload;
+        if (! isset($payload['account_id'], $payload['rows']) || ! is_array($payload['rows'])) {
+            return null;
+        }
+
+        $rows = [];
+
+        foreach ($payload['rows'] as $row) {
+            if (! is_array($row)) {
+                return null;
+            }
+
+            $rows[] = $row;
+        }
+
+        return [
+            'user_id' => $user->id,
+            'account_id' => (int) $payload['account_id'],
+            'rows' => $rows,
+        ];
     }
 
     public static function forget(): void

@@ -39,10 +39,12 @@ class SelectedBudgetYear
      */
     public static function budgetYearsForUser(User $user): array
     {
-        return $user->budgets()
-            ->orderBy('year')
-            ->pluck('year')
-            ->map(fn (int|string $year): int => (int) $year)
-            ->all();
+        $years = [];
+
+        foreach ($user->budgets()->orderBy('year')->pluck('year') as $year) {
+            $years[] = (int) $year;
+        }
+
+        return $years;
     }
 }

@@ -156,7 +156,8 @@ class AccountController extends Controller
      */
     private function accountPayload(Account $account): array
     {
-        return AccountIdentity::payload($account, [
+        return [
+            ...AccountIdentity::payload($account),
             'opening_date' => $account->opening_date->toDateString(),
             'opening_balance_grosze' => $account->opening_balance_grosze,
             'current_balance_grosze' => $account->current_balance_grosze,
@@ -165,6 +166,6 @@ class AccountController extends Controller
             'can_delete' => ! $account->hasFinancialHistory() && ! $account->isArchived(),
             'can_archive' => $account->hasFinancialHistory() && ! $account->isArchived(),
             'can_restore' => $account->isArchived(),
-        ]);
+        ];
     }
 }

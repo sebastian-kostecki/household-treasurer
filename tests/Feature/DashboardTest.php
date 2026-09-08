@@ -331,4 +331,98 @@ class DashboardTest extends TestCase
                 ->where('incomeCategories.0.name', 'My income'),
             );
     }
+
+    public function test_shell_hides_first_run_checklist_when_dismissed_and_complete(): void
+    {
+        $user = User::factory()->withDismissedFirstRunChecklist()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Account::factory()->for($user)->create();
+        Category::factory()->for($budget)->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.showChecklist', false),
+            );
+    }
+
+    public function test_shell_shows_first_run_checklist_when_dismissed_but_setup_incomplete(): void
+    {
+        $user = User::factory()->withDismissedFirstRunChecklist()->create();
+        Account::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.showChecklist', true),
+            );
+    }
+
+    public function test_user_can_dismiss_first_run_checklist_when_complete(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Account::factory()->for($user)->create();
+        Category::factory()->for($budget)->create();
+
+        $this->actingAs($user)
+            ->post(route('dashboard.first-run-checklist.dismiss'))
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertNotNull($user->fresh()->first_run_checklist_dismissed_at);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.showChecklist', false),
+            );
+    }
+
+    public function test_user_cannot_dismiss_first_run_checklist_when_incomplete(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->post(route('dashboard.first-run-checklist.dismiss'))
+            ->assertForbidden();
+
+        $this->assertNull($user->fresh()->first_run_checklist_dismissed_at);
+    }
+
+    public function test_dismissed_checklist_stays_hidden_after_setup_becomes_complete_again(): void
+    {
+        $user = User::factory()->withDismissedFirstRunChecklist()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $account = Account::factory()->for($user)->create();
+        Category::factory()->for($budget)->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.showChecklist', false),
+            );
+
+        $account->delete();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.showChecklist', true),
+            );
+
+        Account::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.firstRun.showChecklist', false),
+            );
+    }
 }

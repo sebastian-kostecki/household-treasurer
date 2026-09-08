@@ -17,7 +17,7 @@ class OwnTransferController extends Controller
 
     public function store(StoreOwnTransferRequest $request, ManageOwnTransfer $manageOwnTransfer): RedirectResponse
     {
-        $manageOwnTransfer->create($request->user(), $request->validated());
+        $manageOwnTransfer->create($request->user(), $request->payload());
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -32,7 +32,7 @@ class OwnTransferController extends Controller
         OwnTransfer $ownTransfer,
         ManageOwnTransfer $manageOwnTransfer,
     ): RedirectResponse {
-        $manageOwnTransfer->update($ownTransfer, $request->validated());
+        $manageOwnTransfer->update($ownTransfer, $request->payload());
 
         Inertia::flash('toast', [
             'type' => 'success',

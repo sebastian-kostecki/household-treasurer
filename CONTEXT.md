@@ -64,6 +64,10 @@ _Avoid_: Overdraft, insufficient funds (both imply a block)
 The current balances of Accounts and their sum. A separate plane from Budget Execution.
 _Avoid_: Net worth, Wealth, Portfolio
 
+**First Run**:
+Whether the User has the four start conditions: at least one Account, one Budget, one Category, and one Budget in Execution. Scoped to the User, not to a Budget year. The dashboard checklist is the UI for this state; the User may hide that checklist while all four hold.
+_Avoid_: Onboarding, wizard, tutorial, First Steps (as a code name; UI copy may say „Pierwsze kroki”)
+
 **Import**:
 The controlled creation of Financial Operations and Own Transfers from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank.
 _Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration

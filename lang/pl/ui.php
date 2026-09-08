@@ -101,6 +101,8 @@ return [
         'title' => 'Dashboard',
         'checklist_title' => 'Pierwsze kroki',
         'checklist_description' => 'Wykonaj te kroki, aby rozpocząć pracę z budżetem domowym.',
+        'checklist_complete_description' => 'Wszystkie kroki wykonane. Możesz ukryć tę listę.',
+        'checklist_dismiss' => 'Ukryj',
         'checklist_account' => 'Utwórz konto bankowe lub gotówkowe',
         'checklist_budget' => 'Utwórz budżet na rok',
         'checklist_categories' => 'Dodaj kategorie',

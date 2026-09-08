@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -38,12 +39,12 @@ trait ExpenseValidationRules
                 Rule::exists('categories', 'id')
                     ->where('type', CategoryType::Expense->value)
                     ->whereNull('archived_at')
-                    ->whereIn(
-                        'budget_id',
-                        Budget::query()
-                            ->where('user_id', $userId)
-                            ->select('id'),
-                    ),
+                    ->where(function ($query) use ($userId): void {
+                        $query->whereIn(
+                            'budget_id',
+                            Budget::query()->select('id')->where('user_id', $userId),
+                        );
+                    }),
             ],
         ];
     }
@@ -78,7 +79,7 @@ trait ExpenseValidationRules
                 return;
             }
 
-            $operationYear = (int) date('Y', strtotime($operationDate));
+            $operationYear = Carbon::parse($operationDate)->year;
 
             if ($category->budget->user_id !== $this->user()?->id) {
                 $validator->errors()->add(
@@ -105,5 +106,39 @@ trait ExpenseValidationRules
                 );
             }
         });
+    }
+
+    /**
+     * @return array{
+     *     operation_date: string,
+     *     amount_grosze: int,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
+     *     account_id: int,
+     *     category_id: int,
+     * }
+     */
+    public function payload(): array
+    {
+        $validated = $this->safe()->only([
+            'operation_date',
+            'amount_grosze',
+            'description',
+            'counterparty',
+            'account_id',
+            'category_id',
+        ]);
+
+        return [
+            'operation_date' => (string) $validated['operation_date'],
+            'amount_grosze' => (int) $validated['amount_grosze'],
+            'description' => (string) $validated['description'],
+            'counterparty' => is_string($validated['counterparty'] ?? null)
+                ? $validated['counterparty']
+                : null,
+            'account_id' => (int) $validated['account_id'],
+            'category_id' => (int) $validated['category_id'],
+        ];
     }
 }

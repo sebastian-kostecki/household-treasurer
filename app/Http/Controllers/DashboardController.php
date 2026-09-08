@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Support\AccountIdentity;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
+use App\Support\ShellState;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -84,6 +86,23 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function dismissFirstRunChecklist(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $firstRun = ShellState::forRequest($request)['firstRun'];
+
+        if (! ShellState::isFirstRunComplete($firstRun)) {
+            abort(403);
+        }
+
+        if ($user->first_run_checklist_dismissed_at === null) {
+            $user->first_run_checklist_dismissed_at = now();
+            $user->save();
+        }
+
+        return to_route('dashboard');
+    }
+
     private function findBudgetForYear(User $user, ?int $year): ?Budget
     {
         if ($year === null) {
@@ -98,12 +117,13 @@ class DashboardController extends Controller
      */
     private function accountPayload(Account $account): array
     {
-        return AccountIdentity::payload($account, [
+        return [
+            ...AccountIdentity::payload($account),
             'opening_date' => $account->opening_date->toDateString(),
             'current_balance_grosze' => $account->current_balance_grosze,
             'is_negative' => $account->isNegative(),
             'is_archived' => $account->isArchived(),
-        ]);
+        ];
     }
 
     /**

@@ -57,4 +57,11 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
+
+    public function withDismissedFirstRunChecklist(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'first_run_checklist_dismissed_at' => now(),
+        ]);
+    }
 }

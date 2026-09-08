@@ -4,21 +4,30 @@ namespace App\Support\CsvImport;
 
 use InvalidArgumentException;
 
+/**
+ * @phpstan-type CsvImportMapping array{
+ *     date_column: int,
+ *     description_column: int,
+ *     amount_layout: 'signed',
+ *     amount_column: int,
+ *     counterparty_column?: int,
+ *     has_header: bool,
+ * }|array{
+ *     date_column: int,
+ *     description_column: int,
+ *     amount_layout: 'split',
+ *     inflow_column: int,
+ *     outflow_column: int,
+ *     counterparty_column?: int,
+ *     has_header: bool,
+ * }
+ */
 class CsvImportParser
 {
     public const MAX_ROWS = 5000;
 
     /**
-     * @param  array{
-     *     date_column: int,
-     *     description_column: int,
-     *     amount_layout: 'signed'|'split',
-     *     amount_column?: int,
-     *     inflow_column?: int,
-     *     outflow_column?: int,
-     *     counterparty_column?: int,
-     *     has_header: bool,
-     * }  $mapping
+     * @param  CsvImportMapping  $mapping
      * @return array<int, array{
      *     index: int,
      *     operation_date: ?string,
@@ -141,21 +150,23 @@ class CsvImportParser
     /**
      * @param  array<int, string>  $cells
      * @param  array{
-     *     amount_layout: 'signed'|'split',
-     *     amount_column?: int,
-     *     inflow_column?: int,
-     *     outflow_column?: int,
+     *     amount_layout: 'signed',
+     *     amount_column: int,
+     * }|array{
+     *     amount_layout: 'split',
+     *     inflow_column: int,
+     *     outflow_column: int,
      * }  $mapping
      * @return array{amount_grosze: ?int, amount_has_foreign_currency: bool}
      */
     private function parseAmount(array $cells, array $mapping): array
     {
         if ($mapping['amount_layout'] === 'signed') {
-            return $this->parseAmountCell($this->cell($cells, (int) $mapping['amount_column']));
+            return $this->parseAmountCell($this->cell($cells, $mapping['amount_column']));
         }
 
-        $inflow = $this->parseAmountCell($this->cell($cells, (int) $mapping['inflow_column']));
-        $outflow = $this->parseAmountCell($this->cell($cells, (int) $mapping['outflow_column']));
+        $inflow = $this->parseAmountCell($this->cell($cells, $mapping['inflow_column']));
+        $outflow = $this->parseAmountCell($this->cell($cells, $mapping['outflow_column']));
 
         if ($inflow['amount_has_foreign_currency'] || $outflow['amount_has_foreign_currency']) {
             return [
