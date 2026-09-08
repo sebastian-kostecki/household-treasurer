@@ -13,6 +13,8 @@ use Inertia\Response;
 
 class OperationsController extends Controller
 {
+    private const int OPERATIONS_PER_PAGE = 50;
+
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -21,8 +23,8 @@ class OperationsController extends Controller
             ->with(['account:id,name', 'category:id,name'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
-            ->get()
-            ->map(fn (FinancialOperation $operation): array => [
+            ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
+            ->through(fn (FinancialOperation $operation): array => [
                 'id' => $operation->id,
                 'operation_date' => $operation->operation_date->toDateString(),
                 'description' => $operation->description,
@@ -38,8 +40,8 @@ class OperationsController extends Controller
             ->with(['sourceAccount:id,name', 'destinationAccount:id,name'])
             ->orderByDesc('transfer_date')
             ->orderByDesc('id')
-            ->get()
-            ->map(fn (OwnTransfer $transfer): array => [
+            ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'own_transfers_page')
+            ->through(fn (OwnTransfer $transfer): array => [
                 'id' => $transfer->id,
                 'transfer_date' => $transfer->transfer_date->toDateString(),
                 'amount_grosze' => $transfer->amount_grosze,

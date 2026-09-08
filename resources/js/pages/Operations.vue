@@ -18,6 +18,9 @@ import IncomeFormDialog, {
 import OwnTransferFormDialog, {
     type OwnTransferFormTransfer,
 } from '@/components/OwnTransferFormDialog.vue';
+import PaginationLinks, {
+    type PaginatedCollection,
+} from '@/components/PaginationLinks.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,14 +61,14 @@ type AccountRow = ExpenseFormAccount & {
 };
 
 const {
-    operations: operationRows,
+    operations,
     ownTransfers,
     accounts,
     incomeCategories,
     expenseCategories,
 } = defineProps<{
-    operations: OperationRow[];
-    ownTransfers: OwnTransferRow[];
+    operations: PaginatedCollection<OperationRow>;
+    ownTransfers: PaginatedCollection<OwnTransferRow>;
     accounts: AccountRow[];
     incomeCategories: IncomeFormCategory[];
     expenseCategories: ExpenseFormCategory[];
@@ -169,7 +172,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                 </CardTitle>
                 <CardDescription>
                     {{
-                        operationRows.length === 0
+                        operations.total === 0
                             ? t.operations.empty
                             : t.operations.list_description
                     }}
@@ -200,7 +203,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="operationRows.length === 0">
+                        <tr v-if="operations.data.length === 0">
                             <td
                                 colspan="6"
                                 class="text-muted-foreground py-6 text-center"
@@ -209,7 +212,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                             </td>
                         </tr>
                         <tr
-                            v-for="operation in operationRows"
+                            v-for="operation in operations.data"
                             :key="operation.id"
                             class="border-b"
                         >
@@ -313,11 +316,12 @@ function openExpenseEditDialog(operation: OperationRow): void {
                         </tr>
                     </tbody>
                 </table>
+                <PaginationLinks :paginator="operations" />
             </CardContent>
         </Card>
 
         <div class="space-y-3 md:hidden">
-            <Card v-if="operationRows.length === 0">
+            <Card v-if="operations.data.length === 0">
                 <CardHeader class="pb-2">
                     <CardDescription>
                         {{ t.operations.empty }}
@@ -325,7 +329,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                 </CardHeader>
             </Card>
             <Card
-                v-for="operation in operationRows"
+                v-for="operation in operations.data"
                 :key="operation.id"
             >
                 <CardHeader class="pb-2">
@@ -423,9 +427,10 @@ function openExpenseEditDialog(operation: OperationRow): void {
                     </div>
                 </CardContent>
             </Card>
+            <PaginationLinks :paginator="operations" />
         </div>
 
-        <Card v-if="ownTransfers.length === 0">
+        <Card v-if="ownTransfers.total === 0">
             <CardHeader>
                 <CardTitle class="text-base">
                     {{ t.operations.own_transfers }}
@@ -463,7 +468,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                     </thead>
                     <tbody>
                         <tr
-                            v-for="transfer in ownTransfers"
+                            v-for="transfer in ownTransfers.data"
                             :key="transfer.id"
                             class="border-b last:border-b-0"
                         >
@@ -551,11 +556,12 @@ function openExpenseEditDialog(operation: OperationRow): void {
                         </tr>
                     </tbody>
                 </table>
+                <PaginationLinks :paginator="ownTransfers" />
             </CardContent>
         </Card>
 
-        <div v-if="ownTransfers.length > 0" class="space-y-3 md:hidden">
-            <Card v-for="transfer in ownTransfers" :key="transfer.id">
+        <div v-if="ownTransfers.total > 0" class="space-y-3 md:hidden">
+            <Card v-for="transfer in ownTransfers.data" :key="transfer.id">
                 <CardHeader class="gap-3 pb-3">
                     <div class="flex items-start justify-between gap-3">
                         <div class="space-y-1">
@@ -635,6 +641,7 @@ function openExpenseEditDialog(operation: OperationRow): void {
                     </Dialog>
                 </CardContent>
             </Card>
+            <PaginationLinks :paginator="ownTransfers" />
         </div>
     </div>
 
