@@ -25,6 +25,7 @@ import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
+import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
 
 export type ExpenseFormAccount = AccountPickerOption & {
@@ -103,83 +104,64 @@ const selectedCategory = computed(() =>
     ),
 );
 
-const selectedAccount = computed(() =>
-    props.accounts.find((account) => account.id === accountId.value),
-);
-
 const signedAmountGrosze = computed(() => {
     const absoluteAmount = Math.abs(amountGrosze.value);
 
     return isRefund.value ? -absoluteAmount : absoluteAmount;
 });
 
-const executionAdjustmentGrosze = computed(() => {
-    if (props.mode !== 'edit' || originalCategoryId.value === null) {
-        return 0;
+const warningPreview = computed(() => {
+    if (accountId.value === '' || categoryId.value === '') {
+        return previewHandEntryWarnings({
+            mode: props.mode,
+            accounts: props.accounts,
+            categories: props.expenseCategories,
+            proposal: {
+                kind: isRefund.value ? 'refund' : 'expense',
+                account_id: 0,
+                category_id: 0,
+                amount_grosze: 0,
+            },
+        });
     }
 
-    if (categoryId.value === originalCategoryId.value) {
-        return originalAmountGrosze.value;
-    }
-
-    return 0;
+    return previewHandEntryWarnings({
+        mode: props.mode,
+        accounts: props.accounts,
+        categories: props.expenseCategories,
+        editedRecord:
+            props.mode === 'edit' &&
+            originalAccountId.value !== null &&
+            originalCategoryId.value !== null
+                ? {
+                      account_id: originalAccountId.value,
+                      category_id: originalCategoryId.value,
+                      signed_amount_grosze: originalAmountGrosze.value,
+                  }
+                : null,
+        proposal: {
+            kind: isRefund.value ? 'refund' : 'expense',
+            account_id: accountId.value,
+            category_id: categoryId.value,
+            amount_grosze: amountGrosze.value,
+        },
+    });
 });
 
-const availableLimitGrosze = computed(() => {
-    if (!selectedCategory.value) {
-        return null;
-    }
+const availableLimitGrosze = computed(
+    () => warningPreview.value.availableLimitNowGrosze,
+);
 
-    return (
-        selectedCategory.value.planned_amount_grosze -
-        selectedCategory.value.execution_grosze +
-        executionAdjustmentGrosze.value
-    );
-});
-
-const predictedLimitGrosze = computed(() => {
-    if (availableLimitGrosze.value === null) {
-        return null;
-    }
-
-    return availableLimitGrosze.value - signedAmountGrosze.value;
-});
-
-const accountBalanceAdjustmentGrosze = computed(() => {
-    if (props.mode !== 'edit' || originalAccountId.value === null) {
-        return 0;
-    }
-
-    if (accountId.value === originalAccountId.value) {
-        return originalAmountGrosze.value;
-    }
-
-    return 0;
-});
-
-const predictedBalanceGrosze = computed(() => {
-    if (!selectedAccount.value) {
-        return null;
-    }
-
-    return (
-        selectedAccount.value.current_balance_grosze +
-        accountBalanceAdjustmentGrosze.value -
-        signedAmountGrosze.value
-    );
-});
+const predictedLimitGrosze = computed(
+    () => warningPreview.value.availableLimitAfterGrosze,
+);
 
 const showOverLimitWarning = computed(
-    () =>
-        !isRefund.value &&
-        predictedLimitGrosze.value !== null &&
-        predictedLimitGrosze.value < 0,
+    () => warningPreview.value.showOverLimitWarning,
 );
 
 const showNegativeBalanceWarning = computed(
-    () =>
-        predictedBalanceGrosze.value !== null &&
-        predictedBalanceGrosze.value < 0,
+    () => warningPreview.value.showNegativeBalanceWarning,
 );
 
 watch(
@@ -237,6 +219,8 @@ function syncAmount(): void {
 
     if (parsed !== null) {
         amountGrosze.value = Math.abs(parsed);
+    } else {
+        amountGrosze.value = 0;
     }
 }
 
@@ -391,6 +375,7 @@ function closeDialog(): void {
                         v-model="amountInput"
                         inputmode="decimal"
                         autocomplete="off"
+                        @input="syncAmount"
                         @blur="syncAmount"
                     />
                     <input
