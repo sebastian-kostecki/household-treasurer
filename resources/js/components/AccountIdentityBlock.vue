@@ -19,7 +19,7 @@ const showOtherBankIcon = computed(
 <template>
     <div class="flex min-w-0 items-center gap-3">
         <div
-            class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted"
+            class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted"
         >
             <img
                 v-if="showBankMark"

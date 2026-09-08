@@ -41,11 +41,19 @@ Current Plan of an expense Category minus booked expenses. Not cash on Accounts.
 _Avoid_: Balance, Available funds, Remaining cash
 
 **Financial Operation**:
-An income, expense, or expense refund: dated, non-zero amount, description, one Account, one Category of matching type. Affects both Account balance and Category Execution.
+An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import.
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type)
 
+**Counterparty**:
+The other party of a Financial Operation: the payer on income, the payee on expense or expense refund. Optional. Absent on Own Transfer.
+_Avoid_: Subject, Payee, Payer, Party (as this field’s name)
+
+**Raw Statement Description**:
+Immutable text captured from the Import file row that created a Financial Operation or Own Transfer. Null when the User created the record by hand. Not edited when description or Counterparty later change.
+_Avoid_: raw_description, statement_description, Subject
+
 **Own Transfer**:
-A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash. May make the source Account’s current balance negative.
+A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash. May make the source Account’s current balance negative. May carry a Raw Statement Description when created by Import.
 _Avoid_: Internal transfer, Move (as the type name)
 
 **Negative Balance Warning**:
@@ -61,5 +69,5 @@ The controlled creation of Financial Operations and Own Transfers from rows in a
 _Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration
 
 **Import format**:
-A named layout of a bank export file: file type, where the header row is, and which columns are date, description, and amount. MVP ships mBank (CSV), BNP Paribas (XLSX), and Other (manual CSV mapping).
+A named layout of a bank export file: file type, where the header row is, and which columns are date, description, amount, and optionally Counterparty. MVP ships mBank (CSV), BNP Paribas (XLSX), and Other (manual CSV mapping).
 _Avoid_: Integration, Connector, Bank integration, Parser profile, Preset (in domain language; UI may say „format”)
