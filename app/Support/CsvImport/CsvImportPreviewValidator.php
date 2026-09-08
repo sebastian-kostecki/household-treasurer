@@ -12,6 +12,7 @@ class CsvImportPreviewValidator
      *     operation_date: ?string,
      *     description: ?string,
      *     amount_grosze: ?int,
+     *     amount_has_foreign_currency?: bool,
      * }  $row
      * @return array{valid: bool, invalid_reason: ?string}
      */
@@ -33,6 +34,10 @@ class CsvImportPreviewValidator
 
         if ($row['description'] === null || trim($row['description']) === '') {
             return $this->invalid(__('Description is required.'));
+        }
+
+        if ($row['amount_has_foreign_currency'] ?? false) {
+            return $this->invalid(__('Only PLN amounts are supported.'));
         }
 
         if ($row['amount_grosze'] === null) {

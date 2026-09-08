@@ -62,6 +62,16 @@ class CsvImportController extends Controller
             ]);
         }
 
+        $operationRows = [];
+        foreach ($parsedRows as $row) {
+            if (! $this->isOperationShapedRow($row)) {
+                continue;
+            }
+
+            $row['index'] = count($operationRows);
+            $operationRows[] = $row;
+        }
+
         $rows = array_map(function (array $row) use ($previewValidator, $account): array {
             $validated = $previewValidator->validate($row, $account);
 
@@ -73,7 +83,7 @@ class CsvImportController extends Controller
                 'valid' => $validated['valid'],
                 'invalid_reason' => $validated['invalid_reason'],
             ];
-        }, $parsedRows);
+        }, $operationRows);
 
         CsvImportSession::put($request->user(), [
             'account_id' => $account->id,
@@ -238,6 +248,22 @@ class CsvImportController extends Controller
         }
 
         return implode(' ', $messages);
+    }
+
+    /**
+     * @param  array{
+     *     operation_date: ?string,
+     *     amount_grosze: ?int,
+     *     amount_has_foreign_currency?: bool,
+     * }  $row
+     */
+    private function isOperationShapedRow(array $row): bool
+    {
+        if ($row['operation_date'] === null) {
+            return false;
+        }
+
+        return $row['amount_grosze'] !== null || ($row['amount_has_foreign_currency'] ?? false);
     }
 
     /**

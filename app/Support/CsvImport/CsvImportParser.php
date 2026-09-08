@@ -23,6 +23,7 @@ class CsvImportParser
      *     operation_date: ?string,
      *     description: ?string,
      *     amount_grosze: ?int,
+     *     amount_has_foreign_currency: bool,
      * }>
      */
     public function parse(string $contents, array $mapping): array
@@ -47,11 +48,14 @@ class CsvImportParser
             $cells = str_getcsv($line, $delimiter, '"', '\\');
             $rowIndex = count($rows);
 
+            $amount = $this->parseAmount($cells, $mapping);
+
             $rows[] = [
                 'index' => $rowIndex,
                 'operation_date' => $this->parseDate($this->cell($cells, $mapping['date_column'])),
                 'description' => $this->parseDescription($this->cell($cells, $mapping['description_column'])),
-                'amount_grosze' => $this->parseAmount($cells, $mapping),
+                'amount_grosze' => $amount['amount_grosze'],
+                'amount_has_foreign_currency' => $amount['amount_has_foreign_currency'],
             ];
 
             if (count($rows) > self::MAX_ROWS) {
@@ -139,29 +143,84 @@ class CsvImportParser
      *     inflow_column?: int,
      *     outflow_column?: int,
      * }  $mapping
+     * @return array{amount_grosze: ?int, amount_has_foreign_currency: bool}
      */
-    private function parseAmount(array $cells, array $mapping): ?int
+    private function parseAmount(array $cells, array $mapping): array
     {
         if ($mapping['amount_layout'] === 'signed') {
-            return $this->parseMoney($this->cell($cells, (int) $mapping['amount_column']));
+            return $this->parseAmountCell($this->cell($cells, (int) $mapping['amount_column']));
         }
 
-        $inflow = $this->parseMoney($this->cell($cells, (int) $mapping['inflow_column']));
-        $outflow = $this->parseMoney($this->cell($cells, (int) $mapping['outflow_column']));
+        $inflow = $this->parseAmountCell($this->cell($cells, (int) $mapping['inflow_column']));
+        $outflow = $this->parseAmountCell($this->cell($cells, (int) $mapping['outflow_column']));
 
-        if ($inflow !== null && $outflow !== null) {
-            return null;
+        if ($inflow['amount_has_foreign_currency'] || $outflow['amount_has_foreign_currency']) {
+            return [
+                'amount_grosze' => null,
+                'amount_has_foreign_currency' => true,
+            ];
         }
 
-        if ($inflow !== null) {
+        if ($inflow['amount_grosze'] !== null && $outflow['amount_grosze'] !== null) {
+            return [
+                'amount_grosze' => null,
+                'amount_has_foreign_currency' => false,
+            ];
+        }
+
+        if ($inflow['amount_grosze'] !== null) {
             return $inflow;
         }
 
-        if ($outflow !== null) {
-            return -abs($outflow);
+        if ($outflow['amount_grosze'] !== null) {
+            return [
+                'amount_grosze' => -abs($outflow['amount_grosze']),
+                'amount_has_foreign_currency' => false,
+            ];
         }
 
-        return null;
+        return [
+            'amount_grosze' => null,
+            'amount_has_foreign_currency' => false,
+        ];
+    }
+
+    /**
+     * @return array{amount_grosze: ?int, amount_has_foreign_currency: bool}
+     */
+    private function parseAmountCell(?string $value): array
+    {
+        if ($value === null) {
+            return [
+                'amount_grosze' => null,
+                'amount_has_foreign_currency' => false,
+            ];
+        }
+
+        if ($this->hasForeignCurrency($value)) {
+            return [
+                'amount_grosze' => null,
+                'amount_has_foreign_currency' => true,
+            ];
+        }
+
+        return [
+            'amount_grosze' => $this->parseMoney($value),
+            'amount_has_foreign_currency' => false,
+        ];
+    }
+
+    private function hasForeignCurrency(string $value): bool
+    {
+        if (preg_match('/(?:^|\s)(PLN|zł)(?:\s|$)/ui', $value) === 1) {
+            return false;
+        }
+
+        if (preg_match('/\b([A-Z]{3})\b/i', $value, $matches) !== 1) {
+            return false;
+        }
+
+        return strtoupper($matches[1]) !== 'PLN';
     }
 
     private function parseMoney(?string $value): ?int
@@ -171,7 +230,7 @@ class CsvImportParser
         }
 
         $normalized = trim(str_replace(["\xc2\xa0", ' '], '', $value));
-        $normalized = preg_replace('/zł$/ui', '', $normalized) ?? $normalized;
+        $normalized = preg_replace('/(?:PLN|zł)$/ui', '', $normalized) ?? $normalized;
         $normalized = trim($normalized);
         $normalized = str_replace(',', '.', $normalized);
 

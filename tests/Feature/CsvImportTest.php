@@ -96,6 +96,107 @@ CSV;
             );
     }
 
+    public function test_junk_rows_without_parseable_date_and_amount_are_omitted_from_preview(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+mBank S.A. Bankowość Detaliczna,,
+#Lista operacji,,
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 1)
+                ->where('rows.0.description', 'Salary')
+                ->where('rows.0.valid', true),
+            );
+    }
+
+    public function test_amounts_with_pln_and_zl_suffixes_parse_to_grosze(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date;description;amount
+2026-03-15;Expense;-355,91 PLN
+2026-03-16;Income;1 000,00 zł
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.amount_grosze', -35591)
+                ->where('rows.0.valid', true)
+                ->where('rows.1.amount_grosze', 100000)
+                ->where('rows.1.valid', true),
+            );
+    }
+
+    public function test_operation_shaped_row_with_foreign_currency_is_invalid(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Foreign purchase,10.00 EUR
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 1)
+                ->where('rows.0.valid', false)
+                ->where('rows.0.invalid_reason', __('Only PLN amounts are supported.')),
+            );
+    }
+
     public function test_invalid_rows_are_marked_with_reason(): void
     {
         $this->travelTo('2026-06-01');
@@ -127,11 +228,11 @@ CSV;
             ->get(route('operations.import.preview'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 3)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('Invalid or missing date.'))
+                ->where('rows.0.invalid_reason', __('The operation date cannot be in the future.'))
                 ->where('rows.1.valid', false)
-                ->where('rows.2.valid', false)
-                ->where('rows.3.valid', false),
+                ->where('rows.2.valid', false),
             );
     }
 
@@ -163,12 +264,6 @@ CSV;
                 'rows' => [
                     [
                         'index' => 0,
-                        'selected' => false,
-                        'type' => 'income',
-                        'category_id' => $incomeCategory->id,
-                    ],
-                    [
-                        'index' => 1,
                         'selected' => true,
                         'type' => 'income',
                         'category_id' => $incomeCategory->id,
