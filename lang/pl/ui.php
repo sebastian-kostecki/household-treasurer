@@ -183,6 +183,9 @@ return [
     'accounts' => [
         'title' => 'Konta',
         'empty' => 'Brak kont bankowych ani gotówkowych',
+        'empty_title' => 'Brak kont bankowych ani gotówkowych',
+        'empty_description' => 'Dodaj pierwsze konto bankowe lub gotówkowe.',
+        'list_description' => 'Rachunki bankowe i konta gotówkowe.',
         'show_archived' => 'Pokaż zarchiwizowane',
         'add' => 'Dodaj konto',
         'add_hint' => 'Funkcja dostępna wkrótce',
