@@ -207,6 +207,22 @@
         @apply text-right font-medium tabular-nums;
     }
 
+    .list-surface-table-scroll {
+        @apply max-h-[min(32rem,70vh)] overflow-auto;
+    }
+
+    .list-surface-table-scroll .list-surface-table thead th {
+        @apply sticky top-0 z-10 bg-card;
+    }
+
+    .list-surface-table tfoot tr {
+        @apply border-t border-border/60 bg-foreground/[0.02];
+    }
+
+    .list-surface-table tfoot td {
+        @apply py-3;
+    }
+
     .operations-grid {
         @apply grid w-full gap-x-4;
         grid-template-columns: minmax(0, 1fr) auto;

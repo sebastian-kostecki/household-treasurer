@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
+use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -168,6 +169,8 @@ class BudgetController extends Controller
      *     initial_plan_grosze: int,
      *     current_plan_grosze: int,
      *     execution_grosze: int,
+     *     remaining_grosze: int,
+     *     is_over_limit: bool,
      *     can_edit: bool,
      *     can_delete: bool,
      *     can_change_type: bool,
@@ -178,6 +181,8 @@ class BudgetController extends Controller
      */
     private function categoryPayload(Category $category, Budget $budget): array
     {
+        $currentPlanGrosze = $category->planned_amount_grosze;
+        $executionGrosze = $category->execution_grosze;
         $initialPlanGrosze = $budget->isExecution()
             ? $category->initial_plan_grosze
             : $category->planned_amount_grosze;
@@ -189,8 +194,14 @@ class BudgetController extends Controller
             'type' => $category->type->value,
             'planned_amount_grosze' => $category->planned_amount_grosze,
             'initial_plan_grosze' => $initialPlanGrosze,
-            'current_plan_grosze' => $category->planned_amount_grosze,
-            'execution_grosze' => $category->execution_grosze,
+            'current_plan_grosze' => $currentPlanGrosze,
+            'execution_grosze' => $executionGrosze,
+            'remaining_grosze' => CategoryExecutionMetrics::remainingGrosze(
+                $currentPlanGrosze,
+                $executionGrosze,
+            ),
+            'is_over_limit' => $category->type === CategoryType::Expense
+                && CategoryExecutionMetrics::isOverLimit($currentPlanGrosze, $executionGrosze),
             'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
             'can_delete' => $budget->isDraft() && ! $category->isArchived(),
             'can_change_type' => $budget->isDraft() && ! $category->isArchived(),

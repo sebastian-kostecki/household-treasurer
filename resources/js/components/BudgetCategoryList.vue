@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import { Form, useHttp } from '@inertiajs/vue3';
-import {
-    Archive,
-    ArchiveRestore,
-    GripVertical,
-    Pencil,
-    Trash2,
-} from '@lucide/vue';
+import { useHttp } from '@inertiajs/vue3';
+import { GripVertical, Pencil } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
-import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
+import BudgetCategoryOverflowActions from '@/components/BudgetCategoryOverflowActions.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -22,16 +16,9 @@ import {
     CardContent,
     CardHeader,
 } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
+import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 
 export type BudgetCategoryRow = {
@@ -44,6 +31,8 @@ export type BudgetCategoryRow = {
     initial_plan_grosze: number;
     current_plan_grosze: number;
     execution_grosze: number;
+    remaining_grosze: number;
+    is_over_limit: boolean;
     can_edit: boolean;
     can_delete: boolean;
     can_change_type: boolean;
@@ -52,15 +41,18 @@ export type BudgetCategoryRow = {
     can_restore: boolean;
 };
 
+const NAME_FILTER_THRESHOLD = 12;
+
 const props = defineProps<{
     title: string;
     categories: BudgetCategoryRow[];
     budgetId: number;
     categoryType: 'income' | 'expense';
+    phase: 'draft' | 'execution';
+    totals: DashboardTypeTotals;
     canReorder: boolean;
     emptyDescription: string;
     addLabel: string;
-    highlightInitialPlan?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -76,6 +68,15 @@ const reorderHttp = useHttp({
 
 const localCategories = ref<BudgetCategoryRow[]>([]);
 const orderBeforeDrag = ref<BudgetCategoryRow[]>([]);
+const nameFilter = ref('');
+
+const isDraft = computed(() => props.phase === 'draft');
+const isExecution = computed(() => props.phase === 'execution');
+const showNameFilter = computed(
+    () => props.categories.length >= NAME_FILTER_THRESHOLD,
+);
+const isFiltering = computed(() => nameFilter.value.trim().length > 0);
+const canDrag = computed(() => props.canReorder && !isFiltering.value);
 
 watch(
     () => props.categories,
@@ -100,12 +101,34 @@ const activeCategories = computed({
     },
 });
 
+function matchesNameFilter(category: BudgetCategoryRow): boolean {
+    const query = nameFilter.value.trim().toLowerCase();
+
+    if (query === '') {
+        return true;
+    }
+
+    return category.name.toLowerCase().includes(query);
+}
+
+const filteredArchivedCategories = computed(() =>
+    archivedCategories.value.filter(matchesNameFilter),
+);
+
+function remainingClass(category: BudgetCategoryRow): string {
+    if (props.categoryType === 'expense' && category.is_over_limit) {
+        return 'text-destructive';
+    }
+
+    return '';
+}
+
 function onDragStart(): void {
     orderBeforeDrag.value = [...localCategories.value];
 }
 
 async function onDragEnd(): Promise<void> {
-    if (!props.canReorder) {
+    if (!canDrag.value) {
         return;
     }
 
@@ -136,22 +159,57 @@ async function onDragEnd(): Promise<void> {
     </IndexEmptyState>
 
     <template v-else>
-        <ListSurface class="hidden md:block" :title="title">
-            <div class="overflow-x-auto">
+        <ListSurface class="hidden md:block">
+            <template #header>
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-base font-semibold">
+                            {{ title }}
+                        </h3>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            @click="emit('add')"
+                        >
+                            {{ addLabel }}
+                        </Button>
+                    </div>
+                    <Input
+                        v-if="showNameFilter"
+                        v-model="nameFilter"
+                        type="search"
+                        :placeholder="t.budget.filter_by_name"
+                    />
+                </div>
+            </template>
+
+            <div class="list-surface-table-scroll">
                 <table class="list-surface-table">
                     <thead>
                         <tr>
                             <th v-if="canReorder" class="w-10" />
                             <th>{{ t.budget.category }}</th>
-                            <th class="text-right">
-                                {{ t.budget.initial_plan }}
+                            <th
+                                v-if="isDraft"
+                                class="text-right"
+                            >
+                                {{ t.budget.plan }}
                             </th>
-                            <th class="text-right">
-                                {{ t.budget.current_plan }}
-                            </th>
-                            <th class="text-right">
-                                {{ t.budget.execution }}
-                            </th>
+                            <template v-if="isExecution">
+                                <th class="text-right">
+                                    {{ t.budget.initial_plan }}
+                                </th>
+                                <th class="text-right">
+                                    {{ t.budget.current_plan }}
+                                </th>
+                                <th class="text-right">
+                                    {{ t.budget.execution }}
+                                </th>
+                                <th class="text-right">
+                                    {{ t.budget.remaining }}
+                                </th>
+                            </template>
                             <th class="text-right">
                                 {{ t.budget.actions }}
                             </th>
@@ -162,16 +220,17 @@ async function onDragEnd(): Promise<void> {
                         tag="tbody"
                         item-key="id"
                         handle=".drag-handle"
-                        :disabled="!canReorder"
+                        :disabled="!canDrag"
                         :animation="150"
                         ghost-class="opacity-50"
                         @start="onDragStart"
                         @end="onDragEnd"
                     >
                         <template #item="{ element: category }">
-                            <tr>
+                            <tr v-show="matchesNameFilter(category)">
                                 <td v-if="canReorder" class="w-10">
                                     <button
+                                        v-if="canDrag"
                                         type="button"
                                         class="drag-handle flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground active:cursor-grabbing"
                                         :aria-label="t.budget.drag_handle"
@@ -180,40 +239,55 @@ async function onDragEnd(): Promise<void> {
                                     </button>
                                 </td>
                                 <td>
-                                    <div class="flex items-center gap-2">
-                                        <CategoryChip
-                                            :name="category.name"
-                                            :icon="category.icon"
-                                            :color="category.color"
-                                        />
-                                    </div>
+                                    <CategoryChip
+                                        :name="category.name"
+                                        :icon="category.icon"
+                                        :color="category.color"
+                                    />
                                 </td>
                                 <td
-                                    class="tabular-amount"
-                                    :class="
-                                        highlightInitialPlan
-                                            ? 'text-success'
-                                            : ''
-                                    "
+                                    v-if="isDraft"
+                                    class="tabular-amount font-semibold"
                                 >
-                                    {{
-                                        formatMoney(
-                                            category.initial_plan_grosze,
-                                        )
-                                    }}
-                                </td>
-                                <td class="tabular-amount">
                                     {{
                                         formatMoney(
                                             category.current_plan_grosze,
                                         )
                                     }}
                                 </td>
-                                <td class="tabular-amount">
-                                    {{
-                                        formatMoney(category.execution_grosze)
-                                    }}
-                                </td>
+                                <template v-if="isExecution">
+                                    <td class="tabular-amount">
+                                        {{
+                                            formatMoney(
+                                                category.initial_plan_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="tabular-amount font-semibold">
+                                        {{
+                                            formatMoney(
+                                                category.current_plan_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="tabular-amount">
+                                        {{
+                                            formatMoney(
+                                                category.execution_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                    <td
+                                        class="tabular-amount"
+                                        :class="remainingClass(category)"
+                                    >
+                                        {{
+                                            formatMoney(
+                                                category.remaining_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                </template>
                                 <td>
                                     <div class="flex justify-end gap-1">
                                         <IconAction
@@ -222,272 +296,215 @@ async function onDragEnd(): Promise<void> {
                                             :label="t.budget.edit"
                                             @click="emit('edit', category)"
                                         />
-                                        <Dialog v-if="category.can_delete">
-                                            <IconAction
-                                                as-dialog-trigger
-                                                :icon="Trash2"
-                                                :label="t.budget.delete"
-                                                destructive
-                                            />
-                                            <DialogContent>
-                                                <Form
-                                                    v-bind="
-                                                        CategoryController.destroy.form(
-                                                            category,
-                                                        )
-                                                    "
-                                                    v-slot="{ processing }"
-                                                >
-                                                    <DialogHeader>
-                                                        <DialogTitle>
-                                                            {{
-                                                                t.budget.delete_category_confirm_title
-                                                            }}
-                                                        </DialogTitle>
-                                                        <DialogDescription>
-                                                            {{
-                                                                t.budget.delete_category_confirm_body
-                                                            }}
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter class="gap-2">
-                                                        <DialogClose as-child>
-                                                            <Button
-                                                                type="button"
-                                                                variant="secondary"
-                                                            >
-                                                                {{
-                                                                    t.budget.cancel
-                                                                }}
-                                                            </Button>
-                                                        </DialogClose>
-                                                        <Button
-                                                            type="submit"
-                                                            variant="destructive"
-                                                            :disabled="
-                                                                processing
-                                                            "
-                                                        >
-                                                            {{ t.budget.delete }}
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </Form>
-                                            </DialogContent>
-                                        </Dialog>
-                                        <Dialog v-if="category.can_archive">
-                                            <IconAction
-                                                as-dialog-trigger
-                                                :icon="Archive"
-                                                :label="t.budget.archive"
-                                            />
-                                            <DialogContent>
-                                                <Form
-                                                    v-bind="
-                                                        CategoryController.archive.form(
-                                                            category,
-                                                        )
-                                                    "
-                                                    v-slot="{ processing }"
-                                                >
-                                                    <DialogHeader>
-                                                        <DialogTitle>
-                                                            {{
-                                                                t.budget.archive_confirm_title
-                                                            }}
-                                                        </DialogTitle>
-                                                        <DialogDescription>
-                                                            {{
-                                                                t.budget.archive_confirm_body
-                                                            }}
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter class="gap-2">
-                                                        <DialogClose as-child>
-                                                            <Button
-                                                                type="button"
-                                                                variant="secondary"
-                                                            >
-                                                                {{
-                                                                    t.budget.cancel
-                                                                }}
-                                                            </Button>
-                                                        </DialogClose>
-                                                        <Button
-                                                            type="submit"
-                                                            :disabled="
-                                                                processing
-                                                            "
-                                                        >
-                                                            {{
-                                                                t.budget.archive
-                                                            }}
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </Form>
-                                            </DialogContent>
-                                        </Dialog>
-                                        <Dialog v-if="category.can_restore">
-                                            <IconAction
-                                                as-dialog-trigger
-                                                :icon="ArchiveRestore"
-                                                :label="t.budget.restore"
-                                            />
-                                            <DialogContent>
-                                                <Form
-                                                    v-bind="
-                                                        CategoryController.restore.form(
-                                                            category,
-                                                        )
-                                                    "
-                                                    v-slot="{ processing }"
-                                                >
-                                                    <DialogHeader>
-                                                        <DialogTitle>
-                                                            {{
-                                                                t.budget.restore_confirm_title
-                                                            }}
-                                                        </DialogTitle>
-                                                        <DialogDescription>
-                                                            {{
-                                                                t.budget.restore_confirm_body
-                                                            }}
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter class="gap-2">
-                                                        <DialogClose as-child>
-                                                            <Button
-                                                                type="button"
-                                                                variant="secondary"
-                                                            >
-                                                                {{
-                                                                    t.budget.cancel
-                                                                }}
-                                                            </Button>
-                                                        </DialogClose>
-                                                        <Button
-                                                            type="submit"
-                                                            :disabled="
-                                                                processing
-                                                            "
-                                                        >
-                                                            {{
-                                                                t.budget.restore
-                                                            }}
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </Form>
-                                            </DialogContent>
-                                        </Dialog>
+                                        <BudgetCategoryOverflowActions
+                                            :category="category"
+                                        />
                                     </div>
                                 </td>
                             </tr>
                         </template>
                     </draggable>
-                    <tbody v-if="archivedCategories.length > 0">
-                        <tr
-                            v-for="category in archivedCategories"
-                            :key="category.id"
-                            class="text-muted-foreground"
-                        >
-                            <td v-if="canReorder" class="w-10" />
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <CategoryChip
-                                        :name="category.name"
-                                        :icon="category.icon"
-                                        :color="category.color"
-                                    />
-                                    <Badge variant="secondary">
-                                        {{ t.budget.archived_badge }}
-                                    </Badge>
-                                </div>
-                            </td>
+                    <tfoot>
+                        <tr class="font-semibold">
+                            <td v-if="canReorder" />
+                            <td>{{ t.budget.totals }}</td>
                             <td
+                                v-if="isDraft"
                                 class="tabular-amount"
-                                :class="
-                                    highlightInitialPlan ? 'text-success' : ''
-                                "
                             >
                                 {{
-                                    formatMoney(category.initial_plan_grosze)
+                                    formatMoney(totals.current_plan_grosze)
                                 }}
                             </td>
-                            <td class="tabular-amount">
-                                {{
-                                    formatMoney(category.current_plan_grosze)
-                                }}
-                            </td>
-                            <td class="tabular-amount">
-                                {{ formatMoney(category.execution_grosze) }}
-                            </td>
-                            <td>
-                                <div class="flex justify-end gap-1">
-                                    <IconAction
-                                        v-if="category.can_edit"
-                                        :icon="Pencil"
-                                        :label="t.budget.edit"
-                                        @click="emit('edit', category)"
-                                    />
-                                    <Dialog v-if="category.can_restore">
-                                        <IconAction
-                                            as-dialog-trigger
-                                            :icon="ArchiveRestore"
-                                            :label="t.budget.restore"
-                                        />
-                                        <DialogContent>
-                                            <Form
-                                                v-bind="
-                                                    CategoryController.restore.form(
-                                                        category,
-                                                    )
-                                                "
-                                                v-slot="{ processing }"
-                                            >
-                                                <DialogHeader>
-                                                    <DialogTitle>
-                                                        {{
-                                                            t.budget.restore_confirm_title
-                                                        }}
-                                                    </DialogTitle>
-                                                    <DialogDescription>
-                                                        {{
-                                                            t.budget.restore_confirm_body
-                                                        }}
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <DialogFooter class="gap-2">
-                                                    <DialogClose as-child>
-                                                        <Button
-                                                            type="button"
-                                                            variant="secondary"
-                                                        >
-                                                            {{ t.budget.cancel }}
-                                                        </Button>
-                                                    </DialogClose>
-                                                    <Button
-                                                        type="submit"
-                                                        :disabled="processing"
-                                                    >
-                                                        {{ t.budget.restore }}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </Form>
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
-                            </td>
+                            <template v-if="isExecution">
+                                <td class="tabular-amount">
+                                    {{
+                                        formatMoney(
+                                            totals.initial_plan_grosze,
+                                        )
+                                    }}
+                                </td>
+                                <td class="tabular-amount">
+                                    {{
+                                        formatMoney(
+                                            totals.current_plan_grosze,
+                                        )
+                                    }}
+                                </td>
+                                <td class="tabular-amount">
+                                    {{
+                                        formatMoney(totals.execution_grosze)
+                                    }}
+                                </td>
+                                <td
+                                    class="tabular-amount"
+                                    :class="
+                                        categoryType === 'expense'
+                                        && totals.remaining_grosze < 0
+                                            ? 'text-destructive'
+                                            : ''
+                                    "
+                                >
+                                    {{
+                                        formatMoney(totals.remaining_grosze)
+                                    }}
+                                </td>
+                            </template>
+                            <td />
                         </tr>
-                    </tbody>
+                    </tfoot>
                 </table>
+            </div>
+
+            <div
+                v-if="filteredArchivedCategories.length > 0"
+                class="mt-6 space-y-3"
+            >
+                <div class="flex items-center gap-2">
+                    <h4 class="text-sm font-medium">
+                        {{ t.budget.archived_section }}
+                    </h4>
+                    <Badge variant="secondary">
+                        {{ filteredArchivedCategories.length }}
+                    </Badge>
+                </div>
+                <div class="list-surface-table-scroll">
+                    <table class="list-surface-table">
+                        <thead>
+                            <tr>
+                                <th>{{ t.budget.category }}</th>
+                                <th
+                                    v-if="isDraft"
+                                    class="text-right"
+                                >
+                                    {{ t.budget.plan }}
+                                </th>
+                                <template v-if="isExecution">
+                                    <th class="text-right">
+                                        {{ t.budget.initial_plan }}
+                                    </th>
+                                    <th class="text-right">
+                                        {{ t.budget.current_plan }}
+                                    </th>
+                                    <th class="text-right">
+                                        {{ t.budget.execution }}
+                                    </th>
+                                    <th class="text-right">
+                                        {{ t.budget.remaining }}
+                                    </th>
+                                </template>
+                                <th class="text-right">
+                                    {{ t.budget.actions }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="category in filteredArchivedCategories"
+                                :key="category.id"
+                                class="text-muted-foreground"
+                            >
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <CategoryChip
+                                            :name="category.name"
+                                            :icon="category.icon"
+                                            :color="category.color"
+                                        />
+                                        <Badge variant="secondary">
+                                            {{ t.budget.archived_badge }}
+                                        </Badge>
+                                    </div>
+                                </td>
+                                <td
+                                    v-if="isDraft"
+                                    class="tabular-amount font-semibold"
+                                >
+                                    {{
+                                        formatMoney(
+                                            category.current_plan_grosze,
+                                        )
+                                    }}
+                                </td>
+                                <template v-if="isExecution">
+                                    <td class="tabular-amount">
+                                        {{
+                                            formatMoney(
+                                                category.initial_plan_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="tabular-amount font-semibold">
+                                        {{
+                                            formatMoney(
+                                                category.current_plan_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="tabular-amount">
+                                        {{
+                                            formatMoney(
+                                                category.execution_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                    <td
+                                        class="tabular-amount"
+                                        :class="remainingClass(category)"
+                                    >
+                                        {{
+                                            formatMoney(
+                                                category.remaining_grosze,
+                                            )
+                                        }}
+                                    </td>
+                                </template>
+                                <td>
+                                    <div class="flex justify-end gap-1">
+                                        <IconAction
+                                            v-if="category.can_edit"
+                                            :icon="Pencil"
+                                            :label="t.budget.edit"
+                                            @click="emit('edit', category)"
+                                        />
+                                        <BudgetCategoryOverflowActions
+                                            :category="category"
+                                        />
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </ListSurface>
 
-        <div class="md:hidden">
+        <div class="space-y-3 md:hidden">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-base font-semibold">
+                    {{ title }}
+                </h3>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="emit('add')"
+                >
+                    {{ addLabel }}
+                </Button>
+            </div>
+            <Input
+                v-if="showNameFilter"
+                v-model="nameFilter"
+                type="search"
+                :placeholder="t.budget.filter_by_name"
+            />
+
             <draggable
                 v-model="activeCategories"
                 item-key="id"
                 handle=".drag-handle"
-                :disabled="!canReorder"
+                :disabled="!canDrag"
                 :animation="150"
                 ghost-class="opacity-50"
                 class="space-y-3"
@@ -495,11 +512,11 @@ async function onDragEnd(): Promise<void> {
                 @end="onDragEnd"
             >
                 <template #item="{ element: category }">
-                    <Card>
+                    <Card v-show="matchesNameFilter(category)">
                         <CardHeader class="gap-3 pb-3">
                             <div class="flex items-start gap-2">
                                 <button
-                                    v-if="canReorder"
+                                    v-if="canDrag"
                                     type="button"
                                     class="drag-handle mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground active:cursor-grabbing"
                                     :aria-label="t.budget.drag_handle"
@@ -514,19 +531,223 @@ async function onDragEnd(): Promise<void> {
                             </div>
                         </CardHeader>
                         <CardContent class="space-y-3">
-                            <div class="grid grid-cols-3 gap-3 text-sm">
+                            <div
+                                class="grid gap-3 text-sm"
+                                :class="
+                                    isDraft ? 'grid-cols-1' : 'grid-cols-2'
+                                "
+                            >
+                                <div v-if="isDraft">
+                                    <p class="text-muted-foreground text-xs">
+                                        {{ t.budget.plan }}
+                                    </p>
+                                    <p class="font-semibold tabular-nums">
+                                        {{
+                                            formatMoney(
+                                                category.current_plan_grosze,
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+                                <template v-if="isExecution">
+                                    <div>
+                                        <p class="text-muted-foreground text-xs">
+                                            {{ t.budget.initial_plan }}
+                                        </p>
+                                        <p class="font-medium tabular-nums">
+                                            {{
+                                                formatMoney(
+                                                    category.initial_plan_grosze,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted-foreground text-xs">
+                                            {{ t.budget.current_plan }}
+                                        </p>
+                                        <p class="font-semibold tabular-nums">
+                                            {{
+                                                formatMoney(
+                                                    category.current_plan_grosze,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted-foreground text-xs">
+                                            {{ t.budget.execution }}
+                                        </p>
+                                        <p class="font-medium tabular-nums">
+                                            {{
+                                                formatMoney(
+                                                    category.execution_grosze,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted-foreground text-xs">
+                                            {{ t.budget.remaining }}
+                                        </p>
+                                        <p
+                                            class="font-medium tabular-nums"
+                                            :class="remainingClass(category)"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.remaining_grosze,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                                <IconAction
+                                    v-if="category.can_edit"
+                                    :icon="Pencil"
+                                    :label="t.budget.edit"
+                                    @click="emit('edit', category)"
+                                />
+                                <BudgetCategoryOverflowActions
+                                    :category="category"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </template>
+            </draggable>
+
+            <Card class="border-dashed">
+                <CardContent class="grid gap-3 pt-6 text-sm">
+                    <p class="font-semibold">
+                        {{ t.budget.totals }}
+                    </p>
+                    <div
+                        class="grid gap-3"
+                        :class="isDraft ? 'grid-cols-1' : 'grid-cols-2'"
+                    >
+                        <div v-if="isDraft">
+                            <p class="text-muted-foreground text-xs">
+                                {{ t.budget.plan }}
+                            </p>
+                            <p class="font-semibold tabular-nums">
+                                {{ formatMoney(totals.current_plan_grosze) }}
+                            </p>
+                        </div>
+                        <template v-if="isExecution">
+                            <div>
+                                <p class="text-muted-foreground text-xs">
+                                    {{ t.budget.initial_plan }}
+                                </p>
+                                <p class="font-semibold tabular-nums">
+                                    {{
+                                        formatMoney(
+                                            totals.initial_plan_grosze,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-muted-foreground text-xs">
+                                    {{ t.budget.current_plan }}
+                                </p>
+                                <p class="font-semibold tabular-nums">
+                                    {{
+                                        formatMoney(
+                                            totals.current_plan_grosze,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-muted-foreground text-xs">
+                                    {{ t.budget.execution }}
+                                </p>
+                                <p class="font-semibold tabular-nums">
+                                    {{
+                                        formatMoney(totals.execution_grosze)
+                                    }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-muted-foreground text-xs">
+                                    {{ t.budget.remaining }}
+                                </p>
+                                <p
+                                    class="font-semibold tabular-nums"
+                                    :class="
+                                        categoryType === 'expense'
+                                        && totals.remaining_grosze < 0
+                                            ? 'text-destructive'
+                                            : ''
+                                    "
+                                >
+                                    {{
+                                        formatMoney(totals.remaining_grosze)
+                                    }}
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div
+                v-if="filteredArchivedCategories.length > 0"
+                class="space-y-3"
+            >
+                <div class="flex items-center gap-2">
+                    <h4 class="text-sm font-medium">
+                        {{ t.budget.archived_section }}
+                    </h4>
+                    <Badge variant="secondary">
+                        {{ filteredArchivedCategories.length }}
+                    </Badge>
+                </div>
+                <Card
+                    v-for="category in filteredArchivedCategories"
+                    :key="category.id"
+                    class="opacity-60"
+                >
+                    <CardHeader class="gap-3 pb-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <CategoryChip
+                                :name="category.name"
+                                :icon="category.icon"
+                                :color="category.color"
+                            />
+                            <Badge variant="secondary">
+                                {{ t.budget.archived_badge }}
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent class="space-y-3">
+                        <div
+                            class="grid gap-3 text-sm"
+                            :class="
+                                isDraft ? 'grid-cols-1' : 'grid-cols-2'
+                            "
+                        >
+                            <div v-if="isDraft">
+                                <p class="text-muted-foreground text-xs">
+                                    {{ t.budget.plan }}
+                                </p>
+                                <p class="font-semibold tabular-nums">
+                                    {{
+                                        formatMoney(
+                                            category.current_plan_grosze,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                            <template v-if="isExecution">
                                 <div>
                                     <p class="text-muted-foreground text-xs">
                                         {{ t.budget.initial_plan }}
                                     </p>
-                                    <p
-                                        class="font-medium tabular-nums"
-                                        :class="
-                                            highlightInitialPlan
-                                                ? 'text-success'
-                                                : ''
-                                        "
-                                    >
+                                    <p class="font-medium tabular-nums">
                                         {{
                                             formatMoney(
                                                 category.initial_plan_grosze,
@@ -538,7 +759,7 @@ async function onDragEnd(): Promise<void> {
                                     <p class="text-muted-foreground text-xs">
                                         {{ t.budget.current_plan }}
                                     </p>
-                                    <p class="font-medium tabular-nums">
+                                    <p class="font-semibold tabular-nums">
                                         {{
                                             formatMoney(
                                                 category.current_plan_grosze,
@@ -558,178 +779,22 @@ async function onDragEnd(): Promise<void> {
                                         }}
                                     </p>
                                 </div>
-                            </div>
-                            <div class="flex flex-wrap gap-1">
-                                <IconAction
-                                    v-if="category.can_edit"
-                                    :icon="Pencil"
-                                    :label="t.budget.edit"
-                                    @click="emit('edit', category)"
-                                />
-                                <Dialog v-if="category.can_delete">
-                                    <IconAction
-                                        as-dialog-trigger
-                                        :icon="Trash2"
-                                        :label="t.budget.delete"
-                                        destructive
-                                    />
-                                    <DialogContent>
-                                        <Form
-                                            v-bind="
-                                                CategoryController.destroy.form(
-                                                    category,
-                                                )
-                                            "
-                                            v-slot="{ processing }"
-                                        >
-                                            <DialogHeader>
-                                                <DialogTitle>
-                                                    {{
-                                                        t.budget.delete_category_confirm_title
-                                                    }}
-                                                </DialogTitle>
-                                                <DialogDescription>
-                                                    {{
-                                                        t.budget.delete_category_confirm_body
-                                                    }}
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <DialogFooter class="gap-2">
-                                                <DialogClose as-child>
-                                                    <Button
-                                                        type="button"
-                                                        variant="secondary"
-                                                    >
-                                                        {{ t.budget.cancel }}
-                                                    </Button>
-                                                </DialogClose>
-                                                <Button
-                                                    type="submit"
-                                                    variant="destructive"
-                                                    :disabled="processing"
-                                                >
-                                                    {{ t.budget.delete }}
-                                                </Button>
-                                            </DialogFooter>
-                                        </Form>
-                                    </DialogContent>
-                                </Dialog>
-                                <Dialog v-if="category.can_archive">
-                                    <IconAction
-                                        as-dialog-trigger
-                                        :icon="Archive"
-                                        :label="t.budget.archive"
-                                    />
-                                    <DialogContent>
-                                        <Form
-                                            v-bind="
-                                                CategoryController.archive.form(
-                                                    category,
-                                                )
-                                            "
-                                            v-slot="{ processing }"
-                                        >
-                                            <DialogHeader>
-                                                <DialogTitle>
-                                                    {{
-                                                        t.budget.archive_confirm_title
-                                                    }}
-                                                </DialogTitle>
-                                                <DialogDescription>
-                                                    {{
-                                                        t.budget.archive_confirm_body
-                                                    }}
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <DialogFooter class="gap-2">
-                                                <DialogClose as-child>
-                                                    <Button
-                                                        type="button"
-                                                        variant="secondary"
-                                                    >
-                                                        {{ t.budget.cancel }}
-                                                    </Button>
-                                                </DialogClose>
-                                                <Button
-                                                    type="submit"
-                                                    :disabled="processing"
-                                                >
-                                                    {{ t.budget.archive }}
-                                                </Button>
-                                            </DialogFooter>
-                                        </Form>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </template>
-            </draggable>
-
-            <div
-                v-if="archivedCategories.length > 0"
-                class="mt-3 space-y-3"
-            >
-                <Card
-                    v-for="category in archivedCategories"
-                    :key="category.id"
-                    class="opacity-60"
-                >
-                    <CardHeader class="gap-3 pb-3">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <CategoryChip
-                                :name="category.name"
-                                :icon="category.icon"
-                                :color="category.color"
-                            />
-                            <Badge variant="secondary">
-                                {{ t.budget.archived_badge }}
-                            </Badge>
-                        </div>
-                    </CardHeader>
-                    <CardContent class="space-y-3">
-                        <div class="grid grid-cols-3 gap-3 text-sm">
-                            <div>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ t.budget.initial_plan }}
-                                </p>
-                                <p
-                                    class="font-medium tabular-nums"
-                                    :class="
-                                        highlightInitialPlan
-                                            ? 'text-success'
-                                            : ''
-                                    "
-                                >
-                                    {{
-                                        formatMoney(
-                                            category.initial_plan_grosze,
-                                        )
-                                    }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ t.budget.current_plan }}
-                                </p>
-                                <p class="font-medium tabular-nums">
-                                    {{
-                                        formatMoney(
-                                            category.current_plan_grosze,
-                                        )
-                                    }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ t.budget.execution }}
-                                </p>
-                                <p class="font-medium tabular-nums">
-                                    {{
-                                        formatMoney(category.execution_grosze)
-                                    }}
-                                </p>
-                            </div>
+                                <div>
+                                    <p class="text-muted-foreground text-xs">
+                                        {{ t.budget.remaining }}
+                                    </p>
+                                    <p
+                                        class="font-medium tabular-nums"
+                                        :class="remainingClass(category)"
+                                    >
+                                        {{
+                                            formatMoney(
+                                                category.remaining_grosze,
+                                            )
+                                        }}
+                                    </p>
+                                </div>
+                            </template>
                         </div>
                         <div class="flex flex-wrap gap-1">
                             <IconAction
@@ -738,52 +803,9 @@ async function onDragEnd(): Promise<void> {
                                 :label="t.budget.edit"
                                 @click="emit('edit', category)"
                             />
-                            <Dialog v-if="category.can_restore">
-                                <IconAction
-                                    as-dialog-trigger
-                                    :icon="ArchiveRestore"
-                                    :label="t.budget.restore"
-                                />
-                                <DialogContent>
-                                    <Form
-                                        v-bind="
-                                            CategoryController.restore.form(
-                                                category,
-                                            )
-                                        "
-                                        v-slot="{ processing }"
-                                    >
-                                        <DialogHeader>
-                                            <DialogTitle>
-                                                {{
-                                                    t.budget.restore_confirm_title
-                                                }}
-                                            </DialogTitle>
-                                            <DialogDescription>
-                                                {{
-                                                    t.budget.restore_confirm_body
-                                                }}
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <DialogFooter class="gap-2">
-                                            <DialogClose as-child>
-                                                <Button
-                                                    type="button"
-                                                    variant="secondary"
-                                                >
-                                                    {{ t.budget.cancel }}
-                                                </Button>
-                                            </DialogClose>
-                                            <Button
-                                                type="submit"
-                                                :disabled="processing"
-                                            >
-                                                {{ t.budget.restore }}
-                                            </Button>
-                                        </DialogFooter>
-                                    </Form>
-                                </DialogContent>
-                            </Dialog>
+                            <BudgetCategoryOverflowActions
+                                :category="category"
+                            />
                         </div>
                     </CardContent>
                 </Card>

@@ -748,7 +748,9 @@ class BudgetTest extends TestCase
                 ->where('incomeTotals.remaining_grosze', 250000)
                 ->where('incomeTotals.percent_complete', 50)
                 ->where('expenseTotals.initial_plan_grosze', 80000)
-                ->where('expenseTotals.remaining_grosze', -20000),
+                ->where('expenseTotals.remaining_grosze', -20000)
+                ->where('incomeCategories.0.remaining_grosze', 250000)
+                ->where('expenseCategories.0.remaining_grosze', -20000),
             );
     }
 
