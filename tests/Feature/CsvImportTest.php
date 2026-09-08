@@ -400,6 +400,348 @@ CSV;
             );
     }
 
+    public function test_import_preview_includes_other_accounts_for_own_transfer_classification(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'name' => 'Savings',
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Transfer,-100.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ]);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('otherAccounts', 1)
+                ->where('otherAccounts.0.id', $otherAccount->id)
+                ->where('otherAccounts.0.name', 'Savings'),
+            );
+    }
+
+    public function test_user_can_import_csv_row_as_own_transfer_with_outflow_from_import_account(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To savings,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('own_transfers', 1);
+        $this->assertDatabaseHas('own_transfers', [
+            'user_id' => $user->id,
+            'source_account_id' => $account->id,
+            'destination_account_id' => $otherAccount->id,
+            'amount_grosze' => 10000,
+            'description' => 'To savings',
+        ]);
+
+        $account->refresh();
+        $otherAccount->refresh();
+        $this->assertSame(100000 - 10000, $account->current_balance_grosze);
+        $this->assertSame(10000, $otherAccount->current_balance_grosze);
+    }
+
+    public function test_user_can_import_csv_row_as_own_transfer_with_inflow_to_import_account(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 50000,
+            'current_balance_grosze' => 50000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,From savings,100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseHas('own_transfers', [
+            'source_account_id' => $otherAccount->id,
+            'destination_account_id' => $account->id,
+            'amount_grosze' => 10000,
+        ]);
+
+        $account->refresh();
+        $otherAccount->refresh();
+        $this->assertSame(100000 + 10000, $account->current_balance_grosze);
+        $this->assertSame(50000 - 10000, $otherAccount->current_balance_grosze);
+    }
+
+    public function test_own_transfer_import_requires_other_account(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Transfer,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('own_transfers', 0);
+    }
+
+    public function test_own_transfer_import_rejects_other_account_same_as_import_account(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Transfer,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $account->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('own_transfers', 0);
+    }
+
+    public function test_user_can_import_mixed_financial_operations_and_own_transfers_atomically(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory, $expenseCategory] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+2026-03-16,To savings,-100.00
+2026-03-17,Groceries,-45.50
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                    [
+                        'index' => 2,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 2);
+        $this->assertDatabaseCount('own_transfers', 1);
+    }
+
+    public function test_own_transfer_import_rolls_back_all_rows_when_one_row_fails_validation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-03-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+2026-02-15,Early transfer,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('financial_operations', 0);
+        $this->assertDatabaseCount('own_transfers', 0);
+    }
+
+    public function test_own_transfer_import_rejects_archived_other_account(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->archived()->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Transfer,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('own_transfers', 0);
+    }
+
+    public function test_own_transfer_import_rejects_another_users_other_account(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherUser = User::factory()->create();
+        $otherAccount = Account::factory()->for($otherUser)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Transfer,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('own_transfers', 0);
+    }
+
     public function test_user_cannot_import_using_another_users_account(): void
     {
         $this->travelTo('2026-06-01');
@@ -447,5 +789,20 @@ CSV;
         ]);
 
         return [$user, $account, $incomeCategory, $expenseCategory];
+    }
+
+    private function previewCsv(User $user, Account $account, string $csv): void
+    {
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
     }
 }
