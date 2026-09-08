@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -52,7 +53,7 @@ class FinancialOperationImportValidator
                 return;
             }
 
-            $operationYear = (int) date('Y', strtotime($data['operation_date']));
+            $operationYear = Carbon::parse($data['operation_date'])->year;
 
             if ($category->budget->user_id !== $user->id) {
                 $validator->errors()->add(
@@ -127,12 +128,12 @@ class FinancialOperationImportValidator
                 Rule::exists('categories', 'id')
                     ->where('type', CategoryType::Income->value)
                     ->whereNull('archived_at')
-                    ->whereIn(
-                        'budget_id',
-                        Budget::query()
-                            ->where('user_id', $user->id)
-                            ->select('id'),
-                    ),
+                    ->where(function ($query) use ($user): void {
+                        $query->whereIn(
+                            'budget_id',
+                            Budget::query()->select('id')->where('user_id', $user->id),
+                        );
+                    }),
             ],
         ];
     }
@@ -159,12 +160,12 @@ class FinancialOperationImportValidator
                 Rule::exists('categories', 'id')
                     ->where('type', CategoryType::Expense->value)
                     ->whereNull('archived_at')
-                    ->whereIn(
-                        'budget_id',
-                        Budget::query()
-                            ->where('user_id', $user->id)
-                            ->select('id'),
-                    ),
+                    ->where(function ($query) use ($user): void {
+                        $query->whereIn(
+                            'budget_id',
+                            Budget::query()->select('id')->where('user_id', $user->id),
+                        );
+                    }),
             ],
         ];
     }

@@ -4,28 +4,20 @@ namespace App\Http\Requests;
 
 use App\Enums\ImportFormat;
 use App\Support\CsvImport\BnpParibasXlsxParser;
+use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\MbankCsvMappingResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 
+/**
+ * @phpstan-import-type CsvImportMapping from CsvImportParser
+ */
 class PreviewCsvImportRequest extends FormRequest
 {
     /**
-     * @var array{
-     *     contents: string,
-     *     mapping: array{
-     *         date_column: int,
-     *         description_column: int,
-     *         amount_layout: 'signed'|'split',
-     *         amount_column?: int,
-     *         inflow_column?: int,
-     *         outflow_column?: int,
-     *         counterparty_column?: int,
-     *         has_header: bool,
-     *     },
-     * }|null
+     * @var array{contents: string, mapping: CsvImportMapping}|null
      */
     private ?array $resolvedImport = null;
 
@@ -127,19 +119,7 @@ class PreviewCsvImportRequest extends FormRequest
     }
 
     /**
-     * @return array{
-     *     contents: string,
-     *     mapping: array{
-     *         date_column: int,
-     *         description_column: int,
-     *         amount_layout: 'signed'|'split',
-     *         amount_column?: int,
-     *         inflow_column?: int,
-     *         outflow_column?: int,
-     *         counterparty_column?: int,
-     *         has_header: bool,
-     *     },
-     * }
+     * @return array{contents: string, mapping: CsvImportMapping}
      */
     public function parsedImport(): array
     {
@@ -168,34 +148,36 @@ class PreviewCsvImportRequest extends FormRequest
     }
 
     /**
-     * @return array{
-     *     date_column: int,
-     *     description_column: int,
-     *     amount_layout: 'signed'|'split',
-     *     amount_column?: int,
-     *     inflow_column?: int,
-     *     outflow_column?: int,
-     *     has_header: bool,
-     * }
+     * @return CsvImportMapping
      */
     public function mapping(): array
     {
-        $mapping = [
-            'date_column' => (int) $this->input('date_column'),
-            'description_column' => (int) $this->input('description_column'),
-            'amount_layout' => $this->string('amount_layout')->toString(),
-            'has_header' => $this->boolean('has_header'),
-        ];
+        $hasHeader = $this->boolean('has_header');
+        $counterpartyColumn = $this->filled('counterparty_column')
+            ? (int) $this->input('counterparty_column')
+            : null;
 
-        if ($mapping['amount_layout'] === 'signed') {
-            $mapping['amount_column'] = (int) $this->input('amount_column');
+        if ($this->string('amount_layout')->toString() === 'signed') {
+            $mapping = [
+                'date_column' => (int) $this->input('date_column'),
+                'description_column' => (int) $this->input('description_column'),
+                'amount_layout' => 'signed',
+                'has_header' => $hasHeader,
+                'amount_column' => (int) $this->input('amount_column'),
+            ];
         } else {
-            $mapping['inflow_column'] = (int) $this->input('inflow_column');
-            $mapping['outflow_column'] = (int) $this->input('outflow_column');
+            $mapping = [
+                'date_column' => (int) $this->input('date_column'),
+                'description_column' => (int) $this->input('description_column'),
+                'amount_layout' => 'split',
+                'has_header' => $hasHeader,
+                'inflow_column' => (int) $this->input('inflow_column'),
+                'outflow_column' => (int) $this->input('outflow_column'),
+            ];
         }
 
-        if ($this->filled('counterparty_column')) {
-            $mapping['counterparty_column'] = (int) $this->input('counterparty_column');
+        if ($counterpartyColumn !== null) {
+            $mapping['counterparty_column'] = $counterpartyColumn;
         }
 
         return $mapping;

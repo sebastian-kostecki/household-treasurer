@@ -21,16 +21,24 @@ class ImportFinancialOperations
     ) {}
 
     /**
-     * @param  array<int, array{
+     * @param  list<array{
      *     index: int,
      *     operation_date: string,
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
      *     amount_grosze: int,
-     *     type: 'income'|'expense'|'refund'|'own_transfer',
-     *     category_id?: int,
-     *     other_account_id?: int,
+     *     type: 'own_transfer',
+     *     other_account_id: int,
+     * }|array{
+     *     index: int,
+     *     operation_date: string,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
+     *     amount_grosze: int,
+     *     type: 'income'|'expense'|'refund',
+     *     category_id: int,
      * }>  $rows
      * @return array{financial_operations: int, own_transfers: int}
      */

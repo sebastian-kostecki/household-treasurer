@@ -37,7 +37,10 @@ class MbankCsvMappingResolver
 
             $delimiter = $this->detectDelimiter($trimmedLine);
             $cells = str_getcsv($trimmedLine, $delimiter, '"', '\\');
-            $normalizedHeaders = array_map($this->normalizeHeader(...), $cells);
+            $normalizedHeaders = array_map(
+                fn (?string $cell): string => $this->normalizeHeader((string) $cell),
+                $cells,
+            );
 
             $dateColumn = array_search(self::DATE_HEADER, $normalizedHeaders, true);
 

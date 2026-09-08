@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Check, Circle } from '@lucide/vue';
+import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -13,6 +15,7 @@ import {
 } from '@/components/ui/card';
 import {
     useFirstRunChecklist,
+    useShell,
     useTranslations,
 } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
@@ -63,7 +66,12 @@ const props = defineProps<{
 }>();
 
 const t = useTranslations();
+const shell = useShell();
 const checklist = useFirstRunChecklist();
+
+const checklistComplete = computed(() =>
+    checklist.value.every((item) => item.done),
+);
 
 const liquidityClass = computed(() =>
     props.liquidity_total_grosze < 0 ? 'text-destructive' : 'text-success',
@@ -123,14 +131,36 @@ function progressBarClass(category: CategorySummary): string {
     <Head :title="t.dashboard.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
-        <Card>
+        <Card v-if="shell.firstRun.showChecklist">
             <CardHeader class="pb-3">
-                <CardTitle class="text-base">
-                    {{ t.dashboard.checklist_title }}
-                </CardTitle>
-                <CardDescription>
-                    {{ t.dashboard.checklist_description }}
-                </CardDescription>
+                <div class="flex items-start justify-between gap-3">
+                    <div class="space-y-1">
+                        <CardTitle class="text-base">
+                            {{ t.dashboard.checklist_title }}
+                        </CardTitle>
+                        <CardDescription>
+                            {{
+                                checklistComplete
+                                    ? t.dashboard.checklist_complete_description
+                                    : t.dashboard.checklist_description
+                            }}
+                        </CardDescription>
+                    </div>
+                    <Form
+                        v-if="checklistComplete"
+                        v-bind="DashboardController.dismissFirstRunChecklist.form()"
+                        v-slot="{ processing }"
+                    >
+                        <Button
+                            type="submit"
+                            variant="ghost"
+                            size="sm"
+                            :disabled="processing"
+                        >
+                            {{ t.dashboard.checklist_dismiss }}
+                        </Button>
+                    </Form>
+                </div>
             </CardHeader>
             <CardContent class="space-y-2">
                 <div

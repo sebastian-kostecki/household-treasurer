@@ -28,17 +28,16 @@ class AccountIdentity
     }
 
     /**
-     * @param  array<string, mixed>  $extra
-     * @return array<string, mixed>
+     * @return array{id: int, name: string, type: string, bank: string|null, mark_url: string|null}
      */
-    public static function payload(Account $account, array $extra = []): array
+    public static function payload(Account $account): array
     {
-        return array_merge([
+        return [
             'id' => $account->id,
             'name' => $account->name,
             'type' => $account->type->value,
             'bank' => $account->bank?->value,
             'mark_url' => self::markUrl($account->bank),
-        ], $extra);
+        ];
     }
 }

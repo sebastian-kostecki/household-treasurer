@@ -4,8 +4,8 @@ namespace App\Http\Requests;
 
 use App\Concerns\IncomeValidationRules;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreIncomeRequest extends FormRequest
 {

@@ -17,6 +17,7 @@ class ShellState
      *         hasBudget: bool,
      *         hasCategories: bool,
      *         executionStarted: bool,
+     *         showChecklist: bool,
      *     },
      * }
      */
@@ -26,16 +27,53 @@ class ShellState
         $budgetYears = $user === null ? [] : SelectedBudgetYear::budgetYearsForUser($user);
         $budgetYear = SelectedBudgetYear::resolve($request);
 
+        $firstRun = [
+            'hasAccount' => self::userHasAccounts($user),
+            'hasBudget' => $budgetYears !== [],
+            'hasCategories' => self::userHasCategories($user),
+            'executionStarted' => self::userHasExecutionBudget($user),
+        ];
+
+        $firstRun['showChecklist'] = self::shouldShowFirstRunChecklist($user, $firstRun);
+
         return [
             'budgetYear' => $budgetYear,
             'budgetYears' => $budgetYears,
-            'firstRun' => [
-                'hasAccount' => self::userHasAccounts($user),
-                'hasBudget' => $budgetYears !== [],
-                'hasCategories' => self::userHasCategories($user),
-                'executionStarted' => self::userHasExecutionBudget($user),
-            ],
+            'firstRun' => $firstRun,
         ];
+    }
+
+    /**
+     * @param  array{
+     *     hasAccount: bool,
+     *     hasBudget: bool,
+     *     hasCategories: bool,
+     *     executionStarted: bool,
+     * }  $firstRun
+     */
+    public static function isFirstRunComplete(array $firstRun): bool
+    {
+        return $firstRun['hasAccount']
+            && $firstRun['hasBudget']
+            && $firstRun['hasCategories']
+            && $firstRun['executionStarted'];
+    }
+
+    /**
+     * @param  array{
+     *     hasAccount: bool,
+     *     hasBudget: bool,
+     *     hasCategories: bool,
+     *     executionStarted: bool,
+     * }  $firstRun
+     */
+    public static function shouldShowFirstRunChecklist(?User $user, array $firstRun): bool
+    {
+        if (! self::isFirstRunComplete($firstRun)) {
+            return true;
+        }
+
+        return $user?->first_run_checklist_dismissed_at === null;
     }
 
     private static function userHasAccounts(?User $user): bool

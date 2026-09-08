@@ -9,6 +9,8 @@ use App\Enums\ImportFormat;
 use App\Http\Requests\PreviewCsvImportRequest;
 use App\Http\Requests\StoreCsvImportRequest;
 use App\Models\Account;
+use App\Models\Budget;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Support\AccountIdentity;
 use App\Support\CsvImport\BnpParibasXlsxParser;
@@ -283,9 +285,10 @@ class CsvImportController extends Controller
             ->whereNull('archived_at')
             ->orderBy('name')
             ->get()
-            ->map(fn (Account $account): array => AccountIdentity::payload($account, [
+            ->map(fn (Account $account): array => [
+                ...AccountIdentity::payload($account),
                 'opening_date' => $account->opening_date->toDateString(),
-            ]))
+            ])
             ->values()
             ->all();
     }
@@ -305,7 +308,7 @@ class CsvImportController extends Controller
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'budget_year' => $budget->year,
@@ -329,7 +332,7 @@ class CsvImportController extends Controller
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn ($budget) => $budget->categories->map(fn ($category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'budget_year' => $budget->year,

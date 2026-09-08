@@ -21,7 +21,7 @@ class IncomeController extends Controller
     {
         $this->authorize('create', FinancialOperation::class);
 
-        $recordIncome->handle($request->user(), $request->validated());
+        $recordIncome->handle($request->user(), $request->payload());
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -36,7 +36,7 @@ class IncomeController extends Controller
         FinancialOperation $financialOperation,
         ManageFinancialOperation $manageFinancialOperation,
     ): RedirectResponse {
-        $manageFinancialOperation->updateIncome($financialOperation, $request->validated());
+        $manageFinancialOperation->updateIncome($financialOperation, $request->payload());
 
         Inertia::flash('toast', [
             'type' => 'success',

@@ -3,6 +3,7 @@ export type FirstRunState = {
     hasBudget: boolean;
     hasCategories: boolean;
     executionStarted: boolean;
+    showChecklist: boolean;
 };
 
 export type ShellState = {

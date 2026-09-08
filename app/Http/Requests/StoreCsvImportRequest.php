@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 
 class StoreCsvImportRequest extends FormRequest
 {
@@ -65,10 +66,16 @@ class StoreCsvImportRequest extends FormRequest
         $rows = $this->input('rows', []);
 
         return array_values(array_map(function (array $row): array {
+            $type = $row['type'] ?? null;
+            $type = match ($type) {
+                'income', 'expense', 'refund', 'own_transfer' => $type,
+                default => throw new InvalidArgumentException('Invalid import row type.'),
+            };
+
             return [
                 'index' => (int) $row['index'],
                 'selected' => (bool) ($row['selected'] ?? false),
-                'type' => (string) $row['type'],
+                'type' => $type,
                 'category_id' => isset($row['category_id']) ? (int) $row['category_id'] : null,
                 'other_account_id' => isset($row['other_account_id']) ? (int) $row['other_account_id'] : null,
             ];

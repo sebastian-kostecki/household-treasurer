@@ -47,7 +47,8 @@ class AppShellTest extends TestCase
                 ->where('shell.firstRun.hasAccount', false)
                 ->where('shell.firstRun.hasBudget', false)
                 ->where('shell.firstRun.hasCategories', false)
-                ->where('shell.firstRun.executionStarted', false),
+                ->where('shell.firstRun.executionStarted', false)
+                ->where('shell.firstRun.showChecklist', true),
             );
     }
 
