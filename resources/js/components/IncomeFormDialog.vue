@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
+import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
 import AccountSelect from '@/components/AccountSelect.vue';
 import CategorySelect from '@/components/CategorySelect.vue';
 import InputError from '@/components/InputError.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -22,10 +24,12 @@ import {
     groszeToMoneyInput,
     parseMoneyInputToGrosze,
 } from '@/lib/format';
+import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
 
 export type IncomeFormAccount = AccountPickerOption & {
     opening_date: string;
+    current_balance_grosze: number;
 };
 
 export type IncomeFormCategory = {
@@ -68,11 +72,48 @@ const accountId = ref<number | ''>('');
 const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountGrosze = ref(0);
+const originalAmountGrosze = ref(0);
+const originalAccountId = ref<number | null>(null);
 
 const formBinding = computed(() =>
     props.mode === 'create'
         ? IncomeController.store.form()
         : IncomeController.update.form(props.operation ?? { id: 0 }),
+);
+
+const warningPreview = computed(() => {
+    if (accountId.value === '') {
+        return previewHandEntryWarnings({
+            mode: props.mode,
+            accounts: props.accounts,
+            proposal: {
+                kind: 'income',
+                account_id: 0,
+                amount_grosze: 0,
+            },
+        });
+    }
+
+    return previewHandEntryWarnings({
+        mode: props.mode,
+        accounts: props.accounts,
+        editedRecord:
+            props.mode === 'edit' && originalAccountId.value !== null
+                ? {
+                      account_id: originalAccountId.value,
+                      signed_amount_grosze: originalAmountGrosze.value,
+                  }
+                : null,
+        proposal: {
+            kind: 'income',
+            account_id: accountId.value,
+            amount_grosze: amountGrosze.value,
+        },
+    });
+});
+
+const showNegativeBalanceWarning = computed(
+    () => warningPreview.value.showNegativeBalanceWarning,
 );
 
 const availableCategories = computed(() => {
@@ -102,6 +143,8 @@ watch(
             categoryId.value = props.operation.category_id;
             amountGrosze.value = props.operation.amount_grosze;
             amountInput.value = groszeToMoneyInput(props.operation.amount_grosze);
+            originalAmountGrosze.value = props.operation.amount_grosze;
+            originalAccountId.value = props.operation.account_id;
 
             return;
         }
@@ -113,6 +156,8 @@ watch(
         categoryId.value = '';
         amountGrosze.value = 0;
         amountInput.value = '0,00';
+        originalAmountGrosze.value = 0;
+        originalAccountId.value = null;
     },
     { immediate: true },
 );
@@ -132,6 +177,8 @@ function syncAmount(): void {
 
     if (parsed !== null) {
         amountGrosze.value = parsed;
+    } else {
+        amountGrosze.value = 0;
     }
 }
 
@@ -265,6 +312,7 @@ function closeDialog(): void {
                         v-model="amountInput"
                         inputmode="decimal"
                         autocomplete="off"
+                        @input="syncAmount"
                         @blur="syncAmount"
                     />
                     <input
@@ -274,6 +322,14 @@ function closeDialog(): void {
                     />
                     <InputError :message="errors.amount_grosze" />
                 </div>
+
+                <Alert v-if="showNegativeBalanceWarning" variant="destructive">
+                    <AlertTriangle class="size-4" />
+                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertDescription>
+                        {{ t.operations.negative_balance_warning }}
+                    </AlertDescription>
+                </Alert>
 
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
