@@ -26,7 +26,7 @@ defineProps<{
 <template>
     <nav
         v-if="paginator.last_page > 1"
-        class="flex flex-wrap items-center justify-center gap-1 pt-4"
+        class="flex flex-wrap items-center justify-center gap-0.5 border-t border-border/60 pt-4"
         aria-label="Pagination"
     >
         <Link
@@ -34,13 +34,13 @@ defineProps<{
             :key="`${link.label}-${link.active}`"
             :href="link.url ?? '#'"
             :preserve-scroll="true"
-            class="inline-flex min-w-9 items-center justify-center rounded-md px-3 py-1.5 text-sm transition-colors"
+            class="inline-flex min-w-8 items-center justify-center rounded-lg px-2.5 py-1 text-xs transition-colors"
             :class="
                 link.active
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-muted font-medium text-foreground'
                     : link.url
-                      ? 'hover:bg-muted'
-                      : 'text-muted-foreground pointer-events-none'
+                      ? 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                      : 'text-muted-foreground/50 pointer-events-none'
             "
             :aria-current="link.active ? 'page' : undefined"
             v-html="link.label"
