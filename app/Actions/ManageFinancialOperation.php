@@ -6,10 +6,43 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\FinancialOperation;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class ManageFinancialOperation
 {
+    /**
+     * @param  array{
+     *     operation_date: string,
+     *     amount_grosze: int,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
+     *     account_id: int,
+     *     category_id: int,
+     * }  $validated
+     */
+    public function createIncome(User $user, array $validated): FinancialOperation
+    {
+        return $this->create($user, FinancialOperationType::Income, $validated);
+    }
+
+    /**
+     * @param  array{
+     *     operation_date: string,
+     *     amount_grosze: int,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
+     *     account_id: int,
+     *     category_id: int,
+     * }  $validated
+     */
+    public function createExpense(User $user, array $validated): FinancialOperation
+    {
+        return $this->create($user, FinancialOperationType::Expense, $validated);
+    }
+
     /**
      * @param  array{
      *     operation_date: string,
@@ -45,6 +78,55 @@ class ManageFinancialOperation
         DB::transaction(function () use ($operation): void {
             $this->revertEffect($operation);
             $operation->delete();
+        });
+    }
+
+    /**
+     * @param  array{
+     *     operation_date: string,
+     *     amount_grosze: int,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
+     *     account_id: int,
+     *     category_id: int,
+     * }  $validated
+     */
+    private function create(
+        User $user,
+        FinancialOperationType $type,
+        array $validated,
+    ): FinancialOperation {
+        return DB::transaction(function () use ($user, $type, $validated): FinancialOperation {
+            $account = Account::query()
+                ->whereKey($validated['account_id'])
+                ->where('user_id', $user->id)
+                ->whereNull('archived_at')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $category = Category::query()
+                ->with('budget')
+                ->whereKey($validated['category_id'])
+                ->whereNull('archived_at')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $operation = $user->financialOperations()->create([
+                'type' => $type,
+                'account_id' => $account->id,
+                'category_id' => $category->id,
+                'budget_id' => $category->budget_id,
+                'operation_date' => $validated['operation_date'],
+                'amount_grosze' => $validated['amount_grosze'],
+                'description' => $validated['description'],
+                'counterparty' => $validated['counterparty'] ?? null,
+                'raw_statement_description' => $validated['raw_statement_description'] ?? null,
+            ]);
+
+            $this->applyEffect($type, $account, $category, $validated['amount_grosze']);
+
+            return $operation;
         });
     }
 

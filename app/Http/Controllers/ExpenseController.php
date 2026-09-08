@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ManageFinancialOperation;
-use App\Actions\RecordExpense;
 use App\Enums\FinancialOperationType;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
@@ -17,11 +16,11 @@ class ExpenseController extends Controller
 {
     use AuthorizesRequests;
 
-    public function store(StoreExpenseRequest $request, RecordExpense $recordExpense): RedirectResponse
+    public function store(StoreExpenseRequest $request, ManageFinancialOperation $manageFinancialOperation): RedirectResponse
     {
         $this->authorize('create', FinancialOperation::class);
 
-        $recordExpense->handle($request->user(), $request->payload());
+        $manageFinancialOperation->createExpense($request->user(), $request->payload());
 
         Inertia::flash('toast', [
             'type' => 'success',

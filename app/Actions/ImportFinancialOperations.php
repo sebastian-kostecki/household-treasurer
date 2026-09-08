@@ -12,8 +12,7 @@ use Illuminate\Validation\ValidationException;
 class ImportFinancialOperations
 {
     public function __construct(
-        private RecordIncome $recordIncome,
-        private RecordExpense $recordExpense,
+        private ManageFinancialOperation $manageFinancialOperation,
         private ManageOwnTransfer $manageOwnTransfer,
         private FinancialOperationImportValidator $financialOperationValidator,
         private OwnTransferImportValidator $ownTransferValidator,
@@ -104,9 +103,9 @@ class ImportFinancialOperations
                 }
 
                 if ($row['type'] === 'income') {
-                    $this->recordIncome->handle($user, $validated);
+                    $this->manageFinancialOperation->createIncome($user, $validated);
                 } else {
-                    $this->recordExpense->handle($user, $validated);
+                    $this->manageFinancialOperation->createExpense($user, $validated);
                 }
 
                 $financialOperations++;

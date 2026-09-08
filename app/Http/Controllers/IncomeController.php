@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ManageFinancialOperation;
-use App\Actions\RecordIncome;
 use App\Enums\FinancialOperationType;
 use App\Http\Requests\StoreIncomeRequest;
 use App\Http\Requests\UpdateIncomeRequest;
@@ -17,11 +16,11 @@ class IncomeController extends Controller
 {
     use AuthorizesRequests;
 
-    public function store(StoreIncomeRequest $request, RecordIncome $recordIncome): RedirectResponse
+    public function store(StoreIncomeRequest $request, ManageFinancialOperation $manageFinancialOperation): RedirectResponse
     {
         $this->authorize('create', FinancialOperation::class);
 
-        $recordIncome->handle($request->user(), $request->payload());
+        $manageFinancialOperation->createIncome($request->user(), $request->payload());
 
         Inertia::flash('toast', [
             'type' => 'success',
