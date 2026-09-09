@@ -15,6 +15,11 @@ import IncomeFormDialog, {
 } from '@/components/IncomeFormDialog.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import OperationsFilters, {
+    type OperationsFilterAccount,
+    type OperationsFilterCategory,
+    type OperationsListFilters,
+} from '@/components/OperationsFilters.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import OwnTransferRow, {
     type OwnTransferRowData,
@@ -36,12 +41,24 @@ const {
     accounts,
     incomeCategories,
     expenseCategories,
+    filters,
+    filtersActive,
+    hasFinancialOperations,
+    filterYears,
+    filterCategories,
+    filterAccounts,
 } = defineProps<{
     operations: PaginatedCollection<FinancialOperationRowData>;
     ownTransfers: PaginatedCollection<OwnTransferRowData>;
     accounts: AccountRow[];
     incomeCategories: IncomeFormCategory[];
     expenseCategories: ExpenseFormCategory[];
+    filters: OperationsListFilters;
+    filtersActive: boolean;
+    hasFinancialOperations: boolean;
+    filterYears: number[];
+    filterCategories: OperationsFilterCategory[];
+    filterAccounts: OperationsFilterAccount[];
 }>();
 
 const t = useTranslations();
@@ -115,8 +132,17 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             </div>
         </div>
 
+        <OperationsFilters
+            v-if="hasFinancialOperations"
+            :filters="filters"
+            :filters-active="filtersActive"
+            :years="filterYears"
+            :categories="filterCategories"
+            :accounts="filterAccounts"
+        />
+
         <IndexEmptyState
-            v-if="operations.total === 0"
+            v-if="!hasFinancialOperations"
             :title="t.operations.empty_title"
             :description="t.operations.empty_description"
         >
@@ -129,6 +155,20 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
                     <Link :href="CsvImportController.create.url()">
                         <Upload class="mr-2 size-4" />
                         {{ t.operations.import_title }}
+                    </Link>
+                </Button>
+            </template>
+        </IndexEmptyState>
+
+        <IndexEmptyState
+            v-else-if="operations.total === 0"
+            :title="t.operations.empty_filtered_title"
+            :description="t.operations.empty_filtered_description"
+        >
+            <template #actions>
+                <Button variant="outline" as-child>
+                    <Link :href="operationsRoute()">
+                        {{ t.operations.filter_clear }}
                     </Link>
                 </Button>
             </template>

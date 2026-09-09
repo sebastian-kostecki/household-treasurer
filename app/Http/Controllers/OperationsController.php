@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
+use App\Http\Requests\IndexOperationsRequest;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
@@ -12,7 +13,7 @@ use App\Models\OwnTransfer;
 use App\Support\AccountIdentity;
 use App\Support\CategoryAppearance;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
-use Illuminate\Http\Request;
+use App\Support\OperationsFilterOptions;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,15 +21,18 @@ class OperationsController extends Controller
 {
     private const int OPERATIONS_PER_PAGE = 50;
 
-    public function index(Request $request, OwnTransferImportSnapshots $ownTransferImportSnapshots): Response
+    public function index(IndexOperationsRequest $request, OwnTransferImportSnapshots $ownTransferImportSnapshots): Response
     {
         $user = $request->user();
+        $filters = $request->filters();
 
-        $operations = $user->financialOperations()
+        $operations = $filters
+            ->apply($user->financialOperations())
             ->with(['account:id,name,type,bank', 'category:id,name,icon,color'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
+            ->withQueryString()
             ->through(fn (FinancialOperation $operation): array => [
                 'id' => $operation->id,
                 'operation_date' => $operation->operation_date->toDateString(),
@@ -45,11 +49,18 @@ class OperationsController extends Controller
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 
-        $ownTransfers = $user->ownTransfers()
+        $ownTransfersQuery = $user->ownTransfers()
             ->with(['sourceAccount:id,name,type,bank', 'destinationAccount:id,name,type,bank'])
             ->orderByDesc('transfer_date')
-            ->orderByDesc('id')
+            ->orderByDesc('id');
+
+        if ($filters->isActive()) {
+            $ownTransfersQuery->whereRaw('0 = 1');
+        }
+
+        $ownTransfers = $ownTransfersQuery
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'own_transfers_page')
+            ->withQueryString()
             ->through(fn (OwnTransfer $transfer): array => [
                 'id' => $transfer->id,
                 'transfer_date' => $transfer->transfer_date->toDateString(),
@@ -117,6 +128,12 @@ class OperationsController extends Controller
             'accounts' => $accounts,
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
+            'filters' => $filters->toArray(),
+            'filtersActive' => $filters->isActive(),
+            'hasFinancialOperations' => $user->financialOperations()->exists(),
+            'filterYears' => OperationsFilterOptions::years($user),
+            'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),
+            'filterAccounts' => OperationsFilterOptions::accounts($user),
         ]);
     }
 }
