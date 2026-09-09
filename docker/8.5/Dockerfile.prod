@@ -54,8 +54,8 @@ ENV VITE_APP_NAME="${VITE_APP_NAME}" \
     CACHE_STORE=file \
     QUEUE_CONNECTION=sync \
     MAIL_MAILER=log \
-    MAIL_FROM_ADDRESS=build@localhost \
-    BACKUP_NOTIFICATION_MAIL=build@localhost
+    MAIL_FROM_ADDRESS=hello@example.com \
+    BACKUP_NOTIFICATION_MAIL=hello@example.com
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && touch /tmp/build.sqlite \
     && cp .env.example .env \
@@ -66,8 +66,8 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
         -e 's/^CACHE_STORE=.*/CACHE_STORE=file/' \
         -e 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' \
         -e 's/^MAIL_MAILER=.*/MAIL_MAILER=log/' \
-        -e 's/^MAIL_FROM_ADDRESS=.*/MAIL_FROM_ADDRESS=build@localhost/' \
-        -e 's/^BACKUP_NOTIFICATION_MAIL=.*/BACKUP_NOTIFICATION_MAIL=build@localhost/' \
+        -e 's/^MAIL_FROM_ADDRESS=.*/MAIL_FROM_ADDRESS=hello@example.com/' \
+        -e 's/^BACKUP_NOTIFICATION_MAIL=.*/BACKUP_NOTIFICATION_MAIL=hello@example.com/' \
         .env \
     && php artisan key:generate --force \
     && php artisan wayfinder:generate --with-form --no-interaction \
