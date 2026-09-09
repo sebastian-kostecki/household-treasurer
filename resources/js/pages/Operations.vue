@@ -20,6 +20,12 @@ import OperationsFilters, {
     type OperationsFilterCategory,
     type OperationsListFilters,
 } from '@/components/OperationsFilters.vue';
+import CapitalMovementFormDialog, {
+    type CapitalMovementFormTermDeposit,
+} from '@/components/CapitalMovementFormDialog.vue';
+import CapitalMovementRow, {
+    type CapitalMovementRowData,
+} from '@/components/CapitalMovementRow.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import OwnTransferRow, {
     type OwnTransferRowData,
@@ -38,6 +44,8 @@ type AccountRow = ExpenseFormAccount & {
 const {
     operations,
     ownTransfers,
+    capitalMovements,
+    termDeposits,
     accounts,
     incomeCategories,
     expenseCategories,
@@ -50,6 +58,8 @@ const {
 } = defineProps<{
     operations: PaginatedCollection<FinancialOperationRowData>;
     ownTransfers: PaginatedCollection<OwnTransferRowData>;
+    capitalMovements: PaginatedCollection<CapitalMovementRowData>;
+    termDeposits: CapitalMovementFormTermDeposit[];
     accounts: AccountRow[];
     incomeCategories: IncomeFormCategory[];
     expenseCategories: ExpenseFormCategory[];
@@ -68,9 +78,12 @@ const incomeEditDialogOpen = ref(false);
 const expenseEditDialogOpen = ref(false);
 const createDialogOpen = ref(false);
 const editDialogOpen = ref(false);
+const capitalMovementCreateDialogOpen = ref(false);
+const capitalMovementEditDialogOpen = ref(false);
 const editingIncome = ref<FinancialOperationRowData | null>(null);
 const editingExpense = ref<FinancialOperationRowData | null>(null);
 const editingTransfer = ref<OwnTransferRowData | null>(null);
+const editingCapitalMovement = ref<CapitalMovementRowData | null>(null);
 
 setLayoutProps({
     breadcrumbs: [
@@ -84,6 +97,11 @@ setLayoutProps({
 function openEditDialog(transfer: OwnTransferRowData): void {
     editingTransfer.value = transfer;
     editDialogOpen.value = true;
+}
+
+function openCapitalMovementEditDialog(movement: CapitalMovementRowData): void {
+    editingCapitalMovement.value = movement;
+    capitalMovementEditDialogOpen.value = true;
 }
 
 function openIncomeEditDialog(operation: FinancialOperationRowData): void {
@@ -122,6 +140,17 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
                     @click="createDialogOpen = true"
                 >
                     {{ t.operations.add_transfer }}
+                </Button>
+                <Button
+                    :disabled="accounts.length === 0 || termDeposits.length === 0"
+                    :title="
+                        accounts.length === 0 || termDeposits.length === 0
+                            ? t.operations.capital_movement_requires_account_and_term_deposit
+                            : undefined
+                    "
+                    @click="capitalMovementCreateDialogOpen = true"
+                >
+                    {{ t.operations.add_capital_movement }}
                 </Button>
                 <Button as-child>
                     <Link :href="CsvImportController.create.url()">
@@ -246,6 +275,39 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
                 @edit="openEditDialog(transfer)"
             />
         </ListSurface>
+
+        <ListSurface
+            v-if="capitalMovements.total > 0"
+            :title="t.operations.capital_movements"
+            :paginator="capitalMovements"
+        >
+            <div
+                class="operations-grid operations-grid-transfer hidden border-b border-border/60 pb-2.5 text-[11px] font-medium tracking-wider text-muted-foreground uppercase md:grid"
+            >
+                <span class="operations-cell-date">
+                    {{ t.operations.date }}
+                </span>
+                <span class="operations-cell-description">
+                    {{ t.operations.description }}
+                </span>
+                <span class="operations-cell-account">
+                    {{ t.operations.accounts }}
+                </span>
+                <span class="operations-cell-amount">
+                    {{ t.operations.amount }}
+                </span>
+                <span class="operations-cell-actions text-right">
+                    {{ t.operations.actions }}
+                </span>
+            </div>
+
+            <CapitalMovementRow
+                v-for="movement in capitalMovements.data"
+                :key="movement.id"
+                :movement="movement"
+                @edit="openCapitalMovementEditDialog(movement)"
+            />
+        </ListSurface>
     </div>
 
     <IncomeFormDialog
@@ -291,5 +353,20 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         mode="edit"
         :transfer="editingTransfer"
         :accounts="accounts"
+    />
+
+    <CapitalMovementFormDialog
+        v-model:open="capitalMovementCreateDialogOpen"
+        mode="create"
+        :accounts="accounts"
+        :term-deposits="termDeposits"
+    />
+
+    <CapitalMovementFormDialog
+        v-model:open="capitalMovementEditDialogOpen"
+        mode="edit"
+        :movement="editingCapitalMovement"
+        :accounts="accounts"
+        :term-deposits="termDeposits"
     />
 </template>

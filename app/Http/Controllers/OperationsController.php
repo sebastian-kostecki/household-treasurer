@@ -7,9 +7,11 @@ use App\Enums\CategoryType;
 use App\Http\Requests\IndexOperationsRequest;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
+use App\Models\TermDeposit;
 use App\Support\AccountIdentity;
 use App\Support\CategoryAppearance;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
@@ -76,6 +78,40 @@ class OperationsController extends Controller
                 ...AccountIdentity::prefixedRowFields($transfer->destinationAccount, 'destination_account'),
             ]);
 
+        $capitalMovementsQuery = $user->capitalMovements()
+            ->with(['account:id,name,type,bank', 'termDeposit:id,name'])
+            ->orderByDesc('movement_date')
+            ->orderByDesc('id');
+
+        if ($filters->isActive()) {
+            $capitalMovementsQuery->whereRaw('0 = 1');
+        }
+
+        $capitalMovements = $capitalMovementsQuery
+            ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'capital_movements_page')
+            ->withQueryString()
+            ->through(fn (CapitalMovement $movement): array => [
+                'id' => $movement->id,
+                'movement_date' => $movement->movement_date->toDateString(),
+                'amount_minor_units' => $movement->amount_minor_units,
+                'description' => $movement->description,
+                'direction' => $movement->direction->value,
+                'account_id' => $movement->account_id,
+                'term_deposit_id' => $movement->term_deposit_id,
+                'term_deposit_name' => $movement->termDeposit->name,
+                ...AccountIdentity::prefixedRowFields($movement->account, 'account'),
+            ]);
+
+        $termDeposits = $user->termDeposits()
+            ->orderBy('name')
+            ->get()
+            ->map(fn (TermDeposit $termDeposit): array => [
+                'id' => $termDeposit->id,
+                'name' => $termDeposit->name,
+                'opening_date' => $termDeposit->opening_date->toDateString(),
+                'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
+            ]);
+
         $accounts = $user->accounts()
             ->whereNull('archived_at')
             ->orderBy('name')
@@ -125,6 +161,8 @@ class OperationsController extends Controller
         return Inertia::render('Operations', [
             'operations' => $operations,
             'ownTransfers' => $ownTransfers,
+            'capitalMovements' => $capitalMovements,
+            'termDeposits' => $termDeposits,
             'accounts' => $accounts,
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,

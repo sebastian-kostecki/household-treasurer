@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 2;
+    public const SNAPSHOT_VERSION = 3;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -59,6 +60,11 @@ class BackupUserData
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($transfer): array => $this->serializeOwnTransfer($transfer))
+                ->all(),
+            'capital_movements' => $user->capitalMovements()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($movement): array => $this->serializeCapitalMovement($movement))
                 ->all(),
         ];
 
@@ -194,6 +200,29 @@ class BackupUserData
             'destination_import_identity_digest' => $transfer->destination_import_identity_digest,
             'created_at' => $transfer->created_at?->toIso8601String(),
             'updated_at' => $transfer->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeCapitalMovement(CapitalMovement $movement): array
+    {
+        return [
+            'id' => $movement->id,
+            'account_id' => $movement->account_id,
+            'term_deposit_id' => $movement->term_deposit_id,
+            'movement_date' => $movement->movement_date->toDateString(),
+            'amount_minor_units' => $movement->amount_minor_units,
+            'direction' => $movement->direction->value,
+            'description' => $movement->description,
+            'raw_statement_description' => $movement->raw_statement_description,
+            'import_identity_account_id' => $movement->import_identity_account_id,
+            'import_identity_date' => $movement->import_identity_date?->toDateString(),
+            'import_identity_amount_minor_units' => $movement->import_identity_amount_minor_units,
+            'import_identity_digest' => $movement->import_identity_digest,
+            'created_at' => $movement->created_at?->toIso8601String(),
+            'updated_at' => $movement->updated_at?->toIso8601String(),
         ];
     }
 }
