@@ -46,8 +46,16 @@ COPY package.json package-lock.json ./
 RUN npm ci
 ARG VITE_APP_NAME="Household Treasurer"
 ENV VITE_APP_NAME="${VITE_APP_NAME}" \
+    APP_ENV=local \
+    APP_DEBUG=true \
     DB_CONNECTION=sqlite \
-    DB_DATABASE=/tmp/build.sqlite
+    DB_DATABASE=/tmp/build.sqlite \
+    SESSION_DRIVER=file \
+    CACHE_STORE=file \
+    QUEUE_CONNECTION=sync \
+    MAIL_MAILER=log \
+    MAIL_FROM_ADDRESS=build@localhost \
+    BACKUP_NOTIFICATION_MAIL=build@localhost
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && touch /tmp/build.sqlite \
     && cp .env.example .env \
