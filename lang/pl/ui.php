@@ -422,6 +422,8 @@ return [
         'destination_account' => 'Konto docelowe',
         'actions' => 'Akcje',
         'type_own_transfer' => 'Transfer własny',
+        'import_interest_amount' => 'Odsetki',
+        'import_interest_category' => 'Kategoria dochodu (odsetki)',
     ],
     'common' => [
         'not_applicable' => 'nie dotyczy',

@@ -20,7 +20,11 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatDate, formatMoney } from '@/lib/format';
+import {
+    formatDate,
+    formatMoney,
+    parseMoneyInputToMinorUnits,
+} from '@/lib/format';
 import type { AccountPickerOption } from '@/lib/account-identity';
 import {
     applyPairCandidateSelection,
@@ -74,6 +78,8 @@ type TermDepositRow = {
 type RowSelection = PairRowSelection & {
     category_id: number | '';
     term_deposit_id: number | '';
+    interest_amount_input: string;
+    interest_category_id: number | '';
 };
 
 const {
@@ -165,8 +171,7 @@ const canSubmit = computed(
                 (selection.type === 'own_transfer'
                     ? selection.other_account_id !== ''
                     : selection.type === 'capital_movement'
-                      ? selection.term_deposit_id !== '' &&
-                        eligibleTermDeposits(row).length > 0
+                      ? capitalMovementSelectionValid(row, selection)
                       : selection.category_id !== '')
             );
         }),
@@ -204,6 +209,8 @@ function emptySelection(row: ImportRow): RowSelection {
         category_id: '',
         other_account_id: '',
         term_deposit_id: '',
+        interest_amount_input: '',
+        interest_category_id: '',
         pair_first_leg_kind: '',
         pair_first_leg_id: '',
     };
@@ -292,6 +299,8 @@ function initialSelection(row: ImportRow): RowSelection {
             category_id: '',
             other_account_id: uniqueCandidate.account_id,
             term_deposit_id: '',
+            interest_amount_input: '',
+            interest_category_id: '',
             pair_first_leg_kind: uniqueCandidate.kind,
             pair_first_leg_id: uniqueCandidate.id,
         };
@@ -376,6 +385,63 @@ function emptyTermDepositLabel(row: ImportRow): string {
         : t.operations.import_term_deposit;
 }
 
+function isCreditRow(row: ImportRow): boolean {
+    return (row.amount_minor_units ?? 0) > 0;
+}
+
+function parsedInterestAmountMinorUnits(selection: RowSelection): number | null {
+    if (selection.interest_amount_input.trim() === '') {
+        return null;
+    }
+
+    return parseMoneyInputToMinorUnits(selection.interest_amount_input);
+}
+
+function interestSplitValid(row: ImportRow, selection: RowSelection): boolean {
+    const interestAmount = parsedInterestAmountMinorUnits(selection);
+
+    if (interestAmount === null) {
+        return selection.interest_category_id === '';
+    }
+
+    const fileAmount = row.amount_minor_units ?? 0;
+
+    if (fileAmount <= 0 || interestAmount <= 0 || interestAmount >= fileAmount) {
+        return false;
+    }
+
+    return selection.interest_category_id !== '';
+}
+
+function capitalMovementSelectionValid(
+    row: ImportRow,
+    selection: RowSelection,
+): boolean {
+    if (
+        selection.term_deposit_id === '' ||
+        eligibleTermDeposits(row).length === 0
+    ) {
+        return false;
+    }
+
+    if (!isCreditRow(row)) {
+        return (
+            selection.interest_amount_input.trim() === '' &&
+            selection.interest_category_id === ''
+        );
+    }
+
+    return interestSplitValid(row, selection);
+}
+
+function showInterestOverlay(row: ImportRow, selection: RowSelection): boolean {
+    return selection.type === 'capital_movement' && isCreditRow(row);
+}
+
+function incomeCategoriesForRow(row: ImportRow): CategoryRow[] {
+    return categoriesForRow(row, 'income');
+}
+
 function onTypeChange(row: ImportRow): void {
     const selection = selections.value[row.index];
 
@@ -385,6 +451,8 @@ function onTypeChange(row: ImportRow): void {
 
     selection.category_id = '';
     selection.term_deposit_id = '';
+    selection.interest_amount_input = '';
+    selection.interest_category_id = '';
 
     if (rowLocksTypeToOwnTransfer(row)) {
         selection.type = 'own_transfer';
@@ -802,6 +870,88 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
                                         <p class="text-muted-foreground text-xs">
                                             {{ capitalMovementDirectionLabel(row) }}
                                         </p>
+                                        <template
+                                            v-if="
+                                                showInterestOverlay(
+                                                    row,
+                                                    selections[row.index],
+                                                )
+                                            "
+                                        >
+                                            <Label
+                                                :for="`row-interest-amount-${row.index}`"
+                                                class="text-xs"
+                                            >
+                                                {{
+                                                    t.operations
+                                                        .import_interest_amount
+                                                }}
+                                            </Label>
+                                            <input
+                                                :id="`row-interest-amount-${row.index}`"
+                                                v-model="
+                                                    selections[row.index]
+                                                        .interest_amount_input
+                                                "
+                                                type="text"
+                                                inputmode="decimal"
+                                                class="native-input min-w-44"
+                                                :placeholder="
+                                                    t.operations
+                                                        .import_interest_amount
+                                                "
+                                            />
+                                            <input
+                                                v-if="
+                                                    parsedInterestAmountMinorUnits(
+                                                        selections[row.index],
+                                                    ) !== null &&
+                                                    parsedInterestAmountMinorUnits(
+                                                        selections[row.index],
+                                                    )! > 0
+                                                "
+                                                type="hidden"
+                                                :name="`rows[${row.index}][interest_amount_minor_units]`"
+                                                :value="
+                                                    parsedInterestAmountMinorUnits(
+                                                        selections[row.index],
+                                                    )
+                                                "
+                                            />
+                                            <CategorySelect
+                                                v-if="
+                                                    selections[row.index]
+                                                        .interest_amount_input
+                                                        .trim() !== ''
+                                                "
+                                                :id="`row-interest-category-${row.index}`"
+                                                :name="`rows[${row.index}][interest_category_id]`"
+                                                v-model="
+                                                    selections[row.index]
+                                                        .interest_category_id
+                                                "
+                                                :categories="
+                                                    incomeCategoriesForRow(row)
+                                                "
+                                                :placeholder="
+                                                    rowCategoriesEmpty(
+                                                        row,
+                                                        'income',
+                                                    )
+                                                        ? t.operations
+                                                              .no_income_category_for_year
+                                                        : t.operations
+                                                              .import_interest_category
+                                                "
+                                                class="min-w-44"
+                                                :disabled="
+                                                    rowCategoriesEmpty(
+                                                        row,
+                                                        'income',
+                                                    )
+                                                "
+                                            />
+                                        </template>
                                     </div>
                                     <CategorySelect
                                         v-else-if="row.valid"

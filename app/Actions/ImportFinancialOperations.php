@@ -160,6 +160,28 @@ class ImportFinancialOperations
                 }
 
                 if ($row['type'] === 'capital_movement') {
+                    $interestAmountMinorUnits = $row['interest_amount_minor_units'] ?? null;
+                    $interestCategoryId = $row['interest_category_id'] ?? null;
+                    $interestErrors = $this->capitalMovementInterestValidator->validate(
+                        $row['amount_minor_units'],
+                        $interestAmountMinorUnits,
+                        $interestCategoryId,
+                    );
+
+                    if ($interestErrors !== []) {
+                        throw ValidationException::withMessages([
+                            'rows' => $interestErrors[0],
+                        ]);
+                    }
+
+                    $splitAmounts = $this->capitalMovementInterestValidator->splitAmounts(
+                        $row['amount_minor_units'],
+                        $interestAmountMinorUnits,
+                    );
+                    $capitalAmountMinorUnits = $splitAmounts !== null
+                        ? $splitAmounts['capital_amount_minor_units']
+                        : abs($row['amount_minor_units']);
+
                     $validated = $this->capitalMovementMapper->map(
                         $accountId,
                         $row['term_deposit_id'],
@@ -167,17 +189,19 @@ class ImportFinancialOperations
                         $row['description'],
                         $row['amount_minor_units'],
                     );
+                    $validated['amount_minor_units'] = $capitalAmountMinorUnits;
                     $rawStatementDescription = $row['raw_statement_description'] ?? null;
+                    $importIdentity = $this->importIdentityFactory->forCapitalMovement(
+                        $user,
+                        $accountId,
+                        $row['operation_date'],
+                        $row['amount_minor_units'],
+                        $rawStatementDescription,
+                    );
                     $validated = [
                         ...$validated,
                         'raw_statement_description' => $rawStatementDescription,
-                        ...$this->importIdentityFactory->forCapitalMovement(
-                            $user,
-                            $accountId,
-                            $row['operation_date'],
-                            $row['amount_minor_units'],
-                            $rawStatementDescription,
-                        ),
+                        ...$importIdentity,
                     ];
 
                     $errors = $this->capitalMovementValidator->validate($user, $validated);
@@ -190,6 +214,34 @@ class ImportFinancialOperations
 
                     $this->manageCapitalMovement->create($user, $validated);
                     $capitalMovements++;
+
+                    if ($splitAmounts !== null) {
+                        $incomeValidated = [
+                            'operation_date' => $row['operation_date'],
+                            'amount_minor_units' => $splitAmounts['interest_amount_minor_units'],
+                            'description' => $row['description'],
+                            'counterparty' => $row['counterparty'] ?? null,
+                            'raw_statement_description' => $rawStatementDescription,
+                            'account_id' => $accountId,
+                            'category_id' => $interestCategoryId,
+                            ...$importIdentity,
+                        ];
+
+                        $incomeErrors = $this->financialOperationValidator->validate(
+                            $user,
+                            'income',
+                            $incomeValidated,
+                        );
+
+                        if ($incomeErrors !== []) {
+                            throw ValidationException::withMessages([
+                                'rows' => $incomeErrors[0],
+                            ]);
+                        }
+
+                        $this->manageFinancialOperation->createIncome($user, $incomeValidated);
+                        $financialOperations++;
+                    }
 
                     continue;
                 }
