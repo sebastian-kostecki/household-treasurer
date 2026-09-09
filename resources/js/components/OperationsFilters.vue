@@ -46,6 +46,8 @@ const props = defineProps<{
     termDeposits: OperationsFilterTermDeposit[];
 }>();
 
+const SEARCH_DEBOUNCE_MS = 500;
+
 const t = useTranslations();
 const search = ref(props.filters.q ?? '');
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -112,7 +114,7 @@ watch(search, (value) => {
         }
 
         visit({ ...props.filters, q });
-    }, 300);
+    }, SEARCH_DEBOUNCE_MS);
 });
 
 function serializeCategory(type: string, name: string): string {
