@@ -73,7 +73,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -83,11 +83,11 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
@@ -132,7 +132,11 @@ class RestoreUserData
         foreach ($termDeposits as $termDepositData) {
             $termDeposit = $targetUser->termDeposits()->create([
                 'name' => $termDepositData['name'],
+                'bank' => isset($termDepositData['bank'])
+                    ? Bank::from($termDepositData['bank'])
+                    : Bank::Other,
                 'opening_date' => $termDepositData['opening_date'],
+                'end_date' => $termDepositData['end_date'] ?? null,
                 'opening_balance_minor_units' => $termDepositData['opening_balance_minor_units'],
                 'current_balance_minor_units' => $termDepositData['current_balance_minor_units'],
                 'archived_at' => isset($termDepositData['archived_at']) ? Carbon::parse($termDepositData['archived_at']) : null,

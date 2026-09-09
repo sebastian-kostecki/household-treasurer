@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\BackupUserData;
 use App\Actions\RestoreUserData;
+use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Models\Account;
@@ -39,11 +40,13 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(3, $snapshot['version']);
+        $this->assertSame(4, $snapshot['version']);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
         $this->assertSame($user->email, $snapshot['source']['email']);
         $this->assertCount(2, $snapshot['accounts']);
         $this->assertCount(1, $snapshot['term_deposits']);
+        $this->assertSame(Bank::Mbank->value, $snapshot['term_deposits'][0]['bank']);
+        $this->assertSame('2027-01-01', $snapshot['term_deposits'][0]['end_date']);
         $this->assertCount(1, $snapshot['budgets']);
         $this->assertCount(1, $snapshot['categories']);
         $this->assertCount(1, $snapshot['financial_operations']);
@@ -131,6 +134,34 @@ class UserSnapshotCommandTest extends TestCase
 
         $this->assertSame(2, $targetUser->accounts()->count());
         $this->assertSame(0, $targetUser->termDeposits()->count());
+    }
+
+    public function test_restore_command_restores_v3_term_deposits_with_default_bank(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot['version'] = 3;
+        unset($snapshot['term_deposits'][0]['bank'], $snapshot['term_deposits'][0]['end_date']);
+
+        Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
+        $legacyPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/legacy-v3.json');
+        file_put_contents($legacyPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $legacyPath,
+            '--force' => true,
+        ]);
+
+        $restoredTermDeposit = $targetUser->termDeposits()->firstOrFail();
+
+        $this->assertSame(Bank::Other, $restoredTermDeposit->bank);
+        $this->assertNull($restoredTermDeposit->end_date);
     }
 
     public function test_restore_command_fails_for_unsupported_snapshot_version(): void
@@ -250,6 +281,8 @@ class UserSnapshotCommandTest extends TestCase
         $destinationAccount = Account::factory()->for($user)->cash()->create(['name' => 'Cash']);
         TermDeposit::factory()->for($user)->create([
             'name' => 'Lokata 12M',
+            'bank' => Bank::Mbank,
+            'end_date' => '2027-01-01',
             'opening_balance_minor_units' => 200000,
             'current_balance_minor_units' => 200000,
         ]);

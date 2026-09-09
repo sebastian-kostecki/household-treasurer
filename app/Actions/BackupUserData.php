@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 3;
+    public const SNAPSHOT_VERSION = 4;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -107,7 +107,9 @@ class BackupUserData
         return [
             'id' => $termDeposit->id,
             'name' => $termDeposit->name,
+            'bank' => $termDeposit->bank->value,
             'opening_date' => $termDeposit->opening_date->toDateString(),
+            'end_date' => $termDeposit->end_date?->toDateString(),
             'opening_balance_minor_units' => $termDeposit->opening_balance_minor_units,
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
             'archived_at' => $termDeposit->archived_at?->toIso8601String(),

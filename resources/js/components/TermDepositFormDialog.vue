@@ -2,6 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import TermDepositController from '@/actions/App/Http/Controllers/TermDepositController';
+import AccountBankSelect from '@/components/AccountBankSelect.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountBank } from '@/lib/account-identity';
 import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
@@ -25,7 +27,9 @@ import {
 export type TermDepositFormTermDeposit = {
     id: number;
     name: string;
+    bank: AccountBank;
     opening_date: string;
+    end_date: string | null;
     opening_balance_minor_units: number;
     current_balance_minor_units: number;
 };
@@ -43,7 +47,9 @@ const emit = defineEmits<{
 const t = useTranslations();
 
 const name = ref('');
+const bank = ref<AccountBank>('other');
 const openingDate = ref('');
+const endDate = ref('');
 const openingBalanceInput = ref('0,00');
 const openingBalanceMinorUnits = ref(0);
 
@@ -82,7 +88,9 @@ watch(
 
         if (props.mode === 'edit' && props.termDeposit) {
             name.value = props.termDeposit.name;
+            bank.value = props.termDeposit.bank;
             openingDate.value = props.termDeposit.opening_date;
+            endDate.value = props.termDeposit.end_date ?? '';
             openingBalanceMinorUnits.value =
                 props.termDeposit.opening_balance_minor_units;
             openingBalanceInput.value = minorUnitsToMoneyInput(
@@ -93,7 +101,9 @@ watch(
         }
 
         name.value = '';
+        bank.value = 'other';
         openingDate.value = new Date().toISOString().slice(0, 10);
+        endDate.value = '';
         openingBalanceMinorUnits.value = 0;
         openingBalanceInput.value = '0,00';
     },
@@ -154,6 +164,12 @@ function closeDialog(): void {
                     <InputError :message="errors.name" />
                 </div>
 
+                <div class="grid gap-2">
+                    <Label for="account-bank">{{ t.term_deposits.bank }}</Label>
+                    <AccountBankSelect v-model="bank" />
+                    <InputError :message="errors.bank" />
+                </div>
+
                 <div v-if="mode === 'create'" class="grid gap-2">
                     <Label for="term-deposit-opening-date">
                         {{ t.term_deposits.opening_date }}
@@ -166,6 +182,22 @@ function closeDialog(): void {
                         required
                     />
                     <InputError :message="errors.opening_date" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="term-deposit-end-date">
+                        {{ t.term_deposits.end_date }}
+                    </Label>
+                    <Input
+                        id="term-deposit-end-date"
+                        name="end_date"
+                        v-model="endDate"
+                        type="date"
+                    />
+                    <p class="text-muted-foreground text-sm">
+                        {{ t.term_deposits.end_date_hint }}
+                    </p>
+                    <InputError :message="errors.end_date" />
                 </div>
 
                 <div class="grid gap-2">

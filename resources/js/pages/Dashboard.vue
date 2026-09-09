@@ -23,7 +23,7 @@ import type {
     DashboardCategory,
     DashboardTypeTotals,
 } from '@/lib/dashboard-categories';
-import { formatMoney } from '@/lib/format';
+import { formatDate, formatMoney } from '@/lib/format';
 import { dashboard } from '@/routes';
 
 type AccountSummary = {
@@ -40,6 +40,9 @@ type AccountSummary = {
 type TermDepositSummary = {
     id: number;
     name: string;
+    bank: AccountBank;
+    mark_url: string | null;
+    end_date: string | null;
     current_balance_minor_units: number;
     is_negative: boolean;
     is_archived: boolean;
@@ -255,9 +258,23 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                     :key="termDeposit.id"
                 >
                     <CardHeader class="space-y-3 pb-2">
-                        <p class="text-sm font-medium">
-                            {{ termDeposit.name }}
-                        </p>
+                        <AccountIdentityBlock
+                            :name="termDeposit.name"
+                            type="bank"
+                            :bank="termDeposit.bank"
+                            :mark_url="termDeposit.mark_url"
+                        >
+                            <p class="text-sm font-medium">
+                                {{ termDeposit.name }}
+                            </p>
+                            <p
+                                v-if="termDeposit.end_date"
+                                class="text-muted-foreground text-xs"
+                            >
+                                {{ t.term_deposits.end_date }}:
+                                {{ formatDate(termDeposit.end_date) }}
+                            </p>
+                        </AccountIdentityBlock>
                         <CardTitle
                             class="text-lg"
                             :class="balanceClass(termDeposit)"
