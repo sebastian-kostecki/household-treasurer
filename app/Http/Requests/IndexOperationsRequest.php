@@ -32,6 +32,11 @@ class IndexOperationsRequest extends FormRequest
                 'integer',
                 Rule::exists('accounts', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
             ],
+            'term_deposit_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('term_deposits', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
+            ],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
         ];
@@ -45,6 +50,7 @@ class IndexOperationsRequest extends FormRequest
             'category_name',
             'category_type',
             'account_id',
+            'term_deposit_id',
             'date_from',
             'date_to',
         ]));
@@ -60,6 +66,7 @@ class IndexOperationsRequest extends FormRequest
             'category_name' => $this->blankToNull('category_name'),
             'category_type' => $this->blankToNull('category_type'),
             'account_id' => $this->blankToNull('account_id'),
+            'term_deposit_id' => $this->blankToNull('term_deposit_id'),
             'date_from' => $this->blankToNull('date_from'),
             'date_to' => $this->blankToNull('date_to'),
         ]);

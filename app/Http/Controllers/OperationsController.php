@@ -28,8 +28,13 @@ class OperationsController extends Controller
         $user = $request->user();
         $filters = $request->filters();
 
-        $operations = $filters
-            ->apply($user->financialOperations())
+        $operationsQuery = $filters->apply($user->financialOperations());
+
+        if ($filters->hidesFinancialOperations()) {
+            $operationsQuery->whereRaw('0 = 1');
+        }
+
+        $operations = $operationsQuery
             ->with(['account:id,name,type,bank', 'category:id,name,icon,color'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
@@ -83,8 +88,10 @@ class OperationsController extends Controller
             ->orderByDesc('movement_date')
             ->orderByDesc('id');
 
-        if ($filters->isActive()) {
+        if ($filters->omitsCapitalMovements()) {
             $capitalMovementsQuery->whereRaw('0 = 1');
+        } elseif ($filters->isActive()) {
+            $filters->applyToCapitalMovements($capitalMovementsQuery);
         }
 
         $capitalMovements = $capitalMovementsQuery
@@ -172,6 +179,7 @@ class OperationsController extends Controller
             'filterYears' => OperationsFilterOptions::years($user),
             'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),
             'filterAccounts' => OperationsFilterOptions::accounts($user),
+            'filterTermDeposits' => OperationsFilterOptions::termDeposits($user),
         ]);
     }
 }

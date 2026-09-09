@@ -3,13 +3,16 @@
 namespace Tests\Feature;
 
 use App\Enums\BudgetPhase;
+use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -544,6 +547,278 @@ class OperationsFilterTest extends TestCase
             ->assertSessionHasErrors('category_type');
     }
 
+    public function test_term_deposit_filter_shows_that_holdings_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, ['operation_date' => '2026-03-01']);
+        [$account, $keptDeposit] = $this->createAccountAndTermDeposit($user);
+        $otherDeposit = TermDeposit::factory()->for($user)->create([
+            'name' => 'Other deposit',
+            'opening_date' => '2026-01-01',
+        ]);
+        $kept = $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $keptDeposit,
+            'description' => 'Parking on kept deposit',
+            'movement_date' => '2026-03-01',
+        ]);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $otherDeposit,
+            'description' => 'Parking on other deposit',
+            'movement_date' => '2026-03-02',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['term_deposit_id' => $keptDeposit->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 0)
+                ->has('capitalMovements.data', 1)
+                ->where('capitalMovements.data.0.id', $kept->id)
+                ->where('filters.term_deposit_id', $keptDeposit->id)
+                ->where('filtersActive', true),
+            );
+    }
+
+    public function test_term_deposit_filter_does_not_include_financial_operations(): void
+    {
+        $user = User::factory()->create();
+        $operation = $this->addOperation($user, [
+            'description' => 'Salary',
+            'operation_date' => '2026-03-01',
+        ]);
+        [$account, $termDeposit] = $this->createAccountAndTermDeposit($user);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-03-02',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['term_deposit_id' => $termDeposit->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 0)
+                ->where('operations.total', 0)
+                ->has('capitalMovements.data', 1),
+            );
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 1)
+                ->where('operations.data.0.id', $operation->id),
+            );
+    }
+
+    public function test_category_and_year_filters_omit_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        [$account, $termDeposit] = $this->createAccountAndTermDeposit($user);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-03-01',
+        ]);
+        $this->addOperation($user, [
+            'year' => 2026,
+            'category_name' => 'Groceries',
+            'category_type' => CategoryType::Expense,
+            'operation_date' => '2026-03-01',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['year' => 2026]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('capitalMovements.data', 0)
+                ->where('capitalMovements.total', 0),
+            );
+
+        $this->actingAs($user)
+            ->get(route('operations', [
+                'category_name' => 'Groceries',
+                'category_type' => 'expense',
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('capitalMovements.data', 0)
+                ->where('capitalMovements.total', 0),
+            );
+    }
+
+    public function test_account_filter_includes_matching_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        $keptAccount = Account::factory()->for($user)->create([
+            'name' => 'Kept account',
+            'opening_date' => '2026-01-01',
+        ]);
+        $otherAccount = Account::factory()->for($user)->create([
+            'name' => 'Other account',
+            'opening_date' => '2026-01-01',
+        ]);
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $kept = $this->addCapitalMovement($user, [
+            'account' => $keptAccount,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-03-01',
+        ]);
+        $this->addCapitalMovement($user, [
+            'account' => $otherAccount,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-03-02',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['account_id' => $keptAccount->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('capitalMovements.data', 1)
+                ->where('capitalMovements.data.0.id', $kept->id),
+            );
+    }
+
+    public function test_date_range_filter_includes_matching_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        [$account, $termDeposit] = $this->createAccountAndTermDeposit($user);
+        $inside = $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-03-15',
+        ]);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-02-01',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', [
+                'date_from' => '2026-03-01',
+                'date_to' => '2026-03-31',
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('capitalMovements.data', 1)
+                ->where('capitalMovements.data.0.id', $inside->id),
+            );
+    }
+
+    public function test_search_includes_matching_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        [$account, $termDeposit] = $this->createAccountAndTermDeposit($user);
+        $match = $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'description' => 'Parking capital',
+            'movement_date' => '2026-03-01',
+        ]);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'description' => 'Return from deposit',
+            'movement_date' => '2026-03-02',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['q' => 'Parking']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('capitalMovements.data', 1)
+                ->where('capitalMovements.data.0.id', $match->id),
+            );
+    }
+
+    public function test_term_deposit_picker_lists_user_holdings(): void
+    {
+        $user = User::factory()->create();
+        $first = TermDeposit::factory()->for($user)->create([
+            'name' => 'Alpha deposit',
+            'opening_date' => '2026-01-01',
+        ]);
+        $second = TermDeposit::factory()->for($user)->create([
+            'name' => 'Beta deposit',
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('filterTermDeposits', 2)
+                ->where('filterTermDeposits.0.id', $first->id)
+                ->where('filterTermDeposits.0.name', 'Alpha deposit')
+                ->where('filterTermDeposits.1.id', $second->id)
+                ->where('filterTermDeposits.1.name', 'Beta deposit'),
+            );
+    }
+
+    public function test_term_deposit_filter_rejects_another_users_term_deposit(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $this->addOperation($owner, ['operation_date' => '2026-03-01']);
+        $foreignDeposit = TermDeposit::factory()->for($other)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->actingAs($owner)
+            ->from(route('operations'))
+            ->get(route('operations', ['term_deposit_id' => $foreignDeposit->id]))
+            ->assertRedirect(route('operations'))
+            ->assertSessionHasErrors('term_deposit_id');
+    }
+
+    public function test_account_and_term_deposit_filters_combine_for_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $keptDeposit = TermDeposit::factory()->for($user)->create([
+            'name' => 'Kept',
+            'opening_date' => '2026-01-01',
+        ]);
+        $otherDeposit = TermDeposit::factory()->for($user)->create([
+            'name' => 'Other',
+            'opening_date' => '2026-01-01',
+        ]);
+        $this->addOperation($user, [
+            'account' => $account,
+            'description' => 'Salary on account',
+            'operation_date' => '2026-03-01',
+        ]);
+        $kept = $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $keptDeposit,
+            'movement_date' => '2026-03-02',
+        ]);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $otherDeposit,
+            'movement_date' => '2026-03-03',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', [
+                'account_id' => $account->id,
+                'term_deposit_id' => $keptDeposit->id,
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 1)
+                ->has('capitalMovements.data', 1)
+                ->where('capitalMovements.data.0.id', $kept->id),
+            );
+    }
+
     /**
      * @param  array<string, mixed>  $attributes
      */
@@ -587,5 +862,42 @@ class OperationsFilterTest extends TestCase
             'counterparty' => $attributes['counterparty'] ?? null,
             'raw_statement_description' => $attributes['raw_statement_description'] ?? null,
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function addCapitalMovement(User $user, array $attributes): CapitalMovement
+    {
+        $account = $attributes['account'] ?? Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $termDeposit = $attributes['term_deposit'] ?? TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        return CapitalMovement::factory()->for($user)->create([
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+            'movement_date' => $attributes['movement_date'] ?? '2026-03-01',
+            'description' => $attributes['description'] ?? 'Capital movement',
+            'direction' => $attributes['direction'] ?? CapitalMovementDirection::ToTermDeposit,
+            'amount_minor_units' => $attributes['amount_minor_units'] ?? 10000,
+        ]);
+    }
+
+    /**
+     * @return array{0: Account, 1: TermDeposit}
+     */
+    private function createAccountAndTermDeposit(User $user): array
+    {
+        $account = Account::factory()->for($user)->bank()->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        return [$account, $termDeposit];
     }
 }
