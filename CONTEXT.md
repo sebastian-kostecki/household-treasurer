@@ -49,7 +49,7 @@ Income Current Plan minus expense Current Plan for one Budget. A plan-plane summ
 _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Polish UI copy: „Bilans”.
 
 **Financial Operation**:
-An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
+An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation: that Cash Expectation leaves Agenda and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type), Cash Expectation
 
 **Expense refund**:
@@ -57,7 +57,7 @@ A negative amount on an expense Category (Financial Operation or Cash Expectatio
 _Avoid_: Income (for money returned from a purchase), refund as a fourth persisted type
 
 **Cash Expectation**:
-A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue at create; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. One record is one movement, not a series; it sits on Agenda and does not move Liquidity or Execution.
+A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue at create; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. One record is one movement, not a series; it sits on Agenda and does not move Liquidity or Execution. Settlement leaves exactly one Financial Operation (a new one spawned from this record, or an existing one that already is that movement); this record is not converted in place and then leaves Agenda.
 _Avoid_: Obligation, Payment, Transaction, Unpaid, Pending, Schedule, Scheduled, Plan, Planned, Forecast, Future Operation, Upcoming, Accrual, Due, due date, Payable, Receivable, Reminder, Commitment, Movement (as this record), Operation (as this record), operation date (for this record’s date), Event (as this record), Cash Event, Expectation (unqualified), Financial Operation, Own Transfer, Capital Movement
 
 **Counterparty**:
@@ -93,7 +93,7 @@ Spendable Liquidity plus the current balances of Term Deposits. A Capital Moveme
 _Avoid_: Liquidity (unqualified), Spendable Liquidity, Net worth, Wealth
 
 **Agenda**:
-The plane of Cash Expectations, beside Liquidity and Execution. A calendar of those records, not a total and not a liquidity forecast.
+The plane of Cash Expectations that are not yet a Financial Operation, beside Liquidity and Execution. A calendar of those records, not a total and not a liquidity forecast. After settlement the Cash Expectation is not on this plane.
 _Avoid_: Horizon, Outlook, Calendar, Schedule, Forecast, Pipeline, Pending, Expectations (as the plane name), Liquidity (for this plane), Execution (for this plane)
 
 **Minor unit**:
@@ -105,7 +105,7 @@ Whether the User has the four start conditions: at least one Account, one Budget
 _Avoid_: Onboarding, wizard, tutorial, First Steps (as a code name; UI copy may say „Pierwsze kroki”)
 
 **Import**:
-The controlled creation of Financial Operations, Own Transfers, and Capital Movements from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank. Preview default type follows the signed amount (credit is Income, debit is Expense); the User must switch type to Capital Movement. One preview row that is capital return plus interest may commit two records in that classification: a Capital Movement (Term Deposit → Account) for the remainder and a Financial Operation (Income) for the interest the User types (and an income Category); those two are not a persisted pair. Hand-entry never creates both from one save. Import does not create a Term Deposit.
+The controlled creation of Financial Operations, Own Transfers, and Capital Movements from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank. Preview default type follows the signed amount (credit is Income, debit is Expense); the User must switch type to Capital Movement. One preview row that is capital return plus interest may commit two records in that classification: a Capital Movement (Term Deposit → Account) for the remainder and a Financial Operation (Income) for the interest the User types (and an income Category); those two are not a persisted pair. Hand-entry never creates both from one save. Import does not create a Term Deposit or a Cash Expectation. A preview row may settle an existing Cash Expectation when the User opts in; that commit leaves one Financial Operation, not two.
 _Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration, combined maturity (as a record type)
 
 **Import format**:
