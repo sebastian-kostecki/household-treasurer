@@ -46,7 +46,8 @@ MVP spełnia cel produktowy, gdy użytkownik może samodzielnie:
 5. importować wybrane operacje z pliku CSV lub XLSX po sprawdzeniu podglądu,
 6. porównywać plan początkowy, plan aktualny i wykonanie każdej kategorii,
 7. odczytać salda poszczególnych kont i łączną wartość środków,
-8. rozpoznać przekroczenie limitu niezależnie od stanu środków na kontach.
+8. rozpoznać przekroczenie limitu niezależnie od stanu środków na kontach,
+9. rozpocząć kolejny rok, kopiując kategorie i plan aktualny z wcześniejszego budżetu.
 
 ## 4. Użytkownik i platforma
 
@@ -71,6 +72,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - Podstawowym okresem budżetowym jest rok kalendarzowy.
 - Użytkownik może mieć najwyżej jeden budżet dla danego roku.
 - Budżety różnych lat mogą istnieć równolegle w różnych fazach.
+- Przy tworzeniu szkicu użytkownik może skopiować kategorie i plan aktualny z wcześniejszego własnego budżetu; kopia tworzy nowe kategorie, a nie tożsamość ponad latami.
 - Konta istnieją niezależnie od budżetów i przechodzą między latami.
 - Walutą wszystkich kont, budżetów i operacji w MVP jest PLN.
 - Dochody i wydatki są ujmowane kasowo, w dniu rzeczywistej zapłaty.
@@ -84,10 +86,9 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 1. Użytkownik rejestruje się i loguje.
 2. Tworzy rachunki bankowe oraz konta gotówkowe.
 3. Dla każdego konta podaje datę i saldo otwarcia.
-4. Tworzy szkic budżetu dla wybranego roku.
-5. Dodaje kategorie dochodowe i wydatkowe.
-6. Wprowadza planowane dochody oraz limity wydatków.
-7. Sprawdza równowagę planu i rozpoczyna wykonanie.
+4. Tworzy szkic budżetu dla wybranego roku. Gdy ma wcześniejszy budżet z niezarchiwizowanymi kategoriami, może skopiować te kategorie wraz z planem aktualnym.
+5. W razie potrzeby poprawia, usuwa lub dopisuje kategorie oraz planowane kwoty na szkicu.
+6. Sprawdza równowagę planu i rozpoczyna wykonanie.
 
 ### 6.2. Bieżąca ewidencja
 
@@ -139,6 +140,10 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-BUD-08**: Brak formalnego zamknięcia roku oznacza, że starszy budżet pozostaje w fazie wykonania i może przyjmować operacje historyczne.
 - **FR-BUD-09**: Przed rozpoczęciem wykonania system pokazuje ostrzeżenie, jeżeli planowany deficyt nie ma pokrycia w saldach kont obliczonych na początek roku budżetowego.
 - **FR-BUD-10**: Ostrzeżenie o planowanym deficycie nie blokuje rozpoczęcia wykonania.
+- **FR-BUD-11**: Przy tworzeniu szkicu budżetu użytkownik może skopiować kategorie i ich plan aktualny z innego własnego budżetu o wcześniejszym roku.
+- **FR-BUD-12**: Dialog tworzenia oferuje wyłącznie budżety źródłowe tego użytkownika z rokiem wcześniejszym niż rok docelowy i z co najmniej jedną niezarchiwizowaną kategorią. Domyślne źródło to budżet poprzedniego roku kalendarzowego, a gdy go nie ma — najnowszy kwalifikowany wcześniejszy budżet. Brak kwalifikowanego źródła oznacza utworzenie pustego szkicu jak dotychczas.
+- **FR-BUD-13**: Użytkownik może utworzyć pusty szkic mimo dostępnego źródła.
+- **FR-BUD-14**: Utworzenie budżetu ze skopiowanymi kategoriami jest atomowe. Nowy budżet pozostaje szkicem i nie rozpoczyna wykonania.
 
 ### 7.4. Kategorie i plany
 
@@ -153,6 +158,8 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-CAT-09**: Kategoria może zostać usunięta ze szkicu budżetu.
 - **FR-CAT-10**: Po rozpoczęciu wykonania kategoria nie może zostać usunięta, ale może zostać zarchiwizowana.
 - **FR-CAT-11**: Zarchiwizowana kategoria nie jest dostępna przy tworzeniu nowych operacji i może zostać przywrócona.
+- **FR-CAT-12**: Skopiowana kategoria jest nowym rekordem docelowego budżetu. Otrzymuje nazwę, typ, ikonę, kolor, kolejność oraz plan aktualny źródła. Nie przejmuje tożsamości, wykonania, planu początkowego ani archiwum źródła.
+- **FR-CAT-13**: Zarchiwizowane kategorie źródła nie są kopiowane.
 
 ### 7.5. Dochody, wydatki i zwroty
 
@@ -249,6 +256,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **BR-13**: Dochód lub wydatek należy do budżetu wskazanego przez rok daty operacji.
 - **BR-14**: Przyszłe płatności i zobowiązania nie są operacjami finansowymi MVP.
 - **BR-15**: Historia elementu użytego w operacjach jest zachowywana przez archiwizację zamiast usunięcia.
+- **BR-16**: Skopiowany plan aktualny pochodzi z planu aktualnego źródła, nie z planu początkowego ani wykonania źródła. Plan początkowy docelowego budżetu powstaje dopiero przy rozpoczęciu wykonania.
 
 ## 9. Przypadki brzegowe i obsługa błędów
 
@@ -264,13 +272,15 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Wczytanie pliku niezgodnego z wybranym Import format (np. XLSX przy mBank) jest odrzucane przed podglądem.
 - Podgląd oznacza znane Import duplicate i Import pair candidate jako osobne, odznaczone nakładki. Potwierdzenie jest wymagane tylko przy wyborze Import duplicate. Ręczne wpisy i rekordy bez odcisku nie są oznaczane.
 - Błędy formularzy są prezentowane przy odpowiednich polach bez utraty poprawnie wprowadzonych danych.
+- Odrzucenie kopii (nieistniejące, cudze, późniejsze albo puste źródło) nie tworzy budżetu.
+- Niepowodzenie zapisu którejkolwiek skopiowanej kategorii wycofuje cały nowy budżet.
 
 ## 10. Wymagania niefunkcjonalne
 
 - **NFR-SEC-01**: Każde odczytanie i zapis danych wymaga uwierzytelnienia.
 - **NFR-SEC-02**: Dane użytkownika są odizolowane od danych wszystkich pozostałych użytkowników.
 - **NFR-SEC-03**: Hasła nie są przechowywane ani rejestrowane w postaci jawnej.
-- **NFR-DAT-01**: Zapis transferu i zatwierdzenie importu zapewniają określoną w wymaganiach atomowość.
+- **NFR-DAT-01**: Zapis transferu, zatwierdzenie importu oraz utworzenie budżetu z kopią kategorii zapewniają określoną w wymaganiach atomowość.
 - **NFR-DAT-02**: Ponowne odczytanie zapisanych danych daje te same kwoty i powiązania.
 - **NFR-DAT-03**: Wszystkie operacje zmieniające dane zachowują spójność sald oraz wykonania kategorii.
 - **NFR-PERF-01**: Przy 10 000 operacji finansowych użytkownika otwarcie listy kont, otwarcie podsumowania budżetu, otwarcie pierwszej strony listy operacji i zapis pojedynczej ręcznej operacji kończą się w ciągu 2 sekund w środowisku testów akceptacyjnych.
@@ -303,6 +313,12 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 3. Późniejsza zmiana planu aktualnego nie modyfikuje planu początkowego.
 4. Nowa kategoria dodana podczas wykonania ma plan początkowy 0 PLN.
 5. Ostrzeżenie o niepokrytym planowanym deficycie nie blokuje rozpoczęcia wykonania.
+6. Utworzenie budżetu ze źródłem kopiuje wszystkie niezarchiwizowane kategorie źródła z planem aktualnym, wyglądem i kolejnością; nowy budżet jest szkicem, a wykonanie źródła pozostaje bez zmian.
+7. Skopiowane kategorie są osobnymi rekordami; ta sama nazwa w dwóch latach nie oznacza tej samej kategorii.
+8. Opcja bez kopiowania tworzy szkic bez kategorii, nawet gdy źródło jest dostępne.
+9. Zarchiwizowane kategorie źródła nie pojawiają się na nowym szkicu.
+10. Domyślne źródło to poprzedni rok kalendarzowy, a przy jego braku najnowszy kwalifikowany wcześniejszy budżet; budżet z przyszłości nie jest źródłem.
+11. Użytkownik nie może użyć budżetu innego użytkownika jako źródła kopii.
 
 ### 11.4. Operacje
 
@@ -356,7 +372,12 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 - zamknięcie roku i blokowanie okresów,
 - pełny ślad audytowy oraz wersjonowane sprawozdania,
 - korekty salda inne niż zmiana salda otwarcia,
-- kopiowanie kategorii i planów między latami,
+- tożsamość Category ponad latami oraz szablon kategorii,
+- kopiowanie kategorii do już istniejącego budżetu,
+- wybór podzbioru kategorii w dialogu tworzenia roku,
+- kopiowanie zarchiwizowanych kategorii,
+- przenoszenie wykonania albo planu początkowego źródła na nowy rok,
+- automatyczne rozpoczęcie wykonania przy tworzeniu roku,
 - raporty kwartalne i rozbudowane raporty okresowe,
 - parowanie dwóch wierszy w jednym pliku Importu jako stron transferu własnego,
 - gwarantowana unikalność każdego wiersza Importu,

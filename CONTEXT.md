@@ -29,8 +29,8 @@ The live planned income amounts and expense limits. May change during execution 
 _Avoid_: Revised budget, Forecast
 
 **Category**:
-An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit.
-_Avoid_: Tag, Label, Envelope
+An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget.
+_Avoid_: Tag, Label, Envelope, Category template, Category kind, a Category identity that spans years
 
 **Execution**:
 Booked income and expense amounts against a Category in a Budget that has started execution.
