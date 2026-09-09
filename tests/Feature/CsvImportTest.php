@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
+use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\CsvImport\ImportIdentityDigest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -818,6 +821,622 @@ CSV;
 
         $this->assertDatabaseCount('financial_operations', 0);
         $this->assertDatabaseCount('own_transfers', 0);
+    }
+
+    public function test_import_preview_includes_term_deposits_for_capital_movement_classification(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'name' => '12M Deposit',
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('termDeposits', 1)
+                ->where('termDeposits.0.id', $termDeposit->id)
+                ->where('termDeposits.0.name', '12M Deposit')
+                ->where('termDeposits.0.opening_date', '2026-01-01'),
+            );
+    }
+
+    public function test_user_can_import_csv_row_as_capital_movement_to_term_deposit(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('capital_movements', 1);
+        $this->assertDatabaseHas('capital_movements', [
+            'user_id' => $user->id,
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+            'amount_minor_units' => 10000,
+            'direction' => CapitalMovementDirection::ToTermDeposit->value,
+            'description' => 'To deposit',
+        ]);
+
+        $account->refresh();
+        $termDeposit->refresh();
+        $this->assertSame(100000 - 10000, $account->current_balance_minor_units);
+        $this->assertSame(50000 + 10000, $termDeposit->current_balance_minor_units);
+    }
+
+    public function test_user_can_import_csv_row_as_capital_movement_from_term_deposit(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 120000,
+            'current_balance_minor_units' => 120000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,From deposit,100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseHas('capital_movements', [
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+            'amount_minor_units' => 10000,
+            'direction' => CapitalMovementDirection::FromTermDeposit->value,
+        ]);
+
+        $account->refresh();
+        $termDeposit->refresh();
+        $this->assertSame(100000 + 10000, $account->current_balance_minor_units);
+        $this->assertSame(120000 - 10000, $termDeposit->current_balance_minor_units);
+    }
+
+    public function test_capital_movement_import_requires_term_deposit(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('capital_movements', 0);
+    }
+
+    public function test_capital_movement_import_rejects_term_deposit_opening_after_row_date(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-04-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('capital_movements', 0);
+    }
+
+    public function test_capital_movement_import_stores_raw_statement_description_and_identity(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                ],
+            ]);
+
+        $movement = CapitalMovement::query()->firstOrFail();
+
+        $this->assertSame('To deposit', $movement->raw_statement_description);
+        $this->assertSame($account->id, $movement->import_identity_account_id);
+        $this->assertSame('2026-03-15', $movement->import_identity_date->toDateString());
+        $this->assertSame(-10000, $movement->import_identity_amount_minor_units);
+        $this->assertNotNull($movement->import_identity_digest);
+    }
+
+    public function test_capital_movement_reimport_is_flagged_as_duplicate(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true),
+            );
+    }
+
+    public function test_user_can_import_capital_movement_with_interest_split(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Maturity return,150.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 2500,
+                        'interest_category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('capital_movements', 1);
+        $this->assertDatabaseCount('financial_operations', 1);
+
+        $this->assertDatabaseHas('capital_movements', [
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+            'amount_minor_units' => 12500,
+            'direction' => CapitalMovementDirection::FromTermDeposit->value,
+            'description' => 'Maturity return',
+            'raw_statement_description' => 'Maturity return',
+        ]);
+
+        $this->assertDatabaseHas('financial_operations', [
+            'account_id' => $account->id,
+            'category_id' => $incomeCategory->id,
+            'type' => FinancialOperationType::Income->value,
+            'amount_minor_units' => 2500,
+            'description' => 'Maturity return',
+            'raw_statement_description' => 'Maturity return',
+            'counterparty' => null,
+        ]);
+
+        $account->refresh();
+        $termDeposit->refresh();
+        $this->assertSame(100000 + 15000, $account->current_balance_minor_units);
+        $this->assertSame(200000 - 12500, $termDeposit->current_balance_minor_units);
+    }
+
+    public function test_capital_movement_import_with_interest_puts_counterparty_only_on_income(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $csv = <<<'CSV'
+date,description,counterparty,amount
+2026-03-15,Maturity return,Bank SA,150.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'counterparty_column' => 2,
+                'amount_layout' => 'signed',
+                'amount_column' => 3,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 2500,
+                        'interest_category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $movement = CapitalMovement::query()->firstOrFail();
+        $income = FinancialOperation::query()->firstOrFail();
+
+        $this->assertNull($movement->counterparty ?? null);
+        $this->assertSame('Bank SA', $income->counterparty);
+    }
+
+    public function test_combined_capital_movement_and_interest_share_import_identity(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Maturity return,150.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 2500,
+                        'interest_category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $movement = CapitalMovement::query()->firstOrFail();
+        $income = FinancialOperation::query()->firstOrFail();
+
+        $this->assertSame($movement->import_identity_digest, $income->import_identity_digest);
+        $this->assertSame(15000, $movement->import_identity_amount_minor_units);
+        $this->assertSame(15000, $income->import_identity_amount_minor_units);
+    }
+
+    public function test_combined_capital_movement_import_reimport_is_flagged_as_duplicate(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Maturity return,150.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 2500,
+                        'interest_category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true),
+            );
+    }
+
+    public function test_capital_movement_import_rejects_interest_on_debit_row(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 500,
+                        'interest_category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('capital_movements', 0);
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_capital_movement_import_rejects_invalid_interest_split(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Maturity return,150.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 15000,
+                        'interest_category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('capital_movements', 0);
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_capital_movement_import_with_interest_requires_category(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Maturity return,150.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                        'interest_amount_minor_units' => 2500,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('capital_movements', 0);
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_capital_movement_import_rejects_commit_when_pair_overlay_locks_own_transfer(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $checking] = $this->createImportFixture([
+            'name' => 'Checking',
+            'current_balance_minor_units' => 100000,
+        ]);
+        $savings = Account::factory()->for($user)->create([
+            'name' => 'Savings',
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
+        ]);
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->previewCsv($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $savings->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $savings, <<<'CSV'
+date,description,amount
+2026-03-16,Transfer from checking,100.00
+CSV);
+
+        $this->actingAs($user)
+            ->from(route('operations.import.preview'))
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('capital_movements', 0);
     }
 
     public function test_own_transfer_import_rejects_archived_other_account(): void

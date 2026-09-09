@@ -11,7 +11,7 @@ export type PairCandidate = {
 
 export type PairRowSelection = {
     selected: boolean;
-    type: 'income' | 'expense' | 'refund' | 'own_transfer';
+    type: 'income' | 'expense' | 'refund' | 'own_transfer' | 'capital_movement';
     other_account_id: number | '';
     pair_first_leg_kind: 'financial_operation' | 'own_transfer' | '';
     pair_first_leg_id: number | '';

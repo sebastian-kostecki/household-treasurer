@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
+use App\Models\TermDeposit;
 use App\Support\AccountIdentity;
 use App\Support\CategoryAppearance;
 use App\Support\CsvImport\BnpParibasXlsxParser;
@@ -136,6 +137,7 @@ class CsvImportController extends Controller
             'incomeCategories' => $this->incomeCategories($request),
             'expenseCategories' => $this->expenseCategories($request),
             'otherAccounts' => $this->otherAccounts($request, $account, $import['rows']),
+            'termDeposits' => $this->termDeposits($request),
         ]);
     }
 
@@ -239,6 +241,43 @@ class CsvImportController extends Controller
                     'other_account_id' => $selection['other_account_id'],
                     'pair_first_leg_kind' => $pairFirstLegKind,
                     'pair_first_leg_id' => $pairFirstLegId,
+                ];
+
+                continue;
+            }
+
+            if ($selection['type'] === 'capital_movement') {
+                if ($selection['term_deposit_id'] === null) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('Each selected capital movement row must have a term deposit.'),
+                    ]);
+                }
+
+                $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
+                    ? $parsedRow['pair_candidates']
+                    : [];
+
+                if ($this->pairCandidatesContainOwnTransfer($pairCandidates)) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('This row must be committed as an own transfer pair.'),
+                    ]);
+                }
+
+                if ($selection['pair_first_leg_kind'] !== null || $selection['pair_first_leg_id'] !== null) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('Import pair candidates can only be committed as own transfers.'),
+                    ]);
+                }
+
+                $selectedRows[] = [
+                    'index' => $selection['index'],
+                    'operation_date' => (string) $parsedRow['operation_date'],
+                    'description' => (string) $parsedRow['description'],
+                    'counterparty' => $parsedRow['counterparty'] ?? null,
+                    'raw_statement_description' => $parsedRow['raw_statement_description'] ?? null,
+                    'amount_minor_units' => (int) $parsedRow['amount_minor_units'],
+                    'type' => 'capital_movement',
+                    'term_deposit_id' => $selection['term_deposit_id'],
                 ];
 
                 continue;
@@ -359,7 +398,7 @@ class CsvImportController extends Controller
     }
 
     /**
-     * @param  array{financial_operations: int, own_transfers: int}  $imported
+     * @param  array{financial_operations: int, own_transfers: int, capital_movements: int}  $imported
      */
     private function importSuccessMessage(array $imported): string
     {
@@ -381,6 +420,14 @@ class CsvImportController extends Controller
             );
         }
 
+        if ($imported['capital_movements'] > 0) {
+            $messages[] = trans_choice(
+                ':count capital movement imported.|:count capital movements imported.',
+                $imported['capital_movements'],
+                ['count' => $imported['capital_movements']],
+            );
+        }
+
         return implode(' ', $messages);
     }
 
@@ -398,6 +445,24 @@ class CsvImportController extends Controller
         }
 
         return $row['amount_minor_units'] !== null || ($row['amount_has_foreign_currency'] ?? false);
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string, opening_date: string}>
+     */
+    private function termDeposits(Request $request): array
+    {
+        return $request->user()
+            ->termDeposits()
+            ->orderBy('name')
+            ->get()
+            ->map(fn (TermDeposit $termDeposit): array => [
+                'id' => $termDeposit->id,
+                'name' => $termDeposit->name,
+                'opening_date' => $termDeposit->opening_date->toDateString(),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

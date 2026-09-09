@@ -44,6 +44,30 @@ class ImportIdentityFactory
     }
 
     /**
+     * @return array{
+     *     import_identity_account_id: int,
+     *     import_identity_date: string,
+     *     import_identity_amount_minor_units: int,
+     *     import_identity_digest: string,
+     * }|array{}
+     */
+    public function forCapitalMovement(
+        User $user,
+        int $accountId,
+        string $movementDate,
+        int $signedAmountMinorUnits,
+        ?string $rawStatementDescription,
+    ): array {
+        return $this->forFinancialOperation(
+            $user,
+            $accountId,
+            $movementDate,
+            $signedAmountMinorUnits,
+            $rawStatementDescription,
+        );
+    }
+
+    /**
      * @return array<string, int|string>
      */
     public function forOwnTransferImportedAccount(
