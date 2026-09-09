@@ -2,27 +2,15 @@
 import { Form } from '@inertiajs/vue3';
 import { CalendarPlus } from '@lucide/vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
+import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/InputError.vue';
 import { useShell, useTranslations } from '@/composables/useTranslations';
 import { ref } from 'vue';
 
 const shell = useShell();
 const t = useTranslations();
 const createDialogOpen = ref(false);
-const currentYear = new Date().getFullYear();
 </script>
 
 <template>
@@ -37,8 +25,11 @@ const currentYear = new Date().getFullYear();
             <p class="text-muted-foreground text-xs">
                 {{ t.shell.no_budget_year }}
             </p>
-            <Dialog v-model:open="createDialogOpen">
-                <DialogTrigger as-child>
+            <CreateBudgetDialog
+                v-model:open="createDialogOpen"
+                year-input-id="shell-create-budget-year-empty"
+            >
+                <template #trigger>
                     <Button
                         variant="outline"
                         size="sm"
@@ -47,49 +38,8 @@ const currentYear = new Date().getFullYear();
                         <CalendarPlus class="size-4" />
                         {{ t.shell.add_budget_year }}
                     </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <Form
-                        v-bind="BudgetController.store.form()"
-                        class="space-y-4"
-                        reset-on-success
-                        @success="createDialogOpen = false"
-                        v-slot="{ errors, processing }"
-                    >
-                        <DialogHeader>
-                            <DialogTitle>
-                                {{ t.budget.create_budget_title }}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {{ t.budget.create_budget_description }}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div class="grid gap-2">
-                            <Label for="budget-year">{{ t.budget.year }}</Label>
-                            <Input
-                                id="budget-year"
-                                name="year"
-                                type="number"
-                                :default-value="currentYear"
-                                min="2000"
-                                max="2100"
-                                required
-                            />
-                            <InputError :message="errors.year" />
-                        </div>
-                        <DialogFooter class="gap-2">
-                            <DialogClose as-child>
-                                <Button type="button" variant="secondary">
-                                    {{ t.budget.cancel }}
-                                </Button>
-                            </DialogClose>
-                            <Button type="submit" :disabled="processing">
-                                {{ t.budget.create_budget }}
-                            </Button>
-                        </DialogFooter>
-                    </Form>
-                </DialogContent>
-            </Dialog>
+                </template>
+            </CreateBudgetDialog>
         </div>
         <div v-else class="space-y-2 px-2">
             <Form
@@ -119,8 +69,11 @@ const currentYear = new Date().getFullYear();
                     </option>
                 </select>
             </Form>
-            <Dialog v-model:open="createDialogOpen">
-                <DialogTrigger as-child>
+            <CreateBudgetDialog
+                v-model:open="createDialogOpen"
+                year-input-id="shell-create-budget-year"
+            >
+                <template #trigger>
                     <Button
                         variant="outline"
                         size="sm"
@@ -129,51 +82,8 @@ const currentYear = new Date().getFullYear();
                         <CalendarPlus class="size-4" />
                         {{ t.shell.add_budget_year }}
                     </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <Form
-                        v-bind="BudgetController.store.form()"
-                        class="space-y-4"
-                        reset-on-success
-                        @success="createDialogOpen = false"
-                        v-slot="{ errors, processing }"
-                    >
-                        <DialogHeader>
-                            <DialogTitle>
-                                {{ t.budget.create_budget_title }}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {{ t.budget.create_budget_description }}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div class="grid gap-2">
-                            <Label for="budget-year-add">
-                                {{ t.budget.year }}
-                            </Label>
-                            <Input
-                                id="budget-year-add"
-                                name="year"
-                                type="number"
-                                :default-value="currentYear + 1"
-                                min="2000"
-                                max="2100"
-                                required
-                            />
-                            <InputError :message="errors.year" />
-                        </div>
-                        <DialogFooter class="gap-2">
-                            <DialogClose as-child>
-                                <Button type="button" variant="secondary">
-                                    {{ t.budget.cancel }}
-                                </Button>
-                            </DialogClose>
-                            <Button type="submit" :disabled="processing">
-                                {{ t.budget.create_budget }}
-                            </Button>
-                        </DialogFooter>
-                    </Form>
-                </DialogContent>
-            </Dialog>
+                </template>
+            </CreateBudgetDialog>
         </div>
     </div>
 </template>
