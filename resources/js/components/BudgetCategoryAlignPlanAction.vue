@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { Equal } from '@lucide/vue';
+import { AlignHorizontalJustifyCenter } from '@lucide/vue';
 import { ref } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import type { BudgetCategoryRow } from '@/components/BudgetCategoryList.vue';
@@ -33,7 +33,7 @@ function openDialog(): void {
 <template>
     <IconAction
         v-if="category.can_align_current_plan"
-        :icon="Equal"
+        :icon="AlignHorizontalJustifyCenter"
         :label="t.budget.align_current_plan"
         @click="openDialog"
     />

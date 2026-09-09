@@ -460,7 +460,75 @@ class BudgetTest extends TestCase
                 ->where('budget.phase', BudgetPhase::Execution->value)
                 ->where('incomeCategories.0.initial_plan_minor_units', 500000)
                 ->where('incomeCategories.0.current_plan_minor_units', 500000)
-                ->where('incomeCategories.0.execution_minor_units', 0),
+                ->where('incomeCategories.0.execution_minor_units', 0)
+                ->where('incomeCategories.0.percent_complete', 0),
+            );
+    }
+
+    public function test_budget_page_exposes_percent_complete_for_categories_in_execution(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_minor_units' => 500000,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 250000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Food',
+            'planned_amount_minor_units' => 100000,
+            'initial_plan_minor_units' => 80000,
+            'execution_minor_units' => 120000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories.0.percent_complete', 50)
+                ->where('incomeCategories.0.remaining_minor_units', 250000)
+                ->where('expenseCategories.0.percent_complete', 120)
+                ->where('expenseCategories.0.remaining_minor_units', -20000)
+                ->where('expenseCategories.0.is_over_limit', true),
+            );
+    }
+
+    public function test_zero_current_plan_shows_null_percent_complete_on_budget_page(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Misc',
+            'planned_amount_minor_units' => 0,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 5000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.percent_complete', null)
+                ->where('expenseCategories.0.remaining_minor_units', -5000)
+                ->where('expenseCategories.0.is_over_limit', true),
+            );
+    }
+
+    public function test_budget_page_includes_remaining_translation_key(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('translations.budget.remaining', 'Pozostało')
+                ->where('translations.budget.execution', 'Wykonanie')
+                ->where('translations.budget.remaining_expense', 'Pozostały limit')
+                ->where('translations.budget.remaining_income', 'Do zrealizowania'),
             );
     }
 

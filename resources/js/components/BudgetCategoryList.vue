@@ -1,21 +1,29 @@
 <script setup lang="ts">
 import { useHttp } from '@inertiajs/vue3';
-import { GripVertical, Pencil } from '@lucide/vue';
+import { ChevronDown, GripVertical } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
-import BudgetCategoryAlignPlanAction from '@/components/BudgetCategoryAlignPlanAction.vue';
-import BudgetCategoryOverflowActions from '@/components/BudgetCategoryOverflowActions.vue';
+import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue';
+import BudgetCategoryTableHeader from '@/components/BudgetCategoryTableHeader.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
-import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
-import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
+import {
+    type DashboardTypeTotals,
+    meterPercentClass,
+    planChanged,
+} from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 
 export type BudgetCategoryRow = {
@@ -29,6 +37,7 @@ export type BudgetCategoryRow = {
     current_plan_minor_units: number;
     execution_minor_units: number;
     remaining_minor_units: number;
+    percent_complete: number | null;
     is_over_limit: boolean;
     can_edit: boolean;
     can_delete: boolean;
@@ -67,6 +76,7 @@ const reorderHttp = useHttp({
 const localCategories = ref<BudgetCategoryRow[]>([]);
 const orderBeforeDrag = ref<BudgetCategoryRow[]>([]);
 const nameFilter = ref('');
+const archivedOpen = ref(false);
 
 const isDraft = computed(() => props.phase === 'draft');
 const isExecution = computed(() => props.phase === 'execution');
@@ -75,6 +85,18 @@ const showNameFilter = computed(
 );
 const isFiltering = computed(() => nameFilter.value.trim().length > 0);
 const canDrag = computed(() => props.canReorder && !isFiltering.value);
+
+const formulaLabel = computed(() =>
+    props.categoryType === 'income'
+        ? t.budget.formula_income
+        : t.budget.formula_expense,
+);
+
+const remainingLabel = computed(() =>
+    props.categoryType === 'income'
+        ? t.budget.remaining_income
+        : t.budget.remaining_expense,
+);
 
 watch(
     () => props.categories,
@@ -118,7 +140,35 @@ function remainingClass(category: BudgetCategoryRow): string {
         return 'text-destructive';
     }
 
-    return '';
+    return 'text-muted-foreground';
+}
+
+function totalsRemainingClass(): string {
+    if (
+        props.categoryType === 'expense' &&
+        props.totals.remaining_minor_units < 0
+    ) {
+        return 'text-destructive';
+    }
+
+    return 'text-muted-foreground';
+}
+
+function percentSuffixClass(
+    percentComplete: number | null,
+    isOverLimit: boolean,
+): string {
+    return (
+        meterPercentClass(props.categoryType, percentComplete, isOverLimit) ||
+        'text-muted-foreground'
+    );
+}
+
+function totalsAreOverLimit(): boolean {
+    return (
+        props.categoryType === 'expense' &&
+        props.totals.remaining_minor_units < 0
+    );
 }
 
 function onDragStart(): void {
@@ -163,9 +213,17 @@ async function onDragEnd(): Promise<void> {
                     <div
                         class="flex flex-wrap items-center justify-between gap-3"
                     >
-                        <h3 class="text-base font-semibold">
-                            {{ title }}
-                        </h3>
+                        <div class="space-y-1">
+                            <h3 class="text-base font-semibold">
+                                {{ title }}
+                            </h3>
+                            <p
+                                v-if="isExecution"
+                                class="text-muted-foreground text-xs"
+                            >
+                                {{ formulaLabel }}
+                            </p>
+                        </div>
                         <Button
                             type="button"
                             variant="outline"
@@ -186,32 +244,11 @@ async function onDragEnd(): Promise<void> {
 
             <div class="list-surface-table-scroll">
                 <table class="list-surface-table">
-                    <thead>
-                        <tr>
-                            <th v-if="canReorder" class="w-10" />
-                            <th>{{ t.budget.category }}</th>
-                            <th v-if="isDraft" class="text-right">
-                                {{ t.budget.plan }}
-                            </th>
-                            <template v-if="isExecution">
-                                <th class="text-right">
-                                    {{ t.budget.initial_plan }}
-                                </th>
-                                <th class="text-right">
-                                    {{ t.budget.current_plan }}
-                                </th>
-                                <th class="text-right">
-                                    {{ t.budget.execution }}
-                                </th>
-                                <th class="text-right">
-                                    {{ t.budget.remaining }}
-                                </th>
-                            </template>
-                            <th class="text-right">
-                                {{ t.budget.actions }}
-                            </th>
-                        </tr>
-                    </thead>
+                    <BudgetCategoryTableHeader
+                        :category-type="categoryType"
+                        :phase="phase"
+                        :can-reorder="canReorder"
+                    />
                     <draggable
                         v-model="activeCategories"
                         tag="tbody"
@@ -253,12 +290,28 @@ async function onDragEnd(): Promise<void> {
                                     }}
                                 </td>
                                 <template v-if="isExecution">
-                                    <td class="tabular-amount">
-                                        {{
-                                            formatMoney(
-                                                category.initial_plan_minor_units,
-                                            )
-                                        }}
+                                    <td
+                                        class="tabular-amount text-muted-foreground"
+                                    >
+                                        <span
+                                            class="inline-flex items-center justify-end gap-1"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.initial_plan_minor_units,
+                                                )
+                                            }}
+                                            <span
+                                                v-if="planChanged(category)"
+                                                class="text-muted-foreground text-xs"
+                                                :title="t.budget.plan_changed"
+                                                :aria-label="
+                                                    t.budget.plan_changed
+                                                "
+                                            >
+                                                ·
+                                            </span>
+                                        </span>
                                     </td>
                                     <td class="tabular-amount font-semibold">
                                         {{
@@ -267,12 +320,39 @@ async function onDragEnd(): Promise<void> {
                                             )
                                         }}
                                     </td>
-                                    <td class="tabular-amount">
-                                        {{
-                                            formatMoney(
-                                                category.execution_minor_units,
-                                            )
-                                        }}
+                                    <td
+                                        class="tabular-amount"
+                                        :class="
+                                            categoryType === 'income'
+                                                ? 'text-success'
+                                                : ''
+                                        "
+                                    >
+                                        <span
+                                            class="inline-flex items-baseline justify-end"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.execution_minor_units,
+                                                )
+                                            }}
+                                            <span
+                                                v-if="
+                                                    category.percent_complete !==
+                                                    null
+                                                "
+                                                class="ml-1.5 text-xs tabular-nums"
+                                                :class="
+                                                    percentSuffixClass(
+                                                        category.percent_complete,
+                                                        category.is_over_limit,
+                                                    )
+                                                "
+                                                :title="t.budget.progress_hint"
+                                            >
+                                                {{ category.percent_complete }}%
+                                            </span>
+                                        </span>
                                     </td>
                                     <td
                                         class="tabular-amount"
@@ -286,20 +366,10 @@ async function onDragEnd(): Promise<void> {
                                     </td>
                                 </template>
                                 <td>
-                                    <div class="flex justify-end gap-1">
-                                        <IconAction
-                                            v-if="category.can_edit"
-                                            :icon="Pencil"
-                                            :label="t.budget.edit"
-                                            @click="emit('edit', category)"
-                                        />
-                                        <BudgetCategoryAlignPlanAction
-                                            :category="category"
-                                        />
-                                        <BudgetCategoryOverflowActions
-                                            :category="category"
-                                        />
-                                    </div>
+                                    <BudgetCategoryRowActions
+                                        :category="category"
+                                        @edit="emit('edit', category)"
+                                    />
                                 </td>
                             </tr>
                         </template>
@@ -314,7 +384,9 @@ async function onDragEnd(): Promise<void> {
                                 }}
                             </td>
                             <template v-if="isExecution">
-                                <td class="tabular-amount">
+                                <td
+                                    class="tabular-amount text-muted-foreground"
+                                >
                                     {{
                                         formatMoney(
                                             totals.initial_plan_minor_units,
@@ -328,21 +400,42 @@ async function onDragEnd(): Promise<void> {
                                         )
                                     }}
                                 </td>
-                                <td class="tabular-amount">
-                                    {{
-                                        formatMoney(
-                                            totals.execution_minor_units,
-                                        )
-                                    }}
-                                </td>
                                 <td
                                     class="tabular-amount"
                                     :class="
-                                        categoryType === 'expense' &&
-                                        totals.remaining_minor_units < 0
-                                            ? 'text-destructive'
+                                        categoryType === 'income'
+                                            ? 'text-success'
                                             : ''
                                     "
+                                >
+                                    <span
+                                        class="inline-flex items-baseline justify-end"
+                                    >
+                                        {{
+                                            formatMoney(
+                                                totals.execution_minor_units,
+                                            )
+                                        }}
+                                        <span
+                                            v-if="
+                                                totals.percent_complete !== null
+                                            "
+                                            class="ml-1.5 text-xs font-medium tabular-nums"
+                                            :class="
+                                                percentSuffixClass(
+                                                    totals.percent_complete,
+                                                    totalsAreOverLimit(),
+                                                )
+                                            "
+                                            :title="t.budget.progress_hint"
+                                        >
+                                            {{ totals.percent_complete }}%
+                                        </span>
+                                    </span>
+                                </td>
+                                <td
+                                    class="tabular-amount"
+                                    :class="totalsRemainingClass()"
                                 >
                                     {{
                                         formatMoney(
@@ -357,134 +450,143 @@ async function onDragEnd(): Promise<void> {
                 </table>
             </div>
 
-            <div
+            <Collapsible
                 v-if="filteredArchivedCategories.length > 0"
+                v-model:open="archivedOpen"
                 class="mt-6 space-y-3"
             >
-                <div class="flex items-center gap-2">
-                    <h4 class="text-sm font-medium">
-                        {{ t.budget.archived_section }}
-                    </h4>
-                    <Badge variant="secondary">
-                        {{ filteredArchivedCategories.length }}
-                    </Badge>
-                </div>
-                <div class="list-surface-table-scroll">
-                    <table class="list-surface-table">
-                        <thead>
-                            <tr>
-                                <th>{{ t.budget.category }}</th>
-                                <th v-if="isDraft" class="text-right">
-                                    {{ t.budget.plan }}
-                                </th>
-                                <template v-if="isExecution">
-                                    <th class="text-right">
-                                        {{ t.budget.initial_plan }}
-                                    </th>
-                                    <th class="text-right">
-                                        {{ t.budget.current_plan }}
-                                    </th>
-                                    <th class="text-right">
-                                        {{ t.budget.execution }}
-                                    </th>
-                                    <th class="text-right">
-                                        {{ t.budget.remaining }}
-                                    </th>
-                                </template>
-                                <th class="text-right">
-                                    {{ t.budget.actions }}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="category in filteredArchivedCategories"
-                                :key="category.id"
-                                class="text-muted-foreground"
-                            >
-                                <td>
-                                    <div class="flex items-center gap-2">
-                                        <CategoryChip
-                                            :name="category.name"
-                                            :icon="category.icon"
-                                            :color="category.color"
-                                        />
-                                        <Badge variant="secondary">
-                                            {{ t.budget.archived_badge }}
-                                        </Badge>
-                                    </div>
-                                </td>
-                                <td
-                                    v-if="isDraft"
-                                    class="tabular-amount font-semibold"
+                <CollapsibleTrigger as-child>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        class="gap-2 px-0 hover:bg-transparent"
+                    >
+                        <h4 class="text-sm font-medium">
+                            {{ t.budget.archived_section }}
+                        </h4>
+                        <Badge variant="secondary">
+                            {{ filteredArchivedCategories.length }}
+                        </Badge>
+                        <ChevronDown
+                            class="size-4 transition-transform"
+                            :class="archivedOpen ? 'rotate-180' : ''"
+                            aria-hidden="true"
+                        />
+                    </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <div class="list-surface-table-scroll">
+                        <table class="list-surface-table">
+                            <BudgetCategoryTableHeader
+                                :category-type="categoryType"
+                                :phase="phase"
+                            />
+                            <tbody>
+                                <tr
+                                    v-for="category in filteredArchivedCategories"
+                                    :key="category.id"
+                                    class="text-muted-foreground"
                                 >
-                                    {{
-                                        formatMoney(
-                                            category.current_plan_minor_units,
-                                        )
-                                    }}
-                                </td>
-                                <template v-if="isExecution">
-                                    <td class="tabular-amount">
-                                        {{
-                                            formatMoney(
-                                                category.initial_plan_minor_units,
-                                            )
-                                        }}
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <CategoryChip
+                                                :name="category.name"
+                                                :icon="category.icon"
+                                                :color="category.color"
+                                            />
+                                            <Badge variant="secondary">
+                                                {{ t.budget.archived_badge }}
+                                            </Badge>
+                                        </div>
                                     </td>
-                                    <td class="tabular-amount font-semibold">
+                                    <td
+                                        v-if="isDraft"
+                                        class="tabular-amount font-semibold"
+                                    >
                                         {{
                                             formatMoney(
                                                 category.current_plan_minor_units,
                                             )
                                         }}
                                     </td>
-                                    <td class="tabular-amount">
-                                        {{
-                                            formatMoney(
-                                                category.execution_minor_units,
-                                            )
-                                        }}
-                                    </td>
-                                    <td
-                                        class="tabular-amount"
-                                        :class="remainingClass(category)"
-                                    >
-                                        {{
-                                            formatMoney(
-                                                category.remaining_minor_units,
-                                            )
-                                        }}
-                                    </td>
-                                </template>
-                                <td>
-                                    <div class="flex justify-end gap-1">
-                                        <IconAction
-                                            v-if="category.can_edit"
-                                            :icon="Pencil"
-                                            :label="t.budget.edit"
-                                            @click="emit('edit', category)"
-                                        />
-                                        <BudgetCategoryAlignPlanAction
+                                    <template v-if="isExecution">
+                                        <td class="tabular-amount">
+                                            {{
+                                                formatMoney(
+                                                    category.initial_plan_minor_units,
+                                                )
+                                            }}
+                                        </td>
+                                        <td
+                                            class="tabular-amount font-semibold"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.current_plan_minor_units,
+                                                )
+                                            }}
+                                        </td>
+                                        <td class="tabular-amount">
+                                            <span
+                                                class="inline-flex items-baseline justify-end"
+                                            >
+                                                {{
+                                                    formatMoney(
+                                                        category.execution_minor_units,
+                                                    )
+                                                }}
+                                                <span
+                                                    v-if="
+                                                        category.percent_complete !==
+                                                        null
+                                                    "
+                                                    class="ml-1.5 text-xs tabular-nums"
+                                                    :title="
+                                                        t.budget.progress_hint
+                                                    "
+                                                >
+                                                    {{
+                                                        category.percent_complete
+                                                    }}%
+                                                </span>
+                                            </span>
+                                        </td>
+                                        <td
+                                            class="tabular-amount"
+                                            :class="remainingClass(category)"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.remaining_minor_units,
+                                                )
+                                            }}
+                                        </td>
+                                    </template>
+                                    <td>
+                                        <BudgetCategoryRowActions
                                             :category="category"
+                                            @edit="emit('edit', category)"
                                         />
-                                        <BudgetCategoryOverflowActions
-                                            :category="category"
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
         </ListSurface>
 
         <div class="space-y-3 md:hidden">
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <h3 class="text-base font-semibold">
-                    {{ title }}
-                </h3>
+                <div class="space-y-1">
+                    <h3 class="text-base font-semibold">
+                        {{ title }}
+                    </h3>
+                    <p v-if="isExecution" class="text-muted-foreground text-xs">
+                        {{ formulaLabel }}
+                    </p>
+                </div>
                 <Button
                     type="button"
                     variant="outline"
@@ -553,20 +655,6 @@ async function onDragEnd(): Promise<void> {
                                         <p
                                             class="text-muted-foreground text-xs"
                                         >
-                                            {{ t.budget.initial_plan }}
-                                        </p>
-                                        <p class="font-medium tabular-nums">
-                                            {{
-                                                formatMoney(
-                                                    category.initial_plan_minor_units,
-                                                )
-                                            }}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p
-                                            class="text-muted-foreground text-xs"
-                                        >
                                             {{ t.budget.current_plan }}
                                         </p>
                                         <p class="font-semibold tabular-nums">
@@ -583,19 +671,50 @@ async function onDragEnd(): Promise<void> {
                                         >
                                             {{ t.budget.execution }}
                                         </p>
-                                        <p class="font-medium tabular-nums">
-                                            {{
-                                                formatMoney(
-                                                    category.execution_minor_units,
-                                                )
-                                            }}
+                                        <p
+                                            class="font-medium tabular-nums"
+                                            :class="
+                                                categoryType === 'income'
+                                                    ? 'text-success'
+                                                    : ''
+                                            "
+                                        >
+                                            <span
+                                                class="inline-flex items-baseline"
+                                            >
+                                                {{
+                                                    formatMoney(
+                                                        category.execution_minor_units,
+                                                    )
+                                                }}
+                                                <span
+                                                    v-if="
+                                                        category.percent_complete !==
+                                                        null
+                                                    "
+                                                    class="ml-1.5 text-xs tabular-nums"
+                                                    :class="
+                                                        percentSuffixClass(
+                                                            category.percent_complete,
+                                                            category.is_over_limit,
+                                                        )
+                                                    "
+                                                    :title="
+                                                        t.budget.progress_hint
+                                                    "
+                                                >
+                                                    {{
+                                                        category.percent_complete
+                                                    }}%
+                                                </span>
+                                            </span>
                                         </p>
                                     </div>
                                     <div>
                                         <p
                                             class="text-muted-foreground text-xs"
                                         >
-                                            {{ t.budget.remaining }}
+                                            {{ remainingLabel }}
                                         </p>
                                         <p
                                             class="font-medium tabular-nums"
@@ -608,22 +727,38 @@ async function onDragEnd(): Promise<void> {
                                             }}
                                         </p>
                                     </div>
+                                    <div>
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
+                                            {{ t.budget.initial_plan }}
+                                        </p>
+                                        <p
+                                            class="text-muted-foreground font-medium tabular-nums"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.initial_plan_minor_units,
+                                                )
+                                            }}
+                                            <span
+                                                v-if="planChanged(category)"
+                                                class="text-xs"
+                                                :title="t.budget.plan_changed"
+                                                :aria-label="
+                                                    t.budget.plan_changed
+                                                "
+                                            >
+                                                ·
+                                            </span>
+                                        </p>
+                                    </div>
                                 </template>
                             </div>
-                            <div class="flex flex-wrap gap-1">
-                                <IconAction
-                                    v-if="category.can_edit"
-                                    :icon="Pencil"
-                                    :label="t.budget.edit"
-                                    @click="emit('edit', category)"
-                                />
-                                <BudgetCategoryAlignPlanAction
-                                    :category="category"
-                                />
-                                <BudgetCategoryOverflowActions
-                                    :category="category"
-                                />
-                            </div>
+                            <BudgetCategoryRowActions
+                                :category="category"
+                                @edit="emit('edit', category)"
+                            />
                         </CardContent>
                     </Card>
                 </template>
@@ -651,18 +786,6 @@ async function onDragEnd(): Promise<void> {
                         <template v-if="isExecution">
                             <div>
                                 <p class="text-muted-foreground text-xs">
-                                    {{ t.budget.initial_plan }}
-                                </p>
-                                <p class="font-semibold tabular-nums">
-                                    {{
-                                        formatMoney(
-                                            totals.initial_plan_minor_units,
-                                        )
-                                    }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-muted-foreground text-xs">
                                     {{ t.budget.current_plan }}
                                 </p>
                                 <p class="font-semibold tabular-nums">
@@ -677,30 +800,63 @@ async function onDragEnd(): Promise<void> {
                                 <p class="text-muted-foreground text-xs">
                                     {{ t.budget.execution }}
                                 </p>
-                                <p class="font-semibold tabular-nums">
+                                <p
+                                    class="font-semibold tabular-nums"
+                                    :class="
+                                        categoryType === 'income'
+                                            ? 'text-success'
+                                            : ''
+                                    "
+                                >
+                                    <span class="inline-flex items-baseline">
+                                        {{
+                                            formatMoney(
+                                                totals.execution_minor_units,
+                                            )
+                                        }}
+                                        <span
+                                            v-if="
+                                                totals.percent_complete !== null
+                                            "
+                                            class="ml-1.5 text-xs font-medium tabular-nums"
+                                            :class="
+                                                percentSuffixClass(
+                                                    totals.percent_complete,
+                                                    totalsAreOverLimit(),
+                                                )
+                                            "
+                                            :title="t.budget.progress_hint"
+                                        >
+                                            {{ totals.percent_complete }}%
+                                        </span>
+                                    </span>
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-muted-foreground text-xs">
+                                    {{ remainingLabel }}
+                                </p>
+                                <p
+                                    class="font-semibold tabular-nums"
+                                    :class="totalsRemainingClass()"
+                                >
                                     {{
                                         formatMoney(
-                                            totals.execution_minor_units,
+                                            totals.remaining_minor_units,
                                         )
                                     }}
                                 </p>
                             </div>
                             <div>
                                 <p class="text-muted-foreground text-xs">
-                                    {{ t.budget.remaining }}
+                                    {{ t.budget.initial_plan }}
                                 </p>
                                 <p
-                                    class="font-semibold tabular-nums"
-                                    :class="
-                                        categoryType === 'expense' &&
-                                        totals.remaining_minor_units < 0
-                                            ? 'text-destructive'
-                                            : ''
-                                    "
+                                    class="text-muted-foreground font-semibold tabular-nums"
                                 >
                                     {{
                                         formatMoney(
-                                            totals.remaining_minor_units,
+                                            totals.initial_plan_minor_units,
                                         )
                                     }}
                                 </p>
@@ -710,65 +866,57 @@ async function onDragEnd(): Promise<void> {
                 </CardContent>
             </Card>
 
-            <div v-if="filteredArchivedCategories.length > 0" class="space-y-3">
-                <div class="flex items-center gap-2">
-                    <h4 class="text-sm font-medium">
-                        {{ t.budget.archived_section }}
-                    </h4>
-                    <Badge variant="secondary">
-                        {{ filteredArchivedCategories.length }}
-                    </Badge>
-                </div>
-                <Card
-                    v-for="category in filteredArchivedCategories"
-                    :key="category.id"
-                    class="opacity-60"
-                >
-                    <CardHeader class="gap-3 pb-3">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <CategoryChip
-                                :name="category.name"
-                                :icon="category.icon"
-                                :color="category.color"
-                            />
-                            <Badge variant="secondary">
-                                {{ t.budget.archived_badge }}
-                            </Badge>
-                        </div>
-                    </CardHeader>
-                    <CardContent class="space-y-3">
-                        <div
-                            class="grid gap-3 text-sm"
-                            :class="isDraft ? 'grid-cols-1' : 'grid-cols-2'"
-                        >
-                            <div v-if="isDraft">
-                                <p class="text-muted-foreground text-xs">
-                                    {{ t.budget.plan }}
-                                </p>
-                                <p class="font-semibold tabular-nums">
-                                    {{
-                                        formatMoney(
-                                            category.current_plan_minor_units,
-                                        )
-                                    }}
-                                </p>
+            <Collapsible
+                v-if="filteredArchivedCategories.length > 0"
+                v-model:open="archivedOpen"
+                class="space-y-3"
+            >
+                <CollapsibleTrigger as-child>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        class="gap-2 px-0 hover:bg-transparent"
+                    >
+                        <h4 class="text-sm font-medium">
+                            {{ t.budget.archived_section }}
+                        </h4>
+                        <Badge variant="secondary">
+                            {{ filteredArchivedCategories.length }}
+                        </Badge>
+                        <ChevronDown
+                            class="size-4 transition-transform"
+                            :class="archivedOpen ? 'rotate-180' : ''"
+                            aria-hidden="true"
+                        />
+                    </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent class="space-y-3">
+                    <Card
+                        v-for="category in filteredArchivedCategories"
+                        :key="category.id"
+                        class="opacity-60"
+                    >
+                        <CardHeader class="gap-3 pb-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <CategoryChip
+                                    :name="category.name"
+                                    :icon="category.icon"
+                                    :color="category.color"
+                                />
+                                <Badge variant="secondary">
+                                    {{ t.budget.archived_badge }}
+                                </Badge>
                             </div>
-                            <template v-if="isExecution">
-                                <div>
+                        </CardHeader>
+                        <CardContent class="space-y-3">
+                            <div
+                                class="grid gap-3 text-sm"
+                                :class="isDraft ? 'grid-cols-1' : 'grid-cols-2'"
+                            >
+                                <div v-if="isDraft">
                                     <p class="text-muted-foreground text-xs">
-                                        {{ t.budget.initial_plan }}
-                                    </p>
-                                    <p class="font-medium tabular-nums">
-                                        {{
-                                            formatMoney(
-                                                category.initial_plan_minor_units,
-                                            )
-                                        }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p class="text-muted-foreground text-xs">
-                                        {{ t.budget.current_plan }}
+                                        {{ t.budget.plan }}
                                     </p>
                                     <p class="font-semibold tabular-nums">
                                         {{
@@ -778,52 +926,96 @@ async function onDragEnd(): Promise<void> {
                                         }}
                                     </p>
                                 </div>
-                                <div>
-                                    <p class="text-muted-foreground text-xs">
-                                        {{ t.budget.execution }}
-                                    </p>
-                                    <p class="font-medium tabular-nums">
-                                        {{
-                                            formatMoney(
-                                                category.execution_minor_units,
-                                            )
-                                        }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p class="text-muted-foreground text-xs">
-                                        {{ t.budget.remaining }}
-                                    </p>
-                                    <p
-                                        class="font-medium tabular-nums"
-                                        :class="remainingClass(category)"
-                                    >
-                                        {{
-                                            formatMoney(
-                                                category.remaining_minor_units,
-                                            )
-                                        }}
-                                    </p>
-                                </div>
-                            </template>
-                        </div>
-                        <div class="flex flex-wrap gap-1">
-                            <IconAction
-                                v-if="category.can_edit"
-                                :icon="Pencil"
-                                :label="t.budget.edit"
-                                @click="emit('edit', category)"
-                            />
-                            <BudgetCategoryAlignPlanAction
+                                <template v-if="isExecution">
+                                    <div>
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
+                                            {{ t.budget.current_plan }}
+                                        </p>
+                                        <p class="font-semibold tabular-nums">
+                                            {{
+                                                formatMoney(
+                                                    category.current_plan_minor_units,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
+                                            {{ t.budget.execution }}
+                                        </p>
+                                        <p class="font-medium tabular-nums">
+                                            <span
+                                                class="inline-flex items-baseline"
+                                            >
+                                                {{
+                                                    formatMoney(
+                                                        category.execution_minor_units,
+                                                    )
+                                                }}
+                                                <span
+                                                    v-if="
+                                                        category.percent_complete !==
+                                                        null
+                                                    "
+                                                    class="text-muted-foreground ml-1.5 text-xs tabular-nums"
+                                                    :title="
+                                                        t.budget.progress_hint
+                                                    "
+                                                >
+                                                    {{
+                                                        category.percent_complete
+                                                    }}%
+                                                </span>
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
+                                            {{ remainingLabel }}
+                                        </p>
+                                        <p
+                                            class="font-medium tabular-nums"
+                                            :class="remainingClass(category)"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.remaining_minor_units,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
+                                            {{ t.budget.initial_plan }}
+                                        </p>
+                                        <p
+                                            class="text-muted-foreground font-medium tabular-nums"
+                                        >
+                                            {{
+                                                formatMoney(
+                                                    category.initial_plan_minor_units,
+                                                )
+                                            }}
+                                        </p>
+                                    </div>
+                                </template>
+                            </div>
+                            <BudgetCategoryRowActions
                                 :category="category"
+                                @edit="emit('edit', category)"
                             />
-                            <BudgetCategoryOverflowActions
-                                :category="category"
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                        </CardContent>
+                    </Card>
+                </CollapsibleContent>
+            </Collapsible>
         </div>
     </template>
 </template>
