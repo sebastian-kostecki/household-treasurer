@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Support;
+
+use App\Enums\CategoryType;
+use App\Models\Account;
+use App\Models\Category;
+use App\Models\User;
+use Illuminate\Support\Collection;
+use RuntimeException;
+
+class OperationsFilterOptions
+{
+    /**
+     * @return list<int>
+     */
+    public static function years(User $user): array
+    {
+        return array_values($user->financialOperations()
+            ->join('budgets', 'budgets.id', '=', 'financial_operations.budget_id')
+            ->distinct()
+            ->orderByDesc('budgets.year')
+            ->pluck('budgets.year')
+            ->map(fn (mixed $year): int => (int) $year)
+            ->all());
+    }
+
+    /**
+     * @return list<array{name: string, type: string, icon: string, color: string}>
+     */
+    public static function categories(User $user, ?int $year): array
+    {
+        $categories = Category::query()
+            ->select('categories.*')
+            ->join('budgets', 'budgets.id', '=', 'categories.budget_id')
+            ->where('budgets.user_id', $user->id)
+            ->when($year !== null, fn ($query) => $query->where('budgets.year', $year))
+            ->whereHas('financialOperations', fn ($query) => $query->where('user_id', $user->id))
+            ->with('budget:id,year')
+            ->get();
+
+        return array_values($categories
+            ->groupBy(fn (Category $category): string => $category->type->value."\0".$category->name)
+            ->map(function (Collection $group): Category {
+                $category = $group
+                    ->sortByDesc(fn (Category $item): int => $item->budget->year)
+                    ->first();
+
+                if (! $category instanceof Category) {
+                    throw new RuntimeException('A Category name-type group was empty.');
+                }
+
+                return $category;
+            })
+            ->sortBy(fn (Category $category): string => ($category->type === CategoryType::Income ? '0' : '1').$category->name)
+            ->values()
+            ->map(fn (Category $category): array => [
+                'name' => $category->name,
+                'type' => $category->type->value,
+                ...CategoryAppearance::fields($category),
+            ])
+            ->all());
+    }
+
+    /**
+     * @return list<array{id: int, name: string, type: string, bank: string|null, mark_url: string|null, is_archived: bool}>
+     */
+    public static function accounts(User $user): array
+    {
+        return array_values($user->accounts()
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Account $account): array => [
+                ...AccountIdentity::payload($account),
+                'is_archived' => $account->archived_at !== null,
+            ])
+            ->all());
+    }
+}
