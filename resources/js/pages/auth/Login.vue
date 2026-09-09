@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
@@ -108,7 +107,7 @@ defineProps<{
             class="text-muted-foreground text-center text-sm"
         >
             {{ t.auth.login.no_account }}
-            <TextLink :href="register()" :tabindex="5">
+            <TextLink href="/register" :tabindex="5">
                 {{ t.auth.login.sign_up }}
             </TextLink>
         </div>
