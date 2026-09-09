@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
+use App\Enums\OperationsListSection;
 use App\Http\Requests\IndexOperationsRequest;
 use App\Models\Account;
 use App\Models\Budget;
@@ -27,10 +28,11 @@ class OperationsController extends Controller
     {
         $user = $request->user();
         $filters = $request->filters();
+        $suppressedSections = $filters->suppressedSections();
 
         $operationsQuery = $filters->apply($user->financialOperations());
 
-        if ($filters->hidesFinancialOperations()) {
+        if (in_array(OperationsListSection::FinancialOperations, $suppressedSections, true)) {
             $operationsQuery->whereRaw('0 = 1');
         }
 
@@ -61,7 +63,7 @@ class OperationsController extends Controller
             ->orderByDesc('transfer_date')
             ->orderByDesc('id');
 
-        if ($filters->isActive()) {
+        if (in_array(OperationsListSection::OwnTransfers, $suppressedSections, true)) {
             $ownTransfersQuery->whereRaw('0 = 1');
         }
 
@@ -88,7 +90,7 @@ class OperationsController extends Controller
             ->orderByDesc('movement_date')
             ->orderByDesc('id');
 
-        if ($filters->omitsCapitalMovements()) {
+        if (in_array(OperationsListSection::CapitalMovements, $suppressedSections, true)) {
             $capitalMovementsQuery->whereRaw('0 = 1');
         } elseif ($filters->isActive()) {
             $filters->applyToCapitalMovements($capitalMovementsQuery);
@@ -175,6 +177,10 @@ class OperationsController extends Controller
             'expenseCategories' => $expenseCategories,
             'filters' => $filters->toArray(),
             'filtersActive' => $filters->isActive(),
+            'suppressedSections' => array_map(
+                fn (OperationsListSection $section): string => $section->value,
+                $suppressedSections,
+            ),
             'hasFinancialOperations' => $user->financialOperations()->exists(),
             'filterYears' => OperationsFilterOptions::years($user),
             'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),

@@ -50,6 +50,7 @@ const {
     expenseCategories,
     filters,
     filtersActive,
+    suppressedSections,
     hasFinancialOperations,
     filterYears,
     filterCategories,
@@ -65,6 +66,9 @@ const {
     expenseCategories: ExpenseFormCategory[];
     filters: OperationsListFilters;
     filtersActive: boolean;
+    suppressedSections: Array<
+        'financial_operations' | 'own_transfers' | 'capital_movements'
+    >;
     hasFinancialOperations: boolean;
     filterYears: number[];
     filterCategories: OperationsFilterCategory[];
@@ -173,6 +177,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :categories="filterCategories"
             :accounts="filterAccounts"
             :term-deposits="filterTermDeposits"
+            :suppressed-sections="suppressedSections"
         />
 
         <IndexEmptyState
