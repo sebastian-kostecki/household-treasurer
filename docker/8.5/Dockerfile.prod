@@ -59,6 +59,16 @@ ENV VITE_APP_NAME="${VITE_APP_NAME}" \
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && touch /tmp/build.sqlite \
     && cp .env.example .env \
+    && sed -i \
+        -e 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' \
+        -e 's|^DB_DATABASE=.*|DB_DATABASE=/tmp/build.sqlite|' \
+        -e 's/^SESSION_DRIVER=.*/SESSION_DRIVER=file/' \
+        -e 's/^CACHE_STORE=.*/CACHE_STORE=file/' \
+        -e 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' \
+        -e 's/^MAIL_MAILER=.*/MAIL_MAILER=log/' \
+        -e 's/^MAIL_FROM_ADDRESS=.*/MAIL_FROM_ADDRESS=build@localhost/' \
+        -e 's/^BACKUP_NOTIFICATION_MAIL=.*/BACKUP_NOTIFICATION_MAIL=build@localhost/' \
+        .env \
     && php artisan key:generate --force \
     && php artisan wayfinder:generate --with-form --no-interaction \
     && npm run build \
