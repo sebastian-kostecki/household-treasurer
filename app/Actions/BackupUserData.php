@@ -7,12 +7,13 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 1;
+    public const SNAPSHOT_VERSION = 2;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -32,6 +33,11 @@ class BackupUserData
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($account): array => $this->serializeAccount($account))
+                ->all(),
+            'term_deposits' => $user->termDeposits()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($termDeposit): array => $this->serializeTermDeposit($termDeposit))
                 ->all(),
             'budgets' => $user->budgets()
                 ->orderBy('id')
@@ -84,6 +90,22 @@ class BackupUserData
             'archived_at' => $account->archived_at?->toIso8601String(),
             'created_at' => $account->created_at?->toIso8601String(),
             'updated_at' => $account->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeTermDeposit(TermDeposit $termDeposit): array
+    {
+        return [
+            'id' => $termDeposit->id,
+            'name' => $termDeposit->name,
+            'opening_date' => $termDeposit->opening_date->toDateString(),
+            'opening_balance_minor_units' => $termDeposit->opening_balance_minor_units,
+            'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
+            'created_at' => $termDeposit->created_at?->toIso8601String(),
+            'updated_at' => $termDeposit->updated_at?->toIso8601String(),
         ];
     }
 

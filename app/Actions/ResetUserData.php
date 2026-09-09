@@ -12,7 +12,9 @@ class ResetUserData
         DB::transaction(function () use ($user): void {
             $user->financialOperations()->delete();
             $user->ownTransfers()->delete();
+            $user->capitalMovements()->delete();
             $user->budgets()->delete();
+            $user->termDeposits()->delete();
             $user->accounts()->delete();
 
             DB::table('sessions')

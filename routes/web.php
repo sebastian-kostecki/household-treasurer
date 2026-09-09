@@ -9,6 +9,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OwnTransferController;
+use App\Http\Controllers\TermDepositController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -31,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');
+    Route::resource('term-deposits', TermDepositController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('operations', [OperationsController::class, 'index'])->name('operations');
     Route::get('operations/import', [CsvImportController::class, 'create'])->name('operations.import.create');
     Route::post('operations/import/preview', [CsvImportController::class, 'preview'])->name('operations.import.preview.store');
