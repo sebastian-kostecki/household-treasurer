@@ -60,6 +60,25 @@ return [
             'report' => false,
         ],
 
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('app/backups'),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'backups-offsite' => [
+            'driver' => 's3',
+            'key' => env('BACKUP_OFFSITE_KEY'),
+            'secret' => env('BACKUP_OFFSITE_SECRET'),
+            'region' => env('BACKUP_OFFSITE_REGION', 'eu-central'),
+            'bucket' => env('BACKUP_OFFSITE_BUCKET'),
+            'endpoint' => env('BACKUP_OFFSITE_ENDPOINT'),
+            'use_path_style_endpoint' => env('BACKUP_OFFSITE_USE_PATH_STYLE_ENDPOINT', true),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*
