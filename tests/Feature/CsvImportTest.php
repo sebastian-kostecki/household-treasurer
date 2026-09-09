@@ -1963,6 +1963,345 @@ CSV;
         $this->assertDatabaseCount('financial_operations', 0);
     }
 
+    public function test_cross_account_import_flags_pair_candidate_for_financial_operation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $checking, $incomeCategory, $expenseCategory] = $this->createImportFixture([
+            'name' => 'Checking',
+        ]);
+        $savings = Account::factory()->for($user)->create([
+            'name' => 'Savings',
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+
+        $this->previewCsv($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $savings, <<<'CSV'
+date,description,amount
+2026-03-16,Transfer from checking,100.00
+CSV);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', false)
+                ->where('rows.0.import_pair_candidate', true)
+                ->has('rows.0.pair_candidates', 1)
+                ->where('rows.0.pair_candidates.0.kind', 'financial_operation')
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+            );
+    }
+
+    public function test_same_account_exact_row_is_duplicate_not_pair_candidate(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory, $expenseCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true)
+                ->where('rows.0.import_pair_candidate', false),
+            );
+    }
+
+    public function test_pair_candidate_outside_date_window_is_not_flagged(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $checking, , $expenseCategory] = $this->createImportFixture([
+            'name' => 'Checking',
+        ]);
+        $savings = Account::factory()->for($user)->create([
+            'name' => 'Savings',
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->previewCsv($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $savings, <<<'CSV'
+date,description,amount
+2026-03-20,Transfer from checking,100.00
+CSV);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_pair_candidate', false),
+            );
+    }
+
+    public function test_pair_candidate_converts_financial_operation_into_own_transfer(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $checking, , $expenseCategory] = $this->createImportFixture([
+            'name' => 'Checking',
+            'current_balance_grosze' => 100000,
+        ]);
+        $savings = Account::factory()->for($user)->create([
+            'name' => 'Savings',
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+
+        $this->previewCsv($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $firstLeg = FinancialOperation::query()->firstOrFail();
+        $expenseCategory->refresh();
+        $this->assertSame(10000, $expenseCategory->execution_grosze);
+        $this->assertSame(90000, $checking->refresh()->current_balance_grosze);
+
+        $this->previewCsv($user, $savings, <<<'CSV'
+date,description,amount
+2026-03-16,Transfer from checking,100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $checking->id,
+                        'pair_first_leg_kind' => 'financial_operation',
+                        'pair_first_leg_id' => $firstLeg->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 0);
+        $this->assertDatabaseCount('own_transfers', 1);
+
+        $transfer = OwnTransfer::query()->firstOrFail();
+        $this->assertSame($checking->id, $transfer->source_account_id);
+        $this->assertSame($savings->id, $transfer->destination_account_id);
+        $this->assertSame(10000, $transfer->amount_grosze);
+        $this->assertSame('Transfer to savings', $transfer->description);
+        $this->assertSame('2026-03-15', $transfer->transfer_date->toDateString());
+        $this->assertNull($transfer->counterparty ?? null);
+        $this->assertNotNull($transfer->source_import_identity_digest);
+        $this->assertNotNull($transfer->destination_import_identity_digest);
+        $this->assertSame(90000, $checking->refresh()->current_balance_grosze);
+        $this->assertSame(10000, $savings->refresh()->current_balance_grosze);
+        $this->assertSame(0, $expenseCategory->refresh()->execution_grosze);
+    }
+
+    public function test_pair_candidate_can_be_ignored_and_booked_as_income(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $checking, $incomeCategory, $expenseCategory] = $this->createImportFixture([
+            'name' => 'Checking',
+        ]);
+        $savings = Account::factory()->for($user)->create([
+            'name' => 'Savings',
+            'opening_date' => '2026-01-01',
+            'current_balance_grosze' => 0,
+        ]);
+
+        $this->previewCsv($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $savings, <<<'CSV'
+date,description,amount
+2026-03-16,Transfer from checking,100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 2);
+        $this->assertDatabaseCount('own_transfers', 0);
+    }
+
+    public function test_preview_with_only_unchecked_pair_candidates_refuses_submit(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $checking, , $expenseCategory] = $this->createImportFixture();
+        $savings = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->previewCsv($user, $checking, <<<'CSV'
+date,description,amount
+2026-03-15,Transfer to savings,-100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $savings, <<<'CSV'
+date,description,amount
+2026-03-16,Transfer from checking,100.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => false,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $checking->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+    }
+
+    public function test_cash_account_first_leg_can_be_pair_candidate(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $bank, , $expenseCategory] = $this->createImportFixture([
+            'name' => 'Bank',
+        ]);
+        $cash = Account::factory()->for($user)->cash()->create([
+            'name' => 'Cash',
+            'opening_date' => '2026-01-01',
+            'current_balance_grosze' => 0,
+        ]);
+
+        $this->previewCsv($user, $bank, <<<'CSV'
+date,description,amount
+2026-03-15,ATM withdrawal,-200.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $cash, <<<'CSV'
+date,description,amount
+2026-03-15,Cash deposit,200.00
+CSV);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_pair_candidate', true),
+            );
+    }
+
     /**
      * @param  array<string, mixed>  $accountAttributes
      * @return array{0: User, 1: Account, 2: Category, 3: Category}
