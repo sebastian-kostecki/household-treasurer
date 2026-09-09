@@ -28,6 +28,9 @@ trait CapitalMovementValidationRules
             'import_identity_date' => ['prohibited'],
             'import_identity_amount_minor_units' => ['prohibited'],
             'import_identity_digest' => ['prohibited'],
+            'convert_to_income' => ['prohibited'],
+            'convert_to_expense' => ['prohibited'],
+            'convert_to_own_transfer' => ['prohibited'],
         ];
     }
 
