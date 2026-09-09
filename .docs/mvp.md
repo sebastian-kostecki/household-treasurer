@@ -36,6 +36,7 @@ Produkt łączy planowanie według kategorii z ewidencją rzeczywistych przepły
 Użytkownik:
 
 - tworzy budżet dla wybranego roku,
+- przy tworzeniu szkicu może skopiować kategorie i plan aktualny z wcześniejszego własnego budżetu (nowe rekordy, bez tożsamości ponad latami),
 - tworzy kategorie dochodów i wydatków,
 - określa roczne planowane kwoty dochodów,
 - przypisuje roczne limity kategoriom wydatkowym,
@@ -118,8 +119,8 @@ System udostępnia:
 ## 5. Główny przebieg użytkownika
 
 1. Użytkownik tworzy rachunki bankowe i konta gotówkowe oraz podaje ich salda otwarcia.
-2. Tworzy budżet roczny i kategorie.
-3. Planuje dochody oraz limity wydatków.
+2. Tworzy budżet roczny; gdy ma wcześniejszy budżet z niezarchiwizowanymi kategoriami, może skopiować te kategorie wraz z planem aktualnym.
+3. W razie potrzeby poprawia kategorie oraz planuje dochody i limity wydatków.
 4. Rozpoczyna wykonanie i zapisuje plan początkowy.
 5. Dodaje ręcznie albo importuje dochody i wydatki.
 6. Rejestruje transfery między własnymi kontami.
@@ -142,6 +143,9 @@ System udostępnia:
 - formalne zatwierdzanie zmian budżetowych,
 - korekty salda i pełny ślad audytowy,
 - zamknięcie roku oraz wersjonowane sprawozdania,
+- tożsamość Category ponad latami oraz szablon kategorii,
+- kopiowanie kategorii do już istniejącego budżetu,
+- wybór podzbioru kategorii w dialogu tworzenia roku,
 - raporty kwartalne i rozbudowane raporty okresowe,
 - parowanie dwóch wierszy w jednym pliku Importu oraz dopasowywanie ręcznych wpisów jako Import duplicate albo Import pair candidate,
 - bezpośrednie integracje bankowe,
@@ -157,7 +161,7 @@ System udostępnia:
 
 MVP jest kompletne, gdy użytkownik może:
 
-1. utworzyć roczny budżet z kategoriami oraz planowanymi dochodami i limitami wydatków,
+1. utworzyć roczny budżet z kategoriami oraz planowanymi dochodami i limitami wydatków, w tym rozpocząć kolejny rok przez skopiowanie kategorii i planu aktualnego,
 2. zapisać plan początkowy i później aktualizować plan bieżący,
 3. prowadzić salda rachunków bankowych i kont gotówkowych,
 4. rejestrować dochody i wydatki przypisane do kont oraz kategorii,
