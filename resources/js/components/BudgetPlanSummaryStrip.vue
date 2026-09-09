@@ -29,6 +29,13 @@ const balanceClass = computed(() => {
 <template>
     <Card>
         <CardContent class="grid gap-4 pt-6 sm:grid-cols-3">
+            <div class="sm:col-span-3">
+                <p
+                    class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
+                >
+                    {{ t.budget.annual_plan }}
+                </p>
+            </div>
             <div>
                 <p class="text-muted-foreground text-xs">
                     {{ t.budget.planned_income }}

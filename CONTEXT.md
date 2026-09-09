@@ -38,7 +38,7 @@ _Avoid_: Tag, Label, Envelope, Category template, Category kind, a Category iden
 
 **Execution**:
 Booked income and expense amounts against a Category in a Budget that has started execution.
-_Avoid_: Actuals (in code names; UI may say “wykonanie”)
+_Avoid_: Actuals (in code names; UI may say “wykonanie”), Cash Expectation, Agenda (as this plane)
 
 **Available Limit**:
 Current Plan of an expense Category minus booked expenses. Not cash on Accounts.
@@ -50,14 +50,18 @@ _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Pol
 
 **Financial Operation**:
 An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
-_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type)
+_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type), Cash Expectation
 
 **Expense refund**:
-A Financial Operation on an expense Category with a negative amount. Not Income: money returned from a purchase belongs here, not on an income Category. Restores Account balance and Available Limit, so Execution on that Category is net spend.
+A negative amount on an expense Category (Financial Operation or Cash Expectation), not Income and not a fourth persisted type. As a Financial Operation it restores Account balance and Available Limit, so Execution is net spend; as a Cash Expectation it does not move Liquidity or Execution.
 _Avoid_: Income (for money returned from a purchase), refund as a fourth persisted type
 
+**Cash Expectation**:
+A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue at create; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. One record is one movement, not a series; it sits on Agenda and does not move Liquidity or Execution.
+_Avoid_: Obligation, Payment, Transaction, Unpaid, Pending, Schedule, Scheduled, Plan, Planned, Forecast, Future Operation, Upcoming, Accrual, Due, due date, Payable, Receivable, Reminder, Commitment, Movement (as this record), Operation (as this record), operation date (for this record’s date), Event (as this record), Cash Event, Expectation (unqualified), Financial Operation, Own Transfer, Capital Movement
+
 **Counterparty**:
-The other party of a Financial Operation: the payer on income, the payee on expense or expense refund. Optional. Absent on Own Transfer.
+The other party of a Financial Operation or a Cash Expectation: the payer on income, the payee on expense or expense refund. Optional. Absent on Own Transfer.
 _Avoid_: Subject, Payee, Payer, Party (as this field’s name)
 
 **Raw Statement Description**:
@@ -77,8 +81,8 @@ A non-blocking notice before saving a Financial Operation, Own Transfer, Capital
 _Avoid_: Overdraft, insufficient funds (both imply a block), a second warning type for Term Deposit
 
 **Liquidity**:
-The plane of the User’s holdings as money, distinct from Budget Execution. Not a single unqualified total: the figures on this plane are Spendable Liquidity and Total funds.
-_Avoid_: Net worth, Wealth, Portfolio, using Liquidity as one number without Spendable Liquidity or Total funds
+The plane of the User’s holdings as money, distinct from Budget Execution and from Agenda. Not a single unqualified total: the figures on this plane are Spendable Liquidity and Total funds.
+_Avoid_: Net worth, Wealth, Portfolio, using Liquidity as one number without Spendable Liquidity or Total funds, Agenda (as this plane)
 
 **Spendable Liquidity**:
 The sum of Account current balances (bank and cash). Money not in Term Deposits. Does not include Term Deposit balances.
@@ -87,6 +91,10 @@ _Avoid_: Available Limit, Total funds, Liquidity (unqualified), Łączne środki
 **Total funds**:
 Spendable Liquidity plus the current balances of Term Deposits. A Capital Movement into a Term Deposit does not change Total funds; it moves money from Spendable Liquidity onto that Term Deposit.
 _Avoid_: Liquidity (unqualified), Spendable Liquidity, Net worth, Wealth
+
+**Agenda**:
+The plane of Cash Expectations, beside Liquidity and Execution. A calendar of those records, not a total and not a liquidity forecast.
+_Avoid_: Horizon, Outlook, Calendar, Schedule, Forecast, Pipeline, Pending, Expectations (as the plane name), Liquidity (for this plane), Execution (for this plane)
 
 **Minor unit**:
 An integer count of a currency’s ISO 4217 subunit. Every stored amount is a signed bigint of Minor units, never a decimal of major units. MVP amounts are PLN (scale 2); other currencies are not in the schema yet, so column and code names stay currency-neutral (`*_minor_units`).

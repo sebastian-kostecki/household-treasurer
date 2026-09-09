@@ -39,7 +39,10 @@ export function sortCategoriesByRisk(
     });
 }
 
-export function planChanged(category: DashboardCategory): boolean {
+export function planChanged(category: {
+    initial_plan_minor_units: number;
+    current_plan_minor_units: number;
+}): boolean {
     return (
         category.initial_plan_minor_units !== category.current_plan_minor_units
     );

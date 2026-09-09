@@ -171,6 +171,7 @@ class BudgetController extends Controller
      *     current_plan_minor_units: int,
      *     execution_minor_units: int,
      *     remaining_minor_units: int,
+     *     percent_complete: int|null,
      *     is_over_limit: bool,
      *     can_edit: bool,
      *     can_delete: bool,
@@ -203,6 +204,10 @@ class BudgetController extends Controller
             'current_plan_minor_units' => $currentPlanMinorUnits,
             'execution_minor_units' => $executionMinorUnits,
             'remaining_minor_units' => $remainingMinorUnits,
+            'percent_complete' => CategoryExecutionMetrics::percentComplete(
+                $currentPlanMinorUnits,
+                $executionMinorUnits,
+            ),
             'is_over_limit' => $category->type === CategoryType::Expense
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
