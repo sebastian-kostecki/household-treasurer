@@ -13,7 +13,7 @@ A liquid holding the User owns: a bank account or a cash account. Has an opening
 _Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User, Term Deposit
 
 **Term Deposit**:
-A holding of the User’s money in a bank term-deposit product. Not an Account and not a Category. Each Term Deposit is its own holding, not a pooled balance. Not an Own Transfer endpoint and not the Account of a Financial Operation. Polish UI copy: „lokata”.
+A holding of the User’s money in a bank term-deposit product. Not an Account and not a Category. Each Term Deposit is its own holding, not a pooled balance. Not an Own Transfer endpoint and not the Account of a Financial Operation. Has an opening date (the first day this holding is in the ledger, not the bank product start) and a single opening balance: that snapshot is not Income, not a capital movement, not a split of capital versus interest, and does not change any Account. Opening balance may be zero. Polish UI copy: „lokata”.
 _Avoid_: Deposit (unqualified), Savings, Investment, Lokata in code, Account (for this holding)
 
 **Bank**:
