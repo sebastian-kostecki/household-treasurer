@@ -64,7 +64,7 @@ Operacja ma jeden z trzech typów:
 - **wydatek** — zmniejsza saldo konta i wykorzystuje limit wskazanej kategorii wydatkowej,
 - **transfer własny** — przenosi środki między dwoma kontami użytkownika bez wpływu na wykonanie budżetu.
 
-Dochód i wydatek zawierają co najmniej datę, kwotę, opis, konto i kategorię odpowiedniego typu. Użytkownik może edytować i usuwać operacje.
+Dochód i wydatek zawierają co najmniej datę, kwotę, opis, konto i kategorię odpowiedniego typu. Użytkownik może edytować i usuwać operacje. Edycja może zmienić dochód w zwrot wydatku (kategoria wydatkowa) i zwrot z powrotem w dochód; Import nie zgaduje tej klasyfikacji.
 
 Transfer tworzy atomowo obciążenie konta źródłowego i uznanie konta docelowego. Konta muszą być różne, a transfer nie otrzymuje kategorii budżetowej. Wypłata z bankomatu jest transferem z rachunku bankowego na konto gotówkowe.
 

@@ -48,6 +48,10 @@ _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Pol
 An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import.
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type)
 
+**Expense refund**:
+A Financial Operation on an expense Category with a negative amount. Not Income: money returned from a purchase belongs here, not on an income Category. Restores Account balance and Available Limit, so Execution on that Category is net spend.
+_Avoid_: Income (for money returned from a purchase), refund as a fourth persisted type
+
 **Counterparty**:
 The other party of a Financial Operation: the payer on income, the payee on expense or expense refund. Optional. Absent on Own Transfer.
 _Avoid_: Subject, Payee, Payer, Party (as this field’s name)
