@@ -2,12 +2,12 @@
 
 ## 1. Streszczenie produktu
 
-Household Treasurer jest responsywną aplikacją webową do planowania rocznego budżetu domowego, rejestrowania jego wykonania oraz kontrolowania rzeczywistych środków na rachunkach bankowych i kontach gotówkowych.
+Household Treasurer jest responsywną aplikacją webową do planowania rocznego budżetu domowego, rejestrowania jego wykonania oraz kontrolowania rzeczywistych środków na rachunkach bankowych, kontach gotówkowych i lokatach bankowych (Term Deposit).
 
 Produkt łączy dwie odrębne perspektywy:
 
 - **budżet** — plan początkowy, plan aktualny i wykonanie kategorii,
-- **płynność** — salda kont i łączna wartość posiadanych środków.
+- **płynność** — Spendable Liquidity (salda kont) i Total funds (te salda plus bieżące salda lokat).
 
 MVP obsługuje wielu niezależnych użytkowników. Każdy zarządza wyłącznie własnymi danymi, używając stałej waluty bazowej PLN.
 
@@ -18,8 +18,8 @@ Osoba prowadząca budżet domowy potrzebuje jednocześnie:
 - zaplanować dochody i limity wydatków na cały rok,
 - zachować punkt odniesienia w postaci pierwotnego planu,
 - aktualizować plan w reakcji na zmieniającą się sytuację,
-- rejestrować rzeczywiste dochody, wydatki i transfery,
-- wiedzieć, ile środków faktycznie znajduje się na kontach,
+- rejestrować rzeczywiste dochody, wydatki, transfery i ruchy kapitału na lokaty,
+- wiedzieć, ile środków jest do dyspozycji na kontach, a ile łącznie z lokatami,
 - kontrolować wykonanie kategorii bez mylenia limitu budżetowego z dostępnymi środkami.
 
 Arkusze kalkulacyjne i oddzielne zestawienia rachunków wymagają ręcznego uzgadniania danych. Utrudnia to ocenę, czy plan jest wykonywany oraz czy użytkownik posiada środki potrzebne do jego realizacji.
@@ -32,8 +32,9 @@ Arkusze kalkulacyjne i oddzielne zestawienia rachunków wymagają ręcznego uzga
 - Zachować niezmienny plan początkowy i oddzielić go od planu aktualnego.
 - Powiązać rzeczywiste dochody i wydatki jednocześnie z kontem oraz kategorią.
 - Zapewnić poprawną ewidencję transferów między własnymi kontami.
+- Umożliwić ewidencję lokat bankowych (Term Deposit) i ruchów kapitału między kontem a lokatą bez wpływu na wykonanie budżetu.
 - Ułatwić wprowadzanie operacji przez kontrolowany Import z pliku CSV lub XLSX.
-- Zapewnić przejrzysty obraz wykonania budżetu i bieżącej płynności.
+- Zapewnić przejrzysty obraz wykonania budżetu oraz Spendable Liquidity i Total funds.
 
 ### 3.2. Mierniki sukcesu MVP
 
@@ -45,9 +46,11 @@ MVP spełnia cel produktowy, gdy użytkownik może samodzielnie:
 4. rejestrować, edytować i usuwać dochody, wydatki, zwroty oraz transfery własne,
 5. importować wybrane operacje z pliku CSV lub XLSX po sprawdzeniu podglądu,
 6. porównywać plan początkowy, plan aktualny i wykonanie każdej kategorii,
-7. odczytać salda poszczególnych kont i łączną wartość środków,
+7. odczytać salda poszczególnych kont (Spendable Liquidity) oraz Total funds łącznie z lokatami,
 8. rozpoznać przekroczenie limitu niezależnie od stanu środków na kontach,
-9. rozpocząć kolejny rok, kopiując kategorie i plan aktualny z wcześniejszego budżetu.
+9. rozpocząć kolejny rok, kopiując kategorie i plan aktualny z wcześniejszego budżetu,
+10. utworzyć lokatę z datą i saldem otwarcia ewidencji oraz przenieść kapitał między kontem a lokatą,
+11. sklasyfikować wiersz Importu jako Capital Movement na istniejącą lokatę, w tym rozdzielić zwrot kapitału i odsetki.
 
 ## 4. Użytkownik i platforma
 
@@ -74,8 +77,9 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - Budżety różnych lat mogą istnieć równolegle w różnych fazach.
 - Przy tworzeniu szkicu użytkownik może skopiować kategorie i plan aktualny z wcześniejszego własnego budżetu; kopia tworzy nowe kategorie, a nie tożsamość ponad latami.
 - Konta istnieją niezależnie od budżetów i przechodzą między latami.
-- Walutą wszystkich kont, budżetów i operacji w MVP jest PLN.
-- Dochody i wydatki są ujmowane kasowo, w dniu rzeczywistej zapłaty.
+- Term Deposit (lokata bankowa) nie jest kontem ani kategorią. Każda lokata jest osobnym holdingiem, nie wspólną pulą. Istnieje niezależnie od roku budżetowego.
+- Walutą wszystkich kont, lokat, budżetów i operacji w MVP jest PLN.
+- Dochody i wydatki są ujmowane kasowo, w dniu rzeczywistej zapłaty. Odsetki od lokaty są zwykłym dochodem na koncie i kategorii dochodowej; nie zmieniają salda lokaty.
 - Wszystkie dane są zapisywane trwale.
 - Kwoty są ewidencjonowane z dokładnością do jednego grosza, bez obliczeń zmiennoprzecinkowych.
 
@@ -86,9 +90,10 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 1. Użytkownik rejestruje się i loguje.
 2. Tworzy rachunki bankowe oraz konta gotówkowe.
 3. Dla każdego konta podaje datę i saldo otwarcia.
-4. Tworzy szkic budżetu dla wybranego roku. Gdy ma wcześniejszy budżet z niezarchiwizowanymi kategoriami, może skopiować te kategorie wraz z planem aktualnym.
-5. W razie potrzeby poprawia, usuwa lub dopisuje kategorie oraz planowane kwoty na szkicu.
-6. Sprawdza równowagę planu i rozpoczyna wykonanie.
+4. W razie potrzeby tworzy lokaty (Term Deposit) z datą i saldem otwarcia ewidencji. Saldo otwarcia lokaty nie jest dochodem i nie zmienia salda konta.
+5. Tworzy szkic budżetu dla wybranego roku. Gdy ma wcześniejszy budżet z niezarchiwizowanymi kategoriami, może skopiować te kategorie wraz z planem aktualnym.
+6. W razie potrzeby poprawia, usuwa lub dopisuje kategorie oraz planowane kwoty na szkicu.
+7. Sprawdza równowagę planu i rozpoczyna wykonanie.
 
 ### 6.2. Bieżąca ewidencja
 
@@ -97,11 +102,12 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 3. Przed zapisaniem wydatku widzi dostępny limit i wartość po operacji.
 4. Zapisana operacja zmienia saldo konta i wykonanie kategorii.
 5. Transfer własny zmienia wyłącznie salda dwóch kont.
-6. Przy Imporcie podgląd oznacza już zapisany wiersz z tego konta (Import duplicate) oraz drugą nogę transferu własnego z innego konta (Import pair candidate). Użytkownik włącza te wiersze świadomie.
+6. Capital Movement przenosi kapitał między kontem a istniejącą lokatą i nie wpływa na wykonanie budżetu.
+7. Przy Imporcie podgląd oznacza już zapisany wiersz z tego konta (Import duplicate) oraz drugą nogę transferu własnego z innego konta (Import pair candidate). Użytkownik włącza te wiersze świadomie. Wiersz może zostać sklasyfikowany jako Capital Movement; Capital Movement nie jest kandydatem pary.
 
 ### 6.3. Kontrola
 
-1. Użytkownik przegląda salda kont i łączną wartość środków.
+1. Użytkownik przegląda salda kont (Spendable Liquidity), salda lokat oraz Total funds.
 2. Dla każdej kategorii porównuje plan początkowy, plan aktualny i wykonanie.
 3. Analizuje pozostałą kwotę, procent wykonania oraz przekroczenia.
 4. W razie potrzeby aktualizuje plan albo pozostawia widoczne odchylenie.
@@ -125,7 +131,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-ACC-06**: Konto bez operacji może zostać usunięte.
 - **FR-ACC-07**: Konto użyte w operacji nie może zostać usunięte, ale może zostać zarchiwizowane.
 - **FR-ACC-08**: Zarchiwizowane konto nie jest dostępne przy tworzeniu nowych operacji i może zostać przywrócone.
-- **FR-ACC-09**: System pokazuje saldo bieżące każdego konta oraz sumę sald wszystkich kont, z wyraźnym oznaczeniem kont zarchiwizowanych.
+- **FR-ACC-09**: System pokazuje saldo bieżące każdego konta oraz sumę sald wszystkich kont (Spendable Liquidity), z wyraźnym oznaczeniem kont zarchiwizowanych. Ta suma nie obejmuje sald lokat.
 - **FR-ACC-10**: Saldo konta może być ujemne i musi być wtedy jednoznacznie oznaczone.
 
 ### 7.3. Budżet roczny
@@ -138,7 +144,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-BUD-06**: Rozpoczęcie wykonania jest nieodwracalne.
 - **FR-BUD-07**: Budżetu w fazie wykonania nie można usunąć.
 - **FR-BUD-08**: Brak formalnego zamknięcia roku oznacza, że starszy budżet pozostaje w fazie wykonania i może przyjmować operacje historyczne.
-- **FR-BUD-09**: Przed rozpoczęciem wykonania system pokazuje ostrzeżenie, jeżeli planowany deficyt nie ma pokrycia w saldach kont obliczonych na początek roku budżetowego.
+- **FR-BUD-09**: Przed rozpoczęciem wykonania system pokazuje ostrzeżenie, jeżeli planowany deficyt nie ma pokrycia w saldach kont obliczonych na początek roku budżetowego. Pokrycie liczy się ze Spendable Liquidity (konta), nie z Total funds ani z sald lokat.
 - **FR-BUD-10**: Ostrzeżenie o planowanym deficycie nie blokuje rozpoczęcia wykonania.
 - **FR-BUD-11**: Przy tworzeniu szkicu budżetu użytkownik może skopiować kategorie i ich plan aktualny z innego własnego budżetu o wcześniejszym roku.
 - **FR-BUD-12**: Dialog tworzenia oferuje wyłącznie budżety źródłowe tego użytkownika z rokiem wcześniejszym niż rok docelowy i z co najmniej jedną niezarchiwizowaną kategorią. Domyślne źródło to budżet poprzedniego roku kalendarzowego, a gdy go nie ma — najnowszy kwalifikowany wcześniejszy budżet. Brak kwalifikowanego źródła oznacza utworzenie pustego szkicu jak dotychczas.
@@ -192,11 +198,39 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-TRF-08**: Wypłata z bankomatu jest rejestrowana jako transfer z rachunku bankowego na konto gotówkowe.
 - **FR-TRF-09**: Data transferu nie może przypadać w przyszłości ani być wcześniejsza niż data otwarcia któregokolwiek z użytych kont.
 
-### 7.7. Import
+### 7.7. Lokaty (Term Deposit)
 
-Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **Import format**, wskazuje konto, przegląda podgląd i zatwierdza wybrane wiersze. To nie jest połączenie z bankiem.
+Term Deposit jest holdingiem środków w bankowym produkcie lokaty. Nie jest kontem, kategorią, końcem transferu własnego ani kontem operacji finansowej. W interfejsie: „lokata”.
 
-Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakładki: **Import duplicate** (to samo konto, ten sam zamrożony wiersz Importu) oraz **Import pair candidate** (inne konto już zaksięgowało te środki przez wcześniejszy Import). Oba startują odznaczone; użytkownik je włącza. Niepoprawny wiersz wygrywa z obiema nakładkami. Jeden Import dotyczy jednego wskazanego konta.
+- **FR-TD-01**: Użytkownik może utworzyć lokatę z nazwą, datą otwarcia ewidencji i saldem otwarcia.
+- **FR-TD-02**: Data otwarcia to pierwszy dzień tego holdingu w ewidencji, nie data rozpoczęcia produktu bankowego. Saldo otwarcia jest migawką: nie jest dochodem, nie jest ruchem kapitału, nie rozdziela kapitału od odsetek i nie zmienia żadnego konta. Może być zerowe albo ujemne.
+- **FR-TD-03**: Saldo bieżące lokaty jest równe tej migawce plus Capital Movements. Odsetki nie zmieniają salda lokaty.
+- **FR-TD-04**: Po utworzeniu data otwarcia jest niezmienna. Użytkownik może edytować nazwę i saldo otwarcia; zmiana salda otwarcia przelicza saldo bieżące o tę samą różnicę, bez tworzenia dochodu ani Capital Movement.
+- **FR-TD-05**: Lokatę bez ruchów kapitału można usunąć. Lokaty użytej w Capital Movement nie można usunąć, ale można ją zarchiwizować i przywrócić.
+- **FR-TD-06**: Zarchiwizowana lokata nie jest dostępna przy tworzeniu nowych Capital Movements. Historyczne ruchy pozostają. Lista lokat ukrywa zarchiwizowane pozycje, dopóki użytkownik ich nie pokaże.
+- **FR-TD-07**: Użytkownik ma osobną pozycję nawigacji „Lokaty” (po Kontach): lista i dialogi tworzenia oraz edycji. Karty na pulpicie są tylko do odczytu i pomijają zarchiwizowane lokaty. Lista operacji może filtrować po lokacie.
+- **FR-TD-08**: Saldo bieżące lokaty może być ujemne i musi być wtedy jednoznacznie oznaczone na każdej powierzchni, która je pokazuje.
+- **FR-TD-09**: Utworzenie albo korekta migawki otwarcia, która zostawiłaby saldo bieżące ujemne, pokazuje Negative Balance Warning i nie blokuje zapisu. Ta operacja nie zmienia konta, więc ostrzeżenie dotyczy wyłącznie lokaty.
+- **FR-TD-10**: Import nie tworzy lokaty. Użytkownik wybiera istniejącą lokatę przy klasyfikacji wiersza.
+- **FR-TD-11**: First Run nie wymaga lokaty. Checklista pierwszego uruchomienia nadal obejmuje wyłącznie konto, budżet, kategorię i budżet w wykonaniu.
+
+### 7.8. Ruchy kapitału (Capital Movement)
+
+- **FR-CM-01**: Użytkownik może ręcznie utworzyć Capital Movement między jednym niezarchiwizowanym kontem a jedną niezarchiwizowaną lokatą. Gotówka jest poprawnym kontem.
+- **FR-CM-02**: Rekord zawiera datę, dodatnią niezerową kwotę, opis, konto, lokatę i kierunek: konto → lokata albo lokata → konto. Nie ma kategorii i nie wpływa na wykonanie budżetu. Nie ma Counterparty.
+- **FR-CM-03**: Jeden rekord zmienia oba holdingi o tę samą kwotę. Lokata może mieć wiele ruchów; każdy wskazuje własne konto, więc zwrot kapitału nie musi używać tego samego konta co otwarcie.
+- **FR-CM-04**: Data nie może przypadać w przyszłości, być wcześniejsza niż data otwarcia konta ani wcześniejsza niż data otwarcia lokaty.
+- **FR-CM-05**: Użytkownik może edytować i usuwać Capital Movement. Utworzenie, edycja albo usunięcie aktualizuje obie strony albo żadnej.
+- **FR-CM-06**: Ruch może spowodować ujemne saldo konta, lokaty albo obu. Negative Balance Warning nie blokuje zapisu; gdy obie strony zejdą poniżej zera, system pokazuje dwa ostrzeżenia.
+- **FR-CM-07**: Przy edycji użytkownik może przebudować operację finansową albo transfer własny w Capital Movement i odwrotnie. Przebudowa odwraca poprzedni wpływ i księguje nowy typ; nie zostawia drugiego zaksięgowanego ruchu. Odcisk Importu, jeśli istnieje, przechodzi na nowy rekord. Podział zwrotu kapitału i odsetek jest wyłącznie w Imporcie — edycja nie przyjmuje pól odsetek.
+- **FR-CM-08**: Capital Movement z Importu przechowuje co najwyżej jeden oryginalny opis z wyciągu (konto płynne). Ręczne utworzenie pozostawia go pustym. Edycja opisu nie zmienia oryginalnego opisu z wyciągu.
+- **FR-CM-09**: Brak bezpośredniego ruchu lokata → lokata. Przeniesienie kapitału między lokatami to zwrot na konto, potem otwarcie albo zasilenie drugiej lokaty.
+
+### 7.9. Import
+
+Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **Import format**, wskazuje konto, przegląda podgląd i zatwierdza wybrane wiersze. To nie jest połączenie z bankiem. Import może utworzyć operacje finansowe, transfery własne i Capital Movements.
+
+Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakładki: **Import duplicate** (to samo konto, ten sam zamrożony wiersz Importu) oraz **Import pair candidate** (inne konto już zaksięgowało te środki przez wcześniejszy Import). Oba startują odznaczone; użytkownik je włącza. Niepoprawny wiersz wygrywa z obiema nakładkami. Jeden Import dotyczy jednego wskazanego konta. Capital Movement nigdy nie jest Import pair candidate ani pierwszą nogą pary.
 
 - **FR-IMP-01**: Użytkownik może wczytać plik CSV albo XLSX.
 - **FR-IMP-02**: Użytkownik wybiera Import format: mBank, BNP Paribas albo Inny. System może wstępnie zaznaczyć format na podstawie rozszerzenia pliku; użytkownik może to zmienić. System nie importuje po cichej autodetekcji.
@@ -212,18 +246,21 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-IMP-12**: System pokazuje podgląd sparsowanych wierszy przed utworzeniem operacji.
 - **FR-IMP-13**: Użytkownik wybiera poprawne wiersze przeznaczone do Importu.
 - **FR-IMP-14**: Każdy wybrany wiersz musi otrzymać typ operacji oraz dane wymagane dla tego typu.
-- **FR-IMP-15**: Użytkownik może utworzyć z wiersza dochód, wydatek, zwrot albo transfer własny.
+- **FR-IMP-15**: Użytkownik może utworzyć z wiersza dochód, wydatek, zwrot, transfer własny albo Capital Movement.
 - **FR-IMP-16**: Dla transferu użytkownik wskazuje drugie konto, a system tworzy cały transfer atomowo. Transfer własny z pierwszego pliku rusza oba salda przy tym zatwierdzeniu; system nie czeka na drugi Import.
 - **FR-IMP-17**: Dwa wiersze tego samego pliku nie są parowane jako strony jednego transferu własnego.
-- **FR-IMP-18**: Podgląd oznacza Import duplicate, gdy wiersz jest tym samym wierszem Importu co już zatwierdzona pozycja z Importu tego użytkownika na tym koncie: data z pliku, kwota ze znakiem i oryginalny opis z wyciągu, zamrożone w chwili zapisu. Wiersz pozostaje poprawny; pole wyboru jest odznaczone. Ręczne wpisy oraz rekordy zapisane, zanim istniały odciski Importu, nie są Import duplicate. Edycja daty, kwoty, konta, opisu albo nadawcy / odbiorcy nie zmienia odcisku. Usunięcie rekordu usuwa odcisk.
+- **FR-IMP-18**: Podgląd oznacza Import duplicate, gdy wiersz jest tym samym wierszem Importu co już zatwierdzona pozycja z Importu tego użytkownika na tym koncie: data z pliku, kwota ze znakiem i oryginalny opis z wyciągu, zamrożone w chwili zapisu. Trafienie obejmuje operację finansową, transfer własny i Capital Movement. Wiersz pozostaje poprawny; pole wyboru jest odznaczone. Ręczne wpisy oraz rekordy zapisane, zanim istniały odciski Importu, nie są Import duplicate. Edycja daty, kwoty, konta, opisu albo nadawcy / odbiorcy nie zmienia odcisku. Usunięcie rekordu usuwa odcisk.
 - **FR-IMP-19**: Włączenie Import duplicate i zatwierdzenie może utworzyć drugi rekord. Potwierdzenie jest wymagane tylko wtedy, gdy użytkownik wybrał co najmniej jeden Import duplicate. System oznacza znane trafienia i nie gwarantuje unikalności wszystkich wierszy.
 - **FR-IMP-20**: Wszystkie wybrane poprawne pozycje — w tym pary i zwykłe księgowania — są zapisywane atomowo albo żadna nie zostaje zapisana.
-- **FR-IMP-21**: Podgląd oznacza Import pair candidate, gdy wiersz należy do tego użytkownika, leży na innym koncie niż istniejąca pozycja z Importu, zamrożone kwoty ze znakiem są dokładnymi przeciwieństwami, a zamrożone daty z pliku mieszczą się w oknie trzech dni włącznie. Ręczne wpisy nie są kandydatami. To samo konto i ten sam zamrożony wiersz to Import duplicate, nie para.
+- **FR-IMP-21**: Podgląd oznacza Import pair candidate, gdy wiersz należy do tego użytkownika, leży na innym koncie niż istniejąca pozycja z Importu, zamrożone kwoty ze znakiem są dokładnymi przeciwieństwami, a zamrożone daty z pliku mieszczą się w oknie trzech dni włącznie. Ręczne wpisy nie są kandydatami. To samo konto i ten sam zamrożony wiersz to Import duplicate, nie para. Capital Movement nigdy nie jest kandydatem pary i nigdy nie jest pierwszą nogą.
 - **FR-IMP-22**: Zaznaczenie Import pair candidate i zatwierdzenie pozostawia jeden transfer własny: albo przekształca pierwszą nogę będącą dochodem albo wydatkiem (wykonanie kategorii wraca, potem ruszają salda obu kont), albo dopina drugą tożsamość Importu do istniejącego transferu własnego bez ponownego ruchu sald. Usunięcie transferu własnego usuwa obie tożsamości; nie ma osobnego rozparowania przywracającego dochód albo wydatek.
 - **FR-IMP-23**: Użytkownik może sklasyfikować kandydata będącego wyłącznie dochodem albo wydatkiem jako dochód, wydatek, zwrot albo nowy transfer własny na inne konto. Gdy w zbiorze kandydatów jest transfer własny, który już ruszył konto z podglądu, typ jest zablokowany na transfer własny.
 - **FR-IMP-24**: Po parze transfer własny przechowuje dwa oryginalne opisy z wyciągu i dwa odciski Import duplicate, po jednym na konto z Importu. Ponowny Import dowolnego z tych plików oznacza wiersz jako Import duplicate.
+- **FR-IMP-25**: Domyślny typ w podglądzie nadal wynika ze znaku kwoty (uznanie = dochód, obciążenie = wydatek). Użytkownik musi świadomie przełączyć typ na Capital Movement i wskazać istniejącą lokatę. Kierunek wynika ze znaku na koncie: obciążenie to konto → lokata, uznanie to lokata → konto. System nie zgaduje lokaty z układu pliku banku.
+- **FR-IMP-26**: Na wierszu uznania sklasyfikowanym jako Capital Movement użytkownik może podać kwotę odsetek i kategorię dochodową. Zatwierdzenie tworzy dwa niezależne rekordy: Capital Movement (lokata → konto) na resztę kapitału oraz operację finansową (dochód) na wpisane odsetki. Nie są one trwałą parą. Kwota odsetek musi być dodatnia i mniejsza od kwoty z pliku, tak aby kapitał pozostał dodatni. Ręczne dodanie nigdy nie tworzy obu rekordów w jednym zapisie.
+- **FR-IMP-27**: Gdy jeden wiersz zatwierdza Capital Movement i dochód z odsetek, oba rekordy otrzymują tę samą tożsamość wiersza pliku (nie dwa odciski rozdzielonych kwot). Capital Movement ma jeden odcisk, na koncie płynnym.
 
-### 7.8. Raportowanie i kontrola wykonania
+### 7.10. Raportowanie i kontrola wykonania
 
 - **FR-REP-01**: System pokazuje plan początkowy, plan aktualny, wykonanie, pozostałą kwotę i procent wykonania każdej kategorii.
 - **FR-REP-02**: Dla kategorii dodanej podczas wykonania plan początkowy jest prezentowany jako 0 PLN.
@@ -231,16 +268,19 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-REP-04**: Ujemna pozostała kwota jest prezentowana jako przekroczenie limitu.
 - **FR-REP-05**: System pokazuje sumę planowanych i rzeczywistych dochodów.
 - **FR-REP-06**: System pokazuje sumę limitów oraz rzeczywistych wydatków.
-- **FR-REP-07**: System pokazuje salda kont niezależnie od wykonania kategorii.
-- **FR-REP-08**: Zarchiwizowane konta i kategorie pozostają widoczne w danych historycznych.
+- **FR-REP-07**: System pokazuje salda kont niezależnie od wykonania kategorii (Spendable Liquidity).
+- **FR-REP-08**: Zarchiwizowane konta, kategorie i lokaty pozostają widoczne w danych historycznych.
+- **FR-REP-09**: Spendable Liquidity jest sumą bieżących sald wszystkich kont użytkownika, w tym zarchiwizowanych. Nie obejmuje sald lokat.
+- **FR-REP-10**: Total funds jest sumą Spendable Liquidity i bieżących sald wszystkich lokat użytkownika, w tym zarchiwizowanych. Capital Movement z konta na lokatę nie zmienia Total funds.
+- **FR-REP-11**: Pulpit pokazuje Spendable Liquidity, Total funds, karty niezarchiwizowanych kont oraz karty niezarchiwizowanych lokat.
 
-### 7.9. Narzędzia operacyjne (Artisan)
+### 7.11. Narzędzia operacyjne (Artisan)
 
 Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu webowego MVP. Produkcyjny backup całej bazy pozostaje zrzutem PostgreSQL poza VPS (por. tech stack); poniższe komendy eksportują i przywracają **dane domenowe jednego użytkownika** w formacie JSON.
 
-- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, budżety, kategorie, operacje finansowe, transfery własne oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 1 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`.
+- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, lokaty, budżety, kategorie, operacje finansowe, transfery własne, Capital Movements oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 3 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`. Restore przyjmuje także starsze wersje 1 i 2 (wersja 1 bez lokat i ruchów kapitału).
 - **FR-ADM-02**: Administrator może przywrócić snapshot na **istniejącego** użytkownika-cel (`user:restore {user} {path}`). Przed wgraniem system usuwa wszystkie dane domenowe użytkownika-celu (jak `user:reset-data`). Restore nadaje rekordom nowe identyfikatory i przepina powiązania, więc snapshot można przenieść między różnymi użytkownikami. Operacja wymaga potwierdzenia; opcja `--force` pomija pytanie.
-- **FR-ADM-03**: Administrator może wyczyścić dane domenowe użytkownika bez usuwania konta logowania (`user:reset-data {user}`). Komenda usuwa konta, budżety, operacje, transfery i sesje użytkownika oraz resetuje checklistę pierwszego uruchomienia.
+- **FR-ADM-03**: Administrator może wyczyścić dane domenowe użytkownika bez usuwania konta logowania (`user:reset-data {user}`). Komenda usuwa konta, lokaty, budżety, operacje, transfery, Capital Movements i sesje użytkownika oraz resetuje checklistę pierwszego uruchomienia.
 - **FR-ADM-04**: Restore odrzuca plik z nieobsługiwaną wersją formatu lub uszkodzonym JSON.
 
 ## 8. Reguły biznesowe
@@ -256,19 +296,25 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **BR-09**: Transfer własny wpływa wyłącznie na salda kont.
 - **BR-10**: Dostępny limit jest równy planowi aktualnemu kategorii wydatkowej pomniejszonemu o jej zaksięgowane wydatki.
 - **BR-11**: Dostępny limit nie jest informacją o dostępności środków na kontach.
-- **BR-12**: Przekroczenie limitu i ujemne saldo konta są dozwolone.
+- **BR-12**: Przekroczenie limitu oraz ujemne saldo konta albo lokaty są dozwolone.
 - **BR-13**: Dochód lub wydatek należy do budżetu wskazanego przez rok daty operacji.
 - **BR-14**: Przyszłe płatności i zobowiązania nie są operacjami finansowymi MVP.
-- **BR-15**: Historia elementu użytego w operacjach jest zachowywana przez archiwizację zamiast usunięcia.
+- **BR-15**: Historia elementu użytego w operacjach albo ruchach kapitału jest zachowywana przez archiwizację zamiast usunięcia.
 - **BR-16**: Skopiowany plan aktualny pochodzi z planu aktualnego źródła, nie z planu początkowego ani wykonania źródła. Plan początkowy docelowego budżetu powstaje dopiero przy rozpoczęciu wykonania.
 - **BR-17**: Edycja może zmienić dochód w zwrot wydatku i zwrot wydatku w dochód. Nie wiąże zwrotu z konkretnym wcześniejszym wydatkiem. Nie zamienia zwykłego wydatku w dochód.
+- **BR-18**: Term Deposit nie jest kontem. Operacja finansowa i transfer własny nigdy nie wskazują lokaty jako konta.
+- **BR-19**: Capital Movement nie wpływa na wykonanie budżetu. Nie jest transferem własnym ani operacją finansową.
+- **BR-20**: Spendable Liquidity to suma sald kont. Total funds to Spendable Liquidity plus salda lokat. Otwarcie albo zasilenie lokaty nie zmienia Total funds.
+- **BR-21**: Odsetki od lokaty są zwykłym dochodem na koncie i kategorii dochodowej. Rekord dochodu nie wskazuje lokaty i nie jest Capital Movement.
+- **BR-22**: Migawka otwarcia lokaty nie jest dochodem, ruchem kapitału ani podziałem kapitału i odsetek.
 
 ## 9. Przypadki brzegowe i obsługa błędów
 
 - Próba zapisania dochodu lub wydatku bez budżetu w fazie wykonania kończy się komunikatem wskazującym konieczność utworzenia albo rozpoczęcia wykonania budżetu.
-- Próba użycia zarchiwizowanego konta lub kategorii jest blokowana bez zmiany danych.
+- Próba użycia zarchiwizowanego konta, kategorii albo lokaty jest blokowana bez zmiany danych.
 - Próba zapisania operacji wcześniejszej niż data otwarcia konta albo późniejszej niż bieżący dzień jest blokowana.
-- Przekroczenie limitu i zejście salda poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
+- Próba zapisania Capital Movement wcześniejszego niż data otwarcia konta albo lokaty, albo z datą w przyszłości, jest blokowana.
+- Przekroczenie limitu i zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
 - Zmiana daty operacji na inny rok nie zachowuje kategorii ze starego budżetu; użytkownik wybiera kategorię docelową.
 - Próba zmiany zwykłego wydatku w dochód albo dochodu w zwykły wydatek jest odrzucana; dochód może stać się zwrotem i odwrotnie.
 - Błąd dowolnej strony transferu wycofuje całą zmianę.
@@ -278,6 +324,9 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Wczytanie pliku niezgodnego z wybranym Import format (np. XLSX przy mBank) jest odrzucane przed podglądem.
 - Podgląd oznacza znane Import duplicate i Import pair candidate jako osobne, odznaczone nakładki. Potwierdzenie jest wymagane tylko przy wyborze Import duplicate. Ręczne wpisy i rekordy bez odcisku nie są oznaczane.
 - Błędy formularzy są prezentowane przy odpowiednich polach bez utraty poprawnie wprowadzonych danych.
+- Import zapisuje oryginalny opis z wyciągu jednorazowo przy utworzeniu operacji finansowej, transferu własnego albo Capital Movement. Ręczne tworzenie pozostawia go pustym.
+- Wiersz Importu sklasyfikowany jako Capital Movement bez istniejącej lokaty jest niepoprawny. Odsetki na wierszu obciążenia albo kwota odsetek niemniejsza niż kwota z pliku czynią wiersz niepoprawnym.
+- Błąd zapisu dowolnej strony Capital Movement wycofuje całą zmianę.
 - Odrzucenie kopii (nieistniejące, cudze, późniejsze albo puste źródło) nie tworzy budżetu.
 - Niepowodzenie zapisu którejkolwiek skopiowanej kategorii wycofuje cały nowy budżet.
 
@@ -286,12 +335,12 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **NFR-SEC-01**: Każde odczytanie i zapis danych wymaga uwierzytelnienia.
 - **NFR-SEC-02**: Dane użytkownika są odizolowane od danych wszystkich pozostałych użytkowników.
 - **NFR-SEC-03**: Hasła nie są przechowywane ani rejestrowane w postaci jawnej.
-- **NFR-DAT-01**: Zapis transferu, zatwierdzenie importu oraz utworzenie budżetu z kopią kategorii zapewniają określoną w wymaganiach atomowość.
+- **NFR-DAT-01**: Zapis transferu, zatwierdzenie importu, utworzenie budżetu z kopią kategorii oraz zapis Capital Movement zapewniają określoną w wymaganiach atomowość.
 - **NFR-DAT-02**: Ponowne odczytanie zapisanych danych daje te same kwoty i powiązania.
-- **NFR-DAT-03**: Wszystkie operacje zmieniające dane zachowują spójność sald oraz wykonania kategorii.
+- **NFR-DAT-03**: Wszystkie operacje zmieniające dane zachowują spójność sald kont, sald lokat oraz wykonania kategorii.
 - **NFR-PERF-01**: Przy 10 000 operacji finansowych użytkownika otwarcie listy kont, otwarcie podsumowania budżetu, otwarcie pierwszej strony listy operacji i zapis pojedynczej ręcznej operacji kończą się w ciągu 2 sekund w środowisku testów akceptacyjnych.
 - **NFR-PERF-02**: Import obsługuje plik zawierający do 5 000 wierszy.
-- **NFR-ACC-01**: Kluczowe przepływy logowania, budżetu, kont, operacji i importu spełniają WCAG 2.2 na poziomie AA.
+- **NFR-ACC-01**: Kluczowe przepływy logowania, budżetu, kont, lokat, operacji i importu spełniają WCAG 2.2 na poziomie AA.
 - **NFR-ACC-02**: Kluczowe przepływy są w pełni obsługiwalne za pomocą klawiatury.
 - **NFR-UX-01**: Interfejs dostosowuje się do ekranów komputerów i urządzeń mobilnych.
 - **NFR-UX-02**: Wartości pieniężne są prezentowane jednoznacznie jako PLN.
@@ -303,7 +352,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 ### 11.1. Dostęp i izolacja
 
 1. Zarejestrowany użytkownik może zalogować się, wylogować i odzyskać dostęp przez reset hasła.
-2. Użytkownik nie może odczytać ani zmienić budżetu, konta lub operacji należących do innego użytkownika.
+2. Użytkownik nie może odczytać ani zmienić budżetu, konta, lokaty lub operacji należących do innego użytkownika.
 
 ### 11.2. Konta i płynność
 
@@ -311,6 +360,8 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 2. Dodanie dochodu, wydatku, zwrotu albo transferu aktualizuje właściwe salda zgodnie z regułami biznesowymi.
 3. Zmiana salda otwarcia przelicza saldo bieżące bez tworzenia dochodu.
 4. Konto z historią można zarchiwizować i przywrócić, ale nie można go usunąć.
+5. Spendable Liquidity jest równa sumie sald prezentowanych kont i nie zawiera sald lokat.
+6. Total funds jest równa Spendable Liquidity plus salda lokat.
 
 ### 11.3. Budżet i plany
 
@@ -361,16 +412,30 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 11. Zatwierdzenie Import pair candidate zostawia jeden transfer własny: przekształca dochód albo wydatek albo dopina drugą tożsamość Importu bez ponownego ruchu sald.
 12. Transfer własny z pierwszego pliku rusza oba salda przy tym zatwierdzeniu. Dwa wiersze tego samego pliku nie stają się stronami jednego transferu własnego.
 13. Podgląd pokazuje nadawcę / odbiorcę i oryginalny opis z wyciągu dla każdego wiersza.
-14. Import zapisuje oryginalny opis z wyciągu jednorazowo przy utworzeniu operacji finansowej lub transferu własnego. Ręczne tworzenie pozostawia go pustym. Edycja opisu lub nadawcy / odbiorcy nie zmienia oryginalnego opisu z wyciągu.
+14. Import zapisuje oryginalny opis z wyciągu jednorazowo przy utworzeniu operacji finansowej, transferu własnego albo Capital Movement. Ręczne tworzenie pozostawia go pustym. Edycja opisu lub nadawcy / odbiorcy nie zmienia oryginalnego opisu z wyciągu.
 15. Dialog edycji pokazuje oryginalny opis z wyciągu jako pole tylko do odczytu, gdy jest ustawiony. Po parze transfer własny pokazuje oba oryginalne opisy z wyciągu.
+16. Wiersz sklasyfikowany jako Capital Movement wymaga istniejącej lokaty. Kierunek wynika ze znaku kwoty na koncie.
+17. Wiersz uznania z podaną kwotą odsetek i kategorią dochodową tworzy Capital Movement na resztę oraz dochód na odsetki; oba rekordy mają tę samą tożsamość wiersza pliku.
+18. Capital Movement nie jest oznaczany jako Import pair candidate.
 
 ### 11.7. Raportowanie
 
 1. Dla każdej kategorii wartości planu początkowego, planu aktualnego, wykonania i pozostałej kwoty zgadzają się z zapisanymi operacjami.
 2. Przekroczenie limitu jest widoczne jako wartość ujemna.
 3. Przy planie aktualnym 0 PLN system nie oblicza procentu i pokazuje „nie dotyczy”.
-4. Łączna wartość środków jest równa sumie sald prezentowanych kont.
+4. Spendable Liquidity jest równa sumie sald prezentowanych kont i nie jest Total funds.
 5. Salda kont nie są prezentowane jako dostępne limity kategorii ani odwrotnie.
+6. Total funds jest równa Spendable Liquidity plus salda lokat.
+
+### 11.8. Lokaty i ruchy kapitału
+
+1. Utworzenie lokaty z datą i saldem otwarcia pokazuje saldo bieżące równe tej migawce i nie zmienia żadnego konta ani wykonania kategorii.
+2. Zmiana salda otwarcia przelicza saldo bieżące lokaty bez tworzenia dochodu ani Capital Movement. Data otwarcia po utworzeniu nie daje się zmienić.
+3. Capital Movement konto → lokata zmniejsza saldo konta i zwiększa saldo lokaty o tę samą kwotę. Kierunek odwrotny robi odwrotnie. Wykonanie kategorii nie zmienia się. Total funds nie zmienia się.
+4. Odsetki zaksięgowane jako dochód zwiększają saldo konta i wykonanie kategorii dochodowej; saldo lokaty pozostaje.
+5. Lokatę z historią ruchów można zarchiwizować i przywrócić, ale nie można jej usunąć. Zarchiwizowana lokata nie jest dostępna przy nowym Capital Movement.
+6. Ujemne saldo lokaty jest dozwolone po ostrzeżeniu i jest oznaczone na pulpicie oraz na liście lokat.
+7. Przebudowa dochodu, wydatku albo transferu własnego w Capital Movement zostawia jeden rekord i spójne salda. Przebudowa odwrotna analogicznie.
 
 ## 12. Poza zakresem MVP
 
@@ -405,9 +470,16 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 - waluty inne niż PLN i przeliczanie walut,
 - natywne aplikacje mobilne,
 - funkcje AI,
-- portfel inwestycyjny,
+- portfel inwestycyjny (fundusze, akcje, IKE/IKZE); lokata bankowa (Term Deposit) jest w zakresie,
 - kredyty, pożyczki i rozliczenia podatkowe,
-- nieruchomości, pojazdy i inne niepłynne składniki majątku.
+- nieruchomości, pojazdy i inne niepłynne składniki majątku,
+- kalendarz zapadalności lokaty oraz oprocentowanie jako cecha produktu (harmonogram, APR),
+- automatyczne odnawianie lokaty,
+- bezpośredni ruch kapitału lokata → lokata bez konta płynnego,
+- Counterparty na Capital Movement,
+- osobny wyciąg lokaty i parowanie go z Importem konta,
+- kara za zerwanie lokaty jako osobny typ wiersza (haircut, opłata, zwrot odsetek),
+- zgadywanie lokaty z układu eksportu mBank albo BNP Paribas.
 
 ## 13. Ryzyka i zależności
 
@@ -418,6 +490,8 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 - Dopuszczenie korekt historycznych bez śladu audytowego może utrudniać wyjaśnienie zmian; jest to świadomy kompromis MVP.
 - Brak zamknięcia roku pozwala zmieniać dane historyczne; formalne zamykanie okresów pozostaje późniejszym rozszerzeniem.
 - Poprawność sald, wykonania i transferów zależy od atomowego i dokładnego przetwarzania kwot.
+- Oficjalne eksporty detaliczne mBank i BNP Paribas oraz fixture w repozytorium nie oznaczają wierszy lokaty (otwarcie, zwrot, odsetki, łącznie). Użytkownik klasyfikuje te wiersze ręcznie; zły typ psuje Spendable Liquidity albo wykonanie, dopóki nie przebuduje rekordu.
+- Podział zwrotu kapitału i odsetek w Imporcie zależy od kwoty wpisanej przez użytkownika, nie od kolumny banku.
 
 ## 14. Decyzje pozostawione implementacji
 
