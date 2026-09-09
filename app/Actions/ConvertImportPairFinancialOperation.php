@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\CsvImport\ImportIdentityFactory;
 use App\Support\CsvImport\ImportPairCandidateDetector;
 use App\Support\CsvImport\OwnTransferImportMapper;
+use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\CsvImport\OwnTransferImportValidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,6 +22,7 @@ class ConvertImportPairFinancialOperation
         private OwnTransferImportValidator $ownTransferValidator,
         private ImportIdentityFactory $importIdentityFactory,
         private ImportPairCandidateDetector $importPairCandidateDetector,
+        private OwnTransferImportSnapshots $ownTransferImportSnapshots,
     ) {}
 
     /**
@@ -65,6 +67,7 @@ class ConvertImportPairFinancialOperation
                     'raw_statement_description' => $importRow['raw_statement_description'] ?? null,
                 ],
                 collect([$firstLeg->loadMissing('account')]),
+                collect(),
             );
 
             if ($candidates === []) {
@@ -81,18 +84,26 @@ class ConvertImportPairFinancialOperation
                 $importRow['amount_grosze'],
             );
 
+            $importRawStatementDescription = $importRow['raw_statement_description'] ?? null;
+
             $validated = [
                 ...$mapped,
                 'transfer_date' => $firstLeg->operation_date->toDateString(),
                 'description' => $firstLeg->description,
-                'raw_statement_description' => $importRow['raw_statement_description'] ?? null,
+                ...$this->rawStatementDescriptionsFromFinancialOperation($firstLeg),
+                ...($importRawStatementDescription !== null
+                    ? $this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
+                        $importRow['amount_grosze'],
+                        $importRawStatementDescription,
+                    )
+                    : []),
                 ...$this->identityFromFinancialOperation($firstLeg),
                 ...$this->importIdentityFactory->forOwnTransferImportedAccount(
                     $user,
                     $importAccountId,
                     $importRow['operation_date'],
                     $importRow['amount_grosze'],
-                    $importRow['raw_statement_description'] ?? null,
+                    $importRawStatementDescription,
                 ),
             ];
 
@@ -108,6 +119,26 @@ class ConvertImportPairFinancialOperation
 
             return $this->manageOwnTransfer->create($user, $validated);
         });
+    }
+
+    /**
+     * @return array<string, int|string>
+     */
+    /**
+     * @return array<string, string>
+     */
+    private function rawStatementDescriptionsFromFinancialOperation(FinancialOperation $operation): array
+    {
+        $rawStatementDescription = $operation->raw_statement_description;
+
+        if ($rawStatementDescription === null) {
+            return [];
+        }
+
+        return $this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
+            $operation->import_identity_amount_grosze,
+            $rawStatementDescription,
+        );
     }
 
     /**

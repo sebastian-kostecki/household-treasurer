@@ -11,6 +11,7 @@ use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Support\AccountIdentity;
 use App\Support\CategoryAppearance;
+use App\Support\CsvImport\OwnTransferImportSnapshots;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,7 +20,7 @@ class OperationsController extends Controller
 {
     private const int OPERATIONS_PER_PAGE = 50;
 
-    public function index(Request $request): Response
+    public function index(Request $request, OwnTransferImportSnapshots $ownTransferImportSnapshots): Response
     {
         $user = $request->user();
 
@@ -54,7 +55,10 @@ class OperationsController extends Controller
                 'transfer_date' => $transfer->transfer_date->toDateString(),
                 'amount_grosze' => $transfer->amount_grosze,
                 'description' => $transfer->description,
-                'raw_statement_description' => $transfer->raw_statement_description,
+                'raw_statement_descriptions' => $ownTransferImportSnapshots->descriptionsForDisplay(
+                    $transfer->source_raw_statement_description,
+                    $transfer->destination_raw_statement_description,
+                ),
                 'source_account_id' => $transfer->source_account_id,
                 'destination_account_id' => $transfer->destination_account_id,
                 ...AccountIdentity::prefixedRowFields($transfer->sourceAccount, 'source_account'),

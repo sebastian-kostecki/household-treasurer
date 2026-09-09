@@ -224,7 +224,10 @@ class RestoreUserData
                 'transfer_date' => $transferData['transfer_date'],
                 'amount_grosze' => $transferData['amount_grosze'],
                 'description' => $transferData['description'],
-                'raw_statement_description' => $transferData['raw_statement_description'] ?? null,
+                'source_raw_statement_description' => $transferData['source_raw_statement_description']
+                    ?? $transferData['raw_statement_description']
+                    ?? null,
+                'destination_raw_statement_description' => $transferData['destination_raw_statement_description'] ?? null,
                 'source_import_identity_account_id' => $transferData['source_import_identity_account_id'] ?? null,
                 'source_import_identity_date' => $transferData['source_import_identity_date'] ?? null,
                 'source_import_identity_amount_grosze' => $transferData['source_import_identity_amount_grosze'] ?? null,

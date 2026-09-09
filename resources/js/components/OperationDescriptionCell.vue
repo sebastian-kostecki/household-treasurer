@@ -13,25 +13,33 @@ const {
     description,
     counterparty = null,
     rawStatementDescription = null,
+    rawStatementDescriptions = [],
 } = defineProps<{
     variant: 'income' | 'expense' | 'refund' | 'transfer';
     description: string;
     counterparty?: string | null;
     rawStatementDescription?: string | null;
+    rawStatementDescriptions?: string[];
 }>();
 
 const t = useTranslations();
 const primaryLine = counterparty?.trim() ? counterparty : description;
 const secondaryLine = counterparty?.trim() ? description : null;
+const tooltipDescriptions = rawStatementDescriptions.length > 0
+    ? rawStatementDescriptions
+    : rawStatementDescription !== null && rawStatementDescription !== ''
+        ? [rawStatementDescription]
+        : [];
+const tooltipLabel = tooltipDescriptions.join('\n\n');
 </script>
 
 <template>
-    <TooltipProvider v-if="rawStatementDescription" :delay-duration="200">
+    <TooltipProvider v-if="tooltipDescriptions.length > 0" :delay-duration="200">
         <Tooltip>
             <TooltipTrigger as-child>
                 <div
                     class="flex min-w-0 items-start gap-2.5"
-                    :aria-label="`${primaryLine}. ${t.operations.raw_statement_description}: ${rawStatementDescription}`"
+                    :aria-label="`${primaryLine}. ${t.operations.raw_statement_description}: ${tooltipLabel}`"
                 >
                     <OperationTypeTile :variant="variant" />
                     <div class="min-w-0">
@@ -49,7 +57,7 @@ const secondaryLine = counterparty?.trim() ? description : null;
                 <p class="text-xs font-medium">
                     {{ t.operations.raw_statement_description }}
                 </p>
-                <p class="text-xs">{{ rawStatementDescription }}</p>
+                <p class="whitespace-pre-wrap text-xs">{{ tooltipLabel }}</p>
             </TooltipContent>
         </Tooltip>
     </TooltipProvider>

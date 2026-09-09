@@ -17,7 +17,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $transfer_date
  * @property int $amount_grosze
  * @property string $description
- * @property string|null $raw_statement_description
+ * @property string|null $source_raw_statement_description
+ * @property string|null $destination_raw_statement_description
  * @property int|null $source_import_identity_account_id
  * @property Carbon|null $source_import_identity_date
  * @property int|null $source_import_identity_amount_grosze
@@ -36,7 +37,8 @@ use Illuminate\Support\Carbon;
     'transfer_date',
     'amount_grosze',
     'description',
-    'raw_statement_description',
+    'source_raw_statement_description',
+    'destination_raw_statement_description',
     'source_import_identity_account_id',
     'source_import_identity_date',
     'source_import_identity_amount_grosze',

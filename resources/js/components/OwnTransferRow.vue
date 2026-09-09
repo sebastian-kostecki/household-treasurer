@@ -10,7 +10,7 @@ import { formatMoney } from '@/lib/format';
 export type OwnTransferRowData = OwnTransferFormTransfer &
     PrefixedAccountIdentityFields<'source_account'> &
     PrefixedAccountIdentityFields<'destination_account'> & {
-        raw_statement_description: string | null;
+        raw_statement_descriptions: string[];
     };
 
 defineProps<{
@@ -34,8 +34,8 @@ const emit = defineEmits<{
             <OperationDescriptionCell
                 variant="transfer"
                 :description="transfer.description"
-                :raw-statement-description="
-                    transfer.raw_statement_description
+                :raw-statement-descriptions="
+                    transfer.raw_statement_descriptions
                 "
             />
         </div>
