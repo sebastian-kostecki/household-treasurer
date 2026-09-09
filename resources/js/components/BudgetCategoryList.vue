@@ -4,6 +4,7 @@ import { GripVertical, Pencil } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
+import BudgetCategoryAlignPlanAction from '@/components/BudgetCategoryAlignPlanAction.vue';
 import BudgetCategoryOverflowActions from '@/components/BudgetCategoryOverflowActions.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import IconAction from '@/components/IconAction.vue';
@@ -35,6 +36,7 @@ export type BudgetCategoryRow = {
     is_archived: boolean;
     can_archive: boolean;
     can_restore: boolean;
+    can_align_current_plan: boolean;
 };
 
 const NAME_FILTER_THRESHOLD = 12;
@@ -291,6 +293,9 @@ async function onDragEnd(): Promise<void> {
                                             :label="t.budget.edit"
                                             @click="emit('edit', category)"
                                         />
+                                        <BudgetCategoryAlignPlanAction
+                                            :category="category"
+                                        />
                                         <BudgetCategoryOverflowActions
                                             :category="category"
                                         />
@@ -460,6 +465,9 @@ async function onDragEnd(): Promise<void> {
                                             :label="t.budget.edit"
                                             @click="emit('edit', category)"
                                         />
+                                        <BudgetCategoryAlignPlanAction
+                                            :category="category"
+                                        />
                                         <BudgetCategoryOverflowActions
                                             :category="category"
                                         />
@@ -608,6 +616,9 @@ async function onDragEnd(): Promise<void> {
                                     :icon="Pencil"
                                     :label="t.budget.edit"
                                     @click="emit('edit', category)"
+                                />
+                                <BudgetCategoryAlignPlanAction
+                                    :category="category"
                                 />
                                 <BudgetCategoryOverflowActions
                                     :category="category"
@@ -802,6 +813,9 @@ async function onDragEnd(): Promise<void> {
                                 :icon="Pencil"
                                 :label="t.budget.edit"
                                 @click="emit('edit', category)"
+                            />
+                            <BudgetCategoryAlignPlanAction
+                                :category="category"
                             />
                             <BudgetCategoryOverflowActions
                                 :category="category"

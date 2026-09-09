@@ -99,6 +99,22 @@ class CategoryController extends Controller
         return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 
+    public function alignCurrentPlan(Request $request, Category $category): RedirectResponse
+    {
+        $this->authorize('alignCurrentPlan', $category);
+
+        $category->update([
+            'planned_amount_minor_units' => max(0, $category->execution_minor_units),
+        ]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Category current plan aligned.'),
+        ]);
+
+        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
     public function reorder(
         ReorderCategoriesRequest $request,
         Budget $budget,
