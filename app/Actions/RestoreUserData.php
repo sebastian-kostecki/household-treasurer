@@ -25,6 +25,7 @@ class RestoreUserData
             $this->resetUserData->handle($targetUser);
 
             $accountIdMap = $this->restoreAccounts($targetUser, $snapshot['accounts']);
+            $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $this->restoreCategories($snapshot['categories'], $budgetIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
@@ -63,7 +64,9 @@ class RestoreUserData
             throw new UserSnapshotException('Snapshot must decode to a JSON object.');
         }
 
-        if (($snapshot['version'] ?? null) !== BackupUserData::SNAPSHOT_VERSION) {
+        $version = $snapshot['version'] ?? null;
+
+        if (! in_array($version, [1, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -71,6 +74,10 @@ class RestoreUserData
             if (! array_key_exists($key, $snapshot)) {
                 throw new UserSnapshotException("Snapshot is missing required key: {$key}");
             }
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('term_deposits', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
         return $snapshot;
@@ -101,6 +108,23 @@ class RestoreUserData
         }
 
         return $accountIdMap;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $termDeposits
+     */
+    private function restoreTermDeposits(User $targetUser, array $termDeposits): void
+    {
+        foreach ($termDeposits as $termDepositData) {
+            $targetUser->termDeposits()->create([
+                'name' => $termDepositData['name'],
+                'opening_date' => $termDepositData['opening_date'],
+                'opening_balance_minor_units' => $termDepositData['opening_balance_minor_units'],
+                'current_balance_minor_units' => $termDepositData['current_balance_minor_units'],
+                'created_at' => isset($termDepositData['created_at']) ? Carbon::parse($termDepositData['created_at']) : now(),
+                'updated_at' => isset($termDepositData['updated_at']) ? Carbon::parse($termDepositData['updated_at']) : now(),
+            ]);
+        }
     }
 
     /**

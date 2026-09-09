@@ -10,6 +10,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -36,10 +37,11 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(1, $snapshot['version']);
+        $this->assertSame(2, $snapshot['version']);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
         $this->assertSame($user->email, $snapshot['source']['email']);
         $this->assertCount(2, $snapshot['accounts']);
+        $this->assertCount(1, $snapshot['term_deposits']);
         $this->assertCount(1, $snapshot['budgets']);
         $this->assertCount(1, $snapshot['categories']);
         $this->assertCount(1, $snapshot['financial_operations']);
@@ -67,6 +69,7 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser->refresh();
 
         $this->assertSame(2, $targetUser->accounts()->count());
+        $this->assertSame(1, $targetUser->termDeposits()->count());
         $this->assertSame(1, $targetUser->budgets()->count());
         $this->assertSame(1, $targetUser->financialOperations()->count());
         $this->assertSame(1, $targetUser->ownTransfers()->count());
@@ -98,6 +101,32 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(1, $targetUser->budgets()->count());
         $this->assertDatabaseCount('accounts', 4);
         $this->assertDatabaseCount('budgets', 2);
+    }
+
+    public function test_restore_command_restores_v1_snapshot_without_term_deposits(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot['version'] = 1;
+        unset($snapshot['term_deposits']);
+
+        Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
+        $legacyPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/legacy-v1.json');
+        file_put_contents($legacyPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $legacyPath,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(2, $targetUser->accounts()->count());
+        $this->assertSame(0, $targetUser->termDeposits()->count());
     }
 
     public function test_restore_command_fails_for_unsupported_snapshot_version(): void
@@ -215,6 +244,11 @@ class UserSnapshotCommandTest extends TestCase
 
         $sourceAccount = Account::factory()->for($user)->create(['name' => 'Main bank']);
         $destinationAccount = Account::factory()->for($user)->cash()->create(['name' => 'Cash']);
+        TermDeposit::factory()->for($user)->create([
+            'name' => 'Lokata 12M',
+            'opening_balance_minor_units' => 200000,
+            'current_balance_minor_units' => 200000,
+        ]);
         $budget = Budget::factory()->for($user)->create([
             'year' => 2026,
             'phase' => BudgetPhase::Execution,

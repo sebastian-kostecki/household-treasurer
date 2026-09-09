@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     ArrowLeftRight,
+    Landmark,
     LayoutGrid,
     PiggyBank,
     Wallet,
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as accounts } from '@/routes/accounts';
+import { index as termDeposits } from '@/routes/term-deposits';
 import {
     budget,
     dashboard,
@@ -46,6 +48,11 @@ const mainNavItems: NavItem[] = [
         title: t.nav.accounts,
         href: accounts(),
         icon: Wallet,
+    },
+    {
+        title: t.nav.term_deposits,
+        href: termDeposits(),
+        icon: Landmark,
     },
     {
         title: t.nav.operations,

@@ -21,6 +21,7 @@ class AppShellTest extends TestCase
             'dashboard' => ['dashboard', 'Dashboard'],
             'budget' => ['budget', 'Budget'],
             'accounts' => ['accounts.index', 'Accounts'],
+            'term_deposits' => ['term-deposits.index', 'TermDeposits'],
             'operations' => ['operations', 'Operations'],
         ];
     }

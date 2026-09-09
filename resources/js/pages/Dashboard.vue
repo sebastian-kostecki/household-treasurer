@@ -38,6 +38,13 @@ type AccountSummary = {
     is_archived: boolean;
 };
 
+type TermDepositSummary = {
+    id: number;
+    name: string;
+    current_balance_minor_units: number;
+    is_negative: boolean;
+};
+
 type BudgetSummary = {
     year: number;
     phase: 'draft' | 'execution';
@@ -45,7 +52,9 @@ type BudgetSummary = {
 
 const props = defineProps<{
     accounts: AccountSummary[];
-    liquidity_total_minor_units: number;
+    termDeposits: TermDepositSummary[];
+    spendable_liquidity_minor_units: number;
+    total_funds_minor_units: number;
     budget: BudgetSummary | null;
     incomeCategories: DashboardCategory[];
     expenseCategories: DashboardCategory[];
@@ -61,8 +70,14 @@ const checklistComplete = computed(() =>
     checklist.value.every((item) => item.done),
 );
 
-const liquidityClass = computed(() =>
-    props.liquidity_total_minor_units < 0 ? 'text-destructive' : 'text-success',
+const spendableLiquidityClass = computed(() =>
+    props.spendable_liquidity_minor_units < 0
+        ? 'text-destructive'
+        : 'text-success',
+);
+
+const totalFundsClass = computed(() =>
+    props.total_funds_minor_units < 0 ? 'text-destructive' : 'text-success',
 );
 
 setLayoutProps({
@@ -78,12 +93,14 @@ function accountTypeLabel(type: AccountSummary['type']): string {
     return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
 }
 
-function balanceClass(account: AccountSummary): string {
-    if (account.is_negative) {
+function balanceClass(
+    holding: AccountSummary | TermDepositSummary,
+): string {
+    if (holding.is_negative) {
         return 'text-destructive';
     }
 
-    if (account.current_balance_minor_units > 0) {
+    if (holding.current_balance_minor_units > 0) {
         return 'text-success';
     }
 
@@ -158,16 +175,32 @@ function balanceClass(account: AccountSummary): string {
                 {{ t.dashboard.liquidity_title }}
             </h2>
 
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.total_funds }}
-                    </CardDescription>
-                    <CardTitle class="text-3xl" :class="liquidityClass">
-                        {{ formatMoney(liquidity_total_minor_units) }}
-                    </CardTitle>
-                </CardHeader>
-            </Card>
+            <div class="grid gap-3 sm:grid-cols-2">
+                <Card>
+                    <CardHeader class="pb-2">
+                        <CardDescription>
+                            {{ t.dashboard.spendable_liquidity }}
+                        </CardDescription>
+                        <CardTitle
+                            class="text-3xl"
+                            :class="spendableLiquidityClass"
+                        >
+                            {{ formatMoney(spendable_liquidity_minor_units) }}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+
+                <Card>
+                    <CardHeader class="pb-2">
+                        <CardDescription>
+                            {{ t.dashboard.total_funds }}
+                        </CardDescription>
+                        <CardTitle class="text-3xl" :class="totalFundsClass">
+                            {{ formatMoney(total_funds_minor_units) }}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+            </div>
 
             <div
                 v-if="accounts.length > 0"
@@ -222,6 +255,32 @@ function balanceClass(account: AccountSummary): string {
                     </p>
                 </CardContent>
             </Card>
+
+            <div
+                v-if="termDeposits.length > 0"
+                class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+            >
+                <Card
+                    v-for="termDeposit in termDeposits"
+                    :key="termDeposit.id"
+                >
+                    <CardHeader class="space-y-3 pb-2">
+                        <p class="text-sm font-medium">
+                            {{ termDeposit.name }}
+                        </p>
+                        <CardTitle
+                            class="text-lg"
+                            :class="balanceClass(termDeposit)"
+                        >
+                            {{
+                                formatMoney(
+                                    termDeposit.current_balance_minor_units,
+                                )
+                            }}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+            </div>
         </section>
 
         <section class="space-y-3">

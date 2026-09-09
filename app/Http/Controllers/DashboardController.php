@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
 use App\Support\BudgetPlanSummary;
@@ -32,6 +33,16 @@ class DashboardController extends Controller
             ->map(fn (Account $account): array => $this->accountPayload($account))
             ->values()
             ->all();
+
+        $termDeposits = $user->termDeposits()
+            ->orderBy('name')
+            ->get()
+            ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit))
+            ->values()
+            ->all();
+
+        $spendableLiquidityMinorUnits = (int) $user->accounts()->sum('current_balance_minor_units');
+        $termDepositsTotalMinorUnits = (int) $user->termDeposits()->sum('current_balance_minor_units');
 
         $incomeCategories = [];
         $expenseCategories = [];
@@ -64,7 +75,9 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'accounts' => $accounts,
-            'liquidity_total_minor_units' => (int) $user->accounts()->sum('current_balance_minor_units'),
+            'termDeposits' => $termDeposits,
+            'spendable_liquidity_minor_units' => $spendableLiquidityMinorUnits,
+            'total_funds_minor_units' => $spendableLiquidityMinorUnits + $termDepositsTotalMinorUnits,
             'budget' => $budget === null ? null : [
                 'year' => $budget->year,
                 'phase' => $budget->phase->value,
@@ -114,6 +127,24 @@ class DashboardController extends Controller
             'current_balance_minor_units' => $account->current_balance_minor_units,
             'is_negative' => $account->isNegative(),
             'is_archived' => $account->isArchived(),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     name: string,
+     *     current_balance_minor_units: int,
+     *     is_negative: bool,
+     * }
+     */
+    private function termDepositPayload(TermDeposit $termDeposit): array
+    {
+        return [
+            'id' => $termDeposit->id,
+            'name' => $termDeposit->name,
+            'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
+            'is_negative' => $termDeposit->isNegative(),
         ];
     }
 

@@ -82,4 +82,20 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(OwnTransfer::class);
     }
+
+    /**
+     * @return HasMany<TermDeposit, $this>
+     */
+    public function termDeposits(): HasMany
+    {
+        return $this->hasMany(TermDeposit::class);
+    }
+
+    /**
+     * @return HasMany<CapitalMovement, $this>
+     */
+    public function capitalMovements(): HasMany
+    {
+        return $this->hasMany(CapitalMovement::class);
+    }
 }

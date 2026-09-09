@@ -8,6 +8,7 @@ use App\Enums\BudgetPhase;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -33,7 +34,9 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('accounts', [])
-                ->where('liquidity_total_minor_units', 0)
+                ->where('termDeposits', [])
+                ->where('spendable_liquidity_minor_units', 0)
+                ->where('total_funds_minor_units', 0)
                 ->where('budget', null)
                 ->where('planSummary', null)
                 ->where('incomeTotals', [
@@ -55,7 +58,7 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_shows_account_balances_and_liquidity_total(): void
+    public function test_dashboard_shows_account_balances_and_liquidity_headlines(): void
     {
         $user = User::factory()->create();
         Account::factory()->for($user)->create([
@@ -72,11 +75,50 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 2)
-                ->where('liquidity_total_minor_units', 155000)
+                ->where('spendable_liquidity_minor_units', 155000)
+                ->where('total_funds_minor_units', 155000)
                 ->where('accounts.0.name', 'Main bank')
                 ->where('accounts.0.current_balance_minor_units', 150000)
                 ->where('accounts.1.name', 'Wallet')
                 ->where('accounts.1.current_balance_minor_units', 5000),
+            );
+    }
+
+    public function test_dashboard_shows_term_deposit_cards_and_total_funds(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'current_balance_minor_units' => 100000,
+        ]);
+        TermDeposit::factory()->for($user)->create([
+            'name' => 'Lokata 12M',
+            'current_balance_minor_units' => 50000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('spendable_liquidity_minor_units', 100000)
+                ->where('total_funds_minor_units', 150000)
+                ->has('termDeposits', 1)
+                ->where('termDeposits.0.name', 'Lokata 12M')
+                ->where('termDeposits.0.current_balance_minor_units', 50000),
+            );
+    }
+
+    public function test_dashboard_marks_negative_term_deposit_balance(): void
+    {
+        $user = User::factory()->create();
+        TermDeposit::factory()->for($user)->negative()->create([
+            'name' => 'Lokata ujemna',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('termDeposits.0.is_negative', true),
             );
     }
 
@@ -94,7 +136,8 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 1)
                 ->where('accounts.0.is_archived', true)
-                ->where('liquidity_total_minor_units', 10000),
+                ->where('spendable_liquidity_minor_units', 10000)
+                ->where('total_funds_minor_units', 10000),
             );
     }
 
@@ -360,7 +403,8 @@ class DashboardTest extends TestCase
                 ->where('expenseCategories.0.execution_minor_units', 20000)
                 ->where('expenseCategories.0.remaining_minor_units', 30000)
                 ->where('expenseCategories.0.percent_complete', 40)
-                ->where('liquidity_total_minor_units', 80000),
+                ->where('spendable_liquidity_minor_units', 80000)
+                ->where('total_funds_minor_units', 80000),
             );
     }
 
@@ -401,7 +445,8 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 1)
                 ->where('accounts.0.name', 'Mine')
-                ->where('liquidity_total_minor_units', 10000)
+                ->where('spendable_liquidity_minor_units', 10000)
+                ->where('total_funds_minor_units', 10000)
                 ->has('incomeCategories', 1)
                 ->where('incomeCategories.0.name', 'My income')
                 ->where('planSummary.income.current_plan_minor_units', 100000)

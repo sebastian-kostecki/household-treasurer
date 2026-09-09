@@ -23,6 +23,7 @@ export type UiTranslations = {
         dashboard: string;
         budget: string;
         accounts: string;
+        term_deposits: string;
         operations: string;
         menu: string;
     };
@@ -37,6 +38,7 @@ export type UiTranslations = {
     dashboard: Record<string, string>;
     budget: Record<string, string>;
     accounts: Record<string, string>;
+    term_deposits: Record<string, string>;
     operations: Record<string, string>;
     common: Record<string, string>;
 };

@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -36,6 +38,11 @@ class ResetUserDataCommandTest extends TestCase
             'source_account_id' => $account->id,
             'destination_account_id' => Account::factory()->for($user)->create()->id,
         ]);
+        $termDeposit = TermDeposit::factory()->for($user)->create();
+        $capitalMovement = CapitalMovement::factory()->for($user)->create([
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+        ]);
 
         $otherAccount = Account::factory()->for($otherUser)->create();
         $otherBudget = Budget::factory()->for($otherUser)->create();
@@ -59,6 +66,8 @@ class ResetUserDataCommandTest extends TestCase
 
         $this->assertDatabaseMissing('financial_operations', ['id' => $operation->id]);
         $this->assertDatabaseMissing('own_transfers', ['id' => $ownTransfer->id]);
+        $this->assertDatabaseMissing('capital_movements', ['id' => $capitalMovement->id]);
+        $this->assertDatabaseMissing('term_deposits', ['id' => $termDeposit->id]);
         $this->assertDatabaseMissing('categories', ['id' => $category->id]);
         $this->assertDatabaseMissing('budgets', ['id' => $budget->id]);
         $this->assertDatabaseMissing('accounts', ['id' => $account->id]);
