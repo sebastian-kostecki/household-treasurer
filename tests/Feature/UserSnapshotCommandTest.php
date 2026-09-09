@@ -199,6 +199,9 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame($sourceOperation->import_identity_amount_grosze, $restoredOperation->import_identity_amount_grosze);
         $this->assertSame($sourceTransfer->amount_grosze, $restoredTransfer->amount_grosze);
         $this->assertSame($sourceTransfer->source_import_identity_digest, $restoredTransfer->source_import_identity_digest);
+        $this->assertSame($sourceTransfer->destination_import_identity_digest, $restoredTransfer->destination_import_identity_digest);
+        $this->assertSame($sourceTransfer->source_raw_statement_description, $restoredTransfer->source_raw_statement_description);
+        $this->assertSame($sourceTransfer->destination_raw_statement_description, $restoredTransfer->destination_raw_statement_description);
         $this->assertSame($restoredAccount->id, $restoredOperation->account_id);
         $this->assertSame($restoredCategory->id, $restoredOperation->category_id);
         $this->assertSame($restoredBudget->id, $restoredOperation->budget_id);
@@ -237,11 +240,16 @@ class UserSnapshotCommandTest extends TestCase
             'source_account_id' => $sourceAccount->id,
             'destination_account_id' => $destinationAccount->id,
             'description' => 'ATM withdrawal',
-            'raw_statement_description' => 'ATM WDL',
+            'source_raw_statement_description' => 'ATM WDL',
+            'destination_raw_statement_description' => 'Cash deposit row',
             'source_import_identity_account_id' => $sourceAccount->id,
             'source_import_identity_date' => '2026-03-02',
             'source_import_identity_amount_grosze' => -50000,
             'source_import_identity_digest' => 'digest-atm',
+            'destination_import_identity_account_id' => $destinationAccount->id,
+            'destination_import_identity_date' => '2026-03-03',
+            'destination_import_identity_amount_grosze' => 50000,
+            'destination_import_identity_digest' => 'digest-cash',
         ]);
 
         return $user;

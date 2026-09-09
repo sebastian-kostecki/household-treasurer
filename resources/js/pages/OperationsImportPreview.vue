@@ -25,7 +25,7 @@ import type { AccountPickerOption } from '@/lib/account-identity';
 import { operations as operationsRoute } from '@/routes';
 
 type PairCandidate = {
-    kind: 'financial_operation';
+    kind: 'financial_operation' | 'own_transfer';
     id: number;
     account_id: number;
     account_name: string;
@@ -66,7 +66,7 @@ type RowSelection = {
     type: 'income' | 'expense' | 'refund' | 'own_transfer';
     category_id: number | '';
     other_account_id: number | '';
-    pair_first_leg_kind: 'financial_operation' | '';
+    pair_first_leg_kind: 'financial_operation' | 'own_transfer' | '';
     pair_first_leg_id: number | '';
 };
 
@@ -173,6 +173,16 @@ function defaultType(row: ImportRow): 'income' | 'expense' | 'refund' {
     return 'income';
 }
 
+function ownTransferCandidates(row: ImportRow): PairCandidate[] {
+    return row.pair_candidates.filter(
+        (candidate) => candidate.kind === 'own_transfer',
+    );
+}
+
+function locksTypeToOwnTransfer(row: ImportRow): boolean {
+    return ownTransferCandidates(row).length > 0;
+}
+
 function uniqueFinancialOperationCandidate(
     row: ImportRow,
 ): PairCandidate | null {
@@ -187,8 +197,34 @@ function uniqueFinancialOperationCandidate(
     return candidates[0] ?? null;
 }
 
+function uniqueOwnTransferCandidate(row: ImportRow): PairCandidate | null {
+    const candidates = ownTransferCandidates(row);
+
+    if (candidates.length !== 1) {
+        return null;
+    }
+
+    return candidates[0] ?? null;
+}
+
+function uniquePairCandidate(row: ImportRow): PairCandidate | null {
+    if (locksTypeToOwnTransfer(row)) {
+        return uniqueOwnTransferCandidate(row);
+    }
+
+    return uniqueFinancialOperationCandidate(row);
+}
+
+function allowedPairKinds(row: ImportRow): PairCandidate['kind'][] {
+    if (locksTypeToOwnTransfer(row)) {
+        return ['own_transfer'];
+    }
+
+    return ['financial_operation', 'own_transfer'];
+}
+
 function initialSelection(row: ImportRow): RowSelection {
-    const uniqueCandidate = uniqueFinancialOperationCandidate(row);
+    const uniqueCandidate = uniquePairCandidate(row);
 
     if (uniqueCandidate !== null) {
         return {
@@ -196,7 +232,7 @@ function initialSelection(row: ImportRow): RowSelection {
             type: 'own_transfer',
             category_id: '',
             other_account_id: uniqueCandidate.account_id,
-            pair_first_leg_kind: 'financial_operation',
+            pair_first_leg_kind: uniqueCandidate.kind,
             pair_first_leg_id: uniqueCandidate.id,
         };
     }
@@ -226,7 +262,7 @@ function matchingPairCandidate(
     return (
         row.pair_candidates.find(
             (candidate) =>
-                candidate.kind === 'financial_operation' &&
+                candidate.kind === selection.pair_first_leg_kind &&
                 candidate.id === selection.pair_first_leg_id &&
                 candidate.account_id === selection.other_account_id,
         ) ?? null
@@ -243,7 +279,7 @@ function syncPairSelection(row: ImportRow, selection: RowSelection): void {
 
     const candidateForAccount = row.pair_candidates.find(
         (candidate) =>
-            candidate.kind === 'financial_operation' &&
+            allowedPairKinds(row).includes(candidate.kind) &&
             candidate.account_id === selection.other_account_id,
     );
 
@@ -258,17 +294,15 @@ function syncPairSelection(row: ImportRow, selection: RowSelection): void {
         selection.pair_first_leg_id !== '' &&
         row.pair_candidates.some(
             (candidate) =>
-                candidate.kind === 'financial_operation' &&
+                candidate.kind === selection.pair_first_leg_kind &&
                 candidate.id === selection.pair_first_leg_id &&
                 candidate.account_id === selection.other_account_id,
         )
     ) {
-        selection.pair_first_leg_kind = 'financial_operation';
-
         return;
     }
 
-    selection.pair_first_leg_kind = 'financial_operation';
+    selection.pair_first_leg_kind = candidateForAccount.kind;
     selection.pair_first_leg_id = candidateForAccount.id;
 }
 
@@ -328,6 +362,10 @@ function onTypeChange(row: ImportRow): void {
 
     selection.category_id = '';
 
+    if (locksTypeToOwnTransfer(row)) {
+        selection.type = 'own_transfer';
+    }
+
     if (selection.type !== 'own_transfer') {
         selection.other_account_id = '';
         selection.pair_first_leg_kind = '';
@@ -336,11 +374,11 @@ function onTypeChange(row: ImportRow): void {
         return;
     }
 
-    const uniqueCandidate = uniqueFinancialOperationCandidate(row);
+    const uniqueCandidate = uniquePairCandidate(row);
 
     if (uniqueCandidate !== null) {
         selection.other_account_id = uniqueCandidate.account_id;
-        selection.pair_first_leg_kind = 'financial_operation';
+        selection.pair_first_leg_kind = uniqueCandidate.kind;
         selection.pair_first_leg_id = uniqueCandidate.id;
 
         return;
@@ -547,13 +585,22 @@ function onOtherAccountChange(row: ImportRow): void {
                                         class="native-select min-w-36"
                                         @change="onTypeChange(row)"
                                     >
-                                        <option value="income">
+                                        <option
+                                            value="income"
+                                            :disabled="locksTypeToOwnTransfer(row)"
+                                        >
                                             {{ t.operations.type_income }}
                                         </option>
-                                        <option value="expense">
+                                        <option
+                                            value="expense"
+                                            :disabled="locksTypeToOwnTransfer(row)"
+                                        >
                                             {{ t.operations.type_expense }}
                                         </option>
-                                        <option value="refund">
+                                        <option
+                                            value="refund"
+                                            :disabled="locksTypeToOwnTransfer(row)"
+                                        >
                                             {{ t.operations.type_refund }}
                                         </option>
                                         <option value="own_transfer">

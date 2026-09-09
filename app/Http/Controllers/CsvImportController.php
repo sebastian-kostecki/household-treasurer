@@ -184,11 +184,26 @@ class CsvImportController extends Controller
 
                 $pairFirstLegKind = $selection['pair_first_leg_kind'];
                 $pairFirstLegId = $selection['pair_first_leg_id'];
+                $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
+                    ? $parsedRow['pair_candidates']
+                    : [];
 
                 if ($pairFirstLegKind !== null || $pairFirstLegId !== null) {
-                    if ($pairFirstLegKind !== 'financial_operation' || $pairFirstLegId === null) {
+                    if (
+                        ! in_array($pairFirstLegKind, ['financial_operation', 'own_transfer'], true)
+                        || $pairFirstLegId === null
+                    ) {
                         throw ValidationException::withMessages([
                             'rows' => __('The selected import pair candidate is invalid.'),
+                        ]);
+                    }
+
+                    if (
+                        $pairFirstLegKind === 'financial_operation'
+                        && $this->pairCandidatesContainOwnTransfer($pairCandidates)
+                    ) {
+                        throw ValidationException::withMessages([
+                            'rows' => __('This row must pair with the existing own transfer.'),
                         ]);
                     }
 
@@ -198,11 +213,8 @@ class CsvImportController extends Controller
                         ]);
                     }
 
-                    $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
-                        ? $parsedRow['pair_candidates']
-                        : [];
                     $matchingCandidate = collect($pairCandidates)->first(
-                        fn (array $candidate): bool => ($candidate['kind'] ?? null) === 'financial_operation'
+                        fn (array $candidate): bool => ($candidate['kind'] ?? null) === $pairFirstLegKind
                             && ($candidate['id'] ?? null) === $pairFirstLegId
                             && ($candidate['account_id'] ?? null) === $selection['other_account_id'],
                     );
@@ -230,6 +242,16 @@ class CsvImportController extends Controller
                 ];
 
                 continue;
+            }
+
+            $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
+                ? $parsedRow['pair_candidates']
+                : [];
+
+            if ($this->pairCandidatesContainOwnTransfer($pairCandidates)) {
+                throw ValidationException::withMessages([
+                    'rows' => __('This row must be committed as an own transfer pair.'),
+                ]);
             }
 
             if ($selection['pair_first_leg_kind'] !== null || $selection['pair_first_leg_id'] !== null) {
@@ -324,6 +346,16 @@ class CsvImportController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $pairCandidates
+     */
+    private function pairCandidatesContainOwnTransfer(array $pairCandidates): bool
+    {
+        return collect($pairCandidates)->contains(
+            fn (array $candidate): bool => ($candidate['kind'] ?? null) === 'own_transfer',
+        );
     }
 
     /**

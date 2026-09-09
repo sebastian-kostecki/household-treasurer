@@ -92,7 +92,7 @@ class OperationsRowRecipeTest extends TestCase
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
             'description' => 'ATM withdrawal',
-            'raw_statement_description' => 'TRANSFER FROM FILE',
+            'source_raw_statement_description' => 'TRANSFER FROM FILE',
         ]);
 
         $this->actingAs($user)
@@ -100,7 +100,33 @@ class OperationsRowRecipeTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('ownTransfers.data', 1)
-                ->where('ownTransfers.data.0.raw_statement_description', 'TRANSFER FROM FILE'),
+                ->where('ownTransfers.data.0.raw_statement_descriptions', ['TRANSFER FROM FILE']),
+            );
+    }
+
+    public function test_operations_index_exposes_both_raw_statement_descriptions_on_paired_own_transfer(): void
+    {
+        $user = User::factory()->create();
+        $source = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $destination = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+
+        OwnTransfer::factory()->for($user)->create([
+            'source_account_id' => $source->id,
+            'destination_account_id' => $destination->id,
+            'description' => 'Transfer to savings',
+            'source_raw_statement_description' => 'Checking export row',
+            'destination_raw_statement_description' => 'Savings export row',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('ownTransfers.data', 1)
+                ->where('ownTransfers.data.0.raw_statement_descriptions', [
+                    'Checking export row',
+                    'Savings export row',
+                ]),
             );
     }
 }

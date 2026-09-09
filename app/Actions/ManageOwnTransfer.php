@@ -16,7 +16,8 @@ class ManageOwnTransfer
      *     transfer_date: string,
      *     amount_grosze: int,
      *     description: string,
-     *     raw_statement_description?: string|null,
+     *     source_raw_statement_description?: string|null,
+     *     destination_raw_statement_description?: string|null,
      *     source_import_identity_account_id?: int|null,
      *     source_import_identity_date?: string|null,
      *     source_import_identity_amount_grosze?: int|null,
@@ -47,7 +48,8 @@ class ManageOwnTransfer
      *     transfer_date: string,
      *     amount_grosze: int,
      *     description: string,
-     *     raw_statement_description?: string|null,
+     *     source_raw_statement_description?: string|null,
+     *     destination_raw_statement_description?: string|null,
      * }  $validated
      */
     public function update(OwnTransfer $ownTransfer, array $validated): OwnTransfer

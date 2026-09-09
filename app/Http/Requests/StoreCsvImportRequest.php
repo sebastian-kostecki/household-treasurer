@@ -25,7 +25,7 @@ class StoreCsvImportRequest extends FormRequest
             'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund', 'own_transfer'])],
             'rows.*.category_id' => ['nullable', 'integer'],
             'rows.*.other_account_id' => ['nullable', 'integer'],
-            'rows.*.pair_first_leg_kind' => ['nullable', Rule::in(['financial_operation'])],
+            'rows.*.pair_first_leg_kind' => ['nullable', Rule::in(['financial_operation', 'own_transfer'])],
             'rows.*.pair_first_leg_id' => ['nullable', 'integer'],
             'duplicate_warning_acknowledged' => ['sometimes', 'boolean'],
         ];
@@ -66,7 +66,7 @@ class StoreCsvImportRequest extends FormRequest
      *     type: 'income'|'expense'|'refund'|'own_transfer',
      *     category_id: int|null,
      *     other_account_id: int|null,
-     *     pair_first_leg_kind: 'financial_operation'|null,
+     *     pair_first_leg_kind: 'financial_operation'|'own_transfer'|null,
      *     pair_first_leg_id: int|null,
      * }>
      */
@@ -84,7 +84,7 @@ class StoreCsvImportRequest extends FormRequest
 
             $pairFirstLegKind = $row['pair_first_leg_kind'] ?? null;
             $pairFirstLegKind = match ($pairFirstLegKind) {
-                'financial_operation' => $pairFirstLegKind,
+                'financial_operation', 'own_transfer' => $pairFirstLegKind,
                 null, '' => null,
                 default => throw new InvalidArgumentException('Invalid import pair first-leg kind.'),
             };

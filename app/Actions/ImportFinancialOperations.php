@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\CsvImport\FinancialOperationImportValidator;
 use App\Support\CsvImport\ImportIdentityFactory;
 use App\Support\CsvImport\OwnTransferImportMapper;
+use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\CsvImport\OwnTransferImportValidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,10 +17,12 @@ class ImportFinancialOperations
         private ManageFinancialOperation $manageFinancialOperation,
         private ManageOwnTransfer $manageOwnTransfer,
         private ConvertImportPairFinancialOperation $convertImportPairFinancialOperation,
+        private AttachImportPairOwnTransfer $attachImportPairOwnTransfer,
         private FinancialOperationImportValidator $financialOperationValidator,
         private OwnTransferImportValidator $ownTransferValidator,
         private OwnTransferImportMapper $ownTransferMapper,
         private ImportIdentityFactory $importIdentityFactory,
+        private OwnTransferImportSnapshots $ownTransferImportSnapshots,
     ) {}
 
     /**
@@ -32,7 +35,7 @@ class ImportFinancialOperations
      *     amount_grosze: int,
      *     type: 'own_transfer',
      *     other_account_id: int,
-     *     pair_first_leg_kind?: 'financial_operation',
+     *     pair_first_leg_kind?: 'financial_operation'|'own_transfer',
      *     pair_first_leg_id?: int,
      * }|array{
      *     index: int,
@@ -60,11 +63,28 @@ class ImportFinancialOperations
 
             foreach ($rows as $row) {
                 if ($row['type'] === 'own_transfer') {
-                    if (
-                        ($row['pair_first_leg_kind'] ?? null) === 'financial_operation'
-                        && isset($row['pair_first_leg_id'])
-                    ) {
+                    $pairFirstLegKind = $row['pair_first_leg_kind'] ?? null;
+
+                    if ($pairFirstLegKind === 'financial_operation' && isset($row['pair_first_leg_id'])) {
                         $this->convertImportPairFinancialOperation->handle(
+                            $user,
+                            $accountId,
+                            (int) $row['pair_first_leg_id'],
+                            [
+                                'operation_date' => $row['operation_date'],
+                                'description' => $row['description'],
+                                'raw_statement_description' => $row['raw_statement_description'] ?? null,
+                                'amount_grosze' => $row['amount_grosze'],
+                            ],
+                            $row['other_account_id'],
+                        );
+                        $ownTransfers++;
+
+                        continue;
+                    }
+
+                    if ($pairFirstLegKind === 'own_transfer' && isset($row['pair_first_leg_id'])) {
+                        $this->attachImportPairOwnTransfer->handle(
                             $user,
                             $accountId,
                             (int) $row['pair_first_leg_id'],
@@ -88,15 +108,21 @@ class ImportFinancialOperations
                         $row['description'],
                         $row['amount_grosze'],
                     );
-                    $validated['raw_statement_description'] = $row['raw_statement_description'] ?? null;
+                    $rawStatementDescription = $row['raw_statement_description'] ?? null;
                     $validated = [
                         ...$validated,
+                        ...($rawStatementDescription !== null
+                            ? $this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
+                                $row['amount_grosze'],
+                                $rawStatementDescription,
+                            )
+                            : []),
                         ...$this->importIdentityFactory->forOwnTransferImportedAccount(
                             $user,
                             $accountId,
                             $row['operation_date'],
                             $row['amount_grosze'],
-                            $row['raw_statement_description'] ?? null,
+                            $rawStatementDescription,
                         ),
                     ];
 
