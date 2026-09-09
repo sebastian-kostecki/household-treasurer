@@ -2,6 +2,7 @@
 
 namespace App\Support\CsvImport;
 
+use App\Models\CapitalMovement;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -123,10 +124,18 @@ class ImportDuplicateDetector
             ->pluck('destination_import_identity_digest')
             ->all();
 
+        $capitalMovementDigests = CapitalMovement::query()
+            ->where('user_id', $user->id)
+            ->whereIn('import_identity_digest', $digests)
+            ->whereNotNull('import_identity_digest')
+            ->pluck('import_identity_digest')
+            ->all();
+
         return array_values(array_unique([
             ...$financialOperationDigests,
             ...$sourceDigests,
             ...$destinationDigests,
+            ...$capitalMovementDigests,
         ]));
     }
 }

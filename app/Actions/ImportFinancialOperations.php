@@ -3,6 +3,9 @@
 namespace App\Actions;
 
 use App\Models\User;
+use App\Support\CsvImport\CapitalMovementImportMapper;
+use App\Support\CsvImport\CapitalMovementImportValidator;
+use App\Support\CsvImport\CapitalMovementInterestImportValidator;
 use App\Support\CsvImport\FinancialOperationImportValidator;
 use App\Support\CsvImport\ImportIdentityFactory;
 use App\Support\CsvImport\OwnTransferImportMapper;
@@ -16,11 +19,15 @@ class ImportFinancialOperations
     public function __construct(
         private ManageFinancialOperation $manageFinancialOperation,
         private ManageOwnTransfer $manageOwnTransfer,
+        private ManageCapitalMovement $manageCapitalMovement,
         private ConvertImportPairFinancialOperation $convertImportPairFinancialOperation,
         private AttachImportPairOwnTransfer $attachImportPairOwnTransfer,
         private FinancialOperationImportValidator $financialOperationValidator,
         private OwnTransferImportValidator $ownTransferValidator,
+        private CapitalMovementImportValidator $capitalMovementValidator,
+        private CapitalMovementInterestImportValidator $capitalMovementInterestValidator,
         private OwnTransferImportMapper $ownTransferMapper,
+        private CapitalMovementImportMapper $capitalMovementMapper,
         private ImportIdentityFactory $importIdentityFactory,
         private OwnTransferImportSnapshots $ownTransferImportSnapshots,
     ) {}
@@ -46,8 +53,19 @@ class ImportFinancialOperations
      *     amount_minor_units: int,
      *     type: 'income'|'expense'|'refund',
      *     category_id: int,
+     * }|array{
+     *     index: int,
+     *     operation_date: string,
+     *     description: string,
+     *     counterparty?: string|null,
+     *     raw_statement_description?: string|null,
+     *     amount_minor_units: int,
+     *     type: 'capital_movement',
+     *     term_deposit_id: int,
+     *     interest_amount_minor_units?: int|null,
+     *     interest_category_id?: int|null,
      * }>  $rows
-     * @return array{financial_operations: int, own_transfers: int}
+     * @return array{financial_operations: int, own_transfers: int, capital_movements: int}
      */
     public function handle(User $user, int $accountId, array $rows): array
     {
@@ -60,6 +78,7 @@ class ImportFinancialOperations
         return DB::transaction(function () use ($user, $accountId, $rows): array {
             $financialOperations = 0;
             $ownTransfers = 0;
+            $capitalMovements = 0;
 
             foreach ($rows as $row) {
                 if ($row['type'] === 'own_transfer') {
@@ -140,6 +159,41 @@ class ImportFinancialOperations
                     continue;
                 }
 
+                if ($row['type'] === 'capital_movement') {
+                    $validated = $this->capitalMovementMapper->map(
+                        $accountId,
+                        $row['term_deposit_id'],
+                        $row['operation_date'],
+                        $row['description'],
+                        $row['amount_minor_units'],
+                    );
+                    $rawStatementDescription = $row['raw_statement_description'] ?? null;
+                    $validated = [
+                        ...$validated,
+                        'raw_statement_description' => $rawStatementDescription,
+                        ...$this->importIdentityFactory->forCapitalMovement(
+                            $user,
+                            $accountId,
+                            $row['operation_date'],
+                            $row['amount_minor_units'],
+                            $rawStatementDescription,
+                        ),
+                    ];
+
+                    $errors = $this->capitalMovementValidator->validate($user, $validated);
+
+                    if ($errors !== []) {
+                        throw ValidationException::withMessages([
+                            'rows' => $errors[0],
+                        ]);
+                    }
+
+                    $this->manageCapitalMovement->create($user, $validated);
+                    $capitalMovements++;
+
+                    continue;
+                }
+
                 $amountMinorUnits = match ($row['type']) {
                     'income' => abs($row['amount_minor_units']),
                     'expense' => abs($row['amount_minor_units']),
@@ -183,6 +237,7 @@ class ImportFinancialOperations
             return [
                 'financial_operations' => $financialOperations,
                 'own_transfers' => $ownTransfers,
+                'capital_movements' => $capitalMovements,
             ];
         });
     }

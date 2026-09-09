@@ -65,8 +65,15 @@ type OtherAccountRow = AccountPickerOption & {
     current_balance_minor_units: number;
 };
 
+type TermDepositRow = {
+    id: number;
+    name: string;
+    opening_date: string;
+};
+
 type RowSelection = PairRowSelection & {
     category_id: number | '';
+    term_deposit_id: number | '';
 };
 
 const {
@@ -75,12 +82,14 @@ const {
     incomeCategories,
     expenseCategories,
     otherAccounts,
+    termDeposits,
 } = defineProps<{
     account: AccountPickerOption & { current_balance_minor_units: number };
     rows: ImportRow[];
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
     otherAccounts: OtherAccountRow[];
+    termDeposits: TermDepositRow[];
 }>();
 
 const t = useTranslations();
@@ -155,7 +164,10 @@ const canSubmit = computed(
                 selection.type !== undefined &&
                 (selection.type === 'own_transfer'
                     ? selection.other_account_id !== ''
-                    : selection.category_id !== '')
+                    : selection.type === 'capital_movement'
+                      ? selection.term_deposit_id !== '' &&
+                        eligibleTermDeposits(row).length > 0
+                      : selection.category_id !== '')
             );
         }),
 );
@@ -191,6 +203,7 @@ function emptySelection(row: ImportRow): RowSelection {
         type: defaultType(row),
         category_id: '',
         other_account_id: '',
+        term_deposit_id: '',
         pair_first_leg_kind: '',
         pair_first_leg_id: '',
     };
@@ -278,6 +291,7 @@ function initialSelection(row: ImportRow): RowSelection {
             type: 'own_transfer',
             category_id: '',
             other_account_id: uniqueCandidate.account_id,
+            term_deposit_id: '',
             pair_first_leg_kind: uniqueCandidate.kind,
             pair_first_leg_id: uniqueCandidate.id,
         };
@@ -338,6 +352,30 @@ function emptyCategoryLabel(type: RowSelection['type']): string {
         : t.operations.no_expense_category_for_year;
 }
 
+function eligibleTermDeposits(row: ImportRow): TermDepositRow[] {
+    if (!row.operation_date) {
+        return [];
+    }
+
+    return termDeposits.filter(
+        (termDeposit) => termDeposit.opening_date <= row.operation_date!,
+    );
+}
+
+function capitalMovementDirectionLabel(row: ImportRow): string {
+    if ((row.amount_minor_units ?? 0) < 0) {
+        return t.operations.capital_movement_to_term_deposit;
+    }
+
+    return t.operations.capital_movement_from_term_deposit;
+}
+
+function emptyTermDepositLabel(row: ImportRow): string {
+    return eligibleTermDeposits(row).length === 0
+        ? t.operations.import_no_term_deposit_for_row
+        : t.operations.import_term_deposit;
+}
+
 function onTypeChange(row: ImportRow): void {
     const selection = selections.value[row.index];
 
@@ -346,9 +384,18 @@ function onTypeChange(row: ImportRow): void {
     }
 
     selection.category_id = '';
+    selection.term_deposit_id = '';
 
     if (rowLocksTypeToOwnTransfer(row)) {
         selection.type = 'own_transfer';
+    }
+
+    if (selection.type === 'capital_movement') {
+        selection.other_account_id = '';
+        selection.pair_first_leg_kind = '';
+        selection.pair_first_leg_id = '';
+
+        return;
     }
 
     if (selection.type !== 'own_transfer') {
@@ -613,6 +660,12 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
                                         >
                                             {{ t.operations.type_refund }}
                                         </option>
+                                        <option
+                                            value="capital_movement"
+                                            :disabled="rowLocksTypeToOwnTransfer(row)"
+                                        >
+                                            {{ t.operations.type_capital_movement }}
+                                        </option>
                                         <option value="own_transfer">
                                             {{ t.operations.type_own_transfer }}
                                         </option>
@@ -710,6 +763,45 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
                                                     .pair_first_leg_id
                                             "
                                         />
+                                    </div>
+                                    <div
+                                        v-else-if="
+                                            row.valid &&
+                                            selections[row.index].type ===
+                                                'capital_movement'
+                                        "
+                                        class="space-y-2"
+                                    >
+                                        <select
+                                            :id="`row-term-deposit-${row.index}`"
+                                            v-model="
+                                                selections[row.index]
+                                                    .term_deposit_id
+                                            "
+                                            :name="`rows[${row.index}][term_deposit_id]`"
+                                            class="native-select min-w-44"
+                                            :disabled="
+                                                eligibleTermDeposits(row)
+                                                    .length === 0
+                                            "
+                                            required
+                                        >
+                                            <option value="">
+                                                {{ emptyTermDepositLabel(row) }}
+                                            </option>
+                                            <option
+                                                v-for="termDeposit in eligibleTermDeposits(
+                                                    row,
+                                                )"
+                                                :key="termDeposit.id"
+                                                :value="termDeposit.id"
+                                            >
+                                                {{ termDeposit.name }}
+                                            </option>
+                                        </select>
+                                        <p class="text-muted-foreground text-xs">
+                                            {{ capitalMovementDirectionLabel(row) }}
+                                        </p>
                                     </div>
                                     <CategorySelect
                                         v-else-if="row.valid"
