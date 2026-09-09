@@ -13,7 +13,7 @@ A liquid holding the User owns: a bank account or a cash account. Has an opening
 _Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User, Term Deposit
 
 **Term Deposit**:
-A holding of the User’s money in a bank term-deposit product. Not an Account and not a Category. Each Term Deposit is its own holding, not a pooled balance. Not an Own Transfer endpoint and not the Account of a Financial Operation. Has an opening date (the first day this holding is in the ledger, not the bank product start) and a single opening balance: that snapshot is not Income, not a capital movement, not a split of capital versus interest, and does not change any Account. Opening balance may be zero. In-ledger capital in or out of the holding moves a liquid Account through a Capital Movement. Polish UI copy: „lokata”.
+A holding of the User’s money in a bank term-deposit product. Not an Account and not a Category. Each Term Deposit is its own holding, not a pooled balance. Not an Own Transfer endpoint and not the Account of a Financial Operation. Has an opening date (the first day this holding is in the ledger, not the bank product start) and a single opening balance: that snapshot is not Income, not a capital movement, not a split of capital versus interest, and does not change any Account. Opening balance may be zero or negative. Current balance is that snapshot plus Capital Movements; interest does not change the Term Deposit. Current balance may be negative. Create or edit of that snapshot that would leave current balance negative is Negative Balance Warning, not a block. In-ledger capital in or out of the holding moves a liquid Account through a Capital Movement. Polish UI copy: „lokata”.
 _Avoid_: Deposit (unqualified), Savings, Investment, Lokata in code, Account (for this holding)
 
 **Bank**:
@@ -49,8 +49,8 @@ Income Current Plan minus expense Current Plan for one Budget. A plan-plane summ
 _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Polish UI copy: „Bilans”.
 
 **Financial Operation**:
-An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import.
-_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement
+An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
+_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type)
 
 **Expense refund**:
 A Financial Operation on an expense Category with a negative amount. Not Income: money returned from a purchase belongs here, not on an income Category. Restores Account balance and Available Limit, so Execution on that Category is net spend.
@@ -69,16 +69,24 @@ A move of money between two of the User’s Accounts. No Category. Does not affe
 _Avoid_: Internal transfer, Move (as the type name), one-sided Own Transfer, pair (as a record type), Term Deposit (as an endpoint), Capital Movement
 
 **Capital Movement**:
-A move of capital between one of the User’s liquid Accounts and one Term Deposit. Not a Financial Operation and not an Own Transfer. No Category. Does not affect Execution. One record changes both holdings by the same positive, non-zero amount, either Account → Term Deposit or Term Deposit → Account. Both endpoints must already exist; cash is a valid Account. A Term Deposit may have many Capital Movements; each names its own Account, so return need not use the same Account as open. Date cannot be in the future, before the Account opening date, or before the Term Deposit opening date. Hand-entry and Import create this type. May carry one Raw Statement Description when Import-born on that Account.
+A move of capital between one of the User’s liquid Accounts and one Term Deposit. Not a Financial Operation and not an Own Transfer. No Category. Does not affect Execution. One record changes both holdings by the same positive, non-zero amount, either Account → Term Deposit or Term Deposit → Account. Both endpoints must already exist; cash is a valid Account. A Term Deposit may have many Capital Movements; each names its own Account, so return need not use the same Account as open. Date cannot be in the future, before the Account opening date, or before the Term Deposit opening date. Hand-entry and Import create this type. Import direction follows the signed amount on the Account (debit is Account → Term Deposit; credit is Term Deposit → Account); the User picks an existing Term Deposit, not a Category. May carry one Raw Statement Description when Import-born on that Account. Create, edit, or delete may make the Account and/or the Term Deposit current balance negative; that is Negative Balance Warning, not a block.
 _Avoid_: Own Transfer (for this), Transfer, Allocation, Term Deposit transfer, open and return as separate record types
 
 **Negative Balance Warning**:
-A non-blocking notice before saving a Financial Operation, Own Transfer, or Capital Movement that would make an Account’s current balance negative. Distinct from exceeding an Available Limit.
-_Avoid_: Overdraft, insufficient funds (both imply a block)
+A non-blocking notice before saving a Financial Operation, Own Transfer, Capital Movement, or a Term Deposit opening snapshot that would make an Account’s or a Term Deposit’s current balance negative. Distinct from exceeding an Available Limit. A Capital Movement that would take both sides below zero shows two notices, one per side. Opening-snapshot save does not change an Account, so it is one Term Deposit notice. After save, every surface that shows that holding’s current balance marks the negative figure (same idea as an Account).
+_Avoid_: Overdraft, insufficient funds (both imply a block), a second warning type for Term Deposit
 
 **Liquidity**:
-The current balances of Accounts and their sum. A separate plane from Budget Execution.
-_Avoid_: Net worth, Wealth, Portfolio
+The plane of the User’s holdings as money, distinct from Budget Execution. Not a single unqualified total: the figures on this plane are Spendable Liquidity and Total funds.
+_Avoid_: Net worth, Wealth, Portfolio, using Liquidity as one number without Spendable Liquidity or Total funds
+
+**Spendable Liquidity**:
+The sum of Account current balances (bank and cash). Money not in Term Deposits. Does not include Term Deposit balances.
+_Avoid_: Available Limit, Total funds, Liquidity (unqualified), Łączne środki (for this number)
+
+**Total funds**:
+Spendable Liquidity plus the current balances of Term Deposits. A Capital Movement into a Term Deposit does not change Total funds; it moves money from Spendable Liquidity onto that Term Deposit.
+_Avoid_: Liquidity (unqualified), Spendable Liquidity, Net worth, Wealth
 
 **Minor unit**:
 An integer count of a currency’s ISO 4217 subunit. Every stored amount is a signed bigint of Minor units, never a decimal of major units. MVP amounts are PLN (scale 2); other currencies are not in the schema yet, so column and code names stay currency-neutral (`*_minor_units`).
@@ -89,17 +97,17 @@ Whether the User has the four start conditions: at least one Account, one Budget
 _Avoid_: Onboarding, wizard, tutorial, First Steps (as a code name; UI copy may say „Pierwsze kroki”)
 
 **Import**:
-The controlled creation of Financial Operations, Own Transfers, and Capital Movements from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank.
-_Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration
+The controlled creation of Financial Operations, Own Transfers, and Capital Movements from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank. Preview default type follows the signed amount (credit is Income, debit is Expense); the User must switch type to Capital Movement. One preview row that is capital return plus interest may commit two records in that classification: a Capital Movement (Term Deposit → Account) for the remainder and a Financial Operation (Income) for the interest the User types (and an income Category); those two are not a persisted pair. Hand-entry never creates both from one save. Import does not create a Term Deposit.
+_Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration, combined maturity (as a record type)
 
 **Import format**:
 A named layout of a bank export file: file type, where the header row is, and which columns are date, description, amount, and optionally Counterparty. MVP ships mBank (CSV), BNP Paribas (XLSX), and Other (manual CSV mapping).
 _Avoid_: Integration, Connector, Bank integration, Parser profile, Preset (in domain language; UI may say „format”)
 
 **Import duplicate**:
-A preview row that is the same Import row as an already-committed Import-born Financial Operation, Own Transfer, or Capital Movement: same User, Account, date, signed file amount, and Raw Statement Description, frozen at that commit. An Own Transfer may hold two frozen identities, one per Import-born Account, so a later preview row matching either leg is an Import duplicate. A Capital Movement holds one identity, on its liquid Account. Hand-entered records (null Raw Statement Description) are never Import duplicates.
+A preview row that is the same Import row as an already-committed Import-born Financial Operation, Own Transfer, or Capital Movement: same User, Account, date, signed file amount, and Raw Statement Description, frozen at that commit. An Own Transfer may hold two frozen identities, one per Import-born Account, so a later preview row matching either leg is an Import duplicate. A Capital Movement holds one identity, on its liquid Account. When one preview row commits a Capital Movement and an Income Financial Operation, both records receive that same file-row identity (not two identities of the split amounts). Hand-entered records (null Raw Statement Description) are never Import duplicates.
 _Avoid_: Transaction duplicate, bank transaction id
 
 **Import pair candidate**:
-A later Import row that is the other Account’s view of an existing Import-born Financial Operation or Own Transfer. Distinct from Import duplicate (same Account, same frozen row). Not a persisted record type; after the User opts in, commit leaves one Own Transfer.
+A later Import row that is the other Account’s view of an existing Import-born Financial Operation or Own Transfer. Distinct from Import duplicate (same Account, same frozen row). Not a persisted record type; after the User opts in, commit leaves one Own Transfer. A Capital Movement is never an Import pair candidate and never a first-leg.
 _Avoid_: Transaction match, transfer duplicate, link, pair (as a record type)
