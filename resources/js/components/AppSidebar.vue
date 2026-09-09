@@ -24,11 +24,7 @@ import {
 import { useTranslations } from '@/composables/useTranslations';
 import { index as accounts } from '@/routes/accounts';
 import { index as termDeposits } from '@/routes/term-deposits';
-import {
-    budget,
-    dashboard,
-    operations,
-} from '@/routes';
+import { budget, dashboard, operations } from '@/routes';
 import type { NavItem } from '@/types';
 
 const t = useTranslations();

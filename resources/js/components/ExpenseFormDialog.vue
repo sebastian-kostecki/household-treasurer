@@ -147,7 +147,10 @@ const proposalKind = computed(() => {
 });
 
 const warningPreview = computed(() => {
-    if (accountId.value === '' || (!isIncome.value && categoryId.value === '')) {
+    if (
+        accountId.value === '' ||
+        (!isIncome.value && categoryId.value === '')
+    ) {
         return previewHandEntryWarnings({
             mode: props.mode,
             accounts: props.accounts,
@@ -218,7 +221,9 @@ watch(
             categoryId.value = props.operation.category_id;
             isRefund.value = props.operation.amount_minor_units < 0;
             isIncome.value = false;
-            amountMinorUnits.value = Math.abs(props.operation.amount_minor_units);
+            amountMinorUnits.value = Math.abs(
+                props.operation.amount_minor_units,
+            );
             amountInput.value = minorUnitsToMoneyInput(
                 Math.abs(props.operation.amount_minor_units),
             );
@@ -377,7 +382,9 @@ function closeDialog(): void {
                 </div>
 
                 <div
-                    v-if="mode === 'edit' && operation?.raw_statement_description"
+                    v-if="
+                        mode === 'edit' && operation?.raw_statement_description
+                    "
                     class="grid gap-2"
                 >
                     <Label for="expense-raw-statement-description">
@@ -393,7 +400,9 @@ function closeDialog(): void {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="expense-account">{{ t.operations.account }}</Label>
+                    <Label for="expense-account">{{
+                        t.operations.account
+                    }}</Label>
                     <AccountSelect
                         id="expense-account"
                         name="account_id"
@@ -405,10 +414,7 @@ function closeDialog(): void {
                     <InputError :message="errors.account_id" />
                 </div>
 
-                <div
-                    v-if="editingRefund"
-                    class="flex items-center gap-2"
-                >
+                <div v-if="editingRefund" class="flex items-center gap-2">
                     <input
                         id="expense-is-income"
                         v-model="isIncome"
@@ -453,10 +459,7 @@ function closeDialog(): void {
                     <InputError :message="errors.category_id" />
                 </div>
 
-                <div
-                    v-if="!isIncome"
-                    class="flex items-center gap-2"
-                >
+                <div v-if="!isIncome" class="flex items-center gap-2">
                     <input
                         id="expense-is-refund"
                         v-model="isRefund"
@@ -469,7 +472,9 @@ function closeDialog(): void {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="expense-amount">{{ t.operations.amount }}</Label>
+                    <Label for="expense-amount">{{
+                        t.operations.amount
+                    }}</Label>
                     <Input
                         id="expense-amount"
                         v-model="amountInput"
@@ -481,14 +486,16 @@ function closeDialog(): void {
                     <input
                         type="hidden"
                         name="amount_minor_units"
-                        :value="isIncome ? amountMinorUnits : signedAmountMinorUnits"
+                        :value="
+                            isIncome ? amountMinorUnits : signedAmountMinorUnits
+                        "
                     />
                     <InputError :message="errors.amount_minor_units" />
                 </div>
 
                 <div
                     v-if="selectedCategory && availableLimitMinorUnits !== null"
-                    class="rounded-md border bg-muted/40 p-3 text-sm"
+                    class="bg-muted/40 rounded-md border p-3 text-sm"
                 >
                     <p>
                         {{ t.operations.available_limit_now }}:
@@ -512,7 +519,9 @@ function closeDialog(): void {
                     variant="destructive"
                 >
                     <AlertTriangle class="size-4" />
-                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertTitle>{{
+                        t.operations.expense_warnings_title
+                    }}</AlertTitle>
                     <AlertDescription>
                         <ul class="list-inside list-disc text-sm">
                             <li v-if="showOverLimitWarning">

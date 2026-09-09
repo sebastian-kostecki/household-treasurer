@@ -97,7 +97,11 @@ function accountLiquidityAdjustmentMinorUnits(
     originalAccountId: number,
     originalSignedEffectMinorUnits: number,
 ): number {
-    if (mode !== 'edit' || editedRecord === null || editedRecord === undefined) {
+    if (
+        mode !== 'edit' ||
+        editedRecord === null ||
+        editedRecord === undefined
+    ) {
         return 0;
     }
 
@@ -173,7 +177,11 @@ function termDepositLiquidityAdjustmentMinorUnits(
     originalTermDepositId: number,
     originalSignedEffectMinorUnits: number,
 ): number {
-    if (mode !== 'edit' || editedRecord === null || editedRecord === undefined) {
+    if (
+        mode !== 'edit' ||
+        editedRecord === null ||
+        editedRecord === undefined
+    ) {
         return 0;
     }
 
@@ -213,7 +221,8 @@ function capitalMovementTermDepositSignedEffect(
 export function previewHandEntryWarnings(
     input: HandEntryPreviewInput,
 ): HandEntryPreviewResult {
-    const { mode, accounts, termDeposits, categories, editedRecord, proposal } = input;
+    const { mode, accounts, termDeposits, categories, editedRecord, proposal } =
+        input;
     const signedAmount = signedProposalAmountMinorUnits(
         proposal.kind,
         proposal.amount_minor_units,
@@ -221,7 +230,10 @@ export function previewHandEntryWarnings(
 
     if (proposal.kind === 'capital_movement') {
         const account = findAccount(accounts, proposal.account_id);
-        const termDeposit = findTermDeposit(termDeposits, proposal.term_deposit_id);
+        const termDeposit = findTermDeposit(
+            termDeposits,
+            proposal.term_deposit_id,
+        );
         const accountSignedEffect = capitalMovementAccountSignedEffect(
             proposal.direction,
             proposal.amount_minor_units,
@@ -240,10 +252,11 @@ export function previewHandEntryWarnings(
             originalDirection,
             originalAmountMinorUnits,
         );
-        const originalTermDepositSignedEffect = capitalMovementTermDepositSignedEffect(
-            originalDirection,
-            originalAmountMinorUnits,
-        );
+        const originalTermDepositSignedEffect =
+            capitalMovementTermDepositSignedEffect(
+                originalDirection,
+                originalAmountMinorUnits,
+            );
         const accountAdjustment = accountLiquidityAdjustmentMinorUnits(
             mode,
             editedRecord,

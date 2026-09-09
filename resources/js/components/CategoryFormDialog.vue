@@ -93,7 +93,8 @@ watch(
             icon.value = props.category.icon;
             color.value = props.category.color;
             type.value = props.category.type;
-            plannedAmountMinorUnits.value = props.category.planned_amount_minor_units;
+            plannedAmountMinorUnits.value =
+                props.category.planned_amount_minor_units;
             plannedAmountInput.value = minorUnitsToMoneyInput(
                 props.category.planned_amount_minor_units,
             );
@@ -154,7 +155,7 @@ function closeDialog(): void {
                 </DialogHeader>
 
                 <div
-                    class="flex items-center gap-4 rounded-xl border border-border/50 p-4"
+                    class="border-border/50 flex items-center gap-4 rounded-xl border p-4"
                 >
                     <CategoryChip
                         v-if="color"
@@ -210,11 +211,7 @@ function closeDialog(): void {
                         :colors="categoryAppearanceOptions.colors"
                         v-model="color"
                     />
-                    <input
-                        type="hidden"
-                        name="color"
-                        :value="color ?? ''"
-                    />
+                    <input type="hidden" name="color" :value="color ?? ''" />
                     <InputError :message="errors.color" />
                 </div>
 

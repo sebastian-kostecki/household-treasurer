@@ -60,7 +60,9 @@ defineProps<{
         </Form>
 
         <div class="text-muted-foreground text-center text-sm">
-            <TextLink :href="login()">{{ t.auth.forgot_password.back }}</TextLink>
+            <TextLink :href="login()">{{
+                t.auth.forgot_password.back
+            }}</TextLink>
         </div>
     </div>
 </template>

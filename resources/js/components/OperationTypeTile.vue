@@ -33,8 +33,7 @@ const config = computed(() => {
             return {
                 icon: RotateCcw,
                 label: t.operations.type_refund,
-                className:
-                    'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+                className: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
             };
         case 'transfer':
             return {
@@ -50,7 +49,7 @@ const config = computed(() => {
     <span
         :class="
             cn(
-                'inline-flex w-10 min-h-10 shrink-0 self-stretch items-center justify-center rounded-lg',
+                'inline-flex min-h-10 w-10 shrink-0 items-center justify-center self-stretch rounded-lg',
                 config.className,
             )
         "

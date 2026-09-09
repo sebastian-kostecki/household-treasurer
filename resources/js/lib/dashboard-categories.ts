@@ -40,7 +40,9 @@ export function sortCategoriesByRisk(
 }
 
 export function planChanged(category: DashboardCategory): boolean {
-    return category.initial_plan_minor_units !== category.current_plan_minor_units;
+    return (
+        category.initial_plan_minor_units !== category.current_plan_minor_units
+    );
 }
 
 export function progressWidth(percentComplete: number | null): string {

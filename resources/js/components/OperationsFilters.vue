@@ -59,11 +59,17 @@ const expenseCategories = computed(() =>
 );
 
 const categoryValue = computed(() => {
-    if (props.filters.category_type === null || props.filters.category_name === null) {
+    if (
+        props.filters.category_type === null ||
+        props.filters.category_name === null
+    ) {
         return '';
     }
 
-    return serializeCategory(props.filters.category_type, props.filters.category_name);
+    return serializeCategory(
+        props.filters.category_type,
+        props.filters.category_name,
+    );
 });
 
 const thisMonthRange = computed(() => monthRange(0));
@@ -113,7 +119,10 @@ function serializeCategory(type: string, name: string): string {
     return `${type}\u001f${name}`;
 }
 
-function parseCategory(value: string): { category_name: string | null; category_type: string | null } {
+function parseCategory(value: string): {
+    category_name: string | null;
+    category_type: string | null;
+} {
     if (value === '') {
         return { category_name: null, category_type: null };
     }
@@ -257,11 +266,11 @@ function accountLabel(account: OperationsFilterAccount): string {
 
 <template>
     <div
-        class="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-4"
+        class="border-border/60 bg-card flex flex-col gap-3 rounded-2xl border p-4"
     >
         <div class="relative">
             <Search
-                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
             />
             <Input
                 v-model="search"
@@ -274,7 +283,10 @@ function accountLabel(account: OperationsFilterAccount): string {
 
         <div class="flex flex-wrap items-end gap-2">
             <div class="grid min-w-32 gap-1">
-                <Label for="operations-filter-year" class="text-muted-foreground text-xs">
+                <Label
+                    for="operations-filter-year"
+                    class="text-muted-foreground text-xs"
+                >
                     {{ t.operations.filter_year }}
                 </Label>
                 <select
@@ -293,7 +305,10 @@ function accountLabel(account: OperationsFilterAccount): string {
             </div>
 
             <div class="grid min-w-44 gap-1">
-                <Label for="operations-filter-category" class="text-muted-foreground text-xs">
+                <Label
+                    for="operations-filter-category"
+                    class="text-muted-foreground text-xs"
+                >
                     {{ t.operations.filter_category }}
                 </Label>
                 <select
@@ -311,8 +326,12 @@ function accountLabel(account: OperationsFilterAccount): string {
                     >
                         <option
                             v-for="category in incomeCategories"
-                            :key="serializeCategory(category.type, category.name)"
-                            :value="serializeCategory(category.type, category.name)"
+                            :key="
+                                serializeCategory(category.type, category.name)
+                            "
+                            :value="
+                                serializeCategory(category.type, category.name)
+                            "
                         >
                             {{ category.name }}
                         </option>
@@ -323,8 +342,12 @@ function accountLabel(account: OperationsFilterAccount): string {
                     >
                         <option
                             v-for="category in expenseCategories"
-                            :key="serializeCategory(category.type, category.name)"
-                            :value="serializeCategory(category.type, category.name)"
+                            :key="
+                                serializeCategory(category.type, category.name)
+                            "
+                            :value="
+                                serializeCategory(category.type, category.name)
+                            "
                         >
                             {{ category.name }}
                         </option>
@@ -333,7 +356,10 @@ function accountLabel(account: OperationsFilterAccount): string {
             </div>
 
             <div class="grid min-w-40 gap-1">
-                <Label for="operations-filter-account" class="text-muted-foreground text-xs">
+                <Label
+                    for="operations-filter-account"
+                    class="text-muted-foreground text-xs"
+                >
                     {{ t.operations.filter_account }}
                 </Label>
                 <select
@@ -356,7 +382,10 @@ function accountLabel(account: OperationsFilterAccount): string {
             </div>
 
             <div class="grid min-w-40 gap-1">
-                <Label for="operations-filter-term-deposit" class="text-muted-foreground text-xs">
+                <Label
+                    for="operations-filter-term-deposit"
+                    class="text-muted-foreground text-xs"
+                >
                     {{ t.operations.filter_term_deposit }}
                 </Label>
                 <select
@@ -379,7 +408,10 @@ function accountLabel(account: OperationsFilterAccount): string {
             </div>
 
             <div class="grid min-w-36 gap-1">
-                <Label for="operations-filter-date-from" class="text-muted-foreground text-xs">
+                <Label
+                    for="operations-filter-date-from"
+                    class="text-muted-foreground text-xs"
+                >
                     {{ t.operations.filter_date_from }}
                 </Label>
                 <Input
@@ -391,7 +423,10 @@ function accountLabel(account: OperationsFilterAccount): string {
             </div>
 
             <div class="grid min-w-36 gap-1">
-                <Label for="operations-filter-date-to" class="text-muted-foreground text-xs">
+                <Label
+                    for="operations-filter-date-to"
+                    class="text-muted-foreground text-xs"
+                >
                     {{ t.operations.filter_date_to }}
                 </Label>
                 <Input

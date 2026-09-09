@@ -154,7 +154,7 @@ function toggleShowArchived(checked: boolean): void {
             <div
                 v-for="account in accounts"
                 :key="account.id"
-                class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.03]"
+                class="border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0"
                 :class="account.is_archived ? 'opacity-60' : ''"
             >
                 <AccountIdentityBlock
@@ -166,10 +166,7 @@ function toggleShowArchived(checked: boolean): void {
                 >
                     <div class="flex flex-wrap items-center gap-2">
                         <p class="font-medium">{{ account.name }}</p>
-                        <Badge
-                            v-if="account.is_archived"
-                            variant="secondary"
-                        >
+                        <Badge v-if="account.is_archived" variant="secondary">
                             {{ t.accounts.archived_badge }}
                         </Badge>
                     </div>
@@ -185,7 +182,9 @@ function toggleShowArchived(checked: boolean): void {
                     {{ formatMoney(account.current_balance_minor_units) }}
                 </p>
 
-                <div class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end">
+                <div
+                    class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end"
+                >
                     <IconAction
                         v-if="!account.is_archived"
                         :icon="Pencil"
@@ -313,10 +312,7 @@ function toggleShowArchived(checked: boolean): void {
         </ListSurface>
     </div>
 
-    <AccountFormDialog
-        v-model:open="createDialogOpen"
-        mode="create"
-    />
+    <AccountFormDialog v-model:open="createDialogOpen" mode="create" />
 
     <AccountFormDialog
         v-model:open="editDialogOpen"

@@ -112,11 +112,12 @@ watch(selectedFile, async (file) => {
         return;
     }
 
-    const delimiter = firstLine.includes(';') && !firstLine.includes(',')
-        ? ';'
-        : firstLine.split(';').length > firstLine.split(',').length
-          ? ';'
-          : ',';
+    const delimiter =
+        firstLine.includes(';') && !firstLine.includes(',')
+            ? ';'
+            : firstLine.split(';').length > firstLine.split(',').length
+              ? ';'
+              : ',';
 
     const cells = parseCsvLine(firstLine, delimiter);
 
@@ -126,9 +127,7 @@ watch(selectedFile, async (file) => {
                   ? cell.trim()
                   : `${t.operations.import_column} ${index + 1}`,
           )
-        : cells.map(
-              (_, index) => `${t.operations.import_column} ${index + 1}`,
-          );
+        : cells.map((_, index) => `${t.operations.import_column} ${index + 1}`);
 
     dateColumn.value = 0;
     descriptionColumn.value = Math.min(1, columnLabels.value.length - 1);
@@ -299,12 +298,18 @@ function onFileChange(event: Event): void {
                         <p class="font-medium">
                             {{ t.operations.import_mbank_fields_title }}
                         </p>
-                        <ul class="text-muted-foreground mt-2 list-inside list-disc space-y-1">
+                        <ul
+                            class="text-muted-foreground mt-2 list-inside list-disc space-y-1"
+                        >
                             <li>{{ t.operations.import_mbank_field_date }}</li>
                             <li>
-                                {{ t.operations.import_mbank_field_description }}
+                                {{
+                                    t.operations.import_mbank_field_description
+                                }}
                             </li>
-                            <li>{{ t.operations.import_mbank_field_amount }}</li>
+                            <li>
+                                {{ t.operations.import_mbank_field_amount }}
+                            </li>
                         </ul>
                     </div>
 
@@ -315,15 +320,29 @@ function onFileChange(event: Event): void {
                         <p class="font-medium">
                             {{ t.operations.import_bnp_paribas_fields_title }}
                         </p>
-                        <ul class="text-muted-foreground mt-2 list-inside list-disc space-y-1">
-                            <li>{{ t.operations.import_bnp_paribas_field_date }}</li>
+                        <ul
+                            class="text-muted-foreground mt-2 list-inside list-disc space-y-1"
+                        >
                             <li>
-                                {{ t.operations.import_bnp_paribas_field_counterparty }}
+                                {{ t.operations.import_bnp_paribas_field_date }}
                             </li>
                             <li>
-                                {{ t.operations.import_bnp_paribas_field_description }}
+                                {{
+                                    t.operations
+                                        .import_bnp_paribas_field_counterparty
+                                }}
                             </li>
-                            <li>{{ t.operations.import_bnp_paribas_field_amount }}</li>
+                            <li>
+                                {{
+                                    t.operations
+                                        .import_bnp_paribas_field_description
+                                }}
+                            </li>
+                            <li>
+                                {{
+                                    t.operations.import_bnp_paribas_field_amount
+                                }}
+                            </li>
                         </ul>
                     </div>
 
@@ -405,7 +424,9 @@ function onFileChange(event: Event): void {
                                 <Label for="import-counterparty-column">
                                     {{ t.operations.counterparty }}
                                     <span class="text-muted-foreground">
-                                        ({{ t.operations.import_optional_column }})
+                                        ({{
+                                            t.operations.import_optional_column
+                                        }})
                                     </span>
                                 </Label>
                                 <select
@@ -498,7 +519,9 @@ function onFileChange(event: Event): void {
                                         required
                                     >
                                         <option
-                                            v-for="(label, index) in columnLabels"
+                                            v-for="(
+                                                label, index
+                                            ) in columnLabels"
                                             :key="`inflow-${index}`"
                                             :value="index"
                                         >
@@ -522,7 +545,9 @@ function onFileChange(event: Event): void {
                                         required
                                     >
                                         <option
-                                            v-for="(label, index) in columnLabels"
+                                            v-for="(
+                                                label, index
+                                            ) in columnLabels"
                                             :key="`outflow-${index}`"
                                             :value="index"
                                         >

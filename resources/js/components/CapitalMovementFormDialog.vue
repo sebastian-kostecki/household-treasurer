@@ -70,7 +70,9 @@ const t = useTranslations();
 
 const movementDate = ref('');
 const description = ref('');
-const direction = ref<'to_term_deposit' | 'from_term_deposit'>('to_term_deposit');
+const direction = ref<'to_term_deposit' | 'from_term_deposit'>(
+    'to_term_deposit',
+);
 const accountId = ref<number | ''>('');
 const termDepositId = ref<number | ''>('');
 const amountInput = ref('0,00');
@@ -78,7 +80,9 @@ const amountMinorUnits = ref(0);
 const originalAmountMinorUnits = ref(0);
 const originalAccountId = ref<number | null>(null);
 const originalTermDepositId = ref<number | null>(null);
-const originalDirection = ref<'to_term_deposit' | 'from_term_deposit'>('to_term_deposit');
+const originalDirection = ref<'to_term_deposit' | 'from_term_deposit'>(
+    'to_term_deposit',
+);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -171,7 +175,9 @@ watch(
             accountId.value = props.movement.account_id;
             termDepositId.value = props.movement.term_deposit_id;
             amountMinorUnits.value = props.movement.amount_minor_units;
-            amountInput.value = minorUnitsToMoneyInput(props.movement.amount_minor_units);
+            amountInput.value = minorUnitsToMoneyInput(
+                props.movement.amount_minor_units,
+            );
             originalAmountMinorUnits.value = props.movement.amount_minor_units;
             originalAccountId.value = props.movement.account_id;
             originalTermDepositId.value = props.movement.term_deposit_id;
@@ -231,7 +237,8 @@ function closeDialog(): void {
                     <DialogDescription>
                         {{
                             mode === 'create'
-                                ? t.operations.create_capital_movement_description
+                                ? t.operations
+                                      .create_capital_movement_description
                                 : t.operations.edit_capital_movement_description
                         }}
                     </DialogDescription>
@@ -273,10 +280,16 @@ function closeDialog(): void {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="to_term_deposit">
-                                {{ t.operations.capital_movement_to_term_deposit }}
+                                {{
+                                    t.operations
+                                        .capital_movement_to_term_deposit
+                                }}
                             </SelectItem>
                             <SelectItem value="from_term_deposit">
-                                {{ t.operations.capital_movement_from_term_deposit }}
+                                {{
+                                    t.operations
+                                        .capital_movement_from_term_deposit
+                                }}
                             </SelectItem>
                         </SelectContent>
                     </Select>
@@ -285,7 +298,9 @@ function closeDialog(): void {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="movement-account">{{ t.operations.account }}</Label>
+                    <Label for="movement-account">{{
+                        t.operations.account
+                    }}</Label>
                     <AccountSelect
                         id="movement-account"
                         name="account_id"
@@ -301,7 +316,10 @@ function closeDialog(): void {
                         {{ t.operations.term_deposit }}
                     </Label>
                     <Select v-model="selectedTermDepositId">
-                        <SelectTrigger id="movement-term-deposit" class="w-full">
+                        <SelectTrigger
+                            id="movement-term-deposit"
+                            class="w-full"
+                        >
                             <SelectValue
                                 :placeholder="t.operations.term_deposit"
                             />
@@ -325,7 +343,9 @@ function closeDialog(): void {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="movement-amount">{{ t.operations.amount }}</Label>
+                    <Label for="movement-amount">{{
+                        t.operations.amount
+                    }}</Label>
                     <Input
                         id="movement-amount"
                         v-model="amountInput"
@@ -344,7 +364,9 @@ function closeDialog(): void {
 
                 <Alert v-if="showNegativeBalanceWarning" variant="destructive">
                     <AlertTriangle class="size-4" />
-                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertTitle>{{
+                        t.operations.expense_warnings_title
+                    }}</AlertTitle>
                     <AlertDescription>
                         {{ t.operations.negative_balance_warning }}
                     </AlertDescription>
@@ -355,7 +377,9 @@ function closeDialog(): void {
                     variant="destructive"
                 >
                     <AlertTriangle class="size-4" />
-                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertTitle>{{
+                        t.operations.expense_warnings_title
+                    }}</AlertTitle>
                     <AlertDescription>
                         {{ t.term_deposits.negative_balance_warning }}
                     </AlertDescription>

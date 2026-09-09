@@ -127,7 +127,9 @@ watch(
             sourceAccountId.value = props.transfer.source_account_id;
             destinationAccountId.value = props.transfer.destination_account_id;
             amountMinorUnits.value = props.transfer.amount_minor_units;
-            amountInput.value = minorUnitsToMoneyInput(props.transfer.amount_minor_units);
+            amountInput.value = minorUnitsToMoneyInput(
+                props.transfer.amount_minor_units,
+            );
             originalAmountMinorUnits.value = props.transfer.amount_minor_units;
             originalSourceAccountId.value = props.transfer.source_account_id;
 
@@ -264,7 +266,9 @@ function closeDialog(): void {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="transfer-amount">{{ t.operations.amount }}</Label>
+                    <Label for="transfer-amount">{{
+                        t.operations.amount
+                    }}</Label>
                     <Input
                         id="transfer-amount"
                         v-model="amountInput"
@@ -283,7 +287,9 @@ function closeDialog(): void {
 
                 <Alert v-if="showNegativeBalanceWarning" variant="destructive">
                     <AlertTriangle class="size-4" />
-                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertTitle>{{
+                        t.operations.expense_warnings_title
+                    }}</AlertTitle>
                     <AlertDescription>
                         {{ t.operations.negative_balance_warning }}
                     </AlertDescription>

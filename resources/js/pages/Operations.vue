@@ -31,9 +31,7 @@ import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import OwnTransferRow, {
     type OwnTransferRowData,
 } from '@/components/OwnTransferRow.vue';
-import {
-    type PaginatedCollection,
-} from '@/components/PaginationLinks.vue';
+import { type PaginatedCollection } from '@/components/PaginationLinks.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { operations as operationsRoute } from '@/routes';
@@ -145,10 +143,13 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
                     {{ t.operations.add_transfer }}
                 </Button>
                 <Button
-                    :disabled="accounts.length === 0 || termDeposits.length === 0"
+                    :disabled="
+                        accounts.length === 0 || termDeposits.length === 0
+                    "
                     :title="
                         accounts.length === 0 || termDeposits.length === 0
-                            ? t.operations.capital_movement_requires_account_and_term_deposit
+                            ? t.operations
+                                  .capital_movement_requires_account_and_term_deposit
                             : undefined
                     "
                     @click="capitalMovementCreateDialogOpen = true"
@@ -217,7 +218,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :paginator="operations"
         >
             <div
-                class="operations-grid hidden border-b border-border/60 pb-2.5 text-[11px] font-medium tracking-wider text-muted-foreground uppercase md:grid"
+                class="operations-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
             >
                 <span class="operations-cell-date">
                     {{ t.operations.date }}
@@ -257,7 +258,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :paginator="ownTransfers"
         >
             <div
-                class="operations-grid operations-grid-transfer hidden border-b border-border/60 pb-2.5 text-[11px] font-medium tracking-wider text-muted-foreground uppercase md:grid"
+                class="operations-grid operations-grid-transfer border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
             >
                 <span class="operations-cell-date">
                     {{ t.operations.date }}
@@ -290,7 +291,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :paginator="capitalMovements"
         >
             <div
-                class="operations-grid operations-grid-transfer hidden border-b border-border/60 pb-2.5 text-[11px] font-medium tracking-wider text-muted-foreground uppercase md:grid"
+                class="operations-grid operations-grid-transfer border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
             >
                 <span class="operations-cell-date">
                     {{ t.operations.date }}

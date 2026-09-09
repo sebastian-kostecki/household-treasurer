@@ -18,8 +18,12 @@ const emit = defineEmits<{
             v-for="color in colors"
             :key="color"
             type="button"
-            class="size-8 rounded-lg border-2 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            :class="modelValue === color ? 'border-foreground' : 'border-transparent'"
+            class="focus-visible:ring-ring size-8 rounded-lg border-2 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:outline-none"
+            :class="
+                modelValue === color
+                    ? 'border-foreground'
+                    : 'border-transparent'
+            "
             :style="categoryTileStyle(color)"
             :aria-label="color"
             :aria-pressed="modelValue === color"

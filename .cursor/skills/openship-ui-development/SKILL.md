@@ -1,9 +1,9 @@
 ---
 name: openship-ui-development
-description: "Apply the OpenShip-inspired surface ladder and control chrome for Household Treasurer. Activates when restyling pages, lists, cards, dialogs, buttons, inputs, or theme tokens; when the user mentions OpenShip, Wallet Master surface recipe, grey floor, lifted cards, or quiet operator UI."
+description: 'Apply the OpenShip-inspired surface ladder and control chrome for Household Treasurer. Activates when restyling pages, lists, cards, dialogs, buttons, inputs, or theme tokens; when the user mentions OpenShip, Wallet Master surface recipe, grey floor, lifted cards, or quiet operator UI.'
 license: MIT
 metadata:
-  author: household-treasurer
+    author: household-treasurer
 ---
 
 # OpenShip UI Development (Household Treasurer)

@@ -96,10 +96,15 @@ const deficitWarningMessage = computed(() => {
     }
 
     return t.budget.deficit_warning
-        .replace(':deficit', formatMoney(props.deficitWarning.planned_deficit_minor_units))
+        .replace(
+            ':deficit',
+            formatMoney(props.deficitWarning.planned_deficit_minor_units),
+        )
         .replace(
             ':liquidity',
-            formatMoney(props.deficitWarning.liquidity_at_year_start_minor_units),
+            formatMoney(
+                props.deficitWarning.liquidity_at_year_start_minor_units,
+            ),
         )
         .replace(
             ':uncovered',
@@ -138,10 +143,7 @@ function openDeleteBudgetDialog(): void {
     <Head :title="t.budget.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
-        <div
-            v-if="budget === null"
-            class="flex flex-col items-start gap-4"
-        >
+        <div v-if="budget === null" class="flex flex-col items-start gap-4">
             <Card class="w-full max-w-lg">
                 <CardHeader>
                     <CardTitle class="text-base">
@@ -183,7 +185,9 @@ function openDeleteBudgetDialog(): void {
                         </DialogTrigger>
                         <DialogContent>
                             <Form
-                                v-bind="BudgetController.startExecution.form(budget)"
+                                v-bind="
+                                    BudgetController.startExecution.form(budget)
+                                "
                                 v-slot="{ processing }"
                             >
                                 <DialogHeader>
@@ -191,22 +195,30 @@ function openDeleteBudgetDialog(): void {
                                         {{ t.budget.start_execution_title }}
                                     </DialogTitle>
                                     <DialogDescription>
-                                        {{ t.budget.start_execution_description }}
+                                        {{
+                                            t.budget.start_execution_description
+                                        }}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <p
                                     v-if="deficitWarningMessage"
-                                    class="text-sm text-destructive"
+                                    class="text-destructive text-sm"
                                 >
                                     {{ deficitWarningMessage }}
                                 </p>
                                 <DialogFooter class="gap-2">
                                     <DialogClose as-child>
-                                        <Button type="button" variant="secondary">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                        >
                                             {{ t.budget.cancel }}
                                         </Button>
                                     </DialogClose>
-                                    <Button type="submit" :disabled="processing">
+                                    <Button
+                                        type="submit"
+                                        :disabled="processing"
+                                    >
                                         {{ t.budget.start_execution_confirm }}
                                     </Button>
                                 </DialogFooter>
@@ -240,7 +252,9 @@ function openDeleteBudgetDialog(): void {
                 v-if="planSummary"
                 :income-totals="incomeTotals"
                 :expense-totals="expenseTotals"
-                :planned-balance-minor-units="planSummary.planned_balance_minor_units"
+                :planned-balance-minor-units="
+                    planSummary.planned_balance_minor_units
+                "
             />
 
             <div class="flex items-center gap-2">

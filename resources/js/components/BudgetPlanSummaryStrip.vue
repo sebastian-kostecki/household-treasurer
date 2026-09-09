@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-    Card,
-    CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';

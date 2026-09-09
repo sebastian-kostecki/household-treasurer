@@ -10,7 +10,9 @@ export type AccountIdentityFields = {
 };
 
 export type PrefixedAccountIdentityFields<Prefix extends string> = {
-    [K in keyof AccountIdentityFields as `${Prefix}_${K}`]: AccountIdentityFields[K];
+    [
+        K in keyof AccountIdentityFields as `${Prefix}_${K}`
+    ]: AccountIdentityFields[K];
 };
 
 export type AccountPickerOption = AccountIdentityFields & {

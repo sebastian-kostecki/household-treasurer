@@ -32,8 +32,7 @@ const emit = defineEmits<{
 }>();
 
 const selectedCategoryId = computed({
-    get: () =>
-        props.modelValue === '' ? undefined : String(props.modelValue),
+    get: () => (props.modelValue === '' ? undefined : String(props.modelValue)),
     set: (value: string | undefined) => {
         emit('update:modelValue', value ? Number(value) : '');
     },

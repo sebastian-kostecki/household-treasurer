@@ -1,60 +1,64 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/8.5/Dockerfile.prod
-      args:
-        WWWGROUP: ${WWWGROUP:-1000}
-        VITE_APP_NAME: ${VITE_APP_NAME:-Household Treasurer}
-        POSTGRES_VERSION: 18
-    image: household-treasurer-app:prod
-    container_name: treasurer-app
-    restart: unless-stopped
-    environment:
-      WWWUSER: ${WWWUSER:-1000}
-      SUPERVISOR_PHP_USER: sail
-    volumes:
-      - ./storage:/var/www/html/storage
-      - ${BACKUP_HOST_DIR:-/storage/household-treasurer-backups}:/var/www/html/storage/app/backups
-      - ./.env.prod:/var/www/html/.env:ro
-    networks:
-      - treasurer-internal
-      - proxy
-    depends_on:
-      pgsql:
-        condition: service_healthy
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=proxy
-      - traefik.http.routers.treasurer.rule=Host(`treasurer.kostecki.dev`)
-      - traefik.http.routers.treasurer.entrypoints=websecure
-      - traefik.http.routers.treasurer.tls.certresolver=letsencrypt
-      - traefik.http.services.treasurer.loadbalancer.server.port=80
+    app:
+        build:
+            context: .
+            dockerfile: docker/8.5/Dockerfile.prod
+            args:
+                WWWGROUP: ${WWWGROUP:-1000}
+                VITE_APP_NAME: ${VITE_APP_NAME:-Household Treasurer}
+                POSTGRES_VERSION: 18
+        image: household-treasurer-app:prod
+        container_name: treasurer-app
+        restart: unless-stopped
+        environment:
+            WWWUSER: ${WWWUSER:-1000}
+            SUPERVISOR_PHP_USER: sail
+        volumes:
+            - ./storage:/var/www/html/storage
+            - ${BACKUP_HOST_DIR:-/storage/household-treasurer-backups}:/var/www/html/storage/app/backups
+            - ./.env.prod:/var/www/html/.env:ro
+        networks:
+            - treasurer-internal
+            - proxy
+        depends_on:
+            pgsql:
+                condition: service_healthy
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=proxy
+            - traefik.http.routers.treasurer.rule=Host(`treasurer.kostecki.dev`)
+            - traefik.http.routers.treasurer.entrypoints=websecure
+            - traefik.http.routers.treasurer.tls.certresolver=letsencrypt
+            - traefik.http.services.treasurer.loadbalancer.server.port=80
 
-  pgsql:
-    image: postgres:18-alpine
-    container_name: treasurer-pgsql
-    restart: unless-stopped
-    environment:
-      PGPASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - treasurer-pgsql:/var/lib/postgresql
-    networks:
-      - treasurer-internal
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d ${DB_DATABASE} -U ${DB_USERNAME}"]
-      retries: 5
-      timeout: 5s
-      interval: 10s
+    pgsql:
+        image: postgres:18-alpine
+        container_name: treasurer-pgsql
+        restart: unless-stopped
+        environment:
+            PGPASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+        volumes:
+            - treasurer-pgsql:/var/lib/postgresql
+        networks:
+            - treasurer-internal
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'pg_isready -q -d ${DB_DATABASE} -U ${DB_USERNAME}',
+                ]
+            retries: 5
+            timeout: 5s
+            interval: 10s
 
 networks:
-  treasurer-internal:
-    driver: bridge
-  proxy:
-    external: true
+    treasurer-internal:
+        driver: bridge
+    proxy:
+        external: true
 
 volumes:
-  treasurer-pgsql:
+    treasurer-pgsql:
