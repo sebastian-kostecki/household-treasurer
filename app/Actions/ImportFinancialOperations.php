@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\User;
 use App\Support\CsvImport\FinancialOperationImportValidator;
+use App\Support\CsvImport\ImportIdentityFactory;
 use App\Support\CsvImport\OwnTransferImportMapper;
 use App\Support\CsvImport\OwnTransferImportValidator;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,7 @@ class ImportFinancialOperations
         private FinancialOperationImportValidator $financialOperationValidator,
         private OwnTransferImportValidator $ownTransferValidator,
         private OwnTransferImportMapper $ownTransferMapper,
+        private ImportIdentityFactory $importIdentityFactory,
     ) {}
 
     /**
@@ -63,6 +65,16 @@ class ImportFinancialOperations
                         $row['amount_grosze'],
                     );
                     $validated['raw_statement_description'] = $row['raw_statement_description'] ?? null;
+                    $validated = [
+                        ...$validated,
+                        ...$this->importIdentityFactory->forOwnTransferImportedAccount(
+                            $user,
+                            $accountId,
+                            $row['operation_date'],
+                            $row['amount_grosze'],
+                            $row['raw_statement_description'] ?? null,
+                        ),
+                    ];
 
                     $errors = $this->ownTransferValidator->validate($user, $validated);
 
@@ -92,6 +104,13 @@ class ImportFinancialOperations
                     'raw_statement_description' => $row['raw_statement_description'] ?? null,
                     'account_id' => $accountId,
                     'category_id' => $row['category_id'],
+                    ...$this->importIdentityFactory->forFinancialOperation(
+                        $user,
+                        $accountId,
+                        $row['operation_date'],
+                        $row['amount_grosze'],
+                        $row['raw_statement_description'] ?? null,
+                    ),
                 ];
 
                 $errors = $this->financialOperationValidator->validate($user, $row['type'], $validated);

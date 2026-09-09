@@ -18,6 +18,7 @@ use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
 use App\Support\CsvImport\CsvImportSession;
+use App\Support\CsvImport\ImportDuplicateDetector;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ class CsvImportController extends Controller
         CsvImportParser $parser,
         BnpParibasXlsxParser $bnpParibasXlsxParser,
         CsvImportPreviewValidator $previewValidator,
+        ImportDuplicateDetector $importDuplicateDetector,
     ): RedirectResponse {
         $this->authorize('create', FinancialOperation::class);
 
@@ -97,6 +99,8 @@ class CsvImportController extends Controller
             ];
         }, $operationRows);
 
+        $rows = $importDuplicateDetector->annotateRows($request->user(), $account->id, $rows);
+
         CsvImportSession::put($request->user(), [
             'account_id' => $account->id,
             'rows' => $rows,
@@ -132,6 +136,7 @@ class CsvImportController extends Controller
     public function store(
         StoreCsvImportRequest $request,
         ImportFinancialOperations $importFinancialOperations,
+        ImportDuplicateDetector $importDuplicateDetector,
     ): RedirectResponse {
         $this->authorize('create', FinancialOperation::class);
 
@@ -200,6 +205,25 @@ class CsvImportController extends Controller
                 'type' => $selection['type'],
                 'category_id' => $selection['category_id'],
             ];
+        }
+
+        $selectedImportDuplicates = $importDuplicateDetector->selectedImportDuplicates(
+            $request->user(),
+            (int) $import['account_id'],
+            array_map(
+                fn (array $row): array => [
+                    'operation_date' => $row['operation_date'],
+                    'amount_grosze' => $row['amount_grosze'],
+                    'raw_statement_description' => $row['raw_statement_description'] ?? null,
+                ],
+                $selectedRows,
+            ),
+        );
+
+        if ($selectedImportDuplicates !== [] && ! $request->boolean('duplicate_warning_acknowledged')) {
+            throw ValidationException::withMessages([
+                'duplicate_warning_acknowledged' => __('Acknowledge the import duplicate warning before committing selected duplicates.'),
+            ]);
         }
 
         $imported = $importFinancialOperations->handle(

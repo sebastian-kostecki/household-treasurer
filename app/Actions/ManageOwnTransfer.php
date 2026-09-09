@@ -17,6 +17,14 @@ class ManageOwnTransfer
      *     amount_grosze: int,
      *     description: string,
      *     raw_statement_description?: string|null,
+     *     source_import_identity_account_id?: int|null,
+     *     source_import_identity_date?: string|null,
+     *     source_import_identity_amount_grosze?: int|null,
+     *     source_import_identity_digest?: string|null,
+     *     destination_import_identity_account_id?: int|null,
+     *     destination_import_identity_date?: string|null,
+     *     destination_import_identity_amount_grosze?: int|null,
+     *     destination_import_identity_digest?: string|null,
      * }  $validated
      */
     public function create(User $user, array $validated): OwnTransfer

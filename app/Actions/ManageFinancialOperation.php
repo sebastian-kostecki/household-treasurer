@@ -18,6 +18,10 @@ class ManageFinancialOperation
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
+     *     import_identity_account_id?: int|null,
+     *     import_identity_date?: string|null,
+     *     import_identity_amount_grosze?: int|null,
+     *     import_identity_digest?: string|null,
      *     account_id: int,
      *     category_id: int,
      * }  $validated
@@ -34,6 +38,10 @@ class ManageFinancialOperation
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
+     *     import_identity_account_id?: int|null,
+     *     import_identity_date?: string|null,
+     *     import_identity_amount_grosze?: int|null,
+     *     import_identity_digest?: string|null,
      *     account_id: int,
      *     category_id: int,
      * }  $validated
@@ -88,6 +96,10 @@ class ManageFinancialOperation
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
+     *     import_identity_account_id?: int|null,
+     *     import_identity_date?: string|null,
+     *     import_identity_amount_grosze?: int|null,
+     *     import_identity_digest?: string|null,
      *     account_id: int,
      *     category_id: int,
      * }  $validated
@@ -122,6 +134,10 @@ class ManageFinancialOperation
                 'description' => $validated['description'],
                 'counterparty' => $validated['counterparty'] ?? null,
                 'raw_statement_description' => $validated['raw_statement_description'] ?? null,
+                'import_identity_account_id' => $validated['import_identity_account_id'] ?? null,
+                'import_identity_date' => $validated['import_identity_date'] ?? null,
+                'import_identity_amount_grosze' => $validated['import_identity_amount_grosze'] ?? null,
+                'import_identity_digest' => $validated['import_identity_digest'] ?? null,
             ]);
 
             $this->applyEffect($type, $account, $category, $validated['amount_grosze']);
