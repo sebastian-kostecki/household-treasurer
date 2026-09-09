@@ -10,7 +10,11 @@ _Avoid_: Account (for the login identity), Customer, Member
 
 **Account**:
 A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank.
-_Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User
+_Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User, Term Deposit
+
+**Term Deposit**:
+A holding of the User’s money in a bank term-deposit product. Not an Account and not a Category. Each Term Deposit is its own holding, not a pooled balance. Not an Own Transfer endpoint and not the Account of a Financial Operation. Polish UI copy: „lokata”.
+_Avoid_: Deposit (unqualified), Savings, Investment, Lokata in code, Account (for this holding)
 
 **Bank**:
 The named institution of a bank Account: mBank, BNP Paribas, or Other. Required on bank Accounts, absent on cash Accounts. Distinct from Import format (file layout of an export); Other here is not Import format Other.
@@ -46,7 +50,7 @@ _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Pol
 
 **Financial Operation**:
 An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import.
-_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type)
+_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account)
 
 **Expense refund**:
 A Financial Operation on an expense Category with a negative amount. Not Income: money returned from a purchase belongs here, not on an income Category. Restores Account balance and Available Limit, so Execution on that Category is net spend.
@@ -62,7 +66,7 @@ _Avoid_: raw_description, statement_description, Subject
 
 **Own Transfer**:
 A move of money between two of the User’s Accounts. No Category. Does not affect Execution. ATM withdrawal is an Own Transfer from bank to cash. An Import row becomes this record when the User classifies it and picks the other Account; both Accounts move on that commit — a later file is not required for it to exist. Cash is an Account like any other for a cross-Import pair. May make the source Account’s current balance negative. May carry a Raw Statement Description per Import-born Account (none, one, or two). A cross-Import pair leaves this single record: it replaces a first-leg Financial Operation and does not move balances twice.
-_Avoid_: Internal transfer, Move (as the type name), one-sided Own Transfer, pair (as a record type)
+_Avoid_: Internal transfer, Move (as the type name), one-sided Own Transfer, pair (as a record type), Term Deposit (as an endpoint)
 
 **Negative Balance Warning**:
 A non-blocking notice before saving a Financial Operation or Own Transfer that would make an Account’s current balance negative. Distinct from exceeding an Available Limit.
