@@ -96,6 +96,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 3. Przed zapisaniem wydatku widzi dostępny limit i wartość po operacji.
 4. Zapisana operacja zmienia saldo konta i wykonanie kategorii.
 5. Transfer własny zmienia wyłącznie salda dwóch kont.
+6. Przy Imporcie podgląd oznacza już zapisany wiersz z tego konta (Import duplicate) oraz drugą nogę transferu własnego z innego konta (Import pair candidate). Użytkownik włącza te wiersze świadomie.
 
 ### 6.3. Kontrola
 
@@ -184,6 +185,8 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **Import format**, wskazuje konto, przegląda podgląd i zatwierdza wybrane wiersze. To nie jest połączenie z bankiem.
 
+Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakładki: **Import duplicate** (to samo konto, ten sam zamrożony wiersz Importu) oraz **Import pair candidate** (inne konto już zaksięgowało te środki przez wcześniejszy Import). Oba startują odznaczone; użytkownik je włącza. Niepoprawny wiersz wygrywa z obiema nakładkami. Jeden Import dotyczy jednego wskazanego konta.
+
 - **FR-IMP-01**: Użytkownik może wczytać plik CSV albo XLSX.
 - **FR-IMP-02**: Użytkownik wybiera Import format: mBank, BNP Paribas albo Inny. System może wstępnie zaznaczyć format na podstawie rozszerzenia pliku; użytkownik może to zmienić. System nie importuje po cichej autodetekcji.
 - **FR-IMP-03**: Plik musi pasować do wybranego formatu: mBank i Inny wymagają CSV, BNP Paribas wymaga XLSX. Niezgodność jest błędem pliku.
@@ -199,11 +202,15 @@ Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **I
 - **FR-IMP-13**: Użytkownik wybiera poprawne wiersze przeznaczone do Importu.
 - **FR-IMP-14**: Każdy wybrany wiersz musi otrzymać typ operacji oraz dane wymagane dla tego typu.
 - **FR-IMP-15**: Użytkownik może utworzyć z wiersza dochód, wydatek, zwrot albo transfer własny.
-- **FR-IMP-16**: Dla transferu użytkownik wskazuje drugie konto, a system tworzy cały transfer atomowo.
-- **FR-IMP-17**: System nie dopasowuje automatycznie dwóch pozycji pliku jako stron tego samego transferu.
-- **FR-IMP-18**: System ostrzega, że nie gwarantuje wykrycia duplikatów.
-- **FR-IMP-19**: Ponowne zatwierdzenie tej samej pozycji może utworzyć duplikat.
-- **FR-IMP-20**: Wszystkie wybrane poprawne pozycje są zapisywane atomowo albo żadna nie zostaje zapisana.
+- **FR-IMP-16**: Dla transferu użytkownik wskazuje drugie konto, a system tworzy cały transfer atomowo. Transfer własny z pierwszego pliku rusza oba salda przy tym zatwierdzeniu; system nie czeka na drugi Import.
+- **FR-IMP-17**: Dwa wiersze tego samego pliku nie są parowane jako strony jednego transferu własnego.
+- **FR-IMP-18**: Podgląd oznacza Import duplicate, gdy wiersz jest tym samym wierszem Importu co już zatwierdzona pozycja z Importu tego użytkownika na tym koncie: data z pliku, kwota ze znakiem i oryginalny opis z wyciągu, zamrożone w chwili zapisu. Wiersz pozostaje poprawny; pole wyboru jest odznaczone. Ręczne wpisy oraz rekordy zapisane, zanim istniały odciski Importu, nie są Import duplicate. Edycja daty, kwoty, konta, opisu albo nadawcy / odbiorcy nie zmienia odcisku. Usunięcie rekordu usuwa odcisk.
+- **FR-IMP-19**: Włączenie Import duplicate i zatwierdzenie może utworzyć drugi rekord. Potwierdzenie jest wymagane tylko wtedy, gdy użytkownik wybrał co najmniej jeden Import duplicate. System oznacza znane trafienia i nie gwarantuje unikalności wszystkich wierszy.
+- **FR-IMP-20**: Wszystkie wybrane poprawne pozycje — w tym pary i zwykłe księgowania — są zapisywane atomowo albo żadna nie zostaje zapisana.
+- **FR-IMP-21**: Podgląd oznacza Import pair candidate, gdy wiersz należy do tego użytkownika, leży na innym koncie niż istniejąca pozycja z Importu, zamrożone kwoty ze znakiem są dokładnymi przeciwieństwami, a zamrożone daty z pliku mieszczą się w oknie trzech dni włącznie. Ręczne wpisy nie są kandydatami. To samo konto i ten sam zamrożony wiersz to Import duplicate, nie para.
+- **FR-IMP-22**: Zaznaczenie Import pair candidate i zatwierdzenie pozostawia jeden transfer własny: albo przekształca pierwszą nogę będącą dochodem albo wydatkiem (wykonanie kategorii wraca, potem ruszają salda obu kont), albo dopina drugą tożsamość Importu do istniejącego transferu własnego bez ponownego ruchu sald. Usunięcie transferu własnego usuwa obie tożsamości; nie ma osobnego rozparowania przywracającego dochód albo wydatek.
+- **FR-IMP-23**: Użytkownik może sklasyfikować kandydata będącego wyłącznie dochodem albo wydatkiem jako dochód, wydatek, zwrot albo nowy transfer własny na inne konto. Gdy w zbiorze kandydatów jest transfer własny, który już ruszył konto z podglądu, typ jest zablokowany na transfer własny.
+- **FR-IMP-24**: Po parze transfer własny przechowuje dwa oryginalne opisy z wyciągu i dwa odciski Import duplicate, po jednym na konto z Importu. Ponowny Import dowolnego z tych plików oznacza wiersz jako Import duplicate.
 
 ### 7.8. Raportowanie i kontrola wykonania
 
@@ -255,7 +262,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Niepoprawny wiersz Importu pozostaje w podglądzie z opisem błędu i nie blokuje wyboru pozostałych poprawnych wierszy.
 - Preambuła, nagłówek i inne linie niebędące operacją nie pojawiają się w podglądzie jako błędy.
 - Wczytanie pliku niezgodnego z wybranym Import format (np. XLSX przy mBank) jest odrzucane przed podglądem.
-- Przed zatwierdzeniem importu użytkownik widzi ostrzeżenie o możliwych duplikatach i odpowiada za sprawdzenie podglądu.
+- Podgląd oznacza znane Import duplicate i Import pair candidate jako osobne, odznaczone nakładki. Potwierdzenie jest wymagane tylko przy wyborze Import duplicate. Ręczne wpisy i rekordy bez odcisku nie są oznaczane.
 - Błędy formularzy są prezentowane przy odpowiednich polach bez utraty poprawnie wprowadzonych danych.
 
 ## 10. Wymagania niefunkcjonalne
@@ -323,10 +330,14 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 5. Zatwierdzenie tworzy operacje wyłącznie z wybranych poprawnych wierszy.
 6. Transfer utworzony z Importu jest jedną atomową operacją między wskazanymi kontami.
 7. Błąd zapisu jednej wybranej pozycji nie pozostawia częściowo zapisanego Importu.
-8. Przed zatwierdzeniem użytkownik otrzymuje ostrzeżenie, że duplikaty mogą nie zostać wykryte.
-9. Podgląd pokazuje nadawcę / odbiorcę i oryginalny opis z wyciągu dla każdego wiersza.
-10. Import zapisuje oryginalny opis z wyciągu jednorazowo przy utworzeniu operacji finansowej lub transferu własnego. Ręczne tworzenie pozostawia go pustym. Edycja opisu lub nadawcy / odbiorcy nie zmienia oryginalnego opisu z wyciągu.
-11. Dialog edycji pokazuje oryginalny opis z wyciągu jako pole tylko do odczytu, gdy jest ustawiony.
+8. Podgląd oznacza Import duplicate i Import pair candidate jako osobne, poprawne wiersze z odznaczonym wyborem. Niepoprawny wiersz wygrywa z obiema nakładkami.
+9. Zatwierdzenie bez włączonych Import duplicate i Import pair candidate zapisuje pozostałe wybrane wiersze.
+10. Włączenie Import duplicate wymaga potwierdzenia i może utworzyć drugi rekord. Ręczne wpisy oraz rekordy bez odcisku nie są Import duplicate.
+11. Zatwierdzenie Import pair candidate zostawia jeden transfer własny: przekształca dochód albo wydatek albo dopina drugą tożsamość Importu bez ponownego ruchu sald.
+12. Transfer własny z pierwszego pliku rusza oba salda przy tym zatwierdzeniu. Dwa wiersze tego samego pliku nie stają się stronami jednego transferu własnego.
+13. Podgląd pokazuje nadawcę / odbiorcę i oryginalny opis z wyciągu dla każdego wiersza.
+14. Import zapisuje oryginalny opis z wyciągu jednorazowo przy utworzeniu operacji finansowej lub transferu własnego. Ręczne tworzenie pozostawia go pustym. Edycja opisu lub nadawcy / odbiorcy nie zmienia oryginalnego opisu z wyciągu.
+15. Dialog edycji pokazuje oryginalny opis z wyciągu jako pole tylko do odczytu, gdy jest ustawiony. Po parze transfer własny pokazuje oba oryginalne opisy z wyciągu.
 
 ### 11.7. Raportowanie
 
@@ -347,8 +358,10 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 - korekty salda inne niż zmiana salda otwarcia,
 - kopiowanie kategorii i planów między latami,
 - raporty kwartalne i rozbudowane raporty okresowe,
-- automatyczne uzgadnianie transferów,
-- gwarantowane lub zaawansowane wykrywanie duplikatów Importu,
+- parowanie dwóch wierszy w jednym pliku Importu jako stron transferu własnego,
+- gwarantowana unikalność każdego wiersza Importu,
+- dopasowywanie ręcznych wpisów jako Import duplicate albo Import pair candidate,
+- osobne rozparowanie przywracające dochód albo wydatek z transferu własnego,
 - bezpośrednie integracje bankowe (API, logowanie do banku, pobieranie historii bez pliku),
 - kolejne Import format poza mBank CSV, BNP Paribas XLSX i Inny CSV,
 - generyczny Import XLSX z ręcznym mapowaniem kolumn,
@@ -366,7 +379,8 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 
 - Bank może zmienić układ eksportu; nazwany Import format wtedy się rozjedzie, a format Inny oraz podgląd ograniczają skutki.
 - Blokady kart w podglądzie BNP mogą zostać omyłkowo zatwierdzone i później zdublować się z operacją zrealizowaną; użytkownik je odznacza.
-- Brak wykrywania duplikatów wymaga uważnej kontroli użytkownika przed zatwierdzeniem Importu.
+- Import duplicate obejmuje tylko wcześniejsze zatwierdzenia Importu z odciskiem; ręczne wpisy, rekordy sprzed odcisku i bliźniaki w pliku bez wcześniejszego zapisu nie są oznaczane. Ponowne włączenie Import duplicate może utworzyć drugi rekord.
+- Okno trzech dni i dokładna przeciwna kwota mogą wskazać więcej niż jednego Import pair candidate; użytkownik wybiera nogę. Para nie gwarantuje, że bankowy przelew wewnętrzny należy do tego użytkownika.
 - Dopuszczenie korekt historycznych bez śladu audytowego może utrudniać wyjaśnienie zmian; jest to świadomy kompromis MVP.
 - Brak zamknięcia roku pozwala zmieniać dane historyczne; formalne zamykanie okresów pozostaje późniejszym rozszerzeniem.
 - Poprawność sald, wykonania i transferów zależy od atomowego i dokładnego przetwarzania kwot.

@@ -91,7 +91,7 @@ Import przebiega w trzech krokach:
 2. wskazanie konta oraz podgląd pozycji,
 3. zatwierdzenie pozycji, które mają zostać utworzone jako operacje.
 
-Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku oraz arkusz BNP z kolumną Nadawca / odbiorca albo rozdzielonymi Nadawcą i Odbiorcą). Format Inny zostaje dla nieznanych CSV. MVP nie dopasowuje automatycznie obu stron transferów i nie zapewnia zaawansowanego wykrywania duplikatów. Za kontrolę podglądu przed zatwierdzeniem odpowiada użytkownik.
+Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku oraz arkusz BNP z kolumną Nadawca / odbiorca albo rozdzielonymi Nadawcą i Odbiorcą). Format Inny zostaje dla nieznanych CSV. Podgląd oznacza Import duplicate (ponowny Import już zapisanego wiersza z tego konta) oraz Import pair candidate (druga noga transferu własnego z innego konta i wcześniejszego Importu). Oba startują odznaczone. Dwa wiersze tego samego pliku nie są parowane. Ręczne wpisy nie są oznaczane. Za włączenie tych wierszy przed zatwierdzeniem odpowiada użytkownik.
 
 ### 3.6. Podstawowe raportowanie
 
@@ -143,7 +143,7 @@ System udostępnia:
 - korekty salda i pełny ślad audytowy,
 - zamknięcie roku oraz wersjonowane sprawozdania,
 - raporty kwartalne i rozbudowane raporty okresowe,
-- automatyczne uzgadnianie transferów oraz zaawansowane wykrywanie duplikatów w CSV,
+- parowanie dwóch wierszy w jednym pliku Importu oraz dopasowywanie ręcznych wpisów jako Import duplicate albo Import pair candidate,
 - bezpośrednie integracje bankowe,
 - budżety współdzielone przez wielu domowników,
 - wiele walut w jednym budżecie,
