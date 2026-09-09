@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ManageOwnTransfer;
+use App\Actions\RebuildOperation;
 use App\Http\Requests\StoreOwnTransferRequest;
 use App\Http\Requests\UpdateOwnTransferRequest;
 use App\Models\OwnTransfer;
@@ -31,7 +32,19 @@ class OwnTransferController extends Controller
         UpdateOwnTransferRequest $request,
         OwnTransfer $ownTransfer,
         ManageOwnTransfer $manageOwnTransfer,
+        RebuildOperation $rebuildOperation,
     ): RedirectResponse {
+        if ($request->boolean('convert_to_capital_movement')) {
+            $rebuildOperation->ownTransferToCapitalMovement($ownTransfer, $request->payload());
+
+            Inertia::flash('toast', [
+                'type' => 'success',
+                'message' => __('Capital movement recorded.'),
+            ]);
+
+            return to_route('operations');
+        }
+
         $manageOwnTransfer->update($ownTransfer, $request->payload());
 
         Inertia::flash('toast', [

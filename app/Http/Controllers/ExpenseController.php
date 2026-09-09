@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ManageFinancialOperation;
+use App\Actions\RebuildOperation;
 use App\Enums\FinancialOperationType;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
@@ -34,7 +35,22 @@ class ExpenseController extends Controller
         UpdateExpenseRequest $request,
         FinancialOperation $financialOperation,
         ManageFinancialOperation $manageFinancialOperation,
+        RebuildOperation $rebuildOperation,
     ): RedirectResponse {
+        if ($request->boolean('convert_to_capital_movement')) {
+            $rebuildOperation->financialOperationToCapitalMovement(
+                $financialOperation,
+                $request->payload(),
+            );
+
+            Inertia::flash('toast', [
+                'type' => 'success',
+                'message' => __('Capital movement recorded.'),
+            ]);
+
+            return to_route('operations');
+        }
+
         $manageFinancialOperation->updateExpense($financialOperation, $request->payload());
 
         Inertia::flash('toast', [

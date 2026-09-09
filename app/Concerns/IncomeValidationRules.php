@@ -31,6 +31,7 @@ trait IncomeValidationRules
             'import_identity_amount_minor_units' => ['prohibited'],
             'import_identity_digest' => ['prohibited'],
             'convert_to_expense_refund' => ['prohibited'],
+            'convert_to_capital_movement' => ['prohibited'],
             'account_id' => [
                 'required',
                 'integer',

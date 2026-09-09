@@ -26,6 +26,7 @@ trait OwnTransferValidationRules
             'destination_import_identity_date' => ['prohibited'],
             'destination_import_identity_amount_minor_units' => ['prohibited'],
             'destination_import_identity_digest' => ['prohibited'],
+            'convert_to_capital_movement' => ['prohibited'],
             'source_account_id' => ['required', 'integer', 'different:destination_account_id'],
             'destination_account_id' => ['required', 'integer'],
         ];
