@@ -3,11 +3,11 @@
 use App\Support\CategoryExecutionMetrics;
 
 test('remaining amount is current plan minus execution', function () {
-    expect(CategoryExecutionMetrics::remainingGrosze(500000, 250000))->toBe(250000);
+    expect(CategoryExecutionMetrics::remainingMinorUnits(500000, 250000))->toBe(250000);
 });
 
 test('negative remaining amount indicates over limit', function () {
-    expect(CategoryExecutionMetrics::remainingGrosze(10000, 15000))->toBe(-5000);
+    expect(CategoryExecutionMetrics::remainingMinorUnits(10000, 15000))->toBe(-5000);
     expect(CategoryExecutionMetrics::isOverLimit(10000, 15000))->toBeTrue();
 });
 

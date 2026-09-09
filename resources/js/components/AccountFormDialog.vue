@@ -22,8 +22,8 @@ import {
     type AccountTypeValue,
 } from '@/lib/account-identity';
 import {
-    groszeToMoneyInput,
-    parseMoneyInputToGrosze,
+    minorUnitsToMoneyInput,
+    parseMoneyInputToMinorUnits,
 } from '@/lib/format';
 
 export type AccountFormAccount = {
@@ -32,7 +32,7 @@ export type AccountFormAccount = {
     type: AccountTypeValue;
     bank: AccountBank | null;
     opening_date: string;
-    opening_balance_grosze: number;
+    opening_balance_minor_units: number;
 };
 
 const props = defineProps<{
@@ -52,7 +52,7 @@ const type = ref<AccountTypeValue>('bank');
 const bank = ref<AccountBank>('other');
 const openingDate = ref('');
 const openingBalanceInput = ref('0,00');
-const openingBalanceGrosze = ref(0);
+const openingBalanceMinorUnits = ref(0);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -72,9 +72,9 @@ watch(
             type.value = props.account.type;
             bank.value = props.account.bank ?? 'other';
             openingDate.value = props.account.opening_date;
-            openingBalanceGrosze.value = props.account.opening_balance_grosze;
-            openingBalanceInput.value = groszeToMoneyInput(
-                props.account.opening_balance_grosze,
+            openingBalanceMinorUnits.value = props.account.opening_balance_minor_units;
+            openingBalanceInput.value = minorUnitsToMoneyInput(
+                props.account.opening_balance_minor_units,
             );
 
             return;
@@ -84,7 +84,7 @@ watch(
         type.value = 'bank';
         bank.value = 'other';
         openingDate.value = new Date().toISOString().slice(0, 10);
-        openingBalanceGrosze.value = 0;
+        openingBalanceMinorUnits.value = 0;
         openingBalanceInput.value = '0,00';
     },
     { immediate: true },
@@ -97,10 +97,10 @@ watch(type, (nextType, previousType) => {
 });
 
 function syncOpeningBalance(): void {
-    const parsed = parseMoneyInputToGrosze(openingBalanceInput.value);
+    const parsed = parseMoneyInputToMinorUnits(openingBalanceInput.value);
 
     if (parsed !== null) {
-        openingBalanceGrosze.value = parsed;
+        openingBalanceMinorUnits.value = parsed;
     }
 }
 
@@ -199,10 +199,10 @@ function closeDialog(): void {
                     />
                     <input
                         type="hidden"
-                        name="opening_balance_grosze"
-                        :value="openingBalanceGrosze"
+                        name="opening_balance_minor_units"
+                        :value="openingBalanceMinorUnits"
                     />
-                    <InputError :message="errors.opening_balance_grosze" />
+                    <InputError :message="errors.opening_balance_minor_units" />
                 </div>
 
                 <DialogFooter class="gap-2">

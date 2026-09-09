@@ -22,7 +22,7 @@ class OwnTransferFactory extends Factory
             'source_account_id' => Account::factory(),
             'destination_account_id' => Account::factory(),
             'transfer_date' => fake()->date(),
-            'amount_grosze' => fake()->numberBetween(100, 50000),
+            'amount_minor_units' => fake()->numberBetween(100, 50000),
             'description' => fake()->sentence(),
         ];
     }

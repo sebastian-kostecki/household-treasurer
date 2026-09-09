@@ -16,7 +16,7 @@ class FinancialOperationImportValidator
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     account_id: int,
      *     category_id: int,
@@ -81,23 +81,23 @@ class FinancialOperationImportValidator
                 $validator->errors()->add('category_id', $message);
             }
 
-            if ($type === 'income' && $data['amount_grosze'] < 1) {
+            if ($type === 'income' && $data['amount_minor_units'] < 1) {
                 $validator->errors()->add(
-                    'amount_grosze',
+                    'amount_minor_units',
                     __('Income amount must be greater than zero.'),
                 );
             }
 
-            if ($type === 'expense' && $data['amount_grosze'] < 1) {
+            if ($type === 'expense' && $data['amount_minor_units'] < 1) {
                 $validator->errors()->add(
-                    'amount_grosze',
+                    'amount_minor_units',
                     __('Expense amount must be greater than zero.'),
                 );
             }
 
-            if ($type === 'refund' && $data['amount_grosze'] > -1) {
+            if ($type === 'refund' && $data['amount_minor_units'] > -1) {
                 $validator->errors()->add(
-                    'amount_grosze',
+                    'amount_minor_units',
                     __('Refund amount must be less than zero.'),
                 );
             }
@@ -113,7 +113,7 @@ class FinancialOperationImportValidator
     {
         return [
             'operation_date' => ['required', 'date', 'before_or_equal:today'],
-            'amount_grosze' => ['required', 'integer'],
+            'amount_minor_units' => ['required', 'integer'],
             'description' => ['required', 'string', 'max:255'],
             'account_id' => [
                 'required',
@@ -145,7 +145,7 @@ class FinancialOperationImportValidator
     {
         return [
             'operation_date' => ['required', 'date', 'before_or_equal:today'],
-            'amount_grosze' => ['required', 'integer', Rule::notIn([0])],
+            'amount_minor_units' => ['required', 'integer', Rule::notIn([0])],
             'description' => ['required', 'string', 'max:255'],
             'account_id' => [
                 'required',

@@ -36,7 +36,7 @@ class OperationsController extends Controller
                 'counterparty' => $operation->counterparty,
                 'raw_statement_description' => $operation->raw_statement_description,
                 'type' => $operation->type->value,
-                'amount_grosze' => $operation->amount_grosze,
+                'amount_minor_units' => $operation->amount_minor_units,
                 'account_id' => $operation->account_id,
                 'category_id' => $operation->category_id,
                 'category_name' => $operation->category->name,
@@ -53,7 +53,7 @@ class OperationsController extends Controller
             ->through(fn (OwnTransfer $transfer): array => [
                 'id' => $transfer->id,
                 'transfer_date' => $transfer->transfer_date->toDateString(),
-                'amount_grosze' => $transfer->amount_grosze,
+                'amount_minor_units' => $transfer->amount_minor_units,
                 'description' => $transfer->description,
                 'raw_statement_descriptions' => $ownTransferImportSnapshots->descriptionsForDisplay(
                     $transfer->source_raw_statement_description,
@@ -72,7 +72,7 @@ class OperationsController extends Controller
             ->map(fn (Account $account): array => [
                 ...AccountIdentity::payload($account),
                 'opening_date' => $account->opening_date->toDateString(),
-                'current_balance_grosze' => $account->current_balance_grosze,
+                'current_balance_minor_units' => $account->current_balance_minor_units,
             ]);
 
         $incomeCategories = $user->budgets()
@@ -106,8 +106,8 @@ class OperationsController extends Controller
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
-                'planned_amount_grosze' => $category->planned_amount_grosze,
-                'execution_grosze' => $category->execution_grosze,
+                'planned_amount_minor_units' => $category->planned_amount_minor_units,
+                'execution_minor_units' => $category->execution_minor_units,
             ]))
             ->values();
 

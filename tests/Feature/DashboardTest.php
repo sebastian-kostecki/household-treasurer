@@ -33,21 +33,21 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('accounts', [])
-                ->where('liquidity_total_grosze', 0)
+                ->where('liquidity_total_minor_units', 0)
                 ->where('budget', null)
                 ->where('planSummary', null)
                 ->where('incomeTotals', [
-                    'initial_plan_grosze' => 0,
-                    'current_plan_grosze' => 0,
-                    'execution_grosze' => 0,
-                    'remaining_grosze' => 0,
+                    'initial_plan_minor_units' => 0,
+                    'current_plan_minor_units' => 0,
+                    'execution_minor_units' => 0,
+                    'remaining_minor_units' => 0,
                     'percent_complete' => null,
                 ])
                 ->where('expenseTotals', [
-                    'initial_plan_grosze' => 0,
-                    'current_plan_grosze' => 0,
-                    'execution_grosze' => 0,
-                    'remaining_grosze' => 0,
+                    'initial_plan_minor_units' => 0,
+                    'current_plan_minor_units' => 0,
+                    'execution_minor_units' => 0,
+                    'remaining_minor_units' => 0,
                     'percent_complete' => null,
                 ])
                 ->where('incomeCategories', [])
@@ -60,11 +60,11 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         Account::factory()->for($user)->create([
             'name' => 'Main bank',
-            'current_balance_grosze' => 150000,
+            'current_balance_minor_units' => 150000,
         ]);
         Account::factory()->for($user)->cash()->create([
             'name' => 'Wallet',
-            'current_balance_grosze' => 5000,
+            'current_balance_minor_units' => 5000,
         ]);
 
         $this->actingAs($user)
@@ -72,11 +72,11 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 2)
-                ->where('liquidity_total_grosze', 155000)
+                ->where('liquidity_total_minor_units', 155000)
                 ->where('accounts.0.name', 'Main bank')
-                ->where('accounts.0.current_balance_grosze', 150000)
+                ->where('accounts.0.current_balance_minor_units', 150000)
                 ->where('accounts.1.name', 'Wallet')
-                ->where('accounts.1.current_balance_grosze', 5000),
+                ->where('accounts.1.current_balance_minor_units', 5000),
             );
     }
 
@@ -85,7 +85,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         Account::factory()->for($user)->archived()->create([
             'name' => 'Old account',
-            'current_balance_grosze' => 10000,
+            'current_balance_minor_units' => 10000,
         ]);
 
         $this->actingAs($user)
@@ -94,7 +94,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 1)
                 ->where('accounts.0.is_archived', true)
-                ->where('liquidity_total_grosze', 10000),
+                ->where('liquidity_total_minor_units', 10000),
             );
     }
 
@@ -166,15 +166,15 @@ class DashboardTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
             'name' => 'Salary',
-            'planned_amount_grosze' => 500000,
-            'initial_plan_grosze' => 400000,
-            'execution_grosze' => 250000,
+            'planned_amount_minor_units' => 500000,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 250000,
         ]);
         Category::factory()->for($budget)->expense()->create([
             'name' => 'Food',
-            'planned_amount_grosze' => 100000,
-            'initial_plan_grosze' => 80000,
-            'execution_grosze' => 120000,
+            'planned_amount_minor_units' => 100000,
+            'initial_plan_minor_units' => 80000,
+            'execution_minor_units' => 120000,
         ]);
 
         $this->actingAs($user)
@@ -184,26 +184,26 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('budget.year', 2026)
                 ->where('budget.phase', BudgetPhase::Execution->value)
-                ->where('incomeCategories.0.initial_plan_grosze', 400000)
-                ->where('incomeCategories.0.current_plan_grosze', 500000)
-                ->where('incomeCategories.0.execution_grosze', 250000)
-                ->where('incomeCategories.0.remaining_grosze', 250000)
+                ->where('incomeCategories.0.initial_plan_minor_units', 400000)
+                ->where('incomeCategories.0.current_plan_minor_units', 500000)
+                ->where('incomeCategories.0.execution_minor_units', 250000)
+                ->where('incomeCategories.0.remaining_minor_units', 250000)
                 ->where('incomeCategories.0.percent_complete', 50)
                 ->where('incomeCategories.0.is_over_limit', false)
-                ->where('expenseCategories.0.remaining_grosze', -20000)
+                ->where('expenseCategories.0.remaining_minor_units', -20000)
                 ->where('expenseCategories.0.percent_complete', 120)
                 ->where('expenseCategories.0.is_over_limit', true)
-                ->where('incomeTotals.current_plan_grosze', 500000)
-                ->where('incomeTotals.execution_grosze', 250000)
-                ->where('incomeTotals.initial_plan_grosze', 400000)
-                ->where('incomeTotals.remaining_grosze', 250000)
+                ->where('incomeTotals.current_plan_minor_units', 500000)
+                ->where('incomeTotals.execution_minor_units', 250000)
+                ->where('incomeTotals.initial_plan_minor_units', 400000)
+                ->where('incomeTotals.remaining_minor_units', 250000)
                 ->where('incomeTotals.percent_complete', 50)
-                ->where('expenseTotals.current_plan_grosze', 100000)
-                ->where('expenseTotals.execution_grosze', 120000)
-                ->where('expenseTotals.initial_plan_grosze', 80000)
-                ->where('expenseTotals.remaining_grosze', -20000)
+                ->where('expenseTotals.current_plan_minor_units', 100000)
+                ->where('expenseTotals.execution_minor_units', 120000)
+                ->where('expenseTotals.initial_plan_minor_units', 80000)
+                ->where('expenseTotals.remaining_minor_units', -20000)
                 ->where('expenseTotals.percent_complete', 120)
-                ->where('planSummary.planned_balance_grosze', 400000)
+                ->where('planSummary.planned_balance_minor_units', 400000)
             );
     }
 
@@ -213,9 +213,9 @@ class DashboardTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
             'name' => 'Bonus',
-            'planned_amount_grosze' => 120000,
-            'initial_plan_grosze' => 0,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 120000,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)
@@ -223,8 +223,8 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('incomeCategories.0.initial_plan_grosze', 0)
-                ->where('incomeCategories.0.current_plan_grosze', 120000),
+                ->where('incomeCategories.0.initial_plan_minor_units', 0)
+                ->where('incomeCategories.0.current_plan_minor_units', 120000),
             );
     }
 
@@ -234,9 +234,9 @@ class DashboardTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->expense()->create([
             'name' => 'Misc',
-            'planned_amount_grosze' => 0,
-            'initial_plan_grosze' => 0,
-            'execution_grosze' => 5000,
+            'planned_amount_minor_units' => 0,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 5000,
         ]);
 
         $this->actingAs($user)
@@ -245,7 +245,7 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('expenseCategories.0.percent_complete', null)
-                ->where('expenseCategories.0.remaining_grosze', -5000)
+                ->where('expenseCategories.0.remaining_minor_units', -5000)
                 ->where('expenseCategories.0.is_over_limit', true),
             );
     }
@@ -256,15 +256,15 @@ class DashboardTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->expense()->archived()->create([
             'name' => 'Old category',
-            'planned_amount_grosze' => 50000,
-            'initial_plan_grosze' => 50000,
-            'execution_grosze' => 10000,
+            'planned_amount_minor_units' => 50000,
+            'initial_plan_minor_units' => 50000,
+            'execution_minor_units' => 10000,
         ]);
         Category::factory()->for($budget)->expense()->create([
             'name' => 'Active category',
-            'planned_amount_grosze' => 30000,
-            'initial_plan_grosze' => 30000,
-            'execution_grosze' => 5000,
+            'planned_amount_minor_units' => 30000,
+            'initial_plan_minor_units' => 30000,
+            'execution_minor_units' => 5000,
         ]);
 
         $this->actingAs($user)
@@ -273,8 +273,8 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('expenseCategories', 2)
-                ->where('expenseTotals.current_plan_grosze', 80000)
-                ->where('expenseTotals.execution_grosze', 15000),
+                ->where('expenseTotals.current_plan_minor_units', 80000)
+                ->where('expenseTotals.execution_minor_units', 15000),
             );
     }
 
@@ -283,10 +283,10 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
-            'planned_amount_grosze' => 300000,
+            'planned_amount_minor_units' => 300000,
         ]);
         Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 450000,
+            'planned_amount_minor_units' => 450000,
         ]);
 
         $this->actingAs($user)
@@ -294,9 +294,9 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('planSummary.planned_balance_grosze', -150000)
-                ->where('planSummary.income.initial_plan_grosze', 300000)
-                ->where('planSummary.expense.initial_plan_grosze', 450000),
+                ->where('planSummary.planned_balance_minor_units', -150000)
+                ->where('planSummary.income.initial_plan_minor_units', 300000)
+                ->where('planSummary.expense.initial_plan_minor_units', 450000),
             );
     }
 
@@ -305,12 +305,12 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
-            'planned_amount_grosze' => 400000,
-            'initial_plan_grosze' => 0,
+            'planned_amount_minor_units' => 400000,
+            'initial_plan_minor_units' => 0,
         ]);
         Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 250000,
-            'initial_plan_grosze' => 0,
+            'planned_amount_minor_units' => 250000,
+            'initial_plan_minor_units' => 0,
         ]);
 
         $this->actingAs($user)
@@ -318,9 +318,9 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('incomeTotals.initial_plan_grosze', 400000)
-                ->where('expenseTotals.initial_plan_grosze', 250000)
-                ->where('planSummary.planned_balance_grosze', 150000),
+                ->where('incomeTotals.initial_plan_minor_units', 400000)
+                ->where('expenseTotals.initial_plan_minor_units', 250000)
+                ->where('planSummary.planned_balance_minor_units', 150000),
             );
     }
 
@@ -331,21 +331,21 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
             'name' => 'Food',
-            'planned_amount_grosze' => 50000,
-            'initial_plan_grosze' => 50000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 50000,
+            'initial_plan_minor_units' => 50000,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 20000,
+                'amount_minor_units' => 20000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -357,10 +357,10 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('expenseCategories.0.execution_grosze', 20000)
-                ->where('expenseCategories.0.remaining_grosze', 30000)
+                ->where('expenseCategories.0.execution_minor_units', 20000)
+                ->where('expenseCategories.0.remaining_minor_units', 30000)
                 ->where('expenseCategories.0.percent_complete', 40)
-                ->where('liquidity_total_grosze', 80000),
+                ->where('liquidity_total_minor_units', 80000),
             );
     }
 
@@ -371,27 +371,27 @@ class DashboardTest extends TestCase
 
         Account::factory()->for($user)->create([
             'name' => 'Mine',
-            'current_balance_grosze' => 10000,
+            'current_balance_minor_units' => 10000,
         ]);
         Account::factory()->for($otherUser)->create([
             'name' => 'Theirs',
-            'current_balance_grosze' => 99999,
+            'current_balance_minor_units' => 99999,
         ]);
 
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
             'name' => 'My income',
-            'planned_amount_grosze' => 100000,
-            'initial_plan_grosze' => 100000,
-            'execution_grosze' => 50000,
+            'planned_amount_minor_units' => 100000,
+            'initial_plan_minor_units' => 100000,
+            'execution_minor_units' => 50000,
         ]);
 
         $otherBudget = Budget::factory()->for($otherUser)->execution()->create(['year' => 2026]);
         Category::factory()->for($otherBudget)->income()->create([
             'name' => 'Their income',
-            'planned_amount_grosze' => 500000,
-            'initial_plan_grosze' => 500000,
-            'execution_grosze' => 400000,
+            'planned_amount_minor_units' => 500000,
+            'initial_plan_minor_units' => 500000,
+            'execution_minor_units' => 400000,
         ]);
 
         $this->actingAs($user)
@@ -401,11 +401,11 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 1)
                 ->where('accounts.0.name', 'Mine')
-                ->where('liquidity_total_grosze', 10000)
+                ->where('liquidity_total_minor_units', 10000)
                 ->has('incomeCategories', 1)
                 ->where('incomeCategories.0.name', 'My income')
-                ->where('planSummary.income.current_plan_grosze', 100000)
-                ->where('planSummary.planned_balance_grosze', 100000),
+                ->where('planSummary.income.current_plan_minor_units', 100000)
+                ->where('planSummary.planned_balance_minor_units', 100000),
             );
     }
 

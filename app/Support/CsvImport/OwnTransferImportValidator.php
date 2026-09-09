@@ -11,7 +11,7 @@ class OwnTransferImportValidator
     /**
      * @param  array{
      *     transfer_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     source_account_id: int,
      *     destination_account_id: int,
@@ -23,7 +23,7 @@ class OwnTransferImportValidator
     {
         $validator = Validator::make($data, [
             'transfer_date' => ['required', 'date', 'before_or_equal:today'],
-            'amount_grosze' => ['required', 'integer', 'min:1'],
+            'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'source_account_id' => ['required', 'integer', 'different:destination_account_id'],
             'destination_account_id' => ['required', 'integer'],

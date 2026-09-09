@@ -99,7 +99,7 @@ class OperationsPaginationTest extends TestCase
     {
         $user = User::factory()->create();
         Account::factory()->for($user)->create([
-            'current_balance_grosze' => 12345,
+            'current_balance_minor_units' => 12345,
         ]);
 
         $this->actingAs($user)
@@ -107,7 +107,7 @@ class OperationsPaginationTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 1)
-                ->where('accounts.0.current_balance_grosze', 12345),
+                ->where('accounts.0.current_balance_minor_units', 12345),
             );
     }
 

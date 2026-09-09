@@ -20,7 +20,7 @@ class ExpenseTest extends TestCase
     {
         $this->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Groceries',
             'account_id' => 1,
             'category_id' => 1,
@@ -34,19 +34,19 @@ class ExpenseTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 25000,
+                'amount_minor_units' => 25000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -60,15 +60,15 @@ class ExpenseTest extends TestCase
             'account_id' => $account->id,
             'category_id' => $category->id,
             'budget_id' => $budget->id,
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Groceries',
         ]);
 
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(75000, $account->current_balance_grosze);
-        $this->assertSame(25000, $category->execution_grosze);
+        $this->assertSame(75000, $account->current_balance_minor_units);
+        $this->assertSame(25000, $category->execution_minor_units);
     }
 
     public function test_expense_over_available_limit_is_still_saved(): void
@@ -76,14 +76,14 @@ class ExpenseTest extends TestCase
         $this->travelTo('2026-06-01');
 
         [$user, $account, $category] = $this->createExpenseFixture([
-            'planned_amount_grosze' => 10000,
-            'execution_grosze' => 8000,
+            'planned_amount_minor_units' => 10000,
+            'execution_minor_units' => 8000,
         ]);
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 5000,
+                'amount_minor_units' => 5000,
                 'description' => 'Over limit',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -92,7 +92,7 @@ class ExpenseTest extends TestCase
             ->assertRedirect(route('operations'));
 
         $category->refresh();
-        $this->assertSame(13000, $category->execution_grosze);
+        $this->assertSame(13000, $category->execution_minor_units);
     }
 
     public function test_expense_driving_account_balance_negative_is_still_saved(): void
@@ -101,15 +101,15 @@ class ExpenseTest extends TestCase
 
         [$user, $account, $category] = $this->createExpenseFixture(
             accountAttributes: [
-                'current_balance_grosze' => 5000,
-                'opening_balance_grosze' => 5000,
+                'current_balance_minor_units' => 5000,
+                'opening_balance_minor_units' => 5000,
             ],
         );
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Negative balance',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -118,7 +118,7 @@ class ExpenseTest extends TestCase
             ->assertRedirect(route('operations'));
 
         $account->refresh();
-        $this->assertSame(-5000, $account->current_balance_grosze);
+        $this->assertSame(-5000, $account->current_balance_minor_units);
     }
 
     public function test_user_can_record_expense_refund_as_negative_amount(): void
@@ -128,19 +128,19 @@ class ExpenseTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 50000,
-            'current_balance_grosze' => 50000,
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 100000,
-            'execution_grosze' => 30000,
+            'planned_amount_minor_units' => 100000,
+            'execution_minor_units' => 30000,
         ]);
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => -10000,
+                'amount_minor_units' => -10000,
                 'description' => 'Refund',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -150,14 +150,14 @@ class ExpenseTest extends TestCase
 
         $this->assertDatabaseHas('financial_operations', [
             'type' => FinancialOperationType::Expense->value,
-            'amount_grosze' => -10000,
+            'amount_minor_units' => -10000,
         ]);
 
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(60000, $account->current_balance_grosze);
-        $this->assertSame(20000, $category->execution_grosze);
+        $this->assertSame(60000, $account->current_balance_minor_units);
+        $this->assertSame(20000, $category->execution_minor_units);
     }
 
     public function test_expense_date_cannot_be_in_the_future(): void
@@ -170,7 +170,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-07-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Future expense',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -195,7 +195,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-02-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Too early',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -223,7 +223,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Draft budget expense',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -248,7 +248,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Wrong year',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -274,7 +274,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Archived account',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -301,7 +301,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Archived category',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -326,7 +326,7 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Wrong category type',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -351,7 +351,7 @@ class ExpenseTest extends TestCase
         $this->actingAs($otherUser)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Stolen expense',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -371,12 +371,12 @@ class ExpenseTest extends TestCase
             ->from(route('operations'))
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 0,
+                'amount_minor_units' => 0,
                 'description' => 'Zero expense',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
             ])
-            ->assertSessionHasErrors('amount_grosze');
+            ->assertSessionHasErrors('amount_minor_units');
 
         $this->assertDatabaseCount('financial_operations', 0);
     }
@@ -391,7 +391,7 @@ class ExpenseTest extends TestCase
 
         $this->actingAs($owner)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Owner groceries',
             'account_id' => $ownerAccount->id,
             'category_id' => $ownerCategory->id,
@@ -413,8 +413,8 @@ class ExpenseTest extends TestCase
         Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 100000,
-            'execution_grosze' => 25000,
+            'planned_amount_minor_units' => 100000,
+            'execution_minor_units' => 25000,
         ]);
 
         $this->actingAs($user)
@@ -423,8 +423,8 @@ class ExpenseTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('expenseCategories', 1)
                 ->where('expenseCategories.0.id', $category->id)
-                ->where('expenseCategories.0.planned_amount_grosze', 100000)
-                ->where('expenseCategories.0.execution_grosze', 25000)
+                ->where('expenseCategories.0.planned_amount_minor_units', 100000)
+                ->where('expenseCategories.0.execution_minor_units', 25000)
                 ->where('expenseCategories.0.budget_year', 2026),
             );
     }
@@ -455,13 +455,13 @@ class ExpenseTest extends TestCase
     ): array {
         $account = Account::factory()->for($user)->create(array_merge([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ], $accountAttributes));
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create(array_merge([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ], $categoryAttributes));
 
         return [$user, $account, $category];

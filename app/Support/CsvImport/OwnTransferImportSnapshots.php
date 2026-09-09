@@ -7,9 +7,9 @@ class OwnTransferImportSnapshots
     /**
      * @return array<string, string>
      */
-    public function rawStatementDescriptionForImportedAccount(int $signedAmountGrosze, string $rawStatementDescription): array
+    public function rawStatementDescriptionForImportedAccount(int $signedAmountMinorUnits, string $rawStatementDescription): array
     {
-        if ($signedAmountGrosze < 0) {
+        if ($signedAmountMinorUnits < 0) {
             return [
                 'source_raw_statement_description' => $rawStatementDescription,
             ];

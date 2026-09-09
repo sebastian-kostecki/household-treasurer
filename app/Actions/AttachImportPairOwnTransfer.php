@@ -23,7 +23,7 @@ class AttachImportPairOwnTransfer
      *     operation_date: string,
      *     description: string,
      *     raw_statement_description?: string|null,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      * }  $importRow
      */
     public function handle(
@@ -74,7 +74,7 @@ class AttachImportPairOwnTransfer
             $candidates = $this->importPairCandidateDetector->matchCandidatesForRow(
                 [
                     'operation_date' => $importRow['operation_date'],
-                    'amount_grosze' => $importRow['amount_grosze'],
+                    'amount_minor_units' => $importRow['amount_minor_units'],
                     'raw_statement_description' => $importRow['raw_statement_description'] ?? null,
                 ],
                 collect(),
@@ -100,11 +100,11 @@ class AttachImportPairOwnTransfer
                     $user,
                     $importAccountId,
                     $importRow['operation_date'],
-                    $importRow['amount_grosze'],
+                    $importRow['amount_minor_units'],
                     $rawStatementDescription,
                 ),
                 ...$this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
-                    $importRow['amount_grosze'],
+                    $importRow['amount_minor_units'],
                     $rawStatementDescription,
                 ),
             ];

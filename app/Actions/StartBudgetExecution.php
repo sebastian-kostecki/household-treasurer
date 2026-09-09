@@ -20,8 +20,8 @@ class StartBudgetExecution
 
             foreach ($budget->categories as $category) {
                 $category->update([
-                    'initial_plan_grosze' => $category->planned_amount_grosze,
-                    'execution_grosze' => 0,
+                    'initial_plan_minor_units' => $category->planned_amount_minor_units,
+                    'execution_minor_units' => 0,
                 ]);
             }
 

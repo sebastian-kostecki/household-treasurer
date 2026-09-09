@@ -12,7 +12,7 @@ class ImportIdentityFactory
      * @return array{
      *     import_identity_account_id: int,
      *     import_identity_date: string,
-     *     import_identity_amount_grosze: int,
+     *     import_identity_amount_minor_units: int,
      *     import_identity_digest: string,
      * }|array{}
      */
@@ -20,7 +20,7 @@ class ImportIdentityFactory
         User $user,
         int $accountId,
         string $operationDate,
-        int $signedAmountGrosze,
+        int $signedAmountMinorUnits,
         ?string $rawStatementDescription,
     ): array {
         if ($rawStatementDescription === null) {
@@ -31,14 +31,14 @@ class ImportIdentityFactory
             $user->id,
             $accountId,
             $operationDate,
-            $signedAmountGrosze,
+            $signedAmountMinorUnits,
             $rawStatementDescription,
         );
 
         return [
             'import_identity_account_id' => $identity['account_id'],
             'import_identity_date' => $identity['date'],
-            'import_identity_amount_grosze' => $identity['amount_grosze'],
+            'import_identity_amount_minor_units' => $identity['amount_minor_units'],
             'import_identity_digest' => $identity['digest'],
         ];
     }
@@ -50,7 +50,7 @@ class ImportIdentityFactory
         User $user,
         int $importAccountId,
         string $transferDate,
-        int $signedAmountGrosze,
+        int $signedAmountMinorUnits,
         ?string $rawStatementDescription,
     ): array {
         if ($rawStatementDescription === null) {
@@ -61,15 +61,15 @@ class ImportIdentityFactory
             $user->id,
             $importAccountId,
             $transferDate,
-            $signedAmountGrosze,
+            $signedAmountMinorUnits,
             $rawStatementDescription,
         );
 
-        if ($signedAmountGrosze < 0) {
+        if ($signedAmountMinorUnits < 0) {
             return [
                 'source_import_identity_account_id' => $identity['account_id'],
                 'source_import_identity_date' => $identity['date'],
-                'source_import_identity_amount_grosze' => $identity['amount_grosze'],
+                'source_import_identity_amount_minor_units' => $identity['amount_minor_units'],
                 'source_import_identity_digest' => $identity['digest'],
             ];
         }
@@ -77,7 +77,7 @@ class ImportIdentityFactory
         return [
             'destination_import_identity_account_id' => $identity['account_id'],
             'destination_import_identity_date' => $identity['date'],
-            'destination_import_identity_amount_grosze' => $identity['amount_grosze'],
+            'destination_import_identity_amount_minor_units' => $identity['amount_minor_units'],
             'destination_import_identity_digest' => $identity['digest'],
         ];
     }

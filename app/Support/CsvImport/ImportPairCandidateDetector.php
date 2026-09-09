@@ -13,14 +13,14 @@ class ImportPairCandidateDetector
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate?: bool,
      * }>  $rows
      * @return list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate?: bool,
@@ -52,7 +52,7 @@ class ImportPairCandidateDetector
         }
 
         $oppositeAmounts = array_values(array_unique(array_map(
-            fn (array $row): int => -$row['amount_grosze'],
+            fn (array $row): int => -$row['amount_minor_units'],
             $eligibleRows,
         )));
 
@@ -89,7 +89,7 @@ class ImportPairCandidateDetector
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      * }  $row
      * @param  Collection<int, FinancialOperation>  $financialOperationCandidates
@@ -110,12 +110,12 @@ class ImportPairCandidateDetector
         Collection $financialOperationCandidates,
         Collection $ownTransferCandidates = new Collection,
     ): array {
-        $oppositeAmountGrosze = -$row['amount_grosze'];
+        $oppositeAmountMinorUnits = -$row['amount_minor_units'];
         $previewDate = $row['operation_date'];
 
         $financialOperationMatches = $financialOperationCandidates
-            ->filter(function (FinancialOperation $operation) use ($oppositeAmountGrosze, $previewDate): bool {
-                if ($operation->import_identity_amount_grosze !== $oppositeAmountGrosze) {
+            ->filter(function (FinancialOperation $operation) use ($oppositeAmountMinorUnits, $previewDate): bool {
+                if ($operation->import_identity_amount_minor_units !== $oppositeAmountMinorUnits) {
                     return false;
                 }
 
@@ -139,14 +139,14 @@ class ImportPairCandidateDetector
             ]);
 
         $ownTransferMatches = $ownTransferCandidates
-            ->filter(function (OwnTransfer $transfer) use ($oppositeAmountGrosze, $previewDate): bool {
+            ->filter(function (OwnTransfer $transfer) use ($oppositeAmountMinorUnits, $previewDate): bool {
                 $identity = $this->identityFromOwnTransfer($transfer);
 
                 if ($identity === null) {
                     return false;
                 }
 
-                if ($identity['amount_grosze'] !== $oppositeAmountGrosze) {
+                if ($identity['amount_minor_units'] !== $oppositeAmountMinorUnits) {
                     return false;
                 }
 
@@ -190,7 +190,7 @@ class ImportPairCandidateDetector
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate?: bool,
@@ -210,11 +210,11 @@ class ImportPairCandidateDetector
             return false;
         }
 
-        return ($row['amount_grosze'] ?? null) !== null;
+        return ($row['amount_minor_units'] ?? null) !== null;
     }
 
     /**
-     * @return array{account_id: int, date: string, amount_grosze: int}|null
+     * @return array{account_id: int, date: string, amount_minor_units: int}|null
      */
     public function identityFromOwnTransfer(OwnTransfer $transfer): ?array
     {
@@ -222,7 +222,7 @@ class ImportPairCandidateDetector
             return [
                 'account_id' => (int) $transfer->source_import_identity_account_id,
                 'date' => $transfer->source_import_identity_date->toDateString(),
-                'amount_grosze' => (int) $transfer->source_import_identity_amount_grosze,
+                'amount_minor_units' => (int) $transfer->source_import_identity_amount_minor_units,
             ];
         }
 
@@ -230,7 +230,7 @@ class ImportPairCandidateDetector
             return [
                 'account_id' => (int) $transfer->destination_import_identity_account_id,
                 'date' => $transfer->destination_import_identity_date->toDateString(),
-                'amount_grosze' => (int) $transfer->destination_import_identity_amount_grosze,
+                'amount_minor_units' => (int) $transfer->destination_import_identity_amount_minor_units,
             ];
         }
 
@@ -238,15 +238,15 @@ class ImportPairCandidateDetector
     }
 
     /**
-     * @param  list<int>  $oppositeAmountsGrosze
+     * @param  list<int>  $oppositeAmountsMinorUnits
      * @return Collection<int, FinancialOperation>
      */
     private function loadFinancialOperationCandidates(
         User $user,
         int $previewAccountId,
-        array $oppositeAmountsGrosze,
+        array $oppositeAmountsMinorUnits,
     ): Collection {
-        if ($oppositeAmountsGrosze === []) {
+        if ($oppositeAmountsMinorUnits === []) {
             return collect();
         }
 
@@ -254,21 +254,21 @@ class ImportPairCandidateDetector
             ->where('user_id', $user->id)
             ->whereNotNull('import_identity_digest')
             ->where('import_identity_account_id', '!=', $previewAccountId)
-            ->whereIn('import_identity_amount_grosze', $oppositeAmountsGrosze)
+            ->whereIn('import_identity_amount_minor_units', $oppositeAmountsMinorUnits)
             ->with('account:id,name')
             ->get();
     }
 
     /**
-     * @param  list<int>  $oppositeAmountsGrosze
+     * @param  list<int>  $oppositeAmountsMinorUnits
      * @return Collection<int, OwnTransfer>
      */
     private function loadOwnTransferCandidates(
         User $user,
         int $previewAccountId,
-        array $oppositeAmountsGrosze,
+        array $oppositeAmountsMinorUnits,
     ): Collection {
-        if ($oppositeAmountsGrosze === []) {
+        if ($oppositeAmountsMinorUnits === []) {
             return collect();
         }
 
@@ -287,13 +287,13 @@ class ImportPairCandidateDetector
                 $query->where('source_account_id', $previewAccountId)
                     ->orWhere('destination_account_id', $previewAccountId);
             })
-            ->where(function ($query) use ($previewAccountId, $oppositeAmountsGrosze): void {
-                $query->where(function ($query) use ($previewAccountId, $oppositeAmountsGrosze): void {
+            ->where(function ($query) use ($previewAccountId, $oppositeAmountsMinorUnits): void {
+                $query->where(function ($query) use ($previewAccountId, $oppositeAmountsMinorUnits): void {
                     $query->where('source_import_identity_account_id', '!=', $previewAccountId)
-                        ->whereIn('source_import_identity_amount_grosze', $oppositeAmountsGrosze);
-                })->orWhere(function ($query) use ($previewAccountId, $oppositeAmountsGrosze): void {
+                        ->whereIn('source_import_identity_amount_minor_units', $oppositeAmountsMinorUnits);
+                })->orWhere(function ($query) use ($previewAccountId, $oppositeAmountsMinorUnits): void {
                     $query->where('destination_import_identity_account_id', '!=', $previewAccountId)
-                        ->whereIn('destination_import_identity_amount_grosze', $oppositeAmountsGrosze);
+                        ->whereIn('destination_import_identity_amount_minor_units', $oppositeAmountsMinorUnits);
                 });
             })
             ->with(['sourceAccount:id,name', 'destinationAccount:id,name'])

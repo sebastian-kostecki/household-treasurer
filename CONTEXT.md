@@ -68,6 +68,10 @@ _Avoid_: Overdraft, insufficient funds (both imply a block)
 The current balances of Accounts and their sum. A separate plane from Budget Execution.
 _Avoid_: Net worth, Wealth, Portfolio
 
+**Minor unit**:
+An integer count of a currency’s ISO 4217 subunit. Every stored amount is a signed bigint of Minor units, never a decimal of major units. MVP amounts are PLN (scale 2); other currencies are not in the schema yet, so column and code names stay currency-neutral (`*_minor_units`).
+_Avoid_: grosze (as a column or code name), cents (as a column name), złotówki in storage, float amounts
+
 **First Run**:
 Whether the User has the four start conditions: at least one Account, one Budget, one Category, and one Budget in Execution. Scoped to the User, not to a Budget year. The dashboard checklist is the UI for this state; the User may hide that checklist while all four hold.
 _Avoid_: Onboarding, wizard, tutorial, First Steps (as a code name; UI copy may say „Pierwsze kroki”)

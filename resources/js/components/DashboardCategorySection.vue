@@ -59,7 +59,7 @@ const showCollapse = computed(
 );
 
 const sectionRemainingClass = computed(() => {
-    if (props.categoryType === 'expense' && props.totals.remaining_grosze < 0) {
+    if (props.categoryType === 'expense' && props.totals.remaining_minor_units < 0) {
         return 'text-destructive';
     }
 
@@ -100,7 +100,7 @@ function toggleOrderMode(): void {
                             {{ t.dashboard.current_plan }}
                         </p>
                         <p class="font-medium tabular-nums">
-                            {{ formatMoney(totals.current_plan_grosze) }}
+                            {{ formatMoney(totals.current_plan_minor_units) }}
                         </p>
                     </div>
                     <div>
@@ -111,7 +111,7 @@ function toggleOrderMode(): void {
                             class="font-medium tabular-nums"
                             :class="categoryType === 'income' ? 'text-success' : ''"
                         >
-                            {{ formatMoney(totals.execution_grosze) }}
+                            {{ formatMoney(totals.execution_minor_units) }}
                         </p>
                     </div>
                     <div>
@@ -122,7 +122,7 @@ function toggleOrderMode(): void {
                             class="font-medium tabular-nums"
                             :class="sectionRemainingClass"
                         >
-                            {{ formatMoney(totals.remaining_grosze) }}
+                            {{ formatMoney(totals.remaining_minor_units) }}
                         </p>
                     </div>
                 </div>

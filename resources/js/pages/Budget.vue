@@ -53,15 +53,15 @@ type BudgetSummary = {
 };
 
 type DeficitWarning = {
-    planned_deficit_grosze: number;
-    liquidity_at_year_start_grosze: number;
-    uncovered_deficit_grosze: number;
+    planned_deficit_minor_units: number;
+    liquidity_at_year_start_minor_units: number;
+    uncovered_deficit_minor_units: number;
 };
 
 type PlanSummary = {
     income: DashboardTypeTotals;
     expense: DashboardTypeTotals;
-    planned_balance_grosze: number;
+    planned_balance_minor_units: number;
 };
 
 const props = defineProps<{
@@ -96,14 +96,14 @@ const deficitWarningMessage = computed(() => {
     }
 
     return t.budget.deficit_warning
-        .replace(':deficit', formatMoney(props.deficitWarning.planned_deficit_grosze))
+        .replace(':deficit', formatMoney(props.deficitWarning.planned_deficit_minor_units))
         .replace(
             ':liquidity',
-            formatMoney(props.deficitWarning.liquidity_at_year_start_grosze),
+            formatMoney(props.deficitWarning.liquidity_at_year_start_minor_units),
         )
         .replace(
             ':uncovered',
-            formatMoney(props.deficitWarning.uncovered_deficit_grosze),
+            formatMoney(props.deficitWarning.uncovered_deficit_minor_units),
         );
 });
 
@@ -279,7 +279,7 @@ function openDeleteBudgetDialog(): void {
                 v-if="planSummary"
                 :income-totals="incomeTotals"
                 :expense-totals="expenseTotals"
-                :planned-balance-grosze="planSummary.planned_balance_grosze"
+                :planned-balance-minor-units="planSummary.planned_balance_minor_units"
             />
 
             <div class="flex items-center gap-2">

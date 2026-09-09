@@ -34,7 +34,7 @@ class CsvImportParser
      *     description: ?string,
      *     counterparty: ?string,
      *     raw_statement_description: ?string,
-     *     amount_grosze: ?int,
+     *     amount_minor_units: ?int,
      *     amount_has_foreign_currency: bool,
      * }>
      */
@@ -75,7 +75,7 @@ class CsvImportParser
                 'description' => $fields['description'],
                 'counterparty' => $fields['counterparty'],
                 'raw_statement_description' => $fields['raw_statement_description'],
-                'amount_grosze' => $amount['amount_grosze'],
+                'amount_minor_units' => $amount['amount_minor_units'],
                 'amount_has_foreign_currency' => $amount['amount_has_foreign_currency'],
             ];
 
@@ -157,7 +157,7 @@ class CsvImportParser
      *     inflow_column: int,
      *     outflow_column: int,
      * }  $mapping
-     * @return array{amount_grosze: ?int, amount_has_foreign_currency: bool}
+     * @return array{amount_minor_units: ?int, amount_has_foreign_currency: bool}
      */
     private function parseAmount(array $cells, array $mapping): array
     {
@@ -170,56 +170,56 @@ class CsvImportParser
 
         if ($inflow['amount_has_foreign_currency'] || $outflow['amount_has_foreign_currency']) {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => true,
             ];
         }
 
-        if ($inflow['amount_grosze'] !== null && $outflow['amount_grosze'] !== null) {
+        if ($inflow['amount_minor_units'] !== null && $outflow['amount_minor_units'] !== null) {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => false,
             ];
         }
 
-        if ($inflow['amount_grosze'] !== null) {
+        if ($inflow['amount_minor_units'] !== null) {
             return $inflow;
         }
 
-        if ($outflow['amount_grosze'] !== null) {
+        if ($outflow['amount_minor_units'] !== null) {
             return [
-                'amount_grosze' => -abs($outflow['amount_grosze']),
+                'amount_minor_units' => -abs($outflow['amount_minor_units']),
                 'amount_has_foreign_currency' => false,
             ];
         }
 
         return [
-            'amount_grosze' => null,
+            'amount_minor_units' => null,
             'amount_has_foreign_currency' => false,
         ];
     }
 
     /**
-     * @return array{amount_grosze: ?int, amount_has_foreign_currency: bool}
+     * @return array{amount_minor_units: ?int, amount_has_foreign_currency: bool}
      */
     private function parseAmountCell(?string $value): array
     {
         if ($value === null) {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => false,
             ];
         }
 
         if ($this->hasForeignCurrency($value)) {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => true,
             ];
         }
 
         return [
-            'amount_grosze' => $this->parseMoney($value),
+            'amount_minor_units' => $this->parseMoney($value),
             'amount_has_foreign_currency' => false,
         ];
     }
@@ -255,8 +255,8 @@ class CsvImportParser
         $negative = str_starts_with($normalized, '-');
         $absolute = ltrim($normalized, '-');
         [$zlPart, $grPart] = array_pad(explode('.', $absolute, 2), 2, '0');
-        $grosze = ((int) $zlPart * 100) + (int) substr(str_pad($grPart, 2, '0'), 0, 2);
+        $minorUnits = ((int) $zlPart * 100) + (int) substr(str_pad($grPart, 2, '0'), 0, 2);
 
-        return $negative ? -$grosze : $grosze;
+        return $negative ? -$minorUnits : $minorUnits;
     }
 }

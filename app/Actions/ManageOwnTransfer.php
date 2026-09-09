@@ -14,17 +14,17 @@ class ManageOwnTransfer
      *     source_account_id: int,
      *     destination_account_id: int,
      *     transfer_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     source_raw_statement_description?: string|null,
      *     destination_raw_statement_description?: string|null,
      *     source_import_identity_account_id?: int|null,
      *     source_import_identity_date?: string|null,
-     *     source_import_identity_amount_grosze?: int|null,
+     *     source_import_identity_amount_minor_units?: int|null,
      *     source_import_identity_digest?: string|null,
      *     destination_import_identity_account_id?: int|null,
      *     destination_import_identity_date?: string|null,
-     *     destination_import_identity_amount_grosze?: int|null,
+     *     destination_import_identity_amount_minor_units?: int|null,
      *     destination_import_identity_digest?: string|null,
      * }  $validated
      */
@@ -34,8 +34,8 @@ class ManageOwnTransfer
             $sourceAccount = $this->resolveAccount($user, $validated['source_account_id']);
             $destinationAccount = $this->resolveAccount($user, $validated['destination_account_id']);
 
-            $this->applyBalanceChange($sourceAccount, -$validated['amount_grosze']);
-            $this->applyBalanceChange($destinationAccount, $validated['amount_grosze']);
+            $this->applyBalanceChange($sourceAccount, -$validated['amount_minor_units']);
+            $this->applyBalanceChange($destinationAccount, $validated['amount_minor_units']);
 
             return $user->ownTransfers()->create($validated);
         });
@@ -46,7 +46,7 @@ class ManageOwnTransfer
      *     source_account_id: int,
      *     destination_account_id: int,
      *     transfer_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     source_raw_statement_description?: string|null,
      *     destination_raw_statement_description?: string|null,
@@ -60,8 +60,8 @@ class ManageOwnTransfer
             $sourceAccount = $this->resolveAccount($ownTransfer->user, $validated['source_account_id']);
             $destinationAccount = $this->resolveAccount($ownTransfer->user, $validated['destination_account_id']);
 
-            $this->applyBalanceChange($sourceAccount, -$validated['amount_grosze']);
-            $this->applyBalanceChange($destinationAccount, $validated['amount_grosze']);
+            $this->applyBalanceChange($sourceAccount, -$validated['amount_minor_units']);
+            $this->applyBalanceChange($destinationAccount, $validated['amount_minor_units']);
 
             $ownTransfer->update($validated);
 
@@ -82,8 +82,8 @@ class ManageOwnTransfer
         $sourceAccount = $this->resolveAccount($ownTransfer->user, $ownTransfer->source_account_id);
         $destinationAccount = $this->resolveAccount($ownTransfer->user, $ownTransfer->destination_account_id);
 
-        $this->applyBalanceChange($sourceAccount, $ownTransfer->amount_grosze);
-        $this->applyBalanceChange($destinationAccount, -$ownTransfer->amount_grosze);
+        $this->applyBalanceChange($sourceAccount, $ownTransfer->amount_minor_units);
+        $this->applyBalanceChange($destinationAccount, -$ownTransfer->amount_minor_units);
     }
 
     private function resolveAccount(User $user, int $accountId): Account
@@ -93,10 +93,10 @@ class ManageOwnTransfer
             ->findOrFail($accountId);
     }
 
-    private function applyBalanceChange(Account $account, int $deltaGrosze): void
+    private function applyBalanceChange(Account $account, int $deltaMinorUnits): void
     {
         $account->update([
-            'current_balance_grosze' => $account->current_balance_grosze + $deltaGrosze,
+            'current_balance_minor_units' => $account->current_balance_minor_units + $deltaMinorUnits,
         ]);
     }
 }

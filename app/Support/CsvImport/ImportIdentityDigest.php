@@ -10,7 +10,7 @@ class ImportIdentityDigest
      * @return array{
      *     account_id: int,
      *     date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     digest: string,
      * }
      */
@@ -18,7 +18,7 @@ class ImportIdentityDigest
         int $userId,
         int $accountId,
         string $fileDate,
-        int $signedAmountGrosze,
+        int $signedAmountMinorUnits,
         ?string $rawStatementDescription,
     ): array {
         if ($rawStatementDescription === null) {
@@ -29,14 +29,14 @@ class ImportIdentityDigest
             (string) $userId,
             (string) $accountId,
             $fileDate,
-            (string) $signedAmountGrosze,
+            (string) $signedAmountMinorUnits,
             $rawStatementDescription,
         ]));
 
         return [
             'account_id' => $accountId,
             'date' => $fileDate,
-            'amount_grosze' => $signedAmountGrosze,
+            'amount_minor_units' => $signedAmountMinorUnits,
             'digest' => $digest,
         ];
     }
@@ -44,7 +44,7 @@ class ImportIdentityDigest
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      * }>  $rows
      * @return list<string>
@@ -55,9 +55,9 @@ class ImportIdentityDigest
 
         foreach ($rows as $row) {
             $rawStatementDescription = $row['raw_statement_description'] ?? null;
-            $signedAmountGrosze = $row['amount_grosze'] ?? null;
+            $signedAmountMinorUnits = $row['amount_minor_units'] ?? null;
 
-            if ($rawStatementDescription === null || $signedAmountGrosze === null) {
+            if ($rawStatementDescription === null || $signedAmountMinorUnits === null) {
                 continue;
             }
 
@@ -65,7 +65,7 @@ class ImportIdentityDigest
                 $userId,
                 $accountId,
                 $row['operation_date'],
-                $signedAmountGrosze,
+                $signedAmountMinorUnits,
                 $rawStatementDescription,
             )['digest'];
         }

@@ -1,9 +1,9 @@
 /**
- * Format grosze as Polish PLN string, e.g. 123456 -> "1 234,56 zł"
+ * Format minor units as Polish PLN string, e.g. 123456 -> "1 234,56 zł"
  */
-export function formatMoney(grosze: number): string {
-    const negative = grosze < 0;
-    const absolute = Math.abs(grosze);
+export function formatMoney(minorUnits: number): string {
+    const negative = minorUnits < 0;
+    const absolute = Math.abs(minorUnits);
     const zl = Math.floor(absolute / 100);
     const gr = absolute % 100;
     const formattedZl = zl.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -13,11 +13,11 @@ export function formatMoney(grosze: number): string {
 }
 
 /**
- * Format grosze for editable PLN input, e.g. 123456 -> "1234,56"
+ * Format minor units for editable PLN input, e.g. 123456 -> "1234,56"
  */
-export function groszeToMoneyInput(grosze: number): string {
-    const negative = grosze < 0;
-    const absolute = Math.abs(grosze);
+export function minorUnitsToMoneyInput(minorUnits: number): string {
+    const negative = minorUnits < 0;
+    const absolute = Math.abs(minorUnits);
     const zl = Math.floor(absolute / 100);
     const gr = absolute % 100;
     const formatted = `${zl},${gr.toString().padStart(2, '0')}`;
@@ -26,9 +26,9 @@ export function groszeToMoneyInput(grosze: number): string {
 }
 
 /**
- * Parse Polish PLN input to integer grosze.
+ * Parse Polish PLN input to integer minor units.
  */
-export function parseMoneyInputToGrosze(value: string): number | null {
+export function parseMoneyInputToMinorUnits(value: string): number | null {
     const normalized = value.trim().replace(/\s/g, '').replace(',', '.');
 
     if (!/^-?\d+(\.\d{0,2})?$/.test(normalized)) {
@@ -40,9 +40,9 @@ export function parseMoneyInputToGrosze(value: string): number | null {
     const [zlPart, grPart = '0'] = absolute.split('.');
     const zl = Number.parseInt(zlPart, 10);
     const gr = Number.parseInt(grPart.padEnd(2, '0').slice(0, 2), 10);
-    const grosze = zl * 100 + gr;
+    const minorUnits = zl * 100 + gr;
 
-    return negative ? -grosze : grosze;
+    return negative ? -minorUnits : minorUnits;
 }
 
 /**
@@ -101,15 +101,15 @@ export function formatRelativeDate(date: Date | string): string {
 }
 
 /**
- * Format grosze as signed Polish PLN for financial operations.
+ * Format minor units as signed Polish PLN for financial operations.
  */
 export function formatFinancialOperationAmount(
     type: 'income' | 'expense',
-    amountGrosze: number,
+    amountMinorUnits: number,
 ): string {
-    const formatted = formatMoney(Math.abs(amountGrosze));
+    const formatted = formatMoney(Math.abs(amountMinorUnits));
 
-    if (type === 'income' || amountGrosze < 0) {
+    if (type === 'income' || amountMinorUnits < 0) {
         return `+${formatted}`;
     }
 
@@ -121,9 +121,9 @@ export function formatFinancialOperationAmount(
  */
 export function financialOperationAmountClass(
     type: 'income' | 'expense',
-    amountGrosze: number,
+    amountMinorUnits: number,
 ): string {
-    if (type === 'income' || amountGrosze < 0) {
+    if (type === 'income' || amountMinorUnits < 0) {
         return 'text-success';
     }
 

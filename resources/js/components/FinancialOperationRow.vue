@@ -36,7 +36,7 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
         return 'income';
     }
 
-    if (operation.amount_grosze < 0) {
+    if (operation.amount_minor_units < 0) {
         return 'refund';
     }
 
@@ -66,12 +66,12 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
                 :name="operation.category_name"
                 :icon="operation.category_icon"
                 :color="operation.category_color"
-                size="sm"
             />
         </div>
 
         <CompactAccountIdentity
             class="operations-cell-account"
+            mark-size="md"
             :name="operation.account_name"
             :type="operation.account_type"
             :bank="operation.account_bank"
@@ -83,14 +83,14 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
             :class="
                 financialOperationAmountClass(
                     operation.type,
-                    operation.amount_grosze,
+                    operation.amount_minor_units,
                 )
             "
         >
             {{
                 formatFinancialOperationAmount(
                     operation.type,
-                    operation.amount_grosze,
+                    operation.amount_minor_units,
                 )
             }}
         </p>

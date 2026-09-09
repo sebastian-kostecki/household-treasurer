@@ -6,19 +6,19 @@ export type HandEntryPreviewKind =
 
 export type HandEntryPreviewAccount = {
     id: number;
-    current_balance_grosze: number;
+    current_balance_minor_units: number;
 };
 
 export type HandEntryPreviewCategory = {
     id: number;
-    planned_amount_grosze: number;
-    execution_grosze: number;
+    planned_amount_minor_units: number;
+    execution_minor_units: number;
 };
 
 export type HandEntryPreviewEditedRecord = {
     account_id: number;
     category_id?: number;
-    signed_amount_grosze: number;
+    signed_amount_minor_units: number;
     source_account_id?: number;
 };
 
@@ -26,7 +26,7 @@ export type HandEntryPreviewProposal = {
     kind: HandEntryPreviewKind;
     account_id: number;
     category_id?: number;
-    amount_grosze: number;
+    amount_minor_units: number;
     source_account_id?: number;
 };
 
@@ -40,8 +40,8 @@ export type HandEntryPreviewInput = {
 
 export type HandEntryPreviewResult = {
     showNegativeBalanceWarning: boolean;
-    availableLimitNowGrosze: number | null;
-    availableLimitAfterGrosze: number | null;
+    availableLimitNowMinorUnits: number | null;
+    availableLimitAfterMinorUnits: number | null;
     showOverLimitWarning: boolean;
 };
 
@@ -67,12 +67,12 @@ function findCategory(
     return categories.find((category) => category.id === categoryId);
 }
 
-function accountLiquidityAdjustmentGrosze(
+function accountLiquidityAdjustmentMinorUnits(
     mode: 'create' | 'edit',
     editedRecord: HandEntryPreviewEditedRecord | null | undefined,
     selectedAccountId: number,
     originalAccountId: number,
-    originalSignedEffectGrosze: number,
+    originalSignedEffectMinorUnits: number,
 ): number {
     if (mode !== 'edit' || editedRecord === null || editedRecord === undefined) {
         return 0;
@@ -82,15 +82,15 @@ function accountLiquidityAdjustmentGrosze(
         return 0;
     }
 
-    return originalSignedEffectGrosze;
+    return originalSignedEffectMinorUnits;
 }
 
-function categoryExecutionAdjustmentGrosze(
+function categoryExecutionAdjustmentMinorUnits(
     mode: 'create' | 'edit',
     editedRecord: HandEntryPreviewEditedRecord | null | undefined,
     selectedCategoryId: number | undefined,
     originalCategoryId: number | undefined,
-    originalSignedAmountGrosze: number,
+    originalSignedAmountMinorUnits: number,
 ): number {
     if (
         mode !== 'edit' ||
@@ -106,14 +106,14 @@ function categoryExecutionAdjustmentGrosze(
         return 0;
     }
 
-    return originalSignedAmountGrosze;
+    return originalSignedAmountMinorUnits;
 }
 
-function signedProposalAmountGrosze(
+function signedProposalAmountMinorUnits(
     kind: HandEntryPreviewKind,
-    amountGrosze: number,
+    amountMinorUnits: number,
 ): number {
-    const absoluteAmount = Math.abs(amountGrosze);
+    const absoluteAmount = Math.abs(amountMinorUnits);
 
     if (kind === 'refund') {
         return -absoluteAmount;
@@ -122,24 +122,24 @@ function signedProposalAmountGrosze(
     return absoluteAmount;
 }
 
-function predictAccountLiquidityGrosze(
+function predictAccountLiquidityMinorUnits(
     account: HandEntryPreviewAccount,
-    adjustmentGrosze: number,
+    adjustmentMinorUnits: number,
     kind: HandEntryPreviewKind,
-    signedProposalAmountGrosze: number,
+    signedProposalAmountMinorUnits: number,
 ): number {
     if (kind === 'income') {
         return (
-            account.current_balance_grosze +
-            adjustmentGrosze +
-            Math.abs(signedProposalAmountGrosze)
+            account.current_balance_minor_units +
+            adjustmentMinorUnits +
+            Math.abs(signedProposalAmountMinorUnits)
         );
     }
 
     return (
-        account.current_balance_grosze +
-        adjustmentGrosze -
-        signedProposalAmountGrosze
+        account.current_balance_minor_units +
+        adjustmentMinorUnits -
+        signedProposalAmountMinorUnits
     );
 }
 
@@ -147,28 +147,28 @@ export function previewHandEntryWarnings(
     input: HandEntryPreviewInput,
 ): HandEntryPreviewResult {
     const { mode, accounts, categories, editedRecord, proposal } = input;
-    const signedAmount = signedProposalAmountGrosze(
+    const signedAmount = signedProposalAmountMinorUnits(
         proposal.kind,
-        proposal.amount_grosze,
+        proposal.amount_minor_units,
     );
 
     if (proposal.kind === 'own_transfer') {
         const sourceAccount = findAccount(accounts, proposal.source_account_id);
         const originalSourceAccountId = editedRecord?.source_account_id;
-        const originalAmountGrosze = Math.abs(
-            editedRecord?.signed_amount_grosze ?? 0,
+        const originalAmountMinorUnits = Math.abs(
+            editedRecord?.signed_amount_minor_units ?? 0,
         );
-        const sourceAdjustment = accountLiquidityAdjustmentGrosze(
+        const sourceAdjustment = accountLiquidityAdjustmentMinorUnits(
             mode,
             editedRecord,
             proposal.source_account_id ?? -1,
             originalSourceAccountId ?? -1,
-            originalAmountGrosze,
+            originalAmountMinorUnits,
         );
         const predictedBalance =
             sourceAccount === undefined
                 ? null
-                : predictAccountLiquidityGrosze(
+                : predictAccountLiquidityMinorUnits(
                       sourceAccount,
                       sourceAdjustment,
                       'expense',
@@ -178,8 +178,8 @@ export function previewHandEntryWarnings(
         return {
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
-            availableLimitNowGrosze: null,
-            availableLimitAfterGrosze: null,
+            availableLimitNowMinorUnits: null,
+            availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
     }
@@ -188,28 +188,28 @@ export function previewHandEntryWarnings(
         if (mode === 'create') {
             return {
                 showNegativeBalanceWarning: false,
-                availableLimitNowGrosze: null,
-                availableLimitAfterGrosze: null,
+                availableLimitNowMinorUnits: null,
+                availableLimitAfterMinorUnits: null,
                 showOverLimitWarning: false,
             };
         }
 
         const account = findAccount(accounts, proposal.account_id);
         const originalAccountId = editedRecord?.account_id ?? -1;
-        const originalAmountGrosze = Math.abs(
-            editedRecord?.signed_amount_grosze ?? 0,
+        const originalAmountMinorUnits = Math.abs(
+            editedRecord?.signed_amount_minor_units ?? 0,
         );
-        const adjustment = accountLiquidityAdjustmentGrosze(
+        const adjustment = accountLiquidityAdjustmentMinorUnits(
             mode,
             editedRecord,
             proposal.account_id,
             originalAccountId,
-            -originalAmountGrosze,
+            -originalAmountMinorUnits,
         );
         const predictedBalance =
             account === undefined
                 ? null
-                : predictAccountLiquidityGrosze(
+                : predictAccountLiquidityMinorUnits(
                       account,
                       adjustment,
                       'income',
@@ -219,8 +219,8 @@ export function previewHandEntryWarnings(
         return {
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
-            availableLimitNowGrosze: null,
-            availableLimitAfterGrosze: null,
+            availableLimitNowMinorUnits: null,
+            availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
     }
@@ -229,15 +229,15 @@ export function previewHandEntryWarnings(
     const category = findCategory(categories, proposal.category_id);
     const originalAccountId = editedRecord?.account_id ?? -1;
     const originalCategoryId = editedRecord?.category_id;
-    const originalSignedAmount = editedRecord?.signed_amount_grosze ?? 0;
-    const accountAdjustment = accountLiquidityAdjustmentGrosze(
+    const originalSignedAmount = editedRecord?.signed_amount_minor_units ?? 0;
+    const accountAdjustment = accountLiquidityAdjustmentMinorUnits(
         mode,
         editedRecord,
         proposal.account_id,
         originalAccountId,
         originalSignedAmount,
     );
-    const executionAdjustment = categoryExecutionAdjustmentGrosze(
+    const executionAdjustment = categoryExecutionAdjustmentMinorUnits(
         mode,
         editedRecord,
         proposal.category_id,
@@ -247,31 +247,31 @@ export function previewHandEntryWarnings(
     const predictedBalance =
         account === undefined
             ? null
-            : predictAccountLiquidityGrosze(
+            : predictAccountLiquidityMinorUnits(
                   account,
                   accountAdjustment,
                   'expense',
                   signedAmount,
               );
-    const availableLimitNowGrosze =
+    const availableLimitNowMinorUnits =
         category === undefined
             ? null
-            : category.planned_amount_grosze -
-              category.execution_grosze +
+            : category.planned_amount_minor_units -
+              category.execution_minor_units +
               executionAdjustment;
-    const availableLimitAfterGrosze =
-        availableLimitNowGrosze === null
+    const availableLimitAfterMinorUnits =
+        availableLimitNowMinorUnits === null
             ? null
-            : availableLimitNowGrosze - signedAmount;
+            : availableLimitNowMinorUnits - signedAmount;
 
     return {
         showNegativeBalanceWarning:
             predictedBalance !== null && predictedBalance < 0,
-        availableLimitNowGrosze,
-        availableLimitAfterGrosze,
+        availableLimitNowMinorUnits,
+        availableLimitAfterMinorUnits,
         showOverLimitWarning:
             proposal.kind === 'expense' &&
-            availableLimitAfterGrosze !== null &&
-            availableLimitAfterGrosze < 0,
+            availableLimitAfterMinorUnits !== null &&
+            availableLimitAfterMinorUnits < 0,
     };
 }

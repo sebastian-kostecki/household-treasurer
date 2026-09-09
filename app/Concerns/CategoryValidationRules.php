@@ -20,7 +20,7 @@ trait CategoryValidationRules
             'icon' => ['required', 'string', Rule::in(CategoryIcons::values())],
             'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
-            'planned_amount_grosze' => ['required', 'integer', 'min:0'],
+            'planned_amount_minor_units' => ['required', 'integer', 'min:0'],
         ];
     }
 

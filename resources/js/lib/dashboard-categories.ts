@@ -3,20 +3,20 @@ export type DashboardCategory = {
     name: string;
     icon: string;
     color: string;
-    initial_plan_grosze: number;
-    current_plan_grosze: number;
-    execution_grosze: number;
-    remaining_grosze: number;
+    initial_plan_minor_units: number;
+    current_plan_minor_units: number;
+    execution_minor_units: number;
+    remaining_minor_units: number;
     percent_complete: number | null;
     is_over_limit: boolean;
     is_archived: boolean;
 };
 
 export type DashboardTypeTotals = {
-    initial_plan_grosze: number;
-    current_plan_grosze: number;
-    execution_grosze: number;
-    remaining_grosze: number;
+    initial_plan_minor_units: number;
+    current_plan_minor_units: number;
+    execution_minor_units: number;
+    remaining_minor_units: number;
     percent_complete: number | null;
 };
 
@@ -40,7 +40,7 @@ export function sortCategoriesByRisk(
 }
 
 export function planChanged(category: DashboardCategory): boolean {
-    return category.initial_plan_grosze !== category.current_plan_grosze;
+    return category.initial_plan_minor_units !== category.current_plan_minor_units;
 }
 
 export function progressWidth(percentComplete: number | null): string {

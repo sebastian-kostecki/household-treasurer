@@ -58,7 +58,7 @@ const hasPlanChanged = planChanged(props.category);
                 {{ t.dashboard.current_plan }}
             </span>
             <span class="text-sm">
-                {{ formatMoney(category.current_plan_grosze) }}
+                {{ formatMoney(category.current_plan_minor_units) }}
             </span>
         </div>
 
@@ -70,7 +70,7 @@ const hasPlanChanged = planChanged(props.category);
                 class="text-sm"
                 :class="categoryType === 'income' ? 'text-success' : ''"
             >
-                {{ formatMoney(category.execution_grosze) }}
+                {{ formatMoney(category.execution_minor_units) }}
             </span>
         </div>
 
@@ -82,7 +82,7 @@ const hasPlanChanged = planChanged(props.category);
                 {{ t.dashboard.remaining }}
             </span>
             <span class="text-sm">
-                {{ formatMoney(category.remaining_grosze) }}
+                {{ formatMoney(category.remaining_minor_units) }}
             </span>
         </div>
 

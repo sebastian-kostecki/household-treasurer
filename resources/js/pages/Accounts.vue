@@ -35,7 +35,7 @@ import { index as accountsRoute } from '@/routes/accounts';
 
 type AccountRow = AccountFormAccount & {
     mark_url: string | null;
-    current_balance_grosze: number;
+    current_balance_minor_units: number;
     is_negative: boolean;
     is_archived: boolean;
     can_delete: boolean;
@@ -45,7 +45,7 @@ type AccountRow = AccountFormAccount & {
 
 const props = defineProps<{
     accounts: AccountRow[];
-    liquidity_total_grosze: number;
+    liquidity_total_minor_units: number;
     show_archived: boolean;
 }>();
 
@@ -56,7 +56,7 @@ const editDialogOpen = ref(false);
 const editingAccount = ref<AccountRow | null>(null);
 
 const liquidityClass = computed(() =>
-    props.liquidity_total_grosze < 0 ? 'text-destructive' : 'text-success',
+    props.liquidity_total_minor_units < 0 ? 'text-destructive' : 'text-success',
 );
 
 setLayoutProps({
@@ -77,7 +77,7 @@ function balanceClass(account: AccountRow): string {
         return 'text-destructive';
     }
 
-    if (account.current_balance_grosze > 0) {
+    if (account.current_balance_minor_units > 0) {
         return 'text-success';
     }
 
@@ -115,7 +115,7 @@ function toggleShowArchived(checked: boolean): void {
                     {{ t.accounts.liquidity_total }}
                 </CardDescription>
                 <CardTitle class="text-2xl" :class="liquidityClass">
-                    {{ formatMoney(liquidity_total_grosze) }}
+                    {{ formatMoney(liquidity_total_minor_units) }}
                 </CardTitle>
             </CardHeader>
         </Card>
@@ -182,7 +182,7 @@ function toggleShowArchived(checked: boolean): void {
                     class="shrink-0 font-medium tabular-nums"
                     :class="balanceClass(account)"
                 >
-                    {{ formatMoney(account.current_balance_grosze) }}
+                    {{ formatMoney(account.current_balance_minor_units) }}
                 </p>
 
                 <div class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end">

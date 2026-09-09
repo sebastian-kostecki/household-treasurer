@@ -13,13 +13,13 @@ class ImportDuplicateDetector
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      * }>  $rows
      * @return list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate: bool,
@@ -47,9 +47,9 @@ class ImportDuplicateDetector
             }
 
             $rawStatementDescription = $row['raw_statement_description'] ?? null;
-            $signedAmountGrosze = $row['amount_grosze'] ?? null;
+            $signedAmountMinorUnits = $row['amount_minor_units'] ?? null;
 
-            if ($rawStatementDescription === null || $signedAmountGrosze === null) {
+            if ($rawStatementDescription === null || $signedAmountMinorUnits === null) {
                 return [
                     ...$row,
                     'import_duplicate' => false,
@@ -60,7 +60,7 @@ class ImportDuplicateDetector
                 $user->id,
                 $accountId,
                 $row['operation_date'],
-                $signedAmountGrosze,
+                $signedAmountMinorUnits,
                 $rawStatementDescription,
             )['digest'];
 
@@ -74,12 +74,12 @@ class ImportDuplicateDetector
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      * }>  $rows
      * @return list<array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     raw_statement_description: ?string,
      * }>
      */

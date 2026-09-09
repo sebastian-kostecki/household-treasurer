@@ -77,7 +77,7 @@ class OperationsIdentityTest extends TestCase
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 12000,
+            'amount_minor_units' => 12000,
             'description' => 'ATM withdrawal',
         ]);
 

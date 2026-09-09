@@ -50,13 +50,13 @@ const config = computed(() => {
     <span
         :class="
             cn(
-                'inline-flex size-8 shrink-0 items-center justify-center rounded-lg',
+                'inline-flex w-10 min-h-10 shrink-0 self-stretch items-center justify-center rounded-lg',
                 config.className,
             )
         "
         :title="config.label"
         :aria-label="config.label"
     >
-        <component :is="config.icon" class="size-4" aria-hidden="true" />
+        <component :is="config.icon" class="size-5" aria-hidden="true" />
     </span>
 </template>

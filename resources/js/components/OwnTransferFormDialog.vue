@@ -20,8 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
-    groszeToMoneyInput,
-    parseMoneyInputToGrosze,
+    minorUnitsToMoneyInput,
+    parseMoneyInputToMinorUnits,
 } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
@@ -29,7 +29,7 @@ import type { AccountPickerOption } from '@/lib/account-identity';
 export type OwnTransferFormTransfer = {
     id: number;
     transfer_date: string;
-    amount_grosze: number;
+    amount_minor_units: number;
     description: string;
     raw_statement_descriptions?: string[];
     source_account_id: number;
@@ -37,7 +37,7 @@ export type OwnTransferFormTransfer = {
 };
 
 export type OwnTransferFormAccount = AccountPickerOption & {
-    current_balance_grosze: number;
+    current_balance_minor_units: number;
 };
 
 const props = defineProps<{
@@ -58,8 +58,8 @@ const description = ref('');
 const sourceAccountId = ref<number | ''>('');
 const destinationAccountId = ref<number | ''>('');
 const amountInput = ref('0,00');
-const amountGrosze = ref(0);
-const originalAmountGrosze = ref(0);
+const amountMinorUnits = ref(0);
+const originalAmountMinorUnits = ref(0);
 const originalSourceAccountId = ref<number | null>(null);
 
 const formBinding = computed(() =>
@@ -84,7 +84,7 @@ const warningPreview = computed(() => {
             proposal: {
                 kind: 'own_transfer',
                 account_id: 0,
-                amount_grosze: 0,
+                amount_minor_units: 0,
                 source_account_id: 0,
             },
         });
@@ -97,14 +97,14 @@ const warningPreview = computed(() => {
             props.mode === 'edit' && originalSourceAccountId.value !== null
                 ? {
                       account_id: originalSourceAccountId.value,
-                      signed_amount_grosze: originalAmountGrosze.value,
+                      signed_amount_minor_units: originalAmountMinorUnits.value,
                       source_account_id: originalSourceAccountId.value,
                   }
                 : null,
         proposal: {
             kind: 'own_transfer',
             account_id: sourceAccountId.value,
-            amount_grosze: amountGrosze.value,
+            amount_minor_units: amountMinorUnits.value,
             source_account_id: sourceAccountId.value,
         },
     });
@@ -126,9 +126,9 @@ watch(
             description.value = props.transfer.description;
             sourceAccountId.value = props.transfer.source_account_id;
             destinationAccountId.value = props.transfer.destination_account_id;
-            amountGrosze.value = props.transfer.amount_grosze;
-            amountInput.value = groszeToMoneyInput(props.transfer.amount_grosze);
-            originalAmountGrosze.value = props.transfer.amount_grosze;
+            amountMinorUnits.value = props.transfer.amount_minor_units;
+            amountInput.value = minorUnitsToMoneyInput(props.transfer.amount_minor_units);
+            originalAmountMinorUnits.value = props.transfer.amount_minor_units;
             originalSourceAccountId.value = props.transfer.source_account_id;
 
             return;
@@ -138,21 +138,21 @@ watch(
         description.value = '';
         sourceAccountId.value = bankAccounts.value[0]?.id ?? '';
         destinationAccountId.value = cashAccounts.value[0]?.id ?? '';
-        amountGrosze.value = 0;
+        amountMinorUnits.value = 0;
         amountInput.value = '0,00';
-        originalAmountGrosze.value = 0;
+        originalAmountMinorUnits.value = 0;
         originalSourceAccountId.value = null;
     },
     { immediate: true },
 );
 
 function syncAmount(): void {
-    const parsed = parseMoneyInputToGrosze(amountInput.value);
+    const parsed = parseMoneyInputToMinorUnits(amountInput.value);
 
     if (parsed !== null && parsed > 0) {
-        amountGrosze.value = parsed;
+        amountMinorUnits.value = parsed;
     } else {
-        amountGrosze.value = 0;
+        amountMinorUnits.value = 0;
     }
 }
 
@@ -275,10 +275,10 @@ function closeDialog(): void {
                     />
                     <input
                         type="hidden"
-                        name="amount_grosze"
-                        :value="amountGrosze"
+                        name="amount_minor_units"
+                        :value="amountMinorUnits"
                     />
-                    <InputError :message="errors.amount_grosze" />
+                    <InputError :message="errors.amount_minor_units" />
                 </div>
 
                 <Alert v-if="showNegativeBalanceWarning" variant="destructive">

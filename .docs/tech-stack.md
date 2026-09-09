@@ -30,7 +30,7 @@ Projekt powstaje z oficjalnego starter kitu Laravel Vue (`laravel new --vue`): a
 
 Logika budżetu, sald, atomowość transferów i importu CSV żyje po stronie Laravela. Vue prezentuje stan i zbiera dane wejściowe. Inertia nie zastępuje reguł biznesowych.
 
-Kwoty są przechowywane i liczone jako **liczba całkowita groszy** (`bigint`). PHP nie używa `float`/`double` do pieniędzy. TypeScript na froncie dostaje kwoty jako string albo integer groszy i tylko je formatuje do wyświetlenia (PLN).
+Kwoty są przechowywane i liczone jako **liczba całkowita minor units** (`bigint`, kolumny `*_minor_units`). MVP: PLN, skala 2. PHP nie używa `float`/`double` do pieniędzy. TypeScript na froncie dostaje kwoty jako string albo integer minor units i tylko je formatuje do wyświetlenia (PLN).
 
 Osobne REST/JSON API nie powstaje w MVP.
 
@@ -78,7 +78,7 @@ Laravel Cloud, Forge i PaaS zostają jako alternatywa, jeśli utrzymanie VPS prz
 | Decyzja | Wybrane | Odrzucone | Powód |
 | --- | --- | --- | --- |
 | Baza | PostgreSQL | MySQL, SQLite | Lepsze typy i transakcje dla pieniędzy i atomowego importu; ten sam silnik lokalnie i na produkcji. SQLite jest za słabe na multi-user MVP. MySQL działa, ale nic tu nie wnosi. |
-| Pieniądze | integer grosze | `numeric` + float w PHP, JS `number` | PRD zabrania arytmetyki zmiennoprzecinkowej. Integer groszy nie da się przypadkiem zrzutować na float. |
+| Pieniądze | signed bigint minor units | `numeric` + float w PHP, JS `number` | PRD zabrania arytmetyki zmiennoprzecinkowej. Integer minor units nie da się przypadkiem zrzutować na float. |
 | CSS | Tailwind + shadcn-vue | Vuetify, Naive UI, czysty CSS | To default oficjalnego starter kitu Vue. Mniej tarcia, komponenty pod WCAG łatwiej utrzymać niż pisać od zera. |
 | JS | TypeScript | czysty JavaScript | Default starter kitu; kontrakt props Inertia i formatowanie kwot jest wtedy jawny. |
 | Redis | brak w MVP | Redis od dnia zerowego | Jeden użytkownik naraz na instancję, brak real-time, brak ciężkich jobów. Kolejka w Postgresie wystarcza na maile. |

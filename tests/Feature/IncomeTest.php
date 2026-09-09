@@ -21,7 +21,7 @@ class IncomeTest extends TestCase
     {
         $this->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => 1,
             'category_id' => 1,
@@ -35,19 +35,19 @@ class IncomeTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->income()->create([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'March salary',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -61,7 +61,7 @@ class IncomeTest extends TestCase
             'account_id' => $account->id,
             'category_id' => $category->id,
             'budget_id' => $budget->id,
-            'amount_grosze' => 250000,
+            'amount_minor_units' => 250000,
             'description' => 'March salary',
         ]);
 
@@ -72,8 +72,8 @@ class IncomeTest extends TestCase
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(350000, $account->current_balance_grosze);
-        $this->assertSame(250000, $category->execution_grosze);
+        $this->assertSame(350000, $account->current_balance_minor_units);
+        $this->assertSame(250000, $category->execution_minor_units);
     }
 
     public function test_income_date_cannot_be_in_the_future(): void
@@ -86,7 +86,7 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-07-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Future income',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -111,7 +111,7 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-02-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Too early',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -139,7 +139,7 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Draft budget income',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -161,7 +161,7 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Wrong year',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -187,7 +187,7 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Archived account',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -214,7 +214,7 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Archived category',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -231,17 +231,17 @@ class IncomeTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->income()->create([
-            'execution_grosze' => 0,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 50000,
+            'amount_minor_units' => 50000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -250,22 +250,22 @@ class IncomeTest extends TestCase
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(150000, $account->current_balance_grosze);
-        $this->assertSame(50000, $category->execution_grosze);
+        $this->assertSame(150000, $account->current_balance_minor_units);
+        $this->assertSame(50000, $category->execution_minor_units);
 
         $this->actingAs($user)->patch(route('accounts.update', $account), [
             'name' => $account->name,
             'type' => $account->type->value,
             'bank' => $account->bank?->value,
-            'opening_balance_grosze' => 120000,
+            'opening_balance_minor_units' => 120000,
         ])->assertSessionHasNoErrors();
 
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(120000, $account->opening_balance_grosze);
-        $this->assertSame(170000, $account->current_balance_grosze);
-        $this->assertSame(50000, $category->execution_grosze);
+        $this->assertSame(120000, $account->opening_balance_minor_units);
+        $this->assertSame(170000, $account->current_balance_minor_units);
+        $this->assertSame(50000, $category->execution_minor_units);
         $this->assertDatabaseCount('financial_operations', 1);
     }
 
@@ -284,7 +284,7 @@ class IncomeTest extends TestCase
         $this->actingAs($otherUser)
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Stolen income',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -304,23 +304,23 @@ class IncomeTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 0,
+                'amount_minor_units' => 0,
                 'description' => 'Zero income',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
             ])
-            ->assertSessionHasErrors('amount_grosze');
+            ->assertSessionHasErrors('amount_minor_units');
 
         $this->actingAs($user)
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => -100,
+                'amount_minor_units' => -100,
                 'description' => 'Negative income',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
             ])
-            ->assertSessionHasErrors('amount_grosze');
+            ->assertSessionHasErrors('amount_minor_units');
 
         $this->assertDatabaseCount('financial_operations', 0);
     }
@@ -335,7 +335,7 @@ class IncomeTest extends TestCase
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Owner salary',
             'account_id' => $ownerAccount->id,
             'category_id' => $ownerCategory->id,
@@ -357,7 +357,7 @@ class IncomeTest extends TestCase
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category->id,

@@ -27,11 +27,11 @@ export type BudgetCategoryRow = {
     icon: string;
     color: string;
     type: 'income' | 'expense';
-    planned_amount_grosze: number;
-    initial_plan_grosze: number;
-    current_plan_grosze: number;
-    execution_grosze: number;
-    remaining_grosze: number;
+    planned_amount_minor_units: number;
+    initial_plan_minor_units: number;
+    current_plan_minor_units: number;
+    execution_minor_units: number;
+    remaining_minor_units: number;
     is_over_limit: boolean;
     can_edit: boolean;
     can_delete: boolean;
@@ -251,7 +251,7 @@ async function onDragEnd(): Promise<void> {
                                 >
                                     {{
                                         formatMoney(
-                                            category.current_plan_grosze,
+                                            category.current_plan_minor_units,
                                         )
                                     }}
                                 </td>
@@ -259,21 +259,21 @@ async function onDragEnd(): Promise<void> {
                                     <td class="tabular-amount">
                                         {{
                                             formatMoney(
-                                                category.initial_plan_grosze,
+                                                category.initial_plan_minor_units,
                                             )
                                         }}
                                     </td>
                                     <td class="tabular-amount font-semibold">
                                         {{
                                             formatMoney(
-                                                category.current_plan_grosze,
+                                                category.current_plan_minor_units,
                                             )
                                         }}
                                     </td>
                                     <td class="tabular-amount">
                                         {{
                                             formatMoney(
-                                                category.execution_grosze,
+                                                category.execution_minor_units,
                                             )
                                         }}
                                     </td>
@@ -283,7 +283,7 @@ async function onDragEnd(): Promise<void> {
                                     >
                                         {{
                                             formatMoney(
-                                                category.remaining_grosze,
+                                                category.remaining_minor_units,
                                             )
                                         }}
                                     </td>
@@ -313,40 +313,40 @@ async function onDragEnd(): Promise<void> {
                                 class="tabular-amount"
                             >
                                 {{
-                                    formatMoney(totals.current_plan_grosze)
+                                    formatMoney(totals.current_plan_minor_units)
                                 }}
                             </td>
                             <template v-if="isExecution">
                                 <td class="tabular-amount">
                                     {{
                                         formatMoney(
-                                            totals.initial_plan_grosze,
+                                            totals.initial_plan_minor_units,
                                         )
                                     }}
                                 </td>
                                 <td class="tabular-amount">
                                     {{
                                         formatMoney(
-                                            totals.current_plan_grosze,
+                                            totals.current_plan_minor_units,
                                         )
                                     }}
                                 </td>
                                 <td class="tabular-amount">
                                     {{
-                                        formatMoney(totals.execution_grosze)
+                                        formatMoney(totals.execution_minor_units)
                                     }}
                                 </td>
                                 <td
                                     class="tabular-amount"
                                     :class="
                                         categoryType === 'expense'
-                                        && totals.remaining_grosze < 0
+                                        && totals.remaining_minor_units < 0
                                             ? 'text-destructive'
                                             : ''
                                     "
                                 >
                                     {{
-                                        formatMoney(totals.remaining_grosze)
+                                        formatMoney(totals.remaining_minor_units)
                                     }}
                                 </td>
                             </template>
@@ -422,7 +422,7 @@ async function onDragEnd(): Promise<void> {
                                 >
                                     {{
                                         formatMoney(
-                                            category.current_plan_grosze,
+                                            category.current_plan_minor_units,
                                         )
                                     }}
                                 </td>
@@ -430,21 +430,21 @@ async function onDragEnd(): Promise<void> {
                                     <td class="tabular-amount">
                                         {{
                                             formatMoney(
-                                                category.initial_plan_grosze,
+                                                category.initial_plan_minor_units,
                                             )
                                         }}
                                     </td>
                                     <td class="tabular-amount font-semibold">
                                         {{
                                             formatMoney(
-                                                category.current_plan_grosze,
+                                                category.current_plan_minor_units,
                                             )
                                         }}
                                     </td>
                                     <td class="tabular-amount">
                                         {{
                                             formatMoney(
-                                                category.execution_grosze,
+                                                category.execution_minor_units,
                                             )
                                         }}
                                     </td>
@@ -454,7 +454,7 @@ async function onDragEnd(): Promise<void> {
                                     >
                                         {{
                                             formatMoney(
-                                                category.remaining_grosze,
+                                                category.remaining_minor_units,
                                             )
                                         }}
                                     </td>
@@ -544,7 +544,7 @@ async function onDragEnd(): Promise<void> {
                                     <p class="font-semibold tabular-nums">
                                         {{
                                             formatMoney(
-                                                category.current_plan_grosze,
+                                                category.current_plan_minor_units,
                                             )
                                         }}
                                     </p>
@@ -557,7 +557,7 @@ async function onDragEnd(): Promise<void> {
                                         <p class="font-medium tabular-nums">
                                             {{
                                                 formatMoney(
-                                                    category.initial_plan_grosze,
+                                                    category.initial_plan_minor_units,
                                                 )
                                             }}
                                         </p>
@@ -569,7 +569,7 @@ async function onDragEnd(): Promise<void> {
                                         <p class="font-semibold tabular-nums">
                                             {{
                                                 formatMoney(
-                                                    category.current_plan_grosze,
+                                                    category.current_plan_minor_units,
                                                 )
                                             }}
                                         </p>
@@ -581,7 +581,7 @@ async function onDragEnd(): Promise<void> {
                                         <p class="font-medium tabular-nums">
                                             {{
                                                 formatMoney(
-                                                    category.execution_grosze,
+                                                    category.execution_minor_units,
                                                 )
                                             }}
                                         </p>
@@ -596,7 +596,7 @@ async function onDragEnd(): Promise<void> {
                                         >
                                             {{
                                                 formatMoney(
-                                                    category.remaining_grosze,
+                                                    category.remaining_minor_units,
                                                 )
                                             }}
                                         </p>
@@ -633,7 +633,7 @@ async function onDragEnd(): Promise<void> {
                                 {{ t.budget.plan }}
                             </p>
                             <p class="font-semibold tabular-nums">
-                                {{ formatMoney(totals.current_plan_grosze) }}
+                                {{ formatMoney(totals.current_plan_minor_units) }}
                             </p>
                         </div>
                         <template v-if="isExecution">
@@ -644,7 +644,7 @@ async function onDragEnd(): Promise<void> {
                                 <p class="font-semibold tabular-nums">
                                     {{
                                         formatMoney(
-                                            totals.initial_plan_grosze,
+                                            totals.initial_plan_minor_units,
                                         )
                                     }}
                                 </p>
@@ -656,7 +656,7 @@ async function onDragEnd(): Promise<void> {
                                 <p class="font-semibold tabular-nums">
                                     {{
                                         formatMoney(
-                                            totals.current_plan_grosze,
+                                            totals.current_plan_minor_units,
                                         )
                                     }}
                                 </p>
@@ -667,7 +667,7 @@ async function onDragEnd(): Promise<void> {
                                 </p>
                                 <p class="font-semibold tabular-nums">
                                     {{
-                                        formatMoney(totals.execution_grosze)
+                                        formatMoney(totals.execution_minor_units)
                                     }}
                                 </p>
                             </div>
@@ -679,13 +679,13 @@ async function onDragEnd(): Promise<void> {
                                     class="font-semibold tabular-nums"
                                     :class="
                                         categoryType === 'expense'
-                                        && totals.remaining_grosze < 0
+                                        && totals.remaining_minor_units < 0
                                             ? 'text-destructive'
                                             : ''
                                     "
                                 >
                                     {{
-                                        formatMoney(totals.remaining_grosze)
+                                        formatMoney(totals.remaining_minor_units)
                                     }}
                                 </p>
                             </div>
@@ -737,7 +737,7 @@ async function onDragEnd(): Promise<void> {
                                 <p class="font-semibold tabular-nums">
                                     {{
                                         formatMoney(
-                                            category.current_plan_grosze,
+                                            category.current_plan_minor_units,
                                         )
                                     }}
                                 </p>
@@ -750,7 +750,7 @@ async function onDragEnd(): Promise<void> {
                                     <p class="font-medium tabular-nums">
                                         {{
                                             formatMoney(
-                                                category.initial_plan_grosze,
+                                                category.initial_plan_minor_units,
                                             )
                                         }}
                                     </p>
@@ -762,7 +762,7 @@ async function onDragEnd(): Promise<void> {
                                     <p class="font-semibold tabular-nums">
                                         {{
                                             formatMoney(
-                                                category.current_plan_grosze,
+                                                category.current_plan_minor_units,
                                             )
                                         }}
                                     </p>
@@ -774,7 +774,7 @@ async function onDragEnd(): Promise<void> {
                                     <p class="font-medium tabular-nums">
                                         {{
                                             formatMoney(
-                                                category.execution_grosze,
+                                                category.execution_minor_units,
                                             )
                                         }}
                                     </p>
@@ -789,7 +789,7 @@ async function onDragEnd(): Promise<void> {
                                     >
                                         {{
                                             formatMoney(
-                                                category.remaining_grosze,
+                                                category.remaining_minor_units,
                                             )
                                         }}
                                     </p>

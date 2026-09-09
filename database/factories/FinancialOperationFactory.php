@@ -27,7 +27,7 @@ class FinancialOperationFactory extends Factory
             'category_id' => Category::factory()->income(),
             'budget_id' => Budget::factory(),
             'operation_date' => fake()->date(),
-            'amount_grosze' => fake()->numberBetween(100, 500000),
+            'amount_minor_units' => fake()->numberBetween(100, 500000),
             'description' => fake()->sentence(),
         ];
     }

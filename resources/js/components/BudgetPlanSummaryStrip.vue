@@ -11,17 +11,17 @@ import { formatMoney } from '@/lib/format';
 const props = defineProps<{
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
-    plannedBalanceGrosze: number;
+    plannedBalanceMinorUnits: number;
 }>();
 
 const t = useTranslations();
 
 const balanceClass = computed(() => {
-    if (props.plannedBalanceGrosze < 0) {
+    if (props.plannedBalanceMinorUnits < 0) {
         return 'text-destructive';
     }
 
-    if (props.plannedBalanceGrosze > 0) {
+    if (props.plannedBalanceMinorUnits > 0) {
         return 'text-success';
     }
 
@@ -37,7 +37,7 @@ const balanceClass = computed(() => {
                     {{ t.budget.planned_income }}
                 </p>
                 <p class="text-lg font-semibold tabular-nums">
-                    {{ formatMoney(incomeTotals.current_plan_grosze) }}
+                    {{ formatMoney(incomeTotals.current_plan_minor_units) }}
                 </p>
             </div>
             <div>
@@ -45,7 +45,7 @@ const balanceClass = computed(() => {
                     {{ t.budget.planned_expense }}
                 </p>
                 <p class="text-lg font-semibold tabular-nums">
-                    {{ formatMoney(expenseTotals.current_plan_grosze) }}
+                    {{ formatMoney(expenseTotals.current_plan_minor_units) }}
                 </p>
             </div>
             <div>
@@ -56,7 +56,7 @@ const balanceClass = computed(() => {
                     class="text-lg font-semibold tabular-nums"
                     :class="balanceClass"
                 >
-                    {{ formatMoney(plannedBalanceGrosze) }}
+                    {{ formatMoney(plannedBalanceMinorUnits) }}
                 </p>
             </div>
         </CardContent>

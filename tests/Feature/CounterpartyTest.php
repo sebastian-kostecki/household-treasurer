@@ -26,7 +26,7 @@ class CounterpartyTest extends TestCase
         $this->actingAs($user)
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'March salary',
                 'counterparty' => 'Acme Corp',
                 'account_id' => $account->id,
@@ -51,7 +51,7 @@ class CounterpartyTest extends TestCase
         $this->actingAs($user)
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'March salary',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -74,7 +74,7 @@ class CounterpartyTest extends TestCase
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 25000,
+                'amount_minor_units' => 25000,
                 'description' => 'Groceries',
                 'counterparty' => 'Biedronka',
                 'account_id' => $account->id,
@@ -98,7 +98,7 @@ class CounterpartyTest extends TestCase
         $this->actingAs($user)
             ->post(route('expenses.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => -10000,
+                'amount_minor_units' => -10000,
                 'description' => 'Refund for shoes',
                 'counterparty' => 'CCC',
                 'account_id' => $account->id,
@@ -109,7 +109,7 @@ class CounterpartyTest extends TestCase
         $this->assertDatabaseHas('financial_operations', [
             'user_id' => $user->id,
             'type' => FinancialOperationType::Expense->value,
-            'amount_grosze' => -10000,
+            'amount_minor_units' => -10000,
             'description' => 'Refund for shoes',
             'counterparty' => 'CCC',
         ]);
@@ -125,7 +125,7 @@ class CounterpartyTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'counterparty' => 'Acme Corp',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -143,7 +143,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 50000,
+            'amount_minor_units' => 50000,
             'description' => 'Salary',
             'counterparty' => 'Acme Corp',
             'account_id' => $account->id,
@@ -154,7 +154,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->patch(route('incomes.update', $operation), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 50000,
+            'amount_minor_units' => 50000,
             'description' => 'Salary',
             'counterparty' => '',
             'account_id' => $account->id,
@@ -172,7 +172,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -182,7 +182,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->patch(route('expenses.update', $operation), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'counterparty' => 'Lidl',
             'account_id' => $account->id,
@@ -211,7 +211,7 @@ class CounterpartyTest extends TestCase
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Legacy salary',
             ]);
 
@@ -222,17 +222,17 @@ class CounterpartyTest extends TestCase
     {
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->bank()->create([
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->cash()->create([
-            'current_balance_grosze' => 0,
-            'opening_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'ATM withdrawal',
             'counterparty' => 'Should be ignored',
             'source_account_id' => $source->id,
@@ -244,7 +244,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->patch(route('own-transfers.update', $transfer), [
             'transfer_date' => '2026-03-02',
-            'amount_grosze' => 30000,
+            'amount_minor_units' => 30000,
             'description' => 'Updated transfer',
             'counterparty' => 'Still ignored',
             'source_account_id' => $source->id,
@@ -271,7 +271,7 @@ class CounterpartyTest extends TestCase
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Salary',
                 'counterparty' => 'Acme Corp',
             ]);
@@ -284,7 +284,7 @@ class CounterpartyTest extends TestCase
             ->income()
             ->create([
                 'operation_date' => '2026-03-10',
-                'amount_grosze' => 5000,
+                'amount_minor_units' => 5000,
                 'description' => 'Bonus',
             ]);
 
@@ -318,7 +318,7 @@ class CounterpartyTest extends TestCase
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Owner salary',
                 'counterparty' => 'Secret payer',
             ]);
@@ -339,7 +339,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'counterparty' => 'Biedronka',
             'account_id' => $account->id,
@@ -350,7 +350,7 @@ class CounterpartyTest extends TestCase
 
         $this->actingAs($user)->patch(route('expenses.update', $operation), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'counterparty' => '',
             'account_id' => $account->id,
@@ -370,7 +370,7 @@ class CounterpartyTest extends TestCase
             ->from(route('operations'))
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Salary',
                 'counterparty' => str_repeat('a', 256),
                 'account_id' => $account->id,
@@ -385,7 +385,7 @@ class CounterpartyTest extends TestCase
     {
         $this->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'counterparty' => 'Acme Corp',
             'account_id' => 1,
@@ -394,7 +394,7 @@ class CounterpartyTest extends TestCase
 
         $this->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Groceries',
             'counterparty' => 'Biedronka',
             'account_id' => 1,
@@ -422,7 +422,7 @@ class CounterpartyTest extends TestCase
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Owner salary',
                 'counterparty' => 'Original payer',
             ]);
@@ -430,7 +430,7 @@ class CounterpartyTest extends TestCase
         $this->actingAs($otherUser)
             ->patch(route('incomes.update', $operation), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Stolen edit',
                 'counterparty' => 'Hacked payer',
                 'account_id' => $account->id,
@@ -464,13 +464,13 @@ class CounterpartyTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]);
 
         return [$user, $account, $category];

@@ -15,16 +15,16 @@ trait OwnTransferValidationRules
     {
         return [
             'transfer_date' => ['required', 'date', 'before_or_equal:today'],
-            'amount_grosze' => ['required', 'integer', 'min:1'],
+            'amount_minor_units' => ['required', 'integer', 'min:1'],
             'description' => ['required', 'string', 'max:255'],
             'raw_statement_description' => ['prohibited'],
             'source_import_identity_account_id' => ['prohibited'],
             'source_import_identity_date' => ['prohibited'],
-            'source_import_identity_amount_grosze' => ['prohibited'],
+            'source_import_identity_amount_minor_units' => ['prohibited'],
             'source_import_identity_digest' => ['prohibited'],
             'destination_import_identity_account_id' => ['prohibited'],
             'destination_import_identity_date' => ['prohibited'],
-            'destination_import_identity_amount_grosze' => ['prohibited'],
+            'destination_import_identity_amount_minor_units' => ['prohibited'],
             'destination_import_identity_digest' => ['prohibited'],
             'source_account_id' => ['required', 'integer', 'different:destination_account_id'],
             'destination_account_id' => ['required', 'integer'],
@@ -101,7 +101,7 @@ trait OwnTransferValidationRules
      *     source_account_id: int,
      *     destination_account_id: int,
      *     transfer_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     raw_statement_description?: string|null,
      * }
@@ -112,7 +112,7 @@ trait OwnTransferValidationRules
             'source_account_id',
             'destination_account_id',
             'transfer_date',
-            'amount_grosze',
+            'amount_minor_units',
             'description',
         ]);
 
@@ -120,7 +120,7 @@ trait OwnTransferValidationRules
             'source_account_id' => (int) $validated['source_account_id'],
             'destination_account_id' => (int) $validated['destination_account_id'],
             'transfer_date' => (string) $validated['transfer_date'],
-            'amount_grosze' => (int) $validated['amount_grosze'],
+            'amount_minor_units' => (int) $validated['amount_minor_units'],
             'description' => (string) $validated['description'],
         ];
     }

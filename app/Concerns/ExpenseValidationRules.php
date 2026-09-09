@@ -22,13 +22,13 @@ trait ExpenseValidationRules
 
         return [
             'operation_date' => ['required', 'date', 'before_or_equal:today'],
-            'amount_grosze' => ['required', 'integer', Rule::notIn([0])],
+            'amount_minor_units' => ['required', 'integer', Rule::notIn([0])],
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['nullable', 'string', 'max:255'],
             'raw_statement_description' => ['prohibited'],
             'import_identity_account_id' => ['prohibited'],
             'import_identity_date' => ['prohibited'],
-            'import_identity_amount_grosze' => ['prohibited'],
+            'import_identity_amount_minor_units' => ['prohibited'],
             'import_identity_digest' => ['prohibited'],
             'account_id' => [
                 'required',
@@ -115,7 +115,7 @@ trait ExpenseValidationRules
     /**
      * @return array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
@@ -127,7 +127,7 @@ trait ExpenseValidationRules
     {
         $validated = $this->safe()->only([
             'operation_date',
-            'amount_grosze',
+            'amount_minor_units',
             'description',
             'counterparty',
             'account_id',
@@ -136,7 +136,7 @@ trait ExpenseValidationRules
 
         return [
             'operation_date' => (string) $validated['operation_date'],
-            'amount_grosze' => (int) $validated['amount_grosze'],
+            'amount_minor_units' => (int) $validated['amount_minor_units'],
             'description' => (string) $validated['description'],
             'counterparty' => is_string($validated['counterparty'] ?? null)
                 ? $validated['counterparty']

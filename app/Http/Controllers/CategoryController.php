@@ -24,7 +24,7 @@ class CategoryController extends Controller
         $attributes = $request->validated();
 
         if ($budget->isExecution()) {
-            $attributes['initial_plan_grosze'] = 0;
+            $attributes['initial_plan_minor_units'] = 0;
         }
 
         $attributes['sort_order'] = $this->nextSortOrder($budget, CategoryType::from($attributes['type']));
@@ -46,7 +46,7 @@ class CategoryController extends Controller
             'icon',
             'color',
             'type',
-            'planned_amount_grosze',
+            'planned_amount_minor_units',
         ]));
 
         Inertia::flash('toast', [

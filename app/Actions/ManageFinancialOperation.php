@@ -14,13 +14,13 @@ class ManageFinancialOperation
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
      *     import_identity_account_id?: int|null,
      *     import_identity_date?: string|null,
-     *     import_identity_amount_grosze?: int|null,
+     *     import_identity_amount_minor_units?: int|null,
      *     import_identity_digest?: string|null,
      *     account_id: int,
      *     category_id: int,
@@ -34,13 +34,13 @@ class ManageFinancialOperation
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
      *     import_identity_account_id?: int|null,
      *     import_identity_date?: string|null,
-     *     import_identity_amount_grosze?: int|null,
+     *     import_identity_amount_minor_units?: int|null,
      *     import_identity_digest?: string|null,
      *     account_id: int,
      *     category_id: int,
@@ -54,7 +54,7 @@ class ManageFinancialOperation
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     account_id: int,
@@ -69,7 +69,7 @@ class ManageFinancialOperation
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     account_id: int,
@@ -92,13 +92,13 @@ class ManageFinancialOperation
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
      *     import_identity_account_id?: int|null,
      *     import_identity_date?: string|null,
-     *     import_identity_amount_grosze?: int|null,
+     *     import_identity_amount_minor_units?: int|null,
      *     import_identity_digest?: string|null,
      *     account_id: int,
      *     category_id: int,
@@ -130,17 +130,17 @@ class ManageFinancialOperation
                 'category_id' => $category->id,
                 'budget_id' => $category->budget_id,
                 'operation_date' => $validated['operation_date'],
-                'amount_grosze' => $validated['amount_grosze'],
+                'amount_minor_units' => $validated['amount_minor_units'],
                 'description' => $validated['description'],
                 'counterparty' => $validated['counterparty'] ?? null,
                 'raw_statement_description' => $validated['raw_statement_description'] ?? null,
                 'import_identity_account_id' => $validated['import_identity_account_id'] ?? null,
                 'import_identity_date' => $validated['import_identity_date'] ?? null,
-                'import_identity_amount_grosze' => $validated['import_identity_amount_grosze'] ?? null,
+                'import_identity_amount_minor_units' => $validated['import_identity_amount_minor_units'] ?? null,
                 'import_identity_digest' => $validated['import_identity_digest'] ?? null,
             ]);
 
-            $this->applyEffect($type, $account, $category, $validated['amount_grosze']);
+            $this->applyEffect($type, $account, $category, $validated['amount_minor_units']);
 
             return $operation;
         });
@@ -149,7 +149,7 @@ class ManageFinancialOperation
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     description: string,
      *     counterparty?: string|null,
      *     account_id: int,
@@ -184,12 +184,12 @@ class ManageFinancialOperation
                 'category_id' => $category->id,
                 'budget_id' => $category->budget_id,
                 'operation_date' => $validated['operation_date'],
-                'amount_grosze' => $validated['amount_grosze'],
+                'amount_minor_units' => $validated['amount_minor_units'],
                 'description' => $validated['description'],
                 'counterparty' => $validated['counterparty'] ?? null,
             ]);
 
-            $this->applyEffect($expectedType, $account, $category, $validated['amount_grosze']);
+            $this->applyEffect($expectedType, $account, $category, $validated['amount_minor_units']);
 
             return $operation->refresh();
         });
@@ -208,11 +208,11 @@ class ManageFinancialOperation
             ->firstOrFail();
 
         if ($operation->type === FinancialOperationType::Income) {
-            $account->decrement('current_balance_grosze', $operation->amount_grosze);
-            $category->decrement('execution_grosze', $operation->amount_grosze);
+            $account->decrement('current_balance_minor_units', $operation->amount_minor_units);
+            $category->decrement('execution_minor_units', $operation->amount_minor_units);
         } else {
-            $account->increment('current_balance_grosze', $operation->amount_grosze);
-            $category->decrement('execution_grosze', $operation->amount_grosze);
+            $account->increment('current_balance_minor_units', $operation->amount_minor_units);
+            $category->decrement('execution_minor_units', $operation->amount_minor_units);
         }
     }
 
@@ -220,14 +220,14 @@ class ManageFinancialOperation
         FinancialOperationType $type,
         Account $account,
         Category $category,
-        int $amountGrosze,
+        int $amountMinorUnits,
     ): void {
         if ($type === FinancialOperationType::Income) {
-            $account->increment('current_balance_grosze', $amountGrosze);
-            $category->increment('execution_grosze', $amountGrosze);
+            $account->increment('current_balance_minor_units', $amountMinorUnits);
+            $category->increment('execution_minor_units', $amountMinorUnits);
         } else {
-            $account->increment('current_balance_grosze', -$amountGrosze);
-            $category->increment('execution_grosze', $amountGrosze);
+            $account->increment('current_balance_minor_units', -$amountMinorUnits);
+            $category->increment('execution_minor_units', $amountMinorUnits);
         }
     }
 }

@@ -32,7 +32,7 @@ class ImportFinancialOperations
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     type: 'own_transfer',
      *     other_account_id: int,
      *     pair_first_leg_kind?: 'financial_operation'|'own_transfer',
@@ -43,7 +43,7 @@ class ImportFinancialOperations
      *     description: string,
      *     counterparty?: string|null,
      *     raw_statement_description?: string|null,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      *     type: 'income'|'expense'|'refund',
      *     category_id: int,
      * }>  $rows
@@ -74,7 +74,7 @@ class ImportFinancialOperations
                                 'operation_date' => $row['operation_date'],
                                 'description' => $row['description'],
                                 'raw_statement_description' => $row['raw_statement_description'] ?? null,
-                                'amount_grosze' => $row['amount_grosze'],
+                                'amount_minor_units' => $row['amount_minor_units'],
                             ],
                             $row['other_account_id'],
                         );
@@ -92,7 +92,7 @@ class ImportFinancialOperations
                                 'operation_date' => $row['operation_date'],
                                 'description' => $row['description'],
                                 'raw_statement_description' => $row['raw_statement_description'] ?? null,
-                                'amount_grosze' => $row['amount_grosze'],
+                                'amount_minor_units' => $row['amount_minor_units'],
                             ],
                             $row['other_account_id'],
                         );
@@ -106,14 +106,14 @@ class ImportFinancialOperations
                         $row['other_account_id'],
                         $row['operation_date'],
                         $row['description'],
-                        $row['amount_grosze'],
+                        $row['amount_minor_units'],
                     );
                     $rawStatementDescription = $row['raw_statement_description'] ?? null;
                     $validated = [
                         ...$validated,
                         ...($rawStatementDescription !== null
                             ? $this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
-                                $row['amount_grosze'],
+                                $row['amount_minor_units'],
                                 $rawStatementDescription,
                             )
                             : []),
@@ -121,7 +121,7 @@ class ImportFinancialOperations
                             $user,
                             $accountId,
                             $row['operation_date'],
-                            $row['amount_grosze'],
+                            $row['amount_minor_units'],
                             $rawStatementDescription,
                         ),
                     ];
@@ -140,15 +140,15 @@ class ImportFinancialOperations
                     continue;
                 }
 
-                $amountGrosze = match ($row['type']) {
-                    'income' => abs($row['amount_grosze']),
-                    'expense' => abs($row['amount_grosze']),
-                    'refund' => -abs($row['amount_grosze']),
+                $amountMinorUnits = match ($row['type']) {
+                    'income' => abs($row['amount_minor_units']),
+                    'expense' => abs($row['amount_minor_units']),
+                    'refund' => -abs($row['amount_minor_units']),
                 };
 
                 $validated = [
                     'operation_date' => $row['operation_date'],
-                    'amount_grosze' => $amountGrosze,
+                    'amount_minor_units' => $amountMinorUnits,
                     'description' => $row['description'],
                     'counterparty' => $row['counterparty'] ?? null,
                     'raw_statement_description' => $row['raw_statement_description'] ?? null,
@@ -158,7 +158,7 @@ class ImportFinancialOperations
                         $user,
                         $accountId,
                         $row['operation_date'],
-                        $row['amount_grosze'],
+                        $row['amount_minor_units'],
                         $row['raw_statement_description'] ?? null,
                     ),
                 ];
