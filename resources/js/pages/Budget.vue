@@ -4,6 +4,7 @@ import { MoreHorizontal } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
+import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
@@ -34,8 +35,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/InputError.vue';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
@@ -78,6 +77,7 @@ const props = defineProps<{
 
 const t = useTranslations();
 
+const createBudgetDialogOpen = ref(false);
 const createIncomeDialogOpen = ref(false);
 const createExpenseDialogOpen = ref(false);
 const editDialogOpen = ref(false);
@@ -152,55 +152,16 @@ function openDeleteBudgetDialog(): void {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Dialog>
-                        <DialogTrigger as-child>
+                    <CreateBudgetDialog
+                        v-model:open="createBudgetDialogOpen"
+                        year-input-id="budget-page-create-budget-year"
+                    >
+                        <template #trigger>
                             <Button>
                                 {{ t.budget.create_budget }}
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <Form
-                                v-bind="BudgetController.store.form()"
-                                class="space-y-4"
-                                reset-on-success
-                                v-slot="{ errors, processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{ t.budget.create_budget_title }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{ t.budget.create_budget_description }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div class="grid gap-2">
-                                    <Label for="budget-page-year">
-                                        {{ t.budget.year }}
-                                    </Label>
-                                    <Input
-                                        id="budget-page-year"
-                                        name="year"
-                                        type="number"
-                                        :default-value="new Date().getFullYear()"
-                                        min="2000"
-                                        max="2100"
-                                        required
-                                    />
-                                    <InputError :message="errors.year" />
-                                </div>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button type="button" variant="secondary">
-                                            {{ t.budget.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button type="submit" :disabled="processing">
-                                        {{ t.budget.create_budget }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                        </template>
+                    </CreateBudgetDialog>
                 </CardContent>
             </Card>
         </div>
