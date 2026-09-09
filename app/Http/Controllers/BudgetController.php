@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateBudget;
 use App\Actions\StartBudgetExecution;
-use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Http\Requests\SelectBudgetYearRequest;
 use App\Http\Requests\StoreBudgetRequest;
@@ -89,14 +89,15 @@ class BudgetController extends Controller
         ]);
     }
 
-    public function store(StoreBudgetRequest $request): RedirectResponse
+    public function store(StoreBudgetRequest $request, CreateBudget $createBudget): RedirectResponse
     {
         $validated = $request->validated();
 
-        $budget = $request->user()->budgets()->create([
-            'year' => $validated['year'],
-            'phase' => BudgetPhase::Draft,
-        ]);
+        $budget = $createBudget->handle(
+            $request->user(),
+            $validated['year'],
+            $validated['source_budget_id'] ?? null,
+        );
 
         $request->session()->put('budget_year', $budget->year);
 
