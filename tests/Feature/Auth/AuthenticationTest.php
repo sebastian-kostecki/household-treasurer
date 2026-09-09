@@ -32,6 +32,26 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
+    public function test_login_redirect_uses_https_when_the_proxy_terminates_tls(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->withServerVariables([
+            'HTTPS' => '',
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+            'HTTP_X_FORWARDED_PORT' => '443',
+            'SERVER_PORT' => '80',
+            'HTTP_HOST' => 'treasurer.kostecki.dev',
+        ])->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirectContains('https://');
+        $response->assertRedirectContains('/dashboard');
+    }
+
     public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge()
     {
         $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
