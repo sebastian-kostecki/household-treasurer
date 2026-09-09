@@ -278,6 +278,8 @@ class CsvImportController extends Controller
                     'amount_minor_units' => (int) $parsedRow['amount_minor_units'],
                     'type' => 'capital_movement',
                     'term_deposit_id' => $selection['term_deposit_id'],
+                    'interest_amount_minor_units' => $selection['interest_amount_minor_units'],
+                    'interest_category_id' => $selection['interest_category_id'],
                 ];
 
                 continue;
