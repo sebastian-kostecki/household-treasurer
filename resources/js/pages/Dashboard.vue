@@ -5,7 +5,6 @@ import { Check, Circle } from '@lucide/vue';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -207,11 +206,7 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                 v-if="accounts.length > 0"
                 class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
             >
-                <Card
-                    v-for="account in accounts"
-                    :key="account.id"
-                    :class="account.is_archived ? 'opacity-70' : ''"
-                >
+                <Card v-for="account in accounts" :key="account.id">
                     <CardHeader class="space-y-3 pb-2">
                         <AccountIdentityBlock
                             :name="account.name"
@@ -219,17 +214,9 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                             :bank="account.bank"
                             :mark_url="account.mark_url"
                         >
-                            <div class="flex flex-wrap items-center gap-2">
-                                <p class="text-sm font-medium">
-                                    {{ account.name }}
-                                </p>
-                                <Badge
-                                    v-if="account.is_archived"
-                                    variant="secondary"
-                                >
-                                    {{ t.budget.archived_badge }}
-                                </Badge>
-                            </div>
+                            <p class="text-sm font-medium">
+                                {{ account.name }}
+                            </p>
                             <p class="text-muted-foreground text-xs">
                                 {{ accountTypeLabel(account.type) }}
                             </p>
@@ -266,20 +253,11 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                 <Card
                     v-for="termDeposit in termDeposits"
                     :key="termDeposit.id"
-                    :class="termDeposit.is_archived ? 'opacity-70' : ''"
                 >
                     <CardHeader class="space-y-3 pb-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <p class="text-sm font-medium">
-                                {{ termDeposit.name }}
-                            </p>
-                            <Badge
-                                v-if="termDeposit.is_archived"
-                                variant="secondary"
-                            >
-                                {{ t.budget.archived_badge }}
-                            </Badge>
-                        </div>
+                        <p class="text-sm font-medium">
+                            {{ termDeposit.name }}
+                        </p>
                         <CardTitle
                             class="text-lg"
                             :class="balanceClass(termDeposit)"

@@ -122,12 +122,16 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_includes_archived_accounts(): void
+    public function test_dashboard_excludes_archived_accounts_from_cards(): void
     {
         $user = User::factory()->create();
         Account::factory()->for($user)->archived()->create([
             'name' => 'Old account',
             'current_balance_minor_units' => 10000,
+        ]);
+        Account::factory()->for($user)->create([
+            'name' => 'Active account',
+            'current_balance_minor_units' => 25000,
         ]);
 
         $this->actingAs($user)
@@ -135,9 +139,34 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('accounts', 1)
-                ->where('accounts.0.is_archived', true)
-                ->where('spendable_liquidity_minor_units', 10000)
-                ->where('total_funds_minor_units', 10000),
+                ->where('accounts.0.name', 'Active account')
+                ->where('accounts.0.is_archived', false)
+                ->where('spendable_liquidity_minor_units', 35000)
+                ->where('total_funds_minor_units', 35000),
+            );
+    }
+
+    public function test_dashboard_excludes_archived_term_deposits_from_cards(): void
+    {
+        $user = User::factory()->create();
+        TermDeposit::factory()->for($user)->archived()->create([
+            'name' => 'Old lokata',
+            'current_balance_minor_units' => 40000,
+        ]);
+        TermDeposit::factory()->for($user)->create([
+            'name' => 'Active lokata',
+            'current_balance_minor_units' => 60000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('termDeposits', 1)
+                ->where('termDeposits.0.name', 'Active lokata')
+                ->where('termDeposits.0.is_archived', false)
+                ->where('spendable_liquidity_minor_units', 0)
+                ->where('total_funds_minor_units', 100000),
             );
     }
 
@@ -181,25 +210,6 @@ class DashboardTest extends TestCase
                 ->where('accounts.3.name', 'mBank konto')
                 ->where('accounts.3.bank', Bank::Mbank->value)
                 ->where('accounts.3.mark_url', url('/marks/mbank.jpg')),
-            );
-    }
-
-    public function test_archived_account_keeps_bank_identity_on_dashboard(): void
-    {
-        $user = User::factory()->create();
-        Account::factory()->for($user)->archived()->create([
-            'name' => 'Archived mBank',
-            'type' => AccountType::Bank,
-            'bank' => Bank::Mbank,
-        ]);
-
-        $this->actingAs($user)
-            ->get(route('dashboard'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('accounts.0.bank', Bank::Mbank->value)
-                ->where('accounts.0.mark_url', url('/marks/mbank.jpg'))
-                ->where('accounts.0.is_archived', true),
             );
     }
 

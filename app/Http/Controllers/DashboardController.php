@@ -27,18 +27,24 @@ class DashboardController extends Controller
         $selectedYear = SelectedBudgetYear::resolve($request);
         $budget = $this->findBudgetForYear($user, $selectedYear);
 
-        $accounts = $user->accounts()
+        $allAccounts = $user->accounts()
             ->orderBy('name')
-            ->get()
-            ->map(fn (Account $account): array => $this->accountPayload($account))
+            ->get();
+
+        $accounts = $allAccounts
+            ->filter(fn (Account $account): bool => ! $account->isArchived())
             ->values()
+            ->map(fn (Account $account): array => $this->accountPayload($account))
             ->all();
 
-        $termDeposits = $user->termDeposits()
+        $allTermDeposits = $user->termDeposits()
             ->orderBy('name')
-            ->get()
-            ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit))
+            ->get();
+
+        $termDeposits = $allTermDeposits
+            ->filter(fn (TermDeposit $termDeposit): bool => ! $termDeposit->isArchived())
             ->values()
+            ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit))
             ->all();
 
         $spendableLiquidityMinorUnits = (int) $user->accounts()->sum('current_balance_minor_units');
