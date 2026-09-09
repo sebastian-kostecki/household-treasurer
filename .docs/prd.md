@@ -175,6 +175,10 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-TRX-10**: Użytkownik może edytować i usuwać operacje w budżecie znajdującym się w fazie wykonania, w tym opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-11**: Zmiana daty na inny rok wymaga wskazania kategorii z docelowego budżetu będącego w fazie wykonania.
 - **FR-TRX-12**: Edycja i usunięcie operacji przelicza saldo konta oraz wykonanie kategorii.
+- **FR-TRX-13**: Przy edycji użytkownik może zmienić dochód w zwrot wydatku: wskazuje kategorię wydatkową, system odwraca wpływ dochodu i księguje zwrot. Przy tym samym koncie i tej samej kwocie bezwzględnej saldo konta nie zmienia się.
+- **FR-TRX-14**: Przy edycji użytkownik może zmienić zwrot wydatku w dochód: wskazuje kategorię dochodową, system odwraca wpływ zwrotu i księguje dochód.
+- **FR-TRX-15**: Edycja nie zamienia zwykłego (dodatniego) wydatku w dochód ani dochodu w zwykły wydatek.
+- **FR-TRX-16**: Import nie zgaduje zwrotu. Użytkownik może zapisać wpływ jako dochód i poprawić klasyfikację później przez edycję. Podgląd Importu nie podpowiada pary z konkretnym wydatkiem.
 
 ### 7.6. Transfery własne
 
@@ -257,6 +261,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **BR-14**: Przyszłe płatności i zobowiązania nie są operacjami finansowymi MVP.
 - **BR-15**: Historia elementu użytego w operacjach jest zachowywana przez archiwizację zamiast usunięcia.
 - **BR-16**: Skopiowany plan aktualny pochodzi z planu aktualnego źródła, nie z planu początkowego ani wykonania źródła. Plan początkowy docelowego budżetu powstaje dopiero przy rozpoczęciu wykonania.
+- **BR-17**: Edycja może zmienić dochód w zwrot wydatku i zwrot wydatku w dochód. Nie wiąże zwrotu z konkretnym wcześniejszym wydatkiem. Nie zamienia zwykłego wydatku w dochód.
 
 ## 9. Przypadki brzegowe i obsługa błędów
 
@@ -265,6 +270,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Próba zapisania operacji wcześniejszej niż data otwarcia konta albo późniejszej niż bieżący dzień jest blokowana.
 - Przekroczenie limitu i zejście salda poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
 - Zmiana daty operacji na inny rok nie zachowuje kategorii ze starego budżetu; użytkownik wybiera kategorię docelową.
+- Próba zmiany zwykłego wydatku w dochód albo dochodu w zwykły wydatek jest odrzucana; dochód może stać się zwrotem i odwrotnie.
 - Błąd dowolnej strony transferu wycofuje całą zmianę.
 - Błąd zapisu dowolnej wybranej pozycji importu wycofuje cały zatwierdzany zestaw.
 - Niepoprawny wiersz Importu pozostaje w podglądzie z opisem błędu i nie blokuje wyboru pozostałych poprawnych wierszy.
@@ -328,6 +334,9 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 4. Przed zapisaniem wydatku użytkownik widzi limit przed operacją i po niej.
 5. Operację finansową przekraczającą limit lub powodującą ujemne saldo można zapisać po wyświetleniu ostrzeżenia.
 6. Edycja albo usunięcie operacji odwraca jej poprzedni wpływ przed zastosowaniem nowego.
+7. Edycja dochodu w zwrot na kategorii wydatkowej zmniejsza wykonanie dochodu i wykonanie tej kategorii o wartość zwrotu; przy tym samym koncie i kwocie bezwzględnej saldo konta zostaje.
+8. Edycja zwrotu w dochód odwrotnie przenosi kwotę z kategorii wydatkowej na dochodową.
+9. Edycja nie zamienia zwykłego wydatku w dochód ani dochodu w zwykły wydatek.
 
 ### 11.5. Transfery
 
@@ -387,6 +396,10 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 - kolejne Import format poza mBank CSV, BNP Paribas XLSX i Inny CSV,
 - generyczny Import XLSX z ręcznym mapowaniem kolumn,
 - automatyczne mapowanie kategorii banku na Category,
+- podpowiedź zwrotu w podglądzie Importu oraz dopasowanie wpływu do konkretnego wydatku,
+- powiązanie zwrotu wydatku z konkretną operacją wydatku,
+- zmiana zwykłego wydatku w dochód (albo dochodu w zwykły wydatek) przy edycji,
+- oznaczanie nowo tworzonego dochodu jako zwrotu w dialogu dochodu,
 - cicha autodetekcja formatu bez potwierdzenia użytkownika,
 - budżety współdzielone przez wielu domowników,
 - waluty inne niż PLN i przeliczanie walut,
