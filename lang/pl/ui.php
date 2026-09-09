@@ -242,6 +242,7 @@ return [
         'bank' => 'Bank',
         'bank_mbank' => 'mBank',
         'bank_bnp_paribas' => 'BNP Paribas',
+        'bank_lokaty_facto' => 'Lokaty Facto',
         'bank_other' => 'Inny',
         'edit' => 'Edytuj',
         'delete' => 'Usuń',

@@ -1,4 +1,4 @@
-export type AccountBank = 'mbank' | 'bnp_paribas' | 'other';
+export type AccountBank = 'mbank' | 'bnp_paribas' | 'lokaty_facto' | 'other';
 
 export type AccountTypeValue = 'bank' | 'cash';
 
@@ -19,7 +19,12 @@ export type AccountPickerOption = AccountIdentityFields & {
     id: number;
 };
 
-export const bankOptions: AccountBank[] = ['mbank', 'bnp_paribas', 'other'];
+export const bankOptions: AccountBank[] = [
+    'mbank',
+    'bnp_paribas',
+    'lokaty_facto',
+    'other',
+];
 
 export function bankMarkPath(bank: AccountBank): string | null {
     if (bank === 'mbank') {
@@ -28,6 +33,10 @@ export function bankMarkPath(bank: AccountBank): string | null {
 
     if (bank === 'bnp_paribas') {
         return '/marks/bnp-paribas.jpg';
+    }
+
+    if (bank === 'lokaty_facto') {
+        return '/marks/lokaty-facto.svg';
     }
 
     return null;

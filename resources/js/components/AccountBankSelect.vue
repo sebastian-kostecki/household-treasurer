@@ -38,6 +38,10 @@ function bankLabel(bank: AccountBank): string {
         return t.accounts.bank_bnp_paribas;
     }
 
+    if (bank === 'lokaty_facto') {
+        return t.accounts.bank_lokaty_facto;
+    }
+
     return t.accounts.bank_other;
 }
 </script>
