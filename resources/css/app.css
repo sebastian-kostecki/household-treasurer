@@ -180,7 +180,7 @@
 
 @layer components {
     .native-select {
-        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
+        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
     }
 
     .list-surface-table {
@@ -188,15 +188,15 @@
     }
 
     .list-surface-table thead tr {
-        @apply border-b border-border/60;
+        @apply border-border/60 border-b;
     }
 
     .list-surface-table thead th {
-        @apply pb-2.5 text-left text-[11px] font-medium tracking-wider text-muted-foreground uppercase;
+        @apply text-muted-foreground pb-2.5 text-left text-[11px] font-medium tracking-wider uppercase;
     }
 
     .list-surface-table tbody tr {
-        @apply border-b border-border/60 transition-colors last:border-b-0 hover:bg-foreground/[0.03];
+        @apply border-border/60 hover:bg-foreground/[0.03] border-b transition-colors last:border-b-0;
     }
 
     .list-surface-table tbody td {
@@ -212,11 +212,11 @@
     }
 
     .list-surface-table-scroll .list-surface-table thead th {
-        @apply sticky top-0 z-10 bg-card;
+        @apply bg-card sticky top-0 z-10;
     }
 
     .list-surface-table tfoot tr {
-        @apply border-t border-border/60 bg-foreground/[0.02];
+        @apply border-border/60 bg-foreground/[0.02] border-t;
     }
 
     .list-surface-table tfoot td {
@@ -244,8 +244,10 @@
     @variant md {
         .operations-grid {
             align-items: center;
-            grid-template-columns:
-                6.5rem minmax(0, 1fr) 13rem 9.5rem 7rem 4.5rem;
+            grid-template-columns: 6.5rem minmax(
+                    0,
+                    1fr
+                ) 13rem 9.5rem 7rem 4.5rem;
             grid-template-areas: 'date description category account amount actions';
         }
 
@@ -281,6 +283,72 @@
 
     .operations-cell-actions {
         grid-area: actions;
+    }
+
+    .import-preview-grid {
+        @apply grid w-full gap-x-3 gap-y-2;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            'select status'
+            'date amount'
+            'description description'
+            'type type'
+            'classification classification';
+    }
+
+    @variant md {
+        .import-preview-grid {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-areas:
+                'select status'
+                'date amount'
+                'description description'
+                'type classification';
+        }
+    }
+
+    @variant xl {
+        .import-preview-grid {
+            align-items: start;
+            grid-template-columns: 2rem 6rem minmax(
+                    9rem,
+                    1fr
+                ) 6.5rem 9rem 13.5rem 8.5rem;
+            grid-template-areas: 'select date description amount type classification status';
+        }
+    }
+
+    .import-preview-cell-select {
+        grid-area: select;
+    }
+
+    .import-preview-cell-date {
+        grid-area: date;
+    }
+
+    .import-preview-cell-description {
+        grid-area: description;
+        @apply min-w-0;
+    }
+
+    .import-preview-cell-amount {
+        grid-area: amount;
+        @apply text-right font-medium tabular-nums;
+    }
+
+    .import-preview-cell-type {
+        grid-area: type;
+        @apply min-w-0;
+    }
+
+    .import-preview-cell-classification {
+        grid-area: classification;
+        @apply min-w-0;
+    }
+
+    .import-preview-cell-status {
+        grid-area: status;
+        @apply min-w-0;
     }
 
     .category-meter-row {

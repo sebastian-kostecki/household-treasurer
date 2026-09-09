@@ -3,13 +3,12 @@ import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
-import AccountSelect from '@/components/AccountSelect.vue';
-import CategorySelect from '@/components/CategorySelect.vue';
+import ImportPreviewRow from '@/components/ImportPreviewRow.vue';
 import InputError from '@/components/InputError.vue';
+import ListSurface from '@/components/ListSurface.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import ListSurface from '@/components/ListSurface.vue';
 import {
     Card,
     CardContent,
@@ -20,66 +19,25 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    formatDate,
-    formatMoney,
-    parseMoneyInputToMinorUnits,
-} from '@/lib/format';
 import type { AccountPickerOption } from '@/lib/account-identity';
 import {
-    applyPairCandidateSelection,
-    availablePairCandidates,
     consumedFirstLegKeys,
-    locksTypeToOwnTransfer,
-    matchingPairCandidate,
-    pairCandidateKey,
-    pairRecordPickerCandidates,
-    selectedPairCandidateKey,
     showsPairCandidateBadge,
     syncPairSelection,
-    uniquePairCandidate,
-    type PairCandidate,
-    type PairRowSelection,
 } from '@/lib/import-pair-selection';
+import {
+    emptySelection,
+    initialSelection,
+    rowSelectionValid,
+    type CategoryRow,
+    type ImportRow,
+    type RowSelection,
+    type TermDepositRow,
+} from '@/lib/import-preview-rows';
 import { operations as operationsRoute } from '@/routes';
-
-type ImportRow = {
-    index: number;
-    operation_date: string | null;
-    description: string | null;
-    counterparty: string | null;
-    raw_statement_description: string | null;
-    amount_minor_units: number | null;
-    valid: boolean;
-    invalid_reason: string | null;
-    import_duplicate: boolean;
-    import_pair_candidate: boolean;
-    pair_candidates: PairCandidate[];
-};
-
-type CategoryRow = {
-    id: number;
-    name: string;
-    icon: string;
-    color: string;
-    budget_year: number;
-};
 
 type OtherAccountRow = AccountPickerOption & {
     current_balance_minor_units: number;
-};
-
-type TermDepositRow = {
-    id: number;
-    name: string;
-    opening_date: string;
-};
-
-type RowSelection = PairRowSelection & {
-    category_id: number | '';
-    term_deposit_id: number | '';
-    interest_amount_input: string;
-    interest_category_id: number | '';
 };
 
 const {
@@ -101,20 +59,11 @@ const {
 const t = useTranslations();
 const duplicateWarningAcknowledged = ref(false);
 const selections = ref<Record<number, RowSelection>>(
-    Object.fromEntries(
-        rows.map((row) => [
-            row.index,
-            initialSelection(row),
-        ]),
-    ),
+    Object.fromEntries(rows.map((row) => [row.index, initialSelection(row)])),
 );
 
-const validRowCount = computed(
-    () => rows.filter((row) => row.valid).length,
-);
-const invalidRowCount = computed(
-    () => rows.filter((row) => !row.valid).length,
-);
+const validRowCount = computed(() => rows.filter((row) => row.valid).length);
+const invalidRowCount = computed(() => rows.filter((row) => !row.valid).length);
 const duplicateRowCount = computed(
     () => rows.filter((row) => row.valid && row.import_duplicate).length,
 );
@@ -165,15 +114,11 @@ const canSubmit = computed(
                 (candidate) => candidate.index === Number(index),
             );
 
-            return (
-                row?.valid === true &&
-                selection.type !== undefined &&
-                (selection.type === 'own_transfer'
-                    ? selection.other_account_id !== ''
-                    : selection.type === 'capital_movement'
-                      ? capitalMovementSelectionValid(row, selection)
-                      : selection.category_id !== '')
-            );
+            if (row === undefined) {
+                return false;
+            }
+
+            return rowSelectionValid(row, selection, termDeposits);
         }),
 );
 
@@ -194,81 +139,6 @@ setLayoutProps({
     ],
 });
 
-function defaultType(row: ImportRow): 'income' | 'expense' | 'refund' {
-    if ((row.amount_minor_units ?? 0) < 0) {
-        return 'expense';
-    }
-
-    return 'income';
-}
-
-function emptySelection(row: ImportRow): RowSelection {
-    return {
-        selected: false,
-        type: defaultType(row),
-        category_id: '',
-        other_account_id: '',
-        term_deposit_id: '',
-        interest_amount_input: '',
-        interest_category_id: '',
-        pair_first_leg_kind: '',
-        pair_first_leg_id: '',
-    };
-}
-
-function rowSelection(row: ImportRow): RowSelection {
-    return selections.value[row.index] ?? emptySelection(row);
-}
-
-function rowAvailablePairCandidates(row: ImportRow): PairCandidate[] {
-    return availablePairCandidates(
-        row.pair_candidates,
-        consumedFirstLegKeysSet.value,
-        rowSelection(row),
-    );
-}
-
-function rowLocksTypeToOwnTransfer(row: ImportRow): boolean {
-    return locksTypeToOwnTransfer(rowAvailablePairCandidates(row));
-}
-
-function rowUniquePairCandidate(row: ImportRow): PairCandidate | null {
-    return uniquePairCandidate(rowAvailablePairCandidates(row));
-}
-
-function rowMatchingPairCandidate(row: ImportRow): PairCandidate | null {
-    return matchingPairCandidate(
-        row.pair_candidates,
-        rowSelection(row),
-    );
-}
-
-function rowPairRecordPickerCandidates(row: ImportRow): PairCandidate[] {
-    return pairRecordPickerCandidates(
-        row.pair_candidates,
-        rowSelection(row),
-        consumedFirstLegKeysSet.value,
-    );
-}
-
-function rowShowsPairCandidateBadge(row: ImportRow): boolean {
-    return showsPairCandidateBadge(
-        row.import_pair_candidate,
-        row.pair_candidates,
-        consumedFirstLegKeysSet.value,
-        rowSelection(row),
-    );
-}
-
-function pairCandidateOptionLabel(candidate: PairCandidate): string {
-    const kindLabel =
-        candidate.kind === 'financial_operation'
-            ? t.operations.import_pair_kind_financial_operation
-            : t.operations.import_pair_kind_own_transfer;
-
-    return `${candidate.account_name} · ${formatDate(candidate.date)} · ${kindLabel} · ${candidate.description}`;
-}
-
 function refreshPairSelections(): void {
     for (const row of rows) {
         const selection = selections.value[row.index];
@@ -288,241 +158,6 @@ function refreshPairSelections(): void {
 watch(consumedFirstLegKeysSet, () => {
     refreshPairSelections();
 });
-
-function initialSelection(row: ImportRow): RowSelection {
-    const uniqueCandidate = uniquePairCandidate(row.pair_candidates);
-
-    if (uniqueCandidate !== null) {
-        return {
-            selected: false,
-            type: 'own_transfer',
-            category_id: '',
-            other_account_id: uniqueCandidate.account_id,
-            term_deposit_id: '',
-            interest_amount_input: '',
-            interest_category_id: '',
-            pair_first_leg_kind: uniqueCandidate.kind,
-            pair_first_leg_id: uniqueCandidate.id,
-        };
-    }
-
-    return {
-        ...emptySelection(row),
-        type: locksTypeToOwnTransfer(row.pair_candidates)
-            ? 'own_transfer'
-            : defaultType(row),
-    };
-}
-
-function wouldMakeImportAccountNegative(
-    row: ImportRow,
-    selection: RowSelection,
-): boolean {
-    if (!selection.selected || selection.type !== 'own_transfer') {
-        return false;
-    }
-
-    const signedAmount = row.amount_minor_units ?? 0;
-
-    if (signedAmount >= 0) {
-        return false;
-    }
-
-    return account.current_balance_minor_units + signedAmount < 0;
-}
-
-function categoriesForRow(row: ImportRow, type: RowSelection['type']): CategoryRow[] {
-    if (!row.operation_date) {
-        return [];
-    }
-
-    const year = Number(row.operation_date.slice(0, 4));
-    const source =
-        type === 'income' ? incomeCategories : expenseCategories;
-
-    return source.filter((category) => category.budget_year === year);
-}
-
-function rowAmountClass(row: ImportRow): string {
-    if ((row.amount_minor_units ?? 0) < 0) {
-        return 'text-destructive';
-    }
-
-    return 'text-success';
-}
-
-function rowCategoriesEmpty(row: ImportRow, type: RowSelection['type']): boolean {
-    return categoriesForRow(row, type).length === 0;
-}
-
-function emptyCategoryLabel(type: RowSelection['type']): string {
-    return type === 'income'
-        ? t.operations.no_income_category_for_year
-        : t.operations.no_expense_category_for_year;
-}
-
-function eligibleTermDeposits(row: ImportRow): TermDepositRow[] {
-    if (!row.operation_date) {
-        return [];
-    }
-
-    return termDeposits.filter(
-        (termDeposit) => termDeposit.opening_date <= row.operation_date!,
-    );
-}
-
-function capitalMovementDirectionLabel(row: ImportRow): string {
-    if ((row.amount_minor_units ?? 0) < 0) {
-        return t.operations.capital_movement_to_term_deposit;
-    }
-
-    return t.operations.capital_movement_from_term_deposit;
-}
-
-function emptyTermDepositLabel(row: ImportRow): string {
-    return eligibleTermDeposits(row).length === 0
-        ? t.operations.import_no_term_deposit_for_row
-        : t.operations.import_term_deposit;
-}
-
-function isCreditRow(row: ImportRow): boolean {
-    return (row.amount_minor_units ?? 0) > 0;
-}
-
-function parsedInterestAmountMinorUnits(selection: RowSelection): number | null {
-    if (selection.interest_amount_input.trim() === '') {
-        return null;
-    }
-
-    return parseMoneyInputToMinorUnits(selection.interest_amount_input);
-}
-
-function interestSplitValid(row: ImportRow, selection: RowSelection): boolean {
-    const interestAmount = parsedInterestAmountMinorUnits(selection);
-
-    if (interestAmount === null) {
-        return selection.interest_category_id === '';
-    }
-
-    const fileAmount = row.amount_minor_units ?? 0;
-
-    if (fileAmount <= 0 || interestAmount <= 0 || interestAmount >= fileAmount) {
-        return false;
-    }
-
-    return selection.interest_category_id !== '';
-}
-
-function capitalMovementSelectionValid(
-    row: ImportRow,
-    selection: RowSelection,
-): boolean {
-    if (
-        selection.term_deposit_id === '' ||
-        eligibleTermDeposits(row).length === 0
-    ) {
-        return false;
-    }
-
-    if (!isCreditRow(row)) {
-        return (
-            selection.interest_amount_input.trim() === '' &&
-            selection.interest_category_id === ''
-        );
-    }
-
-    return interestSplitValid(row, selection);
-}
-
-function showInterestOverlay(row: ImportRow, selection: RowSelection): boolean {
-    return selection.type === 'capital_movement' && isCreditRow(row);
-}
-
-function incomeCategoriesForRow(row: ImportRow): CategoryRow[] {
-    return categoriesForRow(row, 'income');
-}
-
-function onTypeChange(row: ImportRow): void {
-    const selection = selections.value[row.index];
-
-    if (selection === undefined) {
-        return;
-    }
-
-    selection.category_id = '';
-    selection.term_deposit_id = '';
-    selection.interest_amount_input = '';
-    selection.interest_category_id = '';
-
-    if (rowLocksTypeToOwnTransfer(row)) {
-        selection.type = 'own_transfer';
-    }
-
-    if (selection.type === 'capital_movement') {
-        selection.other_account_id = '';
-        selection.pair_first_leg_kind = '';
-        selection.pair_first_leg_id = '';
-
-        return;
-    }
-
-    if (selection.type !== 'own_transfer') {
-        selection.other_account_id = '';
-        selection.pair_first_leg_kind = '';
-        selection.pair_first_leg_id = '';
-
-        return;
-    }
-
-    const uniqueCandidate = rowUniquePairCandidate(row);
-
-    if (uniqueCandidate !== null) {
-        selection.other_account_id = uniqueCandidate.account_id;
-        selection.pair_first_leg_kind = uniqueCandidate.kind;
-        selection.pair_first_leg_id = uniqueCandidate.id;
-
-        return;
-    }
-
-    selection.other_account_id = '';
-    selection.pair_first_leg_kind = '';
-    selection.pair_first_leg_id = '';
-}
-
-function onOtherAccountChange(row: ImportRow): void {
-    const selection = selections.value[row.index];
-
-    if (selection === undefined) {
-        return;
-    }
-
-    syncPairSelection(
-        row.pair_candidates,
-        selection,
-        consumedFirstLegKeysSet.value,
-    );
-}
-
-function onPairCandidateChange(row: ImportRow, value: string): void {
-    const selection = selections.value[row.index];
-
-    if (selection === undefined || value === '') {
-        return;
-    }
-
-    const candidate = rowAvailablePairCandidates(row).find(
-        (option) => pairCandidateKey(option) === value,
-    );
-
-    if (candidate === undefined) {
-        selection.pair_first_leg_kind = '';
-        selection.pair_first_leg_id = '';
-
-        return;
-    }
-
-    applyPairCandidateSelection(selection, candidate);
-}
 </script>
 
 <template>
@@ -597,7 +232,9 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
 
         <Alert>
             <AlertTriangle class="size-4" />
-            <AlertTitle>{{ t.operations.import_duplicate_warning_title }}</AlertTitle>
+            <AlertTitle>{{
+                t.operations.import_duplicate_warning_title
+            }}</AlertTitle>
             <AlertDescription>
                 {{ t.operations.import_duplicate_warning_body }}
             </AlertDescription>
@@ -605,7 +242,9 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
 
         <Alert v-if="pairRowCount > 0">
             <AlertTriangle class="size-4" />
-            <AlertTitle>{{ t.operations.import_pair_warning_title }}</AlertTitle>
+            <AlertTitle>{{
+                t.operations.import_pair_warning_title
+            }}</AlertTitle>
             <AlertDescription>
                 {{ t.operations.import_pair_warning_body }}
             </AlertDescription>
@@ -618,447 +257,53 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
         >
             <ListSurface>
                 <div class="overflow-x-auto">
-                    <table class="list-surface-table">
-                        <thead>
-                            <tr>
-                                <th class="pr-3">
-                                    {{ t.operations.import_select }}
-                                </th>
-                                <th>{{ t.operations.date }}</th>
-                                <th>{{ t.operations.description }}</th>
-                                <th>{{ t.operations.counterparty }}</th>
-                                <th>{{ t.operations.raw_statement_description }}</th>
-                                <th class="text-right">
-                                    {{ t.operations.amount }}
-                                </th>
-                                <th>{{ t.operations.type }}</th>
-                                <th>{{ t.operations.import_classification }}</th>
-                                <th>{{ t.operations.import_status }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-if="rows.length === 0">
-                                <td
-                                    colspan="9"
-                                    class="text-muted-foreground py-6 text-center"
-                                >
-                                    {{ t.operations.import_preview_empty }}
-                                </td>
-                            </tr>
-                            <tr
-                                v-for="row in rows"
-                                :key="row.index"
-                                class="align-top"
-                                :class="{
-                                    'bg-amber-500/10':
-                                        row.valid && row.import_duplicate,
-                                    'bg-sky-500/10':
-                                        row.valid &&
-                                        rowShowsPairCandidateBadge(row) &&
-                                        !row.import_duplicate,
-                                }"
-                            >
-                                <td class="pr-3">
-                                    <Checkbox
-                                        :id="`row-selected-${row.index}`"
-                                        v-model="selections[row.index].selected"
-                                        :disabled="!row.valid"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        :name="`rows[${row.index}][index]`"
-                                        :value="row.index"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        :name="`rows[${row.index}][selected]`"
-                                        :value="
-                                            selections[row.index]?.selected
-                                                ? '1'
-                                                : '0'
-                                        "
-                                    />
-                                </td>
-                                <td>
-                                    {{
-                                        row.operation_date
-                                            ? formatDate(row.operation_date)
-                                            : '—'
-                                    }}
-                                </td>
-                                <td>{{ row.description ?? '—' }}</td>
-                                <td>{{ row.counterparty ?? '—' }}</td>
-                                <td class="max-w-xs whitespace-pre-wrap">
-                                    {{ row.raw_statement_description ?? '—' }}
-                                </td>
-                                <td
-                                    class="tabular-amount"
-                                    :class="rowAmountClass(row)"
-                                >
-                                    {{
-                                        row.amount_minor_units !== null
-                                            ? formatMoney(row.amount_minor_units)
-                                            : '—'
-                                    }}
-                                </td>
-                                <td>
-                                    <select
-                                        v-if="row.valid"
-                                        :id="`row-type-${row.index}`"
-                                        v-model="selections[row.index].type"
-                                        :name="`rows[${row.index}][type]`"
-                                        class="native-select min-w-36"
-                                        @change="onTypeChange(row)"
-                                    >
-                                        <option
-                                            value="income"
-                                            :disabled="rowLocksTypeToOwnTransfer(row)"
-                                        >
-                                            {{ t.operations.type_income }}
-                                        </option>
-                                        <option
-                                            value="expense"
-                                            :disabled="rowLocksTypeToOwnTransfer(row)"
-                                        >
-                                            {{ t.operations.type_expense }}
-                                        </option>
-                                        <option
-                                            value="refund"
-                                            :disabled="rowLocksTypeToOwnTransfer(row)"
-                                        >
-                                            {{ t.operations.type_refund }}
-                                        </option>
-                                        <option
-                                            value="capital_movement"
-                                            :disabled="rowLocksTypeToOwnTransfer(row)"
-                                        >
-                                            {{ t.operations.type_capital_movement }}
-                                        </option>
-                                        <option value="own_transfer">
-                                            {{ t.operations.type_own_transfer }}
-                                        </option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <div
-                                        v-if="
-                                            row.valid &&
-                                            selections[row.index].type ===
-                                                'own_transfer'
-                                        "
-                                        class="space-y-2"
-                                    >
-                                        <AccountSelect
-                                            :id="`row-other-account-${row.index}`"
-                                            :name="`rows[${row.index}][other_account_id]`"
-                                            v-model="
-                                                selections[row.index]
-                                                    .other_account_id
-                                            "
-                                            :accounts="otherAccounts"
-                                            :placeholder="
-                                                t.operations.import_other_account
-                                            "
-                                            class="min-w-44"
-                                            @update:model-value="
-                                                onOtherAccountChange(row)
-                                            "
-                                        />
-                                        <select
-                                            v-if="
-                                                rowPairRecordPickerCandidates(row)
-                                                    .length > 0
-                                            "
-                                            :id="`row-pair-candidate-${row.index}`"
-                                            class="native-select min-w-44"
-                                            :value="
-                                                selectedPairCandidateKey(
-                                                    selections[row.index],
-                                                )
-                                            "
-                                            @change="
-                                                onPairCandidateChange(
-                                                    row,
-                                                    (
-                                                        $event.target as HTMLSelectElement
-                                                    ).value,
-                                                )
-                                            "
-                                        >
-                                            <option value="">
-                                                {{
-                                                    t.operations
-                                                        .import_pair_select_first_leg
-                                                }}
-                                            </option>
-                                            <option
-                                                v-for="candidate in rowPairRecordPickerCandidates(
-                                                    row,
-                                                )"
-                                                :key="pairCandidateKey(candidate)"
-                                                :value="
-                                                    pairCandidateKey(candidate)
-                                                "
-                                            >
-                                                {{
-                                                    pairCandidateOptionLabel(
-                                                        candidate,
-                                                    )
-                                                }}
-                                            </option>
-                                        </select>
-                                        <input
-                                            v-if="
-                                                selections[row.index]
-                                                    .pair_first_leg_kind !== ''
-                                            "
-                                            type="hidden"
-                                            :name="`rows[${row.index}][pair_first_leg_kind]`"
-                                            :value="
-                                                selections[row.index]
-                                                    .pair_first_leg_kind
-                                            "
-                                        />
-                                        <input
-                                            v-if="
-                                                selections[row.index]
-                                                    .pair_first_leg_id !== ''
-                                            "
-                                            type="hidden"
-                                            :name="`rows[${row.index}][pair_first_leg_id]`"
-                                            :value="
-                                                selections[row.index]
-                                                    .pair_first_leg_id
-                                            "
-                                        />
-                                    </div>
-                                    <div
-                                        v-else-if="
-                                            row.valid &&
-                                            selections[row.index].type ===
-                                                'capital_movement'
-                                        "
-                                        class="space-y-2"
-                                    >
-                                        <select
-                                            :id="`row-term-deposit-${row.index}`"
-                                            v-model="
-                                                selections[row.index]
-                                                    .term_deposit_id
-                                            "
-                                            :name="`rows[${row.index}][term_deposit_id]`"
-                                            class="native-select min-w-44"
-                                            :disabled="
-                                                eligibleTermDeposits(row)
-                                                    .length === 0
-                                            "
-                                            required
-                                        >
-                                            <option value="">
-                                                {{ emptyTermDepositLabel(row) }}
-                                            </option>
-                                            <option
-                                                v-for="termDeposit in eligibleTermDeposits(
-                                                    row,
-                                                )"
-                                                :key="termDeposit.id"
-                                                :value="termDeposit.id"
-                                            >
-                                                {{ termDeposit.name }}
-                                            </option>
-                                        </select>
-                                        <p class="text-muted-foreground text-xs">
-                                            {{ capitalMovementDirectionLabel(row) }}
-                                        </p>
-                                        <template
-                                            v-if="
-                                                showInterestOverlay(
-                                                    row,
-                                                    selections[row.index],
-                                                )
-                                            "
-                                        >
-                                            <Label
-                                                :for="`row-interest-amount-${row.index}`"
-                                                class="text-xs"
-                                            >
-                                                {{
-                                                    t.operations
-                                                        .import_interest_amount
-                                                }}
-                                            </Label>
-                                            <input
-                                                :id="`row-interest-amount-${row.index}`"
-                                                v-model="
-                                                    selections[row.index]
-                                                        .interest_amount_input
-                                                "
-                                                type="text"
-                                                inputmode="decimal"
-                                                class="native-input min-w-44"
-                                                :placeholder="
-                                                    t.operations
-                                                        .import_interest_amount
-                                                "
-                                            />
-                                            <input
-                                                v-if="
-                                                    parsedInterestAmountMinorUnits(
-                                                        selections[row.index],
-                                                    ) !== null &&
-                                                    parsedInterestAmountMinorUnits(
-                                                        selections[row.index],
-                                                    )! > 0
-                                                "
-                                                type="hidden"
-                                                :name="`rows[${row.index}][interest_amount_minor_units]`"
-                                                :value="
-                                                    parsedInterestAmountMinorUnits(
-                                                        selections[row.index],
-                                                    )
-                                                "
-                                            />
-                                            <CategorySelect
-                                                v-if="
-                                                    selections[row.index]
-                                                        .interest_amount_input
-                                                        .trim() !== ''
-                                                "
-                                                :id="`row-interest-category-${row.index}`"
-                                                :name="`rows[${row.index}][interest_category_id]`"
-                                                v-model="
-                                                    selections[row.index]
-                                                        .interest_category_id
-                                                "
-                                                :categories="
-                                                    incomeCategoriesForRow(row)
-                                                "
-                                                :placeholder="
-                                                    rowCategoriesEmpty(
-                                                        row,
-                                                        'income',
-                                                    )
-                                                        ? t.operations
-                                                              .no_income_category_for_year
-                                                        : t.operations
-                                                              .import_interest_category
-                                                "
-                                                class="min-w-44"
-                                                :disabled="
-                                                    rowCategoriesEmpty(
-                                                        row,
-                                                        'income',
-                                                    )
-                                                "
-                                            />
-                                        </template>
-                                    </div>
-                                    <CategorySelect
-                                        v-else-if="row.valid"
-                                        :id="`row-category-${row.index}`"
-                                        :name="`rows[${row.index}][category_id]`"
-                                        v-model="selections[row.index].category_id"
-                                        :categories="
-                                            categoriesForRow(
-                                                row,
-                                                selections[row.index].type,
-                                            )
-                                        "
-                                        :placeholder="
-                                            rowCategoriesEmpty(
-                                                row,
-                                                selections[row.index].type,
-                                            )
-                                                ? emptyCategoryLabel(
-                                                      selections[row.index]
-                                                          .type,
-                                                  )
-                                                : t.operations.select_category
-                                        "
-                                        class="min-w-44"
-                                        :disabled="
-                                            rowCategoriesEmpty(
-                                                row,
-                                                selections[row.index].type,
-                                            )
-                                        "
-                                        required
-                                    />
-                                </td>
-                                <td>
-                                    <div
-                                        v-if="row.valid"
-                                        class="space-y-1"
-                                    >
-                                        <Badge
-                                            v-if="row.import_duplicate"
-                                            variant="outline"
-                                        >
-                                            {{
-                                                t.operations.import_row_duplicate
-                                            }}
-                                        </Badge>
-                                        <Badge
-                                            v-if="rowShowsPairCandidateBadge(row)"
-                                            variant="outline"
-                                        >
-                                            {{
-                                                t.operations
-                                                    .import_row_pair_candidate
-                                            }}
-                                        </Badge>
-                                        <Badge
-                                            v-if="
-                                                !row.import_duplicate &&
-                                                !rowShowsPairCandidateBadge(row)
-                                            "
-                                            variant="secondary"
-                                        >
-                                            {{ t.operations.import_row_valid }}
-                                        </Badge>
-                                        <p
-                                            v-if="
-                                                rowShowsPairCandidateBadge(row) &&
-                                                rowMatchingPairCandidate(row) !==
-                                                    null
-                                            "
-                                            class="text-muted-foreground text-xs"
-                                        >
-                                            {{
-                                                rowMatchingPairCandidate(row)
-                                                    ?.reason
-                                            }}
-                                        </p>
-                                        <Alert
-                                            v-if="
-                                                wouldMakeImportAccountNegative(
-                                                    row,
-                                                    selections[row.index],
-                                                )
-                                            "
-                                            variant="destructive"
-                                            class="mt-2"
-                                        >
-                                            <AlertDescription>
-                                                {{
-                                                    t.operations
-                                                        .negative_balance_warning
-                                                }}
-                                            </AlertDescription>
-                                        </Alert>
-                                    </div>
-                                    <div v-else class="space-y-1">
-                                        <Badge variant="destructive">
-                                            {{ t.operations.import_row_invalid }}
-                                        </Badge>
-                                        <p class="text-muted-foreground text-xs">
-                                            {{ row.invalid_reason }}
-                                        </p>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div
+                        class="import-preview-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase xl:grid"
+                    >
+                        <span class="import-preview-cell-select">
+                            {{ t.operations.import_select }}
+                        </span>
+                        <span class="import-preview-cell-date">
+                            {{ t.operations.date }}
+                        </span>
+                        <span class="import-preview-cell-description">
+                            {{ t.operations.description }}
+                        </span>
+                        <span class="import-preview-cell-amount">
+                            {{ t.operations.amount }}
+                        </span>
+                        <span class="import-preview-cell-type">
+                            {{ t.operations.type }}
+                        </span>
+                        <span class="import-preview-cell-classification">
+                            {{ t.operations.import_classification }}
+                        </span>
+                        <span class="import-preview-cell-status">
+                            {{ t.operations.import_status }}
+                        </span>
+                    </div>
+
+                    <p
+                        v-if="rows.length === 0"
+                        class="text-muted-foreground py-6 text-center text-sm"
+                    >
+                        {{ t.operations.import_preview_empty }}
+                    </p>
+
+                    <ImportPreviewRow
+                        v-for="row in rows"
+                        :key="row.index"
+                        :row="row"
+                        v-model:selection="selections[row.index]"
+                        :account-balance-minor-units="
+                            account.current_balance_minor_units
+                        "
+                        :income-categories="incomeCategories"
+                        :expense-categories="expenseCategories"
+                        :other-accounts="otherAccounts"
+                        :term-deposits="termDeposits"
+                        :consumed-first-leg-keys="consumedFirstLegKeysSet"
+                    />
                 </div>
             </ListSurface>
 
