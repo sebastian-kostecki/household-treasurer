@@ -15,6 +15,7 @@ class ImportFinancialOperations
     public function __construct(
         private ManageFinancialOperation $manageFinancialOperation,
         private ManageOwnTransfer $manageOwnTransfer,
+        private ConvertImportPairFinancialOperation $convertImportPairFinancialOperation,
         private FinancialOperationImportValidator $financialOperationValidator,
         private OwnTransferImportValidator $ownTransferValidator,
         private OwnTransferImportMapper $ownTransferMapper,
@@ -31,6 +32,8 @@ class ImportFinancialOperations
      *     amount_grosze: int,
      *     type: 'own_transfer',
      *     other_account_id: int,
+     *     pair_first_leg_kind?: 'financial_operation',
+     *     pair_first_leg_id?: int,
      * }|array{
      *     index: int,
      *     operation_date: string,
@@ -57,6 +60,27 @@ class ImportFinancialOperations
 
             foreach ($rows as $row) {
                 if ($row['type'] === 'own_transfer') {
+                    if (
+                        ($row['pair_first_leg_kind'] ?? null) === 'financial_operation'
+                        && isset($row['pair_first_leg_id'])
+                    ) {
+                        $this->convertImportPairFinancialOperation->handle(
+                            $user,
+                            $accountId,
+                            (int) $row['pair_first_leg_id'],
+                            [
+                                'operation_date' => $row['operation_date'],
+                                'description' => $row['description'],
+                                'raw_statement_description' => $row['raw_statement_description'] ?? null,
+                                'amount_grosze' => $row['amount_grosze'],
+                            ],
+                            $row['other_account_id'],
+                        );
+                        $ownTransfers++;
+
+                        continue;
+                    }
+
                     $validated = $this->ownTransferMapper->map(
                         $accountId,
                         $row['other_account_id'],

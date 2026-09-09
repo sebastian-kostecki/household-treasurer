@@ -25,6 +25,8 @@ class StoreCsvImportRequest extends FormRequest
             'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund', 'own_transfer'])],
             'rows.*.category_id' => ['nullable', 'integer'],
             'rows.*.other_account_id' => ['nullable', 'integer'],
+            'rows.*.pair_first_leg_kind' => ['nullable', Rule::in(['financial_operation'])],
+            'rows.*.pair_first_leg_id' => ['nullable', 'integer'],
             'duplicate_warning_acknowledged' => ['sometimes', 'boolean'],
         ];
     }
@@ -46,6 +48,12 @@ class StoreCsvImportRequest extends FormRequest
                     'other_account_id' => isset($row['other_account_id']) && $row['other_account_id'] !== ''
                         ? $row['other_account_id']
                         : null,
+                    'pair_first_leg_kind' => isset($row['pair_first_leg_kind']) && $row['pair_first_leg_kind'] !== ''
+                        ? $row['pair_first_leg_kind']
+                        : null,
+                    'pair_first_leg_id' => isset($row['pair_first_leg_id']) && $row['pair_first_leg_id'] !== ''
+                        ? $row['pair_first_leg_id']
+                        : null,
                 ])
                 ->all(),
         ]);
@@ -58,6 +66,8 @@ class StoreCsvImportRequest extends FormRequest
      *     type: 'income'|'expense'|'refund'|'own_transfer',
      *     category_id: int|null,
      *     other_account_id: int|null,
+     *     pair_first_leg_kind: 'financial_operation'|null,
+     *     pair_first_leg_id: int|null,
      * }>
      */
     public function rowSelections(): array
@@ -72,12 +82,21 @@ class StoreCsvImportRequest extends FormRequest
                 default => throw new InvalidArgumentException('Invalid import row type.'),
             };
 
+            $pairFirstLegKind = $row['pair_first_leg_kind'] ?? null;
+            $pairFirstLegKind = match ($pairFirstLegKind) {
+                'financial_operation' => $pairFirstLegKind,
+                null, '' => null,
+                default => throw new InvalidArgumentException('Invalid import pair first-leg kind.'),
+            };
+
             return [
                 'index' => (int) $row['index'],
                 'selected' => (bool) ($row['selected'] ?? false),
                 'type' => $type,
                 'category_id' => isset($row['category_id']) ? (int) $row['category_id'] : null,
                 'other_account_id' => isset($row['other_account_id']) ? (int) $row['other_account_id'] : null,
+                'pair_first_leg_kind' => $pairFirstLegKind,
+                'pair_first_leg_id' => isset($row['pair_first_leg_id']) ? (int) $row['pair_first_leg_id'] : null,
             ];
         }, $rows));
     }

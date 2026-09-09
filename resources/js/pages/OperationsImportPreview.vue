@@ -24,6 +24,17 @@ import { formatDate, formatMoney } from '@/lib/format';
 import type { AccountPickerOption } from '@/lib/account-identity';
 import { operations as operationsRoute } from '@/routes';
 
+type PairCandidate = {
+    kind: 'financial_operation';
+    id: number;
+    account_id: number;
+    account_name: string;
+    date: string;
+    description: string;
+    converts_financial_operation: boolean;
+    reason: string;
+};
+
 type ImportRow = {
     index: number;
     operation_date: string | null;
@@ -34,6 +45,8 @@ type ImportRow = {
     valid: boolean;
     invalid_reason: string | null;
     import_duplicate: boolean;
+    import_pair_candidate: boolean;
+    pair_candidates: PairCandidate[];
 };
 
 type CategoryRow = {
@@ -44,13 +57,17 @@ type CategoryRow = {
     budget_year: number;
 };
 
-type OtherAccountRow = AccountPickerOption;
+type OtherAccountRow = AccountPickerOption & {
+    current_balance_grosze: number;
+};
 
 type RowSelection = {
     selected: boolean;
     type: 'income' | 'expense' | 'refund' | 'own_transfer';
     category_id: number | '';
     other_account_id: number | '';
+    pair_first_leg_kind: 'financial_operation' | '';
+    pair_first_leg_id: number | '';
 };
 
 const {
@@ -60,7 +77,7 @@ const {
     expenseCategories,
     otherAccounts,
 } = defineProps<{
-    account: AccountPickerOption;
+    account: AccountPickerOption & { current_balance_grosze: number };
     rows: ImportRow[];
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
@@ -73,12 +90,7 @@ const selections = ref<Record<number, RowSelection>>(
     Object.fromEntries(
         rows.map((row) => [
             row.index,
-            {
-                selected: false,
-                type: defaultType(row),
-                category_id: '',
-                other_account_id: '',
-            },
+            initialSelection(row),
         ]),
     ),
 );
@@ -91,6 +103,9 @@ const invalidRowCount = computed(
 );
 const duplicateRowCount = computed(
     () => rows.filter((row) => row.valid && row.import_duplicate).length,
+);
+const pairRowCount = computed(
+    () => rows.filter((row) => row.valid && row.import_pair_candidate).length,
 );
 const selectedRowCount = computed(
     () =>
@@ -158,6 +173,122 @@ function defaultType(row: ImportRow): 'income' | 'expense' | 'refund' {
     return 'income';
 }
 
+function uniqueFinancialOperationCandidate(
+    row: ImportRow,
+): PairCandidate | null {
+    const candidates = row.pair_candidates.filter(
+        (candidate) => candidate.kind === 'financial_operation',
+    );
+
+    if (candidates.length !== 1) {
+        return null;
+    }
+
+    return candidates[0] ?? null;
+}
+
+function initialSelection(row: ImportRow): RowSelection {
+    const uniqueCandidate = uniqueFinancialOperationCandidate(row);
+
+    if (uniqueCandidate !== null) {
+        return {
+            selected: false,
+            type: 'own_transfer',
+            category_id: '',
+            other_account_id: uniqueCandidate.account_id,
+            pair_first_leg_kind: 'financial_operation',
+            pair_first_leg_id: uniqueCandidate.id,
+        };
+    }
+
+    return {
+        selected: false,
+        type: defaultType(row),
+        category_id: '',
+        other_account_id: '',
+        pair_first_leg_kind: '',
+        pair_first_leg_id: '',
+    };
+}
+
+function matchingPairCandidate(
+    row: ImportRow,
+    selection: RowSelection,
+): PairCandidate | null {
+    if (
+        selection.type !== 'own_transfer' ||
+        selection.other_account_id === '' ||
+        selection.pair_first_leg_id === ''
+    ) {
+        return null;
+    }
+
+    return (
+        row.pair_candidates.find(
+            (candidate) =>
+                candidate.kind === 'financial_operation' &&
+                candidate.id === selection.pair_first_leg_id &&
+                candidate.account_id === selection.other_account_id,
+        ) ?? null
+    );
+}
+
+function syncPairSelection(row: ImportRow, selection: RowSelection): void {
+    if (selection.type !== 'own_transfer' || selection.other_account_id === '') {
+        selection.pair_first_leg_kind = '';
+        selection.pair_first_leg_id = '';
+
+        return;
+    }
+
+    const candidateForAccount = row.pair_candidates.find(
+        (candidate) =>
+            candidate.kind === 'financial_operation' &&
+            candidate.account_id === selection.other_account_id,
+    );
+
+    if (candidateForAccount === undefined) {
+        selection.pair_first_leg_kind = '';
+        selection.pair_first_leg_id = '';
+
+        return;
+    }
+
+    if (
+        selection.pair_first_leg_id !== '' &&
+        row.pair_candidates.some(
+            (candidate) =>
+                candidate.kind === 'financial_operation' &&
+                candidate.id === selection.pair_first_leg_id &&
+                candidate.account_id === selection.other_account_id,
+        )
+    ) {
+        selection.pair_first_leg_kind = 'financial_operation';
+
+        return;
+    }
+
+    selection.pair_first_leg_kind = 'financial_operation';
+    selection.pair_first_leg_id = candidateForAccount.id;
+}
+
+function wouldMakeImportAccountNegative(
+    row: ImportRow,
+    selection: RowSelection,
+): boolean {
+    if (!selection.selected || selection.type !== 'own_transfer') {
+        return false;
+    }
+
+    const signedAmount = row.amount_grosze ?? 0;
+
+    if (signedAmount >= 0) {
+        return false;
+    }
+
+    return account.current_balance_grosze + signedAmount < 0;
+}
+
 function categoriesForRow(row: ImportRow, type: RowSelection['type']): CategoryRow[] {
     if (!row.operation_date) {
         return [];
@@ -196,7 +327,38 @@ function onTypeChange(row: ImportRow): void {
     }
 
     selection.category_id = '';
+
+    if (selection.type !== 'own_transfer') {
+        selection.other_account_id = '';
+        selection.pair_first_leg_kind = '';
+        selection.pair_first_leg_id = '';
+
+        return;
+    }
+
+    const uniqueCandidate = uniqueFinancialOperationCandidate(row);
+
+    if (uniqueCandidate !== null) {
+        selection.other_account_id = uniqueCandidate.account_id;
+        selection.pair_first_leg_kind = 'financial_operation';
+        selection.pair_first_leg_id = uniqueCandidate.id;
+
+        return;
+    }
+
     selection.other_account_id = '';
+    selection.pair_first_leg_kind = '';
+    selection.pair_first_leg_id = '';
+}
+
+function onOtherAccountChange(row: ImportRow): void {
+    const selection = selections.value[row.index];
+
+    if (selection === undefined) {
+        return;
+    }
+
+    syncPairSelection(row, selection);
 }
 </script>
 
@@ -259,6 +421,14 @@ function onTypeChange(row: ImportRow): void {
                         )
                     }}
                 </Badge>
+                <Badge v-if="pairRowCount > 0" variant="outline">
+                    {{
+                        t.operations.import_pair_rows.replace(
+                            ':count',
+                            String(pairRowCount),
+                        )
+                    }}
+                </Badge>
             </CardContent>
         </Card>
 
@@ -267,6 +437,14 @@ function onTypeChange(row: ImportRow): void {
             <AlertTitle>{{ t.operations.import_duplicate_warning_title }}</AlertTitle>
             <AlertDescription>
                 {{ t.operations.import_duplicate_warning_body }}
+            </AlertDescription>
+        </Alert>
+
+        <Alert v-if="pairRowCount > 0">
+            <AlertTriangle class="size-4" />
+            <AlertTitle>{{ t.operations.import_pair_warning_title }}</AlertTitle>
+            <AlertDescription>
+                {{ t.operations.import_pair_warning_body }}
             </AlertDescription>
         </Alert>
 
@@ -311,6 +489,10 @@ function onTypeChange(row: ImportRow): void {
                                 :class="{
                                     'bg-amber-500/10':
                                         row.valid && row.import_duplicate,
+                                    'bg-sky-500/10':
+                                        row.valid &&
+                                        row.import_pair_candidate &&
+                                        !row.import_duplicate,
                                 }"
                             >
                                 <td class="pr-3">
@@ -380,21 +562,55 @@ function onTypeChange(row: ImportRow): void {
                                     </select>
                                 </td>
                                 <td>
-                                    <AccountSelect
+                                    <div
                                         v-if="
                                             row.valid &&
                                             selections[row.index].type ===
                                                 'own_transfer'
                                         "
-                                        :id="`row-other-account-${row.index}`"
-                                        :name="`rows[${row.index}][other_account_id]`"
-                                        v-model="
-                                            selections[row.index].other_account_id
-                                        "
-                                        :accounts="otherAccounts"
-                                        :placeholder="t.operations.import_other_account"
-                                        class="min-w-44"
-                                    />
+                                        class="space-y-2"
+                                    >
+                                        <AccountSelect
+                                            :id="`row-other-account-${row.index}`"
+                                            :name="`rows[${row.index}][other_account_id]`"
+                                            v-model="
+                                                selections[row.index]
+                                                    .other_account_id
+                                            "
+                                            :accounts="otherAccounts"
+                                            :placeholder="
+                                                t.operations.import_other_account
+                                            "
+                                            class="min-w-44"
+                                            @update:model-value="
+                                                onOtherAccountChange(row)
+                                            "
+                                        />
+                                        <input
+                                            v-if="
+                                                selections[row.index]
+                                                    .pair_first_leg_kind !== ''
+                                            "
+                                            type="hidden"
+                                            :name="`rows[${row.index}][pair_first_leg_kind]`"
+                                            :value="
+                                                selections[row.index]
+                                                    .pair_first_leg_kind
+                                            "
+                                        />
+                                        <input
+                                            v-if="
+                                                selections[row.index]
+                                                    .pair_first_leg_id !== ''
+                                            "
+                                            type="hidden"
+                                            :name="`rows[${row.index}][pair_first_leg_id]`"
+                                            :value="
+                                                selections[row.index]
+                                                    .pair_first_leg_id
+                                            "
+                                        />
+                                    </div>
                                     <CategorySelect
                                         v-else-if="row.valid"
                                         :id="`row-category-${row.index}`"
@@ -428,18 +644,71 @@ function onTypeChange(row: ImportRow): void {
                                     />
                                 </td>
                                 <td>
-                                    <Badge
-                                        v-if="row.valid && row.import_duplicate"
-                                        variant="outline"
+                                    <div
+                                        v-if="row.valid"
+                                        class="space-y-1"
                                     >
-                                        {{ t.operations.import_row_duplicate }}
-                                    </Badge>
-                                    <Badge
-                                        v-else-if="row.valid"
-                                        variant="secondary"
-                                    >
-                                        {{ t.operations.import_row_valid }}
-                                    </Badge>
+                                        <Badge
+                                            v-if="row.import_duplicate"
+                                            variant="outline"
+                                        >
+                                            {{
+                                                t.operations.import_row_duplicate
+                                            }}
+                                        </Badge>
+                                        <Badge
+                                            v-if="row.import_pair_candidate"
+                                            variant="outline"
+                                        >
+                                            {{
+                                                t.operations
+                                                    .import_row_pair_candidate
+                                            }}
+                                        </Badge>
+                                        <Badge
+                                            v-if="
+                                                !row.import_duplicate &&
+                                                !row.import_pair_candidate
+                                            "
+                                            variant="secondary"
+                                        >
+                                            {{ t.operations.import_row_valid }}
+                                        </Badge>
+                                        <p
+                                            v-if="
+                                                row.import_pair_candidate &&
+                                                matchingPairCandidate(
+                                                    row,
+                                                    selections[row.index],
+                                                ) !== null
+                                            "
+                                            class="text-muted-foreground text-xs"
+                                        >
+                                            {{
+                                                matchingPairCandidate(
+                                                    row,
+                                                    selections[row.index],
+                                                )?.reason
+                                            }}
+                                        </p>
+                                        <Alert
+                                            v-if="
+                                                wouldMakeImportAccountNegative(
+                                                    row,
+                                                    selections[row.index],
+                                                )
+                                            "
+                                            variant="destructive"
+                                            class="mt-2"
+                                        >
+                                            <AlertDescription>
+                                                {{
+                                                    t.operations
+                                                        .negative_balance_warning
+                                                }}
+                                            </AlertDescription>
+                                        </Alert>
+                                    </div>
                                     <div v-else class="space-y-1">
                                         <Badge variant="destructive">
                                             {{ t.operations.import_row_invalid }}

@@ -19,6 +19,7 @@ use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
 use App\Support\CsvImport\CsvImportSession;
 use App\Support\CsvImport\ImportDuplicateDetector;
+use App\Support\CsvImport\ImportPairCandidateDetector;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,6 +47,7 @@ class CsvImportController extends Controller
         BnpParibasXlsxParser $bnpParibasXlsxParser,
         CsvImportPreviewValidator $previewValidator,
         ImportDuplicateDetector $importDuplicateDetector,
+        ImportPairCandidateDetector $importPairCandidateDetector,
     ): RedirectResponse {
         $this->authorize('create', FinancialOperation::class);
 
@@ -100,6 +102,7 @@ class CsvImportController extends Controller
         }, $operationRows);
 
         $rows = $importDuplicateDetector->annotateRows($request->user(), $account->id, $rows);
+        $rows = $importPairCandidateDetector->annotateRows($request->user(), $account->id, $rows);
 
         CsvImportSession::put($request->user(), [
             'account_id' => $account->id,
@@ -125,11 +128,14 @@ class CsvImportController extends Controller
             ->firstOrFail();
 
         return Inertia::render('OperationsImportPreview', [
-            'account' => AccountIdentity::payload($account),
+            'account' => [
+                ...AccountIdentity::payload($account),
+                'current_balance_grosze' => $account->current_balance_grosze,
+            ],
             'rows' => $import['rows'],
             'incomeCategories' => $this->incomeCategories($request),
             'expenseCategories' => $this->expenseCategories($request),
-            'otherAccounts' => $this->otherAccounts($request, $account),
+            'otherAccounts' => $this->otherAccounts($request, $account, $import['rows']),
         ]);
     }
 
@@ -148,6 +154,7 @@ class CsvImportController extends Controller
 
         $rowsByIndex = collect($import['rows'])->keyBy('index');
         $selectedRows = [];
+        $usedPairFirstLegIds = [];
 
         foreach ($request->rowSelections() as $selection) {
             if (! $selection['selected']) {
@@ -175,6 +182,40 @@ class CsvImportController extends Controller
                     ]);
                 }
 
+                $pairFirstLegKind = $selection['pair_first_leg_kind'];
+                $pairFirstLegId = $selection['pair_first_leg_id'];
+
+                if ($pairFirstLegKind !== null || $pairFirstLegId !== null) {
+                    if ($pairFirstLegKind !== 'financial_operation' || $pairFirstLegId === null) {
+                        throw ValidationException::withMessages([
+                            'rows' => __('The selected import pair candidate is invalid.'),
+                        ]);
+                    }
+
+                    if (in_array($pairFirstLegId, $usedPairFirstLegIds, true)) {
+                        throw ValidationException::withMessages([
+                            'rows' => __('Two selected rows cannot pair with the same first leg.'),
+                        ]);
+                    }
+
+                    $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
+                        ? $parsedRow['pair_candidates']
+                        : [];
+                    $matchingCandidate = collect($pairCandidates)->first(
+                        fn (array $candidate): bool => ($candidate['kind'] ?? null) === 'financial_operation'
+                            && ($candidate['id'] ?? null) === $pairFirstLegId
+                            && ($candidate['account_id'] ?? null) === $selection['other_account_id'],
+                    );
+
+                    if ($matchingCandidate === null) {
+                        throw ValidationException::withMessages([
+                            'rows' => __('The selected import pair candidate no longer matches this row.'),
+                        ]);
+                    }
+
+                    $usedPairFirstLegIds[] = $pairFirstLegId;
+                }
+
                 $selectedRows[] = [
                     'index' => $selection['index'],
                     'operation_date' => (string) $parsedRow['operation_date'],
@@ -184,9 +225,17 @@ class CsvImportController extends Controller
                     'amount_grosze' => (int) $parsedRow['amount_grosze'],
                     'type' => 'own_transfer',
                     'other_account_id' => $selection['other_account_id'],
+                    'pair_first_leg_kind' => $pairFirstLegKind,
+                    'pair_first_leg_id' => $pairFirstLegId,
                 ];
 
                 continue;
+            }
+
+            if ($selection['pair_first_leg_kind'] !== null || $selection['pair_first_leg_id'] !== null) {
+                throw ValidationException::withMessages([
+                    'rows' => __('Import pair candidates can only be committed as own transfers.'),
+                ]);
             }
 
             if ($selection['category_id'] === null) {
@@ -243,17 +292,36 @@ class CsvImportController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, name: string}>
+     * @param  list<array<string, mixed>>  $previewRows
+     * @return array<int, array{id: int, name: string, current_balance_grosze: int}>
      */
-    private function otherAccounts(Request $request, Account $importAccount): array
+    private function otherAccounts(Request $request, Account $importAccount, array $previewRows): array
     {
-        return $request->user()
+        $pairCandidateAccountIds = collect($previewRows)
+            ->flatMap(fn (array $row): array => collect($row['pair_candidates'] ?? [])
+                ->pluck('account_id')
+                ->all())
+            ->unique()
+            ->values();
+
+        $accounts = $request->user()
             ->accounts()
-            ->whereNull('archived_at')
             ->whereKeyNot($importAccount->id)
+            ->where(function ($query) use ($pairCandidateAccountIds): void {
+                $query->whereNull('archived_at');
+
+                if ($pairCandidateAccountIds->isNotEmpty()) {
+                    $query->orWhereIn('id', $pairCandidateAccountIds);
+                }
+            })
             ->orderBy('name')
-            ->get()
-            ->map(fn (Account $account): array => AccountIdentity::payload($account))
+            ->get();
+
+        return $accounts
+            ->map(fn (Account $account): array => [
+                ...AccountIdentity::payload($account),
+                'current_balance_grosze' => $account->current_balance_grosze,
+            ])
             ->values()
             ->all();
     }
