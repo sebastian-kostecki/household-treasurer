@@ -18,6 +18,7 @@ import ListSurface from '@/components/ListSurface.vue';
 import OperationsFilters, {
     type OperationsFilterAccount,
     type OperationsFilterCategory,
+    type OperationsFilterTermDeposit,
     type OperationsListFilters,
 } from '@/components/OperationsFilters.vue';
 import CapitalMovementFormDialog, {
@@ -55,6 +56,7 @@ const {
     filterYears,
     filterCategories,
     filterAccounts,
+    filterTermDeposits,
 } = defineProps<{
     operations: PaginatedCollection<FinancialOperationRowData>;
     ownTransfers: PaginatedCollection<OwnTransferRowData>;
@@ -69,6 +71,7 @@ const {
     filterYears: number[];
     filterCategories: OperationsFilterCategory[];
     filterAccounts: OperationsFilterAccount[];
+    filterTermDeposits: OperationsFilterTermDeposit[];
 }>();
 
 const t = useTranslations();
@@ -168,6 +171,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :years="filterYears"
             :categories="filterCategories"
             :accounts="filterAccounts"
+            :term-deposits="filterTermDeposits"
         />
 
         <IndexEmptyState
@@ -190,7 +194,11 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         </IndexEmptyState>
 
         <IndexEmptyState
-            v-else-if="operations.total === 0"
+            v-else-if="
+                operations.total === 0 &&
+                ownTransfers.total === 0 &&
+                capitalMovements.total === 0
+            "
             :title="t.operations.empty_filtered_title"
             :description="t.operations.empty_filtered_description"
         >
@@ -204,7 +212,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         </IndexEmptyState>
 
         <ListSurface
-            v-else
+            v-if="operations.total > 0"
             :description="t.operations.list_description"
             :paginator="operations"
         >

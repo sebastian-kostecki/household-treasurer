@@ -14,6 +14,7 @@ export type OperationsListFilters = {
     category_name: string | null;
     category_type: string | null;
     account_id: number | null;
+    term_deposit_id: number | null;
     date_from: string | null;
     date_to: string | null;
 };
@@ -31,12 +32,18 @@ export type OperationsFilterAccount = {
     is_archived: boolean;
 };
 
+export type OperationsFilterTermDeposit = {
+    id: number;
+    name: string;
+};
+
 const props = defineProps<{
     filters: OperationsListFilters;
     filtersActive: boolean;
     years: number[];
     categories: OperationsFilterCategory[];
     accounts: OperationsFilterAccount[];
+    termDeposits: OperationsFilterTermDeposit[];
 }>();
 
 const t = useTranslations();
@@ -148,6 +155,7 @@ function visit(next: OperationsListFilters): void {
                 category_name: next.category_name ?? undefined,
                 category_type: next.category_type ?? undefined,
                 account_id: next.account_id ?? undefined,
+                term_deposit_id: next.term_deposit_id ?? undefined,
                 date_from: next.date_from ?? undefined,
                 date_to: next.date_to ?? undefined,
             },
@@ -179,6 +187,15 @@ function onAccountChange(event: Event): void {
     visit({
         ...props.filters,
         account_id: value === '' ? null : Number(value),
+        q: search.value.trim() === '' ? null : search.value.trim(),
+    });
+}
+
+function onTermDepositChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    visit({
+        ...props.filters,
+        term_deposit_id: value === '' ? null : Number(value),
         q: search.value.trim() === '' ? null : search.value.trim(),
     });
 }
@@ -223,6 +240,7 @@ function clearFilters(): void {
         category_name: null,
         category_type: null,
         account_id: null,
+        term_deposit_id: null,
         date_from: null,
         date_to: null,
     });
@@ -333,6 +351,29 @@ function accountLabel(account: OperationsFilterAccount): string {
                         :value="account.id"
                     >
                         {{ accountLabel(account) }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="grid min-w-40 gap-1">
+                <Label for="operations-filter-term-deposit" class="text-muted-foreground text-xs">
+                    {{ t.operations.filter_term_deposit }}
+                </Label>
+                <select
+                    id="operations-filter-term-deposit"
+                    class="native-select"
+                    :value="filters.term_deposit_id ?? ''"
+                    @change="onTermDepositChange"
+                >
+                    <option value="">
+                        {{ t.operations.filter_term_deposit_all }}
+                    </option>
+                    <option
+                        v-for="termDeposit in termDeposits"
+                        :key="termDeposit.id"
+                        :value="termDeposit.id"
+                    >
+                        {{ termDeposit.name }}
                     </option>
                 </select>
             </div>

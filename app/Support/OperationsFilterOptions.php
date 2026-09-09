@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use RuntimeException;
@@ -73,6 +74,21 @@ class OperationsFilterOptions
             ->map(fn (Account $account): array => [
                 ...AccountIdentity::payload($account),
                 'is_archived' => $account->archived_at !== null,
+            ])
+            ->all());
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    public static function termDeposits(User $user): array
+    {
+        return array_values($user->termDeposits()
+            ->orderBy('name')
+            ->get()
+            ->map(fn (TermDeposit $termDeposit): array => [
+                'id' => $termDeposit->id,
+                'name' => $termDeposit->name,
             ])
             ->all());
     }

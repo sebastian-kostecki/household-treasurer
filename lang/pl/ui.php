@@ -282,6 +282,8 @@ return [
         'filter_category_all' => 'Wszystkie kategorie',
         'filter_account' => 'Konto',
         'filter_account_all' => 'Wszystkie konta',
+        'filter_term_deposit' => 'Lokata',
+        'filter_term_deposit_all' => 'Wszystkie lokaty',
         'filter_date_from' => 'Od',
         'filter_date_to' => 'Do',
         'filter_this_month' => 'Ten miesiąc',
