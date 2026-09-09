@@ -20,7 +20,7 @@ class OwnTransferTest extends TestCase
     {
         $this->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'ATM',
             'source_account_id' => 1,
             'destination_account_id' => 2,
@@ -31,17 +31,17 @@ class OwnTransferTest extends TestCase
     {
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->bank()->create([
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->cash()->create([
-            'current_balance_grosze' => 0,
-            'opening_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
         ]);
 
         $response = $this->actingAs($user)->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Wypłata z bankomatu',
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
@@ -55,7 +55,7 @@ class OwnTransferTest extends TestCase
             'user_id' => $user->id,
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Wypłata z bankomatu',
         ]);
     }
@@ -64,17 +64,17 @@ class OwnTransferTest extends TestCase
     {
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->create([
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->create([
-            'current_balance_grosze' => 5000,
-            'opening_balance_grosze' => 5000,
+            'current_balance_minor_units' => 5000,
+            'opening_balance_minor_units' => 5000,
         ]);
 
         $this->actingAs($user)->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 30000,
+            'amount_minor_units' => 30000,
             'description' => 'Transfer',
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
@@ -83,8 +83,8 @@ class OwnTransferTest extends TestCase
         $source->refresh();
         $destination->refresh();
 
-        $this->assertSame(70000, $source->current_balance_grosze);
-        $this->assertSame(35000, $destination->current_balance_grosze);
+        $this->assertSame(70000, $source->current_balance_minor_units);
+        $this->assertSame(35000, $destination->current_balance_minor_units);
     }
 
     public function test_own_transfer_does_not_change_category_execution(): void
@@ -95,26 +95,26 @@ class OwnTransferTest extends TestCase
             'phase' => BudgetPhase::Execution,
         ]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'execution_grosze' => 15000,
+            'execution_minor_units' => 15000,
         ]);
         $source = Account::factory()->for($user)->create([
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->create([
-            'current_balance_grosze' => 0,
-            'opening_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 20000,
+            'amount_minor_units' => 20000,
             'description' => 'Transfer',
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
         ])->assertSessionHasNoErrors();
 
-        $this->assertSame(15000, $category->refresh()->execution_grosze);
+        $this->assertSame(15000, $category->refresh()->execution_minor_units);
     }
 
     public function test_future_transfer_date_is_rejected(): void
@@ -126,7 +126,7 @@ class OwnTransferTest extends TestCase
             ->from(route('operations'))
             ->post(route('own-transfers.store'), [
                 'transfer_date' => now()->addDay()->toDateString(),
-                'amount_grosze' => 1000,
+                'amount_minor_units' => 1000,
                 'description' => 'Transfer',
                 'source_account_id' => $source->id,
                 'destination_account_id' => $destination->id,
@@ -136,8 +136,8 @@ class OwnTransferTest extends TestCase
         $source->refresh();
         $destination->refresh();
 
-        $this->assertSame(100000, $source->current_balance_grosze);
-        $this->assertSame(0, $destination->current_balance_grosze);
+        $this->assertSame(100000, $source->current_balance_minor_units);
+        $this->assertSame(0, $destination->current_balance_minor_units);
         $this->assertDatabaseCount('own_transfers', 0);
     }
 
@@ -146,20 +146,20 @@ class OwnTransferTest extends TestCase
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->create([
             'opening_date' => '2026-02-01',
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->create([
             'opening_date' => '2026-03-01',
-            'current_balance_grosze' => 0,
-            'opening_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
         ]);
 
         $this->actingAs($user)
             ->from(route('operations'))
             ->post(route('own-transfers.store'), [
                 'transfer_date' => '2026-02-15',
-                'amount_grosze' => 1000,
+                'amount_minor_units' => 1000,
                 'description' => 'Transfer',
                 'source_account_id' => $source->id,
                 'destination_account_id' => $destination->id,
@@ -174,7 +174,7 @@ class OwnTransferTest extends TestCase
 
         $this->actingAs($user)->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 8000,
+            'amount_minor_units' => 8000,
             'description' => 'Transfer',
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
@@ -182,7 +182,7 @@ class OwnTransferTest extends TestCase
 
         $source->refresh();
 
-        $this->assertSame(-3000, $source->current_balance_grosze);
+        $this->assertSame(-3000, $source->current_balance_minor_units);
         $this->assertTrue($source->isNegative());
     }
 
@@ -194,16 +194,16 @@ class OwnTransferTest extends TestCase
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Old description',
         ]);
 
-        $source->update(['current_balance_grosze' => 90000]);
-        $destination->update(['current_balance_grosze' => 10000]);
+        $source->update(['current_balance_minor_units' => 90000]);
+        $destination->update(['current_balance_minor_units' => 10000]);
 
         $this->actingAs($user)->patch(route('own-transfers.update', $transfer), [
             'transfer_date' => '2026-03-02',
-            'amount_grosze' => 15000,
+            'amount_minor_units' => 15000,
             'description' => 'Updated description',
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
@@ -215,9 +215,9 @@ class OwnTransferTest extends TestCase
         $destination->refresh();
 
         $this->assertSame('Updated description', $transfer->description);
-        $this->assertSame(15000, $transfer->amount_grosze);
-        $this->assertSame(85000, $source->current_balance_grosze);
-        $this->assertSame(15000, $destination->current_balance_grosze);
+        $this->assertSame(15000, $transfer->amount_minor_units);
+        $this->assertSame(85000, $source->current_balance_minor_units);
+        $this->assertSame(15000, $destination->current_balance_minor_units);
     }
 
     public function test_user_can_delete_own_transfer_and_balances_are_reverted(): void
@@ -228,12 +228,12 @@ class OwnTransferTest extends TestCase
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 20000,
+            'amount_minor_units' => 20000,
             'description' => 'Transfer',
         ]);
 
-        $source->update(['current_balance_grosze' => 80000]);
-        $destination->update(['current_balance_grosze' => 20000]);
+        $source->update(['current_balance_minor_units' => 80000]);
+        $destination->update(['current_balance_minor_units' => 20000]);
 
         $this->actingAs($user)
             ->delete(route('own-transfers.destroy', $transfer))
@@ -241,8 +241,8 @@ class OwnTransferTest extends TestCase
             ->assertRedirect(route('operations'));
 
         $this->assertDatabaseMissing('own_transfers', ['id' => $transfer->id]);
-        $this->assertSame(100000, $source->refresh()->current_balance_grosze);
-        $this->assertSame(0, $destination->refresh()->current_balance_grosze);
+        $this->assertSame(100000, $source->refresh()->current_balance_minor_units);
+        $this->assertSame(0, $destination->refresh()->current_balance_minor_units);
     }
 
     public function test_user_cannot_modify_another_users_own_transfer(): void
@@ -258,7 +258,7 @@ class OwnTransferTest extends TestCase
         $this->actingAs($otherUser)
             ->patch(route('own-transfers.update', $transfer), [
                 'transfer_date' => '2026-03-01',
-                'amount_grosze' => 1000,
+                'amount_minor_units' => 1000,
                 'description' => 'Hack',
                 'source_account_id' => $source->id,
                 'destination_account_id' => $destination->id,
@@ -279,7 +279,7 @@ class OwnTransferTest extends TestCase
             ->from(route('operations'))
             ->post(route('own-transfers.store'), [
                 'transfer_date' => '2026-03-01',
-                'amount_grosze' => 1000,
+                'amount_minor_units' => 1000,
                 'description' => 'Transfer',
                 'source_account_id' => $account->id,
                 'destination_account_id' => $account->id,
@@ -292,8 +292,8 @@ class OwnTransferTest extends TestCase
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->archived()->create([
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
@@ -303,7 +303,7 @@ class OwnTransferTest extends TestCase
             ->from(route('operations'))
             ->post(route('own-transfers.store'), [
                 'transfer_date' => '2026-03-01',
-                'amount_grosze' => 1000,
+                'amount_minor_units' => 1000,
                 'description' => 'Transfer',
                 'source_account_id' => $source->id,
                 'destination_account_id' => $destination->id,
@@ -316,8 +316,8 @@ class OwnTransferTest extends TestCase
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->archived()->create([
             'opening_date' => '2026-01-01',
@@ -327,7 +327,7 @@ class OwnTransferTest extends TestCase
             ->from(route('operations'))
             ->post(route('own-transfers.store'), [
                 'transfer_date' => '2026-03-01',
-                'amount_grosze' => 1000,
+                'amount_minor_units' => 1000,
                 'description' => 'Transfer',
                 'source_account_id' => $source->id,
                 'destination_account_id' => $destination->id,
@@ -343,7 +343,7 @@ class OwnTransferTest extends TestCase
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 12000,
+            'amount_minor_units' => 12000,
             'description' => 'ATM withdrawal',
         ]);
 
@@ -354,7 +354,7 @@ class OwnTransferTest extends TestCase
                 ->component('Operations')
                 ->has('ownTransfers.data', 1)
                 ->where('ownTransfers.data.0.description', 'ATM withdrawal')
-                ->where('ownTransfers.data.0.amount_grosze', 12000)
+                ->where('ownTransfers.data.0.amount_minor_units', 12000)
                 ->where('ownTransfers.data.0.source_account_name', $source->name)
                 ->where('ownTransfers.data.0.destination_account_name', $destination->name),
             );
@@ -367,13 +367,13 @@ class OwnTransferTest extends TestCase
     {
         $source = Account::factory()->for($user)->bank()->create([
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => $sourceBalance,
-            'opening_balance_grosze' => $sourceBalance,
+            'current_balance_minor_units' => $sourceBalance,
+            'opening_balance_minor_units' => $sourceBalance,
         ]);
         $destination = Account::factory()->for($user)->cash()->create([
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
-            'opening_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
         ]);
 
         return [$source, $destination];

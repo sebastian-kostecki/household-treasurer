@@ -165,11 +165,11 @@ class BudgetController extends Controller
      *     icon: string,
      *     color: string,
      *     type: string,
-     *     planned_amount_grosze: int,
-     *     initial_plan_grosze: int,
-     *     current_plan_grosze: int,
-     *     execution_grosze: int,
-     *     remaining_grosze: int,
+     *     planned_amount_minor_units: int,
+     *     initial_plan_minor_units: int,
+     *     current_plan_minor_units: int,
+     *     execution_minor_units: int,
+     *     remaining_minor_units: int,
      *     is_over_limit: bool,
      *     can_edit: bool,
      *     can_delete: bool,
@@ -181,27 +181,27 @@ class BudgetController extends Controller
      */
     private function categoryPayload(Category $category, Budget $budget): array
     {
-        $currentPlanGrosze = $category->planned_amount_grosze;
-        $executionGrosze = $category->execution_grosze;
-        $initialPlanGrosze = $budget->isExecution()
-            ? $category->initial_plan_grosze
-            : $category->planned_amount_grosze;
+        $currentPlanMinorUnits = $category->planned_amount_minor_units;
+        $executionMinorUnits = $category->execution_minor_units;
+        $initialPlanMinorUnits = $budget->isExecution()
+            ? $category->initial_plan_minor_units
+            : $category->planned_amount_minor_units;
 
         return [
             'id' => $category->id,
             'name' => $category->name,
             ...CategoryAppearance::fields($category),
             'type' => $category->type->value,
-            'planned_amount_grosze' => $category->planned_amount_grosze,
-            'initial_plan_grosze' => $initialPlanGrosze,
-            'current_plan_grosze' => $currentPlanGrosze,
-            'execution_grosze' => $executionGrosze,
-            'remaining_grosze' => CategoryExecutionMetrics::remainingGrosze(
-                $currentPlanGrosze,
-                $executionGrosze,
+            'planned_amount_minor_units' => $category->planned_amount_minor_units,
+            'initial_plan_minor_units' => $initialPlanMinorUnits,
+            'current_plan_minor_units' => $currentPlanMinorUnits,
+            'execution_minor_units' => $executionMinorUnits,
+            'remaining_minor_units' => CategoryExecutionMetrics::remainingMinorUnits(
+                $currentPlanMinorUnits,
+                $executionMinorUnits,
             ),
             'is_over_limit' => $category->type === CategoryType::Expense
-                && CategoryExecutionMetrics::isOverLimit($currentPlanGrosze, $executionGrosze),
+                && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
             'can_delete' => $budget->isDraft() && ! $category->isArchived(),
             'can_change_type' => $budget->isDraft() && ! $category->isArchived(),

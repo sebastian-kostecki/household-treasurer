@@ -18,7 +18,7 @@ class AccountFactory extends Factory
      */
     public function definition(): array
     {
-        $openingBalanceGrosze = fake()->numberBetween(0, 500000);
+        $openingBalanceMinorUnits = fake()->numberBetween(0, 500000);
         $type = fake()->randomElement(AccountType::cases());
 
         return [
@@ -27,8 +27,8 @@ class AccountFactory extends Factory
             'type' => $type,
             'bank' => $type === AccountType::Bank ? Bank::Other : null,
             'opening_date' => fake()->date(),
-            'opening_balance_grosze' => $openingBalanceGrosze,
-            'current_balance_grosze' => $openingBalanceGrosze,
+            'opening_balance_minor_units' => $openingBalanceMinorUnits,
+            'current_balance_minor_units' => $openingBalanceMinorUnits,
         ];
     }
 
@@ -51,11 +51,11 @@ class AccountFactory extends Factory
     public function negative(): static
     {
         return $this->state(function (): array {
-            $openingBalanceGrosze = fake()->numberBetween(-50000, -100);
+            $openingBalanceMinorUnits = fake()->numberBetween(-50000, -100);
 
             return [
-                'opening_balance_grosze' => $openingBalanceGrosze,
-                'current_balance_grosze' => $openingBalanceGrosze,
+                'opening_balance_minor_units' => $openingBalanceMinorUnits,
+                'current_balance_minor_units' => $openingBalanceMinorUnits,
             ];
         });
     }

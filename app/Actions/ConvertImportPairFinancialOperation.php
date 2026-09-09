@@ -30,7 +30,7 @@ class ConvertImportPairFinancialOperation
      *     operation_date: string,
      *     description: string,
      *     raw_statement_description?: string|null,
-     *     amount_grosze: int,
+     *     amount_minor_units: int,
      * }  $importRow
      */
     public function handle(
@@ -63,7 +63,7 @@ class ConvertImportPairFinancialOperation
             $candidates = $this->importPairCandidateDetector->matchCandidatesForRow(
                 [
                     'operation_date' => $importRow['operation_date'],
-                    'amount_grosze' => $importRow['amount_grosze'],
+                    'amount_minor_units' => $importRow['amount_minor_units'],
                     'raw_statement_description' => $importRow['raw_statement_description'] ?? null,
                 ],
                 collect([$firstLeg->loadMissing('account')]),
@@ -81,7 +81,7 @@ class ConvertImportPairFinancialOperation
                 $otherAccountId,
                 $importRow['operation_date'],
                 $importRow['description'],
-                $importRow['amount_grosze'],
+                $importRow['amount_minor_units'],
             );
 
             $importRawStatementDescription = $importRow['raw_statement_description'] ?? null;
@@ -93,7 +93,7 @@ class ConvertImportPairFinancialOperation
                 ...$this->rawStatementDescriptionsFromFinancialOperation($firstLeg),
                 ...($importRawStatementDescription !== null
                     ? $this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
-                        $importRow['amount_grosze'],
+                        $importRow['amount_minor_units'],
                         $importRawStatementDescription,
                     )
                     : []),
@@ -102,7 +102,7 @@ class ConvertImportPairFinancialOperation
                     $user,
                     $importAccountId,
                     $importRow['operation_date'],
-                    $importRow['amount_grosze'],
+                    $importRow['amount_minor_units'],
                     $importRawStatementDescription,
                 ),
             ];
@@ -136,7 +136,7 @@ class ConvertImportPairFinancialOperation
         }
 
         return $this->ownTransferImportSnapshots->rawStatementDescriptionForImportedAccount(
-            $operation->import_identity_amount_grosze,
+            $operation->import_identity_amount_minor_units,
             $rawStatementDescription,
         );
     }
@@ -146,11 +146,11 @@ class ConvertImportPairFinancialOperation
      */
     private function identityFromFinancialOperation(FinancialOperation $operation): array
     {
-        if ($operation->import_identity_amount_grosze < 0) {
+        if ($operation->import_identity_amount_minor_units < 0) {
             return [
                 'source_import_identity_account_id' => $operation->import_identity_account_id,
                 'source_import_identity_date' => $operation->import_identity_date->toDateString(),
-                'source_import_identity_amount_grosze' => $operation->import_identity_amount_grosze,
+                'source_import_identity_amount_minor_units' => $operation->import_identity_amount_minor_units,
                 'source_import_identity_digest' => $operation->import_identity_digest,
             ];
         }
@@ -158,7 +158,7 @@ class ConvertImportPairFinancialOperation
         return [
             'destination_import_identity_account_id' => $operation->import_identity_account_id,
             'destination_import_identity_date' => $operation->import_identity_date->toDateString(),
-            'destination_import_identity_amount_grosze' => $operation->import_identity_amount_grosze,
+            'destination_import_identity_amount_minor_units' => $operation->import_identity_amount_minor_units,
             'destination_import_identity_digest' => $operation->import_identity_digest,
         ];
     }

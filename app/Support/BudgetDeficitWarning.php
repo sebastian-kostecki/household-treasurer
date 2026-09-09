@@ -14,19 +14,19 @@ class BudgetDeficitWarning
     /**
      * @param  Collection<int, Category>  $categories
      * @return array{
-     *     planned_deficit_grosze: int,
-     *     liquidity_at_year_start_grosze: int,
-     *     uncovered_deficit_grosze: int,
+     *     planned_deficit_minor_units: int,
+     *     liquidity_at_year_start_minor_units: int,
+     *     uncovered_deficit_minor_units: int,
      * }|null
      */
     public static function forBudget(Budget $budget, User $user, Collection $categories): ?array
     {
         $plannedIncome = (int) $categories
             ->where('type', CategoryType::Income)
-            ->sum('planned_amount_grosze');
+            ->sum('planned_amount_minor_units');
         $plannedExpenses = (int) $categories
             ->where('type', CategoryType::Expense)
-            ->sum('planned_amount_grosze');
+            ->sum('planned_amount_minor_units');
         $plannedDeficit = $plannedExpenses - $plannedIncome;
 
         if ($plannedDeficit <= 0) {
@@ -40,9 +40,9 @@ class BudgetDeficitWarning
         }
 
         return [
-            'planned_deficit_grosze' => $plannedDeficit,
-            'liquidity_at_year_start_grosze' => $liquidityAtYearStart,
-            'uncovered_deficit_grosze' => $plannedDeficit - $liquidityAtYearStart,
+            'planned_deficit_minor_units' => $plannedDeficit,
+            'liquidity_at_year_start_minor_units' => $liquidityAtYearStart,
+            'uncovered_deficit_minor_units' => $plannedDeficit - $liquidityAtYearStart,
         ];
     }
 
@@ -52,6 +52,6 @@ class BudgetDeficitWarning
 
         return (int) $user->accounts()
             ->where('opening_date', '<=', $yearStart)
-            ->sum('opening_balance_grosze');
+            ->sum('opening_balance_minor_units');
     }
 }

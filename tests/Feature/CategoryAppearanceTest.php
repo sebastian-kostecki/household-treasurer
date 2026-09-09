@@ -24,7 +24,7 @@ class CategoryAppearanceTest extends TestCase
             ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Transport',
                 'type' => CategoryType::Expense->value,
-                'planned_amount_grosze' => 50000,
+                'planned_amount_minor_units' => 50000,
                 'icon' => 'car',
                 'color' => '#f97316',
             ]))
@@ -49,7 +49,7 @@ class CategoryAppearanceTest extends TestCase
             ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Invalid',
                 'type' => CategoryType::Expense->value,
-                'planned_amount_grosze' => 1000,
+                'planned_amount_minor_units' => 1000,
                 'icon' => 'not-a-real-icon',
             ]))
             ->assertSessionHasErrors('icon');

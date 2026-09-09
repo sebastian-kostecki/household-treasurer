@@ -27,7 +27,7 @@ class ArchiveAccountTest extends TestCase
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -119,19 +119,19 @@ class ArchiveAccountTest extends TestCase
     {
         $user = User::factory()->create();
         Account::factory()->for($user)->create([
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         Account::factory()->for($user)->archived()->create([
-            'current_balance_grosze' => 50000,
-            'opening_balance_grosze' => 50000,
+            'current_balance_minor_units' => 50000,
+            'opening_balance_minor_units' => 50000,
         ]);
 
         $this->actingAs($user)
             ->get(route('accounts.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('liquidity_total_grosze', 150000),
+                ->where('liquidity_total_minor_units', 150000),
             );
     }
 
@@ -142,7 +142,7 @@ class ArchiveAccountTest extends TestCase
 
         $this->actingAs($user)->post(route('own-transfers.store'), [
             'transfer_date' => '2026-03-01',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'ATM',
             'source_account_id' => $source->id,
             'destination_account_id' => $destination->id,
@@ -171,7 +171,7 @@ class ArchiveAccountTest extends TestCase
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -194,13 +194,13 @@ class ArchiveAccountTest extends TestCase
     {
         $source = Account::factory()->for($user)->bank()->create([
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->cash()->create([
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
-            'opening_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
         ]);
 
         return [$source, $destination];

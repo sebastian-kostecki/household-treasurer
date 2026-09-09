@@ -19,14 +19,21 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
             $table->foreignId('budget_id')->constrained()->restrictOnDelete();
             $table->date('operation_date');
-            $table->bigInteger('amount_grosze');
+            $table->bigInteger('amount_minor_units');
             $table->string('description');
+            $table->string('counterparty')->nullable();
+            $table->text('raw_statement_description')->nullable();
+            $table->foreignId('import_identity_account_id')->nullable()->constrained('accounts');
+            $table->date('import_identity_date')->nullable();
+            $table->bigInteger('import_identity_amount_minor_units')->nullable();
+            $table->string('import_identity_digest', 64)->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'operation_date']);
             $table->index('account_id');
             $table->index('category_id');
             $table->index('budget_id');
+            $table->index(['user_id', 'import_identity_digest']);
         });
     }
 

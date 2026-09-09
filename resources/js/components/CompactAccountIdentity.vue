@@ -2,7 +2,16 @@
 import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
 import type { AccountIdentityFields } from '@/lib/account-identity';
 
-defineProps<AccountIdentityFields>();
+withDefaults(
+    defineProps<
+        AccountIdentityFields & {
+            markSize?: 'sm' | 'md';
+        }
+    >(),
+    {
+        markSize: 'sm',
+    },
+);
 </script>
 
 <template>
@@ -12,6 +21,7 @@ defineProps<AccountIdentityFields>();
             :type="type"
             :bank="bank"
             :mark_url="mark_url"
+            :size="markSize"
         />
 
         <span class="truncate text-sm">{{ name }}</span>

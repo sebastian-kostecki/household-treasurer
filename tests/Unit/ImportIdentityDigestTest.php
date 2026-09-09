@@ -17,7 +17,7 @@ class ImportIdentityDigestTest extends TestCase
         $this->assertSame($first['digest'], $second['digest']);
         $this->assertSame(10, $first['account_id']);
         $this->assertSame('2026-03-15', $first['date']);
-        $this->assertSame(-4550, $first['amount_grosze']);
+        $this->assertSame(-4550, $first['amount_minor_units']);
     }
 
     public function test_digest_changes_when_user_or_account_differs(): void

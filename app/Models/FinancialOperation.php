@@ -18,13 +18,13 @@ use Illuminate\Support\Carbon;
  * @property int $category_id
  * @property int $budget_id
  * @property Carbon $operation_date
- * @property int $amount_grosze
+ * @property int $amount_minor_units
  * @property string $description
  * @property string|null $counterparty
  * @property string|null $raw_statement_description
  * @property int|null $import_identity_account_id
  * @property Carbon|null $import_identity_date
- * @property int|null $import_identity_amount_grosze
+ * @property int|null $import_identity_amount_minor_units
  * @property string|null $import_identity_digest
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -36,13 +36,13 @@ use Illuminate\Support\Carbon;
     'category_id',
     'budget_id',
     'operation_date',
-    'amount_grosze',
+    'amount_minor_units',
     'description',
     'counterparty',
     'raw_statement_description',
     'import_identity_account_id',
     'import_identity_date',
-    'import_identity_amount_grosze',
+    'import_identity_amount_minor_units',
     'import_identity_digest',
 ])]
 class FinancialOperation extends Model
@@ -58,9 +58,9 @@ class FinancialOperation extends Model
         return [
             'type' => FinancialOperationType::class,
             'operation_date' => 'date',
-            'amount_grosze' => 'integer',
+            'amount_minor_units' => 'integer',
             'import_identity_date' => 'date',
-            'import_identity_amount_grosze' => 'integer',
+            'import_identity_amount_minor_units' => 'integer',
         ];
     }
 

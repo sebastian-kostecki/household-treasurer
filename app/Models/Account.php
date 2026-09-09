@@ -19,8 +19,8 @@ use Illuminate\Support\Carbon;
  * @property AccountType $type
  * @property Bank|null $bank
  * @property Carbon $opening_date
- * @property int $opening_balance_grosze
- * @property int $current_balance_grosze
+ * @property int $opening_balance_minor_units
+ * @property int $current_balance_minor_units
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -31,8 +31,8 @@ use Illuminate\Support\Carbon;
     'type',
     'bank',
     'opening_date',
-    'opening_balance_grosze',
-    'current_balance_grosze',
+    'opening_balance_minor_units',
+    'current_balance_minor_units',
     'archived_at',
 ])]
 class Account extends Model
@@ -49,8 +49,8 @@ class Account extends Model
             'type' => AccountType::class,
             'bank' => Bank::class,
             'opening_date' => 'date',
-            'opening_balance_grosze' => 'integer',
-            'current_balance_grosze' => 'integer',
+            'opening_balance_minor_units' => 'integer',
+            'current_balance_minor_units' => 'integer',
             'archived_at' => 'datetime',
         ];
     }
@@ -101,6 +101,6 @@ class Account extends Model
 
     public function isNegative(): bool
     {
-        return $this->current_balance_grosze < 0;
+        return $this->current_balance_minor_units < 0;
     }
 }

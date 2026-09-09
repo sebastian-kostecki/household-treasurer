@@ -61,9 +61,9 @@ CSV;
                 ->where('account.id', $account->id)
                 ->has('rows', 2)
                 ->where('rows.0.valid', true)
-                ->where('rows.0.amount_grosze', 250000)
+                ->where('rows.0.amount_minor_units', 250000)
                 ->where('rows.1.valid', true)
-                ->where('rows.1.amount_grosze', -4550),
+                ->where('rows.1.amount_minor_units', -4550),
             );
     }
 
@@ -96,9 +96,9 @@ CSV;
             ->get(route('operations.import.preview'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('rows.0.amount_grosze', 250000)
+                ->where('rows.0.amount_minor_units', 250000)
                 ->where('rows.0.valid', true)
-                ->where('rows.1.amount_grosze', -4550)
+                ->where('rows.1.amount_minor_units', -4550)
                 ->where('rows.1.valid', true),
             );
     }
@@ -138,7 +138,7 @@ CSV;
             );
     }
 
-    public function test_amounts_with_pln_and_zl_suffixes_parse_to_grosze(): void
+    public function test_amounts_with_pln_and_zl_suffixes_parse_to_minor_units(): void
     {
         $this->travelTo('2026-06-01');
 
@@ -167,9 +167,9 @@ CSV;
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 2)
-                ->where('rows.0.amount_grosze', -35591)
+                ->where('rows.0.amount_minor_units', -35591)
                 ->where('rows.0.valid', true)
-                ->where('rows.1.amount_grosze', 100000)
+                ->where('rows.1.amount_minor_units', 100000)
                 ->where('rows.1.valid', true),
             );
     }
@@ -287,7 +287,7 @@ CSV;
         $this->assertDatabaseCount('financial_operations', 1);
         $this->assertDatabaseHas('financial_operations', [
             'description' => 'Salary',
-            'amount_grosze' => 250000,
+            'amount_minor_units' => 250000,
         ]);
     }
 
@@ -347,26 +347,26 @@ CSV;
         $this->assertDatabaseHas('financial_operations', [
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income->value,
-            'amount_grosze' => 250000,
+            'amount_minor_units' => 250000,
             'description' => 'Salary',
         ]);
 
         $this->assertDatabaseHas('financial_operations', [
             'user_id' => $user->id,
             'type' => FinancialOperationType::Expense->value,
-            'amount_grosze' => 4550,
+            'amount_minor_units' => 4550,
             'description' => 'Groceries',
         ]);
 
         $this->assertDatabaseHas('financial_operations', [
             'user_id' => $user->id,
             'type' => FinancialOperationType::Expense->value,
-            'amount_grosze' => -1200,
+            'amount_minor_units' => -1200,
             'description' => 'Refund',
         ]);
 
         $account->refresh();
-        $this->assertSame(100000 + 250000 - 4550 + 1200, $account->current_balance_grosze);
+        $this->assertSame(100000 + 250000 - 4550 + 1200, $account->current_balance_minor_units);
     }
 
     public function test_import_rolls_back_all_rows_when_one_selected_row_fails_validation(): void
@@ -587,8 +587,8 @@ CSV;
         [$user, $account] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -616,14 +616,14 @@ CSV;
             'user_id' => $user->id,
             'source_account_id' => $account->id,
             'destination_account_id' => $otherAccount->id,
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'To savings',
         ]);
 
         $account->refresh();
         $otherAccount->refresh();
-        $this->assertSame(100000 - 10000, $account->current_balance_grosze);
-        $this->assertSame(10000, $otherAccount->current_balance_grosze);
+        $this->assertSame(100000 - 10000, $account->current_balance_minor_units);
+        $this->assertSame(10000, $otherAccount->current_balance_minor_units);
     }
 
     public function test_user_can_import_csv_row_as_own_transfer_with_inflow_to_import_account(): void
@@ -633,8 +633,8 @@ CSV;
         [$user, $account] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 50000,
-            'current_balance_grosze' => 50000,
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -660,13 +660,13 @@ CSV;
         $this->assertDatabaseHas('own_transfers', [
             'source_account_id' => $otherAccount->id,
             'destination_account_id' => $account->id,
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
         ]);
 
         $account->refresh();
         $otherAccount->refresh();
-        $this->assertSame(100000 + 10000, $account->current_balance_grosze);
-        $this->assertSame(50000 - 10000, $otherAccount->current_balance_grosze);
+        $this->assertSame(100000 + 10000, $account->current_balance_minor_units);
+        $this->assertSame(50000 - 10000, $otherAccount->current_balance_minor_units);
     }
 
     public function test_own_transfer_import_requires_other_account(): void
@@ -735,8 +735,8 @@ CSV;
         [$user, $account, $incomeCategory, $expenseCategory] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -784,8 +784,8 @@ CSV;
         [$user, $account, $incomeCategory] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-03-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -958,14 +958,14 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 7)
                 ->where('rows.0.operation_date', '2025-01-09')
-                ->where('rows.0.amount_grosze', -35591)
+                ->where('rows.0.amount_minor_units', -35591)
                 ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'C&A MODE'))
                 ->where('rows.0.valid', true)
                 ->where('rows.1.operation_date', '2025-01-09')
-                ->where('rows.1.amount_grosze', 100000)
+                ->where('rows.1.amount_minor_units', 100000)
                 ->where('rows.1.valid', true)
                 ->where('rows.6.operation_date', '2025-01-02')
-                ->where('rows.6.amount_grosze', -4104)
+                ->where('rows.6.amount_minor_units', -4104)
                 ->where('rows.6.valid', true),
             );
     }
@@ -1030,25 +1030,25 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 7)
                 ->where('rows.0.operation_date', '2025-01-11')
-                ->where('rows.0.amount_grosze', -3739)
+                ->where('rows.0.amount_minor_units', -3739)
                 ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'JMP S.A. BIEDRO'))
                 ->where('rows.0.counterparty', null)
                 ->where('rows.0.raw_statement_description', fn (?string $value) => str_contains((string) $value, 'JMP S.A. BIEDRO'))
                 ->where('rows.0.valid', true)
                 ->where('rows.1.operation_date', '2025-01-11')
-                ->where('rows.1.amount_grosze', -2999)
+                ->where('rows.1.amount_minor_units', -2999)
                 ->where('rows.1.valid', true)
                 ->where('rows.4.operation_date', '2025-01-09')
-                ->where('rows.4.amount_grosze', -93900)
+                ->where('rows.4.amount_minor_units', -93900)
                 ->where('rows.4.counterparty', 'Przedszkole Niepubliczne Odkrywcy Talentów')
                 ->where('rows.4.description', 'Jan Nowak')
                 ->where('rows.5.operation_date', '2025-01-09')
-                ->where('rows.5.amount_grosze', 1000000)
+                ->where('rows.5.amount_minor_units', 1000000)
                 ->where('rows.5.counterparty', 'Employer')
                 ->where('rows.5.description', 'WYPŁATA GRUDZIEŃ 2024')
                 ->where('rows.5.valid', true)
                 ->where('rows.6.operation_date', '2025-01-09')
-                ->where('rows.6.amount_grosze', 500000)
+                ->where('rows.6.amount_minor_units', 500000)
                 ->where('rows.6.valid', true),
             );
     }
@@ -1075,23 +1075,23 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 4)
                 ->where('rows.0.operation_date', '2026-09-07')
-                ->where('rows.0.amount_grosze', -3735)
+                ->where('rows.0.amount_minor_units', -3735)
                 ->where('rows.0.counterparty', 'Grocery Store')
                 ->where('rows.0.description', 'BLIK payment')
                 ->where('rows.0.raw_statement_description', "Grocery Store\nBLIK payment")
                 ->where('rows.0.valid', true)
                 ->where('rows.1.operation_date', '2026-09-07')
-                ->where('rows.1.amount_grosze', 500000)
+                ->where('rows.1.amount_minor_units', 500000)
                 ->where('rows.1.counterparty', 'Employer Sp. z o.o.')
                 ->where('rows.1.description', 'Salary September')
                 ->where('rows.1.valid', true)
                 ->where('rows.2.operation_date', '2026-09-07')
-                ->where('rows.2.amount_grosze', -3836)
+                ->where('rows.2.amount_minor_units', -3836)
                 ->where('rows.2.counterparty', null)
                 ->where('rows.2.description', 'STOKROTKA NR 06 LUBLIN')
                 ->where('rows.2.valid', true)
                 ->where('rows.3.operation_date', '2026-09-06')
-                ->where('rows.3.amount_grosze', -199)
+                ->where('rows.3.amount_minor_units', -199)
                 ->where('rows.3.counterparty', '48160000000000000000000000')
                 ->where('rows.3.description', 'Account fee')
                 ->where('rows.3.valid', true),
@@ -1289,8 +1289,8 @@ CSV;
         [$user, $account] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -1342,7 +1342,7 @@ CSV;
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Imported description',
                 'counterparty' => 'Original counterparty',
                 'raw_statement_description' => 'Original snapshot',
@@ -1351,7 +1351,7 @@ CSV;
         $this->actingAs($user)
             ->patch(route('incomes.update', $operation), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Edited description',
                 'counterparty' => 'Edited counterparty',
                 'account_id' => $account->id,
@@ -1556,7 +1556,7 @@ CSV;
 
         $this->assertSame($account->id, $operation->import_identity_account_id);
         $this->assertSame('2026-03-15', $operation->import_identity_date->toDateString());
-        $this->assertSame(250000, $operation->import_identity_amount_grosze);
+        $this->assertSame(250000, $operation->import_identity_amount_minor_units);
         $this->assertNotNull($operation->import_identity_digest);
     }
 
@@ -1574,7 +1574,7 @@ CSV;
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Salary',
                 'raw_statement_description' => null,
             ]);
@@ -1608,7 +1608,7 @@ CSV;
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Salary',
                 'raw_statement_description' => 'Salary',
                 'import_identity_digest' => null,
@@ -1658,7 +1658,7 @@ CSV;
         $this->actingAs($user)
             ->patch(route('incomes.update', $operation), [
                 'operation_date' => '2026-03-20',
-                'amount_grosze' => 300000,
+                'amount_minor_units' => 300000,
                 'description' => 'Edited salary',
                 'counterparty' => 'Edited counterparty',
                 'account_id' => $account->id,
@@ -1695,12 +1695,12 @@ CSV;
             ->income()
             ->create([
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Salary',
                 'raw_statement_description' => 'Salary',
                 'import_identity_account_id' => $otherAccount->id,
                 'import_identity_date' => '2026-03-15',
-                'import_identity_amount_grosze' => 250000,
+                'import_identity_amount_minor_units' => 250000,
                 'import_identity_digest' => app(ImportIdentityDigest::class)->compute(
                     $otherUser->id,
                     $otherAccount->id,
@@ -1772,8 +1772,8 @@ CSV;
         [$user, $account] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -1798,7 +1798,7 @@ CSV;
 
         $this->assertSame($account->id, $transfer->source_import_identity_account_id);
         $this->assertSame('2026-03-15', $transfer->source_import_identity_date->toDateString());
-        $this->assertSame(-10000, $transfer->source_import_identity_amount_grosze);
+        $this->assertSame(-10000, $transfer->source_import_identity_amount_minor_units);
         $this->assertNotNull($transfer->source_import_identity_digest);
         $this->assertNull($transfer->destination_import_identity_digest);
     }
@@ -1890,8 +1890,8 @@ CSV;
         [$user, $account] = $this->createImportFixture();
         $otherAccount = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $csv = <<<'CSV'
 date,description,amount
@@ -1931,7 +1931,7 @@ CSV;
         $this->actingAs($user)
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Manual income',
                 'counterparty' => 'Acme Corp',
                 'raw_statement_description' => 'Should not persist',
@@ -1952,7 +1952,7 @@ CSV;
         $this->actingAs($user)
             ->post(route('incomes.store'), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 250000,
+                'amount_minor_units' => 250000,
                 'description' => 'Manual income',
                 'account_id' => $account->id,
                 'category_id' => $incomeCategory->id,
@@ -1973,8 +1973,8 @@ CSV;
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2094,13 +2094,13 @@ CSV);
 
         [$user, $checking, , $expenseCategory] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2122,8 +2122,8 @@ CSV);
 
         $firstLeg = FinancialOperation::query()->firstOrFail();
         $expenseCategory->refresh();
-        $this->assertSame(10000, $expenseCategory->execution_grosze);
-        $this->assertSame(90000, $checking->refresh()->current_balance_grosze);
+        $this->assertSame(10000, $expenseCategory->execution_minor_units);
+        $this->assertSame(90000, $checking->refresh()->current_balance_minor_units);
 
         $this->previewCsv($user, $savings, <<<'CSV'
 date,description,amount
@@ -2151,15 +2151,15 @@ CSV);
         $transfer = OwnTransfer::query()->firstOrFail();
         $this->assertSame($checking->id, $transfer->source_account_id);
         $this->assertSame($savings->id, $transfer->destination_account_id);
-        $this->assertSame(10000, $transfer->amount_grosze);
+        $this->assertSame(10000, $transfer->amount_minor_units);
         $this->assertSame('Transfer to savings', $transfer->description);
         $this->assertSame('2026-03-15', $transfer->transfer_date->toDateString());
         $this->assertNull($transfer->counterparty ?? null);
         $this->assertNotNull($transfer->source_import_identity_digest);
         $this->assertNotNull($transfer->destination_import_identity_digest);
-        $this->assertSame(90000, $checking->refresh()->current_balance_grosze);
-        $this->assertSame(10000, $savings->refresh()->current_balance_grosze);
-        $this->assertSame(0, $expenseCategory->refresh()->execution_grosze);
+        $this->assertSame(90000, $checking->refresh()->current_balance_minor_units);
+        $this->assertSame(10000, $savings->refresh()->current_balance_minor_units);
+        $this->assertSame(0, $expenseCategory->refresh()->execution_minor_units);
     }
 
     public function test_pair_candidate_can_be_ignored_and_booked_as_income(): void
@@ -2172,7 +2172,7 @@ CSV);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2265,13 +2265,13 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2314,13 +2314,13 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 0,
-            'current_balance_grosze' => 0,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2341,8 +2341,8 @@ CSV);
             ]);
 
         $transfer = OwnTransfer::query()->firstOrFail();
-        $this->assertSame(90000, $checking->refresh()->current_balance_grosze);
-        $this->assertSame(10000, $savings->refresh()->current_balance_grosze);
+        $this->assertSame(90000, $checking->refresh()->current_balance_minor_units);
+        $this->assertSame(10000, $savings->refresh()->current_balance_minor_units);
 
         $this->previewCsv($user, $savings, <<<'CSV'
 date,description,amount
@@ -2371,8 +2371,8 @@ CSV);
         $this->assertNotNull($transfer->destination_import_identity_digest);
         $this->assertSame('Transfer to savings', $transfer->source_raw_statement_description);
         $this->assertSame('Transfer from checking', $transfer->destination_raw_statement_description);
-        $this->assertSame(90000, $checking->refresh()->current_balance_grosze);
-        $this->assertSame(10000, $savings->refresh()->current_balance_grosze);
+        $this->assertSame(90000, $checking->refresh()->current_balance_minor_units);
+        $this->assertSame(10000, $savings->refresh()->current_balance_minor_units);
     }
 
     public function test_own_transfer_with_two_identities_is_never_pair_candidate(): void
@@ -2381,12 +2381,12 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2447,12 +2447,12 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2512,12 +2512,12 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2563,8 +2563,8 @@ CSV);
 
         $this->assertDatabaseCount('own_transfers', 0);
         $this->assertDatabaseCount('financial_operations', 0);
-        $this->assertSame(100000, $checking->refresh()->current_balance_grosze);
-        $this->assertSame(0, $savings->refresh()->current_balance_grosze);
+        $this->assertSame(100000, $checking->refresh()->current_balance_minor_units);
+        $this->assertSame(0, $savings->refresh()->current_balance_minor_units);
     }
 
     public function test_commit_rejects_income_when_own_transfer_in_candidate_set(): void
@@ -2573,12 +2573,12 @@ CSV);
 
         [$user, $checking, $incomeCategory] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2623,12 +2623,12 @@ CSV);
 
         [$user, $checking, , $expenseCategory] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2694,17 +2694,17 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $cash = Account::factory()->for($user)->cash()->create([
             'name' => 'Cash',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2753,12 +2753,12 @@ CSV);
 
         [$user, $checking] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -2890,12 +2890,12 @@ CSV);
 
         [$user, $checking, , $expenseCategory] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -3036,12 +3036,12 @@ CSV);
 
         [$user, $checking, , $expenseCategory] = $this->createImportFixture([
             'name' => 'Checking',
-            'current_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $savings = Account::factory()->for($user)->create([
             'name' => 'Savings',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $checking, <<<'CSV'
@@ -3107,7 +3107,7 @@ CSV);
         $cash = Account::factory()->for($user)->cash()->create([
             'name' => 'Cash',
             'opening_date' => '2026-01-01',
-            'current_balance_grosze' => 0,
+            'current_balance_minor_units' => 0,
         ]);
 
         $this->previewCsv($user, $bank, <<<'CSV'
@@ -3149,17 +3149,17 @@ CSV);
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(array_merge([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ], $accountAttributes));
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $incomeCategory = Category::factory()->for($budget)->income()->create([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]);
         $expenseCategory = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]);
 
         return [$user, $account, $incomeCategory, $expenseCategory];

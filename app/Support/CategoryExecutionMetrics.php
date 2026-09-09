@@ -4,22 +4,22 @@ namespace App\Support;
 
 class CategoryExecutionMetrics
 {
-    public static function remainingGrosze(int $currentPlanGrosze, int $executionGrosze): int
+    public static function remainingMinorUnits(int $currentPlanMinorUnits, int $executionMinorUnits): int
     {
-        return $currentPlanGrosze - $executionGrosze;
+        return $currentPlanMinorUnits - $executionMinorUnits;
     }
 
-    public static function percentComplete(int $currentPlanGrosze, int $executionGrosze): ?int
+    public static function percentComplete(int $currentPlanMinorUnits, int $executionMinorUnits): ?int
     {
-        if ($currentPlanGrosze === 0) {
+        if ($currentPlanMinorUnits === 0) {
             return null;
         }
 
-        return (int) round($executionGrosze / $currentPlanGrosze * 100);
+        return (int) round($executionMinorUnits / $currentPlanMinorUnits * 100);
     }
 
-    public static function isOverLimit(int $currentPlanGrosze, int $executionGrosze): bool
+    public static function isOverLimit(int $currentPlanMinorUnits, int $executionMinorUnits): bool
     {
-        return $currentPlanGrosze - $executionGrosze < 0;
+        return $currentPlanMinorUnits - $executionMinorUnits < 0;
     }
 }

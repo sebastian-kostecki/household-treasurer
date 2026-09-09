@@ -11,7 +11,7 @@ class CsvImportPreviewValidator
      * @param  array{
      *     operation_date: ?string,
      *     description: ?string,
-     *     amount_grosze: ?int,
+     *     amount_minor_units: ?int,
      *     amount_has_foreign_currency?: bool,
      * }  $row
      * @return array{valid: bool, invalid_reason: ?string}
@@ -40,11 +40,11 @@ class CsvImportPreviewValidator
             return $this->invalid(__('Only PLN amounts are supported.'));
         }
 
-        if ($row['amount_grosze'] === null) {
+        if ($row['amount_minor_units'] === null) {
             return $this->invalid(__('Invalid or missing amount.'));
         }
 
-        if ($row['amount_grosze'] === 0) {
+        if ($row['amount_minor_units'] === 0) {
             return $this->invalid(__('Amount must not be zero.'));
         }
 

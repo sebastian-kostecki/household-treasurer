@@ -64,7 +64,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'accounts' => $accounts,
-            'liquidity_total_grosze' => (int) $user->accounts()->sum('current_balance_grosze'),
+            'liquidity_total_minor_units' => (int) $user->accounts()->sum('current_balance_minor_units'),
             'budget' => $budget === null ? null : [
                 'year' => $budget->year,
                 'phase' => $budget->phase->value,
@@ -111,7 +111,7 @@ class DashboardController extends Controller
         return [
             ...AccountIdentity::payload($account),
             'opening_date' => $account->opening_date->toDateString(),
-            'current_balance_grosze' => $account->current_balance_grosze,
+            'current_balance_minor_units' => $account->current_balance_minor_units,
             'is_negative' => $account->isNegative(),
             'is_archived' => $account->isArchived(),
         ];
@@ -123,10 +123,10 @@ class DashboardController extends Controller
      *     name: string,
      *     icon: string,
      *     color: string,
-     *     initial_plan_grosze: int,
-     *     current_plan_grosze: int,
-     *     execution_grosze: int,
-     *     remaining_grosze: int,
+     *     initial_plan_minor_units: int,
+     *     current_plan_minor_units: int,
+     *     execution_minor_units: int,
+     *     remaining_minor_units: int,
      *     percent_complete: int|null,
      *     is_over_limit: bool,
      *     is_archived: bool,
@@ -134,29 +134,29 @@ class DashboardController extends Controller
      */
     private function categoryPayload(Category $category, Budget $budget): array
     {
-        $currentPlanGrosze = $category->planned_amount_grosze;
-        $executionGrosze = $category->execution_grosze;
-        $initialPlanGrosze = $budget->isExecution()
-            ? $category->initial_plan_grosze
-            : $category->planned_amount_grosze;
+        $currentPlanMinorUnits = $category->planned_amount_minor_units;
+        $executionMinorUnits = $category->execution_minor_units;
+        $initialPlanMinorUnits = $budget->isExecution()
+            ? $category->initial_plan_minor_units
+            : $category->planned_amount_minor_units;
 
         return [
             'id' => $category->id,
             'name' => $category->name,
             ...CategoryAppearance::fields($category),
-            'initial_plan_grosze' => $initialPlanGrosze,
-            'current_plan_grosze' => $currentPlanGrosze,
-            'execution_grosze' => $executionGrosze,
-            'remaining_grosze' => CategoryExecutionMetrics::remainingGrosze(
-                $currentPlanGrosze,
-                $executionGrosze,
+            'initial_plan_minor_units' => $initialPlanMinorUnits,
+            'current_plan_minor_units' => $currentPlanMinorUnits,
+            'execution_minor_units' => $executionMinorUnits,
+            'remaining_minor_units' => CategoryExecutionMetrics::remainingMinorUnits(
+                $currentPlanMinorUnits,
+                $executionMinorUnits,
             ),
             'percent_complete' => CategoryExecutionMetrics::percentComplete(
-                $currentPlanGrosze,
-                $executionGrosze,
+                $currentPlanMinorUnits,
+                $executionMinorUnits,
             ),
             'is_over_limit' => $category->type === CategoryType::Expense
-                && CategoryExecutionMetrics::isOverLimit($currentPlanGrosze, $executionGrosze),
+                && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
         ];
     }

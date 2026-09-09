@@ -35,7 +35,7 @@ class AccountController extends Controller
 
         return Inertia::render('Accounts', [
             'accounts' => $accounts,
-            'liquidity_total_grosze' => $allAccounts->sum('current_balance_grosze'),
+            'liquidity_total_minor_units' => $allAccounts->sum('current_balance_minor_units'),
             'show_archived' => $showArchived,
         ]);
     }
@@ -46,7 +46,7 @@ class AccountController extends Controller
 
         $request->user()->accounts()->create([
             ...$this->accountAttributes($validated),
-            'current_balance_grosze' => $validated['opening_balance_grosze'],
+            'current_balance_minor_units' => $validated['opening_balance_minor_units'],
         ]);
 
         Inertia::flash('toast', [
@@ -61,11 +61,11 @@ class AccountController extends Controller
     {
         $validated = $request->validated();
 
-        $openingBalanceDelta = $validated['opening_balance_grosze'] - $account->opening_balance_grosze;
+        $openingBalanceDelta = $validated['opening_balance_minor_units'] - $account->opening_balance_minor_units;
 
         $account->update([
             ...$this->accountAttributes($validated),
-            'current_balance_grosze' => $account->current_balance_grosze + $openingBalanceDelta,
+            'current_balance_minor_units' => $account->current_balance_minor_units + $openingBalanceDelta,
         ]);
 
         Inertia::flash('toast', [
@@ -145,8 +145,8 @@ class AccountController extends Controller
      *     bank: string|null,
      *     mark_url: string|null,
      *     opening_date: string,
-     *     opening_balance_grosze: int,
-     *     current_balance_grosze: int,
+     *     opening_balance_minor_units: int,
+     *     current_balance_minor_units: int,
      *     is_negative: bool,
      *     is_archived: bool,
      *     can_delete: bool,
@@ -159,8 +159,8 @@ class AccountController extends Controller
         return [
             ...AccountIdentity::payload($account),
             'opening_date' => $account->opening_date->toDateString(),
-            'opening_balance_grosze' => $account->opening_balance_grosze,
-            'current_balance_grosze' => $account->current_balance_grosze,
+            'opening_balance_minor_units' => $account->opening_balance_minor_units,
+            'current_balance_minor_units' => $account->current_balance_minor_units,
             'is_negative' => $account->isNegative(),
             'is_archived' => $account->isArchived(),
             'can_delete' => ! $account->hasFinancialHistory() && ! $account->isArchived(),

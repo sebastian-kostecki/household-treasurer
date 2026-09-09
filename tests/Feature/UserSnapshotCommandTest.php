@@ -190,14 +190,14 @@ class UserSnapshotCommandTest extends TestCase
         $restoredTransfer = $targetUser->ownTransfers()->where('description', $sourceTransfer->description)->firstOrFail();
 
         $this->assertNotSame($sourceAccount->id, $restoredAccount->id);
-        $this->assertSame($sourceAccount->current_balance_grosze, $restoredAccount->current_balance_grosze);
+        $this->assertSame($sourceAccount->current_balance_minor_units, $restoredAccount->current_balance_minor_units);
         $this->assertSame($sourceBudget->phase, $restoredBudget->phase);
-        $this->assertSame($sourceCategory->execution_grosze, $restoredCategory->execution_grosze);
-        $this->assertSame($sourceOperation->amount_grosze, $restoredOperation->amount_grosze);
+        $this->assertSame($sourceCategory->execution_minor_units, $restoredCategory->execution_minor_units);
+        $this->assertSame($sourceOperation->amount_minor_units, $restoredOperation->amount_minor_units);
         $this->assertSame($sourceOperation->raw_statement_description, $restoredOperation->raw_statement_description);
         $this->assertSame($sourceOperation->import_identity_digest, $restoredOperation->import_identity_digest);
-        $this->assertSame($sourceOperation->import_identity_amount_grosze, $restoredOperation->import_identity_amount_grosze);
-        $this->assertSame($sourceTransfer->amount_grosze, $restoredTransfer->amount_grosze);
+        $this->assertSame($sourceOperation->import_identity_amount_minor_units, $restoredOperation->import_identity_amount_minor_units);
+        $this->assertSame($sourceTransfer->amount_minor_units, $restoredTransfer->amount_minor_units);
         $this->assertSame($sourceTransfer->source_import_identity_digest, $restoredTransfer->source_import_identity_digest);
         $this->assertSame($sourceTransfer->destination_import_identity_digest, $restoredTransfer->destination_import_identity_digest);
         $this->assertSame($sourceTransfer->source_raw_statement_description, $restoredTransfer->source_raw_statement_description);
@@ -221,7 +221,7 @@ class UserSnapshotCommandTest extends TestCase
         ]);
         $category = Category::factory()->for($budget)->income()->create([
             'name' => 'Salary',
-            'execution_grosze' => 150000,
+            'execution_minor_units' => 150000,
         ]);
 
         FinancialOperation::factory()->for($user)->create([
@@ -232,7 +232,7 @@ class UserSnapshotCommandTest extends TestCase
             'raw_statement_description' => 'ACME PAYROLL',
             'import_identity_account_id' => $sourceAccount->id,
             'import_identity_date' => '2026-03-01',
-            'import_identity_amount_grosze' => 150000,
+            'import_identity_amount_minor_units' => 150000,
             'import_identity_digest' => 'digest-paycheck',
         ]);
 
@@ -244,11 +244,11 @@ class UserSnapshotCommandTest extends TestCase
             'destination_raw_statement_description' => 'Cash deposit row',
             'source_import_identity_account_id' => $sourceAccount->id,
             'source_import_identity_date' => '2026-03-02',
-            'source_import_identity_amount_grosze' => -50000,
+            'source_import_identity_amount_minor_units' => -50000,
             'source_import_identity_digest' => 'digest-atm',
             'destination_import_identity_account_id' => $destinationAccount->id,
             'destination_import_identity_date' => '2026-03-03',
-            'destination_import_identity_amount_grosze' => 50000,
+            'destination_import_identity_amount_minor_units' => 50000,
             'destination_import_identity_digest' => 'digest-cash',
         ]);
 

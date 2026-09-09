@@ -45,7 +45,7 @@ type ImportRow = {
     description: string | null;
     counterparty: string | null;
     raw_statement_description: string | null;
-    amount_grosze: number | null;
+    amount_minor_units: number | null;
     valid: boolean;
     invalid_reason: string | null;
     import_duplicate: boolean;
@@ -62,7 +62,7 @@ type CategoryRow = {
 };
 
 type OtherAccountRow = AccountPickerOption & {
-    current_balance_grosze: number;
+    current_balance_minor_units: number;
 };
 
 type RowSelection = PairRowSelection & {
@@ -76,7 +76,7 @@ const {
     expenseCategories,
     otherAccounts,
 } = defineProps<{
-    account: AccountPickerOption & { current_balance_grosze: number };
+    account: AccountPickerOption & { current_balance_minor_units: number };
     rows: ImportRow[];
     incomeCategories: CategoryRow[];
     expenseCategories: CategoryRow[];
@@ -178,7 +178,7 @@ setLayoutProps({
 });
 
 function defaultType(row: ImportRow): 'income' | 'expense' | 'refund' {
-    if ((row.amount_grosze ?? 0) < 0) {
+    if ((row.amount_minor_units ?? 0) < 0) {
         return 'expense';
     }
 
@@ -299,13 +299,13 @@ function wouldMakeImportAccountNegative(
         return false;
     }
 
-    const signedAmount = row.amount_grosze ?? 0;
+    const signedAmount = row.amount_minor_units ?? 0;
 
     if (signedAmount >= 0) {
         return false;
     }
 
-    return account.current_balance_grosze + signedAmount < 0;
+    return account.current_balance_minor_units + signedAmount < 0;
 }
 
 function categoriesForRow(row: ImportRow, type: RowSelection['type']): CategoryRow[] {
@@ -321,7 +321,7 @@ function categoriesForRow(row: ImportRow, type: RowSelection['type']): CategoryR
 }
 
 function rowAmountClass(row: ImportRow): string {
-    if ((row.amount_grosze ?? 0) < 0) {
+    if ((row.amount_minor_units ?? 0) < 0) {
         return 'text-destructive';
     }
 
@@ -581,8 +581,8 @@ function onPairCandidateChange(row: ImportRow, value: string): void {
                                     :class="rowAmountClass(row)"
                                 >
                                     {{
-                                        row.amount_grosze !== null
-                                            ? formatMoney(row.amount_grosze)
+                                        row.amount_minor_units !== null
+                                            ? formatMoney(row.amount_minor_units)
                                             : '—'
                                     }}
                                 </td>

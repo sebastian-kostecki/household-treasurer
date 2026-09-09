@@ -43,6 +43,7 @@ const emit = defineEmits<{
         <div class="operations-cell-account flex items-center gap-1">
             <CompactAccountIdentity
                 class="min-w-0 flex-1"
+                mark-size="md"
                 :name="transfer.source_account_name"
                 :type="transfer.source_account_type"
                 :bank="transfer.source_account_bank"
@@ -51,6 +52,7 @@ const emit = defineEmits<{
             <span class="text-muted-foreground shrink-0">→</span>
             <CompactAccountIdentity
                 class="min-w-0 flex-1"
+                mark-size="md"
                 :name="transfer.destination_account_name"
                 :type="transfer.destination_account_type"
                 :bank="transfer.destination_account_bank"
@@ -59,7 +61,7 @@ const emit = defineEmits<{
         </div>
 
         <p class="operations-cell-amount">
-            {{ formatMoney(transfer.amount_grosze) }}
+            {{ formatMoney(transfer.amount_minor_units) }}
         </p>
 
         <OwnTransferActions

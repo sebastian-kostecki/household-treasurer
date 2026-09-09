@@ -33,7 +33,7 @@ type AccountSummary = {
     type: 'bank' | 'cash';
     bank: AccountBank | null;
     mark_url: string | null;
-    current_balance_grosze: number;
+    current_balance_minor_units: number;
     is_negative: boolean;
     is_archived: boolean;
 };
@@ -45,7 +45,7 @@ type BudgetSummary = {
 
 const props = defineProps<{
     accounts: AccountSummary[];
-    liquidity_total_grosze: number;
+    liquidity_total_minor_units: number;
     budget: BudgetSummary | null;
     incomeCategories: DashboardCategory[];
     expenseCategories: DashboardCategory[];
@@ -62,7 +62,7 @@ const checklistComplete = computed(() =>
 );
 
 const liquidityClass = computed(() =>
-    props.liquidity_total_grosze < 0 ? 'text-destructive' : 'text-success',
+    props.liquidity_total_minor_units < 0 ? 'text-destructive' : 'text-success',
 );
 
 setLayoutProps({
@@ -83,7 +83,7 @@ function balanceClass(account: AccountSummary): string {
         return 'text-destructive';
     }
 
-    if (account.current_balance_grosze > 0) {
+    if (account.current_balance_minor_units > 0) {
         return 'text-success';
     }
 
@@ -164,7 +164,7 @@ function balanceClass(account: AccountSummary): string {
                         {{ t.dashboard.total_funds }}
                     </CardDescription>
                     <CardTitle class="text-3xl" :class="liquidityClass">
-                        {{ formatMoney(liquidity_total_grosze) }}
+                        {{ formatMoney(liquidity_total_minor_units) }}
                     </CardTitle>
                 </CardHeader>
             </Card>
@@ -204,7 +204,7 @@ function balanceClass(account: AccountSummary): string {
                             class="text-lg"
                             :class="balanceClass(account)"
                         >
-                            {{ formatMoney(account.current_balance_grosze) }}
+                            {{ formatMoney(account.current_balance_minor_units) }}
                         </CardTitle>
                     </CardHeader>
                 </Card>

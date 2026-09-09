@@ -56,7 +56,7 @@ class CategoryReorderTest extends TestCase
             ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Health',
                 'type' => CategoryType::Expense->value,
-                'planned_amount_grosze' => 10000,
+                'planned_amount_minor_units' => 10000,
             ]))
             ->assertSessionHasNoErrors();
 

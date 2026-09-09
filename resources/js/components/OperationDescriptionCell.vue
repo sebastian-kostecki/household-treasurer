@@ -38,7 +38,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
         <Tooltip>
             <TooltipTrigger as-child>
                 <div
-                    class="flex min-w-0 items-start gap-2.5"
+                    class="flex min-w-0 items-stretch gap-2.5"
                     :aria-label="`${primaryLine}. ${t.operations.raw_statement_description}: ${tooltipLabel}`"
                 >
                     <OperationTypeTile :variant="variant" />
@@ -61,7 +61,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
             </TooltipContent>
         </Tooltip>
     </TooltipProvider>
-    <div v-else class="flex min-w-0 items-start gap-2.5">
+    <div v-else class="flex min-w-0 items-stretch gap-2.5">
         <OperationTypeTile :variant="variant" />
         <div class="min-w-0">
             <p class="truncate font-medium">{{ primaryLine }}</p>

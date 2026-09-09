@@ -25,8 +25,8 @@ import {
     type CategoryAppearanceOptions,
 } from '@/lib/category-appearance';
 import {
-    groszeToMoneyInput,
-    parseMoneyInputToGrosze,
+    minorUnitsToMoneyInput,
+    parseMoneyInputToMinorUnits,
 } from '@/lib/format';
 
 export type CategoryFormCategory = {
@@ -35,7 +35,7 @@ export type CategoryFormCategory = {
     icon: string;
     color: string;
     type: 'income' | 'expense';
-    planned_amount_grosze: number;
+    planned_amount_minor_units: number;
 };
 
 const props = defineProps<{
@@ -59,7 +59,7 @@ const icon = ref(DEFAULT_CATEGORY_ICON);
 const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
-const plannedAmountGrosze = ref(0);
+const plannedAmountMinorUnits = ref(0);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -93,9 +93,9 @@ watch(
             icon.value = props.category.icon;
             color.value = props.category.color;
             type.value = props.category.type;
-            plannedAmountGrosze.value = props.category.planned_amount_grosze;
-            plannedAmountInput.value = groszeToMoneyInput(
-                props.category.planned_amount_grosze,
+            plannedAmountMinorUnits.value = props.category.planned_amount_minor_units;
+            plannedAmountInput.value = minorUnitsToMoneyInput(
+                props.category.planned_amount_minor_units,
             );
 
             return;
@@ -105,17 +105,17 @@ watch(
         icon.value = DEFAULT_CATEGORY_ICON;
         color.value = DEFAULT_CATEGORY_COLOR;
         type.value = props.defaultType;
-        plannedAmountGrosze.value = 0;
+        plannedAmountMinorUnits.value = 0;
         plannedAmountInput.value = '0,00';
     },
     { immediate: true },
 );
 
 function syncPlannedAmount(): void {
-    const parsed = parseMoneyInputToGrosze(plannedAmountInput.value);
+    const parsed = parseMoneyInputToMinorUnits(plannedAmountInput.value);
 
     if (parsed !== null) {
-        plannedAmountGrosze.value = parsed;
+        plannedAmountMinorUnits.value = parsed;
     }
 }
 
@@ -246,10 +246,10 @@ function closeDialog(): void {
                     />
                     <input
                         type="hidden"
-                        name="planned_amount_grosze"
-                        :value="plannedAmountGrosze"
+                        name="planned_amount_minor_units"
+                        :value="plannedAmountMinorUnits"
                     />
-                    <InputError :message="errors.planned_amount_grosze" />
+                    <InputError :message="errors.planned_amount_minor_units" />
                 </div>
 
                 <DialogFooter class="gap-2">

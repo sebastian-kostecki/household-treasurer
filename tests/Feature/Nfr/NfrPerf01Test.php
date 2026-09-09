@@ -74,7 +74,7 @@ class NfrPerf01Test extends TestCase
             fn () => $this->actingAs($fixture['user'])
                 ->post(route('expenses.store'), [
                     'operation_date' => '2026-03-15',
-                    'amount_grosze' => 25000,
+                    'amount_minor_units' => 25000,
                     'description' => 'Performance test expense',
                     'account_id' => $fixture['account']->id,
                     'category_id' => $fixture['expenseCategory']->id,
@@ -98,8 +98,8 @@ class NfrPerf01Test extends TestCase
 
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 10_000_000,
-            'current_balance_grosze' => 10_000_000,
+            'opening_balance_minor_units' => 10_000_000,
+            'current_balance_minor_units' => 10_000_000,
         ]);
 
         $budget = Budget::factory()->for($user)->create([
@@ -109,8 +109,8 @@ class NfrPerf01Test extends TestCase
 
         $incomeCategory = Category::factory()->for($budget)->income()->create();
         $expenseCategory = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 5_000_000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 5_000_000,
+            'execution_minor_units' => 0,
         ]);
 
         $sourceAccount = Account::factory()->for($user)->bank()->create([
@@ -160,7 +160,7 @@ class NfrPerf01Test extends TestCase
                 'category_id' => $category->id,
                 'budget_id' => $budget->id,
                 'operation_date' => '2026-03-01',
-                'amount_grosze' => 1000 + ($index % 100),
+                'amount_minor_units' => 1000 + ($index % 100),
                 'description' => "Seeded operation {$index}",
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -192,7 +192,7 @@ class NfrPerf01Test extends TestCase
                 'source_account_id' => $sourceAccount->id,
                 'destination_account_id' => $destinationAccount->id,
                 'transfer_date' => '2026-03-01',
-                'amount_grosze' => 500 + ($index % 50),
+                'amount_minor_units' => 500 + ($index % 50),
                 'description' => "Seeded transfer {$index}",
                 'created_at' => $now,
                 'updated_at' => $now,

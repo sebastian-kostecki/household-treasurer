@@ -8,10 +8,10 @@ use App\Support\BudgetPlanSummary;
 
 test('empty type totals use zeros and null percent complete', function () {
     expect(BudgetPlanSummary::emptyTypeTotals())->toBe([
-        'initial_plan_grosze' => 0,
-        'current_plan_grosze' => 0,
-        'execution_grosze' => 0,
-        'remaining_grosze' => 0,
+        'initial_plan_minor_units' => 0,
+        'current_plan_minor_units' => 0,
+        'execution_minor_units' => 0,
+        'remaining_minor_units' => 0,
         'percent_complete' => null,
     ]);
 });
@@ -23,7 +23,7 @@ test('empty collection returns empty type totals', function () {
 
     expect($summary['income'])->toBe(BudgetPlanSummary::emptyTypeTotals())
         ->and($summary['expense'])->toBe(BudgetPlanSummary::emptyTypeTotals())
-        ->and($summary['planned_balance_grosze'])->toBe(0);
+        ->and($summary['planned_balance_minor_units'])->toBe(0);
 });
 
 test('for type sums initial plan current plan execution remaining and percent', function () {
@@ -31,23 +31,23 @@ test('for type sums initial plan current plan execution remaining and percent', 
     $categories = collect([
         new Category([
             'type' => CategoryType::Income,
-            'planned_amount_grosze' => 500000,
-            'initial_plan_grosze' => 400000,
-            'execution_grosze' => 250000,
+            'planned_amount_minor_units' => 500000,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 250000,
         ]),
         new Category([
             'type' => CategoryType::Income,
-            'planned_amount_grosze' => 100000,
-            'initial_plan_grosze' => 100000,
-            'execution_grosze' => 50000,
+            'planned_amount_minor_units' => 100000,
+            'initial_plan_minor_units' => 100000,
+            'execution_minor_units' => 50000,
         ]),
     ]);
 
     expect(BudgetPlanSummary::forType($budget, $categories, CategoryType::Income))->toBe([
-        'initial_plan_grosze' => 500000,
-        'current_plan_grosze' => 600000,
-        'execution_grosze' => 300000,
-        'remaining_grosze' => 300000,
+        'initial_plan_minor_units' => 500000,
+        'current_plan_minor_units' => 600000,
+        'execution_minor_units' => 300000,
+        'remaining_minor_units' => 300000,
         'percent_complete' => 50,
     ]);
 });
@@ -57,23 +57,23 @@ test('draft budget uses current plan as initial plan sum', function () {
     $categories = collect([
         new Category([
             'type' => CategoryType::Income,
-            'planned_amount_grosze' => 300000,
-            'initial_plan_grosze' => 0,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 300000,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
         ]),
         new Category([
             'type' => CategoryType::Expense,
-            'planned_amount_grosze' => 200000,
-            'initial_plan_grosze' => 0,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 200000,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
         ]),
     ]);
 
     $summary = BudgetPlanSummary::forBudget($budget, $categories);
 
-    expect($summary['income']['initial_plan_grosze'])->toBe(300000)
-        ->and($summary['expense']['initial_plan_grosze'])->toBe(200000)
-        ->and($summary['planned_balance_grosze'])->toBe(100000);
+    expect($summary['income']['initial_plan_minor_units'])->toBe(300000)
+        ->and($summary['expense']['initial_plan_minor_units'])->toBe(200000)
+        ->and($summary['planned_balance_minor_units'])->toBe(100000);
 });
 
 test('percent complete is null when section current plan is zero', function () {
@@ -81,9 +81,9 @@ test('percent complete is null when section current plan is zero', function () {
     $categories = collect([
         new Category([
             'type' => CategoryType::Expense,
-            'planned_amount_grosze' => 0,
-            'initial_plan_grosze' => 0,
-            'execution_grosze' => 5000,
+            'planned_amount_minor_units' => 0,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 5000,
         ]),
     ]);
 
@@ -95,19 +95,19 @@ test('planned balance is income current plan minus expense current plan', functi
     $categories = collect([
         new Category([
             'type' => CategoryType::Income,
-            'planned_amount_grosze' => 400000,
-            'initial_plan_grosze' => 400000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 400000,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 0,
         ]),
         new Category([
             'type' => CategoryType::Expense,
-            'planned_amount_grosze' => 550000,
-            'initial_plan_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 550000,
+            'initial_plan_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]),
     ]);
 
-    expect(BudgetPlanSummary::forBudget($budget, $categories)['planned_balance_grosze'])->toBe(-150000);
+    expect(BudgetPlanSummary::forBudget($budget, $categories)['planned_balance_minor_units'])->toBe(-150000);
 });
 
 test('for type ignores categories of the other type', function () {
@@ -115,20 +115,20 @@ test('for type ignores categories of the other type', function () {
     $categories = collect([
         new Category([
             'type' => CategoryType::Income,
-            'planned_amount_grosze' => 400000,
-            'initial_plan_grosze' => 400000,
-            'execution_grosze' => 100000,
+            'planned_amount_minor_units' => 400000,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 100000,
         ]),
         new Category([
             'type' => CategoryType::Expense,
-            'planned_amount_grosze' => 250000,
-            'initial_plan_grosze' => 250000,
-            'execution_grosze' => 50000,
+            'planned_amount_minor_units' => 250000,
+            'initial_plan_minor_units' => 250000,
+            'execution_minor_units' => 50000,
         ]),
     ]);
 
-    expect(BudgetPlanSummary::forType($budget, $categories, CategoryType::Income)['current_plan_grosze'])->toBe(400000)
-        ->and(BudgetPlanSummary::forType($budget, $categories, CategoryType::Expense)['current_plan_grosze'])->toBe(250000);
+    expect(BudgetPlanSummary::forType($budget, $categories, CategoryType::Income)['current_plan_minor_units'])->toBe(400000)
+        ->and(BudgetPlanSummary::forType($budget, $categories, CategoryType::Expense)['current_plan_minor_units'])->toBe(250000);
 });
 
 test('collection sums include every category passed in', function () {
@@ -136,17 +136,17 @@ test('collection sums include every category passed in', function () {
     $categories = collect([
         new Category([
             'type' => CategoryType::Expense,
-            'planned_amount_grosze' => 50000,
-            'initial_plan_grosze' => 50000,
-            'execution_grosze' => 10000,
+            'planned_amount_minor_units' => 50000,
+            'initial_plan_minor_units' => 50000,
+            'execution_minor_units' => 10000,
         ]),
         new Category([
             'type' => CategoryType::Expense,
-            'planned_amount_grosze' => 30000,
-            'initial_plan_grosze' => 30000,
-            'execution_grosze' => 5000,
+            'planned_amount_minor_units' => 30000,
+            'initial_plan_minor_units' => 30000,
+            'execution_minor_units' => 5000,
         ]),
     ]);
 
-    expect(BudgetPlanSummary::forType($budget, $categories, CategoryType::Expense)['current_plan_grosze'])->toBe(80000);
+    expect(BudgetPlanSummary::forType($budget, $categories, CategoryType::Expense)['current_plan_minor_units'])->toBe(80000);
 });

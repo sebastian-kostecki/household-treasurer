@@ -22,7 +22,7 @@ const tileSizeClass = computed(() =>
 );
 
 const tileRadiusClass = computed(() =>
-    props.size === 'sm' ? 'rounded-[2px]' : 'rounded-lg',
+    props.size === 'sm' ? 'rounded-md' : 'rounded-lg',
 );
 
 const iconSizeClass = computed(() =>

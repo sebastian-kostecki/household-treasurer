@@ -23,17 +23,17 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->income()->create([
-            'execution_grosze' => 0,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 50000,
+            'amount_minor_units' => 50000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -43,12 +43,12 @@ class FinancialOperationEditDeleteTest extends TestCase
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(150000, $account->current_balance_grosze);
-        $this->assertSame(50000, $category->execution_grosze);
+        $this->assertSame(150000, $account->current_balance_minor_units);
+        $this->assertSame(50000, $category->execution_minor_units);
 
         $this->actingAs($user)->patch(route('incomes.update', $operation), [
             'operation_date' => '2026-03-20',
-            'amount_grosze' => 75000,
+            'amount_minor_units' => 75000,
             'description' => 'Updated salary',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -60,10 +60,10 @@ class FinancialOperationEditDeleteTest extends TestCase
         $category->refresh();
 
         $this->assertSame('Updated salary', $operation->description);
-        $this->assertSame(75000, $operation->amount_grosze);
+        $this->assertSame(75000, $operation->amount_minor_units);
         $this->assertSame('2026-03-20', $operation->operation_date->toDateString());
-        $this->assertSame(175000, $account->current_balance_grosze);
-        $this->assertSame(75000, $category->execution_grosze);
+        $this->assertSame(175000, $account->current_balance_minor_units);
+        $this->assertSame(75000, $category->execution_minor_units);
     }
 
     public function test_user_can_delete_income_and_balances_are_reverted(): void
@@ -73,17 +73,17 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->income()->create([
-            'execution_grosze' => 0,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 40000,
+            'amount_minor_units' => 40000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -97,8 +97,8 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->assertRedirect(route('operations'));
 
         $this->assertDatabaseMissing('financial_operations', ['id' => $operation->id]);
-        $this->assertSame(100000, $account->refresh()->current_balance_grosze);
-        $this->assertSame(0, $category->refresh()->execution_grosze);
+        $this->assertSame(100000, $account->refresh()->current_balance_minor_units);
+        $this->assertSame(0, $category->refresh()->execution_minor_units);
     }
 
     public function test_user_can_edit_expense_and_balances_stay_consistent(): void
@@ -108,18 +108,18 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 500000,
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => 500000,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 25000,
+            'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -129,7 +129,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->patch(route('expenses.update', $operation), [
             'operation_date' => '2026-03-16',
-            'amount_grosze' => 30000,
+            'amount_minor_units' => 30000,
             'description' => 'Updated groceries',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -139,9 +139,9 @@ class FinancialOperationEditDeleteTest extends TestCase
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(30000, $operation->amount_grosze);
-        $this->assertSame(70000, $account->current_balance_grosze);
-        $this->assertSame(30000, $category->execution_grosze);
+        $this->assertSame(30000, $operation->amount_minor_units);
+        $this->assertSame(70000, $account->current_balance_minor_units);
+        $this->assertSame(30000, $category->execution_minor_units);
     }
 
     public function test_user_can_delete_expense_and_balances_are_reverted(): void
@@ -151,17 +151,17 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'execution_grosze' => 0,
+            'execution_minor_units' => 0,
         ]);
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 20000,
+            'amount_minor_units' => 20000,
             'description' => 'Groceries',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -174,8 +174,8 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseMissing('financial_operations', ['id' => $operation->id]);
-        $this->assertSame(100000, $account->refresh()->current_balance_grosze);
-        $this->assertSame(0, $category->refresh()->execution_grosze);
+        $this->assertSame(100000, $account->refresh()->current_balance_minor_units);
+        $this->assertSame(0, $category->refresh()->execution_minor_units);
     }
 
     public function test_user_can_edit_refund_and_balances_stay_consistent(): void
@@ -185,18 +185,18 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 50000,
-            'current_balance_grosze' => 50000,
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 100000,
-            'execution_grosze' => 30000,
+            'planned_amount_minor_units' => 100000,
+            'execution_minor_units' => 30000,
         ]);
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => -10000,
+            'amount_minor_units' => -10000,
             'description' => 'Refund',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -206,7 +206,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->patch(route('expenses.update', $operation), [
             'operation_date' => '2026-03-16',
-            'amount_grosze' => -15000,
+            'amount_minor_units' => -15000,
             'description' => 'Updated refund',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -216,9 +216,9 @@ class FinancialOperationEditDeleteTest extends TestCase
         $account->refresh();
         $category->refresh();
 
-        $this->assertSame(-15000, $operation->amount_grosze);
-        $this->assertSame(65000, $account->current_balance_grosze);
-        $this->assertSame(15000, $category->execution_grosze);
+        $this->assertSame(-15000, $operation->amount_minor_units);
+        $this->assertSame(65000, $account->current_balance_minor_units);
+        $this->assertSame(15000, $category->execution_minor_units);
     }
 
     public function test_editing_income_into_another_year_requires_category_from_destination_budget(): void
@@ -228,8 +228,8 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2025-01-01',
-            'opening_balance_grosze' => 100000,
-            'current_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
         ]);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
@@ -238,7 +238,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category2026->id,
@@ -250,7 +250,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->from(route('operations'))
             ->patch(route('incomes.update', $operation), [
                 'operation_date' => '2025-06-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Salary',
                 'account_id' => $account->id,
                 'category_id' => $category2026->id,
@@ -259,7 +259,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->patch(route('incomes.update', $operation), [
             'operation_date' => '2025-06-01',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $category2025->id,
@@ -271,8 +271,8 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->assertSame($category2025->id, $operation->category_id);
         $this->assertSame($budget2025->id, $operation->budget_id);
-        $this->assertSame(0, $category2026->execution_grosze);
-        $this->assertSame(10000, $category2025->execution_grosze);
+        $this->assertSame(0, $category2026->execution_minor_units);
+        $this->assertSame(10000, $category2025->execution_minor_units);
     }
 
     public function test_editing_expense_date_to_year_without_execution_budget_is_rejected(): void
@@ -293,7 +293,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Groceries',
             'account_id' => $account->id,
             'category_id' => $category2026->id,
@@ -305,7 +305,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->from(route('operations'))
             ->patch(route('expenses.update', $operation), [
                 'operation_date' => '2027-01-15',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
                 'category_id' => $category2027->id,
@@ -328,7 +328,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $incomeCategory->id,
@@ -336,7 +336,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($owner)->post(route('expenses.store'), [
             'operation_date' => '2026-03-16',
-            'amount_grosze' => 5000,
+            'amount_minor_units' => 5000,
             'description' => 'Groceries',
             'account_id' => $account->id,
             'category_id' => $expenseCategory->id,
@@ -348,7 +348,7 @@ class FinancialOperationEditDeleteTest extends TestCase
         $this->actingAs($otherUser)
             ->patch(route('incomes.update', $income), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 1,
+                'amount_minor_units' => 1,
                 'description' => 'Hack',
                 'account_id' => $account->id,
                 'category_id' => $incomeCategory->id,
@@ -362,7 +362,7 @@ class FinancialOperationEditDeleteTest extends TestCase
         $this->actingAs($otherUser)
             ->patch(route('expenses.update', $expense), [
                 'operation_date' => '2026-03-16',
-                'amount_grosze' => 1,
+                'amount_minor_units' => 1,
                 'description' => 'Hack',
                 'account_id' => $account->id,
                 'category_id' => $expenseCategory->id,
@@ -388,7 +388,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
             'category_id' => $incomeCategory->id,
@@ -399,7 +399,7 @@ class FinancialOperationEditDeleteTest extends TestCase
         $this->actingAs($user)
             ->patch(route('expenses.update', $income), [
                 'operation_date' => '2026-03-15',
-                'amount_grosze' => 5000,
+                'amount_minor_units' => 5000,
                 'description' => 'Wrong route',
                 'account_id' => $account->id,
                 'category_id' => $expenseCategory->id,
@@ -414,18 +414,18 @@ class FinancialOperationEditDeleteTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 50000,
-            'current_balance_grosze' => 50000,
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($budget)->expense()->create([
-            'planned_amount_grosze' => 100000,
-            'execution_grosze' => 30000,
+            'planned_amount_minor_units' => 100000,
+            'execution_minor_units' => 30000,
         ]);
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
-            'amount_grosze' => -10000,
+            'amount_minor_units' => -10000,
             'description' => 'Refund',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -438,8 +438,8 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseMissing('financial_operations', ['id' => $operation->id]);
-        $this->assertSame(50000, $account->refresh()->current_balance_grosze);
-        $this->assertSame(30000, $category->refresh()->execution_grosze);
+        $this->assertSame(50000, $account->refresh()->current_balance_minor_units);
+        $this->assertSame(30000, $category->refresh()->execution_minor_units);
     }
 
     public function test_edit_still_validates_future_date_archived_targets_and_opening_date(): void
@@ -455,7 +455,7 @@ class FinancialOperationEditDeleteTest extends TestCase
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-04-01',
-            'amount_grosze' => 10000,
+            'amount_minor_units' => 10000,
             'description' => 'Groceries',
             'account_id' => $account->id,
             'category_id' => $category->id,
@@ -467,7 +467,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->from(route('operations'))
             ->patch(route('expenses.update', $operation), [
                 'operation_date' => '2026-07-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
@@ -482,7 +482,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->from(route('operations'))
             ->patch(route('expenses.update', $operation), [
                 'operation_date' => '2026-04-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $archivedAccount->id,
                 'category_id' => $category->id,
@@ -497,7 +497,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->from(route('operations'))
             ->patch(route('expenses.update', $operation), [
                 'operation_date' => '2026-04-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
                 'category_id' => $archivedCategory->id,
@@ -508,7 +508,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ->from(route('operations'))
             ->patch(route('expenses.update', $operation), [
                 'operation_date' => '2026-02-01',
-                'amount_grosze' => 10000,
+                'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
                 'category_id' => $category->id,

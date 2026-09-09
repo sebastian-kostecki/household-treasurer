@@ -44,7 +44,7 @@ Visual reference: Openship dashboard language (https://github.com/oblien/openshi
 30. As a User, I want field errors next to the fields, a toast when a save succeeds, and a confirm step before destructive actions, so that I do not lose data by accident and I get confirmation when something worked.
 31. As a User, I want starter documentation and repository footer links removed from the app sidebar, so that the product does not advertise the Laravel kit.
 32. As a User, I want page titles and breadcrumbs in Polish, so that the chrome matches the nav.
-33. As a developer, I want money still stored and calculated as integer grosze when domain data exists later, so that this UI work does not introduce float amounts.
+33. As a developer, I want money still stored and calculated as integer minor units when domain data exists later, so that this UI work does not introduce float amounts.
 34. As a User, I want the word “konto” in the UI to mean an Account (bank or cash), not my login, so that I am not confused with User settings.
 35. As a User visiting Welcome, I want either a simple redirect into auth/dashboard or an unchanged starter page that is not part of this visual system, so that we do not build a marketing site.
 

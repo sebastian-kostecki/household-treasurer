@@ -27,7 +27,7 @@ class AccountTest extends TestCase
             'type' => AccountType::Bank->value,
             'bank' => Bank::Other->value,
             'opening_date' => '2026-01-01',
-            'opening_balance_grosze' => 100000,
+            'opening_balance_minor_units' => 100000,
         ])->assertRedirect(route('login'));
     }
 
@@ -41,7 +41,7 @@ class AccountTest extends TestCase
                 'type' => AccountType::Bank->value,
                 'bank' => $bank->value,
                 'opening_date' => '2026-01-15',
-                'opening_balance_grosze' => 123456,
+                'opening_balance_minor_units' => 123456,
             ]);
 
             $response
@@ -65,7 +65,7 @@ class AccountTest extends TestCase
             'name' => 'Portfel',
             'type' => AccountType::Cash->value,
             'opening_date' => '2026-02-01',
-            'opening_balance_grosze' => 5000,
+            'opening_balance_minor_units' => 5000,
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('accounts', [
@@ -83,7 +83,7 @@ class AccountTest extends TestCase
             'name' => 'Missing bank',
             'type' => AccountType::Bank->value,
             'opening_date' => '2026-01-15',
-            'opening_balance_grosze' => 100,
+            'opening_balance_minor_units' => 100,
         ])->assertSessionHasErrors('bank');
     }
 
@@ -96,7 +96,7 @@ class AccountTest extends TestCase
             'type' => AccountType::Cash->value,
             'bank' => Bank::Mbank->value,
             'opening_date' => '2026-02-01',
-            'opening_balance_grosze' => 5000,
+            'opening_balance_minor_units' => 5000,
         ])->assertSessionHasErrors('bank');
     }
 
@@ -109,7 +109,7 @@ class AccountTest extends TestCase
             'name' => $account->name,
             'type' => AccountType::Cash->value,
             'bank' => Bank::Mbank->value,
-            'opening_balance_grosze' => $account->opening_balance_grosze,
+            'opening_balance_minor_units' => $account->opening_balance_minor_units,
         ])->assertSessionHasErrors('bank');
     }
 
@@ -122,7 +122,7 @@ class AccountTest extends TestCase
             'type' => AccountType::Bank->value,
             'bank' => 'revolut',
             'opening_date' => '2026-01-15',
-            'opening_balance_grosze' => 100,
+            'opening_balance_minor_units' => 100,
         ])->assertSessionHasErrors('bank');
     }
 
@@ -136,7 +136,7 @@ class AccountTest extends TestCase
         $this->actingAs($user)->patch(route('accounts.update', $account), [
             'name' => $account->name,
             'type' => AccountType::Cash->value,
-            'opening_balance_grosze' => $account->opening_balance_grosze,
+            'opening_balance_minor_units' => $account->opening_balance_minor_units,
         ])->assertSessionHasNoErrors();
 
         $account->refresh();
@@ -153,7 +153,7 @@ class AccountTest extends TestCase
         $this->actingAs($user)->patch(route('accounts.update', $account), [
             'name' => $account->name,
             'type' => AccountType::Bank->value,
-            'opening_balance_grosze' => $account->opening_balance_grosze,
+            'opening_balance_minor_units' => $account->opening_balance_minor_units,
         ])->assertSessionHasErrors('bank');
     }
 
@@ -166,7 +166,7 @@ class AccountTest extends TestCase
             'name' => $account->name,
             'type' => AccountType::Bank->value,
             'bank' => Bank::Other->value,
-            'opening_balance_grosze' => $account->opening_balance_grosze,
+            'opening_balance_minor_units' => $account->opening_balance_minor_units,
         ])->assertSessionHasNoErrors();
 
         $account->refresh();
@@ -180,15 +180,15 @@ class AccountTest extends TestCase
         $user = User::factory()->create();
         Account::factory()->for($user)->create([
             'name' => 'Bank A',
-            'current_balance_grosze' => 100000,
-            'opening_balance_grosze' => 100000,
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
         ]);
         Account::factory()->for($user)->create([
             'name' => 'Cash B',
             'type' => AccountType::Cash,
             'bank' => null,
-            'current_balance_grosze' => 25050,
-            'opening_balance_grosze' => 25050,
+            'current_balance_minor_units' => 25050,
+            'opening_balance_minor_units' => 25050,
         ]);
 
         $this->actingAs($user)
@@ -198,10 +198,10 @@ class AccountTest extends TestCase
                 ->component('Accounts')
                 ->has('accounts', 2)
                 ->where('accounts.0.name', 'Bank A')
-                ->where('accounts.0.current_balance_grosze', 100000)
+                ->where('accounts.0.current_balance_minor_units', 100000)
                 ->where('accounts.1.name', 'Cash B')
-                ->where('accounts.1.current_balance_grosze', 25050)
-                ->where('liquidity_total_grosze', 125050),
+                ->where('accounts.1.current_balance_minor_units', 25050)
+                ->where('liquidity_total_minor_units', 125050),
             );
     }
 
@@ -271,15 +271,15 @@ class AccountTest extends TestCase
     {
         $user = User::factory()->create();
         Account::factory()->for($user)->create([
-            'current_balance_grosze' => -5000,
-            'opening_balance_grosze' => -5000,
+            'current_balance_minor_units' => -5000,
+            'opening_balance_minor_units' => -5000,
         ]);
 
         $this->actingAs($user)
             ->get(route('accounts.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('accounts.0.current_balance_grosze', -5000)
+                ->where('accounts.0.current_balance_minor_units', -5000)
                 ->where('accounts.0.is_negative', true),
             );
     }
@@ -291,14 +291,14 @@ class AccountTest extends TestCase
             'name' => 'Old name',
             'type' => AccountType::Bank,
             'bank' => Bank::Mbank,
-            'opening_balance_grosze' => 10000,
-            'current_balance_grosze' => 10000,
+            'opening_balance_minor_units' => 10000,
+            'current_balance_minor_units' => 10000,
         ]);
 
         $response = $this->actingAs($user)->patch(route('accounts.update', $account), [
             'name' => 'New name',
             'type' => AccountType::Cash->value,
-            'opening_balance_grosze' => 99999,
+            'opening_balance_minor_units' => 99999,
         ]);
 
         $response
@@ -310,8 +310,8 @@ class AccountTest extends TestCase
         $this->assertSame('New name', $account->name);
         $this->assertSame(AccountType::Cash, $account->type);
         $this->assertNull($account->bank);
-        $this->assertSame(99999, $account->opening_balance_grosze);
-        $this->assertSame(99999, $account->current_balance_grosze);
+        $this->assertSame(99999, $account->opening_balance_minor_units);
+        $this->assertSame(99999, $account->current_balance_minor_units);
     }
 
     public function test_user_can_delete_account_without_financial_history(): void
@@ -338,7 +338,7 @@ class AccountTest extends TestCase
                 'name' => 'Stolen',
                 'type' => AccountType::Bank->value,
                 'bank' => Bank::Other->value,
-                'opening_balance_grosze' => 1,
+                'opening_balance_minor_units' => 1,
             ])
             ->assertForbidden();
 

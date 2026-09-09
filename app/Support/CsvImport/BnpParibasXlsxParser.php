@@ -28,7 +28,7 @@ class BnpParibasXlsxParser
      *     description: ?string,
      *     counterparty: ?string,
      *     raw_statement_description: ?string,
-     *     amount_grosze: ?int,
+     *     amount_minor_units: ?int,
      *     amount_has_foreign_currency: bool,
      * }>
      */
@@ -44,7 +44,7 @@ class BnpParibasXlsxParser
             $operationDate = $this->parseDateCell($sheet, $columns['date'], $rowIndex);
             $amount = $this->parseAmountCell($sheet, $columns['amount'], $rowIndex);
             $fields = ImportRowFields::fromBnpParibas(
-                $this->counterpartyCell($sheet, $columns, $rowIndex, $amount['amount_grosze']),
+                $this->counterpartyCell($sheet, $columns, $rowIndex, $amount['amount_minor_units']),
                 $this->cellValue($sheet, $columns['description'], $rowIndex),
             );
 
@@ -54,7 +54,7 @@ class BnpParibasXlsxParser
                 'description' => $fields['description'],
                 'counterparty' => $fields['counterparty'],
                 'raw_statement_description' => $fields['raw_statement_description'],
-                'amount_grosze' => $amount['amount_grosze'],
+                'amount_minor_units' => $amount['amount_minor_units'],
                 'amount_has_foreign_currency' => $amount['amount_has_foreign_currency'],
             ];
 
@@ -122,7 +122,7 @@ class BnpParibasXlsxParser
     /**
      * @param  array{date: string, amount: string, sender: string, recipient: ?string, description: string}  $columns
      */
-    private function counterpartyCell(Worksheet $sheet, array $columns, int $rowIndex, ?int $amountGrosze): ?string
+    private function counterpartyCell(Worksheet $sheet, array $columns, int $rowIndex, ?int $amountMinorUnits): ?string
     {
         $sender = $this->cellValue($sheet, $columns['sender'], $rowIndex);
 
@@ -132,7 +132,7 @@ class BnpParibasXlsxParser
 
         $recipient = $this->cellValue($sheet, $columns['recipient'], $rowIndex);
 
-        if ($amountGrosze !== null && $amountGrosze > 0) {
+        if ($amountMinorUnits !== null && $amountMinorUnits > 0) {
             return $sender ?? $recipient;
         }
 
@@ -197,7 +197,7 @@ class BnpParibasXlsxParser
     }
 
     /**
-     * @return array{amount_grosze: ?int, amount_has_foreign_currency: bool}
+     * @return array{amount_minor_units: ?int, amount_has_foreign_currency: bool}
      */
     private function parseAmountCell(Worksheet $sheet, string $column, int $rowIndex): array
     {
@@ -205,21 +205,21 @@ class BnpParibasXlsxParser
 
         if ($value === null || $value === '') {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => false,
             ];
         }
 
         if (is_int($value) || is_float($value)) {
             return [
-                'amount_grosze' => (int) round($value * 100),
+                'amount_minor_units' => (int) round($value * 100),
                 'amount_has_foreign_currency' => false,
             ];
         }
 
         if (! is_string($value)) {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => false,
             ];
         }
@@ -228,13 +228,13 @@ class BnpParibasXlsxParser
 
         if ($this->hasForeignCurrency($trimmed)) {
             return [
-                'amount_grosze' => null,
+                'amount_minor_units' => null,
                 'amount_has_foreign_currency' => true,
             ];
         }
 
         return [
-            'amount_grosze' => $this->parseMoney($trimmed),
+            'amount_minor_units' => $this->parseMoney($trimmed),
             'amount_has_foreign_currency' => false,
         ];
     }
@@ -273,8 +273,8 @@ class BnpParibasXlsxParser
         $negative = str_starts_with($normalized, '-');
         $absolute = ltrim($normalized, '-');
         [$zlPart, $grPart] = array_pad(explode('.', $absolute, 2), 2, '0');
-        $grosze = ((int) $zlPart * 100) + (int) substr(str_pad($grPart, 2, '0'), 0, 2);
+        $minorUnits = ((int) $zlPart * 100) + (int) substr(str_pad($grPart, 2, '0'), 0, 2);
 
-        return $negative ? -$grosze : $grosze;
+        return $negative ? -$minorUnits : $minorUnits;
     }
 }

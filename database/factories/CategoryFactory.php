@@ -24,8 +24,8 @@ class CategoryFactory extends Factory
             'icon' => CategoryAppearance::DEFAULT_ICON,
             'color' => CategoryAppearance::DEFAULT_COLOR,
             'type' => fake()->randomElement(CategoryType::cases()),
-            'planned_amount_grosze' => fake()->numberBetween(0, 500000),
-            'execution_grosze' => 0,
+            'planned_amount_minor_units' => fake()->numberBetween(0, 500000),
+            'execution_minor_units' => 0,
         ];
     }
 

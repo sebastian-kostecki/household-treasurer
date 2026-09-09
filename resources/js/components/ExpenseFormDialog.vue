@@ -22,15 +22,15 @@ import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     formatMoney,
-    groszeToMoneyInput,
-    parseMoneyInputToGrosze,
+    minorUnitsToMoneyInput,
+    parseMoneyInputToMinorUnits,
 } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
 
 export type ExpenseFormAccount = AccountPickerOption & {
     opening_date: string;
-    current_balance_grosze: number;
+    current_balance_minor_units: number;
 };
 
 export type ExpenseFormCategory = {
@@ -39,14 +39,14 @@ export type ExpenseFormCategory = {
     icon: string;
     color: string;
     budget_year: number;
-    planned_amount_grosze: number;
-    execution_grosze: number;
+    planned_amount_minor_units: number;
+    execution_minor_units: number;
 };
 
 export type ExpenseFormOperation = {
     id: number;
     operation_date: string;
-    amount_grosze: number;
+    amount_minor_units: number;
     description: string;
     counterparty?: string | null;
     raw_statement_description?: string | null;
@@ -74,9 +74,9 @@ const counterparty = ref('');
 const accountId = ref<number | ''>('');
 const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
-const amountGrosze = ref(0);
+const amountMinorUnits = ref(0);
 const isRefund = ref(false);
-const originalAmountGrosze = ref(0);
+const originalAmountMinorUnits = ref(0);
 const originalAccountId = ref<number | null>(null);
 const originalCategoryId = ref<number | null>(null);
 
@@ -104,8 +104,8 @@ const selectedCategory = computed(() =>
     ),
 );
 
-const signedAmountGrosze = computed(() => {
-    const absoluteAmount = Math.abs(amountGrosze.value);
+const signedAmountMinorUnits = computed(() => {
+    const absoluteAmount = Math.abs(amountMinorUnits.value);
 
     return isRefund.value ? -absoluteAmount : absoluteAmount;
 });
@@ -120,7 +120,7 @@ const warningPreview = computed(() => {
                 kind: isRefund.value ? 'refund' : 'expense',
                 account_id: 0,
                 category_id: 0,
-                amount_grosze: 0,
+                amount_minor_units: 0,
             },
         });
     }
@@ -136,24 +136,24 @@ const warningPreview = computed(() => {
                 ? {
                       account_id: originalAccountId.value,
                       category_id: originalCategoryId.value,
-                      signed_amount_grosze: originalAmountGrosze.value,
+                      signed_amount_minor_units: originalAmountMinorUnits.value,
                   }
                 : null,
         proposal: {
             kind: isRefund.value ? 'refund' : 'expense',
             account_id: accountId.value,
             category_id: categoryId.value,
-            amount_grosze: amountGrosze.value,
+            amount_minor_units: amountMinorUnits.value,
         },
     });
 });
 
-const availableLimitGrosze = computed(
-    () => warningPreview.value.availableLimitNowGrosze,
+const availableLimitMinorUnits = computed(
+    () => warningPreview.value.availableLimitNowMinorUnits,
 );
 
-const predictedLimitGrosze = computed(
-    () => warningPreview.value.availableLimitAfterGrosze,
+const predictedLimitMinorUnits = computed(
+    () => warningPreview.value.availableLimitAfterMinorUnits,
 );
 
 const showOverLimitWarning = computed(
@@ -177,12 +177,12 @@ watch(
             counterparty.value = props.operation.counterparty ?? '';
             accountId.value = props.operation.account_id;
             categoryId.value = props.operation.category_id;
-            isRefund.value = props.operation.amount_grosze < 0;
-            amountGrosze.value = Math.abs(props.operation.amount_grosze);
-            amountInput.value = groszeToMoneyInput(
-                Math.abs(props.operation.amount_grosze),
+            isRefund.value = props.operation.amount_minor_units < 0;
+            amountMinorUnits.value = Math.abs(props.operation.amount_minor_units);
+            amountInput.value = minorUnitsToMoneyInput(
+                Math.abs(props.operation.amount_minor_units),
             );
-            originalAmountGrosze.value = props.operation.amount_grosze;
+            originalAmountMinorUnits.value = props.operation.amount_minor_units;
             originalAccountId.value = props.operation.account_id;
             originalCategoryId.value = props.operation.category_id;
 
@@ -194,10 +194,10 @@ watch(
         counterparty.value = '';
         accountId.value = props.accounts[0]?.id ?? '';
         categoryId.value = '';
-        amountGrosze.value = 0;
+        amountMinorUnits.value = 0;
         amountInput.value = '0,00';
         isRefund.value = false;
-        originalAmountGrosze.value = 0;
+        originalAmountMinorUnits.value = 0;
         originalAccountId.value = null;
         originalCategoryId.value = null;
     },
@@ -215,18 +215,18 @@ watch(availableCategories, (categories) => {
 });
 
 function syncAmount(): void {
-    const parsed = parseMoneyInputToGrosze(amountInput.value);
+    const parsed = parseMoneyInputToMinorUnits(amountInput.value);
 
     if (parsed !== null) {
-        amountGrosze.value = Math.abs(parsed);
+        amountMinorUnits.value = Math.abs(parsed);
     } else {
-        amountGrosze.value = 0;
+        amountMinorUnits.value = 0;
     }
 }
 
 function prepareSubmit(): void {
     syncAmount();
-    amountGrosze.value = signedAmountGrosze.value;
+    amountMinorUnits.value = signedAmountMinorUnits.value;
 }
 
 function closeDialog(): void {
@@ -380,26 +380,26 @@ function closeDialog(): void {
                     />
                     <input
                         type="hidden"
-                        name="amount_grosze"
-                        :value="signedAmountGrosze"
+                        name="amount_minor_units"
+                        :value="signedAmountMinorUnits"
                     />
-                    <InputError :message="errors.amount_grosze" />
+                    <InputError :message="errors.amount_minor_units" />
                 </div>
 
                 <div
-                    v-if="selectedCategory && availableLimitGrosze !== null"
+                    v-if="selectedCategory && availableLimitMinorUnits !== null"
                     class="rounded-md border bg-muted/40 p-3 text-sm"
                 >
                     <p>
                         {{ t.operations.available_limit_now }}:
                         <span class="font-medium">
-                            {{ formatMoney(availableLimitGrosze) }}
+                            {{ formatMoney(availableLimitMinorUnits) }}
                         </span>
                     </p>
-                    <p v-if="predictedLimitGrosze !== null">
+                    <p v-if="predictedLimitMinorUnits !== null">
                         {{ t.operations.available_limit_after }}:
                         <span class="font-medium">
-                            {{ formatMoney(predictedLimitGrosze) }}
+                            {{ formatMoney(predictedLimitMinorUnits) }}
                         </span>
                     </p>
                     <p class="text-muted-foreground mt-2 text-xs">

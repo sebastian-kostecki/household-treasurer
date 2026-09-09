@@ -19,9 +19,9 @@ use Illuminate\Support\Carbon;
  * @property string $color
  * @property int $sort_order
  * @property CategoryType $type
- * @property int $planned_amount_grosze
- * @property int $initial_plan_grosze
- * @property int $execution_grosze
+ * @property int $planned_amount_minor_units
+ * @property int $initial_plan_minor_units
+ * @property int $execution_minor_units
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -33,9 +33,9 @@ use Illuminate\Support\Carbon;
     'color',
     'sort_order',
     'type',
-    'planned_amount_grosze',
-    'initial_plan_grosze',
-    'execution_grosze',
+    'planned_amount_minor_units',
+    'initial_plan_minor_units',
+    'execution_minor_units',
     'archived_at',
 ])]
 class Category extends Model
@@ -51,9 +51,9 @@ class Category extends Model
         return [
             'type' => CategoryType::class,
             'sort_order' => 'integer',
-            'planned_amount_grosze' => 'integer',
-            'initial_plan_grosze' => 'integer',
-            'execution_grosze' => 'integer',
+            'planned_amount_minor_units' => 'integer',
+            'initial_plan_minor_units' => 'integer',
+            'execution_minor_units' => 'integer',
             'archived_at' => 'datetime',
         ];
     }

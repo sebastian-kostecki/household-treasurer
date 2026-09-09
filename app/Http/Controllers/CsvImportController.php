@@ -95,7 +95,7 @@ class CsvImportController extends Controller
                 'description' => $row['description'],
                 'counterparty' => $row['counterparty'] ?? null,
                 'raw_statement_description' => $row['raw_statement_description'] ?? null,
-                'amount_grosze' => $row['amount_grosze'],
+                'amount_minor_units' => $row['amount_minor_units'],
                 'valid' => $validated['valid'],
                 'invalid_reason' => $validated['invalid_reason'],
             ];
@@ -130,7 +130,7 @@ class CsvImportController extends Controller
         return Inertia::render('OperationsImportPreview', [
             'account' => [
                 ...AccountIdentity::payload($account),
-                'current_balance_grosze' => $account->current_balance_grosze,
+                'current_balance_minor_units' => $account->current_balance_minor_units,
             ],
             'rows' => $import['rows'],
             'incomeCategories' => $this->incomeCategories($request),
@@ -234,7 +234,7 @@ class CsvImportController extends Controller
                     'description' => (string) $parsedRow['description'],
                     'counterparty' => $parsedRow['counterparty'] ?? null,
                     'raw_statement_description' => $parsedRow['raw_statement_description'] ?? null,
-                    'amount_grosze' => (int) $parsedRow['amount_grosze'],
+                    'amount_minor_units' => (int) $parsedRow['amount_minor_units'],
                     'type' => 'own_transfer',
                     'other_account_id' => $selection['other_account_id'],
                     'pair_first_leg_kind' => $pairFirstLegKind,
@@ -272,7 +272,7 @@ class CsvImportController extends Controller
                 'description' => (string) $parsedRow['description'],
                 'counterparty' => $parsedRow['counterparty'] ?? null,
                 'raw_statement_description' => $parsedRow['raw_statement_description'] ?? null,
-                'amount_grosze' => (int) $parsedRow['amount_grosze'],
+                'amount_minor_units' => (int) $parsedRow['amount_minor_units'],
                 'type' => $selection['type'],
                 'category_id' => $selection['category_id'],
             ];
@@ -284,7 +284,7 @@ class CsvImportController extends Controller
             array_map(
                 fn (array $row): array => [
                     'operation_date' => $row['operation_date'],
-                    'amount_grosze' => $row['amount_grosze'],
+                    'amount_minor_units' => $row['amount_minor_units'],
                     'raw_statement_description' => $row['raw_statement_description'] ?? null,
                 ],
                 $selectedRows,
@@ -315,7 +315,7 @@ class CsvImportController extends Controller
 
     /**
      * @param  list<array<string, mixed>>  $previewRows
-     * @return array<int, array{id: int, name: string, current_balance_grosze: int}>
+     * @return array<int, array{id: int, name: string, current_balance_minor_units: int}>
      */
     private function otherAccounts(Request $request, Account $importAccount, array $previewRows): array
     {
@@ -342,7 +342,7 @@ class CsvImportController extends Controller
         return $accounts
             ->map(fn (Account $account): array => [
                 ...AccountIdentity::payload($account),
-                'current_balance_grosze' => $account->current_balance_grosze,
+                'current_balance_minor_units' => $account->current_balance_minor_units,
             ])
             ->values()
             ->all();
@@ -387,7 +387,7 @@ class CsvImportController extends Controller
     /**
      * @param  array{
      *     operation_date: ?string,
-     *     amount_grosze: ?int,
+     *     amount_minor_units: ?int,
      *     amount_has_foreign_currency?: bool,
      * }  $row
      */
@@ -397,7 +397,7 @@ class CsvImportController extends Controller
             return false;
         }
 
-        return $row['amount_grosze'] !== null || ($row['amount_has_foreign_currency'] ?? false);
+        return $row['amount_minor_units'] !== null || ($row['amount_has_foreign_currency'] ?? false);
     }
 
     /**
