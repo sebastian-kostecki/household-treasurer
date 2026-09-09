@@ -221,6 +221,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :operation="editingIncome"
         :accounts="accounts"
         :income-categories="incomeCategories"
+        :expense-categories="expenseCategories"
     />
 
     <ExpenseFormDialog
@@ -236,6 +237,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :operation="editingExpense"
         :accounts="accounts"
         :expense-categories="expenseCategories"
+        :income-categories="incomeCategories"
     />
 
     <OwnTransferFormDialog

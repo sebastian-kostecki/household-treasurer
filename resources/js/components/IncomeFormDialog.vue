@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    formatMoney,
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
@@ -40,6 +41,11 @@ export type IncomeFormCategory = {
     budget_year: number;
 };
 
+export type IncomeFormExpenseCategory = IncomeFormCategory & {
+    planned_amount_minor_units: number;
+    execution_minor_units: number;
+};
+
 export type IncomeFormOperation = {
     id: number;
     operation_date: string;
@@ -57,6 +63,7 @@ const props = defineProps<{
     operation?: IncomeFormOperation | null;
     accounts: IncomeFormAccount[];
     incomeCategories: IncomeFormCategory[];
+    expenseCategories?: IncomeFormExpenseCategory[];
 }>();
 
 const emit = defineEmits<{
@@ -72,8 +79,10 @@ const accountId = ref<number | ''>('');
 const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountMinorUnits = ref(0);
+const isExpenseRefund = ref(false);
 const originalAmountMinorUnits = ref(0);
 const originalAccountId = ref<number | null>(null);
+const originalCategoryId = ref<number | null>(null);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -82,13 +91,18 @@ const formBinding = computed(() =>
 );
 
 const warningPreview = computed(() => {
-    if (accountId.value === '') {
+    const proposalKind =
+        props.mode === 'edit' && isExpenseRefund.value ? 'refund' : 'income';
+
+    if (accountId.value === '' || categoryId.value === '') {
         return previewHandEntryWarnings({
             mode: props.mode,
             accounts: props.accounts,
+            categories: props.expenseCategories,
             proposal: {
-                kind: 'income',
+                kind: proposalKind,
                 account_id: 0,
+                category_id: 0,
                 amount_minor_units: 0,
             },
         });
@@ -97,16 +111,23 @@ const warningPreview = computed(() => {
     return previewHandEntryWarnings({
         mode: props.mode,
         accounts: props.accounts,
+        categories: props.expenseCategories,
         editedRecord:
-            props.mode === 'edit' && originalAccountId.value !== null
+            props.mode === 'edit' &&
+            originalAccountId.value !== null &&
+            originalCategoryId.value !== null
                 ? {
                       account_id: originalAccountId.value,
-                      signed_amount_minor_units: originalAmountMinorUnits.value,
+                      category_id: originalCategoryId.value,
+                      signed_amount_minor_units: isExpenseRefund.value
+                          ? -Math.abs(originalAmountMinorUnits.value)
+                          : originalAmountMinorUnits.value,
                   }
                 : null,
         proposal: {
-            kind: 'income',
+            kind: proposalKind,
             account_id: accountId.value,
+            category_id: categoryId.value,
             amount_minor_units: amountMinorUnits.value,
         },
     });
@@ -123,10 +144,38 @@ const availableCategories = computed(() => {
 
     const year = Number(operationDate.value.slice(0, 4));
 
+    if (props.mode === 'edit' && isExpenseRefund.value) {
+        return (props.expenseCategories ?? []).filter(
+            (category) => category.budget_year === year,
+        );
+    }
+
     return props.incomeCategories.filter(
         (category) => category.budget_year === year,
     );
 });
+
+const selectedExpenseCategory = computed(() => {
+    if (!isExpenseRefund.value) {
+        return undefined;
+    }
+
+    return (props.expenseCategories ?? []).find(
+        (category) => category.id === categoryId.value,
+    );
+});
+
+const availableLimitMinorUnits = computed(
+    () => warningPreview.value.availableLimitNowMinorUnits,
+);
+
+const predictedLimitMinorUnits = computed(
+    () => warningPreview.value.availableLimitAfterMinorUnits,
+);
+
+const showOverLimitWarning = computed(
+    () => warningPreview.value.showOverLimitWarning,
+);
 
 watch(
     () => [props.open, props.mode, props.operation] as const,
@@ -145,6 +194,8 @@ watch(
             amountInput.value = minorUnitsToMoneyInput(props.operation.amount_minor_units);
             originalAmountMinorUnits.value = props.operation.amount_minor_units;
             originalAccountId.value = props.operation.account_id;
+            originalCategoryId.value = props.operation.category_id;
+            isExpenseRefund.value = false;
 
             return;
         }
@@ -156,8 +207,10 @@ watch(
         categoryId.value = '';
         amountMinorUnits.value = 0;
         amountInput.value = '0,00';
+        isExpenseRefund.value = false;
         originalAmountMinorUnits.value = 0;
         originalAccountId.value = null;
+        originalCategoryId.value = null;
     },
     { immediate: true },
 );
@@ -170,6 +223,14 @@ watch(availableCategories, (categories) => {
         categoryId.value =
             props.mode === 'edit' ? '' : (categories[0]?.id ?? '');
     }
+});
+
+watch(isExpenseRefund, () => {
+    if (props.mode !== 'edit') {
+        return;
+    }
+
+    categoryId.value = '';
 });
 
 function syncAmount(): void {
@@ -203,7 +264,9 @@ function closeDialog(): void {
                         {{
                             mode === 'create'
                                 ? t.operations.add_income_title
-                                : t.operations.edit_income_title
+                                : isExpenseRefund
+                                  ? t.operations.edit_refund_title
+                                  : t.operations.edit_income_title
                         }}
                     </DialogTitle>
                     <DialogDescription>
@@ -285,9 +348,35 @@ function closeDialog(): void {
                     <InputError :message="errors.account_id" />
                 </div>
 
+                <div
+                    v-if="mode === 'edit'"
+                    class="flex items-center gap-2"
+                >
+                    <input
+                        id="income-is-expense-refund"
+                        v-model="isExpenseRefund"
+                        type="checkbox"
+                        class="size-4 rounded border"
+                    />
+                    <Label for="income-is-expense-refund">
+                        {{ t.operations.refund_label }}
+                    </Label>
+                </div>
+
+                <input
+                    v-if="mode === 'edit' && isExpenseRefund"
+                    type="hidden"
+                    name="convert_to_expense_refund"
+                    value="1"
+                />
+
                 <div class="grid gap-2">
                     <Label for="income-category">
-                        {{ t.operations.income_category }}
+                        {{
+                            mode === 'edit' && isExpenseRefund
+                                ? t.operations.expense_category
+                                : t.operations.income_category
+                        }}
                     </Label>
                     <CategorySelect
                         id="income-category"
@@ -296,7 +385,9 @@ function closeDialog(): void {
                         :categories="availableCategories"
                         :placeholder="
                             availableCategories.length === 0
-                                ? t.operations.no_income_category_for_year
+                                ? mode === 'edit' && isExpenseRefund
+                                    ? t.operations.no_expense_category_for_year
+                                    : t.operations.no_income_category_for_year
                                 : t.operations.select_category
                         "
                         required
@@ -323,11 +414,48 @@ function closeDialog(): void {
                     <InputError :message="errors.amount_minor_units" />
                 </div>
 
-                <Alert v-if="showNegativeBalanceWarning" variant="destructive">
+                <div
+                    v-if="
+                        isExpenseRefund &&
+                        selectedExpenseCategory &&
+                        availableLimitMinorUnits !== null
+                    "
+                    class="rounded-md border bg-muted/40 p-3 text-sm"
+                >
+                    <p>
+                        {{ t.operations.available_limit_now }}:
+                        <span class="font-medium">
+                            {{ formatMoney(availableLimitMinorUnits) }}
+                        </span>
+                    </p>
+                    <p v-if="predictedLimitMinorUnits !== null">
+                        {{ t.operations.available_limit_after }}:
+                        <span class="font-medium">
+                            {{ formatMoney(predictedLimitMinorUnits) }}
+                        </span>
+                    </p>
+                    <p class="text-muted-foreground mt-2 text-xs">
+                        {{ t.operations.available_limit_hint }}
+                    </p>
+                </div>
+
+                <Alert
+                    v-if="
+                        showNegativeBalanceWarning || showOverLimitWarning
+                    "
+                    variant="destructive"
+                >
                     <AlertTriangle class="size-4" />
                     <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
                     <AlertDescription>
-                        {{ t.operations.negative_balance_warning }}
+                        <ul class="list-inside list-disc text-sm">
+                            <li v-if="showOverLimitWarning">
+                                {{ t.operations.over_limit_warning }}
+                            </li>
+                            <li v-if="showNegativeBalanceWarning">
+                                {{ t.operations.negative_balance_warning }}
+                            </li>
+                        </ul>
                     </AlertDescription>
                 </Alert>
 

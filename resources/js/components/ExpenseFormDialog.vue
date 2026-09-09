@@ -43,6 +43,14 @@ export type ExpenseFormCategory = {
     execution_minor_units: number;
 };
 
+export type ExpenseFormIncomeCategory = {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    budget_year: number;
+};
+
 export type ExpenseFormOperation = {
     id: number;
     operation_date: string;
@@ -60,6 +68,7 @@ const props = defineProps<{
     operation?: ExpenseFormOperation | null;
     accounts: ExpenseFormAccount[];
     expenseCategories: ExpenseFormCategory[];
+    incomeCategories?: ExpenseFormIncomeCategory[];
 }>();
 
 const emit = defineEmits<{
@@ -76,6 +85,7 @@ const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountMinorUnits = ref(0);
 const isRefund = ref(false);
+const isIncome = ref(false);
 const originalAmountMinorUnits = ref(0);
 const originalAccountId = ref<number | null>(null);
 const originalCategoryId = ref<number | null>(null);
@@ -86,12 +96,26 @@ const formBinding = computed(() =>
         : ExpenseController.update.form(props.operation ?? { id: 0 }),
 );
 
+const editingRefund = computed(
+    () =>
+        props.mode === 'edit' &&
+        props.operation !== null &&
+        props.operation !== undefined &&
+        props.operation.amount_minor_units < 0,
+);
+
 const availableCategories = computed(() => {
     if (!operationDate.value) {
         return [];
     }
 
     const year = Number(operationDate.value.slice(0, 4));
+
+    if (isIncome.value) {
+        return (props.incomeCategories ?? []).filter(
+            (category) => category.budget_year === year,
+        );
+    }
 
     return props.expenseCategories.filter(
         (category) => category.budget_year === year,
@@ -107,17 +131,29 @@ const selectedCategory = computed(() =>
 const signedAmountMinorUnits = computed(() => {
     const absoluteAmount = Math.abs(amountMinorUnits.value);
 
+    if (isIncome.value) {
+        return absoluteAmount;
+    }
+
     return isRefund.value ? -absoluteAmount : absoluteAmount;
 });
 
+const proposalKind = computed(() => {
+    if (isIncome.value) {
+        return 'income';
+    }
+
+    return isRefund.value ? 'refund' : 'expense';
+});
+
 const warningPreview = computed(() => {
-    if (accountId.value === '' || categoryId.value === '') {
+    if (accountId.value === '' || (!isIncome.value && categoryId.value === '')) {
         return previewHandEntryWarnings({
             mode: props.mode,
             accounts: props.accounts,
             categories: props.expenseCategories,
             proposal: {
-                kind: isRefund.value ? 'refund' : 'expense',
+                kind: proposalKind.value,
                 account_id: 0,
                 category_id: 0,
                 amount_minor_units: 0,
@@ -140,9 +176,12 @@ const warningPreview = computed(() => {
                   }
                 : null,
         proposal: {
-            kind: isRefund.value ? 'refund' : 'expense',
+            kind: proposalKind.value,
             account_id: accountId.value,
-            category_id: categoryId.value,
+            category_id:
+                isIncome.value || categoryId.value === ''
+                    ? undefined
+                    : categoryId.value,
             amount_minor_units: amountMinorUnits.value,
         },
     });
@@ -178,6 +217,7 @@ watch(
             accountId.value = props.operation.account_id;
             categoryId.value = props.operation.category_id;
             isRefund.value = props.operation.amount_minor_units < 0;
+            isIncome.value = false;
             amountMinorUnits.value = Math.abs(props.operation.amount_minor_units);
             amountInput.value = minorUnitsToMoneyInput(
                 Math.abs(props.operation.amount_minor_units),
@@ -197,6 +237,7 @@ watch(
         amountMinorUnits.value = 0;
         amountInput.value = '0,00';
         isRefund.value = false;
+        isIncome.value = false;
         originalAmountMinorUnits.value = 0;
         originalAccountId.value = null;
         originalCategoryId.value = null;
@@ -214,6 +255,25 @@ watch(availableCategories, (categories) => {
     }
 });
 
+watch(isIncome, (value) => {
+    if (value) {
+        isRefund.value = false;
+        categoryId.value = '';
+
+        return;
+    }
+
+    if (editingRefund.value) {
+        isRefund.value = true;
+    }
+});
+
+watch(isRefund, (value) => {
+    if (value) {
+        isIncome.value = false;
+    }
+});
+
 function syncAmount(): void {
     const parsed = parseMoneyInputToMinorUnits(amountInput.value);
 
@@ -226,6 +286,13 @@ function syncAmount(): void {
 
 function prepareSubmit(): void {
     syncAmount();
+
+    if (isIncome.value) {
+        amountMinorUnits.value = Math.abs(amountMinorUnits.value);
+
+        return;
+    }
+
     amountMinorUnits.value = signedAmountMinorUnits.value;
 }
 
@@ -252,9 +319,11 @@ function closeDialog(): void {
                                 ? isRefund
                                     ? t.operations.add_refund_title
                                     : t.operations.add_expense_title
-                                : isRefund
-                                  ? t.operations.edit_refund_title
-                                  : t.operations.edit_expense_title
+                                : isIncome
+                                  ? t.operations.edit_income_title
+                                  : isRefund
+                                    ? t.operations.edit_refund_title
+                                    : t.operations.edit_expense_title
                         }}
                     </DialogTitle>
                     <DialogDescription>
@@ -336,9 +405,35 @@ function closeDialog(): void {
                     <InputError :message="errors.account_id" />
                 </div>
 
+                <div
+                    v-if="editingRefund"
+                    class="flex items-center gap-2"
+                >
+                    <input
+                        id="expense-is-income"
+                        v-model="isIncome"
+                        type="checkbox"
+                        class="size-4 rounded border"
+                    />
+                    <Label for="expense-is-income">
+                        {{ t.operations.income_conversion_label }}
+                    </Label>
+                </div>
+
+                <input
+                    v-if="mode === 'edit' && isIncome"
+                    type="hidden"
+                    name="convert_to_income"
+                    value="1"
+                />
+
                 <div class="grid gap-2">
                     <Label for="expense-category">
-                        {{ t.operations.expense_category }}
+                        {{
+                            isIncome
+                                ? t.operations.income_category
+                                : t.operations.expense_category
+                        }}
                     </Label>
                     <CategorySelect
                         id="expense-category"
@@ -347,7 +442,9 @@ function closeDialog(): void {
                         :categories="availableCategories"
                         :placeholder="
                             availableCategories.length === 0
-                                ? t.operations.no_expense_category_for_year
+                                ? isIncome
+                                    ? t.operations.no_income_category_for_year
+                                    : t.operations.no_expense_category_for_year
                                 : t.operations.select_category
                         "
                         required
@@ -356,7 +453,10 @@ function closeDialog(): void {
                     <InputError :message="errors.category_id" />
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div
+                    v-if="!isIncome"
+                    class="flex items-center gap-2"
+                >
                     <input
                         id="expense-is-refund"
                         v-model="isRefund"
@@ -381,7 +481,7 @@ function closeDialog(): void {
                     <input
                         type="hidden"
                         name="amount_minor_units"
-                        :value="signedAmountMinorUnits"
+                        :value="isIncome ? amountMinorUnits : signedAmountMinorUnits"
                     />
                     <InputError :message="errors.amount_minor_units" />
                 </div>
