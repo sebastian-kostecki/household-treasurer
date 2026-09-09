@@ -59,10 +59,17 @@ class ManageFinancialOperation
      *     counterparty?: string|null,
      *     account_id: int,
      *     category_id: int,
+     *     convert_to_expense_refund?: bool,
      * }  $validated
      */
     public function updateIncome(FinancialOperation $operation, array $validated): FinancialOperation
     {
+        if ($validated['convert_to_expense_refund'] ?? false) {
+            $validated['amount_minor_units'] = -abs($validated['amount_minor_units']);
+
+            return $this->update($operation, FinancialOperationType::Expense, $validated);
+        }
+
         return $this->update($operation, FinancialOperationType::Income, $validated);
     }
 
@@ -74,10 +81,17 @@ class ManageFinancialOperation
      *     counterparty?: string|null,
      *     account_id: int,
      *     category_id: int,
+     *     convert_to_income?: bool,
      * }  $validated
      */
     public function updateExpense(FinancialOperation $operation, array $validated): FinancialOperation
     {
+        if ($validated['convert_to_income'] ?? false) {
+            $validated['amount_minor_units'] = abs($validated['amount_minor_units']);
+
+            return $this->update($operation, FinancialOperationType::Income, $validated);
+        }
+
         return $this->update($operation, FinancialOperationType::Expense, $validated);
     }
 

@@ -349,6 +349,7 @@ return [
         'add_refund_title' => 'Zarejestruj zwrot wydatku',
         'add_expense_description' => 'Zarejestruj wydatek lub zwrot na koncie i w kategorii wydatkowej.',
         'refund_label' => 'To jest zwrot wydatku',
+        'income_conversion_label' => 'To jest Income',
         'available_limit_now' => 'Dostępny limit teraz',
         'available_limit_after' => 'Przewidywany limit po operacji',
         'available_limit_hint' => 'Dostępny limit to plan bieżący minus wykonanie kategorii, a nie środki na kontach.',

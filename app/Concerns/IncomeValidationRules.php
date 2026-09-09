@@ -30,6 +30,7 @@ trait IncomeValidationRules
             'import_identity_date' => ['prohibited'],
             'import_identity_amount_minor_units' => ['prohibited'],
             'import_identity_digest' => ['prohibited'],
+            'convert_to_expense_refund' => ['prohibited'],
             'account_id' => [
                 'required',
                 'integer',
@@ -42,6 +43,47 @@ trait IncomeValidationRules
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('type', CategoryType::Income->value)
+                    ->whereNull('archived_at')
+                    ->where(function ($query) use ($userId): void {
+                        $query->whereIn(
+                            'budget_id',
+                            Budget::query()->select('id')->where('user_id', $userId),
+                        );
+                    }),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    protected function incomeToExpenseRefundConversionRules(): array
+    {
+        $userId = $this->user()?->id;
+
+        return [
+            'convert_to_expense_refund' => ['required', 'boolean', 'accepted'],
+            'operation_date' => ['required', 'date', 'before_or_equal:today'],
+            'amount_minor_units' => ['required', 'integer', 'min:1'],
+            'description' => ['required', 'string', 'max:255'],
+            'counterparty' => ['nullable', 'string', 'max:255'],
+            'raw_statement_description' => ['prohibited'],
+            'import_identity_account_id' => ['prohibited'],
+            'import_identity_date' => ['prohibited'],
+            'import_identity_amount_minor_units' => ['prohibited'],
+            'import_identity_digest' => ['prohibited'],
+            'account_id' => [
+                'required',
+                'integer',
+                Rule::exists('accounts', 'id')
+                    ->where('user_id', $userId)
+                    ->whereNull('archived_at'),
+            ],
+            'category_id' => [
+                'required',
+                'integer',
+                Rule::exists('categories', 'id')
+                    ->where('type', CategoryType::Expense->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
                         $query->whereIn(
@@ -132,9 +174,10 @@ trait IncomeValidationRules
             'counterparty',
             'account_id',
             'category_id',
+            'convert_to_expense_refund',
         ]);
 
-        return [
+        $payload = [
             'operation_date' => (string) $validated['operation_date'],
             'amount_minor_units' => (int) $validated['amount_minor_units'],
             'description' => (string) $validated['description'],
@@ -144,5 +187,11 @@ trait IncomeValidationRules
             'account_id' => (int) $validated['account_id'],
             'category_id' => (int) $validated['category_id'],
         ];
+
+        if (($validated['convert_to_expense_refund'] ?? false) === true) {
+            $payload['convert_to_expense_refund'] = true;
+        }
+
+        return $payload;
     }
 }
