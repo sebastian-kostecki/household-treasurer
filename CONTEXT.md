@@ -33,16 +33,16 @@ The live planned income amounts and expense limits. May change during execution 
 _Avoid_: Revised budget, Forecast
 
 **Category**:
-An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category.
+An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed.
 _Avoid_: Tag, Label, Envelope, Category template, Category kind, a Category identity that spans years
 
 **Execution**:
-Booked income and expense amounts against a Category in a Budget that has started execution.
+Booked income and expense amounts against a Category in a Budget that has started execution. Not unpaid Cash Expectations.
 _Avoid_: Actuals (in code names; UI may say “wykonanie”), Cash Expectation, Agenda (as this plane)
 
 **Available Limit**:
-Current Plan of an expense Category minus booked expenses. Not cash on Accounts.
-_Avoid_: Balance, Available funds, Remaining cash
+Current Plan of an expense Category minus booked expenses. Not cash on Accounts. Unpaid Cash Expectations do not reduce it.
+_Avoid_: Balance, Available funds, Remaining cash, earmark, reserve (as this figure)
 
 **Planned Balance**:
 Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.
@@ -53,11 +53,11 @@ An income, expense, or expense refund: dated, non-zero amount, description, opti
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type), Cash Expectation
 
 **Expense refund**:
-A negative amount on an expense Category (Financial Operation or Cash Expectation), not Income and not a fourth persisted type. As a Financial Operation it restores Account balance and Available Limit, so Execution is net spend; as a Cash Expectation it does not move Liquidity or Execution.
+A negative amount on an expense Category (Financial Operation or Cash Expectation), not Income and not a fourth persisted type. As a Financial Operation it restores Account balance and Available Limit, so Execution is net spend; as a Cash Expectation it does not move Liquidity, Execution, or Available Limit.
 _Avoid_: Income (for money returned from a purchase), refund as a fourth persisted type
 
 **Cash Expectation**:
-A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue at create; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. One record is one movement, not a series; it sits on Agenda and does not move Liquidity or Execution. Settlement leaves exactly one Financial Operation (a new one spawned from this record, or an existing one that already is that movement); this record is not converted in place and then leaves Agenda.
+A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue at create; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. The date’s calendar year must equal the Category’s Budget year; that Budget may be draft or execution; a year with no Budget is invalid. One record is one movement, not a series; it sits on Agenda and does not move Liquidity, Execution, Available Limit, or Planned Balance. Settlement leaves exactly one Financial Operation (a new one spawned from this record, or an existing one that already is that movement); this record is not converted in place and then leaves Agenda.
 _Avoid_: Obligation, Payment, Transaction, Unpaid, Pending, Schedule, Scheduled, Plan, Planned, Forecast, Future Operation, Upcoming, Accrual, Due, due date, Payable, Receivable, Reminder, Commitment, Movement (as this record), Operation (as this record), operation date (for this record’s date), Event (as this record), Cash Event, Expectation (unqualified), Financial Operation, Own Transfer, Capital Movement
 
 **Counterparty**:
