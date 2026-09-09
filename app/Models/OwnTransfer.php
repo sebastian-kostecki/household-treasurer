@@ -18,6 +18,14 @@ use Illuminate\Support\Carbon;
  * @property int $amount_grosze
  * @property string $description
  * @property string|null $raw_statement_description
+ * @property int|null $source_import_identity_account_id
+ * @property Carbon|null $source_import_identity_date
+ * @property int|null $source_import_identity_amount_grosze
+ * @property string|null $source_import_identity_digest
+ * @property int|null $destination_import_identity_account_id
+ * @property Carbon|null $destination_import_identity_date
+ * @property int|null $destination_import_identity_amount_grosze
+ * @property string|null $destination_import_identity_digest
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -29,6 +37,14 @@ use Illuminate\Support\Carbon;
     'amount_grosze',
     'description',
     'raw_statement_description',
+    'source_import_identity_account_id',
+    'source_import_identity_date',
+    'source_import_identity_amount_grosze',
+    'source_import_identity_digest',
+    'destination_import_identity_account_id',
+    'destination_import_identity_date',
+    'destination_import_identity_amount_grosze',
+    'destination_import_identity_digest',
 ])]
 class OwnTransfer extends Model
 {
@@ -43,6 +59,10 @@ class OwnTransfer extends Model
         return [
             'transfer_date' => 'date',
             'amount_grosze' => 'integer',
+            'source_import_identity_date' => 'date',
+            'source_import_identity_amount_grosze' => 'integer',
+            'destination_import_identity_date' => 'date',
+            'destination_import_identity_amount_grosze' => 'integer',
         ];
     }
 

@@ -25,7 +25,7 @@ class StoreCsvImportRequest extends FormRequest
             'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund', 'own_transfer'])],
             'rows.*.category_id' => ['nullable', 'integer'],
             'rows.*.other_account_id' => ['nullable', 'integer'],
-            'duplicate_warning_acknowledged' => ['accepted'],
+            'duplicate_warning_acknowledged' => ['sometimes', 'boolean'],
         ];
     }
 

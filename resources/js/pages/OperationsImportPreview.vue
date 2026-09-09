@@ -33,6 +33,7 @@ type ImportRow = {
     amount_grosze: number | null;
     valid: boolean;
     invalid_reason: string | null;
+    import_duplicate: boolean;
 };
 
 type CategoryRow = {
@@ -88,15 +89,30 @@ const validRowCount = computed(
 const invalidRowCount = computed(
     () => rows.filter((row) => !row.valid).length,
 );
+const duplicateRowCount = computed(
+    () => rows.filter((row) => row.valid && row.import_duplicate).length,
+);
 const selectedRowCount = computed(
     () =>
         Object.values(selections.value).filter(
             (selection) => selection.selected,
         ).length,
 );
+const selectedImportDuplicateCount = computed(
+    () =>
+        rows.filter(
+            (row) =>
+                row.import_duplicate &&
+                selections.value[row.index]?.selected === true,
+        ).length,
+);
+const requiresDuplicateAcknowledgement = computed(
+    () => selectedImportDuplicateCount.value > 0,
+);
 const canSubmit = computed(
     () =>
-        duplicateWarningAcknowledged.value &&
+        (!requiresDuplicateAcknowledgement.value ||
+            duplicateWarningAcknowledged.value) &&
         selectedRowCount.value > 0 &&
         Object.entries(selections.value).every(([index, selection]) => {
             if (!selection.selected) {
@@ -235,6 +251,14 @@ function onTypeChange(row: ImportRow): void {
                         )
                     }}
                 </Badge>
+                <Badge v-if="duplicateRowCount > 0" variant="outline">
+                    {{
+                        t.operations.import_duplicate_rows.replace(
+                            ':count',
+                            String(duplicateRowCount),
+                        )
+                    }}
+                </Badge>
             </CardContent>
         </Card>
 
@@ -284,6 +308,10 @@ function onTypeChange(row: ImportRow): void {
                                 v-for="row in rows"
                                 :key="row.index"
                                 class="align-top"
+                                :class="{
+                                    'bg-amber-500/10':
+                                        row.valid && row.import_duplicate,
+                                }"
                             >
                                 <td class="pr-3">
                                     <Checkbox
@@ -401,7 +429,13 @@ function onTypeChange(row: ImportRow): void {
                                 </td>
                                 <td>
                                     <Badge
-                                        v-if="row.valid"
+                                        v-if="row.valid && row.import_duplicate"
+                                        variant="outline"
+                                    >
+                                        {{ t.operations.import_row_duplicate }}
+                                    </Badge>
+                                    <Badge
+                                        v-else-if="row.valid"
                                         variant="secondary"
                                     >
                                         {{ t.operations.import_row_valid }}
@@ -421,7 +455,10 @@ function onTypeChange(row: ImportRow): void {
                 </div>
             </ListSurface>
 
-            <div class="flex items-center gap-2">
+            <div
+                v-if="requiresDuplicateAcknowledgement"
+                class="flex items-center gap-2"
+            >
                 <Checkbox
                     id="duplicate-warning"
                     name="duplicate_warning_acknowledged"

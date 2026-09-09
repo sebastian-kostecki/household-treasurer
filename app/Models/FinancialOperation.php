@@ -22,6 +22,10 @@ use Illuminate\Support\Carbon;
  * @property string $description
  * @property string|null $counterparty
  * @property string|null $raw_statement_description
+ * @property int|null $import_identity_account_id
+ * @property Carbon|null $import_identity_date
+ * @property int|null $import_identity_amount_grosze
+ * @property string|null $import_identity_digest
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -36,6 +40,10 @@ use Illuminate\Support\Carbon;
     'description',
     'counterparty',
     'raw_statement_description',
+    'import_identity_account_id',
+    'import_identity_date',
+    'import_identity_amount_grosze',
+    'import_identity_digest',
 ])]
 class FinancialOperation extends Model
 {
@@ -51,6 +59,8 @@ class FinancialOperation extends Model
             'type' => FinancialOperationType::class,
             'operation_date' => 'date',
             'amount_grosze' => 'integer',
+            'import_identity_date' => 'date',
+            'import_identity_amount_grosze' => 'integer',
         ];
     }
 

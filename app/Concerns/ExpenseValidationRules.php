@@ -26,6 +26,10 @@ trait ExpenseValidationRules
             'description' => ['required', 'string', 'max:255'],
             'counterparty' => ['nullable', 'string', 'max:255'],
             'raw_statement_description' => ['prohibited'],
+            'import_identity_account_id' => ['prohibited'],
+            'import_identity_date' => ['prohibited'],
+            'import_identity_amount_grosze' => ['prohibited'],
+            'import_identity_digest' => ['prohibited'],
             'account_id' => [
                 'required',
                 'integer',

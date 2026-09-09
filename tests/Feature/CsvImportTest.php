@@ -7,7 +7,9 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
+use App\Models\OwnTransfer;
 use App\Models\User;
+use App\Support\CsvImport\ImportIdentityDigest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -442,7 +444,7 @@ CSV;
             ->assertSessionHasErrors('file');
     }
 
-    public function test_import_requires_duplicate_warning_acknowledgement(): void
+    public function test_import_does_not_require_duplicate_acknowledgement_for_new_rows(): void
     {
         $this->travelTo('2026-06-01');
 
@@ -452,17 +454,49 @@ date,description,amount
 2026-03-15,Salary,2500.00
 CSV;
 
+        $this->previewCsv($user, $account, $csv);
+
         $this->actingAs($user)
-            ->post(route('operations.import.preview.store'), [
-                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
-                'account_id' => $account->id,
-                'import_format' => 'other',
-                'has_header' => true,
-                'date_column' => 0,
-                'description_column' => 1,
-                'amount_layout' => 'signed',
-                'amount_column' => 2,
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 1);
+    }
+
+    public function test_import_requires_duplicate_acknowledgement_when_reimporting_selected_duplicate(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
             ]);
+
+        $this->previewCsv($user, $account, $csv);
 
         $this->actingAs($user)
             ->post(route('operations.import.store'), [
@@ -1333,6 +1367,561 @@ CSV;
         $this->assertSame('Original snapshot', $operation->raw_statement_description);
     }
 
+    public function test_reimport_flags_duplicate_rows_and_allows_committing_other_rows(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory, $expenseCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+2026-03-16,Groceries,-45.50
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true)
+                ->where('rows.0.valid', true)
+                ->where('rows.1.import_duplicate', true)
+                ->where('rows.1.valid', true),
+            );
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => false,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                    [
+                        'index' => 1,
+                        'selected' => false,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ])
+            ->assertSessionHasErrors('rows');
+
+        $this->assertDatabaseCount('financial_operations', 2);
+    }
+
+    public function test_reimport_can_commit_only_non_duplicate_rows(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory, $expenseCategory] = $this->createImportFixture();
+        $firstCsv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+        $secondCsv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+2026-03-16,Groceries,-45.50
+CSV;
+
+        $this->previewCsv($user, $account, $firstCsv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $secondCsv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => false,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 2);
+    }
+
+    public function test_reimporting_selected_duplicate_creates_second_record_with_acknowledgement(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 2);
+    }
+
+    public function test_import_commit_stores_frozen_import_identity(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $operation = FinancialOperation::query()->firstOrFail();
+
+        $this->assertSame($account->id, $operation->import_identity_account_id);
+        $this->assertSame('2026-03-15', $operation->import_identity_date->toDateString());
+        $this->assertSame(250000, $operation->import_identity_amount_grosze);
+        $this->assertNotNull($operation->import_identity_digest);
+    }
+
+    public function test_hand_entered_records_are_not_import_duplicates(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+
+        FinancialOperation::factory()
+            ->for($user)
+            ->for($account)
+            ->for($incomeCategory->budget)
+            ->for($incomeCategory)
+            ->income()
+            ->create([
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Salary',
+                'raw_statement_description' => null,
+            ]);
+
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', false),
+            );
+    }
+
+    public function test_pre_identity_records_are_not_import_duplicates(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+
+        FinancialOperation::factory()
+            ->for($user)
+            ->for($account)
+            ->for($incomeCategory->budget)
+            ->for($incomeCategory)
+            ->income()
+            ->create([
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Salary',
+                'raw_statement_description' => 'Salary',
+                'import_identity_digest' => null,
+            ]);
+
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', false),
+            );
+    }
+
+    public function test_editing_live_fields_does_not_change_import_identity_match(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $operation = FinancialOperation::query()->firstOrFail();
+
+        $this->actingAs($user)
+            ->patch(route('incomes.update', $operation), [
+                'operation_date' => '2026-03-20',
+                'amount_grosze' => 300000,
+                'description' => 'Edited salary',
+                'counterparty' => 'Edited counterparty',
+                'account_id' => $account->id,
+                'category_id' => $incomeCategory->id,
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true),
+            );
+    }
+
+    public function test_other_users_committed_rows_do_not_flag_preview(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $otherUser = User::factory()->create();
+        $otherAccount = Account::factory()->for($otherUser)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $otherBudget = Budget::factory()->for($otherUser)->execution()->create(['year' => 2026]);
+        $otherCategory = Category::factory()->for($otherBudget)->income()->create();
+
+        FinancialOperation::factory()
+            ->for($otherUser)
+            ->for($otherAccount)
+            ->for($otherBudget)
+            ->for($otherCategory)
+            ->income()
+            ->create([
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Salary',
+                'raw_statement_description' => 'Salary',
+                'import_identity_account_id' => $otherAccount->id,
+                'import_identity_date' => '2026-03-15',
+                'import_identity_amount_grosze' => 250000,
+                'import_identity_digest' => app(ImportIdentityDigest::class)->compute(
+                    $otherUser->id,
+                    $otherAccount->id,
+                    '2026-03-15',
+                    250000,
+                    'Salary',
+                )['digest'],
+            ]);
+
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', false),
+            );
+    }
+
+    public function test_invalid_rows_win_over_import_duplicate_overlay(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $csv = <<<'CSV'
+date,description,amount
+2026-07-01,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.valid', false)
+                ->where('rows.0.import_duplicate', false),
+            );
+    }
+
+    public function test_own_transfer_import_stores_identity_on_imported_account_slot_only(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To savings,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ]);
+
+        $transfer = OwnTransfer::query()->firstOrFail();
+
+        $this->assertSame($account->id, $transfer->source_import_identity_account_id);
+        $this->assertSame('2026-03-15', $transfer->source_import_identity_date->toDateString());
+        $this->assertSame(-10000, $transfer->source_import_identity_amount_grosze);
+        $this->assertNotNull($transfer->source_import_identity_digest);
+        $this->assertNull($transfer->destination_import_identity_digest);
+    }
+
+    public function test_deleting_imported_record_drops_identity_and_allows_fresh_import(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $operation = FinancialOperation::query()->firstOrFail();
+
+        $this->actingAs($user)
+            ->delete(route('incomes.destroy', $operation));
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', false),
+            );
+    }
+
+    public function test_every_preview_row_sharing_committed_digest_is_flagged(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ]);
+
+        $duplicateCsv = <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+2026-03-15,Salary,2500.00
+CSV;
+
+        $this->previewCsv($user, $account, $duplicateCsv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true)
+                ->where('rows.1.import_duplicate', true),
+            );
+    }
+
+    public function test_own_transfer_reimport_is_flagged_as_duplicate(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $otherAccount = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_grosze' => 0,
+            'current_balance_grosze' => 0,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To savings,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'own_transfer',
+                        'other_account_id' => $otherAccount->id,
+                    ],
+                ],
+            ]);
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true),
+            );
+    }
+
     public function test_user_cannot_set_raw_statement_description_on_manual_create(): void
     {
         $this->travelTo('2026-06-01');
@@ -1350,6 +1939,26 @@ CSV;
                 'category_id' => $incomeCategory->id,
             ])
             ->assertSessionHasErrors('raw_statement_description');
+
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
+    public function test_user_cannot_set_import_identity_fields_on_manual_create(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+
+        $this->actingAs($user)
+            ->post(route('incomes.store'), [
+                'operation_date' => '2026-03-15',
+                'amount_grosze' => 250000,
+                'description' => 'Manual income',
+                'account_id' => $account->id,
+                'category_id' => $incomeCategory->id,
+                'import_identity_digest' => 'forged-digest',
+            ])
+            ->assertSessionHasErrors('import_identity_digest');
 
         $this->assertDatabaseCount('financial_operations', 0);
     }

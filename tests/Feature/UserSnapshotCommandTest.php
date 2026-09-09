@@ -138,6 +138,34 @@ class UserSnapshotCommandTest extends TestCase
         ])->assertFailed();
     }
 
+    public function test_restore_action_treats_missing_import_identity_keys_as_null(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset(
+            $snapshot['financial_operations'][0]['import_identity_digest'],
+            $snapshot['financial_operations'][0]['import_identity_account_id'],
+            $snapshot['own_transfers'][0]['source_import_identity_digest'],
+        );
+
+        Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
+        $legacyPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/legacy.json');
+        file_put_contents($legacyPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        app(RestoreUserData::class)->handle($targetUser, $legacyPath);
+
+        $restoredOperation = $targetUser->financialOperations()->firstOrFail();
+        $restoredTransfer = $targetUser->ownTransfers()->firstOrFail();
+
+        $this->assertNull($restoredOperation->import_identity_digest);
+        $this->assertNull($restoredTransfer->source_import_identity_digest);
+    }
+
     public function test_restore_action_preserves_domain_values_with_new_ids(): void
     {
         Storage::fake('local');
@@ -167,7 +195,10 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame($sourceCategory->execution_grosze, $restoredCategory->execution_grosze);
         $this->assertSame($sourceOperation->amount_grosze, $restoredOperation->amount_grosze);
         $this->assertSame($sourceOperation->raw_statement_description, $restoredOperation->raw_statement_description);
+        $this->assertSame($sourceOperation->import_identity_digest, $restoredOperation->import_identity_digest);
+        $this->assertSame($sourceOperation->import_identity_amount_grosze, $restoredOperation->import_identity_amount_grosze);
         $this->assertSame($sourceTransfer->amount_grosze, $restoredTransfer->amount_grosze);
+        $this->assertSame($sourceTransfer->source_import_identity_digest, $restoredTransfer->source_import_identity_digest);
         $this->assertSame($restoredAccount->id, $restoredOperation->account_id);
         $this->assertSame($restoredCategory->id, $restoredOperation->category_id);
         $this->assertSame($restoredBudget->id, $restoredOperation->budget_id);
@@ -196,6 +227,10 @@ class UserSnapshotCommandTest extends TestCase
             'category_id' => $category->id,
             'description' => 'Paycheck',
             'raw_statement_description' => 'ACME PAYROLL',
+            'import_identity_account_id' => $sourceAccount->id,
+            'import_identity_date' => '2026-03-01',
+            'import_identity_amount_grosze' => 150000,
+            'import_identity_digest' => 'digest-paycheck',
         ]);
 
         OwnTransfer::factory()->for($user)->create([
@@ -203,6 +238,10 @@ class UserSnapshotCommandTest extends TestCase
             'destination_account_id' => $destinationAccount->id,
             'description' => 'ATM withdrawal',
             'raw_statement_description' => 'ATM WDL',
+            'source_import_identity_account_id' => $sourceAccount->id,
+            'source_import_identity_date' => '2026-03-02',
+            'source_import_identity_amount_grosze' => -50000,
+            'source_import_identity_digest' => 'digest-atm',
         ]);
 
         return $user;
