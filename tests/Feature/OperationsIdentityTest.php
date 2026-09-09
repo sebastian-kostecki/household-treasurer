@@ -98,6 +98,42 @@ class OperationsIdentityTest extends TestCase
             );
     }
 
+    public function test_operations_page_exposes_mark_url_for_lokaty_facto_bank_account(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'name' => 'Lokaty Facto',
+            'type' => AccountType::Bank,
+            'bank' => Bank::LokatyFacto,
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->create([
+            'year' => 2026,
+            'phase' => BudgetPhase::Execution,
+        ]);
+        $category = Category::factory()->for($budget)->income()->create();
+
+        FinancialOperation::factory()->create([
+            'user_id' => $user->id,
+            'type' => FinancialOperationType::Income,
+            'account_id' => $account->id,
+            'category_id' => $category->id,
+            'budget_id' => $budget->id,
+            'description' => 'Interest',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Operations')
+                ->has('operations.data', 1)
+                ->where('operations.data.0.account_name', 'Lokaty Facto')
+                ->where('operations.data.0.account_bank', Bank::LokatyFacto->value)
+                ->where('operations.data.0.account_mark_url', url('/marks/lokaty-facto.svg')),
+            );
+    }
+
     public function test_operations_page_exposes_null_mark_url_for_cash_and_other_bank_accounts(): void
     {
         $user = User::factory()->create();
