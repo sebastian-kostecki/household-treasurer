@@ -72,7 +72,8 @@ watch(
             type.value = props.account.type;
             bank.value = props.account.bank ?? 'other';
             openingDate.value = props.account.opening_date;
-            openingBalanceMinorUnits.value = props.account.opening_balance_minor_units;
+            openingBalanceMinorUnits.value =
+                props.account.opening_balance_minor_units;
             openingBalanceInput.value = minorUnitsToMoneyInput(
                 props.account.opening_balance_minor_units,
             );

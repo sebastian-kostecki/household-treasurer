@@ -33,7 +33,7 @@ const tileStyle = computed(() => categoryTileStyle(props.color));
 </script>
 
 <template>
-    <span class="inline-flex min-w-0 max-w-full items-center gap-2">
+    <span class="inline-flex max-w-full min-w-0 items-center gap-2">
         <span
             class="inline-flex shrink-0 items-center justify-center"
             :class="[tileSizeClass, tileRadiusClass]"

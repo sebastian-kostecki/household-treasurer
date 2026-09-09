@@ -34,9 +34,9 @@ const restoreDialogOpen = ref(false);
 
 const hasOverflowActions = computed(
     () =>
-        props.category.can_delete
-        || props.category.can_archive
-        || props.category.can_restore,
+        props.category.can_delete ||
+        props.category.can_archive ||
+        props.category.can_restore,
 );
 
 function openDeleteDialog(): void {

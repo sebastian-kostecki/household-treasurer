@@ -11,11 +11,7 @@ import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
@@ -162,7 +158,9 @@ async function onDragEnd(): Promise<void> {
         <ListSurface class="hidden md:block">
             <template #header>
                 <div class="space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3"
+                    >
                         <h3 class="text-base font-semibold">
                             {{ title }}
                         </h3>
@@ -190,10 +188,7 @@ async function onDragEnd(): Promise<void> {
                         <tr>
                             <th v-if="canReorder" class="w-10" />
                             <th>{{ t.budget.category }}</th>
-                            <th
-                                v-if="isDraft"
-                                class="text-right"
-                            >
+                            <th v-if="isDraft" class="text-right">
                                 {{ t.budget.plan }}
                             </th>
                             <template v-if="isExecution">
@@ -232,7 +227,7 @@ async function onDragEnd(): Promise<void> {
                                     <button
                                         v-if="canDrag"
                                         type="button"
-                                        class="drag-handle flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground active:cursor-grabbing"
+                                        class="drag-handle text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground flex size-8 items-center justify-center rounded-md active:cursor-grabbing"
                                         :aria-label="t.budget.drag_handle"
                                     >
                                         <GripVertical class="size-4" />
@@ -308,10 +303,7 @@ async function onDragEnd(): Promise<void> {
                         <tr class="font-semibold">
                             <td v-if="canReorder" />
                             <td>{{ t.budget.totals }}</td>
-                            <td
-                                v-if="isDraft"
-                                class="tabular-amount"
-                            >
+                            <td v-if="isDraft" class="tabular-amount">
                                 {{
                                     formatMoney(totals.current_plan_minor_units)
                                 }}
@@ -333,20 +325,24 @@ async function onDragEnd(): Promise<void> {
                                 </td>
                                 <td class="tabular-amount">
                                     {{
-                                        formatMoney(totals.execution_minor_units)
+                                        formatMoney(
+                                            totals.execution_minor_units,
+                                        )
                                     }}
                                 </td>
                                 <td
                                     class="tabular-amount"
                                     :class="
-                                        categoryType === 'expense'
-                                        && totals.remaining_minor_units < 0
+                                        categoryType === 'expense' &&
+                                        totals.remaining_minor_units < 0
                                             ? 'text-destructive'
                                             : ''
                                     "
                                 >
                                     {{
-                                        formatMoney(totals.remaining_minor_units)
+                                        formatMoney(
+                                            totals.remaining_minor_units,
+                                        )
                                     }}
                                 </td>
                             </template>
@@ -373,10 +369,7 @@ async function onDragEnd(): Promise<void> {
                         <thead>
                             <tr>
                                 <th>{{ t.budget.category }}</th>
-                                <th
-                                    v-if="isDraft"
-                                    class="text-right"
-                                >
+                                <th v-if="isDraft" class="text-right">
                                     {{ t.budget.plan }}
                                 </th>
                                 <template v-if="isExecution">
@@ -518,7 +511,7 @@ async function onDragEnd(): Promise<void> {
                                 <button
                                     v-if="canDrag"
                                     type="button"
-                                    class="drag-handle mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground active:cursor-grabbing"
+                                    class="drag-handle text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md active:cursor-grabbing"
                                     :aria-label="t.budget.drag_handle"
                                 >
                                     <GripVertical class="size-4" />
@@ -533,9 +526,7 @@ async function onDragEnd(): Promise<void> {
                         <CardContent class="space-y-3">
                             <div
                                 class="grid gap-3 text-sm"
-                                :class="
-                                    isDraft ? 'grid-cols-1' : 'grid-cols-2'
-                                "
+                                :class="isDraft ? 'grid-cols-1' : 'grid-cols-2'"
                             >
                                 <div v-if="isDraft">
                                     <p class="text-muted-foreground text-xs">
@@ -551,7 +542,9 @@ async function onDragEnd(): Promise<void> {
                                 </div>
                                 <template v-if="isExecution">
                                     <div>
-                                        <p class="text-muted-foreground text-xs">
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
                                             {{ t.budget.initial_plan }}
                                         </p>
                                         <p class="font-medium tabular-nums">
@@ -563,7 +556,9 @@ async function onDragEnd(): Promise<void> {
                                         </p>
                                     </div>
                                     <div>
-                                        <p class="text-muted-foreground text-xs">
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
                                             {{ t.budget.current_plan }}
                                         </p>
                                         <p class="font-semibold tabular-nums">
@@ -575,7 +570,9 @@ async function onDragEnd(): Promise<void> {
                                         </p>
                                     </div>
                                     <div>
-                                        <p class="text-muted-foreground text-xs">
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
                                             {{ t.budget.execution }}
                                         </p>
                                         <p class="font-medium tabular-nums">
@@ -587,7 +584,9 @@ async function onDragEnd(): Promise<void> {
                                         </p>
                                     </div>
                                     <div>
-                                        <p class="text-muted-foreground text-xs">
+                                        <p
+                                            class="text-muted-foreground text-xs"
+                                        >
                                             {{ t.budget.remaining }}
                                         </p>
                                         <p
@@ -633,7 +632,9 @@ async function onDragEnd(): Promise<void> {
                                 {{ t.budget.plan }}
                             </p>
                             <p class="font-semibold tabular-nums">
-                                {{ formatMoney(totals.current_plan_minor_units) }}
+                                {{
+                                    formatMoney(totals.current_plan_minor_units)
+                                }}
                             </p>
                         </div>
                         <template v-if="isExecution">
@@ -667,7 +668,9 @@ async function onDragEnd(): Promise<void> {
                                 </p>
                                 <p class="font-semibold tabular-nums">
                                     {{
-                                        formatMoney(totals.execution_minor_units)
+                                        formatMoney(
+                                            totals.execution_minor_units,
+                                        )
                                     }}
                                 </p>
                             </div>
@@ -678,14 +681,16 @@ async function onDragEnd(): Promise<void> {
                                 <p
                                     class="font-semibold tabular-nums"
                                     :class="
-                                        categoryType === 'expense'
-                                        && totals.remaining_minor_units < 0
+                                        categoryType === 'expense' &&
+                                        totals.remaining_minor_units < 0
                                             ? 'text-destructive'
                                             : ''
                                     "
                                 >
                                     {{
-                                        formatMoney(totals.remaining_minor_units)
+                                        formatMoney(
+                                            totals.remaining_minor_units,
+                                        )
                                     }}
                                 </p>
                             </div>
@@ -694,10 +699,7 @@ async function onDragEnd(): Promise<void> {
                 </CardContent>
             </Card>
 
-            <div
-                v-if="filteredArchivedCategories.length > 0"
-                class="space-y-3"
-            >
+            <div v-if="filteredArchivedCategories.length > 0" class="space-y-3">
                 <div class="flex items-center gap-2">
                     <h4 class="text-sm font-medium">
                         {{ t.budget.archived_section }}
@@ -726,9 +728,7 @@ async function onDragEnd(): Promise<void> {
                     <CardContent class="space-y-3">
                         <div
                             class="grid gap-3 text-sm"
-                            :class="
-                                isDraft ? 'grid-cols-1' : 'grid-cols-2'
-                            "
+                            :class="isDraft ? 'grid-cols-1' : 'grid-cols-2'"
                         >
                             <div v-if="isDraft">
                                 <p class="text-muted-foreground text-xs">

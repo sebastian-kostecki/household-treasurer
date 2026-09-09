@@ -51,10 +51,16 @@ const t = useTranslations();
                 >
                     <DialogHeader>
                         <DialogTitle>
-                            {{ t.operations.delete_capital_movement_confirm_title }}
+                            {{
+                                t.operations
+                                    .delete_capital_movement_confirm_title
+                            }}
                         </DialogTitle>
                         <DialogDescription>
-                            {{ t.operations.delete_capital_movement_confirm_body }}
+                            {{
+                                t.operations
+                                    .delete_capital_movement_confirm_body
+                            }}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter class="gap-2">

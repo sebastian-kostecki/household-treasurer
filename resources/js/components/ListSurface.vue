@@ -22,10 +22,7 @@ const props = defineProps<{
 
 <template>
     <Card :class="cn(props.class)">
-        <CardHeader
-            v-if="title || description || $slots.header"
-            class="pb-4"
-        >
+        <CardHeader v-if="title || description || $slots.header" class="pb-4">
             <slot name="header">
                 <CardTitle v-if="title" class="text-base">
                     {{ title }}
@@ -35,7 +32,9 @@ const props = defineProps<{
                 </CardDescription>
             </slot>
         </CardHeader>
-        <CardContent :class="title || description || $slots.header ? '' : 'pt-6'">
+        <CardContent
+            :class="title || description || $slots.header ? '' : 'pt-6'"
+        >
             <slot />
             <PaginationLinks v-if="paginator" :paginator="paginator" />
         </CardContent>

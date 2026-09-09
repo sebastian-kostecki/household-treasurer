@@ -49,7 +49,8 @@ export function parseMoneyInputToMinorUnits(value: string): number | null {
  * Format a date as DD.MM.RRRR
  */
 export function formatDate(date: Date | string): string {
-    const value = typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+    const value =
+        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
     const day = value.getDate().toString().padStart(2, '0');
     const month = (value.getMonth() + 1).toString().padStart(2, '0');
     const year = value.getFullYear();
@@ -61,7 +62,8 @@ export function formatDate(date: Date | string): string {
  * Format a date relative to today using Polish locale.
  */
 export function formatRelativeDate(date: Date | string): string {
-    const value = typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+    const value =
+        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
     const today = new Date();
     const startOfToday = new Date(
         today.getFullYear(),
@@ -74,7 +76,8 @@ export function formatRelativeDate(date: Date | string): string {
         value.getDate(),
     );
     const diffDays = Math.round(
-        (startOfValue.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24),
+        (startOfValue.getTime() - startOfToday.getTime()) /
+            (1000 * 60 * 60 * 24),
     );
 
     const formatter = new Intl.RelativeTimeFormat('pl', { numeric: 'auto' });

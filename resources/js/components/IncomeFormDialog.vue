@@ -191,7 +191,9 @@ watch(
             accountId.value = props.operation.account_id;
             categoryId.value = props.operation.category_id;
             amountMinorUnits.value = props.operation.amount_minor_units;
-            amountInput.value = minorUnitsToMoneyInput(props.operation.amount_minor_units);
+            amountInput.value = minorUnitsToMoneyInput(
+                props.operation.amount_minor_units,
+            );
             originalAmountMinorUnits.value = props.operation.amount_minor_units;
             originalAccountId.value = props.operation.account_id;
             originalCategoryId.value = props.operation.category_id;
@@ -320,7 +322,9 @@ function closeDialog(): void {
                 </div>
 
                 <div
-                    v-if="mode === 'edit' && operation?.raw_statement_description"
+                    v-if="
+                        mode === 'edit' && operation?.raw_statement_description
+                    "
                     class="grid gap-2"
                 >
                     <Label for="income-raw-statement-description">
@@ -336,7 +340,9 @@ function closeDialog(): void {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="income-account">{{ t.operations.account }}</Label>
+                    <Label for="income-account">{{
+                        t.operations.account
+                    }}</Label>
                     <AccountSelect
                         id="income-account"
                         name="account_id"
@@ -348,10 +354,7 @@ function closeDialog(): void {
                     <InputError :message="errors.account_id" />
                 </div>
 
-                <div
-                    v-if="mode === 'edit'"
-                    class="flex items-center gap-2"
-                >
+                <div v-if="mode === 'edit'" class="flex items-center gap-2">
                     <input
                         id="income-is-expense-refund"
                         v-model="isExpenseRefund"
@@ -420,7 +423,7 @@ function closeDialog(): void {
                         selectedExpenseCategory &&
                         availableLimitMinorUnits !== null
                     "
-                    class="rounded-md border bg-muted/40 p-3 text-sm"
+                    class="bg-muted/40 rounded-md border p-3 text-sm"
                 >
                     <p>
                         {{ t.operations.available_limit_now }}:
@@ -440,13 +443,13 @@ function closeDialog(): void {
                 </div>
 
                 <Alert
-                    v-if="
-                        showNegativeBalanceWarning || showOverLimitWarning
-                    "
+                    v-if="showNegativeBalanceWarning || showOverLimitWarning"
                     variant="destructive"
                 >
                     <AlertTriangle class="size-4" />
-                    <AlertTitle>{{ t.operations.expense_warnings_title }}</AlertTitle>
+                    <AlertTitle>{{
+                        t.operations.expense_warnings_title
+                    }}</AlertTitle>
                     <AlertDescription>
                         <ul class="list-inside list-disc text-sm">
                             <li v-if="showOverLimitWarning">

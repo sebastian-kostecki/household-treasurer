@@ -25,16 +25,20 @@ const {
 const t = useTranslations();
 const primaryLine = counterparty?.trim() ? counterparty : description;
 const secondaryLine = counterparty?.trim() ? description : null;
-const tooltipDescriptions = rawStatementDescriptions.length > 0
-    ? rawStatementDescriptions
-    : rawStatementDescription !== null && rawStatementDescription !== ''
-        ? [rawStatementDescription]
-        : [];
+const tooltipDescriptions =
+    rawStatementDescriptions.length > 0
+        ? rawStatementDescriptions
+        : rawStatementDescription !== null && rawStatementDescription !== ''
+          ? [rawStatementDescription]
+          : [];
 const tooltipLabel = tooltipDescriptions.join('\n\n');
 </script>
 
 <template>
-    <TooltipProvider v-if="tooltipDescriptions.length > 0" :delay-duration="200">
+    <TooltipProvider
+        v-if="tooltipDescriptions.length > 0"
+        :delay-duration="200"
+    >
         <Tooltip>
             <TooltipTrigger as-child>
                 <div
@@ -46,7 +50,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                         <p class="truncate font-medium">{{ primaryLine }}</p>
                         <p
                             v-if="secondaryLine"
-                            class="truncate text-muted-foreground text-sm"
+                            class="text-muted-foreground truncate text-sm"
                         >
                             {{ secondaryLine }}
                         </p>
@@ -57,7 +61,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                 <p class="text-xs font-medium">
                     {{ t.operations.raw_statement_description }}
                 </p>
-                <p class="whitespace-pre-wrap text-xs">{{ tooltipLabel }}</p>
+                <p class="text-xs whitespace-pre-wrap">{{ tooltipLabel }}</p>
             </TooltipContent>
         </Tooltip>
     </TooltipProvider>
@@ -67,7 +71,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
             <p class="truncate font-medium">{{ primaryLine }}</p>
             <p
                 v-if="secondaryLine"
-                class="truncate text-muted-foreground text-sm"
+                class="text-muted-foreground truncate text-sm"
             >
                 {{ secondaryLine }}
             </p>

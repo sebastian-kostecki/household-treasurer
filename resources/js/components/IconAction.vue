@@ -15,13 +15,17 @@ defineOptions({
     inheritAttrs: false,
 });
 
-const { icon, label, destructive = false, asDialogTrigger = false } =
-    defineProps<{
-        icon: LucideIcon;
-        label: string;
-        destructive?: boolean;
-        asDialogTrigger?: boolean;
-    }>();
+const {
+    icon,
+    label,
+    destructive = false,
+    asDialogTrigger = false,
+} = defineProps<{
+    icon: LucideIcon;
+    label: string;
+    destructive?: boolean;
+    asDialogTrigger?: boolean;
+}>();
 
 const buttonClass = computed(() =>
     cn(

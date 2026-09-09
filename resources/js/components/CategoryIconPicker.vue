@@ -14,13 +14,17 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="grid max-h-48 grid-cols-8 gap-2 overflow-y-auto rounded-xl border border-border/50 p-3">
+    <div
+        class="border-border/50 grid max-h-48 grid-cols-8 gap-2 overflow-y-auto rounded-xl border p-3"
+    >
         <button
             v-for="icon in icons"
             :key="icon"
             type="button"
-            class="flex size-9 items-center justify-center rounded-lg border-2 transition-colors hover:bg-foreground/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            :class="modelValue === icon ? 'border-foreground' : 'border-transparent'"
+            class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex size-9 items-center justify-center rounded-lg border-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            :class="
+                modelValue === icon ? 'border-foreground' : 'border-transparent'
+            "
             :style="categoryTileStyle(color)"
             :aria-label="icon"
             :aria-pressed="modelValue === icon"

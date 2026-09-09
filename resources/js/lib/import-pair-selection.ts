@@ -86,17 +86,13 @@ export function candidatesForAccount(
         return candidates;
     }
 
-    return candidates.filter(
-        (candidate) => candidate.account_id === accountId,
-    );
+    return candidates.filter((candidate) => candidate.account_id === accountId);
 }
 
 export function ownTransferCandidates(
     candidates: PairCandidate[],
 ): PairCandidate[] {
-    return candidates.filter(
-        (candidate) => candidate.kind === 'own_transfer',
-    );
+    return candidates.filter((candidate) => candidate.kind === 'own_transfer');
 }
 
 export function locksTypeToOwnTransfer(candidates: PairCandidate[]): boolean {
@@ -176,7 +172,10 @@ export function syncPairSelection(
     selection: PairRowSelection,
     consumedKeys: Set<string>,
 ): void {
-    if (selection.type !== 'own_transfer' || selection.other_account_id === '') {
+    if (
+        selection.type !== 'own_transfer' ||
+        selection.other_account_id === ''
+    ) {
         selection.pair_first_leg_kind = '';
         selection.pair_first_leg_id = '';
 
@@ -283,9 +282,7 @@ export function applyPairCandidateSelection(
     selection.pair_first_leg_id = candidate.id;
 }
 
-export function selectedPairCandidateKey(
-    selection: PairRowSelection,
-): string {
+export function selectedPairCandidateKey(selection: PairRowSelection): string {
     if (selection.pair_first_leg_id === '') {
         return '';
     }

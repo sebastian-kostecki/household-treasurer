@@ -39,7 +39,10 @@ const orderedCategories = computed(() => {
 });
 
 const visibleCategories = computed(() => {
-    if (isExpanded.value || orderedCategories.value.length <= VISIBLE_CATEGORY_LIMIT) {
+    if (
+        isExpanded.value ||
+        orderedCategories.value.length <= VISIBLE_CATEGORY_LIMIT
+    ) {
         return orderedCategories.value;
     }
 
@@ -55,11 +58,16 @@ const showExpander = computed(
 );
 
 const showCollapse = computed(
-    () => isExpanded.value && orderedCategories.value.length > VISIBLE_CATEGORY_LIMIT,
+    () =>
+        isExpanded.value &&
+        orderedCategories.value.length > VISIBLE_CATEGORY_LIMIT,
 );
 
 const sectionRemainingClass = computed(() => {
-    if (props.categoryType === 'expense' && props.totals.remaining_minor_units < 0) {
+    if (
+        props.categoryType === 'expense' &&
+        props.totals.remaining_minor_units < 0
+    ) {
         return 'text-destructive';
     }
 
@@ -109,7 +117,9 @@ function toggleOrderMode(): void {
                         </p>
                         <p
                             class="font-medium tabular-nums"
-                            :class="categoryType === 'income' ? 'text-success' : ''"
+                            :class="
+                                categoryType === 'income' ? 'text-success' : ''
+                            "
                         >
                             {{ formatMoney(totals.execution_minor_units) }}
                         </p>
@@ -127,10 +137,7 @@ function toggleOrderMode(): void {
                     </div>
                 </div>
 
-                <div
-                    v-if="totals.percent_complete !== null"
-                    class="space-y-1"
-                >
+                <div v-if="totals.percent_complete !== null" class="space-y-1">
                     <div class="bg-muted h-1.5 overflow-hidden rounded-full">
                         <div
                             class="h-full rounded-full transition-all"
@@ -157,26 +164,17 @@ function toggleOrderMode(): void {
                         {{ totals.percent_complete }}%
                     </p>
                 </div>
-                <p
-                    v-else
-                    class="text-muted-foreground text-right text-xs"
-                >
+                <p v-else class="text-muted-foreground text-right text-xs">
                     {{ t.common.not_applicable }}
                 </p>
             </div>
         </template>
 
-        <p
-            v-if="categories.length === 0"
-            class="text-muted-foreground text-sm"
-        >
+        <p v-if="categories.length === 0" class="text-muted-foreground text-sm">
             {{ t.dashboard.no_categories }}
         </p>
 
-        <div
-            v-else
-            class="divide-y divide-border/60"
-        >
+        <div v-else class="divide-border/60 divide-y">
             <CategoryMeterRow
                 v-for="category in visibleCategories"
                 :key="category.id"
@@ -185,10 +183,7 @@ function toggleOrderMode(): void {
             />
         </div>
 
-        <div
-            v-if="showExpander || showCollapse"
-            class="pt-3"
-        >
+        <div v-if="showExpander || showCollapse" class="pt-3">
             <Button
                 type="button"
                 variant="ghost"

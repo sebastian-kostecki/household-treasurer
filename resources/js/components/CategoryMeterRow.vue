@@ -122,9 +122,7 @@ const hasPlanChanged = planChanged(props.category);
             <template v-if="category.percent_complete === null">
                 {{ t.common.not_applicable }}
             </template>
-            <template v-else>
-                {{ category.percent_complete }}%
-            </template>
+            <template v-else> {{ category.percent_complete }}% </template>
         </div>
     </div>
 </template>

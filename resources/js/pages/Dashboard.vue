@@ -93,9 +93,7 @@ function accountTypeLabel(type: AccountSummary['type']): string {
     return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
 }
 
-function balanceClass(
-    holding: AccountSummary | TermDepositSummary,
-): string {
+function balanceClass(holding: AccountSummary | TermDepositSummary): string {
     if (holding.is_negative) {
         return 'text-destructive';
     }
@@ -129,7 +127,9 @@ function balanceClass(
                     </div>
                     <Form
                         v-if="checklistComplete"
-                        v-bind="DashboardController.dismissFirstRunChecklist.form()"
+                        v-bind="
+                            DashboardController.dismissFirstRunChecklist.form()
+                        "
                         v-slot="{ processing }"
                     >
                         <Button
@@ -237,7 +237,9 @@ function balanceClass(
                             class="text-lg"
                             :class="balanceClass(account)"
                         >
-                            {{ formatMoney(account.current_balance_minor_units) }}
+                            {{
+                                formatMoney(account.current_balance_minor_units)
+                            }}
                         </CardTitle>
                     </CardHeader>
                 </Card>
@@ -260,10 +262,7 @@ function balanceClass(
                 v-if="termDeposits.length > 0"
                 class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
             >
-                <Card
-                    v-for="termDeposit in termDeposits"
-                    :key="termDeposit.id"
-                >
+                <Card v-for="termDeposit in termDeposits" :key="termDeposit.id">
                     <CardHeader class="space-y-3 pb-2">
                         <p class="text-sm font-medium">
                             {{ termDeposit.name }}
@@ -284,17 +283,11 @@ function balanceClass(
         </section>
 
         <section class="space-y-3">
-            <p
-                v-if="budget === null"
-                class="text-muted-foreground text-sm"
-            >
+            <p v-if="budget === null" class="text-muted-foreground text-sm">
                 {{ t.dashboard.no_budget }}
             </p>
 
-            <div
-                v-else
-                class="space-y-3"
-            >
+            <div v-else class="space-y-3">
                 <DashboardCategorySection
                     :title="t.dashboard.income"
                     category-type="income"

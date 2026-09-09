@@ -39,7 +39,7 @@ const showOtherBankIcon = computed(
 
 <template>
     <span
-        class="flex shrink-0 items-center justify-center overflow-hidden border border-border/60 bg-muted"
+        class="border-border/60 bg-muted flex shrink-0 items-center justify-center overflow-hidden border"
         :class="[tileSizeClass, tileRadiusClass]"
     >
         <img

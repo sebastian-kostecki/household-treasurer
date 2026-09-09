@@ -121,7 +121,7 @@ function openEditDialog(termDeposit: TermDepositRow): void {
             <div
                 v-for="termDeposit in termDeposits"
                 :key="termDeposit.id"
-                class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border/60 py-3 transition-colors last:border-b-0 hover:bg-foreground/[0.03]"
+                class="border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0"
             >
                 <div class="min-w-0 flex-1 basis-40">
                     <p class="font-medium">{{ termDeposit.name }}</p>
@@ -134,7 +134,9 @@ function openEditDialog(termDeposit: TermDepositRow): void {
                     {{ formatMoney(termDeposit.current_balance_minor_units) }}
                 </p>
 
-                <div class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end">
+                <div
+                    class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end"
+                >
                     <IconAction
                         :icon="Pencil"
                         :label="t.term_deposits.edit"
@@ -149,15 +151,23 @@ function openEditDialog(termDeposit: TermDepositRow): void {
                         />
                         <DialogContent>
                             <Form
-                                v-bind="TermDepositController.destroy.form(termDeposit)"
+                                v-bind="
+                                    TermDepositController.destroy.form(
+                                        termDeposit,
+                                    )
+                                "
                                 v-slot="{ processing }"
                             >
                                 <DialogHeader>
                                     <DialogTitle>
-                                        {{ t.term_deposits.delete_confirm_title }}
+                                        {{
+                                            t.term_deposits.delete_confirm_title
+                                        }}
                                     </DialogTitle>
                                     <DialogDescription>
-                                        {{ t.term_deposits.delete_confirm_body }}
+                                        {{
+                                            t.term_deposits.delete_confirm_body
+                                        }}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <DialogFooter class="gap-2">
@@ -185,10 +195,7 @@ function openEditDialog(termDeposit: TermDepositRow): void {
         </ListSurface>
     </div>
 
-    <TermDepositFormDialog
-        v-model:open="createDialogOpen"
-        mode="create"
-    />
+    <TermDepositFormDialog v-model:open="createDialogOpen" mode="create" />
 
     <TermDepositFormDialog
         v-model:open="editDialogOpen"

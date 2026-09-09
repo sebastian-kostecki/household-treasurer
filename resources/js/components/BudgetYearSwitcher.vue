@@ -20,7 +20,7 @@ const createDialogOpen = ref(false);
         </p>
         <div
             v-if="shell.budgetYears.length === 0"
-            class="flex flex-col gap-2 rounded-md border border-dashed border-sidebar-border px-2 py-2"
+            class="border-sidebar-border flex flex-col gap-2 rounded-md border border-dashed px-2 py-2"
         >
             <p class="text-muted-foreground text-xs">
                 {{ t.shell.no_budget_year }}
@@ -57,7 +57,9 @@ const createDialogOpen = ref(false);
                     :value="shell.budgetYear ?? ''"
                     :disabled="processing"
                     @change="
-                        ($event.target as HTMLSelectElement).form?.requestSubmit()
+                        (
+                            $event.target as HTMLSelectElement
+                        ).form?.requestSubmit()
                     "
                 >
                     <option

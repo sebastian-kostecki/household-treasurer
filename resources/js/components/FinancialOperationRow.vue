@@ -46,7 +46,7 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
 
 <template>
     <div
-        class="operations-grid gap-y-3 border-b border-border/60 py-3 text-sm transition-colors last:border-b-0 hover:bg-foreground/[0.03] md:gap-y-0"
+        class="operations-grid border-border/60 hover:bg-foreground/[0.03] gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0 md:gap-y-0"
     >
         <div class="operations-cell-date">
             <OperationsDateCell :date="operation.operation_date" />
