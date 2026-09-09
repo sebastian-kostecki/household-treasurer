@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
     Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+    Route::post('categories/{category}/align-current-plan', [CategoryController::class, 'alignCurrentPlan'])->name('categories.align-current-plan');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');

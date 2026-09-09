@@ -178,6 +178,7 @@ class BudgetController extends Controller
      *     is_archived: bool,
      *     can_archive: bool,
      *     can_restore: bool,
+     *     can_align_current_plan: bool,
      * }
      */
     private function categoryPayload(Category $category, Budget $budget): array
@@ -187,6 +188,10 @@ class BudgetController extends Controller
         $initialPlanMinorUnits = $budget->isExecution()
             ? $category->initial_plan_minor_units
             : $category->planned_amount_minor_units;
+        $remainingMinorUnits = CategoryExecutionMetrics::remainingMinorUnits(
+            $currentPlanMinorUnits,
+            $executionMinorUnits,
+        );
 
         return [
             'id' => $category->id,
@@ -197,10 +202,7 @@ class BudgetController extends Controller
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,
             'execution_minor_units' => $executionMinorUnits,
-            'remaining_minor_units' => CategoryExecutionMetrics::remainingMinorUnits(
-                $currentPlanMinorUnits,
-                $executionMinorUnits,
-            ),
+            'remaining_minor_units' => $remainingMinorUnits,
             'is_over_limit' => $category->type === CategoryType::Expense
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
@@ -209,6 +211,9 @@ class BudgetController extends Controller
             'is_archived' => $category->isArchived(),
             'can_archive' => $budget->isExecution() && ! $category->isArchived(),
             'can_restore' => $category->isArchived(),
+            'can_align_current_plan' => $budget->isExecution()
+                && ! $category->isArchived()
+                && $remainingMinorUnits !== 0,
         ];
     }
 }

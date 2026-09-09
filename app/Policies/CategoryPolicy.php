@@ -29,6 +29,13 @@ class CategoryPolicy
         return $this->ownsCategory($user, $category) && $category->isArchived();
     }
 
+    public function alignCurrentPlan(User $user, Category $category): bool
+    {
+        return $this->ownsCategory($user, $category)
+            && $category->budget->isExecution()
+            && ! $category->isArchived();
+    }
+
     private function ownsCategory(User $user, Category $category): bool
     {
         return $user->id === $category->budget->user_id;
