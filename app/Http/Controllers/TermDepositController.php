@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTermDepositRequest;
 use App\Http\Requests\UpdateTermDepositRequest;
 use App\Models\TermDeposit;
+use App\Support\AccountIdentity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,7 +45,9 @@ class TermDepositController extends Controller
 
         $request->user()->termDeposits()->create([
             'name' => $validated['name'],
+            'bank' => $validated['bank'],
             'opening_date' => $validated['opening_date'],
+            'end_date' => $validated['end_date'] ?? null,
             'opening_balance_minor_units' => $validated['opening_balance_minor_units'],
             'current_balance_minor_units' => $validated['opening_balance_minor_units'],
         ]);
@@ -65,6 +68,8 @@ class TermDepositController extends Controller
 
         $termDeposit->update([
             'name' => $validated['name'],
+            'bank' => $validated['bank'],
+            'end_date' => $validated['end_date'] ?? null,
             'opening_balance_minor_units' => $validated['opening_balance_minor_units'],
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units + $openingBalanceDelta,
         ]);
@@ -129,7 +134,10 @@ class TermDepositController extends Controller
      * @return array{
      *     id: int,
      *     name: string,
+     *     bank: string,
+     *     mark_url: string|null,
      *     opening_date: string,
+     *     end_date: string|null,
      *     opening_balance_minor_units: int,
      *     current_balance_minor_units: int,
      *     is_negative: bool,
@@ -144,7 +152,10 @@ class TermDepositController extends Controller
         return [
             'id' => $termDeposit->id,
             'name' => $termDeposit->name,
+            'bank' => $termDeposit->bank->value,
+            'mark_url' => AccountIdentity::markUrl($termDeposit->bank),
             'opening_date' => $termDeposit->opening_date->toDateString(),
+            'end_date' => $termDeposit->end_date?->toDateString(),
             'opening_balance_minor_units' => $termDeposit->opening_balance_minor_units,
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
             'is_negative' => $termDeposit->isNegative(),

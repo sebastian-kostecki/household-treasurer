@@ -6,6 +6,7 @@ import TermDepositController from '@/actions/App/Http/Controllers/TermDepositCon
 import TermDepositFormDialog, {
     type TermDepositFormTermDeposit,
 } from '@/components/TermDepositFormDialog.vue';
+import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
@@ -29,10 +30,13 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoney } from '@/lib/format';
+import type { AccountBank } from '@/lib/account-identity';
+import { formatDate, formatMoney } from '@/lib/format';
 import { index as termDepositsRoute } from '@/routes/term-deposits';
 
 type TermDepositRow = TermDepositFormTermDeposit & {
+    bank: AccountBank;
+    mark_url: string | null;
     current_balance_minor_units: number;
     is_negative: boolean;
     is_archived: boolean;
@@ -155,7 +159,13 @@ function toggleShowArchived(checked: boolean): void {
                 class="border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0"
                 :class="termDeposit.is_archived ? 'opacity-60' : ''"
             >
-                <div class="min-w-0 flex-1 basis-40">
+                <AccountIdentityBlock
+                    class="min-w-0 flex-1 basis-40"
+                    :name="termDeposit.name"
+                    type="bank"
+                    :bank="termDeposit.bank"
+                    :mark_url="termDeposit.mark_url"
+                >
                     <div class="flex flex-wrap items-center gap-2">
                         <p class="font-medium">{{ termDeposit.name }}</p>
                         <Badge
@@ -165,7 +175,14 @@ function toggleShowArchived(checked: boolean): void {
                             {{ t.term_deposits.archived_badge }}
                         </Badge>
                     </div>
-                </div>
+                    <p
+                        v-if="termDeposit.end_date"
+                        class="text-muted-foreground text-sm"
+                    >
+                        {{ t.term_deposits.end_date }}:
+                        {{ formatDate(termDeposit.end_date) }}
+                    </p>
+                </AccountIdentityBlock>
 
                 <p
                     class="shrink-0 font-medium tabular-nums"

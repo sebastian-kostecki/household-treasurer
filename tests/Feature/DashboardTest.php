@@ -10,6 +10,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -92,6 +93,8 @@ class DashboardTest extends TestCase
         ]);
         TermDeposit::factory()->for($user)->create([
             'name' => 'Lokata 12M',
+            'bank' => Bank::Mbank,
+            'end_date' => '2027-01-01',
             'current_balance_minor_units' => 50000,
         ]);
 
@@ -103,6 +106,9 @@ class DashboardTest extends TestCase
                 ->where('total_funds_minor_units', 150000)
                 ->has('termDeposits', 1)
                 ->where('termDeposits.0.name', 'Lokata 12M')
+                ->where('termDeposits.0.bank', Bank::Mbank->value)
+                ->where('termDeposits.0.mark_url', AccountIdentity::markUrl(Bank::Mbank))
+                ->where('termDeposits.0.end_date', '2027-01-01')
                 ->where('termDeposits.0.current_balance_minor_units', 50000),
             );
     }

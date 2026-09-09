@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Bank;
 use Database\Factories\TermDepositFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +15,9 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $user_id
  * @property string $name
+ * @property Bank $bank
  * @property Carbon $opening_date
+ * @property Carbon|null $end_date
  * @property int $opening_balance_minor_units
  * @property int $current_balance_minor_units
  * @property Carbon|null $archived_at
@@ -24,7 +27,9 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'user_id',
     'name',
+    'bank',
     'opening_date',
+    'end_date',
     'opening_balance_minor_units',
     'current_balance_minor_units',
     'archived_at',
@@ -40,7 +45,9 @@ class TermDeposit extends Model
     protected function casts(): array
     {
         return [
+            'bank' => Bank::class,
             'opening_date' => 'date',
+            'end_date' => 'date',
             'opening_balance_minor_units' => 'integer',
             'current_balance_minor_units' => 'integer',
             'archived_at' => 'datetime',

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Bank;
 use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -17,11 +18,16 @@ class TermDepositFactory extends Factory
     public function definition(): array
     {
         $openingBalanceMinorUnits = fake()->numberBetween(0, 500000);
+        $openingDate = fake()->date();
 
         return [
             'user_id' => User::factory(),
             'name' => fake()->words(2, true),
-            'opening_date' => fake()->date(),
+            'bank' => fake()->randomElement(Bank::cases()),
+            'opening_date' => $openingDate,
+            'end_date' => fake()->boolean(40)
+                ? fake()->dateTimeBetween($openingDate, '+2 years')->format('Y-m-d')
+                : null,
             'opening_balance_minor_units' => $openingBalanceMinorUnits,
             'current_balance_minor_units' => $openingBalanceMinorUnits,
         ];

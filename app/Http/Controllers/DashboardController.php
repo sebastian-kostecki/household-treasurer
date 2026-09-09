@@ -140,6 +140,9 @@ class DashboardController extends Controller
      * @return array{
      *     id: int,
      *     name: string,
+     *     bank: string,
+     *     mark_url: string|null,
+     *     end_date: string|null,
      *     current_balance_minor_units: int,
      *     is_negative: bool,
      *     is_archived: bool,
@@ -150,6 +153,9 @@ class DashboardController extends Controller
         return [
             'id' => $termDeposit->id,
             'name' => $termDeposit->name,
+            'bank' => $termDeposit->bank->value,
+            'mark_url' => AccountIdentity::markUrl($termDeposit->bank),
+            'end_date' => $termDeposit->end_date?->toDateString(),
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
             'is_negative' => $termDeposit->isNegative(),
             'is_archived' => $termDeposit->isArchived(),
