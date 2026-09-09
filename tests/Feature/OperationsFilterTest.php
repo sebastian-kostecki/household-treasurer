@@ -760,6 +760,74 @@ class OperationsFilterTest extends TestCase
             );
     }
 
+    public function test_suppressed_sections_are_empty_when_no_filters_are_active(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, ['operation_date' => '2026-03-01']);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('suppressedSections', [])
+                ->where('filtersActive', false),
+            );
+    }
+
+    public function test_search_suppresses_own_transfers_section(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'description' => 'Salary',
+            'operation_date' => '2026-03-01',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['q' => 'Salary']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('suppressedSections', ['own_transfers'])
+                ->where('filtersActive', true),
+            );
+    }
+
+    public function test_year_filter_suppresses_own_transfers_and_capital_movements(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'year' => 2026,
+            'operation_date' => '2026-03-01',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['year' => 2026]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('suppressedSections', ['own_transfers', 'capital_movements'])
+                ->where('filtersActive', true),
+            );
+    }
+
+    public function test_term_deposit_only_filter_suppresses_financial_operations_and_own_transfers(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, ['operation_date' => '2026-03-01']);
+        [$account, $termDeposit] = $this->createAccountAndTermDeposit($user);
+        $this->addCapitalMovement($user, [
+            'account' => $account,
+            'term_deposit' => $termDeposit,
+            'movement_date' => '2026-03-02',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['term_deposit_id' => $termDeposit->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('suppressedSections', ['financial_operations', 'own_transfers'])
+                ->where('filtersActive', true),
+            );
+    }
+
     public function test_term_deposit_filter_rejects_another_users_term_deposit(): void
     {
         $owner = User::factory()->create();

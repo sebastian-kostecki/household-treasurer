@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { Search } from '@lucide/vue';
+import { ChevronDown, Search, SlidersHorizontal } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import OperationsActiveFilterChips, {
+    type OperationsFilterChipKey,
+    type OperationsListSection,
+} from '@/components/OperationsActiveFilterChips.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { operations as operationsRoute } from '@/routes';
 
@@ -44,14 +55,28 @@ const props = defineProps<{
     categories: OperationsFilterCategory[];
     accounts: OperationsFilterAccount[];
     termDeposits: OperationsFilterTermDeposit[];
+    suppressedSections: OperationsListSection[];
 }>();
 
 const SEARCH_DEBOUNCE_MS = 500;
 
 const t = useTranslations();
 const search = ref(props.filters.q ?? '');
+const visiting = ref(false);
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 let skipSearchWatch = false;
+
+const hasPanelFilters = computed(
+    () =>
+        props.filters.year !== null ||
+        props.filters.category_name !== null ||
+        props.filters.account_id !== null ||
+        props.filters.term_deposit_id !== null ||
+        props.filters.date_from !== null ||
+        props.filters.date_to !== null,
+);
+
+const panelOpen = ref(hasPanelFilters.value);
 
 const incomeCategories = computed(() =>
     props.categories.filter((category) => category.type === 'income'),
@@ -88,6 +113,45 @@ const lastMonthActive = computed(
         props.filters.date_to === lastMonthRange.value.to,
 );
 
+const panelFilterCount = computed(() => {
+    let count = 0;
+
+    if (props.filters.year !== null) {
+        count += 1;
+    }
+
+    if (props.filters.category_name !== null) {
+        count += 1;
+    }
+
+    if (props.filters.account_id !== null) {
+        count += 1;
+    }
+
+    if (props.filters.term_deposit_id !== null) {
+        count += 1;
+    }
+
+    if (props.filters.date_from !== null || props.filters.date_to !== null) {
+        count += 1;
+    }
+
+    return count;
+});
+
+const filtersToggleAria = computed(() => {
+    if (panelFilterCount.value === 0) {
+        return t.operations.filters_toggle;
+    }
+
+    return t.operations.filters_active_aria.replace(
+        ':count',
+        String(panelFilterCount.value),
+    );
+});
+
+const showChips = computed(() => props.filtersActive);
+
 watch(
     () => props.filters.q,
     (value) => {
@@ -113,7 +177,7 @@ watch(search, (value) => {
             return;
         }
 
-        visit({ ...props.filters, q });
+        applyFilters({ q });
     }, SEARCH_DEBOUNCE_MS);
 });
 
@@ -157,6 +221,12 @@ function toIsoDate(date: Date): string {
     return `${year}-${month}-${day}`;
 }
 
+function currentSearch(): string | null {
+    const trimmed = search.value.trim();
+
+    return trimmed === '' ? null : trimmed;
+}
+
 function visit(next: OperationsListFilters): void {
     router.get(
         operationsRoute({
@@ -172,72 +242,91 @@ function visit(next: OperationsListFilters): void {
             },
         }),
         {},
-        { preserveState: true, preserveScroll: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onStart: () => {
+                visiting.value = true;
+            },
+            onFinish: () => {
+                visiting.value = false;
+            },
+        },
     );
+}
+
+function applyFilters(patch: Partial<OperationsListFilters>): void {
+    visit({
+        ...props.filters,
+        q: currentSearch(),
+        ...patch,
+    });
 }
 
 function onYearChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    visit({
-        ...props.filters,
-        year: value === '' ? null : Number(value),
-        q: search.value.trim() === '' ? null : search.value.trim(),
-    });
+    applyFilters({ year: value === '' ? null : Number(value) });
 }
 
 function onCategoryChange(event: Event): void {
-    visit({
-        ...props.filters,
-        ...parseCategory((event.target as HTMLSelectElement).value),
-        q: search.value.trim() === '' ? null : search.value.trim(),
-    });
+    applyFilters(parseCategory((event.target as HTMLSelectElement).value));
 }
 
 function onAccountChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    visit({
-        ...props.filters,
-        account_id: value === '' ? null : Number(value),
-        q: search.value.trim() === '' ? null : search.value.trim(),
-    });
+    applyFilters({ account_id: value === '' ? null : Number(value) });
 }
 
 function onTermDepositChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    visit({
-        ...props.filters,
-        term_deposit_id: value === '' ? null : Number(value),
-        q: search.value.trim() === '' ? null : search.value.trim(),
-    });
+    applyFilters({ term_deposit_id: value === '' ? null : Number(value) });
 }
 
 function onDateFromChange(value: string | number): void {
-    visit({
-        ...props.filters,
+    applyFilters({
         date_from: String(value) === '' ? null : String(value),
-        q: search.value.trim() === '' ? null : search.value.trim(),
     });
 }
 
 function onDateToChange(value: string | number): void {
-    visit({
-        ...props.filters,
+    applyFilters({
         date_to: String(value) === '' ? null : String(value),
-        q: search.value.trim() === '' ? null : search.value.trim(),
     });
 }
 
 function applyMonthPreset(offset: number): void {
     const range = monthRange(offset);
-    visit({
-        ...props.filters,
+    const isActive =
+        offset === 0 ? thisMonthActive.value : lastMonthActive.value;
+
+    if (isActive) {
+        applyFilters({ date_from: null, date_to: null });
+
+        return;
+    }
+
+    applyFilters({
         date_from: range.from,
         date_to: range.to,
-        q: search.value.trim() === '' ? null : search.value.trim(),
     });
 }
 
-function clearFilters(): void {
+function submitSearch(): void {
+    if (searchTimer !== null) {
+        clearTimeout(searchTimer);
+        searchTimer = null;
+    }
+
+    const q = currentSearch();
+
+    if (q === props.filters.q) {
+        return;
+    }
+
+    applyFilters({ q });
+}
+
+function clearSearchWatchAndTimer(): void {
     if (searchTimer !== null) {
         clearTimeout(searchTimer);
         searchTimer = null;
@@ -245,6 +334,10 @@ function clearFilters(): void {
 
     skipSearchWatch = true;
     search.value = '';
+}
+
+function clearFilters(): void {
+    clearSearchWatchAndTimer();
     visit({
         q: null,
         year: null,
@@ -257,6 +350,30 @@ function clearFilters(): void {
     });
 }
 
+function removeFilter(key: OperationsFilterChipKey): void {
+    switch (key) {
+        case 'q':
+            clearSearchWatchAndTimer();
+            applyFilters({ q: null });
+            break;
+        case 'year':
+            applyFilters({ year: null });
+            break;
+        case 'category':
+            applyFilters({ category_name: null, category_type: null });
+            break;
+        case 'account':
+            applyFilters({ account_id: null });
+            break;
+        case 'termDeposit':
+            applyFilters({ term_deposit_id: null });
+            break;
+        case 'dates':
+            applyFilters({ date_from: null, date_to: null });
+            break;
+    }
+}
+
 function accountLabel(account: OperationsFilterAccount): string {
     if (!account.is_archived) {
         return account.name;
@@ -267,203 +384,260 @@ function accountLabel(account: OperationsFilterAccount): string {
 </script>
 
 <template>
-    <div
+    <Collapsible
+        v-model:open="panelOpen"
         class="border-border/60 bg-card flex flex-col gap-3 rounded-2xl border p-4"
+        :aria-busy="visiting"
     >
-        <div class="relative">
-            <Search
-                class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-            />
-            <Input
-                v-model="search"
-                type="search"
-                class="pl-9"
-                :placeholder="t.operations.search_placeholder"
-                :aria-label="t.operations.search_placeholder"
-            />
-        </div>
-
-        <div class="flex flex-wrap items-end gap-2">
-            <div class="grid min-w-32 gap-1">
-                <Label
-                    for="operations-filter-year"
-                    class="text-muted-foreground text-xs"
-                >
-                    {{ t.operations.filter_year }}
-                </Label>
-                <select
-                    id="operations-filter-year"
-                    class="native-select"
-                    :value="filters.year ?? ''"
-                    @change="onYearChange"
-                >
-                    <option value="">
-                        {{ t.operations.filter_year_all }}
-                    </option>
-                    <option v-for="year in years" :key="year" :value="year">
-                        {{ year }}
-                    </option>
-                </select>
-            </div>
-
-            <div class="grid min-w-44 gap-1">
-                <Label
-                    for="operations-filter-category"
-                    class="text-muted-foreground text-xs"
-                >
-                    {{ t.operations.filter_category }}
-                </Label>
-                <select
-                    id="operations-filter-category"
-                    class="native-select"
-                    :value="categoryValue"
-                    @change="onCategoryChange"
-                >
-                    <option value="">
-                        {{ t.operations.filter_category_all }}
-                    </option>
-                    <optgroup
-                        v-if="incomeCategories.length > 0"
-                        :label="t.operations.type_income"
-                    >
-                        <option
-                            v-for="category in incomeCategories"
-                            :key="
-                                serializeCategory(category.type, category.name)
-                            "
-                            :value="
-                                serializeCategory(category.type, category.name)
-                            "
-                        >
-                            {{ category.name }}
-                        </option>
-                    </optgroup>
-                    <optgroup
-                        v-if="expenseCategories.length > 0"
-                        :label="t.operations.type_expense"
-                    >
-                        <option
-                            v-for="category in expenseCategories"
-                            :key="
-                                serializeCategory(category.type, category.name)
-                            "
-                            :value="
-                                serializeCategory(category.type, category.name)
-                            "
-                        >
-                            {{ category.name }}
-                        </option>
-                    </optgroup>
-                </select>
-            </div>
-
-            <div class="grid min-w-40 gap-1">
-                <Label
-                    for="operations-filter-account"
-                    class="text-muted-foreground text-xs"
-                >
-                    {{ t.operations.filter_account }}
-                </Label>
-                <select
-                    id="operations-filter-account"
-                    class="native-select"
-                    :value="filters.account_id ?? ''"
-                    @change="onAccountChange"
-                >
-                    <option value="">
-                        {{ t.operations.filter_account_all }}
-                    </option>
-                    <option
-                        v-for="account in accounts"
-                        :key="account.id"
-                        :value="account.id"
-                    >
-                        {{ accountLabel(account) }}
-                    </option>
-                </select>
-            </div>
-
-            <div class="grid min-w-40 gap-1">
-                <Label
-                    for="operations-filter-term-deposit"
-                    class="text-muted-foreground text-xs"
-                >
-                    {{ t.operations.filter_term_deposit }}
-                </Label>
-                <select
-                    id="operations-filter-term-deposit"
-                    class="native-select"
-                    :value="filters.term_deposit_id ?? ''"
-                    @change="onTermDepositChange"
-                >
-                    <option value="">
-                        {{ t.operations.filter_term_deposit_all }}
-                    </option>
-                    <option
-                        v-for="termDeposit in termDeposits"
-                        :key="termDeposit.id"
-                        :value="termDeposit.id"
-                    >
-                        {{ termDeposit.name }}
-                    </option>
-                </select>
-            </div>
-
-            <div class="grid min-w-36 gap-1">
-                <Label
-                    for="operations-filter-date-from"
-                    class="text-muted-foreground text-xs"
-                >
-                    {{ t.operations.filter_date_from }}
-                </Label>
+        <div
+            class="flex flex-wrap items-center gap-2"
+            role="search"
+            :aria-label="t.operations.filter_search"
+        >
+            <div class="relative min-w-56 flex-1">
+                <Search
+                    class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    aria-hidden="true"
+                />
                 <Input
-                    id="operations-filter-date-from"
-                    type="date"
-                    :model-value="filters.date_from ?? ''"
-                    @update:model-value="onDateFromChange"
+                    v-model="search"
+                    type="search"
+                    class="pr-9 pl-9"
+                    :placeholder="t.operations.search_placeholder"
+                    :aria-label="t.operations.search_placeholder"
+                    @keydown.enter.prevent="submitSearch"
+                />
+                <Spinner
+                    v-if="visiting"
+                    class="text-muted-foreground absolute top-1/2 right-3 size-4 -translate-y-1/2"
                 />
             </div>
 
-            <div class="grid min-w-36 gap-1">
-                <Label
-                    for="operations-filter-date-to"
-                    class="text-muted-foreground text-xs"
+            <div class="flex flex-wrap items-center gap-2">
+                <Button
+                    type="button"
+                    size="sm"
+                    :variant="thisMonthActive ? 'secondary' : 'outline'"
+                    @click="applyMonthPreset(0)"
                 >
-                    {{ t.operations.filter_date_to }}
-                </Label>
-                <Input
-                    id="operations-filter-date-to"
-                    type="date"
-                    :model-value="filters.date_to ?? ''"
-                    @update:model-value="onDateToChange"
-                />
-            </div>
+                    {{ t.operations.filter_this_month }}
+                </Button>
+                <Button
+                    type="button"
+                    size="sm"
+                    :variant="lastMonthActive ? 'secondary' : 'outline'"
+                    @click="applyMonthPreset(-1)"
+                >
+                    {{ t.operations.filter_last_month }}
+                </Button>
 
-            <Button
-                type="button"
-                size="sm"
-                :variant="thisMonthActive ? 'secondary' : 'outline'"
-                @click="applyMonthPreset(0)"
-            >
-                {{ t.operations.filter_this_month }}
-            </Button>
-            <Button
-                type="button"
-                size="sm"
-                :variant="lastMonthActive ? 'secondary' : 'outline'"
-                @click="applyMonthPreset(-1)"
-            >
-                {{ t.operations.filter_last_month }}
-            </Button>
-            <Button
-                v-if="filtersActive || search.trim() !== ''"
-                type="button"
-                size="sm"
-                variant="ghost"
-                @click="clearFilters"
-            >
-                {{ t.operations.filter_clear }}
-            </Button>
+                <CollapsibleTrigger as-child>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        :aria-label="filtersToggleAria"
+                    >
+                        <SlidersHorizontal class="size-4" aria-hidden="true" />
+                        {{ t.operations.filters_toggle }}
+                        <Badge
+                            v-if="panelFilterCount > 0"
+                            variant="secondary"
+                            class="rounded-xl"
+                        >
+                            {{ panelFilterCount }}
+                        </Badge>
+                        <ChevronDown
+                            class="size-4 transition-transform"
+                            :class="panelOpen ? 'rotate-180' : ''"
+                            aria-hidden="true"
+                        />
+                    </Button>
+                </CollapsibleTrigger>
+            </div>
         </div>
-    </div>
+
+        <CollapsibleContent
+            class="border-border/60 data-[state=open]:border-t data-[state=open]:pt-3"
+        >
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div v-if="years.length > 0" class="grid gap-1">
+                    <Label
+                        for="operations-filter-year"
+                        class="text-muted-foreground text-xs"
+                    >
+                        {{ t.operations.filter_year }}
+                    </Label>
+                    <select
+                        id="operations-filter-year"
+                        class="native-select"
+                        :value="filters.year ?? ''"
+                        @change="onYearChange"
+                    >
+                        <option value="">
+                            {{ t.operations.filter_year_all }}
+                        </option>
+                        <option
+                            v-for="year in years"
+                            :key="year"
+                            :value="year"
+                        >
+                            {{ year }}
+                        </option>
+                    </select>
+                </div>
+
+                <div v-if="categories.length > 0" class="grid gap-1">
+                    <Label
+                        for="operations-filter-category"
+                        class="text-muted-foreground text-xs"
+                    >
+                        {{ t.operations.filter_category }}
+                    </Label>
+                    <select
+                        id="operations-filter-category"
+                        class="native-select"
+                        :value="categoryValue"
+                        @change="onCategoryChange"
+                    >
+                        <option value="">
+                            {{ t.operations.filter_category_all }}
+                        </option>
+                        <optgroup
+                            v-if="incomeCategories.length > 0"
+                            :label="t.operations.type_income"
+                        >
+                            <option
+                                v-for="category in incomeCategories"
+                                :key="
+                                    serializeCategory(
+                                        category.type,
+                                        category.name,
+                                    )
+                                "
+                                :value="
+                                    serializeCategory(
+                                        category.type,
+                                        category.name,
+                                    )
+                                "
+                            >
+                                {{ category.name }}
+                            </option>
+                        </optgroup>
+                        <optgroup
+                            v-if="expenseCategories.length > 0"
+                            :label="t.operations.type_expense"
+                        >
+                            <option
+                                v-for="category in expenseCategories"
+                                :key="
+                                    serializeCategory(
+                                        category.type,
+                                        category.name,
+                                    )
+                                "
+                                :value="
+                                    serializeCategory(
+                                        category.type,
+                                        category.name,
+                                    )
+                                "
+                            >
+                                {{ category.name }}
+                            </option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div v-if="accounts.length > 0" class="grid gap-1">
+                    <Label
+                        for="operations-filter-account"
+                        class="text-muted-foreground text-xs"
+                    >
+                        {{ t.operations.filter_account }}
+                    </Label>
+                    <select
+                        id="operations-filter-account"
+                        class="native-select"
+                        :value="filters.account_id ?? ''"
+                        @change="onAccountChange"
+                    >
+                        <option value="">
+                            {{ t.operations.filter_account_all }}
+                        </option>
+                        <option
+                            v-for="account in accounts"
+                            :key="account.id"
+                            :value="account.id"
+                        >
+                            {{ accountLabel(account) }}
+                        </option>
+                    </select>
+                </div>
+
+                <div v-if="termDeposits.length > 0" class="grid gap-1">
+                    <Label
+                        for="operations-filter-term-deposit"
+                        class="text-muted-foreground text-xs"
+                    >
+                        {{ t.operations.filter_term_deposit }}
+                    </Label>
+                    <select
+                        id="operations-filter-term-deposit"
+                        class="native-select"
+                        :value="filters.term_deposit_id ?? ''"
+                        @change="onTermDepositChange"
+                    >
+                        <option value="">
+                            {{ t.operations.filter_term_deposit_all }}
+                        </option>
+                        <option
+                            v-for="termDeposit in termDeposits"
+                            :key="termDeposit.id"
+                            :value="termDeposit.id"
+                        >
+                            {{ termDeposit.name }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="grid gap-1 sm:col-span-2 lg:col-span-1">
+                    <Label class="text-muted-foreground text-xs">
+                        {{ t.operations.filter_date_range }}
+                    </Label>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Input
+                            id="operations-filter-date-from"
+                            type="date"
+                            class="min-w-36 flex-1"
+                            :model-value="filters.date_from ?? ''"
+                            :aria-label="t.operations.filter_date_from"
+                            @update:model-value="onDateFromChange"
+                        />
+                        <Input
+                            id="operations-filter-date-to"
+                            type="date"
+                            class="min-w-36 flex-1"
+                            :model-value="filters.date_to ?? ''"
+                            :aria-label="t.operations.filter_date_to"
+                            @update:model-value="onDateToChange"
+                        />
+                    </div>
+                </div>
+            </div>
+        </CollapsibleContent>
+
+        <OperationsActiveFilterChips
+            v-if="showChips"
+            class="border-border/60 border-t pt-3"
+            :filters="filters"
+            :categories="categories"
+            :accounts="accounts"
+            :term-deposits="termDeposits"
+            :suppressed-sections="suppressedSections"
+            @remove="removeFilter"
+            @clear="clearFilters"
+        />
+    </Collapsible>
 </template>

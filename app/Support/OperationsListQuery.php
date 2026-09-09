@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
+use App\Enums\OperationsListSection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
@@ -73,6 +74,28 @@ class OperationsListQuery
     public function hidesFinancialOperations(): bool
     {
         return $this->termDepositId !== null && ! $this->hasFinancialOperationFilters();
+    }
+
+    /**
+     * @return list<OperationsListSection>
+     */
+    public function suppressedSections(): array
+    {
+        $sections = [];
+
+        if ($this->hidesFinancialOperations()) {
+            $sections[] = OperationsListSection::FinancialOperations;
+        }
+
+        if ($this->isActive()) {
+            $sections[] = OperationsListSection::OwnTransfers;
+        }
+
+        if ($this->omitsCapitalMovements()) {
+            $sections[] = OperationsListSection::CapitalMovements;
+        }
+
+        return $sections;
     }
 
     /**
