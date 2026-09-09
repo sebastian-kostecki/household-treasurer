@@ -48,8 +48,21 @@ class AppServiceProvider extends ServiceProvider
             : null,
         );
 
-        if (app()->isProduction()) {
-            URL::forceScheme('https');
+        $this->configureFrontDoorUrls();
+    }
+
+    /**
+     * Traefik terminates TLS, so PHP sees HTTP. Generated redirects must still be HTTPS.
+     */
+    protected function configureFrontDoorUrls(): void
+    {
+        $appUrl = config('app.url');
+
+        if (! is_string($appUrl) || ! str_starts_with($appUrl, 'https://')) {
+            return;
         }
+
+        URL::forceRootUrl(rtrim($appUrl, '/'));
+        URL::forceScheme('https');
     }
 }
