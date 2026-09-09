@@ -34,6 +34,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');
     Route::resource('term-deposits', TermDepositController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('term-deposits/{term_deposit}/archive', [TermDepositController::class, 'archive'])->name('term-deposits.archive');
+    Route::post('term-deposits/{term_deposit}/restore', [TermDepositController::class, 'restore'])->name('term-deposits.restore');
     Route::get('operations', [OperationsController::class, 'index'])->name('operations');
     Route::get('operations/import', [CsvImportController::class, 'create'])->name('operations.import.create');
     Route::post('operations/import/preview', [CsvImportController::class, 'preview'])->name('operations.import.preview.store');

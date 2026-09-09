@@ -110,6 +110,7 @@ class BackupUserData
             'opening_date' => $termDeposit->opening_date->toDateString(),
             'opening_balance_minor_units' => $termDeposit->opening_balance_minor_units,
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
+            'archived_at' => $termDeposit->archived_at?->toIso8601String(),
             'created_at' => $termDeposit->created_at?->toIso8601String(),
             'updated_at' => $termDeposit->updated_at?->toIso8601String(),
         ];

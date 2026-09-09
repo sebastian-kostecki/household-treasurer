@@ -32,6 +32,18 @@ class TermDepositPolicy
         return $this->ownsTermDeposit($user, $termDeposit);
     }
 
+    public function archive(User $user, TermDeposit $termDeposit): bool
+    {
+        return $this->ownsTermDeposit($user, $termDeposit)
+            && $termDeposit->hasCapitalMovements()
+            && ! $termDeposit->isArchived();
+    }
+
+    public function restore(User $user, TermDeposit $termDeposit): bool
+    {
+        return $this->ownsTermDeposit($user, $termDeposit) && $termDeposit->isArchived();
+    }
+
     private function ownsTermDeposit(User $user, TermDeposit $termDeposit): bool
     {
         return $user->id === $termDeposit->user_id;

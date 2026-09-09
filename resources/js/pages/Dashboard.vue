@@ -43,6 +43,7 @@ type TermDepositSummary = {
     name: string;
     current_balance_minor_units: number;
     is_negative: boolean;
+    is_archived: boolean;
 };
 
 type BudgetSummary = {
@@ -262,11 +263,23 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                 v-if="termDeposits.length > 0"
                 class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
             >
-                <Card v-for="termDeposit in termDeposits" :key="termDeposit.id">
+                <Card
+                    v-for="termDeposit in termDeposits"
+                    :key="termDeposit.id"
+                    :class="termDeposit.is_archived ? 'opacity-70' : ''"
+                >
                     <CardHeader class="space-y-3 pb-2">
-                        <p class="text-sm font-medium">
-                            {{ termDeposit.name }}
-                        </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p class="text-sm font-medium">
+                                {{ termDeposit.name }}
+                            </p>
+                            <Badge
+                                v-if="termDeposit.is_archived"
+                                variant="secondary"
+                            >
+                                {{ t.budget.archived_badge }}
+                            </Badge>
+                        </div>
                         <CardTitle
                             class="text-lg"
                             :class="balanceClass(termDeposit)"

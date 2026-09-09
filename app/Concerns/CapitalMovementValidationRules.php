@@ -71,6 +71,10 @@ trait CapitalMovementValidationRules
                     $validator->errors()->add('account_id', __('The selected account is invalid.'));
                 }
 
+                if ($termDeposit?->isArchived()) {
+                    $validator->errors()->add('term_deposit_id', __('The selected term deposit is invalid.'));
+                }
+
                 if ($account === null || $termDeposit === null) {
                     return;
                 }

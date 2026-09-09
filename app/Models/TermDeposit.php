@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $opening_date
  * @property int $opening_balance_minor_units
  * @property int $current_balance_minor_units
+ * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
     'opening_date',
     'opening_balance_minor_units',
     'current_balance_minor_units',
+    'archived_at',
 ])]
 class TermDeposit extends Model
 {
@@ -41,6 +43,7 @@ class TermDeposit extends Model
             'opening_date' => 'date',
             'opening_balance_minor_units' => 'integer',
             'current_balance_minor_units' => 'integer',
+            'archived_at' => 'datetime',
         ];
     }
 
@@ -63,6 +66,11 @@ class TermDeposit extends Model
     public function hasCapitalMovements(): bool
     {
         return $this->capitalMovements()->exists();
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
     }
 
     public function isNegative(): bool
