@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
+use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Models\Category;
@@ -25,11 +26,17 @@ class RestoreUserData
             $this->resetUserData->handle($targetUser);
 
             $accountIdMap = $this->restoreAccounts($targetUser, $snapshot['accounts']);
-            $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
+            $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $this->restoreCategories($snapshot['categories'], $budgetIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
             $this->restoreOwnTransfers($targetUser, $snapshot['own_transfers'], $accountIdMap);
+            $this->restoreCapitalMovements(
+                $targetUser,
+                $snapshot['capital_movements'] ?? [],
+                $accountIdMap,
+                $termDepositIdMap,
+            );
 
             $targetUser->forceFill([
                 'first_run_checklist_dismissed_at' => isset($snapshot['first_run_checklist_dismissed_at'])
@@ -66,7 +73,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -76,8 +83,12 @@ class RestoreUserData
             }
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('capital_movements', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
         return $snapshot;
@@ -112,11 +123,14 @@ class RestoreUserData
 
     /**
      * @param  list<array<string, mixed>>  $termDeposits
+     * @return array<int, int>
      */
-    private function restoreTermDeposits(User $targetUser, array $termDeposits): void
+    private function restoreTermDeposits(User $targetUser, array $termDeposits): array
     {
+        $termDepositIdMap = [];
+
         foreach ($termDeposits as $termDepositData) {
-            $targetUser->termDeposits()->create([
+            $termDeposit = $targetUser->termDeposits()->create([
                 'name' => $termDepositData['name'],
                 'opening_date' => $termDepositData['opening_date'],
                 'opening_balance_minor_units' => $termDepositData['opening_balance_minor_units'],
@@ -124,7 +138,11 @@ class RestoreUserData
                 'created_at' => isset($termDepositData['created_at']) ? Carbon::parse($termDepositData['created_at']) : now(),
                 'updated_at' => isset($termDepositData['updated_at']) ? Carbon::parse($termDepositData['updated_at']) : now(),
             ]);
+
+            $termDepositIdMap[$termDepositData['id']] = $termDeposit->id;
         }
+
+        return $termDepositIdMap;
     }
 
     /**
@@ -262,6 +280,54 @@ class RestoreUserData
                 'destination_import_identity_digest' => $transferData['destination_import_identity_digest'] ?? null,
                 'created_at' => isset($transferData['created_at']) ? Carbon::parse($transferData['created_at']) : now(),
                 'updated_at' => isset($transferData['updated_at']) ? Carbon::parse($transferData['updated_at']) : now(),
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $movements
+     * @param  array<int, int>  $accountIdMap
+     * @param  array<int, int>  $termDepositIdMap
+     */
+    private function restoreCapitalMovements(
+        User $targetUser,
+        array $movements,
+        array $accountIdMap,
+        array $termDepositIdMap,
+    ): void {
+        foreach ($movements as $movementData) {
+            $accountId = $accountIdMap[$movementData['account_id']] ?? null;
+            $termDepositId = $termDepositIdMap[$movementData['term_deposit_id']] ?? null;
+
+            if ($accountId === null || $termDepositId === null) {
+                throw new UserSnapshotException('Snapshot references unknown capital movement relations.');
+            }
+
+            $importIdentityAccountId = isset($movementData['import_identity_account_id'])
+                ? ($accountIdMap[$movementData['import_identity_account_id']] ?? null)
+                : null;
+
+            if (
+                isset($movementData['import_identity_account_id'])
+                && $importIdentityAccountId === null
+            ) {
+                throw new UserSnapshotException('Snapshot references unknown capital movement import identity account.');
+            }
+
+            $targetUser->capitalMovements()->create([
+                'account_id' => $accountId,
+                'term_deposit_id' => $termDepositId,
+                'movement_date' => $movementData['movement_date'],
+                'amount_minor_units' => $movementData['amount_minor_units'],
+                'direction' => CapitalMovementDirection::from($movementData['direction']),
+                'description' => $movementData['description'],
+                'raw_statement_description' => $movementData['raw_statement_description'] ?? null,
+                'import_identity_account_id' => $importIdentityAccountId,
+                'import_identity_date' => $movementData['import_identity_date'] ?? null,
+                'import_identity_amount_minor_units' => $movementData['import_identity_amount_minor_units'] ?? null,
+                'import_identity_digest' => $movementData['import_identity_digest'] ?? null,
+                'created_at' => isset($movementData['created_at']) ? Carbon::parse($movementData['created_at']) : now(),
+                'updated_at' => isset($movementData['updated_at']) ? Carbon::parse($movementData['updated_at']) : now(),
             ]);
         }
     }

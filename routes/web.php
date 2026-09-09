@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
@@ -45,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('expenses/{financial_operation}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('expenses/{financial_operation}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     Route::resource('own-transfers', OwnTransferController::class)->only(['store', 'update', 'destroy']);
+    Route::resource('capital-movements', CapitalMovementController::class)->only(['store', 'update', 'destroy']);
 });
 
 require __DIR__.'/settings.php';

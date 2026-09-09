@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Actions\BackupUserData;
 use App\Actions\RestoreUserData;
 use App\Enums\BudgetPhase;
+use App\Enums\CapitalMovementDirection;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
@@ -37,7 +39,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(2, $snapshot['version']);
+        $this->assertSame(3, $snapshot['version']);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
         $this->assertSame($user->email, $snapshot['source']['email']);
         $this->assertCount(2, $snapshot['accounts']);
@@ -46,6 +48,7 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertCount(1, $snapshot['categories']);
         $this->assertCount(1, $snapshot['financial_operations']);
         $this->assertCount(1, $snapshot['own_transfers']);
+        $this->assertCount(1, $snapshot['capital_movements']);
     }
 
     public function test_restore_command_replaces_target_user_domain_data(): void
@@ -73,6 +76,7 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(1, $targetUser->budgets()->count());
         $this->assertSame(1, $targetUser->financialOperations()->count());
         $this->assertSame(1, $targetUser->ownTransfers()->count());
+        $this->assertSame(1, $targetUser->capitalMovements()->count());
         $this->assertNotNull($targetUser->first_run_checklist_dismissed_at);
 
         $restoredAccountIds = $targetUser->accounts()->pluck('id')->all();
@@ -113,7 +117,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(file_get_contents($path), true);
         $snapshot['version'] = 1;
-        unset($snapshot['term_deposits']);
+        unset($snapshot['term_deposits'], $snapshot['capital_movements']);
 
         Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
         $legacyPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/legacy-v1.json');
@@ -284,6 +288,17 @@ class UserSnapshotCommandTest extends TestCase
             'destination_import_identity_date' => '2026-03-03',
             'destination_import_identity_amount_minor_units' => 50000,
             'destination_import_identity_digest' => 'digest-cash',
+        ]);
+
+        $termDeposit = $user->termDeposits()->firstOrFail();
+
+        CapitalMovement::factory()->for($user)->create([
+            'account_id' => $sourceAccount->id,
+            'term_deposit_id' => $termDeposit->id,
+            'movement_date' => '2026-03-04',
+            'amount_minor_units' => 75000,
+            'direction' => CapitalMovementDirection::ToTermDeposit,
+            'description' => 'Parking on deposit',
         ]);
 
         return $user;

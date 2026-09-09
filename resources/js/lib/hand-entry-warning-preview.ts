@@ -2,9 +2,15 @@ export type HandEntryPreviewKind =
     | 'income'
     | 'expense'
     | 'refund'
-    | 'own_transfer';
+    | 'own_transfer'
+    | 'capital_movement';
 
 export type HandEntryPreviewAccount = {
+    id: number;
+    current_balance_minor_units: number;
+};
+
+export type HandEntryPreviewTermDeposit = {
     id: number;
     current_balance_minor_units: number;
 };
@@ -20,6 +26,8 @@ export type HandEntryPreviewEditedRecord = {
     category_id?: number;
     signed_amount_minor_units: number;
     source_account_id?: number;
+    term_deposit_id?: number;
+    direction?: 'to_term_deposit' | 'from_term_deposit';
 };
 
 export type HandEntryPreviewProposal = {
@@ -28,11 +36,14 @@ export type HandEntryPreviewProposal = {
     category_id?: number;
     amount_minor_units: number;
     source_account_id?: number;
+    term_deposit_id?: number;
+    direction?: 'to_term_deposit' | 'from_term_deposit';
 };
 
 export type HandEntryPreviewInput = {
     mode: 'create' | 'edit';
     accounts: HandEntryPreviewAccount[];
+    termDeposits?: HandEntryPreviewTermDeposit[];
     categories?: HandEntryPreviewCategory[];
     editedRecord?: HandEntryPreviewEditedRecord | null;
     proposal: HandEntryPreviewProposal;
@@ -40,6 +51,7 @@ export type HandEntryPreviewInput = {
 
 export type HandEntryPreviewResult = {
     showNegativeBalanceWarning: boolean;
+    showTermDepositNegativeBalanceWarning: boolean;
     availableLimitNowMinorUnits: number | null;
     availableLimitAfterMinorUnits: number | null;
     showOverLimitWarning: boolean;
@@ -65,6 +77,17 @@ function findCategory(
     }
 
     return categories.find((category) => category.id === categoryId);
+}
+
+function findTermDeposit(
+    termDeposits: HandEntryPreviewTermDeposit[] | undefined,
+    termDepositId: number | undefined,
+): HandEntryPreviewTermDeposit | undefined {
+    if (termDepositId === undefined || termDeposits === undefined) {
+        return undefined;
+    }
+
+    return termDeposits.find((termDeposit) => termDeposit.id === termDepositId);
 }
 
 function accountLiquidityAdjustmentMinorUnits(
@@ -143,14 +166,122 @@ function predictAccountLiquidityMinorUnits(
     );
 }
 
+function termDepositLiquidityAdjustmentMinorUnits(
+    mode: 'create' | 'edit',
+    editedRecord: HandEntryPreviewEditedRecord | null | undefined,
+    selectedTermDepositId: number,
+    originalTermDepositId: number,
+    originalSignedEffectMinorUnits: number,
+): number {
+    if (mode !== 'edit' || editedRecord === null || editedRecord === undefined) {
+        return 0;
+    }
+
+    if (selectedTermDepositId !== originalTermDepositId) {
+        return 0;
+    }
+
+    return originalSignedEffectMinorUnits;
+}
+
+function capitalMovementAccountSignedEffect(
+    direction: 'to_term_deposit' | 'from_term_deposit' | undefined,
+    amountMinorUnits: number,
+): number {
+    const absoluteAmount = Math.abs(amountMinorUnits);
+
+    if (direction === 'from_term_deposit') {
+        return absoluteAmount;
+    }
+
+    return -absoluteAmount;
+}
+
+function capitalMovementTermDepositSignedEffect(
+    direction: 'to_term_deposit' | 'from_term_deposit' | undefined,
+    amountMinorUnits: number,
+): number {
+    const absoluteAmount = Math.abs(amountMinorUnits);
+
+    if (direction === 'from_term_deposit') {
+        return -absoluteAmount;
+    }
+
+    return absoluteAmount;
+}
+
 export function previewHandEntryWarnings(
     input: HandEntryPreviewInput,
 ): HandEntryPreviewResult {
-    const { mode, accounts, categories, editedRecord, proposal } = input;
+    const { mode, accounts, termDeposits, categories, editedRecord, proposal } = input;
     const signedAmount = signedProposalAmountMinorUnits(
         proposal.kind,
         proposal.amount_minor_units,
     );
+
+    if (proposal.kind === 'capital_movement') {
+        const account = findAccount(accounts, proposal.account_id);
+        const termDeposit = findTermDeposit(termDeposits, proposal.term_deposit_id);
+        const accountSignedEffect = capitalMovementAccountSignedEffect(
+            proposal.direction,
+            proposal.amount_minor_units,
+        );
+        const termDepositSignedEffect = capitalMovementTermDepositSignedEffect(
+            proposal.direction,
+            proposal.amount_minor_units,
+        );
+        const originalAccountId = editedRecord?.account_id ?? -1;
+        const originalTermDepositId = editedRecord?.term_deposit_id ?? -1;
+        const originalAmountMinorUnits = Math.abs(
+            editedRecord?.signed_amount_minor_units ?? 0,
+        );
+        const originalDirection = editedRecord?.direction ?? 'to_term_deposit';
+        const originalAccountSignedEffect = capitalMovementAccountSignedEffect(
+            originalDirection,
+            originalAmountMinorUnits,
+        );
+        const originalTermDepositSignedEffect = capitalMovementTermDepositSignedEffect(
+            originalDirection,
+            originalAmountMinorUnits,
+        );
+        const accountAdjustment = accountLiquidityAdjustmentMinorUnits(
+            mode,
+            editedRecord,
+            proposal.account_id,
+            originalAccountId,
+            originalAccountSignedEffect,
+        );
+        const termDepositAdjustment = termDepositLiquidityAdjustmentMinorUnits(
+            mode,
+            editedRecord,
+            proposal.term_deposit_id ?? -1,
+            originalTermDepositId,
+            originalTermDepositSignedEffect,
+        );
+        const predictedAccountBalance =
+            account === undefined
+                ? null
+                : account.current_balance_minor_units +
+                  accountAdjustment +
+                  accountSignedEffect;
+        const predictedTermDepositBalance =
+            termDeposit === undefined
+                ? null
+                : termDeposit.current_balance_minor_units +
+                  termDepositAdjustment +
+                  termDepositSignedEffect;
+
+        return {
+            showNegativeBalanceWarning:
+                predictedAccountBalance !== null && predictedAccountBalance < 0,
+            showTermDepositNegativeBalanceWarning:
+                predictedTermDepositBalance !== null &&
+                predictedTermDepositBalance < 0,
+            availableLimitNowMinorUnits: null,
+            availableLimitAfterMinorUnits: null,
+            showOverLimitWarning: false,
+        };
+    }
 
     if (proposal.kind === 'own_transfer') {
         const sourceAccount = findAccount(accounts, proposal.source_account_id);
@@ -178,6 +309,7 @@ export function previewHandEntryWarnings(
         return {
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
+            showTermDepositNegativeBalanceWarning: false,
             availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
@@ -188,6 +320,7 @@ export function previewHandEntryWarnings(
         if (mode === 'create') {
             return {
                 showNegativeBalanceWarning: false,
+                showTermDepositNegativeBalanceWarning: false,
                 availableLimitNowMinorUnits: null,
                 availableLimitAfterMinorUnits: null,
                 showOverLimitWarning: false,
@@ -219,6 +352,7 @@ export function previewHandEntryWarnings(
         return {
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
+            showTermDepositNegativeBalanceWarning: false,
             availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
@@ -267,6 +401,7 @@ export function previewHandEntryWarnings(
     return {
         showNegativeBalanceWarning:
             predictedBalance !== null && predictedBalance < 0,
+        showTermDepositNegativeBalanceWarning: false,
         availableLimitNowMinorUnits,
         availableLimitAfterMinorUnits,
         showOverLimitWarning:
