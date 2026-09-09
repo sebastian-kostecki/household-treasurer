@@ -17,15 +17,24 @@ class TermDepositController extends Controller
 
     public function index(Request $request): Response
     {
-        $termDeposits = $request->user()
+        $showArchived = $request->boolean('show_archived');
+
+        $allTermDeposits = $request->user()
             ->termDeposits()
             ->orderBy('name')
-            ->get()
+            ->get();
+
+        $termDeposits = $allTermDeposits
+            ->when(! $showArchived, fn ($collection) => $collection->filter(
+                fn (TermDeposit $termDeposit): bool => ! $termDeposit->isArchived(),
+            ))
+            ->values()
             ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit));
 
         return Inertia::render('TermDeposits', [
             'termDeposits' => $termDeposits,
-            'term_deposits_total_minor_units' => (int) $request->user()->termDeposits()->sum('current_balance_minor_units'),
+            'term_deposits_total_minor_units' => (int) $allTermDeposits->sum('current_balance_minor_units'),
+            'show_archived' => $showArchived,
         ]);
     }
 
@@ -88,6 +97,34 @@ class TermDepositController extends Controller
         return to_route('term-deposits.index');
     }
 
+    public function archive(Request $request, TermDeposit $termDeposit): RedirectResponse
+    {
+        $this->authorize('archive', $termDeposit);
+
+        $termDeposit->update(['archived_at' => now()]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Term deposit archived.'),
+        ]);
+
+        return to_route('term-deposits.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
+    public function restore(Request $request, TermDeposit $termDeposit): RedirectResponse
+    {
+        $this->authorize('restore', $termDeposit);
+
+        $termDeposit->update(['archived_at' => null]);
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Term deposit restored.'),
+        ]);
+
+        return to_route('term-deposits.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+    }
+
     /**
      * @return array{
      *     id: int,
@@ -96,7 +133,10 @@ class TermDepositController extends Controller
      *     opening_balance_minor_units: int,
      *     current_balance_minor_units: int,
      *     is_negative: bool,
+     *     is_archived: bool,
      *     can_delete: bool,
+     *     can_archive: bool,
+     *     can_restore: bool,
      * }
      */
     private function termDepositPayload(TermDeposit $termDeposit): array
@@ -108,7 +148,10 @@ class TermDepositController extends Controller
             'opening_balance_minor_units' => $termDeposit->opening_balance_minor_units,
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
             'is_negative' => $termDeposit->isNegative(),
-            'can_delete' => ! $termDeposit->hasCapitalMovements(),
+            'is_archived' => $termDeposit->isArchived(),
+            'can_delete' => ! $termDeposit->hasCapitalMovements() && ! $termDeposit->isArchived(),
+            'can_archive' => $termDeposit->hasCapitalMovements() && ! $termDeposit->isArchived(),
+            'can_restore' => $termDeposit->isArchived(),
         ];
     }
 }

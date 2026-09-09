@@ -136,6 +136,7 @@ class DashboardController extends Controller
      *     name: string,
      *     current_balance_minor_units: int,
      *     is_negative: bool,
+     *     is_archived: bool,
      * }
      */
     private function termDepositPayload(TermDeposit $termDeposit): array
@@ -145,6 +146,7 @@ class DashboardController extends Controller
             'name' => $termDeposit->name,
             'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
             'is_negative' => $termDeposit->isNegative(),
+            'is_archived' => $termDeposit->isArchived(),
         ];
     }
 

@@ -79,7 +79,7 @@ class OperationsFilterOptions
     }
 
     /**
-     * @return list<array{id: int, name: string}>
+     * @return list<array{id: int, name: string, is_archived: bool}>
      */
     public static function termDeposits(User $user): array
     {
@@ -89,6 +89,7 @@ class OperationsFilterOptions
             ->map(fn (TermDeposit $termDeposit): array => [
                 'id' => $termDeposit->id,
                 'name' => $termDeposit->name,
+                'is_archived' => $termDeposit->archived_at !== null,
             ])
             ->all());
     }

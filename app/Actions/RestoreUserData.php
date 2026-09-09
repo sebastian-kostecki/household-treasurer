@@ -135,6 +135,7 @@ class RestoreUserData
                 'opening_date' => $termDepositData['opening_date'],
                 'opening_balance_minor_units' => $termDepositData['opening_balance_minor_units'],
                 'current_balance_minor_units' => $termDepositData['current_balance_minor_units'],
+                'archived_at' => isset($termDepositData['archived_at']) ? Carbon::parse($termDepositData['archived_at']) : null,
                 'created_at' => isset($termDepositData['created_at']) ? Carbon::parse($termDepositData['created_at']) : now(),
                 'updated_at' => isset($termDepositData['updated_at']) ? Carbon::parse($termDepositData['updated_at']) : now(),
             ]);

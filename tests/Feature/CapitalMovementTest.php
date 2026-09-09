@@ -330,6 +330,31 @@ class CapitalMovementTest extends TestCase
             ->assertSessionHasErrors('account_id');
     }
 
+    public function test_capital_movement_cannot_use_archived_term_deposit(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
+        ]);
+        $termDeposit = TermDeposit::factory()->for($user)->archived()->create([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('operations'))
+            ->post(route('capital-movements.store'), [
+                'movement_date' => '2026-03-01',
+                'amount_minor_units' => 1000,
+                'description' => 'Parking',
+                'direction' => CapitalMovementDirection::ToTermDeposit->value,
+                'account_id' => $account->id,
+                'term_deposit_id' => $termDeposit->id,
+            ])
+            ->assertSessionHasErrors('term_deposit_id');
+    }
+
     public function test_user_cannot_delete_account_with_capital_movements(): void
     {
         $user = User::factory()->create();

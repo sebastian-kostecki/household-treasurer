@@ -47,7 +47,9 @@ trait OperationRebuildValidationRules
             'term_deposit_id' => [
                 'required',
                 'integer',
-                Rule::exists('term_deposits', 'id')->where('user_id', $userId),
+                Rule::exists('term_deposits', 'id')
+                    ->where('user_id', $userId)
+                    ->whereNull('archived_at'),
             ],
             'direction' => ['required', Rule::enum(CapitalMovementDirection::class)],
         ];
@@ -88,7 +90,9 @@ trait OperationRebuildValidationRules
             'term_deposit_id' => [
                 'required',
                 'integer',
-                Rule::exists('term_deposits', 'id')->where('user_id', $userId),
+                Rule::exists('term_deposits', 'id')
+                    ->where('user_id', $userId)
+                    ->whereNull('archived_at'),
             ],
             'direction' => ['required', Rule::enum(CapitalMovementDirection::class)],
         ];

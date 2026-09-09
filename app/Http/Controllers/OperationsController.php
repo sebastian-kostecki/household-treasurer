@@ -112,6 +112,7 @@ class OperationsController extends Controller
             ]);
 
         $termDeposits = $user->termDeposits()
+            ->whereNull('archived_at')
             ->orderBy('name')
             ->get()
             ->map(fn (TermDeposit $termDeposit): array => [
