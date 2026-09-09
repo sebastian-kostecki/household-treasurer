@@ -828,4 +828,255 @@ class BudgetTest extends TestCase
                 ->where('planSummary.planned_balance_minor_units', 100000),
             );
     }
+
+    public function test_shell_exposes_copyable_budget_sources(): void
+    {
+        $user = User::factory()->create();
+        $copyableBudget = Budget::factory()->for($user)->create(['year' => 2025]);
+        Category::factory()->for($copyableBudget)->create();
+        $archivedOnlyBudget = Budget::factory()->for($user)->create(['year' => 2024]);
+        Category::factory()->for($archivedOnlyBudget)->archived()->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('shell.copyableBudgetSources', [
+                    ['id' => $copyableBudget->id, 'year' => 2025],
+                ]),
+            );
+    }
+
+    public function test_creating_budget_with_source_copies_non_archived_categories_from_previous_year(): void
+    {
+        $user = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
+        $archivedCategory = Category::factory()->for($sourceBudget)->expense()->archived()->create([
+            'name' => 'Archived',
+            'sort_order' => 0,
+        ]);
+        $income = Category::factory()->for($sourceBudget)->income()->create([
+            'name' => 'Salary',
+            'icon' => 'wallet',
+            'color' => '#228be6',
+            'sort_order' => 0,
+            'planned_amount_minor_units' => 500000,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 250000,
+        ]);
+        $expense = Category::factory()->for($sourceBudget)->expense()->create([
+            'name' => 'Groceries',
+            'icon' => 'shopping-cart',
+            'color' => '#40c057',
+            'sort_order' => 1,
+            'planned_amount_minor_units' => 120000,
+            'initial_plan_minor_units' => 100000,
+            'execution_minor_units' => 80000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $sourceBudget->id,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
+
+        $this->assertSame(BudgetPhase::Draft, $targetBudget->phase);
+        $this->assertDatabaseCount('budgets', 2);
+        $this->assertDatabaseCount('categories', 5);
+        $this->assertSame(2, Category::query()->where('budget_id', $targetBudget->id)->count());
+        $this->assertDatabaseHas('categories', [
+            'budget_id' => $targetBudget->id,
+            'name' => 'Salary',
+            'type' => CategoryType::Income->value,
+            'icon' => 'wallet',
+            'color' => '#228be6',
+            'sort_order' => 0,
+            'planned_amount_minor_units' => 500000,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
+            'archived_at' => null,
+        ]);
+        $this->assertDatabaseHas('categories', [
+            'budget_id' => $targetBudget->id,
+            'name' => 'Groceries',
+            'type' => CategoryType::Expense->value,
+            'icon' => 'shopping-cart',
+            'color' => '#40c057',
+            'sort_order' => 1,
+            'planned_amount_minor_units' => 120000,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
+        ]);
+        $this->assertDatabaseMissing('categories', [
+            'budget_id' => $targetBudget->id,
+            'name' => 'Archived',
+        ]);
+        $this->assertDatabaseHas('categories', [
+            'id' => $income->id,
+            'initial_plan_minor_units' => 400000,
+            'execution_minor_units' => 250000,
+        ]);
+        $this->assertDatabaseHas('categories', [
+            'id' => $archivedCategory->id,
+            'budget_id' => $sourceBudget->id,
+        ]);
+
+        $copiedCategories = Category::query()->where('budget_id', $targetBudget->id)->get();
+        $this->assertTrue($copiedCategories->every(
+            fn (Category $category): bool => $category->id !== $income->id && $category->id !== $expense->id,
+        ));
+    }
+
+    public function test_creating_budget_without_source_creates_empty_draft_even_when_source_exists(): void
+    {
+        $user = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
+        Category::factory()->for($sourceBudget)->create();
+
+        $this->actingAs($user)
+            ->post(route('budgets.store'), ['year' => 2026])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
+
+        $this->assertSame(BudgetPhase::Draft, $targetBudget->phase);
+        $this->assertDatabaseCount('categories', 1);
+        $this->assertDatabaseHas('categories', ['budget_id' => $sourceBudget->id]);
+        $this->assertDatabaseMissing('categories', ['budget_id' => $targetBudget->id]);
+    }
+
+    public function test_gap_year_copy_uses_newest_earlier_copyable_budget(): void
+    {
+        $user = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2024]);
+        Category::factory()->for($sourceBudget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_minor_units' => 300000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $sourceBudget->id,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget'));
+
+        $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
+
+        $this->assertDatabaseHas('categories', [
+            'budget_id' => $targetBudget->id,
+            'name' => 'Salary',
+            'planned_amount_minor_units' => 300000,
+        ]);
+    }
+
+    public function test_future_year_budget_is_rejected_as_source(): void
+    {
+        $user = User::factory()->create();
+        $futureBudget = Budget::factory()->for($user)->create(['year' => 2027]);
+        Category::factory()->for($futureBudget)->create();
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $futureBudget->id,
+            ])
+            ->assertSessionHasErrors('source_budget_id');
+
+        $this->assertDatabaseMissing('budgets', ['user_id' => $user->id, 'year' => 2026]);
+    }
+
+    public function test_same_year_budget_is_rejected_as_source(): void
+    {
+        $user = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($sourceBudget)->create();
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $sourceBudget->id,
+            ])
+            ->assertSessionHasErrors(['year', 'source_budget_id']);
+
+        $this->assertDatabaseCount('budgets', 1);
+    }
+
+    public function test_other_users_budget_is_rejected_as_source(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($owner)->create(['year' => 2025]);
+        Category::factory()->for($sourceBudget)->create();
+
+        $this->actingAs($otherUser)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $sourceBudget->id,
+            ])
+            ->assertSessionHasErrors('source_budget_id');
+
+        $this->assertDatabaseMissing('budgets', ['user_id' => $otherUser->id, 'year' => 2026]);
+    }
+
+    public function test_budget_with_only_archived_categories_is_rejected_as_source(): void
+    {
+        $user = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
+        Category::factory()->for($sourceBudget)->archived()->create();
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $sourceBudget->id,
+            ])
+            ->assertSessionHasErrors('source_budget_id');
+
+        $this->assertDatabaseMissing('budgets', ['user_id' => $user->id, 'year' => 2026]);
+    }
+
+    public function test_unknown_source_budget_id_creates_no_budget(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => 99999,
+            ])
+            ->assertSessionHasErrors('source_budget_id');
+
+        $this->assertDatabaseMissing('budgets', ['user_id' => $user->id, 'year' => 2026]);
+    }
+
+    public function test_creating_budget_with_source_still_blocks_duplicate_year(): void
+    {
+        $user = User::factory()->create();
+        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
+        Category::factory()->for($sourceBudget)->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), [
+                'year' => 2026,
+                'source_budget_id' => $sourceBudget->id,
+            ])
+            ->assertSessionHasErrors('year');
+
+        $this->assertDatabaseCount('budgets', 2);
+        $this->assertDatabaseCount('categories', 1);
+    }
 }
