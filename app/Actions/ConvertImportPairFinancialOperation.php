@@ -107,7 +107,7 @@ class ConvertImportPairFinancialOperation
                 ),
             ];
 
-            $errors = $this->ownTransferValidator->validate($user, $validated);
+            $errors = $this->ownTransferValidator->validate($user, $validated, [$otherAccountId]);
 
             if ($errors !== []) {
                 throw ValidationException::withMessages([

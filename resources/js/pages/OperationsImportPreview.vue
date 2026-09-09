@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { AlertTriangle } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import AccountSelect from '@/components/AccountSelect.vue';
 import CategorySelect from '@/components/CategorySelect.vue';
@@ -22,18 +22,22 @@ import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatDate, formatMoney } from '@/lib/format';
 import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    applyPairCandidateSelection,
+    availablePairCandidates,
+    consumedFirstLegKeys,
+    locksTypeToOwnTransfer,
+    matchingPairCandidate,
+    pairCandidateKey,
+    pairRecordPickerCandidates,
+    selectedPairCandidateKey,
+    showsPairCandidateBadge,
+    syncPairSelection,
+    uniquePairCandidate,
+    type PairCandidate,
+    type PairRowSelection,
+} from '@/lib/import-pair-selection';
 import { operations as operationsRoute } from '@/routes';
-
-type PairCandidate = {
-    kind: 'financial_operation' | 'own_transfer';
-    id: number;
-    account_id: number;
-    account_name: string;
-    date: string;
-    description: string;
-    converts_financial_operation: boolean;
-    reason: string;
-};
 
 type ImportRow = {
     index: number;
@@ -61,13 +65,8 @@ type OtherAccountRow = AccountPickerOption & {
     current_balance_grosze: number;
 };
 
-type RowSelection = {
-    selected: boolean;
-    type: 'income' | 'expense' | 'refund' | 'own_transfer';
+type RowSelection = PairRowSelection & {
     category_id: number | '';
-    other_account_id: number | '';
-    pair_first_leg_kind: 'financial_operation' | 'own_transfer' | '';
-    pair_first_leg_id: number | '';
 };
 
 const {
@@ -105,7 +104,20 @@ const duplicateRowCount = computed(
     () => rows.filter((row) => row.valid && row.import_duplicate).length,
 );
 const pairRowCount = computed(
-    () => rows.filter((row) => row.valid && row.import_pair_candidate).length,
+    () =>
+        rows.filter(
+            (row) =>
+                row.valid &&
+                showsPairCandidateBadge(
+                    row.import_pair_candidate,
+                    row.pair_candidates,
+                    consumedFirstLegKeysSet.value,
+                    selections.value[row.index] ?? emptySelection(row),
+                ),
+        ).length,
+);
+const consumedFirstLegKeysSet = computed(() =>
+    consumedFirstLegKeys(selections.value),
 );
 const selectedRowCount = computed(
     () =>
@@ -173,58 +185,92 @@ function defaultType(row: ImportRow): 'income' | 'expense' | 'refund' {
     return 'income';
 }
 
-function ownTransferCandidates(row: ImportRow): PairCandidate[] {
-    return row.pair_candidates.filter(
-        (candidate) => candidate.kind === 'own_transfer',
+function emptySelection(row: ImportRow): RowSelection {
+    return {
+        selected: false,
+        type: defaultType(row),
+        category_id: '',
+        other_account_id: '',
+        pair_first_leg_kind: '',
+        pair_first_leg_id: '',
+    };
+}
+
+function rowSelection(row: ImportRow): RowSelection {
+    return selections.value[row.index] ?? emptySelection(row);
+}
+
+function rowAvailablePairCandidates(row: ImportRow): PairCandidate[] {
+    return availablePairCandidates(
+        row.pair_candidates,
+        consumedFirstLegKeysSet.value,
+        rowSelection(row),
     );
 }
 
-function locksTypeToOwnTransfer(row: ImportRow): boolean {
-    return ownTransferCandidates(row).length > 0;
+function rowLocksTypeToOwnTransfer(row: ImportRow): boolean {
+    return locksTypeToOwnTransfer(rowAvailablePairCandidates(row));
 }
 
-function uniqueFinancialOperationCandidate(
-    row: ImportRow,
-): PairCandidate | null {
-    const candidates = row.pair_candidates.filter(
-        (candidate) => candidate.kind === 'financial_operation',
+function rowUniquePairCandidate(row: ImportRow): PairCandidate | null {
+    return uniquePairCandidate(rowAvailablePairCandidates(row));
+}
+
+function rowMatchingPairCandidate(row: ImportRow): PairCandidate | null {
+    return matchingPairCandidate(
+        row.pair_candidates,
+        rowSelection(row),
     );
-
-    if (candidates.length !== 1) {
-        return null;
-    }
-
-    return candidates[0] ?? null;
 }
 
-function uniqueOwnTransferCandidate(row: ImportRow): PairCandidate | null {
-    const candidates = ownTransferCandidates(row);
-
-    if (candidates.length !== 1) {
-        return null;
-    }
-
-    return candidates[0] ?? null;
+function rowPairRecordPickerCandidates(row: ImportRow): PairCandidate[] {
+    return pairRecordPickerCandidates(
+        row.pair_candidates,
+        rowSelection(row),
+        consumedFirstLegKeysSet.value,
+    );
 }
 
-function uniquePairCandidate(row: ImportRow): PairCandidate | null {
-    if (locksTypeToOwnTransfer(row)) {
-        return uniqueOwnTransferCandidate(row);
-    }
-
-    return uniqueFinancialOperationCandidate(row);
+function rowShowsPairCandidateBadge(row: ImportRow): boolean {
+    return showsPairCandidateBadge(
+        row.import_pair_candidate,
+        row.pair_candidates,
+        consumedFirstLegKeysSet.value,
+        rowSelection(row),
+    );
 }
 
-function allowedPairKinds(row: ImportRow): PairCandidate['kind'][] {
-    if (locksTypeToOwnTransfer(row)) {
-        return ['own_transfer'];
-    }
+function pairCandidateOptionLabel(candidate: PairCandidate): string {
+    const kindLabel =
+        candidate.kind === 'financial_operation'
+            ? t.operations.import_pair_kind_financial_operation
+            : t.operations.import_pair_kind_own_transfer;
 
-    return ['financial_operation', 'own_transfer'];
+    return `${candidate.account_name} · ${formatDate(candidate.date)} · ${kindLabel} · ${candidate.description}`;
 }
+
+function refreshPairSelections(): void {
+    for (const row of rows) {
+        const selection = selections.value[row.index];
+
+        if (selection === undefined) {
+            continue;
+        }
+
+        syncPairSelection(
+            row.pair_candidates,
+            selection,
+            consumedFirstLegKeysSet.value,
+        );
+    }
+}
+
+watch(consumedFirstLegKeysSet, () => {
+    refreshPairSelections();
+});
 
 function initialSelection(row: ImportRow): RowSelection {
-    const uniqueCandidate = uniquePairCandidate(row);
+    const uniqueCandidate = uniquePairCandidate(row.pair_candidates);
 
     if (uniqueCandidate !== null) {
         return {
@@ -238,72 +284,11 @@ function initialSelection(row: ImportRow): RowSelection {
     }
 
     return {
-        selected: false,
-        type: defaultType(row),
-        category_id: '',
-        other_account_id: '',
-        pair_first_leg_kind: '',
-        pair_first_leg_id: '',
+        ...emptySelection(row),
+        type: locksTypeToOwnTransfer(row.pair_candidates)
+            ? 'own_transfer'
+            : defaultType(row),
     };
-}
-
-function matchingPairCandidate(
-    row: ImportRow,
-    selection: RowSelection,
-): PairCandidate | null {
-    if (
-        selection.type !== 'own_transfer' ||
-        selection.other_account_id === '' ||
-        selection.pair_first_leg_id === ''
-    ) {
-        return null;
-    }
-
-    return (
-        row.pair_candidates.find(
-            (candidate) =>
-                candidate.kind === selection.pair_first_leg_kind &&
-                candidate.id === selection.pair_first_leg_id &&
-                candidate.account_id === selection.other_account_id,
-        ) ?? null
-    );
-}
-
-function syncPairSelection(row: ImportRow, selection: RowSelection): void {
-    if (selection.type !== 'own_transfer' || selection.other_account_id === '') {
-        selection.pair_first_leg_kind = '';
-        selection.pair_first_leg_id = '';
-
-        return;
-    }
-
-    const candidateForAccount = row.pair_candidates.find(
-        (candidate) =>
-            allowedPairKinds(row).includes(candidate.kind) &&
-            candidate.account_id === selection.other_account_id,
-    );
-
-    if (candidateForAccount === undefined) {
-        selection.pair_first_leg_kind = '';
-        selection.pair_first_leg_id = '';
-
-        return;
-    }
-
-    if (
-        selection.pair_first_leg_id !== '' &&
-        row.pair_candidates.some(
-            (candidate) =>
-                candidate.kind === selection.pair_first_leg_kind &&
-                candidate.id === selection.pair_first_leg_id &&
-                candidate.account_id === selection.other_account_id,
-        )
-    ) {
-        return;
-    }
-
-    selection.pair_first_leg_kind = candidateForAccount.kind;
-    selection.pair_first_leg_id = candidateForAccount.id;
 }
 
 function wouldMakeImportAccountNegative(
@@ -362,7 +347,7 @@ function onTypeChange(row: ImportRow): void {
 
     selection.category_id = '';
 
-    if (locksTypeToOwnTransfer(row)) {
+    if (rowLocksTypeToOwnTransfer(row)) {
         selection.type = 'own_transfer';
     }
 
@@ -374,7 +359,7 @@ function onTypeChange(row: ImportRow): void {
         return;
     }
 
-    const uniqueCandidate = uniquePairCandidate(row);
+    const uniqueCandidate = rowUniquePairCandidate(row);
 
     if (uniqueCandidate !== null) {
         selection.other_account_id = uniqueCandidate.account_id;
@@ -396,7 +381,32 @@ function onOtherAccountChange(row: ImportRow): void {
         return;
     }
 
-    syncPairSelection(row, selection);
+    syncPairSelection(
+        row.pair_candidates,
+        selection,
+        consumedFirstLegKeysSet.value,
+    );
+}
+
+function onPairCandidateChange(row: ImportRow, value: string): void {
+    const selection = selections.value[row.index];
+
+    if (selection === undefined || value === '') {
+        return;
+    }
+
+    const candidate = rowAvailablePairCandidates(row).find(
+        (option) => pairCandidateKey(option) === value,
+    );
+
+    if (candidate === undefined) {
+        selection.pair_first_leg_kind = '';
+        selection.pair_first_leg_id = '';
+
+        return;
+    }
+
+    applyPairCandidateSelection(selection, candidate);
 }
 </script>
 
@@ -529,7 +539,7 @@ function onOtherAccountChange(row: ImportRow): void {
                                         row.valid && row.import_duplicate,
                                     'bg-sky-500/10':
                                         row.valid &&
-                                        row.import_pair_candidate &&
+                                        rowShowsPairCandidateBadge(row) &&
                                         !row.import_duplicate,
                                 }"
                             >
@@ -587,19 +597,19 @@ function onOtherAccountChange(row: ImportRow): void {
                                     >
                                         <option
                                             value="income"
-                                            :disabled="locksTypeToOwnTransfer(row)"
+                                            :disabled="rowLocksTypeToOwnTransfer(row)"
                                         >
                                             {{ t.operations.type_income }}
                                         </option>
                                         <option
                                             value="expense"
-                                            :disabled="locksTypeToOwnTransfer(row)"
+                                            :disabled="rowLocksTypeToOwnTransfer(row)"
                                         >
                                             {{ t.operations.type_expense }}
                                         </option>
                                         <option
                                             value="refund"
-                                            :disabled="locksTypeToOwnTransfer(row)"
+                                            :disabled="rowLocksTypeToOwnTransfer(row)"
                                         >
                                             {{ t.operations.type_refund }}
                                         </option>
@@ -633,6 +643,49 @@ function onOtherAccountChange(row: ImportRow): void {
                                                 onOtherAccountChange(row)
                                             "
                                         />
+                                        <select
+                                            v-if="
+                                                rowPairRecordPickerCandidates(row)
+                                                    .length > 0
+                                            "
+                                            :id="`row-pair-candidate-${row.index}`"
+                                            class="native-select min-w-44"
+                                            :value="
+                                                selectedPairCandidateKey(
+                                                    selections[row.index],
+                                                )
+                                            "
+                                            @change="
+                                                onPairCandidateChange(
+                                                    row,
+                                                    (
+                                                        $event.target as HTMLSelectElement
+                                                    ).value,
+                                                )
+                                            "
+                                        >
+                                            <option value="">
+                                                {{
+                                                    t.operations
+                                                        .import_pair_select_first_leg
+                                                }}
+                                            </option>
+                                            <option
+                                                v-for="candidate in rowPairRecordPickerCandidates(
+                                                    row,
+                                                )"
+                                                :key="pairCandidateKey(candidate)"
+                                                :value="
+                                                    pairCandidateKey(candidate)
+                                                "
+                                            >
+                                                {{
+                                                    pairCandidateOptionLabel(
+                                                        candidate,
+                                                    )
+                                                }}
+                                            </option>
+                                        </select>
                                         <input
                                             v-if="
                                                 selections[row.index]
@@ -704,7 +757,7 @@ function onOtherAccountChange(row: ImportRow): void {
                                             }}
                                         </Badge>
                                         <Badge
-                                            v-if="row.import_pair_candidate"
+                                            v-if="rowShowsPairCandidateBadge(row)"
                                             variant="outline"
                                         >
                                             {{
@@ -715,7 +768,7 @@ function onOtherAccountChange(row: ImportRow): void {
                                         <Badge
                                             v-if="
                                                 !row.import_duplicate &&
-                                                !row.import_pair_candidate
+                                                !rowShowsPairCandidateBadge(row)
                                             "
                                             variant="secondary"
                                         >
@@ -723,19 +776,15 @@ function onOtherAccountChange(row: ImportRow): void {
                                         </Badge>
                                         <p
                                             v-if="
-                                                row.import_pair_candidate &&
-                                                matchingPairCandidate(
-                                                    row,
-                                                    selections[row.index],
-                                                ) !== null
+                                                rowShowsPairCandidateBadge(row) &&
+                                                rowMatchingPairCandidate(row) !==
+                                                    null
                                             "
                                             class="text-muted-foreground text-xs"
                                         >
                                             {{
-                                                matchingPairCandidate(
-                                                    row,
-                                                    selections[row.index],
-                                                )?.reason
+                                                rowMatchingPairCandidate(row)
+                                                    ?.reason
                                             }}
                                         </p>
                                         <Alert

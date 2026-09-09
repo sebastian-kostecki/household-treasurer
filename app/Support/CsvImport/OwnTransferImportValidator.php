@@ -16,9 +16,10 @@ class OwnTransferImportValidator
      *     source_account_id: int,
      *     destination_account_id: int,
      * }  $data
+     * @param  list<int>  $allowedArchivedAccountIds
      * @return array<int, string>
      */
-    public function validate(User $user, array $data): array
+    public function validate(User $user, array $data, array $allowedArchivedAccountIds = []): array
     {
         $validator = Validator::make($data, [
             'transfer_date' => ['required', 'date', 'before_or_equal:today'],
@@ -28,7 +29,7 @@ class OwnTransferImportValidator
             'destination_account_id' => ['required', 'integer'],
         ]);
 
-        $validator->after(function ($validator) use ($user, $data): void {
+        $validator->after(function ($validator) use ($user, $data, $allowedArchivedAccountIds): void {
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
@@ -49,11 +50,17 @@ class OwnTransferImportValidator
                 $validator->errors()->add('destination_account_id', __('The selected destination account is invalid.'));
             }
 
-            if ($sourceAccount?->isArchived()) {
+            if (
+                $sourceAccount?->isArchived()
+                && ! in_array($sourceAccount->id, $allowedArchivedAccountIds, true)
+            ) {
                 $validator->errors()->add('source_account_id', __('The selected source account is invalid.'));
             }
 
-            if ($destinationAccount?->isArchived()) {
+            if (
+                $destinationAccount?->isArchived()
+                && ! in_array($destinationAccount->id, $allowedArchivedAccountIds, true)
+            ) {
                 $validator->errors()->add('destination_account_id', __('The selected destination account is invalid.'));
             }
 
