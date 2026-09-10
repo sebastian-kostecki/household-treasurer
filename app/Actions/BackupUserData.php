@@ -145,6 +145,7 @@ class BackupUserData
             'color' => $category->color,
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
+            'is_paced' => $category->is_paced,
             'planned_amount_minor_units' => $category->planned_amount_minor_units,
             'initial_plan_minor_units' => $category->initial_plan_minor_units,
             'execution_minor_units' => $category->execution_minor_units,

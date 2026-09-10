@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Concerns\CategoryValidationRules;
 use App\Models\Budget;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCategoryRequest extends FormRequest
@@ -28,5 +29,10 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return $this->storeCategoryRules();
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $this->withPacedFlagValidation($validator);
     }
 }

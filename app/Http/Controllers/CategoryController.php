@@ -22,12 +22,16 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request, Budget $budget): RedirectResponse
     {
         $attributes = $request->validated();
+        $type = CategoryType::from($attributes['type']);
 
         if ($budget->isExecution()) {
             $attributes['initial_plan_minor_units'] = 0;
         }
 
-        $attributes['sort_order'] = $this->nextSortOrder($budget, CategoryType::from($attributes['type']));
+        $attributes['is_paced'] = $type === CategoryType::Expense
+            ? $request->boolean('is_paced', true)
+            : true;
+        $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
 
         $budget->categories()->create($attributes);
 
@@ -41,13 +45,19 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $category->update($request->safe()->only([
+        $updatableFields = [
             'name',
             'icon',
             'color',
             'type',
             'planned_amount_minor_units',
-        ]));
+        ];
+
+        if ($category->type === CategoryType::Expense && ! $category->isArchived()) {
+            $updatableFields[] = 'is_paced';
+        }
+
+        $category->update($request->safe()->only($updatableFields));
 
         Inertia::flash('toast', [
             'type' => 'success',

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Concerns\CategoryValidationRules;
 use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -36,5 +37,15 @@ class UpdateCategoryRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $category = $this->route('category');
+
+        $this->withPacedFlagValidation(
+            $validator,
+            $category instanceof Category ? $category : null,
+        );
     }
 }

@@ -3,9 +3,11 @@
 namespace App\Concerns;
 
 use App\Enums\CategoryType;
+use App\Models\Category;
 use App\Support\Categories\CategoryColors;
 use App\Support\Categories\CategoryIcons;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
 trait CategoryValidationRules
@@ -20,6 +22,7 @@ trait CategoryValidationRules
             'icon' => ['required', 'string', Rule::in(CategoryIcons::values())],
             'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
+            'is_paced' => ['sometimes', 'boolean'],
             'planned_amount_minor_units' => ['required', 'integer', 'min:0'],
         ];
     }
@@ -30,5 +33,24 @@ trait CategoryValidationRules
     protected function updateCategoryRules(): array
     {
         return $this->storeCategoryRules();
+    }
+
+    protected function withPacedFlagValidation(Validator $validator, ?Category $category = null): void
+    {
+        $validator->after(function (Validator $validator) use ($category): void {
+            if (! array_key_exists('is_paced', $this->all())) {
+                return;
+            }
+
+            $type = $category?->type ?? CategoryType::tryFrom($this->input('type'));
+
+            if ($type === CategoryType::Income) {
+                $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));
+            }
+
+            if ($category?->isArchived()) {
+                $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));
+            }
+        });
     }
 }

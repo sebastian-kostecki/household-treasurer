@@ -24,6 +24,7 @@ class CategoryFactory extends Factory
             'icon' => CategoryAppearance::DEFAULT_ICON,
             'color' => CategoryAppearance::DEFAULT_COLOR,
             'type' => fake()->randomElement(CategoryType::cases()),
+            'is_paced' => true,
             'planned_amount_minor_units' => fake()->numberBetween(0, 500000),
             'execution_minor_units' => 0,
         ];
@@ -47,6 +48,14 @@ class CategoryFactory extends Factory
     {
         return $this->state(fn (): array => [
             'archived_at' => now(),
+        ]);
+    }
+
+    public function oneOff(): static
+    {
+        return $this->state(fn (): array => [
+            'type' => CategoryType::Expense,
+            'is_paced' => false,
         ]);
     }
 }
