@@ -44,10 +44,16 @@ Restyle through `resources/js/components/ui/` primitives so auth, settings, and 
 - `Dialog` — centred overlay, large radius, header / body / footer; form and confirm dialogs share this chrome.
 - Native `<select>` — use the `.native-select` component class from `resources/css/app.css`; do not swap in the unused Reka Select primitive for list forms.
 
+## Typography
+
+- UI sans is **Geist** (Bunny Fonts), weights 400/500/600, subsets `latin` + `latin-ext`. See ADR-0023.
+- Do not reintroduce Instrument Sans or drop `latin-ext` — Polish UI would fall back mid-word.
+- Amounts stay on the UI face with `tabular-nums` (`tnum`); do not add a separate mono family for money columns.
+
 ## Out of scope for this skill
 
 - Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout.
-- Ink primary, copying Wallet Master files, new CSS frameworks or fonts.
+- Ink primary, copying Wallet Master files, new CSS frameworks.
 - Replacing native selects with Reka Select in domain forms.
 - Asserting Tailwind classes in Pest tests.
 
@@ -55,4 +61,5 @@ Restyle through `resources/js/components/ui/` primitives so auth, settings, and 
 
 - ADR-0001 — teal OpenShip on shadcn-vue, light default.
 - ADR-0003 — Wallet Master as surface recipe; teal stays.
+- ADR-0023 — Geist typeface with latin-ext subsets.
 - Parent spec — GitHub issue #21 (list and form chrome).
