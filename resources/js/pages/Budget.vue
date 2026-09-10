@@ -8,6 +8,8 @@ import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
+import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
+import BudgetPacedPoolHeadline from '@/components/BudgetPacedPoolHeadline.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -72,6 +74,8 @@ const props = defineProps<{
     expenseTotals: DashboardTypeTotals;
     deficitWarning: DeficitWarning | null;
     show_archived: boolean;
+    viewedMonth: number | null;
+    pacedPoolMonthRemainingMinorUnits: number | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
@@ -128,10 +132,19 @@ function openEditDialog(category: BudgetCategoryRow): void {
 
 function toggleShowArchived(checked: boolean): void {
     router.get(
-        budgetRoute({ query: { show_archived: checked ? 1 : undefined } }),
+        budgetRoute({
+            query: {
+                show_archived: checked ? 1 : undefined,
+                month: viewedMonthQuery(),
+            },
+        }),
         {},
         { preserveState: true, preserveScroll: true },
     );
+}
+
+function viewedMonthQuery(): number | undefined {
+    return props.viewedMonth ?? undefined;
 }
 
 function openDeleteBudgetDialog(): void {
@@ -257,6 +270,20 @@ function openDeleteBudgetDialog(): void {
                 "
             />
 
+            <div
+                v-if="viewedMonth !== null && pacedPoolMonthRemainingMinorUnits !== null"
+                class="flex flex-col gap-3"
+            >
+                <BudgetMonthPicker
+                    :budget-year="budget.year"
+                    :viewed-month="viewedMonth"
+                    :show-archived="show_archived"
+                />
+                <BudgetPacedPoolHeadline
+                    :amount-minor-units="pacedPoolMonthRemainingMinorUnits"
+                />
+            </div>
+
             <div class="flex items-center gap-2">
                 <Checkbox
                     id="show-archived-budget"
@@ -296,6 +323,7 @@ function openDeleteBudgetDialog(): void {
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
                     :add-label="t.budget.add_expense"
+                    :show-month-column="true"
                     @add="createExpenseDialogOpen = true"
                     @edit="openEditDialog"
                 />

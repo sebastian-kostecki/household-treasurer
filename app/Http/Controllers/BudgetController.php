@@ -11,10 +11,13 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
+use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
+use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,21 +44,38 @@ class BudgetController extends Controller
                 'expenseTotals' => BudgetPlanSummary::emptyTypeTotals(),
                 'deficitWarning' => null,
                 'show_archived' => false,
+                'viewedMonth' => null,
+                'pacedPoolMonthRemainingMinorUnits' => null,
                 'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
             ]);
         }
 
-        $categories = $budget->categories()
+        $allCategories = $budget->categories()
             ->ordered()
             ->get();
+        $allExpenseCategories = $allCategories
+            ->where('type', CategoryType::Expense)
+            ->values();
 
         $showArchived = $request->boolean('show_archived');
+        $today = CarbonImmutable::today('UTC');
+        $viewedMonth = BudgetViewedMonth::resolve(
+            $request->query('month'),
+            $budget->year,
+            $today,
+        );
+        $monthReadings = BudgetMonthReadings::forBudget(
+            $budget,
+            $allExpenseCategories,
+            $viewedMonth,
+            $today,
+        );
 
-        if (! $showArchived) {
-            $categories = $categories->filter(
+        $categories = $showArchived
+            ? $allCategories
+            : $allCategories->filter(
                 fn (Category $category): bool => ! $category->isArchived(),
             );
-        }
 
         $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
 
@@ -76,7 +96,11 @@ class BudgetController extends Controller
             'expenseCategories' => $categories
                 ->where('type', CategoryType::Expense)
                 ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                ->map(fn (Category $category): array => $this->categoryPayload(
+                    $category,
+                    $budget,
+                    $monthReadings['categories'][$category->id] ?? null,
+                ))
                 ->all(),
             'planSummary' => $planSummary,
             'incomeTotals' => $planSummary['income'],
@@ -85,6 +109,8 @@ class BudgetController extends Controller
                 ? BudgetDeficitWarning::forBudget($budget, $user, $categories)
                 : null,
             'show_archived' => $showArchived,
+            'viewedMonth' => $viewedMonth,
+            'pacedPoolMonthRemainingMinorUnits' => $monthReadings['paced_pool_month_remaining_minor_units'],
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);
     }
@@ -180,10 +206,15 @@ class BudgetController extends Controller
      *     can_archive: bool,
      *     can_restore: bool,
      *     can_align_current_plan: bool,
+     *     month_remaining_minor_units?: int|null,
+     *     month_execution_minor_units?: int,
      * }
      */
-    private function categoryPayload(Category $category, Budget $budget): array
-    {
+    private function categoryPayload(
+        Category $category,
+        Budget $budget,
+        ?array $monthReading = null,
+    ): array {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;
         $initialPlanMinorUnits = $budget->isExecution()
@@ -220,6 +251,10 @@ class BudgetController extends Controller
             'can_align_current_plan' => $budget->isExecution()
                 && ! $category->isArchived()
                 && $remainingMinorUnits !== 0,
+            ...($monthReading !== null ? [
+                'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
+                'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
+            ] : []),
         ];
     }
 }
