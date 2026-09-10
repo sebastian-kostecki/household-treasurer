@@ -9,7 +9,7 @@ The person who signs in. Owns an isolated data space. Not shared with household 
 _Avoid_: Account (for the login identity), Customer, Member
 
 **Account**:
-A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank.
+A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank. An Account named by a Cash Expectation cannot be deleted; archive is allowed (existing Cash Expectations keep pointing; new ones cannot use the archived Account). Opening date cannot be later than the earliest Cash Expectation on that Account.
 _Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User, Term Deposit
 
 **Term Deposit**:
@@ -49,7 +49,7 @@ Income Current Plan minus expense Current Plan for one Budget. A plan-plane summ
 _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Polish UI copy: „Bilans”.
 
 **Financial Operation**:
-An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation: that Cash Expectation leaves Agenda and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
+An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation (spawned amount may differ: correction): that Cash Expectation is destroyed and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
 _Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type), Cash Expectation
 
 **Expense refund**:
@@ -57,8 +57,8 @@ A negative amount on an expense Category (Financial Operation or Cash Expectatio
 _Avoid_: Income (for money returned from a purchase), refund as a fourth persisted type
 
 **Cash Expectation**:
-A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue at create; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. The date’s calendar year must equal the Category’s Budget year; that Budget may be draft or execution; a year with no Budget is invalid. One record is one movement, not a series; it sits on Agenda and does not move Liquidity, Execution, Available Limit, or Planned Balance. Settlement leaves exactly one Financial Operation (a new one spawned from this record, or an existing one that already is that movement); this record is not converted in place and then leaves Agenda.
-_Avoid_: Obligation, Payment, Transaction, Unpaid, Pending, Schedule, Scheduled, Plan, Planned, Forecast, Future Operation, Upcoming, Accrual, Due, due date, Payable, Receivable, Reminder, Commitment, Movement (as this record), Operation (as this record), operation date (for this record’s date), Event (as this record), Cash Event, Expectation (unqualified), Financial Operation, Own Transfer, Capital Movement
+A known income, expense, or expense refund that is not yet a Financial Operation: date (future, today, or already overdue; not before the Account opening date), non-zero amount, description, Account, Category of matching type, optional Counterparty. Overdue after create is derived (date before today), not a stored status. The date’s calendar year must equal the Category’s Budget year; that Budget may be draft or execution; a year with no Budget is invalid. One record is one movement, not a series; it sits on Agenda and does not move Liquidity, Execution, Available Limit, or Planned Balance. While unpaid the User may edit (same fields and validation as create, including income ↔ expense refund, not ordinary expense ↔ income) or delete; delete does not move Liquidity or Execution. There is no cancel or skip state and no Financial Operation link. Settlement leaves exactly one Financial Operation (a new one spawned from this record, or an existing one that already is that movement); this record is destroyed, not converted in place and not kept for unpay. A spawned amount that differs from this record is a correction, not a remaining balance: this record still dies in full; Liquidity and Execution move only by that Financial Operation’s amount; nothing is auto-created for a leftover. Attach and Import still require a Settlement candidate (exact amount); to attach a different-amount Financial Operation the User edits this record to that amount first. A leftover still-expected amount is a new Cash Expectation. Edit or delete of that Financial Operation does not recreate a Cash Expectation. An Import preview row or an already-saved Financial Operation is offered for that attach or opt-in only when it is a Settlement candidate.
+_Avoid_: Obligation, Payment, Transaction, Unpaid, Pending, Schedule, Scheduled, Plan, Planned, Forecast, Future Operation, Upcoming, Accrual, Due, due date, Payable, Receivable, Reminder, Commitment, Movement (as this record), Operation (as this record), operation date (for this record’s date), Event (as this record), Cash Event, Expectation (unqualified), Financial Operation, Own Transfer, Capital Movement, status (on this record), unpay, skip, cancel (as a persisted state), partial pay (as a verb), remaining balance (on this record), installment
 
 **Counterparty**:
 The other party of a Financial Operation or a Cash Expectation: the payer on income, the payee on expense or expense refund. Optional. Absent on Own Transfer.
@@ -93,19 +93,19 @@ Spendable Liquidity plus the current balances of Term Deposits. A Capital Moveme
 _Avoid_: Liquidity (unqualified), Spendable Liquidity, Net worth, Wealth
 
 **Agenda**:
-The plane of Cash Expectations that are not yet a Financial Operation, beside Liquidity and Execution. A calendar of those records, not a total and not a liquidity forecast. After settlement the Cash Expectation is not on this plane.
-_Avoid_: Horizon, Outlook, Calendar, Schedule, Forecast, Pipeline, Pending, Expectations (as the plane name), Liquidity (for this plane), Execution (for this plane)
+The plane of Cash Expectations that are not yet a Financial Operation, beside Liquidity and Execution. A calendar of those records, not a total and not a liquidity forecast. After settlement or delete the Cash Expectation is not on this plane. There is no cancelled or paid list.
+_Avoid_: Horizon, Outlook, Calendar, Schedule, Forecast, Pipeline, Pending, Expectations (as the plane name), Liquidity (for this plane), Execution (for this plane), unpay
 
 **Minor unit**:
 An integer count of a currency’s ISO 4217 subunit. Every stored amount is a signed bigint of Minor units, never a decimal of major units. MVP amounts are PLN (scale 2); other currencies are not in the schema yet, so column and code names stay currency-neutral (`*_minor_units`).
 _Avoid_: grosze (as a column or code name), cents (as a column name), złotówki in storage, float amounts
 
 **First Run**:
-Whether the User has the four start conditions: at least one Account, one Budget, one Category, and one Budget in Execution. Scoped to the User, not to a Budget year. The dashboard checklist is the UI for this state; the User may hide that checklist while all four hold.
+Whether the User has the four start conditions: at least one Account, one Budget, one Category, and one Budget in Execution. Scoped to the User, not to a Budget year. A Cash Expectation and a Term Deposit are not start conditions. The dashboard checklist is the UI for this state (those four rows only); the User may hide that checklist while all four hold.
 _Avoid_: Onboarding, wizard, tutorial, First Steps (as a code name; UI copy may say „Pierwsze kroki”)
 
 **Import**:
-The controlled creation of Financial Operations, Own Transfers, and Capital Movements from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank. Preview default type follows the signed amount (credit is Income, debit is Expense); the User must switch type to Capital Movement. One preview row that is capital return plus interest may commit two records in that classification: a Capital Movement (Term Deposit → Account) for the remainder and a Financial Operation (Income) for the interest the User types (and an income Category); those two are not a persisted pair. Hand-entry never creates both from one save. Import does not create a Term Deposit or a Cash Expectation. A preview row may settle an existing Cash Expectation when the User opts in; that commit leaves one Financial Operation, not two.
+The controlled creation of Financial Operations, Own Transfers, and Capital Movements from rows in a CSV or XLSX file, after the User chooses an Import format, maps or confirms columns, and reviews a preview. Not a live connection to a bank. Preview default type follows the signed amount (credit is Income, debit is Expense); the User must switch type to Capital Movement. One preview row that is capital return plus interest may commit two records in that classification: a Capital Movement (Term Deposit → Account) for the remainder and a Financial Operation (Income) for the interest the User types (and an income Category); those two are not a persisted pair. Hand-entry never creates both from one save. Import does not create a Term Deposit or a Cash Expectation. A preview row may settle an existing Cash Expectation when the User opts in on a Settlement candidate; that commit leaves one Financial Operation, not two.
 _Avoid_: CSV Import (as the name of the whole flow), Statement Import, Bank Import, Integration, combined maturity (as a record type)
 
 **Import format**:
@@ -117,5 +117,9 @@ A preview row that is the same Import row as an already-committed Import-born Fi
 _Avoid_: Transaction duplicate, bank transaction id
 
 **Import pair candidate**:
-A later Import row that is the other Account’s view of an existing Import-born Financial Operation or Own Transfer. Distinct from Import duplicate (same Account, same frozen row). Not a persisted record type; after the User opts in, commit leaves one Own Transfer. A Capital Movement is never an Import pair candidate and never a first-leg.
+A later Import row that is the other Account’s view of an existing Import-born Financial Operation or Own Transfer. Distinct from Import duplicate (same Account, same frozen row) and from a Settlement candidate. Not a persisted record type; after the User opts in, commit leaves one Own Transfer. A Capital Movement is never an Import pair candidate and never a first-leg. A selected pair and a settlement opt-in cannot both apply to the same preview row.
 _Avoid_: Transaction match, transfer duplicate, link, pair (as a record type)
+
+**Settlement candidate**:
+An unpaid Cash Expectation offered on Import preview, or an existing Financial Operation offered when attaching from a Cash Expectation: same User, same Account, same type family (income / expense / expense refund), exact type-aware amount in Minor units, and dates within 31 inclusive calendar days. Import preview uses this Account, file date, signed file amount, and current row type; attach uses the Financial Operation’s live fields. The User opts in; the predicate returns a set; a pick consumes that Cash Expectation in this preview. Description, Counterparty, and Category do not gate candidacy. Own Transfer and Capital Movement never qualify.
+_Avoid_: auto-match, suggested pair, similar transaction, Import pair candidate, Import duplicate
