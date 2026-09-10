@@ -94,7 +94,11 @@ Import przebiega w trzech krokach:
 
 Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku oraz arkusz BNP z kolumną Nadawca / odbiorca albo rozdzielonymi Nadawcą i Odbiorcą). Format Inny zostaje dla nieznanych CSV. Podgląd oznacza Import duplicate (ponowny Import już zapisanego wiersza z tego konta) oraz Import pair candidate (druga noga transferu własnego z innego konta i wcześniejszego Importu). Oba startują odznaczone. Dwa wiersze tego samego pliku nie są parowane. Ręczne wpisy nie są oznaczane. Za włączenie tych wierszy przed zatwierdzeniem odpowiada użytkownik.
 
-### 3.6. Podstawowe raportowanie
+### 3.6. Agenda i Cash Expectation
+
+Agenda to osobna płaszczyzna obok operacji finansowych. Cash Expectation to datowany, niezaksięgowany ruch gotówki (dochód, wydatek lub zwrot wydatku). Dopóki pozostaje niezaksięgowany, nie zmienia sald kont, wykonania kategorii ani dostępnego limitu. Lista jest filtrowana według roku budżetu w powłoce aplikacji. Użytkownik tworzy Cash Expectation wyłącznie z Agendy.
+
+### 3.7. Podstawowe raportowanie
 
 System udostępnia:
 
@@ -113,6 +117,7 @@ System udostępnia:
 - Plan początkowy
 - Plan aktualny
 - Operacja finansowa
+- Cash Expectation
 - Transfer własny
 - Import
 
@@ -137,7 +142,7 @@ System udostępnia:
 
 ## 7. Poza zakresem MVP
 
-- zobowiązania i planowane przyszłe płatności,
+- rejestr zobowiązań / pozostała kwota pożyczki (Cash Expectation na Agendzie nie jest tym),
 - rezerwy budżetowe,
 - miesięczne harmonogramy i prognozy płynności,
 - formalne zatwierdzanie zmian budżetowych,

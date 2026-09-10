@@ -23,6 +23,7 @@ class AppShellTest extends TestCase
             'accounts' => ['accounts.index', 'Accounts'],
             'term_deposits' => ['term-deposits.index', 'TermDeposits'],
             'operations' => ['operations', 'Operations'],
+            'agenda' => ['agenda', 'Agenda'],
         ];
     }
 

@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
+use App\Http\Controllers\CashExpectationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
@@ -38,6 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('term-deposits/{term_deposit}/archive', [TermDepositController::class, 'archive'])->name('term-deposits.archive');
     Route::post('term-deposits/{term_deposit}/restore', [TermDepositController::class, 'restore'])->name('term-deposits.restore');
     Route::get('operations', [OperationsController::class, 'index'])->name('operations');
+    Route::get('agenda', [AgendaController::class, 'index'])->name('agenda');
+    Route::post('cash-expectations', [CashExpectationController::class, 'store'])->name('cash-expectations.store');
     Route::get('operations/import', [CsvImportController::class, 'create'])->name('operations.import.create');
     Route::post('operations/import/preview', [CsvImportController::class, 'preview'])->name('operations.import.preview.store');
     Route::get('operations/import/preview', [CsvImportController::class, 'showPreview'])->name('operations.import.preview');
