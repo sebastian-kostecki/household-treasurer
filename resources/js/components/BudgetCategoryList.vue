@@ -46,6 +46,7 @@ export type BudgetCategoryRow = {
     can_archive: boolean;
     can_restore: boolean;
     can_align_current_plan: boolean;
+    is_paced: boolean;
 };
 
 const NAME_FILTER_THRESHOLD = 12;
@@ -97,6 +98,14 @@ const remainingLabel = computed(() =>
         ? t.budget.remaining_income
         : t.budget.remaining_expense,
 );
+
+function pacedBadgeLabel(category: BudgetCategoryRow): string | null {
+    if (props.categoryType !== 'expense') {
+        return null;
+    }
+
+    return category.is_paced ? t.budget.paced_badge : t.budget.one_off_badge;
+}
 
 watch(
     () => props.categories,
@@ -273,11 +282,19 @@ async function onDragEnd(): Promise<void> {
                                     </button>
                                 </td>
                                 <td>
-                                    <CategoryChip
-                                        :name="category.name"
-                                        :icon="category.icon"
-                                        :color="category.color"
-                                    />
+                                    <div class="flex items-center gap-2">
+                                        <CategoryChip
+                                            :name="category.name"
+                                            :icon="category.icon"
+                                            :color="category.color"
+                                        />
+                                        <Badge
+                                            v-if="pacedBadgeLabel(category)"
+                                            variant="secondary"
+                                        >
+                                            {{ pacedBadgeLabel(category) }}
+                                        </Badge>
+                                    </div>
                                 </td>
                                 <td
                                     v-if="isDraft"
@@ -495,6 +512,12 @@ async function onDragEnd(): Promise<void> {
                                                 :icon="category.icon"
                                                 :color="category.color"
                                             />
+                                            <Badge
+                                                v-if="pacedBadgeLabel(category)"
+                                                variant="secondary"
+                                            >
+                                                {{ pacedBadgeLabel(category) }}
+                                            </Badge>
                                             <Badge variant="secondary">
                                                 {{ t.budget.archived_badge }}
                                             </Badge>
@@ -626,11 +649,19 @@ async function onDragEnd(): Promise<void> {
                                 >
                                     <GripVertical class="size-4" />
                                 </button>
-                                <CategoryChip
-                                    :name="category.name"
-                                    :icon="category.icon"
-                                    :color="category.color"
-                                />
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <CategoryChip
+                                        :name="category.name"
+                                        :icon="category.icon"
+                                        :color="category.color"
+                                    />
+                                    <Badge
+                                        v-if="pacedBadgeLabel(category)"
+                                        variant="secondary"
+                                    >
+                                        {{ pacedBadgeLabel(category) }}
+                                    </Badge>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent class="space-y-3">
@@ -904,6 +935,12 @@ async function onDragEnd(): Promise<void> {
                                     :icon="category.icon"
                                     :color="category.color"
                                 />
+                                <Badge
+                                    v-if="pacedBadgeLabel(category)"
+                                    variant="secondary"
+                                >
+                                    {{ pacedBadgeLabel(category) }}
+                                </Badge>
                                 <Badge variant="secondary">
                                     {{ t.budget.archived_badge }}
                                 </Badge>

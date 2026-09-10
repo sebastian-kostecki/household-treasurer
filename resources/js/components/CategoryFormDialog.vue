@@ -7,6 +7,7 @@ import CategoryColorPicker from '@/components/CategoryColorPicker.vue';
 import CategoryIconPicker from '@/components/CategoryIconPicker.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -36,6 +37,7 @@ export type CategoryFormCategory = {
     color: string;
     type: 'income' | 'expense';
     planned_amount_minor_units: number;
+    is_paced: boolean;
 };
 
 const props = defineProps<{
@@ -60,6 +62,7 @@ const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
 const plannedAmountMinorUnits = ref(0);
+const isPaced = ref(true);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -98,6 +101,7 @@ watch(
             plannedAmountInput.value = minorUnitsToMoneyInput(
                 props.category.planned_amount_minor_units,
             );
+            isPaced.value = props.category.is_paced;
 
             return;
         }
@@ -108,6 +112,7 @@ watch(
         type.value = props.defaultType;
         plannedAmountMinorUnits.value = 0;
         plannedAmountInput.value = '0,00';
+        isPaced.value = true;
     },
     { immediate: true },
 );
@@ -247,6 +252,29 @@ function closeDialog(): void {
                         :value="plannedAmountMinorUnits"
                     />
                     <InputError :message="errors.planned_amount_minor_units" />
+                </div>
+
+                <div v-if="type === 'expense'" class="grid gap-2">
+                    <div class="flex items-start gap-2">
+                        <Checkbox
+                            id="category-is-paced"
+                            v-model:checked="isPaced"
+                        />
+                        <div class="grid gap-1">
+                            <Label for="category-is-paced">
+                                {{ t.budget.paced_category }}
+                            </Label>
+                            <p class="text-muted-foreground text-sm">
+                                {{ t.budget.paced_category_hint }}
+                            </p>
+                        </div>
+                    </div>
+                    <input
+                        type="hidden"
+                        name="is_paced"
+                        :value="isPaced ? '1' : '0'"
+                    />
+                    <InputError :message="errors.is_paced" />
                 </div>
 
                 <DialogFooter class="gap-2">

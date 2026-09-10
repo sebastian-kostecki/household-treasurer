@@ -195,6 +195,7 @@ class RestoreUserData
                 'color' => $categoryData['color'],
                 'sort_order' => $categoryData['sort_order'],
                 'type' => CategoryType::from($categoryData['type']),
+                'is_paced' => $this->restoredCategoryIsPaced($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $categoryData['initial_plan_minor_units'],
                 'execution_minor_units' => $categoryData['execution_minor_units'],
@@ -335,5 +336,17 @@ class RestoreUserData
                 'updated_at' => isset($movementData['updated_at']) ? Carbon::parse($movementData['updated_at']) : now(),
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $categoryData
+     */
+    private function restoredCategoryIsPaced(array $categoryData): bool
+    {
+        if ($categoryData['type'] !== CategoryType::Expense->value) {
+            return true;
+        }
+
+        return $categoryData['is_paced'] ?? true;
     }
 }

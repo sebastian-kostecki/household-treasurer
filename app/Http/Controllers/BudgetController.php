@@ -199,6 +199,7 @@ class BudgetController extends Controller
             'name' => $category->name,
             ...CategoryAppearance::fields($category),
             'type' => $category->type->value,
+            'is_paced' => $category->is_paced,
             'planned_amount_minor_units' => $category->planned_amount_minor_units,
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,

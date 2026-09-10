@@ -29,20 +29,32 @@ The planned income amounts and expense limits frozen when execution starts. Immu
 _Avoid_: Original budget, Baseline (in UI copy)
 
 **Current Plan**:
-The live planned income amounts and expense limits. May change during execution without touching the Initial Plan.
+The live planned income amounts and expense limits. May change during execution without touching the Initial Plan. Align sets it to max(0, Execution) on that Category (Available Limit becomes 0). That rewrite is live Current Plan for every month of the Budget year; it is not a month-scoped close of Month Remaining.
 _Avoid_: Revised budget, Forecast
 
 **Category**:
-An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed.
+An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed. An expense Category is either a Paced Category or a One-off Category.
 _Avoid_: Tag, Label, Envelope, Category template, Category kind, a Category identity that spans years
+
+**Paced Category**:
+An expense Category whose leftover Current Plan is read across the remaining calendar months of that Budget year. It has Month Remaining. New expense Categories default to this. Income Categories never have this flag. Polish UI copy: „równomierna”; the Paced pool is „pula równomiernych”.
+_Avoid_: Envelope, monthly Category, scheduled Category, Available Limit (for the month figure)
+
+**One-off Category**:
+An expense Category excluded from the Paced pool and from Month Remaining. A flag only: no target month. It still has annual Available Limit. Income Categories never have this flag. Polish UI copy: „jednorazowa”.
+_Avoid_: Envelope, unbudgeted, unplanned, a Category with a due month
 
 **Execution**:
 Booked income and expense amounts against a Category in a Budget that has started execution. Not unpaid Cash Expectations.
 _Avoid_: Actuals (in code names; UI may say “wykonanie”), Cash Expectation, Agenda (as this plane)
 
 **Available Limit**:
-Current Plan of an expense Category minus booked expenses. Not cash on Accounts. Unpaid Cash Expectations do not reduce it.
-_Avoid_: Balance, Available funds, Remaining cash, earmark, reserve (as this figure)
+Current Plan of an expense Category minus booked expenses. Not cash on Accounts. Unpaid Cash Expectations do not reduce it. Not Month Remaining.
+_Avoid_: Balance, Available funds, Remaining cash, earmark, reserve (as this figure), Month Remaining
+
+**Month Remaining**:
+A signed reading, in Minor units, of leftover Paced Current Plan for one calendar month of a Budget year: one Paced Category, or the Paced pool (all Paced Categories of that Budget). Not stored. A One-off Category has none. Arithmetic is catch-up leftover, not an even split of Current Plan. Polish UI copy: „Pozostało w miesiącu”.
+_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity
 
 **Planned Balance**:
 Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.
