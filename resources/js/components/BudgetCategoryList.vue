@@ -242,7 +242,7 @@ async function onDragEnd(): Promise<void> {
                 </div>
             </template>
 
-            <div class="list-surface-table-scroll">
+            <div class="list-surface-table-scroll quiet-scrollbar">
                 <table class="list-surface-table">
                     <BudgetCategoryTableHeader
                         :category-type="categoryType"
@@ -476,7 +476,7 @@ async function onDragEnd(): Promise<void> {
                     </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                    <div class="list-surface-table-scroll">
+                    <div class="list-surface-table-scroll quiet-scrollbar">
                         <table class="list-surface-table">
                             <BudgetCategoryTableHeader
                                 :category-type="categoryType"
