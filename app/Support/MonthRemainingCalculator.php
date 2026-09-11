@@ -123,7 +123,7 @@ class MonthRemainingCalculator
     /**
      * @return 'past'|'current'|'future'
      */
-    private function monthTiming(int $month): string
+    public function monthTiming(int $month): string
     {
         if ($this->budgetYear < $this->today->year) {
             return 'past';

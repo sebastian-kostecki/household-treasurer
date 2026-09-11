@@ -8,6 +8,7 @@ const props = defineProps<{
     budgetYear: number;
     viewedMonth: number;
     showArchived: boolean;
+    currentMonth: number | null;
 }>();
 
 const t = useTranslations();
@@ -38,18 +39,28 @@ function selectMonth(month: number): void {
 </script>
 
 <template>
-    <div class="flex flex-wrap gap-1.5">
+    <div
+        role="group"
+        :aria-label="t.budget.month_picker_label"
+        class="border-border/60 bg-muted/40 grid grid-cols-6 gap-1 rounded-xl border p-1 sm:grid-cols-12"
+    >
         <Button
             v-for="month in months"
             :key="month"
             type="button"
             size="sm"
-            :variant="month === viewedMonth ? 'default' : 'outline'"
+            :variant="month === viewedMonth ? 'default' : 'ghost'"
             :aria-label="monthAccessibleName(month)"
-            class="min-w-10 px-2 tabular-nums"
+            :aria-current="month === viewedMonth ? 'true' : undefined"
+            class="relative w-full rounded-lg px-0 text-xs tabular-nums"
             @click="selectMonth(month)"
         >
             {{ monthChipLabel(month) }}
+            <span
+                v-if="month === currentMonth && month !== viewedMonth"
+                class="bg-primary absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full"
+                aria-hidden="true"
+            />
         </Button>
     </div>
 </template>

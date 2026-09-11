@@ -8,8 +8,7 @@ import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
-import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
-import BudgetPacedPoolHeadline from '@/components/BudgetPacedPoolHeadline.vue';
+import BudgetMonthStrip from '@/components/BudgetMonthStrip.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -76,6 +75,8 @@ const props = defineProps<{
     show_archived: boolean;
     viewedMonth: number | null;
     pacedPoolMonthRemainingMinorUnits: number | null;
+    currentMonth: number | null;
+    viewedMonthTiming: 'past' | 'current' | 'future' | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
@@ -270,19 +271,21 @@ function openDeleteBudgetDialog(): void {
                 "
             />
 
-            <div
-                v-if="viewedMonth !== null && pacedPoolMonthRemainingMinorUnits !== null"
-                class="flex flex-col gap-3"
-            >
-                <BudgetMonthPicker
-                    :budget-year="budget.year"
-                    :viewed-month="viewedMonth"
-                    :show-archived="show_archived"
-                />
-                <BudgetPacedPoolHeadline
-                    :amount-minor-units="pacedPoolMonthRemainingMinorUnits"
-                />
-            </div>
+            <BudgetMonthStrip
+                v-if="
+                    viewedMonth !== null &&
+                    pacedPoolMonthRemainingMinorUnits !== null &&
+                    viewedMonthTiming !== null
+                "
+                :budget-year="budget.year"
+                :viewed-month="viewedMonth"
+                :show-archived="show_archived"
+                :current-month="currentMonth"
+                :viewed-month-timing="viewedMonthTiming"
+                :paced-pool-month-remaining-minor-units="
+                    pacedPoolMonthRemainingMinorUnits
+                "
+            />
 
             <div class="flex items-center gap-2">
                 <Checkbox
