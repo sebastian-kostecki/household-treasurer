@@ -14,7 +14,6 @@ import {
     planChanged,
     progressWidth,
     remainingClass,
-    shouldShowMonthPace,
 } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 
@@ -22,7 +21,6 @@ const props = defineProps<{
     category: DashboardCategory;
     categoryType: 'income' | 'expense';
     orderMode?: CategoryOrderMode;
-    monthElapsedPercent?: number | null;
 }>();
 
 const t = useTranslations();
@@ -52,13 +50,6 @@ const displayPercentComplete = computed(() => {
         return props.category.percent_complete;
     }
 
-    if (
-        props.category.is_drip === true &&
-        isOverMonthRemaining(props.category.month_remaining_minor_units)
-    ) {
-        return null;
-    }
-
     return monthUsagePercent(
         props.category.month_execution_minor_units ?? 0,
         props.category.month_remaining_minor_units ?? 0,
@@ -70,20 +61,6 @@ const displayIsOverLimit = computed(() => {
     }
 
     return props.category.is_over_limit;
-});
-const showMonthPace = computed(() =>
-    isMonthView.value &&
-    shouldShowMonthPace(props.category, props.monthElapsedPercent),
-);
-const monthPaceUsedPercent = computed(() => {
-    if (!showMonthPace.value) {
-        return null;
-    }
-
-    return monthUsagePercent(
-        props.category.month_execution_minor_units ?? 0,
-        props.category.month_remaining_minor_units ?? 0,
-    );
 });
 </script>
 
@@ -196,15 +173,7 @@ const monthPaceUsedPercent = computed(() => {
                       )
             "
         >
-            <template v-if="showMonthPace">
-                <p class="text-muted-foreground text-[11px] font-normal">
-                    {{ t.dashboard.month_pace }}
-                </p>
-                <p>
-                    {{ monthPaceUsedPercent }}% / {{ monthElapsedPercent }}%
-                </p>
-            </template>
-            <template v-else-if="displayPercentComplete === null">
+            <template v-if="displayPercentComplete === null">
                 {{ t.common.not_applicable }}
             </template>
             <template v-else> {{ displayPercentComplete }}% </template>

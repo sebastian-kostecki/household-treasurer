@@ -135,7 +135,6 @@ return [
         'remaining_in_month' => 'Pozostało w miesiącu',
         'order_by' => 'Sortuj według',
         'plan_changed' => 'Plan zmieniony',
-        'month_pace' => 'Tempo miesiąca',
     ],
     'budget' => [
         'title' => 'Budżet',
