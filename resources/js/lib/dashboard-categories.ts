@@ -11,7 +11,6 @@ export type DashboardCategory = {
     is_over_limit: boolean;
     is_archived: boolean;
     is_paced?: boolean;
-    is_drip?: boolean;
     month_remaining_minor_units?: number | null;
     month_execution_minor_units?: number;
 };
@@ -59,34 +58,6 @@ export function isOverMonthRemaining(
         monthRemainingMinorUnits !== null &&
         monthRemainingMinorUnits !== undefined &&
         monthRemainingMinorUnits < 0
-    );
-}
-
-export function shouldShowMonthPace(
-    category: DashboardCategory,
-    monthElapsedPercent: number | null | undefined,
-): boolean {
-    if (
-        category.is_drip !== true ||
-        monthElapsedPercent === null ||
-        monthElapsedPercent === undefined
-    ) {
-        return false;
-    }
-
-    if (
-        category.month_remaining_minor_units === null ||
-        category.month_remaining_minor_units === undefined ||
-        category.month_remaining_minor_units < 0
-    ) {
-        return false;
-    }
-
-    return (
-        monthUsagePercent(
-            category.month_execution_minor_units ?? 0,
-            category.month_remaining_minor_units,
-        ) !== null
     );
 }
 
