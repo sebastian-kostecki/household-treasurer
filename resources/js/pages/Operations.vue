@@ -7,6 +7,7 @@ import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
 } from '@/components/ExpenseFormDialog.vue';
+import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import FinancialOperationRow, {
     type FinancialOperationRowData,
 } from '@/components/FinancialOperationRow.vue';
@@ -48,6 +49,7 @@ const {
     accounts,
     incomeCategories,
     expenseCategories,
+    handEntryMonthRemaining,
     filters,
     filtersActive,
     suppressedSections,
@@ -64,6 +66,7 @@ const {
     accounts: AccountRow[];
     incomeCategories: IncomeFormCategory[];
     expenseCategories: ExpenseFormCategory[];
+    handEntryMonthRemaining: HandEntryMonthRemainingInputs;
     filters: OperationsListFilters;
     filtersActive: boolean;
     suppressedSections: Array<
@@ -345,6 +348,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         mode="create"
         :accounts="accounts"
         :expense-categories="expenseCategories"
+        :hand-entry-month-remaining="handEntryMonthRemaining"
     />
 
     <ExpenseFormDialog
@@ -354,6 +358,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :accounts="accounts"
         :expense-categories="expenseCategories"
         :income-categories="incomeCategories"
+        :hand-entry-month-remaining="handEntryMonthRemaining"
     />
 
     <OwnTransferFormDialog

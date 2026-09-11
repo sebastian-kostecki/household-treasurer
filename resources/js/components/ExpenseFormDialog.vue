@@ -25,6 +25,8 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
+import { previewHandEntryMonthRemainingWarnings } from '@/lib/hand-entry-month-remaining-preview';
+import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
 
@@ -69,6 +71,7 @@ const props = defineProps<{
     accounts: ExpenseFormAccount[];
     expenseCategories: ExpenseFormCategory[];
     incomeCategories?: ExpenseFormIncomeCategory[];
+    handEntryMonthRemaining: HandEntryMonthRemainingInputs;
 }>();
 
 const emit = defineEmits<{
@@ -164,20 +167,24 @@ const warningPreview = computed(() => {
         });
     }
 
+    const editedRecord =
+        props.mode === 'edit' &&
+        props.operation !== null &&
+        props.operation !== undefined &&
+        originalAccountId.value !== null &&
+        originalCategoryId.value !== null
+            ? {
+                  account_id: originalAccountId.value,
+                  category_id: originalCategoryId.value,
+                  signed_amount_minor_units: originalAmountMinorUnits.value,
+              }
+            : null;
+
     return previewHandEntryWarnings({
         mode: props.mode,
         accounts: props.accounts,
         categories: props.expenseCategories,
-        editedRecord:
-            props.mode === 'edit' &&
-            originalAccountId.value !== null &&
-            originalCategoryId.value !== null
-                ? {
-                      account_id: originalAccountId.value,
-                      category_id: originalCategoryId.value,
-                      signed_amount_minor_units: originalAmountMinorUnits.value,
-                  }
-                : null,
+        editedRecord,
         proposal: {
             kind: proposalKind.value,
             account_id: accountId.value,
@@ -189,6 +196,40 @@ const warningPreview = computed(() => {
         },
     });
 });
+
+const monthRemainingEditedRecord = computed(() => {
+    if (
+        props.mode !== 'edit' ||
+        props.operation === null ||
+        props.operation === undefined ||
+        originalCategoryId.value === null
+    ) {
+        return null;
+    }
+
+    return {
+        category_id: originalCategoryId.value,
+        signed_amount_minor_units: originalAmountMinorUnits.value,
+        operation_month: Number(props.operation.operation_date.slice(5, 7)),
+    };
+});
+
+const monthRemainingWarningPreview = computed(() =>
+    previewHandEntryMonthRemainingWarnings({
+        mode: props.mode,
+        operationDate: operationDate.value,
+        handEntryMonthRemaining: props.handEntryMonthRemaining,
+        editedRecord: monthRemainingEditedRecord.value,
+        proposal: {
+            kind: proposalKind.value,
+            category_id:
+                isIncome.value || categoryId.value === ''
+                    ? undefined
+                    : categoryId.value,
+        },
+        signedAmountMinorUnits: signedAmountMinorUnits.value,
+    }),
+);
 
 const availableLimitMinorUnits = computed(
     () => warningPreview.value.availableLimitNowMinorUnits,
@@ -204,6 +245,35 @@ const showOverLimitWarning = computed(
 
 const showNegativeBalanceWarning = computed(
     () => warningPreview.value.showNegativeBalanceWarning,
+);
+
+const showOverMonthCategoryWarning = computed(
+    () => monthRemainingWarningPreview.value.showOverMonthCategoryWarning,
+);
+
+const showOverMonthPoolWarning = computed(
+    () => monthRemainingWarningPreview.value.showOverMonthPoolWarning,
+);
+
+const operationMonthYearLabel = computed(() => {
+    if (operationDate.value === '') {
+        return '';
+    }
+
+    const month = Number(operationDate.value.slice(5, 7));
+    const year = Number(operationDate.value.slice(0, 4));
+    const monthName =
+        t.budget[`month_name_${month}` as keyof typeof t.budget] ?? '';
+
+    return `${monthName} ${year}`;
+});
+
+const showExpenseWarnings = computed(
+    () =>
+        showOverLimitWarning.value ||
+        showNegativeBalanceWarning.value ||
+        showOverMonthCategoryWarning.value ||
+        showOverMonthPoolWarning.value,
 );
 
 watch(
@@ -515,7 +585,7 @@ function closeDialog(): void {
                 </div>
 
                 <Alert
-                    v-if="showOverLimitWarning || showNegativeBalanceWarning"
+                    v-if="showExpenseWarnings"
                     variant="destructive"
                 >
                     <AlertTriangle class="size-4" />
@@ -529,6 +599,22 @@ function closeDialog(): void {
                             </li>
                             <li v-if="showNegativeBalanceWarning">
                                 {{ t.operations.negative_balance_warning }}
+                            </li>
+                            <li v-if="showOverMonthCategoryWarning">
+                                {{
+                                    t.operations.over_month_category_warning.replace(
+                                        ':month_year',
+                                        operationMonthYearLabel,
+                                    )
+                                }}
+                            </li>
+                            <li v-if="showOverMonthPoolWarning">
+                                {{
+                                    t.operations.over_month_pool_warning.replace(
+                                        ':month_year',
+                                        operationMonthYearLabel,
+                                    )
+                                }}
                             </li>
                         </ul>
                     </AlertDescription>
