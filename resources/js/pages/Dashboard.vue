@@ -64,6 +64,7 @@ const props = defineProps<{
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
     showMonthRemainingOrder: boolean;
+    month_elapsed_percent: number | null;
 }>();
 
 const t = useTranslations();
@@ -310,6 +311,7 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                     :categories="expenseCategories"
                     :totals="expenseTotals"
                     :show-month-remaining-order="showMonthRemainingOrder"
+                    :month-elapsed-percent="month_elapsed_percent"
                     show-order-toggle
                 />
             </div>
