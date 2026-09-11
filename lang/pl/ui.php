@@ -257,6 +257,7 @@ return [
         'filter_by_name' => 'Filtruj po nazwie',
         'archived_section' => 'Zarchiwizowane kategorie',
         'totals' => 'Razem',
+        'more_actions' => 'Więcej akcji',
         'budget_actions' => 'Akcje budżetu',
     ],
     'accounts' => [

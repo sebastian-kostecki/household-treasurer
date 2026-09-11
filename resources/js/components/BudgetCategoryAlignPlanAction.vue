@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { AlignHorizontalJustifyCenter } from '@lucide/vue';
-import { ref } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import type { BudgetCategoryRow } from '@/components/BudgetCategoryList.vue';
-import IconAction from '@/components/IconAction.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -17,28 +14,17 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslations } from '@/composables/useTranslations';
 
-const props = defineProps<{
+defineProps<{
     category: BudgetCategoryRow;
 }>();
 
+const open = defineModel<boolean>('open', { required: true });
+
 const t = useTranslations();
-
-const dialogOpen = ref(false);
-
-function openDialog(): void {
-    dialogOpen.value = true;
-}
 </script>
 
 <template>
-    <IconAction
-        v-if="category.can_align_current_plan"
-        :icon="AlignHorizontalJustifyCenter"
-        :label="t.budget.align_current_plan"
-        @click="openDialog"
-    />
-
-    <Dialog v-model:open="dialogOpen">
+    <Dialog v-model:open="open">
         <DialogContent>
             <Form
                 v-bind="CategoryController.alignCurrentPlan.form(category)"
