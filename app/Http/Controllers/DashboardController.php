@@ -62,34 +62,40 @@ class DashboardController extends Controller
         $monthReadings = null;
 
         if ($budget !== null) {
-            $categories = $budget->categories()
+            $allCategories = $budget->categories()
                 ->ordered()
                 ->get();
-            $expenseCategoryCollection = $categories
+            $allExpenseCategories = $allCategories
+                ->where('type', CategoryType::Expense)
+                ->values();
+            $visibleCategories = $allCategories->filter(
+                fn (Category $category): bool => ! $category->isArchived(),
+            );
+            $visibleExpenseCategories = $visibleCategories
                 ->where('type', CategoryType::Expense)
                 ->values();
             $today = CarbonImmutable::today('UTC');
 
             if (
                 $budget->year === $today->year
-                && $expenseCategoryCollection->contains(fn (Category $category): bool => $category->is_paced)
+                && $visibleExpenseCategories->contains(fn (Category $category): bool => $category->is_paced)
             ) {
                 $showMonthRemainingOrder = true;
                 $monthReadings = BudgetMonthReadings::forBudget(
                     $budget,
-                    $expenseCategoryCollection,
+                    $allExpenseCategories,
                     $today->month,
                     $today,
                 );
             }
 
-            $incomeCategories = $categories
+            $incomeCategories = $visibleCategories
                 ->where('type', CategoryType::Income)
                 ->values()
                 ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all();
 
-            $expenseCategories = $expenseCategoryCollection
+            $expenseCategories = $visibleExpenseCategories
                 ->map(fn (Category $category): array => $this->categoryPayload(
                     $category,
                     $budget,
@@ -99,7 +105,7 @@ class DashboardController extends Controller
                 ))
                 ->all();
 
-            $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
+            $planSummary = BudgetPlanSummary::forBudget($budget, $visibleCategories);
             $incomeTotals = $planSummary['income'];
             $expenseTotals = $planSummary['expense'];
         }
