@@ -18,6 +18,9 @@ export type ImportRow = {
     import_duplicate: boolean;
     import_pair_candidate: boolean;
     pair_candidates: PairCandidate[];
+    show_category_month_remaining_warning?: boolean;
+    show_pool_month_remaining_warning?: boolean;
+    month_remaining_period_label?: string | null;
 };
 
 export type CategoryRow = {
@@ -26,6 +29,7 @@ export type CategoryRow = {
     icon: string;
     color: string;
     budget_year: number;
+    is_paced: boolean;
 };
 
 export type TermDepositRow = {

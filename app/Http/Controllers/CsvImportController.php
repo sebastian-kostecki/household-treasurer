@@ -20,6 +20,7 @@ use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
 use App\Support\CsvImport\CsvImportSession;
 use App\Support\CsvImport\ImportDuplicateDetector;
+use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportPairCandidateDetector;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -128,16 +129,23 @@ class CsvImportController extends Controller
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
+        $expenseCategories = $this->expenseCategories($request);
+
         return Inertia::render('OperationsImportPreview', [
             'account' => [
                 ...AccountIdentity::payload($account),
                 'current_balance_minor_units' => $account->current_balance_minor_units,
             ],
-            'rows' => $import['rows'],
+            'rows' => ImportMonthRemainingContext::annotateRows(
+                $request->user(),
+                $import['rows'],
+                $expenseCategories,
+            ),
             'incomeCategories' => $this->incomeCategories($request),
-            'expenseCategories' => $this->expenseCategories($request),
+            'expenseCategories' => $expenseCategories,
             'otherAccounts' => $this->otherAccounts($request, $account, $import['rows']),
             'termDeposits' => $this->termDeposits($request),
+            'monthRemainingContext' => ImportMonthRemainingContext::forUser($request->user()),
         ]);
     }
 
@@ -530,6 +538,7 @@ class CsvImportController extends Controller
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
+                'is_paced' => $category->is_paced,
             ]))
             ->values()
             ->all();

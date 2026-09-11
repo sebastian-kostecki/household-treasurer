@@ -26,6 +26,10 @@ import {
     syncPairSelection,
 } from '@/lib/import-pair-selection';
 import {
+    computeImportMonthRemainingWarnings,
+    type MonthRemainingContext,
+} from '@/lib/import-month-remaining-warnings';
+import {
     emptySelection,
     initialSelection,
     rowSelectionValid,
@@ -47,6 +51,7 @@ const {
     expenseCategories,
     otherAccounts,
     termDeposits,
+    monthRemainingContext,
 } = defineProps<{
     account: AccountPickerOption & { current_balance_minor_units: number };
     rows: ImportRow[];
@@ -54,6 +59,7 @@ const {
     expenseCategories: CategoryRow[];
     otherAccounts: OtherAccountRow[];
     termDeposits: TermDepositRow[];
+    monthRemainingContext: MonthRemainingContext;
 }>();
 
 const t = useTranslations();
@@ -120,6 +126,29 @@ const canSubmit = computed(
 
             return rowSelectionValid(row, selection, termDeposits);
         }),
+);
+
+const monthNameTranslations = computed(() =>
+    Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => {
+            const month = index + 1;
+
+            return [
+                `month_name_${month}`,
+                t.budget[`month_name_${month}` as keyof typeof t.budget],
+            ];
+        }),
+    ),
+);
+
+const monthRemainingWarnings = computed(() =>
+    computeImportMonthRemainingWarnings(
+        rows,
+        selections.value,
+        expenseCategories,
+        monthRemainingContext,
+        monthNameTranslations.value,
+    ),
 );
 
 setLayoutProps({
@@ -303,6 +332,9 @@ watch(consumedFirstLegKeysSet, () => {
                         :other-accounts="otherAccounts"
                         :term-deposits="termDeposits"
                         :consumed-first-leg-keys="consumedFirstLegKeysSet"
+                        :month-remaining-warnings="
+                            monthRemainingWarnings[row.index]
+                        "
                     />
                 </div>
             </ListSurface>
