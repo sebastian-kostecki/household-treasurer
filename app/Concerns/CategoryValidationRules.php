@@ -23,6 +23,7 @@ trait CategoryValidationRules
             'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
             'is_paced' => ['sometimes', 'boolean'],
+            'is_drip' => ['sometimes', 'boolean'],
             'planned_amount_minor_units' => ['required', 'integer', 'min:0'],
         ];
     }
@@ -50,6 +51,29 @@ trait CategoryValidationRules
 
             if ($category?->isArchived()) {
                 $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));
+            }
+        });
+    }
+
+    protected function withDripFlagValidation(Validator $validator, ?Category $category = null): void
+    {
+        $validator->after(function (Validator $validator) use ($category): void {
+            if (! array_key_exists('is_drip', $this->all())) {
+                return;
+            }
+
+            if (! $this->boolean('is_drip')) {
+                return;
+            }
+
+            $type = $category?->type ?? CategoryType::tryFrom($this->input('type'));
+
+            if ($type === CategoryType::Income) {
+                $validator->errors()->add('is_drip', __('validation.prohibited', ['attribute' => 'is_drip']));
+            }
+
+            if ($category?->isArchived()) {
+                $validator->errors()->add('is_drip', __('validation.prohibited', ['attribute' => 'is_drip']));
             }
         });
     }

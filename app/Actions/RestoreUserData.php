@@ -196,6 +196,7 @@ class RestoreUserData
                 'sort_order' => $categoryData['sort_order'],
                 'type' => CategoryType::from($categoryData['type']),
                 'is_paced' => $this->restoredCategoryIsPaced($categoryData),
+                'is_drip' => $this->restoredCategoryIsDrip($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $categoryData['initial_plan_minor_units'],
                 'execution_minor_units' => $categoryData['execution_minor_units'],
@@ -348,5 +349,21 @@ class RestoreUserData
         }
 
         return $categoryData['is_paced'] ?? true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $categoryData
+     */
+    private function restoredCategoryIsDrip(array $categoryData): bool
+    {
+        if ($categoryData['type'] !== CategoryType::Expense->value) {
+            return false;
+        }
+
+        if (! $this->restoredCategoryIsPaced($categoryData)) {
+            return false;
+        }
+
+        return $categoryData['is_drip'] ?? false;
     }
 }
