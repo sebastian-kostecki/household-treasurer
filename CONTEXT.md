@@ -33,16 +33,20 @@ The live planned income amounts and expense limits. May change during execution 
 _Avoid_: Revised budget, Forecast
 
 **Category**:
-An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed. An expense Category is either a Paced Category or a One-off Category. Archive is allowed; archived Categories keep Execution history on that Budget. Dashboard meters and Dashboard plan totals (income, expense, Planned Balance) omit archived Categories. Budget lists them in an archived section and omits them from plan totals unless the User asks to show archived. Month Remaining arithmetic still uses all Paced expense Categories of that Budget, including archived.
+An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed. An expense Category is either a Paced Category or a One-off Category. A Paced Category may also be a Drip Category. Archive is allowed; archived Categories keep Execution history on that Budget. Dashboard meters and Dashboard plan totals (income, expense, Planned Balance) omit archived Categories. Budget lists them in an archived section and omits them from plan totals unless the User asks to show archived. Month Remaining arithmetic still uses all Paced expense Categories of that Budget, including archived.
 _Avoid_: Tag, Label, Envelope, Category template, Category kind, a Category identity that spans years
 
 **Paced Category**:
 An expense Category whose leftover Current Plan is read across the remaining calendar months of that Budget year. It has Month Remaining. New expense Categories default to this. Income Categories never have this flag. Polish UI copy: „równomierna”; the Paced pool is „pula równomiernych”.
-_Avoid_: Envelope, monthly Category, scheduled Category, Available Limit (for the month figure)
+_Avoid_: Envelope, monthly Category, scheduled Category, Available Limit (for the month figure), Drip Category (that flag is opt-in on top of this)
 
 **One-off Category**:
-An expense Category excluded from the Paced pool and from Month Remaining. A flag only: no target month. It still has annual Available Limit. Income Categories never have this flag. Polish UI copy: „jednorazowa”.
+An expense Category excluded from the Paced pool and from Month Remaining. A flag only: no target month. It still has annual Available Limit. Income Categories never have this flag. Cannot be a Drip Category. Polish UI copy: „jednorazowa”.
 _Avoid_: Envelope, unbudgeted, unplanned, a Category with a due month
+
+**Drip Category**:
+A Paced expense Category the User has marked as many small Financial Operations through the month. Only a Drip Category has Month Pace. New Paced Categories are not this by default. Clearing Paced clears this. Income Categories and One-off Categories cannot be this. Polish UI copy: „Na bieżąco”.
+_Avoid_: Paced Category (year leftover across months, not days), high-frequency Category, Steady, Flow, kropelka (grill jargon, not UI), a third Category kind beside Paced and One-off, inferring this from operation count
 
 **Execution**:
 Booked income and expense amounts against a Category in a Budget that has started execution. Not unpaid Cash Expectations.
@@ -54,7 +58,11 @@ _Avoid_: Balance, Available funds, Remaining cash, earmark, reserve (as this fig
 
 **Month Remaining**:
 A signed reading, in Minor units, of leftover Paced Current Plan for one calendar month of a Budget year: one Paced Category, or the Paced pool (all Paced Categories of that Budget). Not stored. A One-off Category has none. Arithmetic is catch-up leftover, not an even split of Current Plan. Polish UI copy: „Pozostało w miesiącu”.
-_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity
+_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity, Month Pace
+
+**Month Pace**:
+A reading, only on a Drip Category, of used share versus elapsed share for the current calendar month. Exists only while that Budget is in execution and its year is the current calendar year. Used share is that month’s Execution over (that month’s Execution plus Month Remaining) when the sum is positive; elapsed share is today’s day-of-month, inclusive, over days in the month. Same clock as Month Remaining. Not stored. No on-track band. Absent when Month Remaining is negative: the leftover on minus is the sentence. Not defined on the Paced pool, a non-drip Paced Category, a One-off Category, or a draft Budget. Polish UI copy: „Tempo miesiąca”.
+_Avoid_: Month Remaining, Available Limit, even split of Current Plan, live re-pace of leftover, daily allowance, pace (unqualified)
 
 **Planned Balance**:
 Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.

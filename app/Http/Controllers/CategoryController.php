@@ -28,9 +28,14 @@ class CategoryController extends Controller
             $attributes['initial_plan_minor_units'] = 0;
         }
 
-        $attributes['is_paced'] = $type === CategoryType::Expense
+        $isPaced = $type === CategoryType::Expense
             ? $request->boolean('is_paced', true)
             : true;
+
+        $attributes['is_paced'] = $isPaced;
+        $attributes['is_drip'] = $type === CategoryType::Expense && $isPaced
+            ? $request->boolean('is_drip', false)
+            : false;
         $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
 
         $budget->categories()->create($attributes);
@@ -55,9 +60,21 @@ class CategoryController extends Controller
 
         if ($category->type === CategoryType::Expense && ! $category->isArchived()) {
             $updatableFields[] = 'is_paced';
+            $updatableFields[] = 'is_drip';
         }
 
-        $category->update($request->safe()->only($updatableFields));
+        $attributes = $request->safe()->only($updatableFields);
+
+        if (array_key_exists('is_paced', $attributes) && ! $attributes['is_paced']) {
+            $attributes['is_drip'] = false;
+        } elseif (
+            array_key_exists('is_drip', $attributes)
+            && ! ($attributes['is_paced'] ?? $category->is_paced)
+        ) {
+            $attributes['is_drip'] = false;
+        }
+
+        $category->update($attributes);
 
         Inertia::flash('toast', [
             'type' => 'success',

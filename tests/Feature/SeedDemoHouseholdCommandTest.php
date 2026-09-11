@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Account;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -78,5 +79,30 @@ class SeedDemoHouseholdCommandTest extends TestCase
         $this->assertNotNull($user);
         $this->assertTrue($user->accounts()->exists());
         $this->assertTrue(FinancialOperation::query()->where('user_id', $user->id)->exists());
+    }
+
+    public function test_demo_seeder_marks_groceries_as_drip_and_housing_as_not_drip(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'demo-drip@example.net',
+        ]);
+
+        Artisan::call('demo:seed-household', [
+            'user' => $user->email,
+        ]);
+
+        $groceries = Category::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $user->id))
+            ->where('name', 'Żywność')
+            ->firstOrFail();
+        $housing = Category::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $user->id))
+            ->where('name', 'Mieszkanie')
+            ->firstOrFail();
+
+        $this->assertTrue($groceries->is_drip);
+        $this->assertTrue($groceries->is_paced);
+        $this->assertFalse($housing->is_drip);
+        $this->assertTrue($housing->is_paced);
     }
 }

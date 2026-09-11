@@ -47,6 +47,7 @@ export type BudgetCategoryRow = {
     can_restore: boolean;
     can_align_current_plan: boolean;
     is_paced: boolean;
+    is_drip: boolean;
     month_remaining_minor_units?: number | null;
     month_execution_minor_units?: number;
 };
@@ -330,6 +331,15 @@ async function onDragEnd(): Promise<void> {
                                         >
                                             {{ pacedBadgeLabel(category) }}
                                         </Badge>
+                                        <Badge
+                                            v-if="
+                                                category.is_paced &&
+                                                category.is_drip
+                                            "
+                                            variant="secondary"
+                                        >
+                                            {{ t.budget.drip_badge }}
+                                        </Badge>
                                     </div>
                                 </td>
                                 <td
@@ -563,6 +573,15 @@ async function onDragEnd(): Promise<void> {
                                             >
                                                 {{ pacedBadgeLabel(category) }}
                                             </Badge>
+                                            <Badge
+                                                v-if="
+                                                    category.is_paced &&
+                                                    category.is_drip
+                                                "
+                                                variant="secondary"
+                                            >
+                                                {{ t.budget.drip_badge }}
+                                            </Badge>
                                             <Badge variant="secondary">
                                                 {{ t.budget.archived_badge }}
                                             </Badge>
@@ -712,6 +731,15 @@ async function onDragEnd(): Promise<void> {
                                         variant="secondary"
                                     >
                                         {{ pacedBadgeLabel(category) }}
+                                    </Badge>
+                                    <Badge
+                                        v-if="
+                                            category.is_paced &&
+                                            category.is_drip
+                                        "
+                                        variant="secondary"
+                                    >
+                                        {{ t.budget.drip_badge }}
                                     </Badge>
                                 </div>
                             </div>
@@ -1003,6 +1031,14 @@ async function onDragEnd(): Promise<void> {
                                     variant="secondary"
                                 >
                                     {{ pacedBadgeLabel(category) }}
+                                </Badge>
+                                <Badge
+                                    v-if="
+                                        category.is_paced && category.is_drip
+                                    "
+                                    variant="secondary"
+                                >
+                                    {{ t.budget.drip_badge }}
                                 </Badge>
                                 <Badge variant="secondary">
                                     {{ t.budget.archived_badge }}
