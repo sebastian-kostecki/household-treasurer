@@ -47,9 +47,5 @@ class UpdateCategoryRequest extends FormRequest
             $validator,
             $category instanceof Category ? $category : null,
         );
-        $this->withDripFlagValidation(
-            $validator,
-            $category instanceof Category ? $category : null,
-        );
     }
 }

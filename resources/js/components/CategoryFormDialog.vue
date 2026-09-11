@@ -38,7 +38,6 @@ export type CategoryFormCategory = {
     type: 'income' | 'expense';
     planned_amount_minor_units: number;
     is_paced: boolean;
-    is_drip: boolean;
 };
 
 const props = defineProps<{
@@ -64,7 +63,6 @@ const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
 const plannedAmountMinorUnits = ref(0);
 const isPaced = ref(true);
-const isDrip = ref(false);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -104,7 +102,6 @@ watch(
                 props.category.planned_amount_minor_units,
             );
             isPaced.value = props.category.is_paced;
-            isDrip.value = props.category.is_drip;
 
             return;
         }
@@ -116,16 +113,9 @@ watch(
         plannedAmountMinorUnits.value = 0;
         plannedAmountInput.value = '0,00';
         isPaced.value = true;
-        isDrip.value = false;
     },
     { immediate: true },
 );
-
-watch(isPaced, (paced) => {
-    if (!paced) {
-        isDrip.value = false;
-    }
-});
 
 function syncPlannedAmount(): void {
     const parsed = parseMoneyInputToMinorUnits(plannedAmountInput.value);
@@ -285,26 +275,6 @@ function closeDialog(): void {
                         :value="isPaced ? '1' : '0'"
                     />
                     <InputError :message="errors.is_paced" />
-                </div>
-
-                <div v-if="type === 'expense' && isPaced" class="grid gap-2">
-                    <div class="flex items-start gap-2">
-                        <Checkbox id="category-is-drip" v-model="isDrip" />
-                        <div class="grid gap-1">
-                            <Label for="category-is-drip">
-                                {{ t.budget.drip_category }}
-                            </Label>
-                            <p class="text-muted-foreground text-sm">
-                                {{ t.budget.drip_category_hint }}
-                            </p>
-                        </div>
-                    </div>
-                    <input
-                        type="hidden"
-                        name="is_drip"
-                        :value="isDrip ? '1' : '0'"
-                    />
-                    <InputError :message="errors.is_drip" />
                 </div>
 
                 <DialogFooter class="gap-2">

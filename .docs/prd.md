@@ -370,7 +370,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 3. Późniejsza zmiana planu aktualnego nie modyfikuje planu początkowego.
 4. Nowa kategoria dodana podczas wykonania ma plan początkowy 0 PLN.
 5. Ostrzeżenie o niepokrytym planowanym deficycie nie blokuje rozpoczęcia wykonania.
-6. Utworzenie budżetu ze źródłem kopiuje wszystkie niezarchiwizowane kategorie źródła z planem aktualnym, wyglądem, kolejnością oraz flagami równomierna i na bieżąco; nowy budżet jest szkicem, a wykonanie źródła pozostaje bez zmian.
+6. Utworzenie budżetu ze źródłem kopiuje wszystkie niezarchiwizowane kategorie źródła z planem aktualnym, wyglądem i kolejnością; nowy budżet jest szkicem, a wykonanie źródła pozostaje bez zmian.
 7. Skopiowane kategorie są osobnymi rekordami; ta sama nazwa w dwóch latach nie oznacza tej samej kategorii.
 8. Opcja bez kopiowania tworzy szkic bez kategorii, nawet gdy źródło jest dostępne.
 9. Zarchiwizowane kategorie źródła nie pojawiają się na nowym szkicu.

@@ -269,8 +269,6 @@ class DemoHouseholdSeeder extends Seeder
                 'color' => $definition['color'],
                 'sort_order' => $index,
                 'type' => $definition['type'],
-                'is_drip' => $definition['type'] === CategoryType::Expense
-                    && $definition['name'] === 'Żywność',
                 'planned_amount_minor_units' => $definition['planned_amount_minor_units'],
                 'initial_plan_minor_units' => 0,
                 'execution_minor_units' => 0,

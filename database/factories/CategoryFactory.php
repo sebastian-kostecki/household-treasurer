@@ -25,7 +25,6 @@ class CategoryFactory extends Factory
             'color' => CategoryAppearance::DEFAULT_COLOR,
             'type' => fake()->randomElement(CategoryType::cases()),
             'is_paced' => true,
-            'is_drip' => false,
             'planned_amount_minor_units' => fake()->numberBetween(0, 500000),
             'execution_minor_units' => 0,
         ];
@@ -57,16 +56,6 @@ class CategoryFactory extends Factory
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
             'is_paced' => false,
-            'is_drip' => false,
-        ]);
-    }
-
-    public function drip(): static
-    {
-        return $this->state(fn (): array => [
-            'type' => CategoryType::Expense,
-            'is_paced' => true,
-            'is_drip' => true,
         ]);
     }
 }
