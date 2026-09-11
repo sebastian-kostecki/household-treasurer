@@ -479,6 +479,8 @@ return [
         'available_limit_hint' => 'Dostępny limit to plan bieżący minus wykonanie kategorii, a nie środki na kontach.',
         'expense_warnings_title' => 'Uwaga',
         'over_limit_warning' => 'Operacja przekroczy dostępny limit kategorii.',
+        'over_month_category_warning' => 'Operacja przekroczy pozostałość miesiąca tej kategorii (:month_year).',
+        'over_month_pool_warning' => 'Operacja przekroczy pozostałość puli kategorii równomiernych w tym miesiącu (:month_year).',
         'negative_balance_warning' => 'Operacja spowoduje ujemne saldo konta.',
         'select_account' => 'Wybierz konto',
         'select_category' => 'Wybierz kategorię',
