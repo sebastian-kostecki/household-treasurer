@@ -62,16 +62,6 @@ const displayIsOverLimit = computed(() => {
 
     return props.category.is_over_limit;
 });
-const remainingLabel = computed(() =>
-    isMonthView.value
-        ? t.dashboard.remaining_in_month
-        : t.dashboard.remaining,
-);
-const remainingLabelClass = computed(() =>
-    isMonthView.value
-        ? 'text-muted-foreground text-[11px]'
-        : 'text-muted-foreground text-[11px] md:hidden',
-);
 </script>
 
 <template>
@@ -130,8 +120,11 @@ const remainingLabelClass = computed(() =>
             class="category-meter-cell-remaining tabular-nums"
             :class="remainingClass(categoryType, displayIsOverLimit)"
         >
-            <span :class="remainingLabelClass">
-                {{ remainingLabel }}
+            <span
+                v-if="!isMonthView"
+                class="text-muted-foreground text-[11px] md:hidden"
+            >
+                {{ t.dashboard.remaining }}
             </span>
             <span v-if="showMonthRemaining" class="text-sm">
                 {{ formatMoney(displayRemainingMinorUnits) }}
