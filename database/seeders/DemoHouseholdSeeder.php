@@ -20,15 +20,20 @@ use Illuminate\Support\Carbon;
 
 class DemoHouseholdSeeder extends Seeder
 {
-    public function run(): void
+    public function run(string $email = 'test@example.com'): void
     {
         $year = (int) now()->year;
         $openingDate = sprintf('%d-01-01', $year);
 
-        $user = User::factory()->withDismissedFirstRunChecklist()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $user = User::query()->where('email', $email)->first()
+            ?? User::factory()->withDismissedFirstRunChecklist()->create([
+                'name' => 'Test User',
+                'email' => $email,
+            ]);
+
+        if ($user->first_run_checklist_dismissed_at === null) {
+            $user->forceFill(['first_run_checklist_dismissed_at' => now()])->save();
+        }
 
         $eKonto = $this->createAccount($user, [
             'name' => 'eKonto',
