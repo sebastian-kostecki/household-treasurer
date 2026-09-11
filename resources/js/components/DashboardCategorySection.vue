@@ -16,6 +16,7 @@ import {
     type CategoryOrderMode,
     type DashboardCategory,
     type DashboardTypeTotals,
+    defaultCategoryOrderMode,
     progressWidth,
     sectionBarClass,
     sectionPercentClass,
@@ -37,7 +38,10 @@ const props = defineProps<{
 const t = useTranslations();
 const isExpanded = ref(false);
 const orderMode = ref<CategoryOrderMode>(
-    props.showOrderToggle ? 'risk' : 'budget',
+    defaultCategoryOrderMode(
+        props.showOrderToggle ?? false,
+        props.showMonthRemainingOrder ?? false,
+    ),
 );
 
 const effectiveOrderMode = computed<CategoryOrderMode>(() => {
@@ -101,6 +105,15 @@ watch(
     (showMonthRemainingOrder) => {
         if (!showMonthRemainingOrder && orderMode.value === 'month') {
             orderMode.value = 'risk';
+
+            return;
+        }
+
+        if (showMonthRemainingOrder) {
+            orderMode.value = defaultCategoryOrderMode(
+                props.showOrderToggle ?? false,
+                showMonthRemainingOrder,
+            );
         }
     },
 );

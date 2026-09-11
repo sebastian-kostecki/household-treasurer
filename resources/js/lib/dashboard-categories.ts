@@ -27,6 +27,17 @@ export type CategoryOrderMode = 'budget' | 'risk' | 'month';
 
 export const VISIBLE_CATEGORY_LIMIT = 8;
 
+export function defaultCategoryOrderMode(
+    showOrderToggle: boolean,
+    showMonthRemainingOrder: boolean,
+): CategoryOrderMode {
+    if (!showOrderToggle) {
+        return 'budget';
+    }
+
+    return showMonthRemainingOrder ? 'month' : 'risk';
+}
+
 export function monthUsagePercent(
     monthExecutionMinorUnits: number,
     monthRemainingMinorUnits: number,
