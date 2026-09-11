@@ -60,6 +60,7 @@ class DashboardController extends Controller
         $planSummary = null;
         $showMonthRemainingOrder = false;
         $monthReadings = null;
+        $monthElapsedPercent = null;
 
         if ($budget !== null) {
             $allCategories = $budget->categories()
@@ -87,6 +88,12 @@ class DashboardController extends Controller
                     $today->month,
                     $today,
                 );
+
+                if ($budget->isExecution()) {
+                    $monthElapsedPercent = (int) round(
+                        $today->day / $today->daysInMonth * 100,
+                    );
+                }
             }
 
             $incomeCategories = $visibleCategories
@@ -125,6 +132,7 @@ class DashboardController extends Controller
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,
             'showMonthRemainingOrder' => $showMonthRemainingOrder,
+            'month_elapsed_percent' => $monthElapsedPercent,
         ]);
     }
 
@@ -208,6 +216,7 @@ class DashboardController extends Controller
      *     is_over_limit: bool,
      *     is_archived: bool,
      *     is_paced?: bool,
+     *     is_drip?: bool,
      *     month_remaining_minor_units?: int|null,
      *     month_execution_minor_units?: int,
      * }
@@ -243,6 +252,7 @@ class DashboardController extends Controller
             'is_archived' => $category->isArchived(),
             ...($monthReading !== null ? [
                 'is_paced' => $category->is_paced,
+                'is_drip' => $category->is_drip,
                 'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
                 'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
             ] : []),

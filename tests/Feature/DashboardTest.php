@@ -760,6 +760,158 @@ class DashboardTest extends TestCase
             );
     }
 
+    public function test_dashboard_exposes_is_drip_on_expense_categories_when_month_order_available(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->drip()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Rent',
+            'planned_amount_minor_units' => 60_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.is_drip', true)
+                ->where('expenseCategories.1.is_drip', false),
+            );
+    }
+
+    public function test_dashboard_exposes_month_elapsed_percent_in_execution_for_current_year(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_elapsed_percent', 50),
+            );
+    }
+
+    public function test_dashboard_hides_month_elapsed_percent_in_draft_budget(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->drip()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_elapsed_percent', null)
+                ->where('expenseCategories.0.is_drip', true),
+            );
+    }
+
+    public function test_dashboard_hides_month_elapsed_percent_for_non_current_budget_year(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_elapsed_percent', null)
+                ->missing('expenseCategories.0.is_drip'),
+            );
+    }
+
+    public function test_dashboard_exposes_negative_month_remaining_for_drip_category(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 1_000_000,
+            'current_balance_minor_units' => 1_000_000,
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $drip = Category::factory()->for($budget)->expense()->drip()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+            'execution_minor_units' => 20_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $drip->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-06-10',
+            'amount_minor_units' => 20_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_elapsed_percent', 50)
+                ->where('expenseCategories.0.is_drip', true)
+                ->where('expenseCategories.0.month_remaining_minor_units', -2_858),
+            );
+    }
+
+    public function test_user_does_not_see_another_users_drip_month_pace(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->drip()->create([
+            'name' => 'My groceries',
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        $otherBudget = Budget::factory()->for($otherUser)->execution()->create(['year' => 2026]);
+        Category::factory()->for($otherBudget)->expense()->drip()->create([
+            'name' => 'Their groceries',
+            'planned_amount_minor_units' => 240_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_elapsed_percent', 50)
+                ->has('expenseCategories', 1)
+                ->where('expenseCategories.0.name', 'My groceries')
+                ->where('expenseCategories.0.is_drip', true),
+            );
+    }
+
     public function test_dismissed_checklist_stays_hidden_after_setup_becomes_complete_again(): void
     {
         $user = User::factory()->withDismissedFirstRunChecklist()->create();

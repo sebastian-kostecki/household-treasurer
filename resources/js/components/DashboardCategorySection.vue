@@ -33,6 +33,7 @@ const props = defineProps<{
     totals: DashboardTypeTotals;
     showOrderToggle?: boolean;
     showMonthRemainingOrder?: boolean;
+    monthElapsedPercent?: number | null;
 }>();
 
 const t = useTranslations();
@@ -248,6 +249,7 @@ const sectionRemainingClass = computed(() => {
                 :category="category"
                 :category-type="categoryType"
                 :order-mode="effectiveOrderMode"
+                :month-elapsed-percent="monthElapsedPercent"
             />
         </div>
 
