@@ -24,6 +24,7 @@ import {
     uniquePairCandidate,
     type PairCandidate,
 } from '@/lib/import-pair-selection';
+import type { MonthRemainingWarningState } from '@/lib/import-month-remaining-warnings';
 import {
     categoriesForRow,
     descriptionVariant,
@@ -47,6 +48,7 @@ const {
     otherAccounts,
     termDeposits,
     consumedFirstLegKeys,
+    monthRemainingWarnings,
 } = defineProps<{
     row: ImportRow;
     accountBalanceMinorUnits: number;
@@ -55,6 +57,7 @@ const {
     otherAccounts: AccountPickerOption[];
     termDeposits: TermDepositRow[];
     consumedFirstLegKeys: Set<string>;
+    monthRemainingWarnings?: MonthRemainingWarningState;
 }>();
 
 const selection = defineModel<RowSelection>('selection', { required: true });
@@ -136,11 +139,25 @@ const makesAccountNegative = computed(() =>
     wouldMakeAccountNegative(row, selection.value, accountBalanceMinorUnits),
 );
 
+const showCategoryMonthRemainingWarning = computed(
+    () => monthRemainingWarnings?.showCategoryWarning === true,
+);
+
+const showPoolMonthRemainingWarning = computed(
+    () => monthRemainingWarnings?.showPoolWarning === true,
+);
+
+const monthRemainingPeriodLabel = computed(
+    () => monthRemainingWarnings?.periodLabel ?? null,
+);
+
 const hasNotes = computed(
     () =>
         (!row.valid && row.invalid_reason !== null) ||
         (showsPairBadge.value && matchingCandidate.value !== null) ||
-        makesAccountNegative.value,
+        makesAccountNegative.value ||
+        showCategoryMonthRemainingWarning.value ||
+        showPoolMonthRemainingWarning.value,
 );
 
 function emptyCategoryLabel(type: RowSelection['type']): string {
@@ -526,6 +543,38 @@ function onPairCandidateChange(value: string): void {
             <Alert v-if="makesAccountNegative" variant="destructive">
                 <AlertDescription>
                     {{ t.operations.negative_balance_warning }}
+                </AlertDescription>
+            </Alert>
+            <Alert
+                v-if="
+                    showCategoryMonthRemainingWarning &&
+                    monthRemainingPeriodLabel !== null
+                "
+                variant="destructive"
+            >
+                <AlertDescription>
+                    {{
+                        t.operations.over_month_category_warning.replace(
+                            ':month_year',
+                            monthRemainingPeriodLabel,
+                        )
+                    }}
+                </AlertDescription>
+            </Alert>
+            <Alert
+                v-if="
+                    showPoolMonthRemainingWarning &&
+                    monthRemainingPeriodLabel !== null
+                "
+                variant="destructive"
+            >
+                <AlertDescription>
+                    {{
+                        t.operations.over_month_pool_warning.replace(
+                            ':month_year',
+                            monthRemainingPeriodLabel,
+                        )
+                    }}
                 </AlertDescription>
             </Alert>
         </div>
