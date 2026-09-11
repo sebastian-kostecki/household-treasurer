@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ResetUserData
 {
@@ -13,6 +14,13 @@ class ResetUserData
             $user->financialOperations()->delete();
             $user->ownTransfers()->delete();
             $user->capitalMovements()->delete();
+
+            if (Schema::hasTable('cash_expectations')) {
+                DB::table('cash_expectations')
+                    ->where('user_id', $user->id)
+                    ->delete();
+            }
+
             $user->budgets()->delete();
             $user->termDeposits()->delete();
             $user->accounts()->delete();
