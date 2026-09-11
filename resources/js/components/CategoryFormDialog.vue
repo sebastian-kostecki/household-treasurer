@@ -258,7 +258,7 @@ function closeDialog(): void {
                     <div class="flex items-start gap-2">
                         <Checkbox
                             id="category-is-paced"
-                            v-model:checked="isPaced"
+                            v-model="isPaced"
                         />
                         <div class="grid gap-1">
                             <Label for="category-is-paced">

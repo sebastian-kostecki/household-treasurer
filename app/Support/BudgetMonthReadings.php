@@ -14,6 +14,8 @@ class BudgetMonthReadings
      * @param  Collection<int, Category>  $allExpenseCategories
      * @return array{
      *     paced_pool_month_remaining_minor_units: int,
+     *     current_month: int|null,
+     *     viewed_month_timing: 'past'|'current'|'future',
      *     categories: array<int, array{
      *         month_remaining_minor_units: int|null,
      *         month_execution_minor_units: int,
@@ -89,6 +91,10 @@ class BudgetMonthReadings
                 totalExecutionInCurrentMonth: $totalExecutionInCurrentMonth,
                 hasPacedCategories: $pacedCategories->isNotEmpty(),
             ),
+            'current_month' => $today->year === $budget->year
+                ? $today->month
+                : null,
+            'viewed_month_timing' => $calculator->monthTiming($viewedMonth),
             'categories' => $categoryReadings,
         ];
     }

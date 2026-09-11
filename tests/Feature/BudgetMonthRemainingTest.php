@@ -252,4 +252,68 @@ class BudgetMonthRemainingTest extends TestCase
                 ->where('expenseCategories.0.month_remaining_minor_units', null),
             );
     }
+
+    public function test_budget_page_exposes_current_month_and_viewed_month_timing(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('currentMonth', 6)
+                ->where('viewedMonthTiming', 'current'),
+            );
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('currentMonth', 6)
+                ->where('viewedMonthTiming', 'past'),
+            );
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['month' => 9]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('currentMonth', 6)
+                ->where('viewedMonthTiming', 'future'),
+            );
+    }
+
+    public function test_budget_page_current_month_is_null_for_other_budget_years(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('currentMonth', null)
+                ->where('viewedMonth', 12)
+                ->where('viewedMonthTiming', 'past'),
+            );
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('currentMonth', null)
+                ->where('viewedMonth', 1)
+                ->where('viewedMonthTiming', 'future'),
+            );
+    }
 }

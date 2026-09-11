@@ -46,6 +46,8 @@ class BudgetController extends Controller
                 'show_archived' => false,
                 'viewedMonth' => null,
                 'pacedPoolMonthRemainingMinorUnits' => null,
+                'currentMonth' => null,
+                'viewedMonthTiming' => null,
                 'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
             ]);
         }
@@ -111,6 +113,8 @@ class BudgetController extends Controller
             'show_archived' => $showArchived,
             'viewedMonth' => $viewedMonth,
             'pacedPoolMonthRemainingMinorUnits' => $monthReadings['paced_pool_month_remaining_minor_units'],
+            'currentMonth' => $monthReadings['current_month'],
+            'viewedMonthTiming' => $monthReadings['viewed_month_timing'],
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);
     }
