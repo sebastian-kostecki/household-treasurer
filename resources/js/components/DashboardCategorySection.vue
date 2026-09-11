@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ChevronDown } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import CategoryMeterRow from '@/components/CategoryMeterRow.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     type CategoryOrderMode,
@@ -11,6 +19,7 @@ import {
     progressWidth,
     sectionBarClass,
     sectionPercentClass,
+    sortCategoriesByMonthRemaining,
     sortCategoriesByRisk,
     VISIBLE_CATEGORY_LIMIT,
 } from '@/lib/dashboard-categories';
@@ -22,6 +31,7 @@ const props = defineProps<{
     categories: DashboardCategory[];
     totals: DashboardTypeTotals;
     showOrderToggle?: boolean;
+    showMonthRemainingOrder?: boolean;
 }>();
 
 const t = useTranslations();
@@ -30,9 +40,32 @@ const orderMode = ref<CategoryOrderMode>(
     props.showOrderToggle ? 'risk' : 'budget',
 );
 
+const effectiveOrderMode = computed<CategoryOrderMode>(() => {
+    if (orderMode.value === 'month' && !props.showMonthRemainingOrder) {
+        return 'risk';
+    }
+
+    return orderMode.value;
+});
+
+const orderModeLabel = computed(() => {
+    switch (effectiveOrderMode.value) {
+        case 'budget':
+            return t.dashboard.order_budget;
+        case 'risk':
+            return t.dashboard.order_risk;
+        case 'month':
+            return t.dashboard.order_month_remaining;
+    }
+});
+
 const orderedCategories = computed(() => {
-    if (orderMode.value === 'risk') {
+    if (effectiveOrderMode.value === 'risk') {
         return sortCategoriesByRisk(props.categories);
+    }
+
+    if (effectiveOrderMode.value === 'month') {
+        return sortCategoriesByMonthRemaining(props.categories);
     }
 
     return props.categories;
@@ -63,6 +96,15 @@ const showCollapse = computed(
         orderedCategories.value.length > VISIBLE_CATEGORY_LIMIT,
 );
 
+watch(
+    () => props.showMonthRemainingOrder,
+    (showMonthRemainingOrder) => {
+        if (!showMonthRemainingOrder && orderMode.value === 'month') {
+            orderMode.value = 'risk';
+        }
+    },
+);
+
 const sectionRemainingClass = computed(() => {
     if (
         props.categoryType === 'expense' &&
@@ -73,10 +115,6 @@ const sectionRemainingClass = computed(() => {
 
     return '';
 });
-
-function toggleOrderMode(): void {
-    orderMode.value = orderMode.value === 'risk' ? 'budget' : 'risk';
-}
 </script>
 
 <template>
@@ -87,19 +125,35 @@ function toggleOrderMode(): void {
                     <h3 class="text-base font-semibold">
                         {{ title }}
                     </h3>
-                    <Button
-                        v-if="showOrderToggle"
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        @click="toggleOrderMode"
-                    >
-                        {{
-                            orderMode === 'risk'
-                                ? t.dashboard.order_budget
-                                : t.dashboard.order_risk
-                        }}
-                    </Button>
+                    <DropdownMenu v-if="showOrderToggle">
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                :aria-label="t.dashboard.order_by"
+                            >
+                                {{ orderModeLabel }}
+                                <ChevronDown class="size-4 opacity-60" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuRadioGroup v-model="orderMode">
+                                <DropdownMenuRadioItem value="budget">
+                                    {{ t.dashboard.order_budget }}
+                                </DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="risk">
+                                    {{ t.dashboard.order_risk }}
+                                </DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem
+                                    v-if="showMonthRemainingOrder"
+                                    value="month"
+                                >
+                                    {{ t.dashboard.order_month_remaining }}
+                                </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-3">
@@ -180,6 +234,7 @@ function toggleOrderMode(): void {
                 :key="category.id"
                 :category="category"
                 :category-type="categoryType"
+                :order-mode="effectiveOrderMode"
             />
         </div>
 

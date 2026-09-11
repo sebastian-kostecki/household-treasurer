@@ -131,6 +131,9 @@ return [
         'show_fewer_categories' => 'Pokaż mniej',
         'order_risk' => 'Ryzyko',
         'order_budget' => 'Kolejność budżetu',
+        'order_month_remaining' => 'Pozostało w miesiącu',
+        'remaining_in_month' => 'Pozostało w miesiącu',
+        'order_by' => 'Sortuj według',
         'plan_changed' => 'Plan zmieniony',
     ],
     'budget' => [

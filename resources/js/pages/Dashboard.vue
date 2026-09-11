@@ -63,6 +63,7 @@ const props = defineProps<{
     expenseCategories: DashboardCategory[];
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
+    showMonthRemainingOrder: boolean;
 }>();
 
 const t = useTranslations();
@@ -308,6 +309,7 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                     category-type="expense"
                     :categories="expenseCategories"
                     :totals="expenseTotals"
+                    :show-month-remaining-order="showMonthRemainingOrder"
                     show-order-toggle
                 />
             </div>

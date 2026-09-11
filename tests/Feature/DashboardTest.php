@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
+use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\FinancialOperation;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
@@ -55,7 +57,8 @@ class DashboardTest extends TestCase
                     'percent_complete' => null,
                 ])
                 ->where('incomeCategories', [])
-                ->where('expenseCategories', []),
+                ->where('expenseCategories', [])
+                ->where('showMonthRemainingOrder', false),
             );
     }
 
@@ -529,6 +532,136 @@ class DashboardTest extends TestCase
             ->assertForbidden();
 
         $this->assertNull($user->fresh()->first_run_checklist_dismissed_at);
+    }
+
+    public function test_dashboard_exposes_month_remaining_fields_for_current_year_budget_with_paced_categories(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 1_000_000,
+            'current_balance_minor_units' => 1_000_000,
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $paced = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+            'execution_minor_units' => 35_000,
+        ]);
+        $oneOff = Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Insurance',
+            'planned_amount_minor_units' => 50_000,
+            'execution_minor_units' => 10_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $paced->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-01-15',
+            'amount_minor_units' => 25_000,
+        ]);
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $paced->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-06-10',
+            'amount_minor_units' => 10_000,
+        ]);
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $oneOff->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-06-05',
+            'amount_minor_units' => 10_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('showMonthRemainingOrder', true)
+                ->where('expenseCategories.0.is_paced', true)
+                ->where('expenseCategories.0.month_remaining_minor_units', 3_571)
+                ->where('expenseCategories.0.month_execution_minor_units', 10_000)
+                ->where('expenseCategories.1.is_paced', false)
+                ->where('expenseCategories.1.month_remaining_minor_units', null)
+                ->where('expenseCategories.1.month_execution_minor_units', 10_000),
+            );
+    }
+
+    public function test_dashboard_hides_month_remaining_order_for_non_current_budget_year(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+            'execution_minor_units' => 35_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('showMonthRemainingOrder', false)
+                ->missing('expenseCategories.0.month_remaining_minor_units')
+                ->missing('expenseCategories.0.month_execution_minor_units')
+                ->missing('expenseCategories.0.is_paced'),
+            );
+    }
+
+    public function test_dashboard_exposes_month_remaining_for_draft_budget_in_current_year(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+            'execution_minor_units' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('showMonthRemainingOrder', true)
+                ->where('expenseCategories.0.month_remaining_minor_units', 10_000),
+            );
+    }
+
+    public function test_dashboard_hides_month_remaining_order_when_only_one_off_categories_exist(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Insurance',
+            'planned_amount_minor_units' => 50_000,
+            'execution_minor_units' => 10_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('showMonthRemainingOrder', false)
+                ->missing('expenseCategories.0.month_remaining_minor_units'),
+            );
     }
 
     public function test_dismissed_checklist_stays_hidden_after_setup_becomes_complete_again(): void

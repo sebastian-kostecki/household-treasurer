@@ -9,11 +9,13 @@ use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
 use App\Support\ShellState;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -56,11 +58,30 @@ class DashboardController extends Controller
         $incomeTotals = [...$emptyTotals];
         $expenseTotals = [...$emptyTotals];
         $planSummary = null;
+        $showMonthRemainingOrder = false;
+        $monthReadings = null;
 
         if ($budget !== null) {
             $categories = $budget->categories()
                 ->ordered()
                 ->get();
+            $expenseCategoryCollection = $categories
+                ->where('type', CategoryType::Expense)
+                ->values();
+            $today = CarbonImmutable::today('UTC');
+
+            if (
+                $budget->year === $today->year
+                && $expenseCategoryCollection->contains(fn (Category $category): bool => $category->is_paced)
+            ) {
+                $showMonthRemainingOrder = true;
+                $monthReadings = BudgetMonthReadings::forBudget(
+                    $budget,
+                    $expenseCategoryCollection,
+                    $today->month,
+                    $today,
+                );
+            }
 
             $incomeCategories = $categories
                 ->where('type', CategoryType::Income)
@@ -68,10 +89,14 @@ class DashboardController extends Controller
                 ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all();
 
-            $expenseCategories = $categories
-                ->where('type', CategoryType::Expense)
-                ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+            $expenseCategories = $expenseCategoryCollection
+                ->map(fn (Category $category): array => $this->categoryPayload(
+                    $category,
+                    $budget,
+                    $showMonthRemainingOrder
+                        ? ($monthReadings['categories'][$category->id] ?? null)
+                        : null,
+                ))
                 ->all();
 
             $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
@@ -93,6 +118,7 @@ class DashboardController extends Controller
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,
+            'showMonthRemainingOrder' => $showMonthRemainingOrder,
         ]);
     }
 
@@ -175,10 +201,16 @@ class DashboardController extends Controller
      *     percent_complete: int|null,
      *     is_over_limit: bool,
      *     is_archived: bool,
+     *     is_paced?: bool,
+     *     month_remaining_minor_units?: int|null,
+     *     month_execution_minor_units?: int,
      * }
      */
-    private function categoryPayload(Category $category, Budget $budget): array
-    {
+    private function categoryPayload(
+        Category $category,
+        Budget $budget,
+        ?array $monthReading = null,
+    ): array {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;
         $initialPlanMinorUnits = $budget->isExecution()
@@ -203,6 +235,11 @@ class DashboardController extends Controller
             'is_over_limit' => $category->type === CategoryType::Expense
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
+            ...($monthReading !== null ? [
+                'is_paced' => $category->is_paced,
+                'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
+                'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
+            ] : []),
         ];
     }
 }

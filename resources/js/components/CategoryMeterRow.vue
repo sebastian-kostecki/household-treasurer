@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    type CategoryOrderMode,
     type DashboardCategory,
+    hasMonthRemainingReading,
+    isOverMonthRemaining,
     meterBarClass,
     meterPercentClass,
+    monthUsagePercent,
     planChanged,
     progressWidth,
     remainingClass,
@@ -15,11 +20,58 @@ import { formatMoney } from '@/lib/format';
 const props = defineProps<{
     category: DashboardCategory;
     categoryType: 'income' | 'expense';
+    orderMode?: CategoryOrderMode;
 }>();
 
 const t = useTranslations();
 
 const hasPlanChanged = planChanged(props.category);
+const isMonthView = computed(
+    () =>
+        props.orderMode === 'month' &&
+        props.categoryType === 'expense',
+);
+const showMonthRemaining = computed(
+    () => isMonthView.value && hasMonthRemainingReading(props.category),
+);
+const displayRemainingMinorUnits = computed(() => {
+    if (showMonthRemaining.value) {
+        return props.category.month_remaining_minor_units ?? 0;
+    }
+
+    return props.category.remaining_minor_units;
+});
+const displayPercentComplete = computed(() => {
+    if (isMonthView.value && !showMonthRemaining.value) {
+        return null;
+    }
+
+    if (!showMonthRemaining.value) {
+        return props.category.percent_complete;
+    }
+
+    return monthUsagePercent(
+        props.category.month_execution_minor_units ?? 0,
+        props.category.month_remaining_minor_units ?? 0,
+    );
+});
+const displayIsOverLimit = computed(() => {
+    if (showMonthRemaining.value) {
+        return isOverMonthRemaining(props.category.month_remaining_minor_units);
+    }
+
+    return props.category.is_over_limit;
+});
+const remainingLabel = computed(() =>
+    isMonthView.value
+        ? t.dashboard.remaining_in_month
+        : t.dashboard.remaining,
+);
+const remainingLabelClass = computed(() =>
+    isMonthView.value
+        ? 'text-muted-foreground text-[11px]'
+        : 'text-muted-foreground text-[11px] md:hidden',
+);
 </script>
 
 <template>
@@ -76,19 +128,28 @@ const hasPlanChanged = planChanged(props.category);
 
         <div
             class="category-meter-cell-remaining tabular-nums"
-            :class="remainingClass(categoryType, category.is_over_limit)"
+            :class="remainingClass(categoryType, displayIsOverLimit)"
         >
-            <span class="text-muted-foreground text-[11px] md:hidden">
-                {{ t.dashboard.remaining }}
+            <span :class="remainingLabelClass">
+                {{ remainingLabel }}
             </span>
-            <span class="text-sm">
-                {{ formatMoney(category.remaining_minor_units) }}
+            <span v-if="showMonthRemaining" class="text-sm">
+                {{ formatMoney(displayRemainingMinorUnits) }}
+            </span>
+            <span
+                v-else-if="isMonthView"
+                class="text-muted-foreground text-sm"
+            >
+                {{ t.common.not_applicable }}
+            </span>
+            <span v-else class="text-sm">
+                {{ formatMoney(displayRemainingMinorUnits) }}
             </span>
         </div>
 
         <div class="category-meter-cell-bar">
             <div
-                v-if="category.percent_complete !== null"
+                v-if="displayPercentComplete !== null"
                 class="bg-muted h-1.5 overflow-hidden rounded-full"
             >
                 <div
@@ -96,12 +157,12 @@ const hasPlanChanged = planChanged(props.category);
                     :class="
                         meterBarClass(
                             categoryType,
-                            category.percent_complete,
-                            category.is_over_limit,
+                            displayPercentComplete,
+                            displayIsOverLimit,
                         )
                     "
                     :style="{
-                        width: progressWidth(category.percent_complete),
+                        width: progressWidth(displayPercentComplete),
                     }"
                 />
             </div>
@@ -110,19 +171,19 @@ const hasPlanChanged = planChanged(props.category);
         <div
             class="category-meter-cell-percent text-right text-sm font-medium tabular-nums"
             :class="
-                category.percent_complete === null
+                displayPercentComplete === null
                     ? 'text-muted-foreground'
                     : meterPercentClass(
                           categoryType,
-                          category.percent_complete,
-                          category.is_over_limit,
+                          displayPercentComplete,
+                          displayIsOverLimit,
                       )
             "
         >
-            <template v-if="category.percent_complete === null">
+            <template v-if="displayPercentComplete === null">
                 {{ t.common.not_applicable }}
             </template>
-            <template v-else> {{ category.percent_complete }}% </template>
+            <template v-else> {{ displayPercentComplete }}% </template>
         </div>
     </div>
 </template>
