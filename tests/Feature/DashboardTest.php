@@ -312,10 +312,22 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_includes_archived_categories(): void
+    public function test_dashboard_excludes_archived_categories_from_meters_and_totals(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->archived()->create([
+            'name' => 'Old income',
+            'planned_amount_minor_units' => 200000,
+            'initial_plan_minor_units' => 200000,
+            'execution_minor_units' => 50000,
+        ]);
+        Category::factory()->for($budget)->income()->create([
+            'name' => 'Active income',
+            'planned_amount_minor_units' => 100000,
+            'initial_plan_minor_units' => 100000,
+            'execution_minor_units' => 25000,
+        ]);
         Category::factory()->for($budget)->expense()->archived()->create([
             'name' => 'Old category',
             'planned_amount_minor_units' => 50000,
@@ -334,9 +346,93 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('expenseCategories', 2)
-                ->where('expenseTotals.current_plan_minor_units', 80000)
-                ->where('expenseTotals.execution_minor_units', 15000),
+                ->has('incomeCategories', 1)
+                ->where('incomeCategories.0.name', 'Active income')
+                ->where('incomeTotals.current_plan_minor_units', 100000)
+                ->where('incomeTotals.execution_minor_units', 25000)
+                ->has('expenseCategories', 1)
+                ->where('expenseCategories.0.name', 'Active category')
+                ->where('expenseTotals.current_plan_minor_units', 30000)
+                ->where('expenseTotals.execution_minor_units', 5000)
+                ->where('planSummary.planned_balance_minor_units', 70000),
+            );
+    }
+
+    public function test_dashboard_shows_empty_category_lists_when_all_categories_are_archived(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->archived()->create([
+            'planned_amount_minor_units' => 100000,
+            'execution_minor_units' => 50000,
+        ]);
+        Category::factory()->for($budget)->expense()->archived()->create([
+            'planned_amount_minor_units' => 80000,
+            'execution_minor_units' => 20000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories', [])
+                ->where('expenseCategories', [])
+                ->where('incomeTotals.current_plan_minor_units', 0)
+                ->where('incomeTotals.execution_minor_units', 0)
+                ->where('expenseTotals.current_plan_minor_units', 0)
+                ->where('expenseTotals.execution_minor_units', 0)
+                ->where('planSummary.planned_balance_minor_units', 0),
+            );
+    }
+
+    public function test_dashboard_hides_month_remaining_order_when_only_archived_paced_categories_exist(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->archived()->create([
+            'name' => 'Archived paced',
+            'planned_amount_minor_units' => 120_000,
+            'execution_minor_units' => 35_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('showMonthRemainingOrder', false)
+                ->where('expenseCategories', []),
+            );
+    }
+
+    public function test_archived_paced_category_stays_in_month_remaining_pool_when_hidden_from_dashboard_list(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Visible',
+            'planned_amount_minor_units' => 60_000,
+            'execution_minor_units' => 0,
+        ]);
+        Category::factory()->for($budget)->expense()->archived()->create([
+            'name' => 'Archived',
+            'planned_amount_minor_units' => 60_000,
+            'execution_minor_units' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('showMonthRemainingOrder', true)
+                ->has('expenseCategories', 1)
+                ->where('expenseCategories.0.month_remaining_minor_units', 8_571),
             );
     }
 
