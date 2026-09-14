@@ -214,7 +214,11 @@ Term Deposit jest holdingiem środków w bankowym produkcie lokaty. Nie jest kon
 - **FR-TD-10**: Import nie tworzy lokaty. Użytkownik wybiera istniejącą lokatę przy klasyfikacji wiersza.
 - **FR-TD-11**: First Run nie wymaga lokaty. Checklista pierwszego uruchomienia nadal obejmuje wyłącznie konto, budżet, kategorię i budżet w wykonaniu.
 
-### 7.8. Ruchy kapitału (Capital Movement)
+### 7.8. Agenda i Cash Expectation
+
+Cash Expectation to datowany, niezaksięgowany ruch gotówki (dochód, wydatek lub zwrot wydatku) widoczny na Agendzie. Nie jest operacją finansową, rezerwą budżetową ani rejestrem zobowiązań. Dopóki pozostaje niezaksięgowana, nie zmienia sald kont, wykonania kategorii ani dostępnego limitu. Lista na Agendzie jest filtrowana według roku budżetu w powłoce aplikacji (jak Budżet). Użytkownik tworzy Cash Expectation wyłącznie z Agendy.
+
+### 7.9. Ruchy kapitału (Capital Movement)
 
 - **FR-CM-01**: Użytkownik może ręcznie utworzyć Capital Movement między jednym niezarchiwizowanym kontem a jedną niezarchiwizowaną lokatą. Gotówka jest poprawnym kontem.
 - **FR-CM-02**: Rekord zawiera datę, dodatnią niezerową kwotę, opis, konto, lokatę i kierunek: konto → lokata albo lokata → konto. Nie ma kategorii i nie wpływa na wykonanie budżetu. Nie ma Counterparty.
@@ -226,7 +230,7 @@ Term Deposit jest holdingiem środków w bankowym produkcie lokaty. Nie jest kon
 - **FR-CM-08**: Capital Movement z Importu przechowuje co najwyżej jeden oryginalny opis z wyciągu (konto płynne). Ręczne utworzenie pozostawia go pustym. Edycja opisu nie zmienia oryginalnego opisu z wyciągu.
 - **FR-CM-09**: Brak bezpośredniego ruchu lokata → lokata. Przeniesienie kapitału między lokatami to zwrot na konto, potem otwarcie albo zasilenie drugiej lokaty.
 
-### 7.9. Import
+### 7.10. Import
 
 Import odbywa się w tym samym kreatorze dla CSV i XLSX. Użytkownik wybiera **Import format**, wskazuje konto, przegląda podgląd i zatwierdza wybrane wiersze. To nie jest połączenie z bankiem. Import może utworzyć operacje finansowe, transfery własne i Capital Movements.
 
@@ -260,7 +264,7 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-IMP-26**: Na wierszu uznania sklasyfikowanym jako Capital Movement użytkownik może podać kwotę odsetek i kategorię dochodową. Zatwierdzenie tworzy dwa niezależne rekordy: Capital Movement (lokata → konto) na resztę kapitału oraz operację finansową (dochód) na wpisane odsetki. Nie są one trwałą parą. Kwota odsetek musi być dodatnia i mniejsza od kwoty z pliku, tak aby kapitał pozostał dodatni. Ręczne dodanie nigdy nie tworzy obu rekordów w jednym zapisie.
 - **FR-IMP-27**: Gdy jeden wiersz zatwierdza Capital Movement i dochód z odsetek, oba rekordy otrzymują tę samą tożsamość wiersza pliku (nie dwa odciski rozdzielonych kwot). Capital Movement ma jeden odcisk, na koncie płynnym.
 
-### 7.10. Raportowanie i kontrola wykonania
+### 7.11. Raportowanie i kontrola wykonania
 
 - **FR-REP-01**: System pokazuje plan początkowy, plan aktualny, wykonanie, pozostałą kwotę i procent wykonania każdej kategorii.
 - **FR-REP-02**: Dla kategorii dodanej podczas wykonania plan początkowy jest prezentowany jako 0 PLN.
@@ -274,7 +278,7 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-REP-10**: Total funds jest sumą Spendable Liquidity i bieżących sald wszystkich lokat użytkownika, w tym zarchiwizowanych. Capital Movement z konta na lokatę nie zmienia Total funds.
 - **FR-REP-11**: Pulpit pokazuje Spendable Liquidity, Total funds, karty niezarchiwizowanych kont oraz karty niezarchiwizowanych lokat.
 
-### 7.11. Narzędzia operacyjne (Artisan)
+### 7.12. Narzędzia operacyjne (Artisan)
 
 Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu webowego MVP. Produkcyjny backup całej bazy pozostaje zrzutem PostgreSQL poza VPS (por. tech stack); poniższe komendy eksportują i przywracają **dane domenowe jednego użytkownika** w formacie JSON.
 
@@ -298,7 +302,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **BR-11**: Dostępny limit nie jest informacją o dostępności środków na kontach.
 - **BR-12**: Przekroczenie limitu oraz ujemne saldo konta albo lokaty są dozwolone.
 - **BR-13**: Dochód lub wydatek należy do budżetu wskazanego przez rok daty operacji.
-- **BR-14**: Przyszłe płatności i zobowiązania nie są operacjami finansowymi MVP.
+- **BR-14**: Cash Expectation na Agendzie nie jest operacją finansową; dopóki jest niezaksięgowana, nie zmienia płynności, wykonania ani dostępnego limitu.
 - **BR-15**: Historia elementu użytego w operacjach albo ruchach kapitału jest zachowywana przez archiwizację zamiast usunięcia.
 - **BR-16**: Skopiowany plan aktualny pochodzi z planu aktualnego źródła, nie z planu początkowego ani wykonania źródła. Plan początkowy docelowego budżetu powstaje dopiero przy rozpoczęciu wykonania.
 - **BR-17**: Edycja może zmienić dochód w zwrot wydatku i zwrot wydatku w dochód. Nie wiąże zwrotu z konkretnym wcześniejszym wydatkiem. Nie zamienia zwykłego wydatku w dochód.
@@ -439,7 +443,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 
 ## 12. Poza zakresem MVP
 
-- zobowiązania i planowane przyszłe płatności,
+- rejestr zobowiązań / pozostała kwota pożyczki (Cash Expectation na Agendzie nie jest tym),
 - rezerwy budżetowe,
 - miesięczne harmonogramy oraz prognozy płynności,
 - formalne zatwierdzanie zmian budżetowych,

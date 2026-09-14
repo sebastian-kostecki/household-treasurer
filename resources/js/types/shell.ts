@@ -25,6 +25,7 @@ export type UiTranslations = {
         accounts: string;
         term_deposits: string;
         operations: string;
+        agenda: string;
         menu: string;
     };
     shell: {
@@ -40,6 +41,7 @@ export type UiTranslations = {
     accounts: Record<string, string>;
     term_deposits: Record<string, string>;
     operations: Record<string, string>;
+    agenda: Record<string, string>;
     common: Record<string, string>;
     landing: Record<string, string>;
 };
