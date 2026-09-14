@@ -19,7 +19,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
-import { parseMoneyInputToMinorUnits } from '@/lib/format';
+import {
+    minorUnitsToMoneyInput,
+    parseMoneyInputToMinorUnits,
+} from '@/lib/format';
 
 export type CashExpectationFormAccount = AccountPickerOption & {
     opening_date: string;
@@ -35,13 +38,33 @@ export type CashExpectationFormCategory = {
 
 type ExpectationKind = 'income' | 'expense' | 'expense_refund';
 
-const props = defineProps<{
-    open: boolean;
-    accounts: CashExpectationFormAccount[];
-    incomeCategories: CashExpectationFormCategory[];
-    expenseCategories: CashExpectationFormCategory[];
-    defaultDate?: string;
-}>();
+type EditableExpectation = {
+    id: number;
+    type: 'income' | 'expense';
+    expectation_date: string;
+    amount_minor_units: number;
+    description: string;
+    counterparty: string | null;
+    is_expense_refund: boolean;
+    account_id: number;
+    category_id: number;
+};
+
+const props = withDefaults(
+    defineProps<{
+        open: boolean;
+        mode?: 'create' | 'edit';
+        expectation?: EditableExpectation | null;
+        accounts: CashExpectationFormAccount[];
+        incomeCategories: CashExpectationFormCategory[];
+        expenseCategories: CashExpectationFormCategory[];
+        defaultDate?: string;
+    }>(),
+    {
+        mode: 'create',
+        expectation: null,
+    },
+);
 
 const emit = defineEmits<{
     'update:open': [value: boolean];
@@ -57,8 +80,15 @@ const accountId = ref<number | ''>('');
 const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
 const amountMinorUnits = ref(0);
+const occurrence = ref<'once' | 'monthly'>('once');
 
-const formBinding = computed(() => CashExpectationController.store.form());
+const isEdit = computed(() => props.mode === 'edit' && props.expectation !== null);
+
+const formBinding = computed(() =>
+    isEdit.value && props.expectation
+        ? CashExpectationController.update.form(props.expectation)
+        : CashExpectationController.store.form(),
+);
 
 const persistedType = computed(() =>
     expectationKind.value === 'income' ? 'income' : 'expense',
@@ -87,9 +117,28 @@ const availableCategories = computed(() => {
 });
 
 watch(
-    () => props.open,
-    (open) => {
+    () => [props.open, props.mode, props.expectation] as const,
+    ([open]) => {
         if (!open) {
+            return;
+        }
+
+        if (isEdit.value && props.expectation) {
+            expectationKind.value = props.expectation.is_expense_refund
+                ? 'expense_refund'
+                : props.expectation.type;
+            expectationDate.value = props.expectation.expectation_date;
+            description.value = props.expectation.description;
+            counterparty.value = props.expectation.counterparty ?? '';
+            accountId.value = props.expectation.account_id;
+            categoryId.value = props.expectation.category_id;
+            amountMinorUnits.value = Math.abs(
+                props.expectation.amount_minor_units,
+            );
+            amountInput.value = minorUnitsToMoneyInput(
+                Math.abs(props.expectation.amount_minor_units),
+            );
+
             return;
         }
 
@@ -101,6 +150,7 @@ watch(
         categoryId.value = '';
         amountInput.value = '0,00';
         amountMinorUnits.value = 0;
+        occurrence.value = 'once';
     },
 );
 
@@ -125,9 +175,19 @@ watch(amountInput, (value) => {
     <Dialog :open="open" @update:open="emit('update:open', $event)">
         <DialogContent class="sm:max-w-lg">
             <DialogHeader>
-                <DialogTitle>{{ t.agenda.create_title }}</DialogTitle>
+                <DialogTitle>
+                    {{
+                        isEdit
+                            ? t.agenda.edit_title
+                            : t.agenda.create_title
+                    }}
+                </DialogTitle>
                 <DialogDescription>
-                    {{ t.agenda.create_description }}
+                    {{
+                        isEdit
+                            ? t.agenda.edit_description
+                            : t.agenda.create_description
+                    }}
                 </DialogDescription>
             </DialogHeader>
 
@@ -159,6 +219,26 @@ watch(amountInput, (value) => {
                             {{ t.agenda.type_expense_refund }}
                         </option>
                     </select>
+                </div>
+
+                <div v-if="!isEdit" class="space-y-2">
+                    <Label for="expectation-occurrence">
+                        {{ t.agenda.occurrence_label }}
+                    </Label>
+                    <select
+                        id="expectation-occurrence"
+                        v-model="occurrence"
+                        class="native-select w-full"
+                        name="occurrence"
+                    >
+                        <option value="once">
+                            {{ t.agenda.occurrence_once }}
+                        </option>
+                        <option value="monthly">
+                            {{ t.agenda.occurrence_monthly }}
+                        </option>
+                    </select>
+                    <InputError name="occurrence" />
                 </div>
 
                 <div class="space-y-2">

@@ -22,6 +22,7 @@ use App\Support\CsvImport\CsvImportSession;
 use App\Support\CsvImport\ImportDuplicateDetector;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportPairCandidateDetector;
+use App\Support\CsvImport\ImportSettlementCandidateDetector;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,7 @@ class CsvImportController extends Controller
         CsvImportPreviewValidator $previewValidator,
         ImportDuplicateDetector $importDuplicateDetector,
         ImportPairCandidateDetector $importPairCandidateDetector,
+        ImportSettlementCandidateDetector $importSettlementCandidateDetector,
     ): RedirectResponse {
         $this->authorize('create', FinancialOperation::class);
 
@@ -105,6 +107,7 @@ class CsvImportController extends Controller
 
         $rows = $importDuplicateDetector->annotateRows($request->user(), $account->id, $rows);
         $rows = $importPairCandidateDetector->annotateRows($request->user(), $account->id, $rows);
+        $rows = $importSettlementCandidateDetector->annotateRows($request->user(), $account->id, $rows);
 
         CsvImportSession::put($request->user(), [
             'account_id' => $account->id,
@@ -165,6 +168,7 @@ class CsvImportController extends Controller
         $rowsByIndex = collect($import['rows'])->keyBy('index');
         $selectedRows = [];
         $usedPairFirstLegIds = [];
+        $usedSettlementCashExpectationIds = [];
 
         foreach ($request->rowSelections() as $selection) {
             if (! $selection['selected']) {
@@ -176,6 +180,12 @@ class CsvImportController extends Controller
             if (! is_array($parsedRow) || ($parsedRow['valid'] ?? false) !== true) {
                 throw ValidationException::withMessages([
                     'rows' => __('One or more selected rows are invalid.'),
+                ]);
+            }
+
+            if ($selection['settlement_cash_expectation_id'] !== null && $selection['type'] === 'own_transfer') {
+                throw ValidationException::withMessages([
+                    'rows' => __('Settlement opt-in is only valid for income or expense rows.'),
                 ]);
             }
 
@@ -254,6 +264,12 @@ class CsvImportController extends Controller
                 continue;
             }
 
+            if ($selection['settlement_cash_expectation_id'] !== null && $selection['type'] === 'capital_movement') {
+                throw ValidationException::withMessages([
+                    'rows' => __('Settlement opt-in is only valid for income or expense rows.'),
+                ]);
+            }
+
             if ($selection['type'] === 'capital_movement') {
                 if ($selection['term_deposit_id'] === null) {
                     throw ValidationException::withMessages([
@@ -309,6 +325,33 @@ class CsvImportController extends Controller
                 ]);
             }
 
+            $settlementCashExpectationId = $selection['settlement_cash_expectation_id'];
+
+            if ($settlementCashExpectationId !== null) {
+                $settlementCandidates = is_array($parsedRow['settlement_candidates'] ?? null)
+                    ? $parsedRow['settlement_candidates']
+                    : [];
+
+                $matchingSettlement = collect($settlementCandidates)->first(
+                    fn (array $candidate): bool => ($candidate['id'] ?? null) === $settlementCashExpectationId
+                        && ($candidate['row_type'] ?? null) === $selection['type'],
+                );
+
+                if ($matchingSettlement === null) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('The selected settlement cash expectation no longer matches this row.'),
+                    ]);
+                }
+
+                if (in_array($settlementCashExpectationId, $usedSettlementCashExpectationIds, true)) {
+                    throw ValidationException::withMessages([
+                        'rows' => __('Two selected rows cannot settle the same cash expectation.'),
+                    ]);
+                }
+
+                $usedSettlementCashExpectationIds[] = $settlementCashExpectationId;
+            }
+
             if ($selection['category_id'] === null) {
                 throw ValidationException::withMessages([
                     'rows' => __('Each selected row must have a category.'),
@@ -324,6 +367,7 @@ class CsvImportController extends Controller
                 'amount_minor_units' => (int) $parsedRow['amount_minor_units'],
                 'type' => $selection['type'],
                 'category_id' => $selection['category_id'],
+                'settlement_cash_expectation_id' => $settlementCashExpectationId,
             ];
         }
 

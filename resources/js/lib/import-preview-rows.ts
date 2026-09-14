@@ -6,6 +6,17 @@ import {
     type PairRowSelection,
 } from '@/lib/import-pair-selection';
 
+export type SettlementCandidate = {
+    id: number;
+    expectation_date: string;
+    description: string;
+    amount_minor_units: number;
+    category_id: number;
+    category_name: string;
+    row_type: 'income' | 'expense' | 'refund';
+    reason: string;
+};
+
 export type ImportRow = {
     index: number;
     operation_date: string | null;
@@ -18,6 +29,8 @@ export type ImportRow = {
     import_duplicate: boolean;
     import_pair_candidate: boolean;
     pair_candidates: PairCandidate[];
+    import_settlement_candidate: boolean;
+    settlement_candidates: SettlementCandidate[];
     show_category_month_remaining_warning?: boolean;
     show_pool_month_remaining_warning?: boolean;
     month_remaining_period_label?: string | null;
@@ -43,6 +56,8 @@ export type RowSelection = PairRowSelection & {
     term_deposit_id: number | '';
     interest_amount_input: string;
     interest_category_id: number | '';
+    settlement_opt_in: boolean;
+    settlement_cash_expectation_id: number | '';
 };
 
 export function defaultRowType(
@@ -66,6 +81,8 @@ export function emptySelection(row: ImportRow): RowSelection {
         interest_category_id: '',
         pair_first_leg_kind: '',
         pair_first_leg_id: '',
+        settlement_opt_in: false,
+        settlement_cash_expectation_id: '',
     };
 }
 
@@ -83,6 +100,8 @@ export function initialSelection(row: ImportRow): RowSelection {
             interest_category_id: '',
             pair_first_leg_kind: uniqueCandidate.kind,
             pair_first_leg_id: uniqueCandidate.id,
+            settlement_opt_in: false,
+            settlement_cash_expectation_id: '' as const,
         };
     }
 
@@ -92,6 +111,19 @@ export function initialSelection(row: ImportRow): RowSelection {
             ? 'own_transfer'
             : defaultRowType(row),
     };
+}
+
+export function settlementCandidatesForRow(
+    row: ImportRow,
+    type: RowSelection['type'],
+): SettlementCandidate[] {
+    if (!row.import_settlement_candidate) {
+        return [];
+    }
+
+    return row.settlement_candidates.filter(
+        (candidate) => candidate.row_type === type,
+    );
 }
 
 export function categoriesForRow(

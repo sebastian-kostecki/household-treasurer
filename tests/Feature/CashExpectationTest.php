@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CashExpectation;
 use App\Models\Category;
+use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -465,6 +466,35 @@ class CashExpectationTest extends TestCase
             ->assertRedirect(route('agenda'));
 
         $this->assertSame(10, CashExpectation::query()->where('user_id', $user->id)->count());
+    }
+
+    public function test_attach_settles_cash_expectation_against_existing_financial_operation(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        [$user, $account, $category] = $this->createExpenseFixture();
+        $expectation = CashExpectation::factory()->for($user)->for($account)->for($category)->expense()->create([
+            'expectation_date' => '2026-06-10',
+            'amount_minor_units' => 50000,
+            'description' => 'Bill',
+        ]);
+
+        $operation = FinancialOperation::factory()->for($user)->for($account)->for($category)->create([
+            'type' => FinancialOperationType::Expense,
+            'operation_date' => '2026-06-12',
+            'amount_minor_units' => 50000,
+            'description' => 'Bill paid',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('cash-expectations.attach', $expectation), [
+                'financial_operation_id' => $operation->id,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('agenda'));
+
+        $this->assertDatabaseMissing('cash_expectations', ['id' => $expectation->id]);
+        $this->assertNotNull($operation->fresh()->settlement_attached_at);
     }
 
     public function test_spawn_settles_cash_expectation_into_financial_operation(): void

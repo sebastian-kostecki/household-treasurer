@@ -13,6 +13,7 @@ use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
+use App\Support\Dashboard\CashExpectationNotices;
 use App\Support\SelectedBudgetYear;
 use App\Support\ShellState;
 use Carbon\CarbonImmutable;
@@ -26,8 +27,10 @@ class DashboardController extends Controller
     public function show(Request $request): Response
     {
         $user = $request->user();
+        $today = CarbonImmutable::today('UTC');
         $selectedYear = SelectedBudgetYear::resolve($request);
         $budget = $this->findBudgetForYear($user, $selectedYear);
+        $cashExpectationNotices = CashExpectationNotices::forUser($user, $today);
 
         $allAccounts = $user->accounts()
             ->orderBy('name')
@@ -74,8 +77,6 @@ class DashboardController extends Controller
             $visibleExpenseCategories = $visibleCategories
                 ->where('type', CategoryType::Expense)
                 ->values();
-            $today = CarbonImmutable::today('UTC');
-
             if (
                 $budget->year === $today->year
                 && $visibleExpenseCategories->contains(fn (Category $category): bool => $category->isPaced())
@@ -125,6 +126,7 @@ class DashboardController extends Controller
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,
             'showMonthRemainingOrder' => $showMonthRemainingOrder,
+            'cashExpectationNotices' => $cashExpectationNotices,
         ]);
     }
 

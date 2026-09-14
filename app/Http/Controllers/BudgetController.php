@@ -10,6 +10,7 @@ use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\Budget\BudgetAgendaMonthEntries;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
@@ -72,6 +73,12 @@ class BudgetController extends Controller
             $viewedMonth,
             $today,
         );
+        $agendaMonthData = BudgetAgendaMonthEntries::forBudget(
+            $user,
+            $budget,
+            $viewedMonth,
+            $allCategories,
+        );
 
         $categories = $showArchived
             ? $allCategories
@@ -93,7 +100,12 @@ class BudgetController extends Controller
             'incomeCategories' => $categories
                 ->where('type', CategoryType::Income)
                 ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                ->map(fn (Category $category): array => $this->categoryPayload(
+                    $category,
+                    $budget,
+                    null,
+                    $agendaMonthData,
+                ))
                 ->all(),
             'expenseCategories' => $categories
                 ->where('type', CategoryType::Expense)
@@ -102,6 +114,7 @@ class BudgetController extends Controller
                     $category,
                     $budget,
                     $monthReadings['categories'][$category->id] ?? null,
+                    $agendaMonthData,
                 ))
                 ->all(),
             'planSummary' => $planSummary,
@@ -163,6 +176,10 @@ class BudgetController extends Controller
 
         $request->session()->put('budget_year', $validated['year']);
 
+        if (($validated['redirect'] ?? null) === 'agenda') {
+            return to_route('agenda');
+        }
+
         return to_route('budget');
     }
 
@@ -218,6 +235,7 @@ class BudgetController extends Controller
         Category $category,
         Budget $budget,
         ?array $monthReading = null,
+        ?array $agendaMonthData = null,
     ): array {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;
@@ -261,6 +279,14 @@ class BudgetController extends Controller
                 'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
                 'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
             ] : []),
+            ...($agendaMonthData !== null && $category->isAgendaCategory() ? [
+                'month_in_month_entries' => $agendaMonthData['agenda_entries_by_category'][$category->id] ?? [],
+            ] : []),
+            ...($agendaMonthData !== null
+                && $category->type === CategoryType::Income
+                && ! $category->isAgendaCategory() ? [
+                    'month_income_execution_minor_units' => $agendaMonthData['income_execution_in_month'][$category->id] ?? 0,
+                ] : []),
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CapitalMovement;
+use App\Models\CashExpectation;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
@@ -3757,6 +3758,51 @@ CSV);
             ->assertInertia(fn (Assert $page) => $page
                 ->where('rows.0.import_pair_candidate', true),
             );
+    }
+
+    public function test_import_preview_offers_settlement_candidate_and_commit_destroys_cash_expectation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory, $expenseCategory] = $this->createImportFixture();
+        $agendaIncome = Category::factory()->for($incomeCategory->budget)->income()->agenda()->create();
+
+        $expectation = CashExpectation::factory()->for($user)->for($account)->for($agendaIncome)->income()->create([
+            'expectation_date' => '2026-03-14',
+            'amount_minor_units' => 250000,
+            'description' => 'Salary expected',
+        ]);
+
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_settlement_candidate', true)
+                ->has('rows.0.settlement_candidates', 1)
+                ->where('rows.0.settlement_candidates.0.id', $expectation->id),
+            );
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $agendaIncome->id,
+                        'settlement_cash_expectation_id' => $expectation->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseMissing('cash_expectations', ['id' => $expectation->id]);
+        $this->assertDatabaseCount('financial_operations', 1);
     }
 
     /**

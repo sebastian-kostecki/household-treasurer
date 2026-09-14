@@ -30,6 +30,7 @@ class StoreCsvImportRequest extends FormRequest
             'rows.*.interest_category_id' => ['nullable', 'integer'],
             'rows.*.pair_first_leg_kind' => ['nullable', Rule::in(['financial_operation', 'own_transfer'])],
             'rows.*.pair_first_leg_id' => ['nullable', 'integer'],
+            'rows.*.settlement_cash_expectation_id' => ['nullable', 'integer'],
             'duplicate_warning_acknowledged' => ['sometimes', 'boolean'],
         ];
     }
@@ -66,6 +67,9 @@ class StoreCsvImportRequest extends FormRequest
                     'pair_first_leg_id' => isset($row['pair_first_leg_id']) && $row['pair_first_leg_id'] !== ''
                         ? $row['pair_first_leg_id']
                         : null,
+                    'settlement_cash_expectation_id' => isset($row['settlement_cash_expectation_id']) && $row['settlement_cash_expectation_id'] !== ''
+                        ? $row['settlement_cash_expectation_id']
+                        : null,
                 ])
                 ->all(),
         ]);
@@ -83,6 +87,7 @@ class StoreCsvImportRequest extends FormRequest
      *     interest_category_id: int|null,
      *     pair_first_leg_kind: 'financial_operation'|'own_transfer'|null,
      *     pair_first_leg_id: int|null,
+     *     settlement_cash_expectation_id: int|null,
      * }>
      */
     public function rowSelections(): array
@@ -119,6 +124,9 @@ class StoreCsvImportRequest extends FormRequest
                     : null,
                 'pair_first_leg_kind' => $pairFirstLegKind,
                 'pair_first_leg_id' => isset($row['pair_first_leg_id']) ? (int) $row['pair_first_leg_id'] : null,
+                'settlement_cash_expectation_id' => isset($row['settlement_cash_expectation_id'])
+                    ? (int) $row['settlement_cash_expectation_id']
+                    : null,
             ];
         }, $rows));
     }

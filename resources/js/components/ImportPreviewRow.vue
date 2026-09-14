@@ -33,10 +33,12 @@ import {
     parsedInterestAmountMinorUnits,
     rowAmountClass,
     rowCategoriesEmpty,
+    settlementCandidatesForRow,
     wouldMakeAccountNegative,
     type CategoryRow,
     type ImportRow,
     type RowSelection,
+    type SettlementCandidate,
     type TermDepositRow,
 } from '@/lib/import-preview-rows';
 
@@ -151,6 +153,19 @@ const monthRemainingPeriodLabel = computed(
     () => monthRemainingWarnings?.periodLabel ?? null,
 );
 
+const availableSettlementCandidates = computed(() =>
+    settlementCandidatesForRow(row, selection.value.type),
+);
+
+const showsSettlementBadge = computed(
+    () =>
+        row.valid &&
+        !row.import_duplicate &&
+        availableSettlementCandidates.value.length > 0 &&
+        selection.value.type !== 'own_transfer' &&
+        selection.value.type !== 'capital_movement',
+);
+
 const hasNotes = computed(
     () =>
         (!row.valid && row.invalid_reason !== null) ||
@@ -189,11 +204,55 @@ function pairCandidateOptionLabel(candidate: PairCandidate): string {
     return `${candidate.account_name} · ${formatDate(candidate.date)} · ${kindLabel} · ${candidate.description}`;
 }
 
+function clearSettlementSelection(): void {
+    selection.value.settlement_opt_in = false;
+    selection.value.settlement_cash_expectation_id = '';
+}
+
+function onSettlementOptInChange(checked: boolean): void {
+    selection.value.settlement_opt_in = checked;
+
+    if (!checked) {
+        selection.value.settlement_cash_expectation_id = '';
+
+        return;
+    }
+
+    selection.value.other_account_id = '';
+    selection.value.pair_first_leg_kind = '';
+    selection.value.pair_first_leg_id = '';
+
+    const firstCandidate = availableSettlementCandidates.value[0];
+
+    if (
+        selection.value.category_id === '' &&
+        firstCandidate !== undefined
+    ) {
+        selection.value.category_id = firstCandidate.category_id;
+    }
+
+    selection.value.settlement_cash_expectation_id =
+        firstCandidate?.id ?? '';
+}
+
+function onSettlementCandidateChange(
+    candidate: SettlementCandidate | undefined,
+): void {
+    if (candidate === undefined) {
+        selection.value.settlement_cash_expectation_id = '';
+
+        return;
+    }
+
+    selection.value.settlement_cash_expectation_id = candidate.id;
+}
+
 function onTypeChange(): void {
     selection.value.category_id = '';
     selection.value.term_deposit_id = '';
     selection.value.interest_amount_input = '';
     selection.value.interest_category_id = '';
+    clearSettlementSelection();
 
     if (typeLockedToOwnTransfer.value) {
         selection.value.type = 'own_transfer';
@@ -254,6 +313,7 @@ function onPairCandidateChange(value: string): void {
         return;
     }
 
+    clearSettlementSelection();
     applyPairCandidateSelection(selection.value, candidate);
 }
 </script>
@@ -484,21 +544,84 @@ function onPairCandidateChange(value: string): void {
                         />
                     </template>
                 </div>
-                <CategorySelect
+                <div
                     v-else-if="row.valid"
-                    :id="`row-category-${row.index}`"
-                    :name="`rows[${row.index}][category_id]`"
-                    v-model="selection.category_id"
-                    :categories="classificationCategories"
-                    :placeholder="
-                        classificationCategoriesEmpty
-                            ? emptyCategoryLabel(selection.type)
-                            : t.operations.select_category
-                    "
-                    class="w-full"
-                    :disabled="classificationCategoriesEmpty"
-                    required
-                />
+                    class="space-y-2"
+                >
+                    <CategorySelect
+                        :id="`row-category-${row.index}`"
+                        :name="`rows[${row.index}][category_id]`"
+                        v-model="selection.category_id"
+                        :categories="classificationCategories"
+                        :placeholder="
+                            classificationCategoriesEmpty
+                                ? emptyCategoryLabel(selection.type)
+                                : t.operations.select_category
+                        "
+                        class="w-full"
+                        :disabled="classificationCategoriesEmpty"
+                        required
+                    />
+                    <div
+                        v-if="showsSettlementBadge"
+                        class="space-y-2 rounded-md border border-dashed p-2"
+                    >
+                        <div class="flex items-center gap-2">
+                            <Checkbox
+                                :id="`row-settlement-opt-in-${row.index}`"
+                                :model-value="selection.settlement_opt_in"
+                                @update:model-value="
+                                    onSettlementOptInChange(Boolean($event))
+                                "
+                            />
+                            <Label
+                                :for="`row-settlement-opt-in-${row.index}`"
+                                class="text-xs"
+                            >
+                                {{ t.operations.import_settlement_opt_in }}
+                            </Label>
+                        </div>
+                        <select
+                            v-if="selection.settlement_opt_in"
+                            :id="`row-settlement-candidate-${row.index}`"
+                            class="native-select w-full"
+                            :value="selection.settlement_cash_expectation_id"
+                            @change="
+                                onSettlementCandidateChange(
+                                    availableSettlementCandidates.find(
+                                        (candidate) =>
+                                            candidate.id ===
+                                            Number(
+                                                (
+                                                    $event.target as HTMLSelectElement
+                                                ).value,
+                                            ),
+                                    ),
+                                )
+                            "
+                        >
+                            <option value="">
+                                {{ t.operations.import_settlement_pick }}
+                            </option>
+                            <option
+                                v-for="candidate in availableSettlementCandidates"
+                                :key="candidate.id"
+                                :value="candidate.id"
+                            >
+                                {{ candidate.reason }}
+                            </option>
+                        </select>
+                        <input
+                            v-if="
+                                selection.settlement_opt_in &&
+                                selection.settlement_cash_expectation_id !== ''
+                            "
+                            type="hidden"
+                            :name="`rows[${row.index}][settlement_cash_expectation_id]`"
+                            :value="selection.settlement_cash_expectation_id"
+                        />
+                    </div>
+                </div>
             </div>
 
             <div class="import-preview-cell-status">
@@ -511,6 +634,9 @@ function onPairCandidateChange(value: string): void {
                     </Badge>
                     <Badge v-if="showsPairBadge" variant="outline">
                         {{ t.operations.import_row_pair_candidate }}
+                    </Badge>
+                    <Badge v-if="showsSettlementBadge" variant="outline">
+                        {{ t.operations.import_row_settlement_candidate }}
                     </Badge>
                     <Badge
                         v-if="!row.import_duplicate && !showsPairBadge"

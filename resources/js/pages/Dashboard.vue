@@ -2,9 +2,11 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { Check, Circle } from '@lucide/vue';
+import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -23,7 +25,11 @@ import type {
     DashboardCategory,
     DashboardTypeTotals,
 } from '@/lib/dashboard-categories';
-import { formatDate, formatMoney } from '@/lib/format';
+import {
+    formatDate,
+    formatFinancialOperationAmount,
+    formatMoney,
+} from '@/lib/format';
 import { dashboard } from '@/routes';
 
 type AccountSummary = {
@@ -53,6 +59,20 @@ type BudgetSummary = {
     phase: 'draft' | 'execution';
 };
 
+type CashExpectationNotice = {
+    id: number;
+    expectation_date: string;
+    description: string;
+    amount_minor_units: number;
+    type: 'income' | 'expense';
+    is_expense_refund: boolean;
+    is_overdue: boolean;
+    is_today: boolean;
+    budget_year: number;
+    category_name: string;
+    account_name: string;
+};
+
 const props = defineProps<{
     accounts: AccountSummary[];
     termDeposits: TermDepositSummary[];
@@ -64,6 +84,7 @@ const props = defineProps<{
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
     showMonthRemainingOrder: boolean;
+    cashExpectationNotices: CashExpectationNotice[];
 }>();
 
 const t = useTranslations();
@@ -171,6 +192,67 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                         {{ t.dashboard[item.labelKey] }}
                     </span>
                 </div>
+            </CardContent>
+        </Card>
+
+        <Card v-if="cashExpectationNotices.length > 0">
+            <CardHeader class="pb-3">
+                <CardTitle class="text-base">
+                    {{ t.dashboard.cash_expectation_notices_title }}
+                </CardTitle>
+                <CardDescription>
+                    {{ t.dashboard.cash_expectation_notices_description }}
+                </CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-2">
+                <Form
+                    v-for="notice in cashExpectationNotices"
+                    :key="notice.id"
+                    v-bind="BudgetController.selectYear.form()"
+                    class="flex flex-col gap-1 rounded-md border px-3 py-2 text-left sm:flex-row sm:items-center sm:justify-between"
+                >
+                    <input
+                        type="hidden"
+                        name="year"
+                        :value="notice.budget_year"
+                    />
+                    <input type="hidden" name="redirect" value="agenda" />
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-sm font-medium">
+                                {{ notice.description }}
+                            </span>
+                            <Badge
+                                v-if="notice.is_overdue"
+                                variant="destructive"
+                            >
+                                {{ t.agenda.overdue_badge }}
+                            </Badge>
+                            <Badge
+                                v-else-if="notice.is_today"
+                                variant="secondary"
+                            >
+                                {{ t.agenda.today_badge }}
+                            </Badge>
+                        </div>
+                        <p class="text-muted-foreground text-xs">
+                            {{ formatDate(notice.expectation_date) }} ·
+                            {{ notice.category_name }} ·
+                            {{ notice.account_name }}
+                        </p>
+                    </div>
+                    <button
+                        type="submit"
+                        class="text-primary text-sm font-medium hover:underline"
+                    >
+                        {{
+                            formatFinancialOperationAmount(
+                                notice.type,
+                                notice.amount_minor_units,
+                            )
+                        }}
+                    </button>
+                </Form>
             </CardContent>
         </Card>
 

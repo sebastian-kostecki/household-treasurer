@@ -8,6 +8,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\CashExpectation;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\TermDeposit;
@@ -58,8 +59,61 @@ class DashboardTest extends TestCase
                 ])
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
-                ->where('showMonthRemainingOrder', false),
+                ->where('showMonthRemainingOrder', false)
+                ->where('cashExpectationNotices', []),
             );
+    }
+
+    public function test_dashboard_lists_overdue_and_today_cash_expectation_notices_across_years(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
+        $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category2025 = Category::factory()->for($budget2025)->income()->agenda()->create();
+        $category2026 = Category::factory()->for($budget2026)->expense()->agenda()->create();
+
+        CashExpectation::factory()->for($user)->for($account)->for($category2025)->create([
+            'expectation_date' => '2025-12-01',
+            'description' => 'Overdue salary',
+        ]);
+        CashExpectation::factory()->for($user)->for($account)->for($category2026)->create([
+            'expectation_date' => '2026-06-15',
+            'description' => 'Due today bill',
+        ]);
+        CashExpectation::factory()->for($user)->for($account)->for($category2026)->create([
+            'expectation_date' => '2026-07-01',
+            'description' => 'Future row',
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('cashExpectationNotices', 2)
+                ->where('cashExpectationNotices.0.description', 'Overdue salary')
+                ->where('cashExpectationNotices.0.is_overdue', true)
+                ->where('cashExpectationNotices.1.description', 'Due today bill')
+                ->where('cashExpectationNotices.1.is_today', true),
+            );
+    }
+
+    public function test_select_budget_year_can_redirect_to_agenda(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), [
+                'year' => 2027,
+                'redirect' => 'agenda',
+            ])
+            ->assertRedirect(route('agenda'));
+
+        $this->assertSame(2027, session('budget_year'));
     }
 
     public function test_dashboard_shows_account_balances_and_liquidity_headlines(): void

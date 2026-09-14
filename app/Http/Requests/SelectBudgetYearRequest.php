@@ -24,6 +24,7 @@ class SelectBudgetYearRequest extends FormRequest
                 'integer',
                 Rule::exists('budgets', 'year')->where(fn ($query) => $query->where('user_id', $this->user()?->id)),
             ],
+            'redirect' => ['sometimes', 'nullable', 'string', Rule::in(['budget', 'agenda'])],
         ];
     }
 }

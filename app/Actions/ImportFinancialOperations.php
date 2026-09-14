@@ -30,6 +30,7 @@ class ImportFinancialOperations
         private CapitalMovementImportMapper $capitalMovementMapper,
         private ImportIdentityFactory $importIdentityFactory,
         private OwnTransferImportSnapshots $ownTransferImportSnapshots,
+        private DestroyCashExpectationOnImportCommit $destroyCashExpectationOnImportCommit,
     ) {}
 
     /**
@@ -53,6 +54,7 @@ class ImportFinancialOperations
      *     amount_minor_units: int,
      *     type: 'income'|'expense'|'refund',
      *     category_id: int,
+     *     settlement_cash_expectation_id?: int,
      * }|array{
      *     index: int,
      *     operation_date: string,
@@ -281,6 +283,19 @@ class ImportFinancialOperations
                     $this->manageFinancialOperation->createIncome($user, $validated);
                 } else {
                     $this->manageFinancialOperation->createExpense($user, $validated);
+                }
+
+                if (isset($row['settlement_cash_expectation_id'])) {
+                    $this->destroyCashExpectationOnImportCommit->handle(
+                        $user,
+                        $accountId,
+                        (int) $row['settlement_cash_expectation_id'],
+                        [
+                            'operation_date' => $row['operation_date'],
+                            'amount_minor_units' => $row['amount_minor_units'],
+                            'type' => $row['type'],
+                        ],
+                    );
                 }
 
                 $financialOperations++;

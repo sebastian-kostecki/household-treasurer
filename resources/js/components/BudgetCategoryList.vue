@@ -5,6 +5,9 @@ import { computed, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
 import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue';
+import BudgetInMonthCell, {
+    type BudgetMonthInMonthEntry,
+} from '@/components/BudgetInMonthCell.vue';
 import BudgetCategoryTableHeader from '@/components/BudgetCategoryTableHeader.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -47,6 +50,9 @@ export type BudgetCategoryRow = {
     can_restore: boolean;
     can_align_current_plan: boolean;
     is_paced: boolean;
+    is_agenda_category?: boolean;
+    month_in_month_entries?: BudgetMonthInMonthEntry[];
+    month_income_execution_minor_units?: number;
     month_remaining_minor_units?: number | null;
     month_execution_minor_units?: number;
 };
@@ -110,23 +116,8 @@ function pacedBadgeLabel(category: BudgetCategoryRow): string | null {
     return category.is_paced ? t.budget.paced_badge : t.budget.one_off_badge;
 }
 
-function monthCellLabel(category: BudgetCategoryRow): string {
-    if (
-        category.is_paced &&
-        category.month_remaining_minor_units !== undefined &&
-        category.month_remaining_minor_units !== null
-    ) {
-        return formatMoney(category.month_remaining_minor_units);
-    }
-
-    if (
-        !category.is_paced &&
-        (category.month_execution_minor_units ?? 0) !== 0
-    ) {
-        return formatMoney(category.month_execution_minor_units ?? 0);
-    }
-
-    return '—';
+function isAgendaCategory(category: BudgetCategoryRow): boolean {
+    return category.is_agenda_category === true;
 }
 
 function monthCellClass(category: BudgetCategoryRow): string {
@@ -423,7 +414,25 @@ async function onDragEnd(): Promise<void> {
                                     class="tabular-amount"
                                     :class="monthCellClass(category)"
                                 >
-                                    {{ monthCellLabel(category) }}
+                                    <BudgetInMonthCell
+                                        :category-type="categoryType"
+                                        :is-agenda-category="
+                                            isAgendaCategory(category)
+                                        "
+                                        :month-in-month-entries="
+                                            category.month_in_month_entries
+                                        "
+                                        :month-income-execution-minor-units="
+                                            category.month_income_execution_minor_units
+                                        "
+                                        :month-remaining-minor-units="
+                                            category.month_remaining_minor_units
+                                        "
+                                        :month-execution-minor-units="
+                                            category.month_execution_minor_units
+                                        "
+                                        :is-paced="category.is_paced"
+                                    />
                                 </td>
                                 <td>
                                     <BudgetCategoryRowActions
@@ -636,7 +645,25 @@ async function onDragEnd(): Promise<void> {
                                         class="tabular-amount"
                                         :class="monthCellClass(category)"
                                     >
-                                        {{ monthCellLabel(category) }}
+                                        <BudgetInMonthCell
+                                            :category-type="categoryType"
+                                            :is-agenda-category="
+                                                isAgendaCategory(category)
+                                            "
+                                            :month-in-month-entries="
+                                                category.month_in_month_entries
+                                            "
+                                            :month-income-execution-minor-units="
+                                                category.month_income_execution_minor_units
+                                            "
+                                            :month-remaining-minor-units="
+                                                category.month_remaining_minor_units
+                                            "
+                                            :month-execution-minor-units="
+                                                category.month_execution_minor_units
+                                            "
+                                            :is-paced="category.is_paced"
+                                        />
                                     </td>
                                     <td>
                                         <BudgetCategoryRowActions
@@ -737,12 +764,26 @@ async function onDragEnd(): Promise<void> {
                                     <p class="text-muted-foreground text-xs">
                                         {{ t.budget.in_month_column }}
                                     </p>
-                                    <p
-                                        class="font-medium tabular-nums"
+                                    <BudgetInMonthCell
                                         :class="monthCellClass(category)"
-                                    >
-                                        {{ monthCellLabel(category) }}
-                                    </p>
+                                        :category-type="categoryType"
+                                        :is-agenda-category="
+                                            isAgendaCategory(category)
+                                        "
+                                        :month-in-month-entries="
+                                            category.month_in_month_entries
+                                        "
+                                        :month-income-execution-minor-units="
+                                            category.month_income_execution_minor_units
+                                        "
+                                        :month-remaining-minor-units="
+                                            category.month_remaining_minor_units
+                                        "
+                                        :month-execution-minor-units="
+                                            category.month_execution_minor_units
+                                        "
+                                        :is-paced="category.is_paced"
+                                    />
                                 </div>
                                 <template v-if="isExecution">
                                     <div>
@@ -1030,12 +1071,26 @@ async function onDragEnd(): Promise<void> {
                                     <p class="text-muted-foreground text-xs">
                                         {{ t.budget.in_month_column }}
                                     </p>
-                                    <p
-                                        class="font-medium tabular-nums"
+                                    <BudgetInMonthCell
                                         :class="monthCellClass(category)"
-                                    >
-                                        {{ monthCellLabel(category) }}
-                                    </p>
+                                        :category-type="categoryType"
+                                        :is-agenda-category="
+                                            isAgendaCategory(category)
+                                        "
+                                        :month-in-month-entries="
+                                            category.month_in_month_entries
+                                        "
+                                        :month-income-execution-minor-units="
+                                            category.month_income_execution_minor_units
+                                        "
+                                        :month-remaining-minor-units="
+                                            category.month_remaining_minor_units
+                                        "
+                                        :month-execution-minor-units="
+                                            category.month_execution_minor_units
+                                        "
+                                        :is-paced="category.is_paced"
+                                    />
                                 </div>
                                 <template v-if="isExecution">
                                     <div>

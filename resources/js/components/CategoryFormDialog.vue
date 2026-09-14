@@ -7,7 +7,6 @@ import CategoryColorPicker from '@/components/CategoryColorPicker.vue';
 import CategoryIconPicker from '@/components/CategoryIconPicker.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -38,6 +37,7 @@ export type CategoryFormCategory = {
     type: 'income' | 'expense';
     planned_amount_minor_units: number;
     is_paced: boolean;
+    category_variant?: 'paced' | 'one_off' | 'agenda' | 'ordinary';
 };
 
 const props = defineProps<{
@@ -62,7 +62,9 @@ const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
 const plannedAmountMinorUnits = ref(0);
-const isPaced = ref(true);
+const categoryVariant = ref<'paced' | 'one_off' | 'agenda' | 'ordinary'>(
+    'paced',
+);
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -101,7 +103,9 @@ watch(
             plannedAmountInput.value = minorUnitsToMoneyInput(
                 props.category.planned_amount_minor_units,
             );
-            isPaced.value = props.category.is_paced;
+            categoryVariant.value =
+                props.category.category_variant ??
+                (props.category.is_paced ? 'paced' : 'one_off');
 
             return;
         }
@@ -112,10 +116,32 @@ watch(
         type.value = props.defaultType;
         plannedAmountMinorUnits.value = 0;
         plannedAmountInput.value = '0,00';
-        isPaced.value = true;
+        categoryVariant.value =
+            props.defaultType === 'income' ? 'ordinary' : 'paced';
     },
     { immediate: true },
 );
+
+watch(type, (nextType) => {
+    if (nextType === 'income') {
+        if (
+            categoryVariant.value !== 'agenda' &&
+            categoryVariant.value !== 'ordinary'
+        ) {
+            categoryVariant.value = 'ordinary';
+        }
+
+        return;
+    }
+
+    if (
+        categoryVariant.value !== 'paced' &&
+        categoryVariant.value !== 'one_off' &&
+        categoryVariant.value !== 'agenda'
+    ) {
+        categoryVariant.value = 'paced';
+    }
+});
 
 function syncPlannedAmount(): void {
     const parsed = parseMoneyInputToMinorUnits(plannedAmountInput.value);
@@ -254,27 +280,40 @@ function closeDialog(): void {
                     <InputError :message="errors.planned_amount_minor_units" />
                 </div>
 
-                <div v-if="type === 'expense'" class="grid gap-2">
-                    <div class="flex items-start gap-2">
-                        <Checkbox
-                            id="category-is-paced"
-                            v-model="isPaced"
-                        />
-                        <div class="grid gap-1">
-                            <Label for="category-is-paced">
-                                {{ t.budget.paced_category }}
-                            </Label>
-                            <p class="text-muted-foreground text-sm">
-                                {{ t.budget.paced_category_hint }}
-                            </p>
-                        </div>
-                    </div>
-                    <input
-                        type="hidden"
-                        name="is_paced"
-                        :value="isPaced ? '1' : '0'"
-                    />
-                    <InputError :message="errors.is_paced" />
+                <div class="grid gap-2">
+                    <Label for="category-variant">
+                        {{ t.budget.category_variant_label }}
+                    </Label>
+                    <select
+                        id="category-variant"
+                        v-model="categoryVariant"
+                        class="native-select w-full"
+                        name="category_variant"
+                    >
+                        <template v-if="type === 'expense'">
+                            <option value="paced">
+                                {{ t.budget.category_variant_paced }}
+                            </option>
+                            <option value="one_off">
+                                {{ t.budget.category_variant_one_off }}
+                            </option>
+                            <option value="agenda">
+                                {{ t.budget.category_variant_agenda }}
+                            </option>
+                        </template>
+                        <template v-else>
+                            <option value="ordinary">
+                                {{ t.budget.category_variant_ordinary }}
+                            </option>
+                            <option value="agenda">
+                                {{ t.budget.category_variant_agenda }}
+                            </option>
+                        </template>
+                    </select>
+                    <p class="text-muted-foreground text-sm">
+                        {{ t.budget.category_variant_hint }}
+                    </p>
+                    <InputError :message="errors.category_variant" />
                 </div>
 
                 <DialogFooter class="gap-2">

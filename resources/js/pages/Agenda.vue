@@ -9,6 +9,7 @@ import CategoryChip from '@/components/CategoryChip.vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import CashExpectationAgendaRowActions from '@/components/CashExpectationAgendaRowActions.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
 import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import { Badge } from '@/components/ui/badge';
@@ -170,22 +171,32 @@ function defaultExpectationDate(): string {
                     :mark_url="expectation.account_mark_url"
                 />
 
-                <p
-                    class="operations-cell-amount shrink-0 text-right font-medium tabular-nums"
-                    :class="
-                        financialOperationAmountClass(
-                            expectation.type,
-                            expectation.amount_minor_units,
-                        )
-                    "
+                <div
+                    class="operations-cell-amount flex items-center justify-end gap-1"
                 >
-                    {{
-                        formatFinancialOperationAmount(
-                            expectation.type,
-                            expectation.amount_minor_units,
-                        )
-                    }}
-                </p>
+                    <p
+                        class="shrink-0 text-right font-medium tabular-nums"
+                        :class="
+                            financialOperationAmountClass(
+                                expectation.type,
+                                expectation.amount_minor_units,
+                            )
+                        "
+                    >
+                        {{
+                            formatFinancialOperationAmount(
+                                expectation.type,
+                                expectation.amount_minor_units,
+                            )
+                        }}
+                    </p>
+                    <CashExpectationAgendaRowActions
+                        :expectation="expectation"
+                        :accounts="accounts"
+                        :income-categories="incomeCategories"
+                        :expense-categories="expenseCategories"
+                    />
+                </div>
             </div>
         </ListSurface>
     </div>
