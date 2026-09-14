@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CapitalMovement;
+use App\Models\CashExpectation;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 4;
+    public const SNAPSHOT_VERSION = 5;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -65,6 +66,11 @@ class BackupUserData
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($movement): array => $this->serializeCapitalMovement($movement))
+                ->all(),
+            'cash_expectations' => $user->cashExpectations()
+                ->orderBy('id')
+                ->get()
+                ->map(fn (CashExpectation $expectation): array => $this->serializeCashExpectation($expectation))
                 ->all(),
         ];
 
@@ -145,7 +151,8 @@ class BackupUserData
             'color' => $category->color,
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
-            'is_paced' => $category->is_paced,
+            'category_variant' => $category->category_variant->value,
+            'is_paced' => $category->isPaced(),
             'planned_amount_minor_units' => $category->planned_amount_minor_units,
             'initial_plan_minor_units' => $category->initial_plan_minor_units,
             'execution_minor_units' => $category->execution_minor_units,
@@ -210,6 +217,25 @@ class BackupUserData
     /**
      * @return array<string, mixed>
      */
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeCashExpectation(CashExpectation $expectation): array
+    {
+        return [
+            'id' => $expectation->id,
+            'type' => $expectation->type->value,
+            'account_id' => $expectation->account_id,
+            'category_id' => $expectation->category_id,
+            'expectation_date' => $expectation->expectation_date->toDateString(),
+            'amount_minor_units' => $expectation->amount_minor_units,
+            'description' => $expectation->description,
+            'counterparty' => $expectation->counterparty,
+            'created_at' => $expectation->created_at?->toIso8601String(),
+            'updated_at' => $expectation->updated_at?->toIso8601String(),
+        ];
+    }
+
     private function serializeCapitalMovement(CapitalMovement $movement): array
     {
         return [

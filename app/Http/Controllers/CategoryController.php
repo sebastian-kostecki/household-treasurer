@@ -9,6 +9,7 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Support\Categories\CategoryVariantResolver;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,9 +29,7 @@ class CategoryController extends Controller
             $attributes['initial_plan_minor_units'] = 0;
         }
 
-        $attributes['is_paced'] = $type === CategoryType::Expense
-            ? $request->boolean('is_paced', true)
-            : true;
+        $attributes['category_variant'] = CategoryVariantResolver::fromRequest($type, $request);
         $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
 
         $budget->categories()->create($attributes);
@@ -53,11 +52,21 @@ class CategoryController extends Controller
             'planned_amount_minor_units',
         ];
 
-        if ($category->type === CategoryType::Expense && ! $category->isArchived()) {
-            $updatableFields[] = 'is_paced';
+        if (! $category->isArchived()) {
+            $updatableFields[] = 'category_variant';
         }
 
-        $category->update($request->safe()->only($updatableFields));
+        $payload = $request->safe()->only($updatableFields);
+
+        if (array_key_exists('category_variant', $payload)) {
+            $payload['category_variant'] = CategoryVariantResolver::fromRequest(
+                $category->type,
+                $request,
+                $category,
+            );
+        }
+
+        $category->update($payload);
 
         Inertia::flash('toast', [
             'type' => 'success',

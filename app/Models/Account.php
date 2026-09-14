@@ -103,6 +103,19 @@ class Account extends Model
             || $this->capitalMovements()->exists();
     }
 
+    /**
+     * @return HasMany<CashExpectation, $this>
+     */
+    public function cashExpectations(): HasMany
+    {
+        return $this->hasMany(CashExpectation::class);
+    }
+
+    public function hasCashExpectations(): bool
+    {
+        return $this->cashExpectations()->exists();
+    }
+
     public function isArchived(): bool
     {
         return $this->archived_at !== null;

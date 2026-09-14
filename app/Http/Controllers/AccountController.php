@@ -80,7 +80,7 @@ class AccountController extends Controller
     {
         $this->authorize('delete', $account);
 
-        if ($account->hasFinancialHistory()) {
+        if ($account->hasFinancialHistory() || $account->hasCashExpectations()) {
             return back()->withErrors([
                 'account' => __('This account cannot be deleted because it has financial history.'),
             ]);

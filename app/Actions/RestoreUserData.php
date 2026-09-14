@@ -7,6 +7,7 @@ use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
+use App\Enums\CategoryVariant;
 use App\Enums\FinancialOperationType;
 use App\Models\Category;
 use App\Models\User;
@@ -36,6 +37,12 @@ class RestoreUserData
                 $snapshot['capital_movements'] ?? [],
                 $accountIdMap,
                 $termDepositIdMap,
+            );
+            $this->restoreCashExpectations(
+                $targetUser,
+                $snapshot['cash_expectations'] ?? [],
+                $accountIdMap,
+                $categoryIdMap,
             );
 
             $targetUser->forceFill([
@@ -73,7 +80,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -87,8 +94,12 @@ class RestoreUserData
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
+        }
+
+        if ($version === 5 && ! array_key_exists('cash_expectations', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: cash_expectations');
         }
 
         return $snapshot;
@@ -195,7 +206,7 @@ class RestoreUserData
                 'color' => $categoryData['color'],
                 'sort_order' => $categoryData['sort_order'],
                 'type' => CategoryType::from($categoryData['type']),
-                'is_paced' => $this->restoredCategoryIsPaced($categoryData),
+                'category_variant' => $this->restoredCategoryVariant($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $categoryData['initial_plan_minor_units'],
                 'execution_minor_units' => $categoryData['execution_minor_units'],
@@ -339,14 +350,53 @@ class RestoreUserData
     }
 
     /**
+     * @param  list<array<string, mixed>>  $expectations
+     * @param  array<int, int>  $accountIdMap
+     * @param  array<int, int>  $categoryIdMap
+     */
+    private function restoreCashExpectations(
+        User $targetUser,
+        array $expectations,
+        array $accountIdMap,
+        array $categoryIdMap,
+    ): void {
+        foreach ($expectations as $expectationData) {
+            $accountId = $accountIdMap[$expectationData['account_id']] ?? null;
+            $categoryId = $categoryIdMap[$expectationData['category_id']] ?? null;
+
+            if ($accountId === null || $categoryId === null) {
+                throw new UserSnapshotException('Snapshot references unknown cash expectation relations.');
+            }
+
+            $targetUser->cashExpectations()->create([
+                'type' => FinancialOperationType::from($expectationData['type']),
+                'account_id' => $accountId,
+                'category_id' => $categoryId,
+                'expectation_date' => $expectationData['expectation_date'],
+                'amount_minor_units' => $expectationData['amount_minor_units'],
+                'description' => $expectationData['description'],
+                'counterparty' => $expectationData['counterparty'] ?? null,
+                'created_at' => isset($expectationData['created_at']) ? Carbon::parse($expectationData['created_at']) : now(),
+                'updated_at' => isset($expectationData['updated_at']) ? Carbon::parse($expectationData['updated_at']) : now(),
+            ]);
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $categoryData
      */
-    private function restoredCategoryIsPaced(array $categoryData): bool
+    private function restoredCategoryVariant(array $categoryData): CategoryVariant
     {
-        if ($categoryData['type'] !== CategoryType::Expense->value) {
-            return true;
+        if (isset($categoryData['category_variant'])) {
+            return CategoryVariant::from($categoryData['category_variant']);
         }
 
-        return $categoryData['is_paced'] ?? true;
+        if ($categoryData['type'] !== CategoryType::Expense->value) {
+            return CategoryVariant::Ordinary;
+        }
+
+        return ($categoryData['is_paced'] ?? true)
+            ? CategoryVariant::Paced
+            : CategoryVariant::OneOff;
     }
 }

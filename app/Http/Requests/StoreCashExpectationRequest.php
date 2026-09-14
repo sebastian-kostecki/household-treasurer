@@ -21,7 +21,10 @@ class StoreCashExpectationRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->storeCashExpectationRules();
+        return [
+            ...$this->storeCashExpectationRules(),
+            ...$this->storeCashExpectationOccurrenceRules(),
+        ];
     }
 
     public function withValidator(Validator $validator): void

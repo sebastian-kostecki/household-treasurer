@@ -78,7 +78,7 @@ class ImportMonthRemainingWarningAnnotator
 
             $category = $context['categories']->firstWhere('id', $categoryId);
 
-            if ($category === null || ! $category->is_paced) {
+            if ($category === null || ! $category->isPaced()) {
                 return $row;
             }
 
@@ -124,7 +124,7 @@ class ImportMonthRemainingWarningAnnotator
     ): array {
         $budget = $context['budget'];
         $pacedCategories = $context['categories']->filter(
-            fn (Category $candidate): bool => $candidate->type === CategoryType::Expense && $candidate->is_paced,
+            fn (Category $candidate): bool => $candidate->type === CategoryType::Expense && $candidate->isPaced(),
         )->values();
 
         $calculator = new MonthRemainingCalculator(

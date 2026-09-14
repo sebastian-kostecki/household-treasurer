@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $import_identity_date
  * @property int|null $import_identity_amount_minor_units
  * @property string|null $import_identity_digest
+ * @property Carbon|null $settlement_attached_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -44,6 +45,7 @@ use Illuminate\Support\Carbon;
     'import_identity_date',
     'import_identity_amount_minor_units',
     'import_identity_digest',
+    'settlement_attached_at',
 ])]
 class FinancialOperation extends Model
 {
@@ -61,6 +63,7 @@ class FinancialOperation extends Model
             'amount_minor_units' => 'integer',
             'import_identity_date' => 'date',
             'import_identity_amount_minor_units' => 'integer',
+            'settlement_attached_at' => 'datetime',
         ];
     }
 

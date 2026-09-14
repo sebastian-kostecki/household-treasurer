@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
+use App\Enums\CategoryVariant;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $color
  * @property int $sort_order
  * @property CategoryType $type
- * @property bool $is_paced
+ * @property CategoryVariant $category_variant
  * @property int $planned_amount_minor_units
  * @property int $initial_plan_minor_units
  * @property int $execution_minor_units
@@ -35,7 +36,7 @@ use Illuminate\Support\Carbon;
     'color',
     'sort_order',
     'type',
-    'is_paced',
+    'category_variant',
     'planned_amount_minor_units',
     'initial_plan_minor_units',
     'execution_minor_units',
@@ -53,7 +54,7 @@ class Category extends Model
     {
         return [
             'type' => CategoryType::class,
-            'is_paced' => 'boolean',
+            'category_variant' => CategoryVariant::class,
             'sort_order' => 'integer',
             'planned_amount_minor_units' => 'integer',
             'initial_plan_minor_units' => 'integer',
@@ -65,6 +66,28 @@ class Category extends Model
     public function isArchived(): bool
     {
         return $this->archived_at !== null;
+    }
+
+    public function isAgendaCategory(): bool
+    {
+        return $this->category_variant->isAgendaCategory();
+    }
+
+    public function isPaced(): bool
+    {
+        return $this->type === CategoryType::Expense
+            && $this->category_variant === CategoryVariant::Paced;
+    }
+
+    public function isOneOff(): bool
+    {
+        return $this->type === CategoryType::Expense
+            && $this->category_variant === CategoryVariant::OneOff;
+    }
+
+    public function receivesMonthRemaining(): bool
+    {
+        return $this->category_variant->receivesMonthRemaining();
     }
 
     /**
@@ -92,5 +115,13 @@ class Category extends Model
     public function financialOperations(): HasMany
     {
         return $this->hasMany(FinancialOperation::class);
+    }
+
+    /**
+     * @return HasMany<CashExpectation, $this>
+     */
+    public function cashExpectations(): HasMany
+    {
+        return $this->hasMany(CashExpectation::class);
     }
 }

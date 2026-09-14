@@ -40,7 +40,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(4, $snapshot['version']);
+        $this->assertSame(5, $snapshot['version']);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
         $this->assertSame($user->email, $snapshot['source']['email']);
         $this->assertCount(2, $snapshot['accounts']);

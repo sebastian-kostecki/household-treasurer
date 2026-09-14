@@ -42,6 +42,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('operations', [OperationsController::class, 'index'])->name('operations');
     Route::get('agenda', [AgendaController::class, 'index'])->name('agenda');
     Route::post('cash-expectations', [CashExpectationController::class, 'store'])->name('cash-expectations.store');
+    Route::patch('cash-expectations/{cash_expectation}', [CashExpectationController::class, 'update'])->name('cash-expectations.update');
+    Route::delete('cash-expectations/{cash_expectation}', [CashExpectationController::class, 'destroy'])->name('cash-expectations.destroy');
+    Route::post('cash-expectations/{cash_expectation}/spawn', [CashExpectationController::class, 'spawn'])->name('cash-expectations.spawn');
+    Route::post('cash-expectations/{cash_expectation}/attach', [CashExpectationController::class, 'attach'])->name('cash-expectations.attach');
+    Route::get('cash-expectations/{cash_expectation}/settlement-candidates', [CashExpectationController::class, 'settlementCandidates'])
+        ->name('cash-expectations.settlement-candidates');
     Route::get('operations/import', [CsvImportController::class, 'create'])->name('operations.import.create');
     Route::post('operations/import/preview', [CsvImportController::class, 'preview'])->name('operations.import.preview.store');
     Route::get('operations/import/preview', [CsvImportController::class, 'showPreview'])->name('operations.import.preview');

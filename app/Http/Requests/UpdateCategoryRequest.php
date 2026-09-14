@@ -43,7 +43,7 @@ class UpdateCategoryRequest extends FormRequest
     {
         $category = $this->route('category');
 
-        $this->withPacedFlagValidation(
+        $this->withCategoryVariantValidation(
             $validator,
             $category instanceof Category ? $category : null,
         );

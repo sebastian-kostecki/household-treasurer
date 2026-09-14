@@ -78,7 +78,7 @@ class DashboardController extends Controller
 
             if (
                 $budget->year === $today->year
-                && $visibleExpenseCategories->contains(fn (Category $category): bool => $category->is_paced)
+                && $visibleExpenseCategories->contains(fn (Category $category): bool => $category->isPaced())
             ) {
                 $showMonthRemainingOrder = true;
                 $monthReadings = BudgetMonthReadings::forBudget(
@@ -242,7 +242,7 @@ class DashboardController extends Controller
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
             ...($monthReading !== null ? [
-                'is_paced' => $category->is_paced,
+                'is_paced' => $category->isPaced(),
                 'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
                 'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
             ] : []),

@@ -14,7 +14,9 @@ class CategoryPolicy
 
     public function delete(User $user, Category $category): bool
     {
-        return $this->ownsCategory($user, $category) && $category->budget->isDraft();
+        return $this->ownsCategory($user, $category)
+            && $category->budget->isDraft()
+            && ! $category->cashExpectations()->exists();
     }
 
     public function archive(User $user, Category $category): bool

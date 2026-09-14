@@ -53,7 +53,7 @@ class HandEntryMonthRemainingInputs
 
                 $categories[] = [
                     'id' => $category->id,
-                    'is_paced' => $category->is_paced,
+                    'is_paced' => $category->isPaced(),
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                     'monthly_execution_minor_units' => $monthlyExecution,
                 ];

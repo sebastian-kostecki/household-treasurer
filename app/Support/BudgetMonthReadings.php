@@ -31,7 +31,7 @@ class BudgetMonthReadings
         $today ??= CarbonImmutable::today('UTC');
         $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $allExpenseCategories);
         $pacedCategories = $allExpenseCategories->filter(
-            fn (Category $category): bool => $category->type === CategoryType::Expense && $category->is_paced,
+            fn (Category $category): bool => $category->type === CategoryType::Expense && $category->isPaced(),
         )->values();
 
         $calculator = new MonthRemainingCalculator(
@@ -59,7 +59,7 @@ class BudgetMonthReadings
 
             $monthExecutionMinorUnits = $executionIndex->executionInMonth($category->id, $viewedMonth);
 
-            if ($category->is_paced) {
+            if ($category->isPaced()) {
                 $categoryReadings[$category->id] = [
                     'month_remaining_minor_units' => $calculator->pacedMonthRemainingMinorUnits(
                         currentPlanMinorUnits: $category->planned_amount_minor_units,

@@ -126,7 +126,24 @@ trait CashExpectationValidationRules
                     __('The selected category does not belong to the budget for this expectation year.'),
                 );
             }
+
+            if (! $category->isAgendaCategory()) {
+                $validator->errors()->add(
+                    'category_id',
+                    __('The selected category must be an Agenda Category.'),
+                );
+            }
         });
+    }
+
+    /**
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    protected function storeCashExpectationOccurrenceRules(): array
+    {
+        return [
+            'occurrence' => ['required', 'string', Rule::in(['once', 'monthly'])],
+        ];
     }
 
     /**

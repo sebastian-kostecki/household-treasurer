@@ -33,6 +33,6 @@ class StoreCategoryRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        $this->withPacedFlagValidation($validator);
+        $this->withCategoryVariantValidation($validator);
     }
 }

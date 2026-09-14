@@ -538,7 +538,7 @@ class CsvImportController extends Controller
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
-                'is_paced' => $category->is_paced,
+                'is_paced' => $category->isPaced(),
             ]))
             ->values()
             ->all();

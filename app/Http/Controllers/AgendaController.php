@@ -52,6 +52,7 @@ class AgendaController extends Controller
         $incomeCategories = $user->budgets()
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Income)
+                ->where('category_variant', 'agenda')
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
@@ -68,6 +69,7 @@ class AgendaController extends Controller
         $expenseCategories = $user->budgets()
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
+                ->where('category_variant', 'agenda')
                 ->whereNull('archived_at')
                 ->ordered(),
             ])

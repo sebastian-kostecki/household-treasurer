@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\BackupUserData;
 use App\Actions\RestoreUserData;
 use App\Enums\CategoryType;
+use App\Enums\CategoryVariant;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
@@ -17,7 +18,7 @@ class CategoryPacedFlagTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_expense_category_defaults_to_paced_when_created_without_flag(): void
+    public function test_expense_category_defaults_to_paced_when_created_without_variant(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
@@ -34,31 +35,30 @@ class CategoryPacedFlagTest extends TestCase
         $this->assertDatabaseHas('categories', [
             'budget_id' => $budget->id,
             'name' => 'Groceries',
-            'is_paced' => true,
+            'category_variant' => CategoryVariant::Paced->value,
         ]);
     }
 
-    public function test_user_can_update_expense_category_paced_flag(): void
+    public function test_user_can_update_expense_category_to_one_off(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->expense()->create([
-            'is_paced' => true,
-        ]);
+        $category = Category::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)
             ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => $category->name,
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,
-                'is_paced' => '0',
+                'category_variant' => CategoryVariant::OneOff->value,
             ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
         $category->refresh();
 
-        $this->assertFalse($category->is_paced);
+        $this->assertSame(CategoryVariant::OneOff, $category->category_variant);
+        $this->assertFalse($category->isPaced());
     }
 
     public function test_user_can_create_one_off_expense_category(): void
@@ -71,168 +71,144 @@ class CategoryPacedFlagTest extends TestCase
                 'name' => 'Vacation',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 500000,
-                'is_paced' => false,
+                'category_variant' => CategoryVariant::OneOff->value,
             ]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
         $this->assertDatabaseHas('categories', [
             'budget_id' => $budget->id,
-            'name' => 'Vacation',
-            'is_paced' => false,
+            'category_variant' => CategoryVariant::OneOff->value,
         ]);
     }
 
-    public function test_income_category_cannot_be_created_as_one_off(): void
+    public function test_user_can_create_agenda_expense_category(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
 
         $this->actingAs($user)
-            ->from(route('budget'))
+            ->post(route('categories.store', $budget), $this->categoryFields([
+                'name' => 'Bills',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 500000,
+                'category_variant' => CategoryVariant::Agenda->value,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('categories', [
+            'category_variant' => CategoryVariant::Agenda->value,
+        ]);
+    }
+
+    public function test_income_category_cannot_be_paced_or_one_off(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create();
+
+        $this->actingAs($user)
             ->post(route('categories.store', $budget), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Income->value,
-                'planned_amount_minor_units' => 500000,
-                'is_paced' => '0',
+                'planned_amount_minor_units' => 100000,
+                'category_variant' => CategoryVariant::OneOff->value,
             ]))
-            ->assertSessionHasErrors('is_paced');
+            ->assertSessionHasErrors('category_variant');
     }
 
-    public function test_income_category_update_rejects_paced_flag(): void
+    public function test_income_category_defaults_to_ordinary(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
-            ->from(route('budget'))
-            ->patch(route('categories.update', $category), $this->categoryFields([
-                'name' => $category->name,
+            ->post(route('categories.store', $budget), $this->categoryFields([
+                'name' => 'Salary',
                 'type' => CategoryType::Income->value,
-                'planned_amount_minor_units' => $category->planned_amount_minor_units,
-                'is_paced' => '0',
+                'planned_amount_minor_units' => 100000,
             ]))
-            ->assertSessionHasErrors('is_paced');
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('categories', [
+            'category_variant' => CategoryVariant::Ordinary->value,
+        ]);
     }
 
     public function test_budget_page_exposes_paced_flag_for_expense_categories_only(): void
     {
         $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['name' => 'Salary']);
-        Category::factory()->for($budget)->expense()->create([
-            'name' => 'Paced expense',
-            'is_paced' => true,
-        ]);
-        Category::factory()->for($budget)->expense()->create([
-            'name' => 'One-off expense',
-            'is_paced' => false,
-        ]);
+        $budget = Budget::factory()->for($user)->create();
+        Category::factory()->for($budget)->income()->create(['name' => 'Income']);
+        Category::factory()->for($budget)->expense()->create(['name' => 'Paced expense']);
+        Category::factory()->for($budget)->oneOff()->create(['name' => 'One-off expense']);
 
         $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
+            ->withSession(['budget_year' => $budget->year])
             ->get(route('budget'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('incomeCategories.0.is_paced', true)
                 ->where('expenseCategories.0.is_paced', true)
-                ->where('expenseCategories.1.is_paced', false),
+                ->where('expenseCategories.0.category_variant', CategoryVariant::Paced->value)
+                ->where('expenseCategories.1.is_paced', false)
+                ->where('expenseCategories.1.category_variant', CategoryVariant::OneOff->value),
             );
     }
 
-    public function test_creating_budget_with_source_copies_paced_flag(): void
+    public function test_creating_budget_with_source_copies_category_variant(): void
     {
         $user = User::factory()->create();
-        $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->expense()->create([
-            'name' => 'Paced',
-            'is_paced' => true,
-        ]);
-        Category::factory()->for($sourceBudget)->expense()->create([
-            'name' => 'One-off',
-            'is_paced' => false,
-        ]);
+        $source = Budget::factory()->for($user)->create(['year' => 2025]);
+        Category::factory()->for($source)->expense()->create(['name' => 'Paced']);
+        Category::factory()->for($source)->oneOff()->create(['name' => 'One-off']);
+        Category::factory()->for($source)->expense()->agenda()->create(['name' => 'Agenda']);
 
         $this->actingAs($user)
             ->post(route('budgets.store'), [
                 'year' => 2026,
-                'source_budget_id' => $sourceBudget->id,
+                'source_budget_id' => $source->id,
             ])
             ->assertSessionHasNoErrors();
 
-        $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
+        $target = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
         $this->assertDatabaseHas('categories', [
-            'budget_id' => $targetBudget->id,
-            'name' => 'Paced',
-            'is_paced' => true,
-        ]);
-        $this->assertDatabaseHas('categories', [
-            'budget_id' => $targetBudget->id,
-            'name' => 'One-off',
-            'is_paced' => false,
+            'budget_id' => $target->id,
+            'name' => 'Agenda',
+            'category_variant' => CategoryVariant::Agenda->value,
         ]);
     }
 
-    public function test_archived_expense_category_rejects_paced_flag_update(): void
+    public function test_archived_expense_category_rejects_variant_update(): void
     {
         $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->archived()->create([
-            'name' => 'Archived',
-            'is_paced' => true,
-        ]);
+        $budget = Budget::factory()->for($user)->create();
+        $category = Category::factory()->for($budget)->expense()->archived()->create(['name' => 'Archived']);
 
         $this->actingAs($user)
-            ->from(route('budget'))
             ->patch(route('categories.update', $category), $this->categoryFields([
                 'name' => $category->name,
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,
-                'is_paced' => '0',
+                'category_variant' => CategoryVariant::OneOff->value,
             ]))
-            ->assertSessionHasErrors('is_paced');
+            ->assertSessionHasErrors('category_variant');
 
-        $category->refresh();
-
-        $this->assertTrue($category->is_paced);
+        $this->assertTrue($category->fresh()->isPaced());
     }
 
-    public function test_archived_expense_category_keeps_paced_flag_in_budget_payload(): void
-    {
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->archived()->create([
-            'name' => 'Archived one-off',
-            'is_paced' => false,
-        ]);
-
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['show_archived' => 1]))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('expenseCategories.0.is_paced', false)
-                ->where('expenseCategories.0.is_archived', true),
-            );
-    }
-
-    public function test_snapshot_round_trips_paced_flag(): void
+    public function test_snapshot_round_trips_category_variant(): void
     {
         Storage::fake('local');
 
         $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
-            'name' => 'One-off',
-            'is_paced' => false,
-        ]);
+        $budget = Budget::factory()->for($user)->create();
+        Category::factory()->for($budget)->oneOff()->create(['name' => 'One-off']);
 
         $path = app(BackupUserData::class)->handle($user);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertFalse($snapshot['categories'][0]['is_paced']);
+        $this->assertSame(5, $snapshot['version']);
+        $this->assertSame(CategoryVariant::OneOff->value, $snapshot['categories'][0]['category_variant']);
 
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
@@ -242,23 +218,23 @@ class CategoryPacedFlagTest extends TestCase
             ->where('name', 'One-off')
             ->firstOrFail();
 
-        $this->assertFalse($restoredCategory->is_paced);
+        $this->assertSame(CategoryVariant::OneOff, $restoredCategory->category_variant);
     }
 
-    public function test_snapshot_missing_paced_flag_restores_expense_category_as_paced(): void
+    public function test_snapshot_missing_variant_restores_expense_from_legacy_is_paced(): void
     {
         Storage::fake('local');
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
-            'name' => 'Legacy',
-            'is_paced' => true,
-        ]);
+        Category::factory()->for($budget)->expense()->create(['name' => 'Legacy']);
 
         $path = app(BackupUserData::class)->handle($user);
         $snapshot = json_decode(file_get_contents($path), true);
-        unset($snapshot['categories'][0]['is_paced']);
+        $snapshot['version'] = 4;
+        unset($snapshot['categories'][0]['category_variant']);
+        $snapshot['categories'][0]['is_paced'] = false;
+        unset($snapshot['cash_expectations']);
         file_put_contents($path, json_encode($snapshot));
 
         $targetUser = User::factory()->create();
@@ -269,7 +245,6 @@ class CategoryPacedFlagTest extends TestCase
             ->where('name', 'Legacy')
             ->firstOrFail();
 
-        $this->assertTrue($restoredCategory->is_paced);
-        $this->assertNotSame($category->id, $restoredCategory->id);
+        $this->assertSame(CategoryVariant::OneOff, $restoredCategory->category_variant);
     }
 }

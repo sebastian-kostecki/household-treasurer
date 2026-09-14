@@ -48,6 +48,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'July salary',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('agenda'));
@@ -82,6 +83,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Rent',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasNoErrors();
 
@@ -107,6 +109,7 @@ class CashExpectationTest extends TestCase
                 'counterparty' => 'CCC',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasNoErrors();
 
@@ -131,6 +134,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Future income',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasNoErrors();
 
@@ -151,6 +155,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Overdue bill',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasNoErrors();
 
@@ -166,7 +171,7 @@ class CashExpectationTest extends TestCase
             'opening_date' => '2026-03-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = Category::factory()->for($budget)->income()->agenda()->create();
 
         $this->actingAs($user)
             ->from(route('agenda'))
@@ -177,6 +182,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Too early',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasErrors('expectation_date');
 
@@ -191,7 +197,7 @@ class CashExpectationTest extends TestCase
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $budget2027 = Budget::factory()->for($user)->create(['year' => 2027]);
-        $category2027 = Category::factory()->for($budget2027)->income()->create();
+        $category2027 = Category::factory()->for($budget2027)->income()->agenda()->create();
 
         $this->actingAs($user)
             ->from(route('agenda'))
@@ -202,6 +208,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Wrong year category',
                 'account_id' => $account->id,
                 'category_id' => $category2027->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -215,7 +222,7 @@ class CashExpectationTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget2026)->income()->create();
+        $category = Category::factory()->for($budget2026)->income()->agenda()->create();
 
         $this->actingAs($user)
             ->from(route('agenda'))
@@ -226,6 +233,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'No 2027 budget',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -239,7 +247,7 @@ class CashExpectationTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->archived()->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = Category::factory()->for($budget)->income()->agenda()->create();
 
         $this->actingAs($user)
             ->from(route('agenda'))
@@ -250,6 +258,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Archived account',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasErrors('account_id');
 
@@ -274,6 +283,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Archived category',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -287,7 +297,7 @@ class CashExpectationTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->create(['year' => 2027]);
-        $category = Category::factory()->for($budget)->expense()->create();
+        $category = Category::factory()->for($budget)->expense()->agenda()->create();
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2027])
@@ -298,6 +308,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Draft budget bill',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasNoErrors();
 
@@ -319,6 +330,7 @@ class CashExpectationTest extends TestCase
                 'description' => 'Zero expense',
                 'account_id' => $account->id,
                 'category_id' => $category->id,
+                'occurrence' => 'once',
             ])
             ->assertSessionHasErrors('amount_minor_units');
 
@@ -333,8 +345,8 @@ class CashExpectationTest extends TestCase
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $budget2027 = Budget::factory()->for($user)->create(['year' => 2027]);
-        $category2026 = Category::factory()->for($budget2026)->income()->create();
-        $category2027 = Category::factory()->for($budget2027)->income()->create();
+        $category2026 = Category::factory()->for($budget2026)->income()->agenda()->create();
+        $category2027 = Category::factory()->for($budget2027)->income()->agenda()->create();
 
         CashExpectation::factory()->for($user)->for($account)->for($category2026)->create([
             'expectation_date' => '2026-04-01',
@@ -433,6 +445,57 @@ class CashExpectationTest extends TestCase
             );
     }
 
+    public function test_monthly_create_writes_sibling_expectations_through_december(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $category] = $this->createExpenseFixture();
+
+        $this->actingAs($user)
+            ->post(route('cash-expectations.store'), [
+                'type' => FinancialOperationType::Expense->value,
+                'expectation_date' => '2026-03-15',
+                'amount_minor_units' => 50000,
+                'description' => 'Monthly bill',
+                'account_id' => $account->id,
+                'category_id' => $category->id,
+                'occurrence' => 'monthly',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('agenda'));
+
+        $this->assertSame(10, CashExpectation::query()->where('user_id', $user->id)->count());
+    }
+
+    public function test_spawn_settles_cash_expectation_into_financial_operation(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        [$user, $account, $category] = $this->createExpenseFixture();
+        $expectation = CashExpectation::factory()->for($user)->for($account)->for($category)->expense()->create([
+            'expectation_date' => '2026-07-01',
+            'amount_minor_units' => 100000,
+            'description' => 'Rent',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('cash-expectations.spawn', $expectation), [
+                'operation_date' => '2026-06-15',
+                'amount_minor_units' => 95000,
+                'description' => 'Rent paid',
+                'account_id' => $account->id,
+                'category_id' => $category->id,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('agenda'));
+
+        $this->assertDatabaseMissing('cash_expectations', ['id' => $expectation->id]);
+        $this->assertDatabaseHas('financial_operations', [
+            'user_id' => $user->id,
+            'amount_minor_units' => 95000,
+        ]);
+    }
+
     /**
      * @return array{0: User, 1: Account, 2: Category}
      */
@@ -454,7 +517,7 @@ class CashExpectationTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = Category::factory()->for($budget)->income()->agenda()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -473,7 +536,7 @@ class CashExpectationTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = Category::factory()->for($budget)->expense()->agenda()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);

@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Budget;
+use App\Models\CashExpectation;
 use App\Models\User;
 
 class BudgetPolicy
@@ -24,7 +25,13 @@ class BudgetPolicy
 
     public function delete(User $user, Budget $budget): bool
     {
-        return $this->ownsBudget($user, $budget) && $budget->isDraft();
+        if (! $this->ownsBudget($user, $budget) || ! $budget->isDraft()) {
+            return false;
+        }
+
+        $categoryIds = $budget->categories()->pluck('id');
+
+        return ! CashExpectation::query()->whereIn('category_id', $categoryIds)->exists();
     }
 
     public function startExecution(User $user, Budget $budget): bool
