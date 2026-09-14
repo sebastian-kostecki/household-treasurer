@@ -130,11 +130,7 @@ watch(attachDialogOpen, async (open) => {
             </DropdownMenuItem>
             <DropdownMenuItem as-child>
                 <Form
-                    v-bind="
-                        CashExpectationController.destroy.form(
-                            expectation,
-                        )
-                    "
+                    v-bind="CashExpectationController.destroy.form(expectation)"
                     class="w-full"
                 >
                     <button type="submit" class="w-full px-2 py-1.5 text-left">
@@ -157,9 +153,7 @@ watch(attachDialogOpen, async (open) => {
     <Dialog v-model:open="spawnDialogOpen">
         <DialogContent class="sm:max-w-md">
             <Form
-                v-bind="
-                    CashExpectationController.spawn.form(expectation)
-                "
+                v-bind="CashExpectationController.spawn.form(expectation)"
                 class="space-y-4"
                 @success="spawnDialogOpen = false"
             >
@@ -170,7 +164,9 @@ watch(attachDialogOpen, async (open) => {
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-2">
-                    <Label for="spawn-operation-date">{{ t.agenda.date }}</Label>
+                    <Label for="spawn-operation-date">{{
+                        t.agenda.date
+                    }}</Label>
                     <Input
                         id="spawn-operation-date"
                         v-model="spawnOperationDate"
@@ -220,14 +216,14 @@ watch(attachDialogOpen, async (open) => {
     <Dialog v-model:open="attachDialogOpen">
         <DialogContent class="sm:max-w-md">
             <Form
-                v-bind="
-                    CashExpectationController.attach.form(expectation)
-                "
+                v-bind="CashExpectationController.attach.form(expectation)"
                 class="space-y-4"
                 @success="attachDialogOpen = false"
             >
                 <DialogHeader>
-                    <DialogTitle>{{ t.agenda.settle_attach_title }}</DialogTitle>
+                    <DialogTitle>{{
+                        t.agenda.settle_attach_title
+                    }}</DialogTitle>
                     <DialogDescription>
                         {{ t.agenda.settle_attach_description }}
                     </DialogDescription>

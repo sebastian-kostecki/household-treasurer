@@ -224,15 +224,11 @@ function onSettlementOptInChange(checked: boolean): void {
 
     const firstCandidate = availableSettlementCandidates.value[0];
 
-    if (
-        selection.value.category_id === '' &&
-        firstCandidate !== undefined
-    ) {
+    if (selection.value.category_id === '' && firstCandidate !== undefined) {
         selection.value.category_id = firstCandidate.category_id;
     }
 
-    selection.value.settlement_cash_expectation_id =
-        firstCandidate?.id ?? '';
+    selection.value.settlement_cash_expectation_id = firstCandidate?.id ?? '';
 }
 
 function onSettlementCandidateChange(
@@ -544,10 +540,7 @@ function onPairCandidateChange(value: string): void {
                         />
                     </template>
                 </div>
-                <div
-                    v-else-if="row.valid"
-                    class="space-y-2"
-                >
+                <div v-else-if="row.valid" class="space-y-2">
                     <CategorySelect
                         :id="`row-category-${row.index}`"
                         :name="`rows[${row.index}][category_id]`"

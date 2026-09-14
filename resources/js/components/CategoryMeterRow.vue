@@ -27,9 +27,7 @@ const t = useTranslations();
 
 const hasPlanChanged = planChanged(props.category);
 const isMonthView = computed(
-    () =>
-        props.orderMode === 'month' &&
-        props.categoryType === 'expense',
+    () => props.orderMode === 'month' && props.categoryType === 'expense',
 );
 const showMonthRemaining = computed(
     () => isMonthView.value && hasMonthRemainingReading(props.category),
@@ -129,10 +127,7 @@ const displayIsOverLimit = computed(() => {
             <span v-if="showMonthRemaining" class="text-sm">
                 {{ formatMoney(displayRemainingMinorUnits) }}
             </span>
-            <span
-                v-else-if="isMonthView"
-                class="text-muted-foreground text-sm"
-            >
+            <span v-else-if="isMonthView" class="text-muted-foreground text-sm">
                 {{ t.common.not_applicable }}
             </span>
             <span v-else class="text-sm">

@@ -82,7 +82,9 @@ const amountInput = ref('0,00');
 const amountMinorUnits = ref(0);
 const occurrence = ref<'once' | 'monthly'>('once');
 
-const isEdit = computed(() => props.mode === 'edit' && props.expectation !== null);
+const isEdit = computed(
+    () => props.mode === 'edit' && props.expectation !== null,
+);
 
 const formBinding = computed(() =>
     isEdit.value && props.expectation
@@ -102,19 +104,33 @@ const submittedAmountMinorUnits = computed(() => {
     return amountMinorUnits.value;
 });
 
-const availableCategories = computed(() => {
-    if (!expectationDate.value) {
+function categoriesForDate(
+    categories: CashExpectationFormCategory[],
+    date: string,
+): CashExpectationFormCategory[] {
+    if (!date) {
         return [];
     }
 
-    const year = Number(expectationDate.value.slice(0, 4));
-    const categories =
-        expectationKind.value === 'income'
-            ? props.incomeCategories
-            : props.expenseCategories;
+    const year = Number(date.slice(0, 4));
 
     return categories.filter((category) => category.budget_year === year);
-});
+}
+
+const availableCategories = computed(() =>
+    categoriesForDate(
+        expectationKind.value === 'income'
+            ? props.incomeCategories
+            : props.expenseCategories,
+        expectationDate.value,
+    ),
+);
+
+const categoryPlaceholder = computed(() =>
+    availableCategories.value.length === 0
+        ? t.agenda.no_category_for_year
+        : t.agenda.select_category,
+);
 
 watch(
     () => [props.open, props.mode, props.expectation] as const,
@@ -142,24 +158,48 @@ watch(
             return;
         }
 
-        expectationKind.value = 'expense';
         expectationDate.value = props.defaultDate ?? '';
+        const expenseForDate = categoriesForDate(
+            props.expenseCategories,
+            expectationDate.value,
+        );
+        const incomeForDate = categoriesForDate(
+            props.incomeCategories,
+            expectationDate.value,
+        );
+        expectationKind.value =
+            expenseForDate.length === 0 && incomeForDate.length > 0
+                ? 'income'
+                : 'expense';
         description.value = '';
         counterparty.value = '';
-        accountId.value = '';
-        categoryId.value = '';
+        accountId.value = props.accounts[0]?.id ?? '';
+        categoryId.value =
+            (expectationKind.value === 'income'
+                ? incomeForDate[0]?.id
+                : expenseForDate[0]?.id) ?? '';
         amountInput.value = '0,00';
         amountMinorUnits.value = 0;
         occurrence.value = 'once';
     },
+    { immediate: true },
 );
 
-watch(expectationKind, () => {
-    categoryId.value = '';
-});
+watch(availableCategories, (categories) => {
+    if (
+        categoryId.value !== '' &&
+        categories.some((category) => category.id === categoryId.value)
+    ) {
+        return;
+    }
 
-watch(expectationDate, () => {
-    categoryId.value = '';
+    if (isEdit.value) {
+        categoryId.value = '';
+
+        return;
+    }
+
+    categoryId.value = categories[0]?.id ?? '';
 });
 
 watch(amountInput, (value) => {
@@ -176,11 +216,7 @@ watch(amountInput, (value) => {
         <DialogContent class="sm:max-w-lg">
             <DialogHeader>
                 <DialogTitle>
-                    {{
-                        isEdit
-                            ? t.agenda.edit_title
-                            : t.agenda.create_title
-                    }}
+                    {{ isEdit ? t.agenda.edit_title : t.agenda.create_title }}
                 </DialogTitle>
                 <DialogDescription>
                     {{
@@ -211,7 +247,9 @@ watch(amountInput, (value) => {
                         v-model="expectationKind"
                         class="native-select w-full"
                     >
-                        <option value="income">{{ t.agenda.type_income }}</option>
+                        <option value="income">
+                            {{ t.agenda.type_income }}
+                        </option>
                         <option value="expense">
                             {{ t.agenda.type_expense }}
                         </option>
@@ -254,7 +292,9 @@ watch(amountInput, (value) => {
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="expectation-amount">{{ t.agenda.amount }}</Label>
+                    <Label for="expectation-amount">{{
+                        t.agenda.amount
+                    }}</Label>
                     <Input
                         id="expectation-amount"
                         v-model="amountInput"
@@ -290,7 +330,9 @@ watch(amountInput, (value) => {
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="expectation-account">{{ t.agenda.account }}</Label>
+                    <Label for="expectation-account">{{
+                        t.agenda.account
+                    }}</Label>
                     <AccountSelect
                         id="expectation-account"
                         v-model="accountId"
@@ -310,7 +352,9 @@ watch(amountInput, (value) => {
                         v-model="categoryId"
                         name="category_id"
                         :categories="availableCategories"
+                        :placeholder="categoryPlaceholder"
                         required
+                        :disabled="availableCategories.length === 0"
                     />
                     <InputError name="category_id" />
                 </div>

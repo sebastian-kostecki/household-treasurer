@@ -28,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read bool $cash_expectations_exists
  */
 #[Fillable([
     'budget_id',

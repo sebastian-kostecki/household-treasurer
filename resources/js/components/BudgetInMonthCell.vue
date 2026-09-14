@@ -4,7 +4,11 @@ import { computed } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatDate, formatFinancialOperationAmount, formatMoney } from '@/lib/format';
+import {
+    formatDate,
+    formatFinancialOperationAmount,
+    formatMoney,
+} from '@/lib/format';
 import { operations as operationsRoute } from '@/routes';
 
 export type BudgetMonthInMonthEntry = {
@@ -79,7 +83,7 @@ function incomeOrdinaryLabel(): string {
             <li
                 v-for="(entry, index) in entries"
                 :key="`${entry.kind}-${entry.date}-${index}`"
-                class="rounded-md border border-border/60 px-2 py-1.5"
+                class="border-border/60 rounded-md border px-2 py-1.5"
             >
                 <div class="flex flex-wrap items-center gap-1.5">
                     <Badge
@@ -141,10 +145,7 @@ function incomeOrdinaryLabel(): string {
             {{ formatMoney(optionalSumMinorUnits) }}
         </p>
     </div>
-    <p
-        v-else-if="categoryType === 'income'"
-        class="font-medium tabular-nums"
-    >
+    <p v-else-if="categoryType === 'income'" class="font-medium tabular-nums">
         {{ incomeOrdinaryLabel() }}
     </p>
     <p v-else class="font-medium tabular-nums">

@@ -55,6 +55,7 @@ class BudgetController extends Controller
 
         $allCategories = $budget->categories()
             ->ordered()
+            ->withExists('cashExpectations')
             ->get();
         $allExpenseCategories = $allCategories
             ->where('type', CategoryType::Expense)
@@ -93,7 +94,7 @@ class BudgetController extends Controller
                 'id' => $budget->id,
                 'year' => $budget->year,
                 'phase' => $budget->phase->value,
-                'can_delete' => $budget->isDraft(),
+                'can_delete' => $user->can('delete', $budget),
                 'can_start_execution' => $budget->isDraft(),
                 'can_reorder' => $budget->isDraft() || $budget->isExecution(),
             ],
@@ -267,8 +268,12 @@ class BudgetController extends Controller
             'is_over_limit' => $category->type === CategoryType::Expense
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
-            'can_delete' => $budget->isDraft() && ! $category->isArchived(),
-            'can_change_type' => $budget->isDraft() && ! $category->isArchived(),
+            'can_delete' => $budget->isDraft()
+                && ! $category->isArchived()
+                && ! $category->cash_expectations_exists,
+            'can_change_type' => $budget->isDraft()
+                && ! $category->isArchived()
+                && ! $category->cash_expectations_exists,
             'is_archived' => $category->isArchived(),
             'can_archive' => $budget->isExecution() && ! $category->isArchived(),
             'can_restore' => $category->isArchived(),

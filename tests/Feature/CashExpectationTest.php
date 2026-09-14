@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryType;
+use App\Enums\CategoryVariant;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
@@ -338,6 +340,33 @@ class CashExpectationTest extends TestCase
         $this->assertDatabaseCount('cash_expectations', 0);
     }
 
+    public function test_agenda_exposes_unarchived_agenda_categories_for_the_form(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $incomeAgenda = Category::factory()->for($budget)->income()->agenda()->create(['name' => 'Salary']);
+        $expenseAgenda = Category::factory()->for($budget)->expense()->agenda()->create(['name' => 'Rent']);
+        Category::factory()->for($budget)->income()->create(['name' => 'Ordinary income']);
+        Category::factory()->for($budget)->expense()->create(['name' => 'Paced expense']);
+        Category::factory()->for($budget)->expense()->agenda()->archived()->create(['name' => 'Archived rent']);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('agenda'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Agenda')
+                ->has('incomeCategories', 1)
+                ->where('incomeCategories.0.id', $incomeAgenda->id)
+                ->where('incomeCategories.0.budget_year', 2026)
+                ->has('expenseCategories', 1)
+                ->where('expenseCategories.0.id', $expenseAgenda->id)
+                ->where('expenseCategories.0.budget_year', 2026),
+            );
+    }
+
     public function test_agenda_lists_expectations_for_shell_budget_year_only(): void
     {
         $this->travelTo('2026-06-01');
@@ -524,6 +553,151 @@ class CashExpectationTest extends TestCase
             'user_id' => $user->id,
             'amount_minor_units' => 95000,
         ]);
+    }
+
+    public function test_account_named_by_cash_expectation_cannot_be_deleted_and_can_be_archived(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $category] = $this->createIncomeFixture();
+        CashExpectation::factory()->for($user)->for($account)->for($category)->income()->create([
+            'expectation_date' => '2026-07-01',
+            'amount_minor_units' => 10000,
+            'description' => 'Salary',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('accounts.0.can_delete', false)
+                ->where('accounts.0.can_archive', true),
+            );
+
+        $this->actingAs($user)
+            ->delete(route('accounts.destroy', $account))
+            ->assertSessionHasErrors('account');
+
+        $this->assertDatabaseHas('accounts', ['id' => $account->id]);
+
+        $this->actingAs($user)
+            ->post(route('accounts.archive', $account))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index'));
+
+        $account->refresh();
+
+        $this->assertNotNull($account->archived_at);
+        $this->assertDatabaseHas('cash_expectations', [
+            'account_id' => $account->id,
+            'description' => 'Salary',
+        ]);
+    }
+
+    public function test_account_opening_date_cannot_be_changed_after_create(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $category] = $this->createIncomeFixture();
+        CashExpectation::factory()->for($user)->for($account)->for($category)->income()->create([
+            'expectation_date' => '2026-07-01',
+            'amount_minor_units' => 10000,
+            'description' => 'Salary',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('accounts.index'))
+            ->patch(route('accounts.update', $account), [
+                'name' => $account->name,
+                'type' => $account->type->value,
+                'bank' => $account->bank?->value,
+                'opening_date' => '2026-08-01',
+                'opening_balance_minor_units' => $account->opening_balance_minor_units,
+            ])
+            ->assertSessionHasErrors('opening_date');
+
+        $account->refresh();
+
+        $this->assertSame('2026-01-01', $account->opening_date->toDateString());
+    }
+
+    public function test_category_named_by_cash_expectation_cannot_be_deleted_or_retyped(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->income()->agenda()->create([
+            'name' => 'Salary',
+        ]);
+        CashExpectation::factory()->for($user)->for($account)->for($category)->income()->create([
+            'expectation_date' => '2026-07-01',
+            'amount_minor_units' => 10000,
+            'description' => 'Salary',
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories.0.can_delete', false)
+                ->where('incomeCategories.0.can_change_type', false)
+                ->where('budget.can_delete', false),
+            );
+
+        $this->actingAs($user)
+            ->delete(route('categories.destroy', $category))
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->patch(route('categories.update', $category), $this->categoryFields([
+                'name' => 'Salary',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => $category->planned_amount_minor_units,
+                'category_variant' => CategoryVariant::Agenda->value,
+            ]))
+            ->assertSessionHasErrors('type');
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->patch(route('categories.update', $category), $this->categoryFields([
+                'name' => 'Salary',
+                'type' => CategoryType::Income->value,
+                'planned_amount_minor_units' => $category->planned_amount_minor_units,
+                'category_variant' => CategoryVariant::Ordinary->value,
+            ]))
+            ->assertSessionHasErrors('category_variant');
+
+        $this->assertDatabaseHas('categories', [
+            'id' => $category->id,
+            'type' => CategoryType::Income->value,
+            'category_variant' => CategoryVariant::Agenda->value,
+        ]);
+    }
+
+    public function test_draft_budget_cannot_be_deleted_while_a_category_is_named_by_a_cash_expectation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->income()->agenda()->create();
+        CashExpectation::factory()->for($user)->for($account)->for($category)->income()->create([
+            'expectation_date' => '2026-07-01',
+            'amount_minor_units' => 10000,
+            'description' => 'Salary',
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('budgets.destroy', $budget))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('budgets', ['id' => $budget->id]);
+        $this->assertDatabaseHas('cash_expectations', ['category_id' => $category->id]);
     }
 
     /**

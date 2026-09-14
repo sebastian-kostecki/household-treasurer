@@ -217,9 +217,6 @@ class BackupUserData
     /**
      * @return array<string, mixed>
      */
-    /**
-     * @return array<string, mixed>
-     */
     private function serializeCashExpectation(CashExpectation $expectation): array
     {
         return [

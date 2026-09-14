@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CategoryType;
+use App\Enums\CategoryVariant;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CashExpectation;
@@ -52,7 +53,7 @@ class AgendaController extends Controller
         $incomeCategories = $user->budgets()
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Income)
-                ->where('category_variant', 'agenda')
+                ->where('category_variant', CategoryVariant::Agenda)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
@@ -69,7 +70,7 @@ class AgendaController extends Controller
         $expenseCategories = $user->budgets()
             ->with(['categories' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
-                ->where('category_variant', 'agenda')
+                ->where('category_variant', CategoryVariant::Agenda)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])

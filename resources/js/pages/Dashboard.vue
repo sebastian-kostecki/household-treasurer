@@ -336,10 +336,7 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                 v-if="termDeposits.length > 0"
                 class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
             >
-                <Card
-                    v-for="termDeposit in termDeposits"
-                    :key="termDeposit.id"
-                >
+                <Card v-for="termDeposit in termDeposits" :key="termDeposit.id">
                     <CardHeader class="space-y-3 pb-2">
                         <AccountIdentityBlock
                             :name="termDeposit.name"

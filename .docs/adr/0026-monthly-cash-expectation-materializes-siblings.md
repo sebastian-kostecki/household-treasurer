@@ -1,0 +1,5 @@
+# Monthly Cash Expectation create writes sibling rows through December, not a live series
+
+Choosing monthly occurrence on create writes one Cash Expectation per calendar month from the first date’s month through December of that Budget year. Each row keeps the same day-of-month, clamped to the last day of that month (31 January → 28/29 February). Months whose date would be before the Account opening date are skipped; if none remain, create is rejected. After create the rows are independent: no series record, no edit-future, no automatic next year. Monthly occurrence is create-only: editing a row never writes extra months. A one-shot create is always one dated row. Settlement still destroys that one row (ADR 0021).
+
+We rejected a recurrence template, a persisted series, backfilling months before the first date, auto-creating the next Budget year, shifting illegal dates to the Account opening date, turning edit into a second materialize, and a dateless “somewhere in this month” Cash Expectation.

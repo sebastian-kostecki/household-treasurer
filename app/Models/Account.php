@@ -116,6 +116,11 @@ class Account extends Model
         return $this->cashExpectations()->exists();
     }
 
+    public function cannotBeDeleted(): bool
+    {
+        return $this->hasFinancialHistory() || $this->hasCashExpectations();
+    }
+
     public function isArchived(): bool
     {
         return $this->archived_at !== null;

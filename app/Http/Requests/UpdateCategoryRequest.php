@@ -32,7 +32,10 @@ class UpdateCategoryRequest extends FormRequest
         $rules = $this->updateCategoryRules();
         $category = $this->route('category');
 
-        if ($category instanceof Category && $category->budget->isExecution()) {
+        if ($category instanceof Category && (
+            $category->budget->isExecution()
+            || $category->cashExpectations()->exists()
+        )) {
             $rules['type'] = ['required', Rule::in([$category->type->value])];
         }
 

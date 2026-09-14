@@ -35,7 +35,7 @@ class AccountPolicy
     public function archive(User $user, Account $account): bool
     {
         return $this->ownsAccount($user, $account)
-            && $account->hasFinancialHistory()
+            && $account->cannotBeDeleted()
             && ! $account->isArchived();
     }
 

@@ -10,6 +10,7 @@ use App\Enums\CapitalMovementDirection;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CapitalMovement;
+use App\Models\CashExpectation;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
@@ -52,6 +53,8 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertCount(1, $snapshot['financial_operations']);
         $this->assertCount(1, $snapshot['own_transfers']);
         $this->assertCount(1, $snapshot['capital_movements']);
+        $this->assertCount(1, $snapshot['cash_expectations']);
+        $this->assertSame('July salary', $snapshot['cash_expectations'][0]['description']);
     }
 
     public function test_restore_command_replaces_target_user_domain_data(): void
@@ -80,6 +83,7 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(1, $targetUser->financialOperations()->count());
         $this->assertSame(1, $targetUser->ownTransfers()->count());
         $this->assertSame(1, $targetUser->capitalMovements()->count());
+        $this->assertSame(1, $targetUser->cashExpectations()->count());
         $this->assertNotNull($targetUser->first_run_checklist_dismissed_at);
 
         $restoredAccountIds = $targetUser->accounts()->pluck('id')->all();
@@ -290,9 +294,15 @@ class UserSnapshotCommandTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Execution,
         ]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = Category::factory()->for($budget)->income()->agenda()->create([
             'name' => 'Salary',
             'execution_minor_units' => 150000,
+        ]);
+
+        CashExpectation::factory()->for($user)->for($sourceAccount)->for($category)->income()->create([
+            'expectation_date' => '2026-07-01',
+            'amount_minor_units' => 250000,
+            'description' => 'July salary',
         ]);
 
         FinancialOperation::factory()->for($user)->create([

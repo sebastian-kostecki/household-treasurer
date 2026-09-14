@@ -80,7 +80,7 @@ class AccountController extends Controller
     {
         $this->authorize('delete', $account);
 
-        if ($account->hasFinancialHistory() || $account->hasCashExpectations()) {
+        if ($account->cannotBeDeleted()) {
             return back()->withErrors([
                 'account' => __('This account cannot be deleted because it has financial history.'),
             ]);
@@ -163,8 +163,8 @@ class AccountController extends Controller
             'current_balance_minor_units' => $account->current_balance_minor_units,
             'is_negative' => $account->isNegative(),
             'is_archived' => $account->isArchived(),
-            'can_delete' => ! $account->hasFinancialHistory() && ! $account->isArchived(),
-            'can_archive' => $account->hasFinancialHistory() && ! $account->isArchived(),
+            'can_delete' => ! $account->cannotBeDeleted() && ! $account->isArchived(),
+            'can_archive' => $account->cannotBeDeleted() && ! $account->isArchived(),
             'can_restore' => $account->isArchived(),
         ];
     }

@@ -32,6 +32,7 @@ trait AccountValidationRules
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(AccountType::class)],
             'bank' => $this->bankRules(),
+            'opening_date' => ['prohibited'],
             'opening_balance_minor_units' => ['required', 'integer'],
         ];
     }

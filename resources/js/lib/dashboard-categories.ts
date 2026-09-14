@@ -61,9 +61,7 @@ export function isOverMonthRemaining(
     );
 }
 
-export function hasMonthRemainingReading(
-    category: DashboardCategory,
-): boolean {
+export function hasMonthRemainingReading(category: DashboardCategory): boolean {
     return (
         category.is_paced === true &&
         category.month_remaining_minor_units !== undefined &&
