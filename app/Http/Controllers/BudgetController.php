@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetMonthReadings;
+use App\Support\BudgetMonthResult;
 use App\Support\BudgetPlanSummary;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
@@ -46,6 +47,9 @@ class BudgetController extends Controller
                 'show_archived' => false,
                 'viewedMonth' => null,
                 'pacedPoolMonthRemainingMinorUnits' => null,
+                'monthIncomeExecutionMinorUnits' => null,
+                'monthExpenseExecutionMinorUnits' => null,
+                'monthResultMinorUnits' => null,
                 'currentMonth' => null,
                 'viewedMonthTiming' => null,
                 'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
@@ -80,6 +84,7 @@ class BudgetController extends Controller
             );
 
         $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
+        $monthResult = BudgetMonthResult::forViewedMonth($budget, $viewedMonth);
 
         return Inertia::render('Budget', [
             'budget' => [
@@ -113,6 +118,9 @@ class BudgetController extends Controller
             'show_archived' => $showArchived,
             'viewedMonth' => $viewedMonth,
             'pacedPoolMonthRemainingMinorUnits' => $monthReadings['paced_pool_month_remaining_minor_units'],
+            'monthIncomeExecutionMinorUnits' => $monthResult['income_execution_minor_units'],
+            'monthExpenseExecutionMinorUnits' => $monthResult['expense_execution_minor_units'],
+            'monthResultMinorUnits' => $monthResult['month_result_minor_units'],
             'currentMonth' => $monthReadings['current_month'],
             'viewedMonthTiming' => $monthReadings['viewed_month_timing'],
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
