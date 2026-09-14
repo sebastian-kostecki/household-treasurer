@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
-import BudgetPacedPoolHeadline from '@/components/BudgetPacedPoolHeadline.vue';
+import BudgetMonthResultSummary from '@/components/BudgetMonthResultSummary.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
@@ -12,7 +12,9 @@ const props = defineProps<{
     showArchived: boolean;
     currentMonth: number | null;
     viewedMonthTiming: 'past' | 'current' | 'future';
-    pacedPoolMonthRemainingMinorUnits: number;
+    monthIncomeExecutionMinorUnits: number;
+    monthExpenseExecutionMinorUnits: number;
+    monthResultMinorUnits: number;
 }>();
 
 const t = useTranslations();
@@ -52,9 +54,10 @@ const viewedMonthLabel = computed(() => {
                 :show-archived="showArchived"
                 :current-month="currentMonth"
             />
-            <BudgetPacedPoolHeadline
-                :amount-minor-units="pacedPoolMonthRemainingMinorUnits"
-                :viewed-month-timing="viewedMonthTiming"
+            <BudgetMonthResultSummary
+                :income-execution-minor-units="monthIncomeExecutionMinorUnits"
+                :expense-execution-minor-units="monthExpenseExecutionMinorUnits"
+                :month-result-minor-units="monthResultMinorUnits"
             />
         </CardContent>
     </Card>

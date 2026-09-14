@@ -58,7 +58,11 @@ _Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity
 
 **Planned Balance**:
 Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.
-_Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit. Polish UI copy: „Bilans”.
+_Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit, Month Result. Polish UI copy: „Bilans”.
+
+**Month Result**:
+Execution income minus Execution expense for one calendar month of a Budget year. Booked Financial Operations dated in that month only, all income and expense Categories including archived and One-off. Expense refunds net into the expense figure. Not Planned Balance, not Month Remaining, not unpaid Cash Expectations, not Own Transfer, not Capital Movement.
+_Avoid_: Balance (unqualified), Planned Balance, Available Limit, Month Remaining, Liquidity. Polish UI copy: „Wynik”.
 
 **Financial Operation**:
 An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation (spawned amount may differ: correction): that Cash Expectation is destroyed and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.

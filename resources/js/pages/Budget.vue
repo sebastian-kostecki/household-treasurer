@@ -75,6 +75,9 @@ const props = defineProps<{
     show_archived: boolean;
     viewedMonth: number | null;
     pacedPoolMonthRemainingMinorUnits: number | null;
+    monthIncomeExecutionMinorUnits: number | null;
+    monthExpenseExecutionMinorUnits: number | null;
+    monthResultMinorUnits: number | null;
     currentMonth: number | null;
     viewedMonthTiming: 'past' | 'current' | 'future' | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
@@ -274,7 +277,9 @@ function openDeleteBudgetDialog(): void {
             <BudgetMonthStrip
                 v-if="
                     viewedMonth !== null &&
-                    pacedPoolMonthRemainingMinorUnits !== null &&
+                    monthIncomeExecutionMinorUnits !== null &&
+                    monthExpenseExecutionMinorUnits !== null &&
+                    monthResultMinorUnits !== null &&
                     viewedMonthTiming !== null
                 "
                 :budget-year="budget.year"
@@ -282,9 +287,13 @@ function openDeleteBudgetDialog(): void {
                 :show-archived="show_archived"
                 :current-month="currentMonth"
                 :viewed-month-timing="viewedMonthTiming"
-                :paced-pool-month-remaining-minor-units="
-                    pacedPoolMonthRemainingMinorUnits
+                :month-income-execution-minor-units="
+                    monthIncomeExecutionMinorUnits
                 "
+                :month-expense-execution-minor-units="
+                    monthExpenseExecutionMinorUnits
+                "
+                :month-result-minor-units="monthResultMinorUnits"
             />
 
             <div class="flex items-center gap-2">
