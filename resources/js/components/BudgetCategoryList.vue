@@ -102,14 +102,6 @@ const remainingLabel = computed(() =>
         : t.budget.remaining_expense,
 );
 
-function pacedBadgeLabel(category: BudgetCategoryRow): string | null {
-    if (props.categoryType !== 'expense') {
-        return null;
-    }
-
-    return category.is_paced ? t.budget.paced_badge : t.budget.one_off_badge;
-}
-
 function monthCellLabel(category: BudgetCategoryRow): string {
     if (
         category.is_paced &&
@@ -139,7 +131,7 @@ function monthCellClass(category: BudgetCategoryRow): string {
         return 'text-destructive';
     }
 
-    return '';
+    return 'text-muted-foreground';
 }
 
 watch(
@@ -324,12 +316,6 @@ async function onDragEnd(): Promise<void> {
                                             :icon="category.icon"
                                             :color="category.color"
                                         />
-                                        <Badge
-                                            v-if="pacedBadgeLabel(category)"
-                                            variant="secondary"
-                                        >
-                                            {{ pacedBadgeLabel(category) }}
-                                        </Badge>
                                     </div>
                                 </td>
                                 <td
@@ -557,12 +543,6 @@ async function onDragEnd(): Promise<void> {
                                                 :icon="category.icon"
                                                 :color="category.color"
                                             />
-                                            <Badge
-                                                v-if="pacedBadgeLabel(category)"
-                                                variant="secondary"
-                                            >
-                                                {{ pacedBadgeLabel(category) }}
-                                            </Badge>
                                             <Badge variant="secondary">
                                                 {{ t.budget.archived_badge }}
                                             </Badge>
@@ -707,12 +687,6 @@ async function onDragEnd(): Promise<void> {
                                         :icon="category.icon"
                                         :color="category.color"
                                     />
-                                    <Badge
-                                        v-if="pacedBadgeLabel(category)"
-                                        variant="secondary"
-                                    >
-                                        {{ pacedBadgeLabel(category) }}
-                                    </Badge>
                                 </div>
                             </div>
                         </CardHeader>
@@ -998,12 +972,6 @@ async function onDragEnd(): Promise<void> {
                                     :icon="category.icon"
                                     :color="category.color"
                                 />
-                                <Badge
-                                    v-if="pacedBadgeLabel(category)"
-                                    variant="secondary"
-                                >
-                                    {{ pacedBadgeLabel(category) }}
-                                </Badge>
                                 <Badge variant="secondary">
                                     {{ t.budget.archived_badge }}
                                 </Badge>

@@ -231,9 +231,6 @@ const sectionRemainingClass = computed(() => {
                         {{ totals.percent_complete }}%
                     </p>
                 </div>
-                <p v-else class="text-muted-foreground text-right text-xs">
-                    {{ t.common.not_applicable }}
-                </p>
             </div>
         </template>
 
