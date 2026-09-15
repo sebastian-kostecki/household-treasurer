@@ -103,6 +103,22 @@ class Account extends Model
             || $this->capitalMovements()->exists();
     }
 
+    public function earliestActivityDate(): ?Carbon
+    {
+        $dates = array_filter([
+            $this->financialOperations()->min('operation_date'),
+            $this->outgoingOwnTransfers()->min('transfer_date'),
+            $this->incomingOwnTransfers()->min('transfer_date'),
+            $this->capitalMovements()->min('movement_date'),
+        ]);
+
+        if ($dates === []) {
+            return null;
+        }
+
+        return Carbon::parse(min($dates))->startOfDay();
+    }
+
     public function isArchived(): bool
     {
         return $this->archived_at !== null;
