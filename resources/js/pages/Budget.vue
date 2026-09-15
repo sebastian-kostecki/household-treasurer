@@ -335,7 +335,6 @@ function openDeleteBudgetDialog(): void {
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
                     :add-label="t.budget.add_expense"
-                    :show-month-column="true"
                     @add="createExpenseDialogOpen = true"
                     @edit="openEditDialog"
                 />

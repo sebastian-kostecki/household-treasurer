@@ -120,7 +120,7 @@ class AccountTest extends TestCase
         $this->actingAs($user)->post(route('accounts.store'), [
             'name' => 'Invalid bank',
             'type' => AccountType::Bank->value,
-            'bank' => 'revolut',
+            'bank' => 'not_a_bank',
             'opening_date' => '2026-01-15',
             'opening_balance_minor_units' => 100,
         ])->assertSessionHasErrors('bank');
