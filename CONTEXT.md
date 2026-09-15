@@ -17,11 +17,11 @@ A holding of the User’s money in a bank term-deposit product. Not an Account a
 _Avoid_: Deposit (unqualified), Savings, Investment, Lokata in code, Account (for this holding)
 
 **Bank**:
-The named institution of a bank Account: mBank, BNP Paribas, or Other. Required on bank Accounts, absent on cash Accounts. Distinct from Import format (file layout of an export); Other here is not Import format Other.
+The named institution of a bank Account or Term Deposit: Alior, BNP Paribas, ING, Lokaty Facto, mBank, Pekao, PKO BP, Revolut, Santander, or Other. Required on bank Accounts and Term Deposits, absent on cash Accounts. Distinct from Import format (file layout of an export); Other here is not Import format Other. A named Bank does not imply a matching Import format.
 _Avoid_: Import format, Connector, Integration, BankAccount (as this field’s name)
 
 **Budget**:
-The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution.
+The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution. Execution does not end at year-end: later Financial Operations dated in that year remain allowed.
 _Avoid_: Year, Period, Wallet
 
 **Initial Plan**:
@@ -29,7 +29,7 @@ The planned income amounts and expense limits frozen when execution starts. Immu
 _Avoid_: Original budget, Baseline (in UI copy)
 
 **Current Plan**:
-The live planned income amounts and expense limits. May change during execution without touching the Initial Plan. Align sets it to max(0, Execution) on that Category (Available Limit becomes 0). That rewrite is live Current Plan for every month of the Budget year; it is not a month-scoped close of Month Remaining.
+The live planned income amounts and expense limits. May change during execution without touching the Initial Plan. Align sets it to max(0, Execution) on that Category (Available Limit becomes 0). That rewrite is live Current Plan for every month of the Budget year; it is not a year-end ritual and not a month-scoped close of Month Remaining.
 _Avoid_: Revised budget, Forecast
 
 **Category**:
@@ -62,11 +62,15 @@ _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit, Mon
 
 **Month Result**:
 Execution income minus Execution expense for one calendar month of a Budget year. Booked Financial Operations dated in that month only, all income and expense Categories including archived and One-off. Expense refunds net into the expense figure. Not Planned Balance, not Month Remaining, not unpaid Cash Expectations, not Own Transfer, not Capital Movement.
-_Avoid_: Balance (unqualified), Planned Balance, Available Limit, Month Remaining, Liquidity. Polish UI copy: „Wynik”.
+_Avoid_: Balance (unqualified), Planned Balance, Available Limit, Month Remaining, Liquidity, Year Result. Polish UI copy: „Wynik”.
+
+**Year Result**:
+Execution income minus Execution expense for one Budget year. Same inclusions as Month Result, for every date in that year rather than one month. A reading, not a posted stock. Not leftover Available Limit, not Planned Balance, not a change in Spendable Liquidity or Total funds. Polish UI copy: „Wynik roku”.
+_Avoid_: Month Result (for this year figure), bare Wynik, Bilans, Planned Balance, leftover Available Limit, Pozostało, profit, surplus (unqualified), Δ Liquidity, Spendable Liquidity, Reserve, Rezerwa (as a plan-plane stock Year Result is posted into)
 
 **Financial Operation**:
-An income, expense, or expense refund: dated, non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation (spawned amount may differ: correction): that Cash Expectation is destroyed and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
-_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type), Cash Expectation
+An income, expense, or expense refund: dated (past dates included; not a second type), non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation (spawned amount may differ: correction): that Cash Expectation is destroyed and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.
+_Avoid_: Transaction (overloaded with DB transactions), Payment, Transfer (for this type), Term Deposit (as the Account), Capital Movement, Term Deposit interest (as a fourth persisted type), Cash Expectation, archival data / historical dump as a persisted type, Archive (for booked history)
 
 **Expense refund**:
 A negative amount on an expense Category (Financial Operation or Cash Expectation), not Income and not a fourth persisted type. As a Financial Operation it restores Account balance and Available Limit, so Execution is net spend; as a Cash Expectation it does not move Liquidity, Execution, or Available Limit.

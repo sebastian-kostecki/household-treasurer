@@ -7,7 +7,6 @@ const props = defineProps<{
     categoryType: 'income' | 'expense';
     phase: 'draft' | 'execution';
     canReorder?: boolean;
-    showMonthColumn?: boolean;
 }>();
 
 const t = useTranslations();
@@ -68,12 +67,6 @@ const remainingHint = computed(() =>
                     />
                 </th>
             </template>
-            <th v-if="showMonthColumn" class="text-right">
-                <ColumnHeaderHint
-                    :label="t.budget.in_month_column"
-                    :hint="t.budget.in_month_hint"
-                />
-            </th>
             <th class="text-right">
                 {{ t.budget.actions }}
             </th>

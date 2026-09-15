@@ -47,8 +47,6 @@ export type BudgetCategoryRow = {
     can_restore: boolean;
     can_align_current_plan: boolean;
     is_paced: boolean;
-    month_remaining_minor_units?: number | null;
-    month_execution_minor_units?: number;
 };
 
 const NAME_FILTER_THRESHOLD = 12;
@@ -63,7 +61,6 @@ const props = defineProps<{
     canReorder: boolean;
     emptyDescription: string;
     addLabel: string;
-    showMonthColumn?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -101,38 +98,6 @@ const remainingLabel = computed(() =>
         ? t.budget.remaining_income
         : t.budget.remaining_expense,
 );
-
-function monthCellLabel(category: BudgetCategoryRow): string {
-    if (
-        category.is_paced &&
-        category.month_remaining_minor_units !== undefined &&
-        category.month_remaining_minor_units !== null
-    ) {
-        return formatMoney(category.month_remaining_minor_units);
-    }
-
-    if (
-        !category.is_paced &&
-        (category.month_execution_minor_units ?? 0) !== 0
-    ) {
-        return formatMoney(category.month_execution_minor_units ?? 0);
-    }
-
-    return '—';
-}
-
-function monthCellClass(category: BudgetCategoryRow): string {
-    if (
-        category.is_paced &&
-        category.month_remaining_minor_units !== undefined &&
-        category.month_remaining_minor_units !== null &&
-        category.month_remaining_minor_units < 0
-    ) {
-        return 'text-destructive';
-    }
-
-    return 'text-muted-foreground';
-}
 
 watch(
     () => props.categories,
@@ -284,7 +249,6 @@ async function onDragEnd(): Promise<void> {
                         :category-type="categoryType"
                         :phase="phase"
                         :can-reorder="canReorder"
-                        :show-month-column="showMonthColumn"
                     />
                     <draggable
                         v-model="activeCategories"
@@ -404,13 +368,6 @@ async function onDragEnd(): Promise<void> {
                                         }}
                                     </td>
                                 </template>
-                                <td
-                                    v-if="showMonthColumn"
-                                    class="tabular-amount"
-                                    :class="monthCellClass(category)"
-                                >
-                                    {{ monthCellLabel(category) }}
-                                </td>
                                 <td>
                                     <BudgetCategoryRowActions
                                         :category="category"
@@ -490,7 +447,6 @@ async function onDragEnd(): Promise<void> {
                                     }}
                                 </td>
                             </template>
-                            <td v-if="showMonthColumn" />
                             <td />
                         </tr>
                     </tfoot>
@@ -528,7 +484,6 @@ async function onDragEnd(): Promise<void> {
                             <BudgetCategoryTableHeader
                                 :category-type="categoryType"
                                 :phase="phase"
-                                :show-month-column="showMonthColumn"
                             />
                             <tbody>
                                 <tr
@@ -611,13 +566,6 @@ async function onDragEnd(): Promise<void> {
                                             }}
                                         </td>
                                     </template>
-                                    <td
-                                        v-if="showMonthColumn"
-                                        class="tabular-amount"
-                                        :class="monthCellClass(category)"
-                                    >
-                                        {{ monthCellLabel(category) }}
-                                    </td>
                                     <td>
                                         <BudgetCategoryRowActions
                                             :category="category"
@@ -705,17 +653,6 @@ async function onDragEnd(): Promise<void> {
                                                 category.current_plan_minor_units,
                                             )
                                         }}
-                                    </p>
-                                </div>
-                                <div v-if="showMonthColumn">
-                                    <p class="text-muted-foreground text-xs">
-                                        {{ t.budget.in_month_column }}
-                                    </p>
-                                    <p
-                                        class="font-medium tabular-nums"
-                                        :class="monthCellClass(category)"
-                                    >
-                                        {{ monthCellLabel(category) }}
                                     </p>
                                 </div>
                                 <template v-if="isExecution">
@@ -992,17 +929,6 @@ async function onDragEnd(): Promise<void> {
                                                 category.current_plan_minor_units,
                                             )
                                         }}
-                                    </p>
-                                </div>
-                                <div v-if="showMonthColumn">
-                                    <p class="text-muted-foreground text-xs">
-                                        {{ t.budget.in_month_column }}
-                                    </p>
-                                    <p
-                                        class="font-medium tabular-nums"
-                                        :class="monthCellClass(category)"
-                                    >
-                                        {{ monthCellLabel(category) }}
                                     </p>
                                 </div>
                                 <template v-if="isExecution">

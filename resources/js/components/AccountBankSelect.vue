@@ -30,19 +30,20 @@ const selectedBank = computed({
 });
 
 function bankLabel(bank: AccountBank): string {
-    if (bank === 'mbank') {
-        return t.accounts.bank_mbank;
-    }
+    const labels: Record<AccountBank, string> = {
+        alior: t.accounts.bank_alior,
+        bnp_paribas: t.accounts.bank_bnp_paribas,
+        ing: t.accounts.bank_ing,
+        lokaty_facto: t.accounts.bank_lokaty_facto,
+        mbank: t.accounts.bank_mbank,
+        pekao: t.accounts.bank_pekao,
+        pko_bp: t.accounts.bank_pko_bp,
+        revolut: t.accounts.bank_revolut,
+        santander: t.accounts.bank_santander,
+        other: t.accounts.bank_other,
+    };
 
-    if (bank === 'bnp_paribas') {
-        return t.accounts.bank_bnp_paribas;
-    }
-
-    if (bank === 'lokaty_facto') {
-        return t.accounts.bank_lokaty_facto;
-    }
-
-    return t.accounts.bank_other;
+    return labels[bank];
 }
 </script>
 
