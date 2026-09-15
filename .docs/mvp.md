@@ -2,16 +2,16 @@
 
 ## 1. Cel produktu
 
-Household Treasurer pomaga jednej osobie przygotować roczny budżet domowy, rejestrować jego wykonanie i kontrolować środki na rachunkach bankowych oraz w gotówce.
+Household Treasurer pomaga jednej osobie przygotować roczny budżet domowy, rejestrować jego wykonanie i kontrolować środki na rachunkach bankowych, w gotówce oraz na lokatach (Term Deposit).
 
-Produkt łączy planowanie według kategorii z ewidencją rzeczywistych przepływów. Dzięki temu użytkownik widzi zarówno wykonanie budżetu, jak i bieżące salda kont.
+Produkt łączy planowanie według kategorii z ewidencją rzeczywistych przepływów. Dzięki temu użytkownik widzi zarówno wykonanie budżetu, jak i Spendable Liquidity oraz Total funds.
 
 ## 2. Założenia
 
-- Jeden użytkownik zarządza wyłącznie własnymi danymi.
+- Konta logowania tworzy administrator; samodzielna rejestracja jest wyłączona. Każdy użytkownik zarządza wyłącznie własnymi danymi.
 - Rok kalendarzowy jest podstawowym okresem budżetowym.
-- Jeden budżet roczny korzysta z jednej waluty.
-- MVP obsługuje rachunki bankowe i konta gotówkowe w walucie budżetu.
+- Walutą MVP jest PLN.
+- MVP obsługuje rachunki bankowe, konta gotówkowe i lokaty (Term Deposit). Bank na rachunku i lokacie to instytucja, nie Import format.
 - Dochody i wydatki są ujmowane w momencie zapłaty.
 - Operacje można dodawać ręcznie albo tworzyć z pozycji importowanych z pliku CSV albo XLSX.
 - Aplikacja wymaga logowania, trwałego zapisu danych i izolacji danych użytkowników.
@@ -37,9 +37,10 @@ Użytkownik:
 
 - tworzy budżet dla wybranego roku,
 - przy tworzeniu szkicu może skopiować kategorie i plan aktualny z wcześniejszego własnego budżetu (nowe rekordy, bez tożsamości ponad latami),
-- tworzy kategorie dochodów i wydatków,
+- tworzy kategorie dochodów i wydatków (wygląd, kolejność; kategoria wydatkowa jest Paced Category albo One-off Category),
 - określa roczne planowane kwoty dochodów,
 - przypisuje roczne limity kategoriom wydatkowym,
+- wyrównuje plan aktualny do wykonania (Align) bez zmiany planu początkowego,
 - rozpoczyna wykonanie budżetu.
 
 W chwili rozpoczęcia wykonania system zapisuje plan początkowy. Podczas wykonywania budżetu użytkownik może bezpośrednio zmieniać planowane kwoty i limity. System pokazuje osobno plan początkowy i plan aktualny, ale MVP nie wymaga uzasadnienia ani formalnego procesu zatwierdzania zmian.
@@ -50,7 +51,7 @@ Konto reprezentuje środki płynne użytkownika. W MVP może być rachunkiem ban
 
 - nazwę,
 - typ,
-- walutę,
+- Bank (na rachunku bankowym),
 - saldo otwarcia,
 - saldo bieżące wynikające z operacji.
 
@@ -58,11 +59,15 @@ Saldo otwarcia opisuje środki posiadane na początku ewidencji i nie jest docho
 
 ### 3.3. Operacje finansowe
 
-Operacja ma jeden z trzech typów:
+Operacja finansowa ma jeden z typów:
 
 - **dochód** — zwiększa saldo konta i wykonanie planu wskazanej kategorii dochodowej,
 - **wydatek** — zmniejsza saldo konta i wykorzystuje limit wskazanej kategorii wydatkowej,
-- **transfer własny** — przenosi środki między dwoma kontami użytkownika bez wpływu na wykonanie budżetu.
+- **zwrot wydatku** — ujemny wydatek na kategorii wydatkowej.
+
+**Transfer własny** przenosi środki między dwoma kontami użytkownika bez wpływu na wykonanie budżetu.
+
+**Capital Movement** przenosi kapitał między kontem a istniejącą lokatą i nie wpływa na wykonanie budżetu.
 
 Dochód i wydatek zawierają co najmniej datę, kwotę, opis, konto i kategorię odpowiedniego typu. Użytkownik może edytować i usuwać operacje. Edycja może zmienić dochód w zwrot wydatku (kategoria wydatkowa) i zwrot z powrotem w dochód; Import nie zgaduje tej klasyfikacji.
 
@@ -75,8 +80,10 @@ Dla każdej kategorii system pokazuje:
 - plan początkowy,
 - plan aktualny,
 - wykonanie,
-- pozostałą kwotę,
-- procent wykonania.
+- pozostałą kwotę (Available Limit),
+- procent wykonania,
+- Month Remaining dla Paced Category,
+- Planned Balance i Month Result.
 
 Dla kategorii wydatkowej obowiązuje reguła:
 
@@ -98,8 +105,8 @@ Nazwane formaty znają układ eksportu banku (w tym preambułę mBanku oraz arku
 
 System udostępnia:
 
-- salda wszystkich kont,
-- łączną wartość środków płynnych,
+- salda wszystkich kont (Spendable Liquidity),
+- Total funds (Spendable Liquidity plus salda lokat),
 - plan początkowy, plan aktualny i wykonanie dla każdej kategorii,
 - sumę planowanych i rzeczywistych dochodów,
 - sumę limitów i rzeczywistych wydatków.
@@ -109,21 +116,23 @@ System udostępnia:
 - Użytkownik
 - Rok budżetowy
 - Konto
-- Kategoria
+- Term Deposit
+- Kategoria (Paced Category / One-off Category)
 - Plan początkowy
 - Plan aktualny
 - Operacja finansowa
 - Transfer własny
+- Capital Movement
 - Import
 
 ## 5. Główny przebieg użytkownika
 
-1. Użytkownik tworzy rachunki bankowe i konta gotówkowe oraz podaje ich salda otwarcia.
+1. Administrator tworzy konto logowania. Użytkownik loguje się, tworzy rachunki bankowe i konta gotówkowe oraz podaje ich salda otwarcia. W razie potrzeby dodaje lokaty.
 2. Tworzy budżet roczny; gdy ma wcześniejszy budżet z niezarchiwizowanymi kategoriami, może skopiować te kategorie wraz z planem aktualnym.
 3. W razie potrzeby poprawia kategorie oraz planuje dochody i limity wydatków.
 4. Rozpoczyna wykonanie i zapisuje plan początkowy.
 5. Dodaje ręcznie albo importuje dochody i wydatki.
-6. Rejestruje transfery między własnymi kontami.
+6. Rejestruje transfery między własnymi kontami oraz ruchy kapitału na lokaty.
 7. Kontroluje salda kont, wykonanie kategorii i dostępne limity.
 8. W razie potrzeby aktualizuje planowane kwoty lub pozostawia widoczne odchylenia.
 
@@ -132,12 +141,14 @@ System udostępnia:
 - Wszystkie kwoty są przechowywane bez obliczeń zmiennoprzecinkowych.
 - Dochód lub wydatek wpływa jednocześnie na saldo konta i wykonanie właściwej kategorii.
 - Transfer własny wpływa wyłącznie na salda kont.
-- Utworzenie, edycja albo usunięcie transferu aktualizuje obie jego strony atomowo.
+- Capital Movement wpływa na saldo konta i lokaty, nie na wykonanie budżetu.
+- Utworzenie, edycja albo usunięcie transferu albo Capital Movement aktualizuje obie strony atomowo.
 - Dane jednego użytkownika nie są dostępne dla innych użytkowników.
 
 ## 7. Poza zakresem MVP
 
-- zobowiązania i planowane przyszłe płatności,
+- księga długów, recurrences; Agenda i Cash Expectation (specyfikacja następnego przyrostu, nie w tym wydaniu),
+- samodzielna rejestracja w interfejsie webowym,
 - rezerwy budżetowe,
 - miesięczne harmonogramy i prognozy płynności,
 - formalne zatwierdzanie zmian budżetowych,
@@ -153,7 +164,7 @@ System udostępnia:
 - wiele walut w jednym budżecie,
 - natywne aplikacje mobilne,
 - funkcje AI,
-- zarządzanie portfelem inwestycyjnym,
+- zarządzanie portfelem inwestycyjnym (lokata bankowa jest w zakresie),
 - kredyty, pożyczki i rozliczenia podatkowe,
 - ewidencja nieruchomości, pojazdów i innych niepłynnych składników majątku.
 
@@ -163,9 +174,9 @@ MVP jest kompletne, gdy użytkownik może:
 
 1. utworzyć roczny budżet z kategoriami oraz planowanymi dochodami i limitami wydatków, w tym rozpocząć kolejny rok przez skopiowanie kategorii i planu aktualnego,
 2. zapisać plan początkowy i później aktualizować plan bieżący,
-3. prowadzić salda rachunków bankowych i kont gotówkowych,
-4. rejestrować dochody i wydatki przypisane do kont oraz kategorii,
-5. przenosić środki między własnymi kontami bez wpływu na wykonanie budżetu,
+3. prowadzić salda rachunków bankowych, kont gotówkowych i lokat,
+4. rejestrować dochody, wydatki i zwroty przypisane do kont oraz kategorii,
+5. przenosić środki między własnymi kontami oraz kapitał między kontem a lokatą bez wpływu na wykonanie budżetu,
 6. importować podstawowe operacje z pliku CSV albo XLSX po sprawdzeniu podglądu,
 7. porównywać plan początkowy, plan aktualny i wykonanie,
 8. rozróżniać wykonanie budżetu od bieżącego stanu środków.

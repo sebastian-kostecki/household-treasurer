@@ -6,10 +6,10 @@ Household Treasurer jest responsywną aplikacją webową do planowania rocznego 
 
 Produkt łączy dwie odrębne perspektywy:
 
-- **budżet** — plan początkowy, plan aktualny i wykonanie kategorii,
+- **budżet** — plan początkowy, plan aktualny i wykonanie kategorii, w tym Paced Category i One-off Category oraz odczyt Month Remaining,
 - **płynność** — Spendable Liquidity (salda kont) i Total funds (te salda plus bieżące salda lokat).
 
-MVP obsługuje wielu niezależnych użytkowników. Każdy zarządza wyłącznie własnymi danymi, używając stałej waluty bazowej PLN.
+MVP obsługuje wielu niezależnych użytkowników. Konta logowania tworzy administrator. Każdy użytkownik zarządza wyłącznie własnymi danymi, używając stałej waluty bazowej PLN.
 
 ## 2. Problem
 
@@ -34,7 +34,7 @@ Arkusze kalkulacyjne i oddzielne zestawienia rachunków wymagają ręcznego uzga
 - Zapewnić poprawną ewidencję transferów między własnymi kontami.
 - Umożliwić ewidencję lokat bankowych (Term Deposit) i ruchów kapitału między kontem a lokatą bez wpływu na wykonanie budżetu.
 - Ułatwić wprowadzanie operacji przez kontrolowany Import z pliku CSV lub XLSX.
-- Zapewnić przejrzysty obraz wykonania budżetu oraz Spendable Liquidity i Total funds.
+- Zapewnić przejrzysty obraz wykonania budżetu, Planned Balance, Month Result, Month Remaining puli równomiernych oraz Spendable Liquidity i Total funds.
 
 ### 3.2. Mierniki sukcesu MVP
 
@@ -49,8 +49,11 @@ MVP spełnia cel produktowy, gdy użytkownik może samodzielnie:
 7. odczytać salda poszczególnych kont (Spendable Liquidity) oraz Total funds łącznie z lokatami,
 8. rozpoznać przekroczenie limitu niezależnie od stanu środków na kontach,
 9. rozpocząć kolejny rok, kopiując kategorie i plan aktualny z wcześniejszego budżetu,
-10. utworzyć lokatę z datą i saldem otwarcia ewidencji oraz przenieść kapitał między kontem a lokatą,
-11. sklasyfikować wiersz Importu jako Capital Movement na istniejącą lokatę, w tym rozdzielić zwrot kapitału i odsetki.
+10. utworzyć lokatę z bankiem, datą i saldem otwarcia ewidencji oraz przenieść kapitał między kontem a lokatą,
+11. sklasyfikować wiersz Importu jako Capital Movement na istniejącą lokatę, w tym rozdzielić zwrot kapitału i odsetki,
+12. oznaczyć kategorię wydatkową jako Paced Category albo One-off Category i odczytać Month Remaining,
+13. wyrównać plan aktualny do wykonania (Align) bez zmiany planu początkowego,
+14. filtrować listę operacji po roku, nazwie i typie kategorii, koncie, lokacie, zakresie dat i tekście.
 
 ## 4. Użytkownik i platforma
 
@@ -60,7 +63,8 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 ### 4.2. Model użytkowników
 
-- System może obsługiwać wielu zarejestrowanych użytkowników.
+- System może obsługiwać wielu użytkowników.
+- Konto logowania tworzy administrator (`user:create`). Samodzielna rejestracja w interfejsie webowym jest wyłączona.
 - Każdy użytkownik ma własną, odizolowaną przestrzeń danych.
 - Budżety nie są współdzielone między użytkownikami ani domownikami.
 
@@ -77,7 +81,9 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - Budżety różnych lat mogą istnieć równolegle w różnych fazach.
 - Przy tworzeniu szkicu użytkownik może skopiować kategorie i plan aktualny z wcześniejszego własnego budżetu; kopia tworzy nowe kategorie, a nie tożsamość ponad latami.
 - Konta istnieją niezależnie od budżetów i przechodzą między latami.
-- Term Deposit (lokata bankowa) nie jest kontem ani kategorią. Każda lokata jest osobnym holdingiem, nie wspólną pulą. Istnieje niezależnie od roku budżetowego.
+- Term Deposit (lokata bankowa) nie jest kontem ani kategorią. Każda lokata jest osobnym holdingiem, nie wspólną pulą. Istnieje niezależnie od roku budżetowego. Wymaga Bank. Opcjonalna data zakończenia jest wyłącznie informacyjna: nie zmienia sald ani Capital Movements i nie jest kalendarzem zapadalności.
+- Kategoria wydatkowa jest albo Paced Category (domyślnie), albo One-off Category. Kategoria dochodowa nie ma tej flagi. Month Remaining dotyczy wyłącznie puli równomiernych i nie jest Available Limit.
+- Bank na rachunku bankowym i lokacie to instytucja (Alior, BNP Paribas, ING, Lokaty Facto, mBank, Pekao, PKO BP, Revolut, Santander albo Inny). To nie jest Import format.
 - Walutą wszystkich kont, lokat, budżetów i operacji w MVP jest PLN.
 - Dochody i wydatki są ujmowane kasowo, w dniu rzeczywistej zapłaty. Odsetki od lokaty są zwykłym dochodem na koncie i kategorii dochodowej; nie zmieniają salda lokaty.
 - Wszystkie dane są zapisywane trwale.
@@ -87,10 +93,10 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 ### 6.1. Rozpoczęcie pracy
 
-1. Użytkownik rejestruje się i loguje.
+1. Administrator tworzy konto logowania. Użytkownik loguje się (po weryfikacji e-mail, gdy konto jej wymaga).
 2. Tworzy rachunki bankowe oraz konta gotówkowe.
-3. Dla każdego konta podaje datę i saldo otwarcia.
-4. W razie potrzeby tworzy lokaty (Term Deposit) z datą i saldem otwarcia ewidencji. Saldo otwarcia lokaty nie jest dochodem i nie zmienia salda konta.
+3. Dla każdego konta podaje datę i saldo otwarcia. Na rachunku bankowym wskazuje Bank.
+4. W razie potrzeby tworzy lokaty (Term Deposit) z Bank, datą i saldem otwarcia ewidencji oraz opcjonalną datą zakończenia. Saldo otwarcia lokaty nie jest dochodem i nie zmienia salda konta.
 5. Tworzy szkic budżetu dla wybranego roku. Gdy ma wcześniejszy budżet z niezarchiwizowanymi kategoriami, może skopiować te kategorie wraz z planem aktualnym.
 6. W razie potrzeby poprawia, usuwa lub dopisuje kategorie oraz planowane kwoty na szkicu.
 7. Sprawdza równowagę planu i rozpoczyna wykonanie.
@@ -108,23 +114,25 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 ### 6.3. Kontrola
 
 1. Użytkownik przegląda salda kont (Spendable Liquidity), salda lokat oraz Total funds.
-2. Dla każdej kategorii porównuje plan początkowy, plan aktualny i wykonanie.
-3. Analizuje pozostałą kwotę, procent wykonania oraz przekroczenia.
-4. W razie potrzeby aktualizuje plan albo pozostawia widoczne odchylenie.
+2. Dla każdej kategorii porównuje plan początkowy, plan aktualny i wykonanie. Widzi Planned Balance (Bilans) oraz Month Result (Wynik) wybranego miesiąca.
+3. Analizuje Available Limit, Month Remaining puli równomiernych, procent wykonania oraz przekroczenia.
+4. W razie potrzeby aktualizuje plan, wyrównuje go do wykonania (Align) albo pozostawia widoczne odchylenie.
 
 ## 7. Wymagania funkcjonalne
 
 ### 7.1. Tożsamość i dostęp
 
-- **FR-AUTH-01**: Użytkownik może zarejestrować konto przy użyciu adresu e-mail i hasła.
+- **FR-AUTH-01**: Administrator może utworzyć konto logowania (`user:create`) z nazwą, adresem e-mail i hasłem. Domyślnie konto jest od razu zweryfikowane; opcja `--unverified` zostawia weryfikację e-mail do wykonania przez użytkownika. Samodzielna rejestracja w interfejsie webowym jest wyłączona.
 - **FR-AUTH-02**: Użytkownik może się zalogować i wylogować.
 - **FR-AUTH-03**: Użytkownik może rozpocząć i zakończyć proces resetowania hasła.
 - **FR-AUTH-04**: Po zalogowaniu użytkownik ma dostęp wyłącznie do własnych danych.
+- **FR-AUTH-05**: Nieweryfikowany użytkownik nie ma dostępu do aplikacji, dopóki nie potwierdzi adresu e-mail.
+- **FR-AUTH-06**: Użytkownik może włączyć uwierzytelnianie dwuskładnikowe (TOTP) oraz klucze dostępu (passkeys).
 
 ### 7.2. Konta
 
 - **FR-ACC-01**: Użytkownik może utworzyć rachunek bankowy albo konto gotówkowe.
-- **FR-ACC-02**: Konto zawiera nazwę, typ, datę otwarcia, saldo otwarcia i saldo bieżące. Rachunek bankowy zawiera także Bank (mBank, BNP Paribas albo Inny).
+- **FR-ACC-02**: Konto zawiera nazwę, typ, datę otwarcia, saldo otwarcia i saldo bieżące. Rachunek bankowy zawiera także Bank (Alior, BNP Paribas, ING, Lokaty Facto, mBank, Pekao, PKO BP, Revolut, Santander albo Inny).
 - **FR-ACC-03**: Użytkownik może edytować nazwę, typ i saldo otwarcia konta. Na rachunku bankowym może edytować także Bank.
 - **FR-ACC-04**: Data otwarcia nie może być późniejsza niż najstarsza operacja zapisana na koncie.
 - **FR-ACC-05**: Operacja nie może mieć daty wcześniejszej niż data otwarcia użytego konta.
@@ -153,19 +161,23 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 ### 7.4. Kategorie i plany
 
-- **FR-CAT-01**: Użytkownik może dodać do budżetu kategorię dochodową albo wydatkową.
+- **FR-CAT-01**: Użytkownik może dodać do budżetu kategorię dochodową albo wydatkową z nazwą, ikoną, kolorem i planowaną kwotą.
 - **FR-CAT-02**: Kategoria należy do jednego budżetu rocznego.
 - **FR-CAT-03**: Kategoria dochodowa ma nieujemną planowaną kwotę dochodu.
 - **FR-CAT-04**: Kategoria wydatkowa ma nieujemny limit wydatków.
-- **FR-CAT-05**: W szkicu użytkownik może zmieniać nazwy, typy i planowane kwoty kategorii.
+- **FR-CAT-05**: W szkicu użytkownik może zmieniać nazwy, typy, wygląd, flagę Paced i planowane kwoty kategorii.
 - **FR-CAT-06**: Po rozpoczęciu wykonania nie można zmienić typu istniejącej kategorii.
 - **FR-CAT-07**: Po rozpoczęciu wykonania użytkownik może zmieniać plan aktualny bez modyfikowania planu początkowego.
 - **FR-CAT-08**: Po rozpoczęciu wykonania użytkownik może dodać kategorię, której plan początkowy wynosi 0 PLN, a plan aktualny przyjmuje podaną kwotę.
 - **FR-CAT-09**: Kategoria może zostać usunięta ze szkicu budżetu.
 - **FR-CAT-10**: Po rozpoczęciu wykonania kategoria nie może zostać usunięta, ale może zostać zarchiwizowana.
 - **FR-CAT-11**: Zarchiwizowana kategoria nie jest dostępna przy tworzeniu nowych operacji i może zostać przywrócona.
-- **FR-CAT-12**: Skopiowana kategoria jest nowym rekordem docelowego budżetu. Otrzymuje nazwę, typ, ikonę, kolor, kolejność oraz plan aktualny źródła. Nie przejmuje tożsamości, wykonania, planu początkowego ani archiwum źródła.
+- **FR-CAT-12**: Skopiowana kategoria jest nowym rekordem docelowego budżetu. Otrzymuje nazwę, typ, ikonę, kolor, kolejność, flagę Paced oraz plan aktualny źródła. Nie przejmuje tożsamości, wykonania, planu początkowego ani archiwum źródła.
 - **FR-CAT-13**: Zarchiwizowane kategorie źródła nie są kopiowane.
+- **FR-CAT-14**: Użytkownik może zmieniać kolejność kategorii w obrębie typu (dochód albo wydatek).
+- **FR-CAT-15**: Kategoria wydatkowa jest Paced Category (domyślnie) albo One-off Category. Kategoria dochodowa nie przyjmuje flagi Paced. Flaga jest żywa jak plan aktualny: użytkownik może ją zmieniać na niezarchiwizowanej kategorii wydatkowej także podczas wykonania.
+- **FR-CAT-16**: One-off Category nie ma Month Remaining i nie wchodzi do puli równomiernych. Nadal ma roczny Available Limit.
+- **FR-CAT-17**: Align (w UI: „Zakończ”) na niezarchiwizowanej kategorii budżetu w fazie wykonania ustawia plan aktualny na `max(0, Execution)`. Plan początkowy nie zmienia się. To nie jest rytuał końca roku ani zamknięcie Month Remaining.
 
 ### 7.5. Dochody, wydatki i zwroty
 
@@ -176,7 +188,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-TRX-05**: Dochód albo wydatek można zapisać tylko dla roku z budżetem w fazie wykonania.
 - **FR-TRX-06**: Zwykły dochód i zwykły wydatek mają kwotę dodatnią.
 - **FR-TRX-07**: Zwrot wydatku jest ujemnym wydatkiem przypisanym do kategorii wydatkowej; może też zawierać opcjonalnego nadawcę / odbiorcę (Counterparty).
-- **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny dostępny limit i przewidywany limit po operacji.
+- **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny Available Limit i przewidywany limit po operacji. Dla Paced Category pokazuje także Month Remaining przed operacją i po niej.
 - **FR-TRX-09**: Przekroczenie limitu nie blokuje zapisu operacji.
 - **FR-TRX-10**: Użytkownik może edytować i usuwać operacje w budżecie znajdującym się w fazie wykonania, w tym opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-11**: Zmiana daty na inny rok wymaga wskazania kategorii z docelowego budżetu będącego w fazie wykonania.
@@ -202,10 +214,10 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 
 Term Deposit jest holdingiem środków w bankowym produkcie lokaty. Nie jest kontem, kategorią, końcem transferu własnego ani kontem operacji finansowej. W interfejsie: „lokata”.
 
-- **FR-TD-01**: Użytkownik może utworzyć lokatę z nazwą, datą otwarcia ewidencji i saldem otwarcia.
+- **FR-TD-01**: Użytkownik może utworzyć lokatę z nazwą, Bank, datą otwarcia ewidencji i saldem otwarcia. Opcjonalnie podaje datę zakończenia.
 - **FR-TD-02**: Data otwarcia to pierwszy dzień tego holdingu w ewidencji, nie data rozpoczęcia produktu bankowego. Saldo otwarcia jest migawką: nie jest dochodem, nie jest ruchem kapitału, nie rozdziela kapitału od odsetek i nie zmienia żadnego konta. Może być zerowe albo ujemne.
 - **FR-TD-03**: Saldo bieżące lokaty jest równe tej migawce plus Capital Movements. Odsetki nie zmieniają salda lokaty.
-- **FR-TD-04**: Po utworzeniu data otwarcia jest niezmienna. Użytkownik może edytować nazwę i saldo otwarcia; zmiana salda otwarcia przelicza saldo bieżące o tę samą różnicę, bez tworzenia dochodu ani Capital Movement.
+- **FR-TD-04**: Po utworzeniu data otwarcia jest niezmienna. Użytkownik może edytować nazwę, Bank, saldo otwarcia i datę zakończenia; zmiana salda otwarcia przelicza saldo bieżące o tę samą różnicę, bez tworzenia dochodu ani Capital Movement.
 - **FR-TD-05**: Lokatę bez ruchów kapitału można usunąć. Lokaty użytej w Capital Movement nie można usunąć, ale można ją zarchiwizować i przywrócić.
 - **FR-TD-06**: Zarchiwizowana lokata nie jest dostępna przy tworzeniu nowych Capital Movements. Historyczne ruchy pozostają. Lista lokat ukrywa zarchiwizowane pozycje, dopóki użytkownik ich nie pokaże.
 - **FR-TD-07**: Użytkownik ma osobną pozycję nawigacji „Lokaty” (po Kontach): lista i dialogi tworzenia oraz edycji. Karty na pulpicie są tylko do odczytu i pomijają zarchiwizowane lokaty. Lista operacji może filtrować po lokacie.
@@ -213,6 +225,7 @@ Term Deposit jest holdingiem środków w bankowym produkcie lokaty. Nie jest kon
 - **FR-TD-09**: Utworzenie albo korekta migawki otwarcia, która zostawiłaby saldo bieżące ujemne, pokazuje Negative Balance Warning i nie blokuje zapisu. Ta operacja nie zmienia konta, więc ostrzeżenie dotyczy wyłącznie lokaty.
 - **FR-TD-10**: Import nie tworzy lokaty. Użytkownik wybiera istniejącą lokatę przy klasyfikacji wiersza.
 - **FR-TD-11**: First Run nie wymaga lokaty. Checklista pierwszego uruchomienia nadal obejmuje wyłącznie konto, budżet, kategorię i budżet w wykonaniu.
+- **FR-TD-12**: Data zakończenia jest opcjonalna i wyłącznie informacyjna. Nie wpływa na salda, Capital Movements ani Total funds. Nie może przypadać przed datą otwarcia. Nie jest kalendarzem zapadalności ani cechą oprocentowania.
 
 ### 7.8. Ruchy kapitału (Capital Movement)
 
@@ -260,7 +273,13 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-IMP-26**: Na wierszu uznania sklasyfikowanym jako Capital Movement użytkownik może podać kwotę odsetek i kategorię dochodową. Zatwierdzenie tworzy dwa niezależne rekordy: Capital Movement (lokata → konto) na resztę kapitału oraz operację finansową (dochód) na wpisane odsetki. Nie są one trwałą parą. Kwota odsetek musi być dodatnia i mniejsza od kwoty z pliku, tak aby kapitał pozostał dodatni. Ręczne dodanie nigdy nie tworzy obu rekordów w jednym zapisie.
 - **FR-IMP-27**: Gdy jeden wiersz zatwierdza Capital Movement i dochód z odsetek, oba rekordy otrzymują tę samą tożsamość wiersza pliku (nie dwa odciski rozdzielonych kwot). Capital Movement ma jeden odcisk, na koncie płynnym.
 
-### 7.10. Raportowanie i kontrola wykonania
+### 7.10. Lista operacji
+
+- **FR-OPS-01**: Lista operacji pokazuje operacje finansowe, transfery własne i Capital Movements użytkownika.
+- **FR-OPS-02**: Użytkownik może filtrować listę po tekście, roku budżetowym, parze nazwa+typ Category, koncie, lokacie oraz zakresie dat.
+- **FR-OPS-03**: Filtr kategorii jest zapytaniem po nazwie i typie, nie po tożsamości rekordu. Ta sama nazwa i typ w wielu latach trafia do jednego filtra; zmiana nazwy rozdziela historię. To nie jest tożsamość Category ponad latami.
+
+### 7.11. Raportowanie i kontrola wykonania
 
 - **FR-REP-01**: System pokazuje plan początkowy, plan aktualny, wykonanie, pozostałą kwotę i procent wykonania każdej kategorii.
 - **FR-REP-02**: Dla kategorii dodanej podczas wykonania plan początkowy jest prezentowany jako 0 PLN.
@@ -273,15 +292,20 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-REP-09**: Spendable Liquidity jest sumą bieżących sald wszystkich kont użytkownika, w tym zarchiwizowanych. Nie obejmuje sald lokat.
 - **FR-REP-10**: Total funds jest sumą Spendable Liquidity i bieżących sald wszystkich lokat użytkownika, w tym zarchiwizowanych. Capital Movement z konta na lokatę nie zmienia Total funds.
 - **FR-REP-11**: Pulpit pokazuje Spendable Liquidity, Total funds, karty niezarchiwizowanych kont oraz karty niezarchiwizowanych lokat.
+- **FR-REP-12**: System pokazuje Planned Balance: plan aktualny dochodów minus plan aktualny wydatków dla jednego budżetu. To nie jest saldo kont.
+- **FR-REP-13**: System pokazuje Month Remaining dla Paced Category i dla puli równomiernych w wybranym miesiącu roku budżetowego. One-off Category nie ma tego odczytu. Month Remaining nie jest Available Limit i nie jest równym podziałem planu aktualnego.
+- **FR-REP-14**: System pokazuje Month Result wybranego miesiąca: wykonanie dochodów minus wykonanie wydatków (w tym zarchiwizowane i One-off; zwroty netto w wydatkach). Own Transfer i Capital Movement nie wchodzą do tego odczytu.
+- **FR-REP-15**: Mierniki pulpitu i sumy planu (dochody, wydatki, Planned Balance) pomijają zarchiwizowane kategorie. Lista budżetu pokazuje je w osobnej sekcji i pomija w sumach planu, dopóki użytkownik nie poprosi o pokazanie zarchiwizowanych. Arytmetyka Month Remaining nadal używa wszystkich Paced Category tego budżetu, w tym zarchiwizowanych.
 
-### 7.11. Narzędzia operacyjne (Artisan)
+### 7.12. Narzędzia operacyjne (Artisan)
 
-Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu webowego MVP. Produkcyjny backup całej bazy pozostaje zrzutem PostgreSQL poza VPS (por. tech stack); poniższe komendy eksportują i przywracają **dane domenowe jednego użytkownika** w formacie JSON.
+Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu webowego MVP. Produkcyjny backup całej instancji to archiwum Spatie (PostgreSQL plus `storage/app`, por. ADR-0013 i tech stack). Poniższe komendy `user:*` eksportują i przywracają **dane domenowe jednego użytkownika** w formacie JSON.
 
-- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, lokaty, budżety, kategorie, operacje finansowe, transfery własne, Capital Movements oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 3 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`. Restore przyjmuje także starsze wersje 1 i 2 (wersja 1 bez lokat i ruchów kapitału).
+- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, lokaty, budżety, kategorie (w tym flagę Paced), operacje finansowe, transfery własne, Capital Movements oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 4 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`. Restore przyjmuje także starsze wersje 1–3 (wersja 1 bez lokat i ruchów kapitału; wersja 2 z lokatami bez ruchów kapitału; brak `is_paced` przywraca domyślne `true` dla kategorii wydatkowej).
 - **FR-ADM-02**: Administrator może przywrócić snapshot na **istniejącego** użytkownika-cel (`user:restore {user} {path}`). Przed wgraniem system usuwa wszystkie dane domenowe użytkownika-celu (jak `user:reset-data`). Restore nadaje rekordom nowe identyfikatory i przepina powiązania, więc snapshot można przenieść między różnymi użytkownikami. Operacja wymaga potwierdzenia; opcja `--force` pomija pytanie.
 - **FR-ADM-03**: Administrator może wyczyścić dane domenowe użytkownika bez usuwania konta logowania (`user:reset-data {user}`). Komenda usuwa konta, lokaty, budżety, operacje, transfery, Capital Movements i sesje użytkownika oraz resetuje checklistę pierwszego uruchomienia.
 - **FR-ADM-04**: Restore odrzuca plik z nieobsługiwaną wersją formatu lub uszkodzonym JSON.
+- **FR-ADM-05**: Administrator może przywrócić backup całej instancji ze zipa Spatie (`backup:restore {path}`). To nie jest `user:restore`.
 
 ## 8. Reguły biznesowe
 
@@ -307,6 +331,10 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **BR-20**: Spendable Liquidity to suma sald kont. Total funds to Spendable Liquidity plus salda lokat. Otwarcie albo zasilenie lokaty nie zmienia Total funds.
 - **BR-21**: Odsetki od lokaty są zwykłym dochodem na koncie i kategorii dochodowej. Rekord dochodu nie wskazuje lokaty i nie jest Capital Movement.
 - **BR-22**: Migawka otwarcia lokaty nie jest dochodem, ruchem kapitału ani podziałem kapitału i odsetek.
+- **BR-23**: Bank na rachunku bankowym i lokacie jest instytucją, nie Import format.
+- **BR-24**: Month Remaining nie jest Available Limit. Unpaid przyszłe płatności nie zmniejszają Available Limit, bo nie są operacjami finansowymi.
+- **BR-25**: Align przepisuje plan aktualny na `max(0, Execution)` i nie zmienia planu początkowego.
+- **BR-26**: Data zakończenia lokaty nie wchodzi do sald, Capital Movements ani Total funds.
 
 ## 9. Przypadki brzegowe i obsługa błędów
 
@@ -314,7 +342,9 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Próba użycia zarchiwizowanego konta, kategorii albo lokaty jest blokowana bez zmiany danych.
 - Próba zapisania operacji wcześniejszej niż data otwarcia konta albo późniejszej niż bieżący dzień jest blokowana.
 - Próba zapisania Capital Movement wcześniejszego niż data otwarcia konta albo lokaty, albo z datą w przyszłości, jest blokowana.
-- Przekroczenie limitu i zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
+- Przekroczenie limitu, zejście Month Remaining poniżej zera oraz zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
+- Data zakończenia lokaty wcześniejsza niż data otwarcia jest odrzucana.
+- Flaga Paced na kategorii dochodowej jest odrzucana.
 - Zmiana daty operacji na inny rok nie zachowuje kategorii ze starego budżetu; użytkownik wybiera kategorię docelową.
 - Próba zmiany zwykłego wydatku w dochód albo dochodu w zwykły wydatek jest odrzucana; dochód może stać się zwrotem i odwrotnie.
 - Błąd dowolnej strony transferu wycofuje całą zmianę.
@@ -351,7 +381,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 
 ### 11.1. Dostęp i izolacja
 
-1. Zarejestrowany użytkownik może zalogować się, wylogować i odzyskać dostęp przez reset hasła.
+1. Administrator tworzy konto logowania. Użytkownik może zalogować się, wylogować, odzyskać dostęp przez reset hasła, potwierdzić e-mail, włączyć 2FA i passkeys. Samodzielna rejestracja jest niedostępna.
 2. Użytkownik nie może odczytać ani zmienić budżetu, konta, lokaty lub operacji należących do innego użytkownika.
 
 ### 11.2. Konta i płynność
@@ -370,12 +400,14 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 3. Późniejsza zmiana planu aktualnego nie modyfikuje planu początkowego.
 4. Nowa kategoria dodana podczas wykonania ma plan początkowy 0 PLN.
 5. Ostrzeżenie o niepokrytym planowanym deficycie nie blokuje rozpoczęcia wykonania.
-6. Utworzenie budżetu ze źródłem kopiuje wszystkie niezarchiwizowane kategorie źródła z planem aktualnym, wyglądem i kolejnością; nowy budżet jest szkicem, a wykonanie źródła pozostaje bez zmian.
+6. Utworzenie budżetu ze źródłem kopiuje wszystkie niezarchiwizowane kategorie źródła z planem aktualnym, wyglądem, kolejnością i flagą Paced; nowy budżet jest szkicem, a wykonanie źródła pozostaje bez zmian.
 7. Skopiowane kategorie są osobnymi rekordami; ta sama nazwa w dwóch latach nie oznacza tej samej kategorii.
 8. Opcja bez kopiowania tworzy szkic bez kategorii, nawet gdy źródło jest dostępne.
 9. Zarchiwizowane kategorie źródła nie pojawiają się na nowym szkicu.
 10. Domyślne źródło to poprzedni rok kalendarzowy, a przy jego braku najnowszy kwalifikowany wcześniejszy budżet; budżet z przyszłości nie jest źródłem.
 11. Użytkownik nie może użyć budżetu innego użytkownika jako źródła kopii.
+12. Align ustawia plan aktualny na `max(0, Execution)` i zostawia plan początkowy bez zmian.
+13. Nowa kategoria wydatkowa jest Paced Category, dopóki użytkownik nie oznaczy jej jako One-off. One-off nie ma Month Remaining.
 
 ### 11.4. Operacje
 
@@ -426,10 +458,13 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 4. Spendable Liquidity jest równa sumie sald prezentowanych kont i nie jest Total funds.
 5. Salda kont nie są prezentowane jako dostępne limity kategorii ani odwrotnie.
 6. Total funds jest równa Spendable Liquidity plus salda lokat.
+7. Planned Balance jest równa planowi aktualnemu dochodów minus planowi aktualnemu wydatków i nie jest saldem kont.
+8. Month Remaining Paced Category nie jest równe Available Limit tej kategorii.
+9. Month Result miesiąca zgadza się z operacjami finansowymi datowanymi w tym miesiącu i nie obejmuje Own Transfer ani Capital Movement.
 
 ### 11.8. Lokaty i ruchy kapitału
 
-1. Utworzenie lokaty z datą i saldem otwarcia pokazuje saldo bieżące równe tej migawce i nie zmienia żadnego konta ani wykonania kategorii.
+1. Utworzenie lokaty z Bank, datą i saldem otwarcia pokazuje saldo bieżące równe tej migawce i nie zmienia żadnego konta ani wykonania kategorii. Opcjonalna data zakończenia nie rusza sald.
 2. Zmiana salda otwarcia przelicza saldo bieżące lokaty bez tworzenia dochodu ani Capital Movement. Data otwarcia po utworzeniu nie daje się zmienić.
 3. Capital Movement konto → lokata zmniejsza saldo konta i zwiększa saldo lokaty o tę samą kwotę. Kierunek odwrotny robi odwrotnie. Wykonanie kategorii nie zmienia się. Total funds nie zmienia się.
 4. Odsetki zaksięgowane jako dochód zwiększają saldo konta i wykonanie kategorii dochodowej; saldo lokaty pozostaje.
@@ -437,9 +472,16 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 6. Ujemne saldo lokaty jest dozwolone po ostrzeżeniu i jest oznaczone na pulpicie oraz na liście lokat.
 7. Przebudowa dochodu, wydatku albo transferu własnego w Capital Movement zostawia jeden rekord i spójne salda. Przebudowa odwrotna analogicznie.
 
+### 11.9. Lista operacji
+
+1. Lista filtruje operacje finansowe, transfery własne i Capital Movements po tekście, roku, koncie, lokacie i zakresie dat.
+2. Filtr kategorii po nazwie i typie obejmuje rekordy z wielu lat o tej samej parze; nie jest tożsamością Category ponad latami.
+
 ## 12. Poza zakresem MVP
 
-- zobowiązania i planowane przyszłe płatności,
+- księga długów, pozostałe saldo kredytu, recurrences i automatyczne zobowiązania,
+- Agenda i Cash Expectation jako powierzchnia produktu (specyfikacja następnego przyrostu: `.docs/specs/agenda-cash-expectations.md`; słownik: `CONTEXT.md`); nie są jeszcze w tym wydaniu,
+- samodzielna rejestracja w interfejsie webowym,
 - rezerwy budżetowe,
 - miesięczne harmonogramy oraz prognozy płynności,
 - formalne zatwierdzanie zmian budżetowych,
@@ -473,7 +515,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 - portfel inwestycyjny (fundusze, akcje, IKE/IKZE); lokata bankowa (Term Deposit) jest w zakresie,
 - kredyty, pożyczki i rozliczenia podatkowe,
 - nieruchomości, pojazdy i inne niepłynne składniki majątku,
-- kalendarz zapadalności lokaty oraz oprocentowanie jako cecha produktu (harmonogram, APR),
+- kalendarz zapadalności lokaty oraz oprocentowanie jako cecha produktu (harmonogram, APR); opcjonalna informacyjna data zakończenia jest w zakresie,
 - automatyczne odnawianie lokaty,
 - bezpośredni ruch kapitału lokata → lokata bez konta płynnego,
 - Counterparty na Capital Movement,
