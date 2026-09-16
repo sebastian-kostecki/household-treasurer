@@ -454,7 +454,7 @@
 
     .category-meter-cell-bar {
         grid-area: bar;
-        @apply min-w-0;
+        @apply min-w-0 overflow-visible;
     }
 
     .category-meter-cell-percent {

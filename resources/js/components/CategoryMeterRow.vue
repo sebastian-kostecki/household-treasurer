@@ -98,7 +98,7 @@ const showMeterTrack = computed(
         <div class="category-meter-cell-bar">
             <div
                 v-if="showMeterTrack"
-                class="bg-muted relative h-1.5 rounded-full"
+                class="bg-muted relative h-1.5 overflow-visible rounded-full"
             >
                 <div
                     v-if="displayPercentComplete !== null"
@@ -120,7 +120,7 @@ const showMeterTrack = computed(
                         yearElapsedPercent !== null &&
                         yearElapsedPercent !== undefined
                     "
-                    class="bg-foreground absolute inset-y-0 w-px -translate-x-1/2"
+                    class="bg-foreground ring-background pointer-events-none absolute top-1/2 z-10 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1"
                     :style="{ left: `${yearElapsedPercent}%` }"
                     aria-hidden="true"
                 />
