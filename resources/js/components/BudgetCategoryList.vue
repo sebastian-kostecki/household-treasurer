@@ -7,6 +7,7 @@ import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
 import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue';
 import BudgetCategoryTableHeader from '@/components/BudgetCategoryTableHeader.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import PlanChangedHint from '@/components/PlanChangedHint.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +23,6 @@ import { useTranslations } from '@/composables/useTranslations';
 import {
     type DashboardTypeTotals,
     meterPercentClass,
-    planChanged,
 } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 
@@ -304,16 +304,10 @@ async function onDragEnd(): Promise<void> {
                                                     category.initial_plan_minor_units,
                                                 )
                                             }}
-                                            <span
-                                                v-if="planChanged(category)"
-                                                class="text-muted-foreground text-xs"
-                                                :title="t.budget.plan_changed"
-                                                :aria-label="
-                                                    t.budget.plan_changed
-                                                "
-                                            >
-                                                ·
-                                            </span>
+                                            <PlanChangedHint
+                                                :category="category"
+                                                :label="t.budget.plan_changed"
+                                            />
                                         </span>
                                     </td>
                                     <td class="tabular-amount font-semibold">
@@ -746,16 +740,10 @@ async function onDragEnd(): Promise<void> {
                                                     category.initial_plan_minor_units,
                                                 )
                                             }}
-                                            <span
-                                                v-if="planChanged(category)"
-                                                class="text-xs"
-                                                :title="t.budget.plan_changed"
-                                                :aria-label="
-                                                    t.budget.plan_changed
-                                                "
-                                            >
-                                                ·
-                                            </span>
+                                            <PlanChangedHint
+                                                :category="category"
+                                                :label="t.budget.plan_changed"
+                                            />
                                         </p>
                                     </div>
                                 </template>
