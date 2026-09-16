@@ -18,7 +18,6 @@ import {
     type CategoryOrderMode,
     type DashboardCategory,
     type DashboardTypeTotals,
-    defaultCategoryOrderMode,
     progressWidth,
     sectionBarClass,
     sectionPercentClass,
@@ -41,9 +40,7 @@ const props = defineProps<{
 const t = useTranslations();
 const isExpanded = ref(false);
 const showYearElapsed = ref(false);
-const orderMode = ref<CategoryOrderMode>(
-    defaultCategoryOrderMode(props.showOrderToggle ?? false),
-);
+const orderMode = ref<CategoryOrderMode>('budget');
 
 const storageKey = computed(
     () => `dashboard-year-elapsed-${props.categoryType}`,
@@ -59,13 +56,9 @@ watch(showYearElapsed, (enabled) => {
     window.localStorage.setItem(storageKey.value, enabled ? '1' : '0');
 });
 
-const yearElapsedLabel = computed(() => {
-    if (!showYearElapsed.value) {
-        return t.dashboard.year_elapsed;
-    }
-
-    return `${t.dashboard.year_elapsed} ${formatDate(props.yearElapsedAsOf)}`;
-});
+const yearElapsedLabel = computed(
+    () => `${t.dashboard.year_elapsed} ${formatDate(props.yearElapsedAsOf)}`,
+);
 
 const orderModeLabel = computed(() => {
     if (orderMode.value === 'budget') {
