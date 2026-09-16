@@ -7,7 +7,6 @@ import {
     type DashboardCategory,
     meterBarClass,
     meterPercentClass,
-    planChanged,
     progressWidth,
     remainingClass,
 } from '@/lib/dashboard-categories';
@@ -22,7 +21,6 @@ const props = defineProps<{
 
 const t = useTranslations();
 
-const hasPlanChanged = planChanged(props.category);
 const displayPercentComplete = computed(() => props.category.percent_complete);
 const showMeterTrack = computed(
     () =>
@@ -51,14 +49,6 @@ const showMeterTrack = computed(
                 >
                     {{ t.budget.archived_badge }}
                 </Badge>
-                <span
-                    v-if="hasPlanChanged"
-                    class="text-muted-foreground shrink-0 text-xs"
-                    :title="t.dashboard.plan_changed"
-                    :aria-label="t.dashboard.plan_changed"
-                >
-                    ·
-                </span>
             </div>
         </div>
 
