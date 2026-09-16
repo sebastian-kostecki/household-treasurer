@@ -63,7 +63,8 @@ const props = defineProps<{
     expenseCategories: DashboardCategory[];
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
-    showMonthRemainingOrder: boolean;
+    year_elapsed_as_of: string | null;
+    year_elapsed_percent: number | null;
 }>();
 
 const t = useTranslations();
@@ -254,10 +255,7 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                 v-if="termDeposits.length > 0"
                 class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
             >
-                <Card
-                    v-for="termDeposit in termDeposits"
-                    :key="termDeposit.id"
-                >
+                <Card v-for="termDeposit in termDeposits" :key="termDeposit.id">
                     <CardHeader class="space-y-3 pb-2">
                         <AccountIdentityBlock
                             :name="termDeposit.name"
@@ -302,6 +300,8 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                     category-type="income"
                     :categories="incomeCategories"
                     :totals="incomeTotals"
+                    :year-elapsed-as-of="year_elapsed_as_of ?? ''"
+                    :year-elapsed-percent="year_elapsed_percent ?? 0"
                 />
 
                 <DashboardCategorySection
@@ -309,7 +309,8 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                     category-type="expense"
                     :categories="expenseCategories"
                     :totals="expenseTotals"
-                    :show-month-remaining-order="showMonthRemainingOrder"
+                    :year-elapsed-as-of="year_elapsed_as_of ?? ''"
+                    :year-elapsed-percent="year_elapsed_percent ?? 0"
                     show-order-toggle
                 />
             </div>

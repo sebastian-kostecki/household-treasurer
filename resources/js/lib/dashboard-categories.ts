@@ -11,8 +11,6 @@ export type DashboardCategory = {
     is_over_limit: boolean;
     is_archived: boolean;
     is_paced?: boolean;
-    month_remaining_minor_units?: number | null;
-    month_execution_minor_units?: number;
 };
 
 export type DashboardTypeTotals = {
@@ -23,52 +21,25 @@ export type DashboardTypeTotals = {
     percent_complete: number | null;
 };
 
-export type CategoryOrderMode = 'budget' | 'risk' | 'month';
+export type CategoryOrderMode = 'budget' | 'risk';
 
 export const VISIBLE_CATEGORY_LIMIT = 8;
 
 export function defaultCategoryOrderMode(
     showOrderToggle: boolean,
-    showMonthRemainingOrder: boolean,
 ): CategoryOrderMode {
-    if (!showOrderToggle) {
-        return 'budget';
-    }
-
-    return showMonthRemainingOrder ? 'month' : 'risk';
+    return showOrderToggle ? 'risk' : 'budget';
 }
 
-export function monthUsagePercent(
-    monthExecutionMinorUnits: number,
-    monthRemainingMinorUnits: number,
-): number | null {
-    const denominator = monthExecutionMinorUnits + monthRemainingMinorUnits;
-
-    if (denominator <= 0) {
-        return null;
-    }
-
-    return Math.round((monthExecutionMinorUnits / denominator) * 100);
-}
-
-export function isOverMonthRemaining(
-    monthRemainingMinorUnits: number | null | undefined,
-): boolean {
-    return (
-        monthRemainingMinorUnits !== null &&
-        monthRemainingMinorUnits !== undefined &&
-        monthRemainingMinorUnits < 0
-    );
-}
-
-export function hasMonthRemainingReading(
+export function showsYearElapsedMark(
+    categoryType: 'income' | 'expense',
     category: DashboardCategory,
 ): boolean {
-    return (
-        category.is_paced === true &&
-        category.month_remaining_minor_units !== undefined &&
-        category.month_remaining_minor_units !== null
-    );
+    if (categoryType === 'income') {
+        return true;
+    }
+
+    return category.is_paced === true;
 }
 
 export function sortCategoriesByRisk(
@@ -84,58 +55,6 @@ export function sortCategoriesByRisk(
 
         return rightPercent - leftPercent;
     });
-}
-
-export function sortCategoriesByMonthRemaining(
-    categories: DashboardCategory[],
-): DashboardCategory[] {
-    return [...categories]
-        .map((category, index) => ({ category, index }))
-        .sort((left, right) => {
-            const leftPaced = hasMonthRemainingReading(left.category);
-            const rightPaced = hasMonthRemainingReading(right.category);
-
-            if (!leftPaced && !rightPaced) {
-                return left.index - right.index;
-            }
-
-            if (!leftPaced) {
-                return 1;
-            }
-
-            if (!rightPaced) {
-                return -1;
-            }
-
-            const leftOver = isOverMonthRemaining(
-                left.category.month_remaining_minor_units,
-            );
-            const rightOver = isOverMonthRemaining(
-                right.category.month_remaining_minor_units,
-            );
-
-            if (leftOver !== rightOver) {
-                return leftOver ? -1 : 1;
-            }
-
-            const leftPercent =
-                monthUsagePercent(
-                    left.category.month_execution_minor_units ?? 0,
-                    left.category.month_remaining_minor_units ?? 0,
-                ) ?? -1;
-            const rightPercent =
-                monthUsagePercent(
-                    right.category.month_execution_minor_units ?? 0,
-                    right.category.month_remaining_minor_units ?? 0,
-                ) ?? -1;
-
-            if (leftPercent !== rightPercent) {
-                return rightPercent - leftPercent;
-            }
-
-            return left.index - right.index;
-        })
-        .map(({ category }) => category);
 }
 
 export function planChanged(category: {

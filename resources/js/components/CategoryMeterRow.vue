@@ -4,13 +4,9 @@ import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import {
-    type CategoryOrderMode,
     type DashboardCategory,
-    hasMonthRemainingReading,
-    isOverMonthRemaining,
     meterBarClass,
     meterPercentClass,
-    monthUsagePercent,
     planChanged,
     progressWidth,
     remainingClass,
@@ -20,54 +16,19 @@ import { formatMoney } from '@/lib/format';
 const props = defineProps<{
     category: DashboardCategory;
     categoryType: 'income' | 'expense';
-    orderMode?: CategoryOrderMode;
+    showYearElapsedMark?: boolean;
+    yearElapsedPercent?: number | null;
 }>();
 
 const t = useTranslations();
 
 const hasPlanChanged = planChanged(props.category);
-const isMonthView = computed(
-    () => props.orderMode === 'month' && props.categoryType === 'expense',
+const displayPercentComplete = computed(() => props.category.percent_complete);
+const showMeterTrack = computed(
+    () =>
+        displayPercentComplete.value !== null ||
+        props.showYearElapsedMark === true,
 );
-const showMonthRemaining = computed(
-    () => isMonthView.value && hasMonthRemainingReading(props.category),
-);
-const displayRemainingMinorUnits = computed(() => {
-    if (isMonthView.value && !showMonthRemaining.value) {
-        return 0;
-    }
-
-    if (showMonthRemaining.value) {
-        return props.category.month_remaining_minor_units ?? 0;
-    }
-
-    return props.category.remaining_minor_units;
-});
-const displayPercentComplete = computed(() => {
-    if (isMonthView.value && !showMonthRemaining.value) {
-        return null;
-    }
-
-    if (!showMonthRemaining.value) {
-        return props.category.percent_complete;
-    }
-
-    return monthUsagePercent(
-        props.category.month_execution_minor_units ?? 0,
-        props.category.month_remaining_minor_units ?? 0,
-    );
-});
-const displayIsOverLimit = computed(() => {
-    if (isMonthView.value && !showMonthRemaining.value) {
-        return false;
-    }
-
-    if (showMonthRemaining.value) {
-        return isOverMonthRemaining(props.category.month_remaining_minor_units);
-    }
-
-    return props.category.is_over_limit;
-});
 </script>
 
 <template>
@@ -124,36 +85,44 @@ const displayIsOverLimit = computed(() => {
 
         <div
             class="category-meter-cell-remaining tabular-nums"
-            :class="remainingClass(categoryType, displayIsOverLimit)"
+            :class="remainingClass(categoryType, category.is_over_limit)"
         >
-            <span
-                v-if="!isMonthView"
-                class="text-muted-foreground text-[11px] md:hidden"
-            >
+            <span class="text-muted-foreground text-[11px] md:hidden">
                 {{ t.dashboard.remaining }}
             </span>
             <span class="text-sm">
-                {{ formatMoney(displayRemainingMinorUnits) }}
+                {{ formatMoney(category.remaining_minor_units) }}
             </span>
         </div>
 
         <div class="category-meter-cell-bar">
             <div
-                v-if="displayPercentComplete !== null"
-                class="bg-muted h-1.5 overflow-hidden rounded-full"
+                v-if="showMeterTrack"
+                class="bg-muted relative h-1.5 rounded-full"
             >
                 <div
+                    v-if="displayPercentComplete !== null"
                     class="h-full rounded-full transition-all"
                     :class="
                         meterBarClass(
                             categoryType,
                             displayPercentComplete,
-                            displayIsOverLimit,
+                            category.is_over_limit,
                         )
                     "
                     :style="{
                         width: progressWidth(displayPercentComplete),
                     }"
+                />
+                <div
+                    v-if="
+                        showYearElapsedMark &&
+                        yearElapsedPercent !== null &&
+                        yearElapsedPercent !== undefined
+                    "
+                    class="bg-foreground absolute inset-y-0 w-px -translate-x-1/2"
+                    :style="{ left: `${yearElapsedPercent}%` }"
+                    aria-hidden="true"
                 />
             </div>
         </div>
@@ -166,7 +135,7 @@ const displayIsOverLimit = computed(() => {
                     : meterPercentClass(
                           categoryType,
                           displayPercentComplete,
-                          displayIsOverLimit,
+                          category.is_over_limit,
                       )
             "
         >

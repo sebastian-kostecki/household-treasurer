@@ -21,7 +21,7 @@ The named institution of a bank Account or Term Deposit: Alior, BNP Paribas, ING
 _Avoid_: Import format, Connector, Integration, BankAccount (as this field’s name)
 
 **Budget**:
-The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution. Execution does not end at year-end: later Financial Operations dated in that year remain allowed.
+The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution. Year Close does not end execution: later Financial Operations dated in that year remain allowed.
 _Avoid_: Year, Period, Wallet
 
 **Initial Plan**:
@@ -29,7 +29,7 @@ The planned income amounts and expense limits frozen when execution starts. Immu
 _Avoid_: Original budget, Baseline (in UI copy)
 
 **Current Plan**:
-The live planned income amounts and expense limits. May change during execution without touching the Initial Plan. Align sets it to max(0, Execution) on that Category (Available Limit becomes 0). That rewrite is live Current Plan for every month of the Budget year; it is not a year-end ritual and not a month-scoped close of Month Remaining.
+The live planned income amounts and expense limits. May change during execution without touching the Initial Plan. Align sets it to max(0, Execution) on that Category (Available Limit becomes 0). That rewrite is live Current Plan for every month of the Budget year; it is not Year Close and not a month-scoped close of Month Remaining. Year Close Aligns every expense Category of that Budget after it posts. The User may later opt in to add an Earmark or unlabeled Reserve into a later Budget’s expense Current Plan; that is a Current Plan edit, not a second movement type.
 _Avoid_: Revised budget, Forecast
 
 **Category**:
@@ -49,12 +49,16 @@ Booked income and expense amounts against a Category in a Budget that has starte
 _Avoid_: Actuals (in code names; UI may say “wykonanie”), Cash Expectation, Agenda (as this plane)
 
 **Available Limit**:
-Current Plan of an expense Category minus booked expenses. Not cash on Accounts. Unpaid Cash Expectations do not reduce it. Not Month Remaining.
-_Avoid_: Balance, Available funds, Remaining cash, earmark, reserve (as this figure), Month Remaining
+Current Plan of an expense Category minus booked expenses. Not cash on Accounts. Unpaid Cash Expectations do not reduce it. Not Month Remaining. A positive leftover on any expense Category (Paced or One-off) is a candidate Earmark of a slice of Year Result, not a second pot. A negative leftover is not an Earmark: that overspend already sits inside Year Result.
+_Avoid_: Balance, Available funds, Remaining cash, using this figure as Reserve or as an Earmark, Month Remaining
 
 **Month Remaining**:
 A signed reading, in Minor units, of leftover Paced Current Plan for one calendar month of a Budget year: one Paced Category, or the Paced pool (all Paced Categories of that Budget). Not stored. A One-off Category has none. Arithmetic is catch-up leftover, not an even split of Current Plan. Polish UI copy: „Pozostało w miesiącu”.
-_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity
+_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity, Year Elapsed
+
+**Year Elapsed**:
+The fraction of calendar days of a Budget year that have passed as of an as-of date: day-of-year divided by days in that year. The as-of date is today when the selected Budget is the current calendar year, 31 December of that Budget year when it is past, and 1 January of that Budget year when it is future. A mark on a Category meter, not a money reading. Income Categories and Paced expense Categories may show it; a One-off Category does not. Distinct from Execution as a percent of Current Plan and from Month Remaining. Polish UI copy: „Postęp roku”.
+_Avoid_: Month Remaining, Year Pace, tempo roku, using percent complete for this mark
 
 **Planned Balance**:
 Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.
@@ -65,8 +69,20 @@ Execution income minus Execution expense for one calendar month of a Budget year
 _Avoid_: Balance (unqualified), Planned Balance, Available Limit, Month Remaining, Liquidity, Year Result. Polish UI copy: „Wynik”.
 
 **Year Result**:
-Execution income minus Execution expense for one Budget year. Same inclusions as Month Result, for every date in that year rather than one month. A reading, not a posted stock. Not leftover Available Limit, not Planned Balance, not a change in Spendable Liquidity or Total funds. Polish UI copy: „Wynik roku”.
-_Avoid_: Month Result (for this year figure), bare Wynik, Bilans, Planned Balance, leftover Available Limit, Pozostało, profit, surplus (unqualified), Δ Liquidity, Spendable Liquidity, Reserve, Rezerwa (as a plan-plane stock Year Result is posted into)
+Execution income minus Execution expense for one Budget year. Same inclusions as Month Result, for every date in that year rather than one month. A reading; Year Close may post it into Reserve. Polish UI for this reading: „Wynik roku”; the User’s „zysk” / „ostateczny zysk” means this reading, not Planned Balance. Leftover Available Limit is not added on top of it. At Year Close, Earmarks from positive leftovers total at most max(0, this reading); if it is ≤ 0 there are no Earmarks. Not Planned Balance, not a change in Spendable Liquidity or Total funds.
+_Avoid_: Month Result (for this year figure), bare Wynik, Bilans, Planned Balance, leftover Available Limit (as if it were this reading or a second pot), Pozostało, profit, surplus (unqualified), Δ Liquidity, Spendable Liquidity, Reserve (as if this reading were the stock)
+
+**Year Close**:
+A User-triggered ritual on a Budget in execution. It computes Year Result, lets the User pick Earmarks from positive leftover Available Limit on any expense Category (sum at most max(0, Year Result); remainder unlabeled), posts Year Result into Reserve, then Aligns every expense Category of that Budget. A later Year Close on the same Budget replaces that Budget’s previous post. It does not lock the year and does not move Liquidity. Not Align by itself. Polish UI copy: noun „Zamknięcie roku”, verb „Zamknij rok”.
+_Avoid_: Align, Zakończ, Zakończenie roku, month close, period lock, year-end freeze, closing the books, blokada roku, zamknięcie ksiąg (as if they were this ritual), Month Remaining close
+
+**Reserve**:
+A plan-plane stock the User owns, independent of any Budget year and of Account and Term Deposit balances. Holds a signed unlabeled remainder plus Earmarks. Posted from Year Result at Year Close; leftover Available Limit is not added on top. A later negative Year Result reduces unlabeled remainder first (that remainder may go negative) and does not silently consume Earmarks. The User may opt in to add a positive unlabeled amount or an Earmark (in full or in part) into an expense Current Plan on a later Budget (draft or execution; not the Budget just closed). An Earmark may be released back into unlabeled remainder without touching a Budget. Does not move Liquidity. Polish UI copy: „Rezerwa”.
+_Avoid_: Account, Term Deposit, a Category named Reserve, a Category identity that spans years, Available Limit (as this stock), Year Result (as if the reading were this stock)
+
+**Earmark**:
+A labeled slice of Reserve: an amount in Minor units keyed by expense Category name and type, not by a Category id. Not a Category and not leftover Available Limit after posting. Any expense Category with positive leftover may be a candidate, Paced or One-off. It leaves Reserve when the User opts in to add some or all of it to a later Budget’s expense Current Plan (default: same name and type; the User may pick another expense Category on that Budget). Matching is a query over name and type.
+_Avoid_: Category, Available Limit, Reserve (unqualified, for this slice), kategoria rezerw, rezerwa kategorii
 
 **Financial Operation**:
 An income, expense, or expense refund: dated (past dates included; not a second type), non-zero amount, description, optional Counterparty, one Account, one Category of matching type. Affects both Account balance and Category Execution. May carry a Raw Statement Description when created by Import. May settle a Cash Expectation (spawned amount may differ: correction): that Cash Expectation is destroyed and is not a second movement. Interest credited to an Account is Income on that Account and an income Category; it does not name a Term Deposit and is not a Capital Movement.

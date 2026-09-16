@@ -9,12 +9,12 @@ use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
-use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\SelectedBudgetYear;
 use App\Support\ShellState;
+use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,16 +58,13 @@ class DashboardController extends Controller
         $incomeTotals = [...$emptyTotals];
         $expenseTotals = [...$emptyTotals];
         $planSummary = null;
-        $showMonthRemainingOrder = false;
-        $monthReadings = null;
+        $yearElapsedAsOf = null;
+        $yearElapsedPercent = null;
 
         if ($budget !== null) {
             $allCategories = $budget->categories()
                 ->ordered()
                 ->get();
-            $allExpenseCategories = $allCategories
-                ->where('type', CategoryType::Expense)
-                ->values();
             $visibleCategories = $allCategories->filter(
                 fn (Category $category): bool => ! $category->isArchived(),
             );
@@ -75,19 +72,9 @@ class DashboardController extends Controller
                 ->where('type', CategoryType::Expense)
                 ->values();
             $today = CarbonImmutable::today('UTC');
-
-            if (
-                $budget->year === $today->year
-                && $visibleExpenseCategories->contains(fn (Category $category): bool => $category->is_paced)
-            ) {
-                $showMonthRemainingOrder = true;
-                $monthReadings = BudgetMonthReadings::forBudget(
-                    $budget,
-                    $allExpenseCategories,
-                    $today->month,
-                    $today,
-                );
-            }
+            $asOf = YearElapsed::asOfDate($budget->year, $today);
+            $yearElapsedAsOf = $asOf->toDateString();
+            $yearElapsedPercent = YearElapsed::percent($asOf);
 
             $incomeCategories = $visibleCategories
                 ->where('type', CategoryType::Income)
@@ -96,13 +83,7 @@ class DashboardController extends Controller
                 ->all();
 
             $expenseCategories = $visibleExpenseCategories
-                ->map(fn (Category $category): array => $this->categoryPayload(
-                    $category,
-                    $budget,
-                    $showMonthRemainingOrder
-                        ? ($monthReadings['categories'][$category->id] ?? null)
-                        : null,
-                ))
+                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all();
 
             $planSummary = BudgetPlanSummary::forBudget($budget, $visibleCategories);
@@ -124,7 +105,8 @@ class DashboardController extends Controller
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,
-            'showMonthRemainingOrder' => $showMonthRemainingOrder,
+            'year_elapsed_as_of' => $yearElapsedAsOf,
+            'year_elapsed_percent' => $yearElapsedPercent,
         ]);
     }
 
@@ -208,14 +190,11 @@ class DashboardController extends Controller
      *     is_over_limit: bool,
      *     is_archived: bool,
      *     is_paced?: bool,
-     *     month_remaining_minor_units?: int|null,
-     *     month_execution_minor_units?: int,
      * }
      */
     private function categoryPayload(
         Category $category,
         Budget $budget,
-        ?array $monthReading = null,
     ): array {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;
@@ -241,10 +220,8 @@ class DashboardController extends Controller
             'is_over_limit' => $category->type === CategoryType::Expense
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
-            ...($monthReading !== null ? [
+            ...($category->type === CategoryType::Expense ? [
                 'is_paced' => $category->is_paced,
-                'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
-                'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
             ] : []),
         ];
     }
