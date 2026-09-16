@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Support\CsvImport\DefaultPaymentInstrumentNumberOmitter;
+use App\Support\CsvImport\PaymentInstrumentNumberOmitter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            PaymentInstrumentNumberOmitter::class,
+            DefaultPaymentInstrumentNumberOmitter::class,
+        );
     }
 
     /**
