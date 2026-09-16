@@ -15,13 +15,13 @@ class ImportRowFields
      */
     public static function fromMbank(?string $operationDescription): array
     {
-        $description = self::truncate($operationDescription);
+        $rawStatementDescription = self::trimToNull($operationDescription);
 
-        return [
-            'counterparty' => null,
-            'description' => $description,
-            'raw_statement_description' => self::trimToNull($operationDescription),
-        ];
+        return self::finalizeLiveFields(
+            descriptionSource: $operationDescription,
+            counterpartySource: null,
+            rawStatementDescription: $rawStatementDescription,
+        );
     }
 
     /**
@@ -45,18 +45,18 @@ class ImportRowFields
                 ];
             }
 
-            return [
-                'counterparty' => self::truncate($sender),
-                'description' => self::truncate($sender),
-                'raw_statement_description' => $sender,
-            ];
+            return self::finalizeLiveFields(
+                descriptionSource: null,
+                counterpartySource: $sender,
+                rawStatementDescription: $sender,
+            );
         }
 
-        return [
-            'counterparty' => self::truncate($sender),
-            'description' => self::truncate($opis),
-            'raw_statement_description' => self::joinSnapshotParts($sender, $opis),
-        ];
+        return self::finalizeLiveFields(
+            descriptionSource: $opis,
+            counterpartySource: $sender,
+            rawStatementDescription: self::joinSnapshotParts($sender, $opis),
+        );
     }
 
     /**
@@ -81,10 +81,50 @@ class ImportRowFields
             $rawParts[] = $counterpartyCell;
         }
 
+        return self::finalizeLiveFields(
+            descriptionSource: $descriptionCell,
+            counterpartySource: $counterpartyCell,
+            rawStatementDescription: $rawParts === [] ? null : implode("\n", $rawParts),
+        );
+    }
+
+    /**
+     * @return array{description: ?string, counterparty: ?string}
+     */
+    public static function omitLiveFields(?string $description, ?string $counterparty): array
+    {
+        $omitter = self::omitter();
+        $counterparty = self::truncate($omitter->omit($counterparty));
+        $description = self::truncate($omitter->omit($description));
+
+        if ($description === null && $counterparty !== null) {
+            $description = $counterparty;
+        }
+
         return [
-            'counterparty' => self::truncate($counterpartyCell),
-            'description' => self::truncate($descriptionCell),
-            'raw_statement_description' => $rawParts === [] ? null : implode("\n", $rawParts),
+            'description' => $description,
+            'counterparty' => $counterparty,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     counterparty: ?string,
+     *     description: ?string,
+     *     raw_statement_description: ?string,
+     * }
+     */
+    private static function finalizeLiveFields(
+        ?string $descriptionSource,
+        ?string $counterpartySource,
+        ?string $rawStatementDescription,
+    ): array {
+        $liveFields = self::omitLiveFields($descriptionSource, $counterpartySource);
+
+        return [
+            'counterparty' => $liveFields['counterparty'],
+            'description' => $liveFields['description'],
+            'raw_statement_description' => $rawStatementDescription,
         ];
     }
 
@@ -122,5 +162,10 @@ class ImportRowFields
         $value = trim($value);
 
         return $value === '' ? null : $value;
+    }
+
+    private static function omitter(): PaymentInstrumentNumberOmitter
+    {
+        return app(PaymentInstrumentNumberOmitter::class);
     }
 }

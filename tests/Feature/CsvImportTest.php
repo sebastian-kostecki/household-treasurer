@@ -1578,7 +1578,8 @@ CSV;
                 ->has('rows', 7)
                 ->where('rows.0.operation_date', '2025-01-09')
                 ->where('rows.0.amount_minor_units', -35591)
-                ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'C&A MODE'))
+                ->where('rows.0.description', fn (?string $description) => str_contains((string) $description, 'C&A MODE')
+                    && ! str_contains((string) $description, '28114020620000123471001001'))
                 ->where('rows.0.valid', true)
                 ->where('rows.1.operation_date', '2025-01-09')
                 ->where('rows.1.amount_minor_units', 100000)
@@ -1711,9 +1712,73 @@ CSV;
                 ->where('rows.2.valid', true)
                 ->where('rows.3.operation_date', '2026-09-06')
                 ->where('rows.3.amount_minor_units', -199)
-                ->where('rows.3.counterparty', '48160000000000000000000000')
+                ->where('rows.3.counterparty', null)
                 ->where('rows.3.description', 'Account fee')
                 ->where('rows.3.valid', true),
+            );
+    }
+
+    public function test_bnp_paribas_card_import_persists_omitted_description_and_flags_reimport_duplicate(): void
+    {
+        $this->travelTo('2026-09-08');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture([
+            'opening_date' => '2026-01-01',
+        ]);
+
+        $opis = "48160014461822964860000001\n516842------4681 SEBASTIAN KOSTECKI Lublin OWOCOWA BAJKA POL 24,03 PLN 2026-09-14";
+        $expectedDescription = 'SEBASTIAN KOSTECKI Lublin OWOCOWA BAJKA POL 24,03 PLN 2026-09-14';
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => $this->bnpParibasCardPurchaseUpload($opis),
+                'account_id' => $account->id,
+                'import_format' => 'bnp_paribas',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.description', $expectedDescription)
+                ->where('rows.0.raw_statement_description', $opis)
+                ->where('rows.0.valid', true),
+            );
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'expense',
+                        'category_id' => $expenseCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseHas('financial_operations', [
+            'account_id' => $account->id,
+            'description' => $expectedDescription,
+            'raw_statement_description' => $opis,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => $this->bnpParibasCardPurchaseUpload($opis),
+                'account_id' => $account->id,
+                'import_format' => 'bnp_paribas',
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.import_duplicate', true),
             );
     }
 
@@ -3805,6 +3870,43 @@ CSV);
         return new UploadedFile(
             base_path('tests/Fixtures/bnp-paribas-basic.xlsx'),
             'bnp-paribas-basic.xlsx',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            UPLOAD_ERR_OK,
+            true,
+        );
+    }
+
+    private function bnpParibasCardPurchaseUpload(string $opis): UploadedFile
+    {
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('ExcelExportFile');
+        $sheet->fromArray([
+            [
+                'Data transakcji',
+                'Data zaksięgowania',
+                'Data odrzucenia',
+                'Kwota',
+                'Waluta',
+                'Nadawca',
+                'Odbiorca',
+                'Opis',
+                'Produkt',
+                'Typ transakcji',
+                'Kwota zlecenia',
+                'Waluta zlecenia',
+                'Status',
+                'Saldo po transakcji',
+            ],
+            [46272, 46272, null, -24.03, 'PLN', null, null, $opis, 'Karta', 'Zakup kartą', -24.03, 'PLN', 'Zrealizowana', 100.00],
+        ]);
+
+        $path = tempnam(sys_get_temp_dir(), 'bnp-card-').'.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+
+        return new UploadedFile(
+            $path,
+            'paribas-card.xlsx',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             UPLOAD_ERR_OK,
             true,
