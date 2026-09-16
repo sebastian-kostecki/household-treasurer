@@ -25,12 +25,6 @@ export type CategoryOrderMode = 'budget' | 'risk';
 
 export const VISIBLE_CATEGORY_LIMIT = 8;
 
-export function defaultCategoryOrderMode(
-    showOrderToggle: boolean,
-): CategoryOrderMode {
-    return showOrderToggle ? 'risk' : 'budget';
-}
-
 export function showsYearElapsedMark(
     categoryType: 'income' | 'expense',
     category: DashboardCategory,

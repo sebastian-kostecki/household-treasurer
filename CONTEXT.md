@@ -57,7 +57,7 @@ A signed reading, in Minor units, of leftover Paced Current Plan for one calenda
 _Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity, Year Elapsed
 
 **Year Elapsed**:
-The fraction of calendar days of a Budget year that have passed as of an as-of date: day-of-year divided by days in that year. The as-of date is today when the selected Budget is the current calendar year, 31 December of that Budget year when it is past, and 1 January of that Budget year when it is future. A mark on a Category meter, not a money reading. Income Categories and Paced expense Categories may show it; a One-off Category does not. Distinct from Execution as a percent of Current Plan and from Month Remaining. Polish UI copy: „Postęp roku”.
+The fraction of calendar days of a Budget year that have passed as of an as-of date: day-of-year divided by days in that year. The as-of date is today when the selected Budget is the current calendar year, 31 December of that Budget year when it is past, and 1 January of that Budget year when it is future. A mark on a Category meter, not a money reading. Income Categories and Paced expense Categories may show it; a One-off Category does not. Distinct from Execution as a percent of Current Plan and from Month Remaining. Polish UI copy: „Postęp roku”; the Dashboard checkbox always shows the as-of date next to that copy.
 _Avoid_: Month Remaining, Year Pace, tempo roku, using percent complete for this mark
 
 **Planned Balance**:
