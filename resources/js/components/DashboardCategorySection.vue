@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import CategoryMeterRow from '@/components/CategoryMeterRow.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
     DropdownMenuRadioItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     type CategoryOrderMode,
@@ -20,11 +22,11 @@ import {
     progressWidth,
     sectionBarClass,
     sectionPercentClass,
-    sortCategoriesByMonthRemaining,
+    showsYearElapsedMark,
     sortCategoriesByRisk,
     VISIBLE_CATEGORY_LIMIT,
 } from '@/lib/dashboard-categories';
-import { formatMoney } from '@/lib/format';
+import { formatDate, formatMoney } from '@/lib/format';
 
 const props = defineProps<{
     title: string;
@@ -32,44 +34,50 @@ const props = defineProps<{
     categories: DashboardCategory[];
     totals: DashboardTypeTotals;
     showOrderToggle?: boolean;
-    showMonthRemainingOrder?: boolean;
+    yearElapsedAsOf: string;
+    yearElapsedPercent: number;
 }>();
 
 const t = useTranslations();
 const isExpanded = ref(false);
+const showYearElapsed = ref(false);
 const orderMode = ref<CategoryOrderMode>(
-    defaultCategoryOrderMode(
-        props.showOrderToggle ?? false,
-        props.showMonthRemainingOrder ?? false,
-    ),
+    defaultCategoryOrderMode(props.showOrderToggle ?? false),
 );
 
-const effectiveOrderMode = computed<CategoryOrderMode>(() => {
-    if (orderMode.value === 'month' && !props.showMonthRemainingOrder) {
-        return 'risk';
+const storageKey = computed(
+    () => `dashboard-year-elapsed-${props.categoryType}`,
+);
+const checkboxId = computed(() => `year-elapsed-${props.categoryType}`);
+
+onMounted(() => {
+    showYearElapsed.value =
+        window.localStorage.getItem(storageKey.value) === '1';
+});
+
+watch(showYearElapsed, (enabled) => {
+    window.localStorage.setItem(storageKey.value, enabled ? '1' : '0');
+});
+
+const yearElapsedLabel = computed(() => {
+    if (!showYearElapsed.value) {
+        return t.dashboard.year_elapsed;
     }
 
-    return orderMode.value;
+    return `${t.dashboard.year_elapsed} ${formatDate(props.yearElapsedAsOf)}`;
 });
 
 const orderModeLabel = computed(() => {
-    switch (effectiveOrderMode.value) {
-        case 'budget':
-            return t.dashboard.order_budget;
-        case 'risk':
-            return t.dashboard.order_risk;
-        case 'month':
-            return t.dashboard.order_month_remaining;
+    if (orderMode.value === 'budget') {
+        return t.dashboard.order_budget;
     }
+
+    return t.dashboard.order_risk;
 });
 
 const orderedCategories = computed(() => {
-    if (effectiveOrderMode.value === 'risk') {
+    if (orderMode.value === 'risk') {
         return sortCategoriesByRisk(props.categories);
-    }
-
-    if (effectiveOrderMode.value === 'month') {
-        return sortCategoriesByMonthRemaining(props.categories);
     }
 
     return props.categories;
@@ -100,24 +108,6 @@ const showCollapse = computed(
         orderedCategories.value.length > VISIBLE_CATEGORY_LIMIT,
 );
 
-watch(
-    () => props.showMonthRemainingOrder,
-    (showMonthRemainingOrder) => {
-        if (!showMonthRemainingOrder && orderMode.value === 'month') {
-            orderMode.value = 'risk';
-
-            return;
-        }
-
-        if (showMonthRemainingOrder) {
-            orderMode.value = defaultCategoryOrderMode(
-                props.showOrderToggle ?? false,
-                showMonthRemainingOrder,
-            );
-        }
-    },
-);
-
 const sectionRemainingClass = computed(() => {
     if (
         props.categoryType === 'expense' &&
@@ -138,35 +128,44 @@ const sectionRemainingClass = computed(() => {
                     <h3 class="text-base font-semibold">
                         {{ title }}
                     </h3>
-                    <DropdownMenu v-if="showOrderToggle">
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                :aria-label="t.dashboard.order_by"
-                            >
-                                {{ orderModeLabel }}
-                                <ChevronDown class="size-4 opacity-60" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuRadioGroup v-model="orderMode">
-                                <DropdownMenuRadioItem value="budget">
-                                    {{ t.dashboard.order_budget }}
-                                </DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="risk">
-                                    {{ t.dashboard.order_risk }}
-                                </DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem
-                                    v-if="showMonthRemainingOrder"
-                                    value="month"
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <Label
+                            :for="checkboxId"
+                            class="flex cursor-pointer items-center gap-2 text-sm font-normal"
+                        >
+                            <Checkbox
+                                :id="checkboxId"
+                                :checked="showYearElapsed"
+                                @update:checked="
+                                    showYearElapsed = $event === true
+                                "
+                            />
+                            <span>{{ yearElapsedLabel }}</span>
+                        </Label>
+                        <DropdownMenu v-if="showOrderToggle">
+                            <DropdownMenuTrigger as-child>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    :aria-label="t.dashboard.order_by"
                                 >
-                                    {{ t.dashboard.order_month_remaining }}
-                                </DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                    {{ orderModeLabel }}
+                                    <ChevronDown class="size-4 opacity-60" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuRadioGroup v-model="orderMode">
+                                    <DropdownMenuRadioItem value="budget">
+                                        {{ t.dashboard.order_budget }}
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="risk">
+                                        {{ t.dashboard.order_risk }}
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-3">
@@ -244,7 +243,11 @@ const sectionRemainingClass = computed(() => {
                 :key="category.id"
                 :category="category"
                 :category-type="categoryType"
-                :order-mode="effectiveOrderMode"
+                :show-year-elapsed-mark="
+                    showYearElapsed &&
+                    showsYearElapsedMark(categoryType, category)
+                "
+                :year-elapsed-percent="yearElapsedPercent"
             />
         </div>
 
