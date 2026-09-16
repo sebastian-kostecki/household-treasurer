@@ -129,19 +129,18 @@ const sectionRemainingClass = computed(() => {
                         {{ title }}
                     </h3>
                     <div class="flex flex-wrap items-center justify-end gap-3">
-                        <Label
-                            :for="checkboxId"
-                            class="flex cursor-pointer items-center gap-2 text-sm font-normal"
-                        >
+                        <div class="flex items-center gap-2">
                             <Checkbox
                                 :id="checkboxId"
-                                :checked="showYearElapsed"
-                                @update:checked="
-                                    showYearElapsed = $event === true
-                                "
+                                v-model="showYearElapsed"
                             />
-                            <span>{{ yearElapsedLabel }}</span>
-                        </Label>
+                            <Label
+                                :for="checkboxId"
+                                class="cursor-pointer text-sm font-normal"
+                            >
+                                {{ yearElapsedLabel }}
+                            </Label>
+                        </div>
                         <DropdownMenu v-if="showOrderToggle">
                             <DropdownMenuTrigger as-child>
                                 <Button
