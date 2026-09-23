@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Check, Circle } from '@lucide/vue';
+import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
 import DashboardPacedMonthAlerts, {
     type PacedCategoryMonthAlert,
 } from '@/components/DashboardPacedMonthAlerts.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -56,11 +60,18 @@ type BudgetSummary = {
     phase: 'draft' | 'execution';
 };
 
+type PlanSummary = {
+    income: DashboardTypeTotals;
+    expense: DashboardTypeTotals;
+    planned_balance_minor_units: number;
+};
+
 const props = defineProps<{
     accounts: AccountSummary[];
     termDeposits: TermDepositSummary[];
     spendable_liquidity_minor_units: number;
     total_funds_minor_units: number;
+    budget_year: number;
     budget: BudgetSummary | null;
     incomeCategories: DashboardCategory[];
     expenseCategories: DashboardCategory[];
@@ -69,15 +80,46 @@ const props = defineProps<{
     year_elapsed_as_of: string | null;
     year_elapsed_percent: number | null;
     pacedCategoryMonthAlerts: PacedCategoryMonthAlert[];
+    paced_pool_month_remaining_minor_units: number | null;
+    current_month: number | null;
+    planSummary: PlanSummary | null;
 }>();
 
 const t = useTranslations();
 const shell = useShell();
 const checklist = useFirstRunChecklist();
+const createBudgetDialogOpen = ref(false);
 
 const checklistComplete = computed(() =>
     checklist.value.every((item) => item.done),
 );
+
+const showMonthRemainingTile = computed(
+    () => props.paced_pool_month_remaining_minor_units !== null,
+);
+
+const monthRemainingLabel = computed(() => {
+    if (props.current_month === null) {
+        return '';
+    }
+
+    const monthName =
+        t.budget[`month_name_${props.current_month}` as keyof typeof t.budget] ??
+        '';
+
+    return t.dashboard.paced_pool_month_remaining.replace(':month', monthName);
+});
+
+const monthRemainingClass = computed(() => {
+    if (
+        props.paced_pool_month_remaining_minor_units === null ||
+        props.paced_pool_month_remaining_minor_units >= 0
+    ) {
+        return 'text-success';
+    }
+
+    return 'text-destructive';
+});
 
 const spendableLiquidityClass = computed(() =>
     props.spendable_liquidity_minor_units < 0
@@ -87,6 +129,22 @@ const spendableLiquidityClass = computed(() =>
 
 const totalFundsClass = computed(() =>
     props.total_funds_minor_units < 0 ? 'text-destructive' : 'text-success',
+);
+
+const budgetYearLabel = computed(() =>
+    t.dashboard.budget_year_label.replace(':year', String(props.budget_year)),
+);
+
+const noBudgetMessage = computed(() =>
+    t.dashboard.no_budget_for_year.replace(':year', String(props.budget_year)),
+);
+
+const canSelectCurrentYearInShell = computed(() =>
+    shell.budgetYears.includes(props.budget_year),
+);
+
+const showBudgetCategories = computed(
+    () => props.budget?.phase === 'execution',
 );
 
 setLayoutProps({
@@ -119,210 +177,318 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
     <Head :title="t.dashboard.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
-        <DashboardPacedMonthAlerts
-            v-if="pacedCategoryMonthAlerts.length > 0"
-            :alerts="pacedCategoryMonthAlerts"
-        />
-
-        <Card v-if="shell.firstRun.showChecklist">
-            <CardHeader class="pb-3">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="space-y-1">
-                        <CardTitle class="text-base">
-                            {{ t.dashboard.checklist_title }}
-                        </CardTitle>
-                        <CardDescription>
-                            {{
-                                checklistComplete
-                                    ? t.dashboard.checklist_complete_description
-                                    : t.dashboard.checklist_description
-                            }}
-                        </CardDescription>
-                    </div>
-                    <Form
-                        v-if="checklistComplete"
-                        v-bind="
-                            DashboardController.dismissFirstRunChecklist.form()
-                        "
-                        v-slot="{ processing }"
-                    >
-                        <Button
-                            type="submit"
-                            variant="ghost"
-                            size="sm"
-                            :disabled="processing"
-                        >
-                            {{ t.dashboard.checklist_dismiss }}
-                        </Button>
-                    </Form>
-                </div>
-            </CardHeader>
-            <CardContent class="space-y-2">
-                <div
-                    v-for="item in checklist"
-                    :key="item.key"
-                    class="flex items-center gap-3 rounded-md border px-3 py-2 text-sm"
-                >
-                    <Check
-                        v-if="item.done"
-                        class="text-success size-4 shrink-0"
-                    />
-                    <Circle
-                        v-else
-                        class="text-muted-foreground size-4 shrink-0"
-                    />
-                    <span
-                        :class="
-                            item.done
-                                ? 'text-muted-foreground line-through'
-                                : ''
-                        "
-                    >
-                        {{ t.dashboard[item.labelKey] }}
-                    </span>
-                </div>
-            </CardContent>
-        </Card>
-
-        <section class="space-y-3">
-            <h2 class="text-sm font-semibold">
-                {{ t.dashboard.liquidity_title }}
-            </h2>
-
-            <div class="grid gap-3 sm:grid-cols-2">
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ t.dashboard.spendable_liquidity }}
-                        </CardDescription>
-                        <CardTitle
-                            class="text-3xl"
-                            :class="spendableLiquidityClass"
-                        >
-                            {{ formatMoney(spendable_liquidity_minor_units) }}
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
-
-                <Card>
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ t.dashboard.total_funds }}
-                        </CardDescription>
-                        <CardTitle class="text-3xl" :class="totalFundsClass">
-                            {{ formatMoney(total_funds_minor_units) }}
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
-            </div>
-
-            <div
-                v-if="accounts.length > 0"
-                class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-            >
-                <Card v-for="account in accounts" :key="account.id">
-                    <CardHeader class="space-y-3 pb-2">
-                        <AccountIdentityBlock
-                            :name="account.name"
-                            :type="account.type"
-                            :bank="account.bank"
-                            :mark_url="account.mark_url"
-                        >
-                            <p class="text-sm font-medium">
-                                {{ account.name }}
-                            </p>
-                            <p class="text-muted-foreground text-xs">
-                                {{ accountTypeLabel(account.type) }}
-                            </p>
-                        </AccountIdentityBlock>
-                        <CardTitle
-                            class="text-lg"
-                            :class="balanceClass(account)"
-                        >
-                            {{
-                                formatMoney(account.current_balance_minor_units)
-                            }}
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
-            </div>
-
-            <Card v-else>
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.no_accounts }}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p class="text-muted-foreground text-sm">
-                        {{ t.accounts.empty }}
-                    </p>
-                </CardContent>
-            </Card>
-
-            <div
-                v-if="termDeposits.length > 0"
-                class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
-            >
-                <Card v-for="termDeposit in termDeposits" :key="termDeposit.id">
-                    <CardHeader class="space-y-3 pb-2">
-                        <AccountIdentityBlock
-                            :name="termDeposit.name"
-                            type="bank"
-                            :bank="termDeposit.bank"
-                            :mark_url="termDeposit.mark_url"
-                        >
-                            <p class="text-sm font-medium">
-                                {{ termDeposit.name }}
-                            </p>
-                            <p
-                                v-if="termDeposit.end_date"
-                                class="text-muted-foreground text-xs"
+        <div class="grid gap-4 lg:grid-cols-3 lg:gap-5">
+            <div class="flex flex-col gap-4 md:gap-5 lg:col-span-2">
+                <Card v-if="shell.firstRun.showChecklist">
+                    <CardHeader class="pb-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-1">
+                                <CardTitle class="text-base">
+                                    {{ t.dashboard.checklist_title }}
+                                </CardTitle>
+                                <CardDescription>
+                                    {{
+                                        checklistComplete
+                                            ? t.dashboard.checklist_complete_description
+                                            : t.dashboard.checklist_description
+                                    }}
+                                </CardDescription>
+                            </div>
+                            <Form
+                                v-if="checklistComplete"
+                                v-bind="
+                                    DashboardController.dismissFirstRunChecklist.form()
+                                "
+                                v-slot="{ processing }"
                             >
-                                {{ t.term_deposits.end_date }}:
-                                {{ formatDate(termDeposit.end_date) }}
-                            </p>
-                        </AccountIdentityBlock>
-                        <CardTitle
-                            class="text-lg"
-                            :class="balanceClass(termDeposit)"
-                        >
-                            {{
-                                formatMoney(
-                                    termDeposit.current_balance_minor_units,
-                                )
-                            }}
-                        </CardTitle>
+                                <Button
+                                    type="submit"
+                                    variant="ghost"
+                                    size="sm"
+                                    :disabled="processing"
+                                >
+                                    {{ t.dashboard.checklist_dismiss }}
+                                </Button>
+                            </Form>
+                        </div>
                     </CardHeader>
+                    <CardContent v-if="!checklistComplete" class="space-y-2">
+                        <div
+                            v-for="item in checklist"
+                            :key="item.key"
+                            class="flex items-center gap-3 rounded-md border px-3 py-2 text-sm"
+                        >
+                            <Check
+                                v-if="item.done"
+                                class="text-success size-4 shrink-0"
+                            />
+                            <Circle
+                                v-else
+                                class="text-muted-foreground size-4 shrink-0"
+                            />
+                            <span
+                                :class="
+                                    item.done
+                                        ? 'text-muted-foreground line-through'
+                                        : ''
+                                "
+                            >
+                                {{ t.dashboard[item.labelKey] }}
+                            </span>
+                        </div>
+                    </CardContent>
                 </Card>
-            </div>
-        </section>
 
-        <section class="space-y-3">
-            <p v-if="budget === null" class="text-muted-foreground text-sm">
-                {{ t.dashboard.no_budget }}
-            </p>
-
-            <div v-else class="space-y-3">
-                <DashboardCategorySection
-                    :title="t.dashboard.income"
-                    category-type="income"
-                    :categories="incomeCategories"
-                    :totals="incomeTotals"
-                    :year-elapsed-as-of="year_elapsed_as_of ?? ''"
-                    :year-elapsed-percent="year_elapsed_percent ?? 0"
+                <DashboardPacedMonthAlerts
+                    v-if="pacedCategoryMonthAlerts.length > 0"
+                    :alerts="pacedCategoryMonthAlerts"
                 />
 
-                <DashboardCategorySection
-                    :title="t.dashboard.expenses"
-                    category-type="expense"
-                    :categories="expenseCategories"
-                    :totals="expenseTotals"
-                    :year-elapsed-as-of="year_elapsed_as_of ?? ''"
-                    :year-elapsed-percent="year_elapsed_percent ?? 0"
-                    show-order-toggle
-                />
+                <div
+                    class="grid gap-3"
+                    :class="showMonthRemainingTile ? 'sm:grid-cols-2' : ''"
+                >
+                    <Card v-if="showMonthRemainingTile">
+                        <CardHeader class="pb-2">
+                            <CardDescription>
+                                {{ monthRemainingLabel }}
+                            </CardDescription>
+                            <CardTitle
+                                class="text-3xl tabular-nums"
+                                :class="monthRemainingClass"
+                            >
+                                {{
+                                    formatMoney(
+                                        paced_pool_month_remaining_minor_units!,
+                                    )
+                                }}
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+
+                    <Card :class="showMonthRemainingTile ? '' : 'sm:col-span-2'">
+                        <CardHeader class="pb-2">
+                            <CardDescription>
+                                {{ t.dashboard.spendable_liquidity }}
+                            </CardDescription>
+                            <CardTitle
+                                class="text-3xl tabular-nums"
+                                :class="spendableLiquidityClass"
+                            >
+                                {{
+                                    formatMoney(spendable_liquidity_minor_units)
+                                }}
+                            </CardTitle>
+                            <p
+                                class="text-muted-foreground pt-1 text-sm tabular-nums"
+                            >
+                                {{ t.dashboard.total_funds }}:
+                                <span :class="totalFundsClass">
+                                    {{ formatMoney(total_funds_minor_units) }}
+                                </span>
+                            </p>
+                        </CardHeader>
+                    </Card>
+                </div>
+
+                <section class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="text-sm font-semibold">
+                            {{ budgetYearLabel }}
+                        </h2>
+                        <Badge
+                            v-if="budget?.phase === 'draft'"
+                            variant="secondary"
+                        >
+                            {{ t.dashboard.draft_badge }}
+                        </Badge>
+                    </div>
+
+                    <Card v-if="budget === null">
+                        <CardHeader class="pb-2">
+                            <CardDescription>
+                                {{ noBudgetMessage }}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <CreateBudgetDialog
+                                v-model:open="createBudgetDialogOpen"
+                                year-input-id="dashboard-create-budget-year"
+                                :suggested-year="budget_year"
+                            >
+                                <template #trigger>
+                                    <Button>
+                                        {{ t.budget.create_budget }}
+                                    </Button>
+                                </template>
+                            </CreateBudgetDialog>
+                        </CardContent>
+                    </Card>
+
+                    <template v-else>
+                        <BudgetPlanSummaryStrip
+                            v-if="planSummary"
+                            :income-totals="planSummary.income"
+                            :expense-totals="planSummary.expense"
+                            :planned-balance-minor-units="
+                                planSummary.planned_balance_minor_units
+                            "
+                        />
+
+                        <div class="flex flex-wrap gap-2">
+                            <Form
+                                v-if="canSelectCurrentYearInShell"
+                                v-bind="BudgetController.selectYear.form()"
+                                v-slot="{ processing }"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="year"
+                                    :value="budget_year"
+                                />
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    size="sm"
+                                    :disabled="processing"
+                                >
+                                    {{ t.dashboard.open_budget }}
+                                </Button>
+                            </Form>
+                            <CreateBudgetDialog
+                                v-else
+                                v-model:open="createBudgetDialogOpen"
+                                year-input-id="dashboard-open-budget-year"
+                                :suggested-year="budget_year"
+                            >
+                                <template #trigger>
+                                    <Button variant="outline" size="sm">
+                                        {{ t.dashboard.open_budget }}
+                                    </Button>
+                                </template>
+                            </CreateBudgetDialog>
+                        </div>
+
+                        <div v-if="showBudgetCategories" class="space-y-3">
+                            <DashboardCategorySection
+                                :title="t.dashboard.expenses"
+                                category-type="expense"
+                                :categories="expenseCategories"
+                                :totals="expenseTotals"
+                                :year-elapsed-as-of="year_elapsed_as_of ?? ''"
+                                :year-elapsed-percent="year_elapsed_percent ?? 0"
+                                show-order-toggle
+                            />
+
+                            <DashboardCategorySection
+                                :title="t.dashboard.income"
+                                category-type="income"
+                                :categories="incomeCategories"
+                                :totals="incomeTotals"
+                                :year-elapsed-as-of="year_elapsed_as_of ?? ''"
+                                :year-elapsed-percent="year_elapsed_percent ?? 0"
+                            />
+                        </div>
+                    </template>
+                </section>
             </div>
-        </section>
+
+            <aside class="flex flex-col gap-3 lg:col-span-1">
+                <h2 class="text-sm font-semibold">
+                    {{ t.dashboard.holdings_title }}
+                </h2>
+
+                <Card v-if="accounts.length === 0 && termDeposits.length === 0">
+                    <CardHeader class="pb-2">
+                        <CardDescription>
+                            {{ t.dashboard.no_accounts }}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p class="text-muted-foreground text-sm">
+                            {{ t.accounts.empty }}
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <div v-if="accounts.length > 0" class="space-y-2">
+                    <p class="text-muted-foreground text-xs font-medium">
+                        {{ t.nav.accounts }}
+                    </p>
+                    <Card
+                        v-for="account in accounts"
+                        :key="account.id"
+                        class="py-0"
+                    >
+                        <CardContent class="flex items-center justify-between gap-3 py-3">
+                            <AccountIdentityBlock
+                                :name="account.name"
+                                :type="account.type"
+                                :bank="account.bank"
+                                :mark_url="account.mark_url"
+                            >
+                                <p class="text-sm font-medium">
+                                    {{ account.name }}
+                                </p>
+                                <p class="text-muted-foreground text-xs">
+                                    {{ accountTypeLabel(account.type) }}
+                                </p>
+                            </AccountIdentityBlock>
+                            <p
+                                class="text-sm font-semibold tabular-nums"
+                                :class="balanceClass(account)"
+                            >
+                                {{
+                                    formatMoney(
+                                        account.current_balance_minor_units,
+                                    )
+                                }}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div v-if="termDeposits.length > 0" class="space-y-2">
+                    <p class="text-muted-foreground text-xs font-medium">
+                        {{ t.nav.term_deposits }}
+                    </p>
+                    <Card
+                        v-for="termDeposit in termDeposits"
+                        :key="termDeposit.id"
+                        class="py-0"
+                    >
+                        <CardContent class="flex items-center justify-between gap-3 py-3">
+                            <AccountIdentityBlock
+                                :name="termDeposit.name"
+                                type="bank"
+                                :bank="termDeposit.bank"
+                                :mark_url="termDeposit.mark_url"
+                            >
+                                <p class="text-sm font-medium">
+                                    {{ termDeposit.name }}
+                                </p>
+                                <p
+                                    v-if="termDeposit.end_date"
+                                    class="text-muted-foreground text-xs"
+                                >
+                                    {{ t.term_deposits.end_date }}:
+                                    {{ formatDate(termDeposit.end_date) }}
+                                </p>
+                            </AccountIdentityBlock>
+                            <p
+                                class="text-sm font-semibold tabular-nums"
+                                :class="balanceClass(termDeposit)"
+                            >
+                                {{
+                                    formatMoney(
+                                        termDeposit.current_balance_minor_units,
+                                    )
+                                }}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </aside>
+        </div>
     </div>
 </template>

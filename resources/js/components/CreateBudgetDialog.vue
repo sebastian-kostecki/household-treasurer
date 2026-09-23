@@ -23,9 +23,11 @@ const props = withDefaults(
     defineProps<{
         open: boolean;
         yearInputId?: string;
+        suggestedYear?: number;
     }>(),
     {
         yearInputId: 'create-budget-year',
+        suggestedYear: undefined,
     },
 );
 
@@ -37,9 +39,13 @@ const shell = useShell();
 const t = useTranslations();
 const currentYear = new Date().getFullYear();
 
-const defaultYear = computed(() =>
-    shell.budgetYears.length > 0 ? currentYear + 1 : currentYear,
-);
+const defaultYear = computed(() => {
+    if (props.suggestedYear !== undefined) {
+        return props.suggestedYear;
+    }
+
+    return shell.budgetYears.length > 0 ? currentYear + 1 : currentYear;
+});
 
 const targetYear = ref(defaultYear.value);
 const sourceBudgetId = ref('');

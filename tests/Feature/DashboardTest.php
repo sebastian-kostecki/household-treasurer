@@ -40,7 +40,10 @@ class DashboardTest extends TestCase
                 ->where('termDeposits', [])
                 ->where('spendable_liquidity_minor_units', 0)
                 ->where('total_funds_minor_units', 0)
+                ->where('budget_year', (int) date('Y'))
                 ->where('budget', null)
+                ->where('paced_pool_month_remaining_minor_units', null)
+                ->where('current_month', null)
                 ->where('planSummary', null)
                 ->where('incomeTotals', [
                     'initial_plan_minor_units' => 0,
@@ -224,8 +227,10 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_shows_category_execution_metrics_for_selected_budget_year(): void
+    public function test_dashboard_shows_category_execution_metrics_for_current_calendar_year(): void
     {
+        $this->travelTo('2026-06-01');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
@@ -605,15 +610,20 @@ class DashboardTest extends TestCase
         $this->assertNull($user->fresh()->first_run_checklist_dismissed_at);
     }
 
-    public function test_dashboard_uses_year_end_for_year_elapsed_on_a_past_budget_year(): void
+    public function test_dashboard_ignores_shell_year_and_reads_current_calendar_year_budget(): void
     {
         $this->travelTo('2026-07-01');
 
         $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
-        Category::factory()->for($budget)->expense()->create([
+        Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $currentYearBudget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($currentYearBudget)->expense()->create([
             'name' => 'Groceries',
             'planned_amount_minor_units' => 120_000,
+        ]);
+        Category::factory()->for($currentYearBudget)->income()->create([
+            'name' => 'Salary',
+            'planned_amount_minor_units' => 500_000,
         ]);
 
         $this->actingAs($user)
@@ -621,30 +631,112 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('year_elapsed_as_of', '2025-12-31')
-                ->where('year_elapsed_percent', 100)
-                ->where('expenseCategories.0.is_paced', true),
+                ->where('budget_year', 2026)
+                ->where('budget.year', 2026)
+                ->where('year_elapsed_as_of', '2026-07-01')
+                ->where('expenseCategories.0.name', 'Groceries')
+                ->where('incomeCategories.0.name', 'Salary'),
             );
     }
 
-    public function test_dashboard_uses_year_start_for_year_elapsed_on_a_future_budget_year(): void
+    public function test_dashboard_with_no_current_year_budget_sends_null_budget_and_current_year(): void
     {
         $this->travelTo('2026-07-01');
 
         $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        Account::factory()->for($user)->create([
+            'current_balance_minor_units' => 42_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget_year', 2026)
+                ->where('budget', null)
+                ->where('planSummary', null)
+                ->has('accounts', 1)
+                ->where('spendable_liquidity_minor_units', 42_000),
+            );
+    }
+
+    public function test_dashboard_draft_current_year_budget_sends_plan_summary_without_categories_or_pool_month_remaining(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->income()->create([
+            'planned_amount_minor_units' => 400_000,
+        ]);
         Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 250_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget.phase', BudgetPhase::Draft->value)
+                ->where('incomeCategories', [])
+                ->where('expenseCategories', [])
+                ->where('paced_pool_month_remaining_minor_units', null)
+                ->where('current_month', null)
+                ->where('planSummary.planned_balance_minor_units', 150_000),
+            );
+    }
+
+    public function test_dashboard_sends_paced_pool_month_remaining_for_execution_with_paced_categories(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('current_month', 9)
+                ->where('paced_pool_month_remaining_minor_units', -10_000),
+            );
+    }
+
+    public function test_dashboard_does_not_send_paced_pool_month_remaining_without_paced_categories(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->oneOff()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
         $this->actingAs($user)
-            ->withSession(['budget_year' => 2027])
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('year_elapsed_as_of', '2027-01-01')
-                ->where('year_elapsed_percent', 100 * 1 / 365)
-                ->where('expenseCategories.0.is_paced', true),
+                ->where('paced_pool_month_remaining_minor_units', null)
+                ->where('current_month', null),
             );
     }
 

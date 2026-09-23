@@ -9,11 +9,11 @@ use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
+use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\DashboardPacedCategoryMonthAlerts;
-use App\Support\SelectedBudgetYear;
 use App\Support\ShellState;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
@@ -27,8 +27,9 @@ class DashboardController extends Controller
     public function show(Request $request): Response
     {
         $user = $request->user();
-        $selectedYear = SelectedBudgetYear::resolve($request);
-        $budget = $this->findBudgetForYear($user, $selectedYear);
+        $today = CarbonImmutable::today('UTC');
+        $currentYear = $today->year;
+        $budget = $this->findBudgetForYear($user, $currentYear);
 
         $allAccounts = $user->accounts()
             ->orderBy('name')
@@ -56,6 +57,8 @@ class DashboardController extends Controller
         $incomeCategories = [];
         $expenseCategories = [];
         $pacedCategoryMonthAlerts = [];
+        $pacedPoolMonthRemainingMinorUnits = null;
+        $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
         $expenseTotals = [...$emptyTotals];
@@ -73,30 +76,46 @@ class DashboardController extends Controller
             $visibleExpenseCategories = $visibleCategories
                 ->where('type', CategoryType::Expense)
                 ->values();
-            $today = CarbonImmutable::today('UTC');
             $asOf = YearElapsed::asOfDate($budget->year, $today);
             $yearElapsedAsOf = $asOf->toDateString();
             $yearElapsedPercent = YearElapsed::percent($asOf);
 
-            $incomeCategories = $visibleCategories
-                ->where('type', CategoryType::Income)
-                ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
-                ->all();
-
-            $expenseCategories = $visibleExpenseCategories
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
-                ->all();
-
-            $pacedCategoryMonthAlerts = DashboardPacedCategoryMonthAlerts::forBudget(
-                $budget,
-                $allCategories->where('type', CategoryType::Expense)->values(),
-                $today,
-            );
-
             $planSummary = BudgetPlanSummary::forBudget($budget, $visibleCategories);
             $incomeTotals = $planSummary['income'];
             $expenseTotals = $planSummary['expense'];
+
+            if ($budget->isExecution()) {
+                $incomeCategories = $visibleCategories
+                    ->where('type', CategoryType::Income)
+                    ->values()
+                    ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                    ->all();
+
+                $expenseCategories = $visibleExpenseCategories
+                    ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                    ->all();
+
+                $pacedCategoryMonthAlerts = DashboardPacedCategoryMonthAlerts::forBudget(
+                    $budget,
+                    $allCategories->where('type', CategoryType::Expense)->values(),
+                    $today,
+                );
+
+                $hasVisiblePacedExpenseCategory = $visibleExpenseCategories->contains(
+                    fn (Category $category): bool => $category->is_paced,
+                );
+
+                if ($hasVisiblePacedExpenseCategory) {
+                    $monthReadings = BudgetMonthReadings::forBudget(
+                        $budget,
+                        $allCategories->where('type', CategoryType::Expense)->values(),
+                        $today->month,
+                        $today,
+                    );
+                    $pacedPoolMonthRemainingMinorUnits = $monthReadings['paced_pool_month_remaining_minor_units'];
+                    $currentMonth = $monthReadings['current_month'];
+                }
+            }
         }
 
         return Inertia::render('Dashboard', [
@@ -104,6 +123,7 @@ class DashboardController extends Controller
             'termDeposits' => $termDeposits,
             'spendable_liquidity_minor_units' => $spendableLiquidityMinorUnits,
             'total_funds_minor_units' => $spendableLiquidityMinorUnits + $termDepositsTotalMinorUnits,
+            'budget_year' => $currentYear,
             'budget' => $budget === null ? null : [
                 'year' => $budget->year,
                 'phase' => $budget->phase->value,
@@ -111,6 +131,8 @@ class DashboardController extends Controller
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
             'pacedCategoryMonthAlerts' => $pacedCategoryMonthAlerts,
+            'paced_pool_month_remaining_minor_units' => $pacedPoolMonthRemainingMinorUnits,
+            'current_month' => $currentMonth,
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,
