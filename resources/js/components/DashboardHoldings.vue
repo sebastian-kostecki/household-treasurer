@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
-import { useMediaQuery } from '@vueuse/core';
 import { computed, onMounted, ref, watch } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import ListSurface from '@/components/ListSurface.vue';
@@ -43,7 +42,6 @@ const props = defineProps<{
 }>();
 
 const t = useTranslations();
-const isLargeScreen = useMediaQuery('(min-width: 1024px)');
 const isExpanded = ref(false);
 
 onMounted(() => {
@@ -52,7 +50,7 @@ onMounted(() => {
 });
 
 watch(isExpanded, (expanded) => {
-    if (!isLargeScreen.value) {
+    if (window.matchMedia('(max-width: 1023.98px)').matches) {
         window.localStorage.setItem(
             HOLDINGS_EXPANDED_STORAGE_KEY,
             expanded ? '1' : '0',
@@ -68,9 +66,8 @@ const showEmptyState = computed(
     () => props.accounts.length === 0 && props.termDeposits.length === 0,
 );
 
-const showHoldingsContent = computed(
-    () =>
-        isLargeScreen.value || isExpanded.value || showEmptyState.value,
+const holdingsOpenOnMobile = computed(
+    () => isExpanded.value || showEmptyState.value,
 );
 
 const accountsTotalMinorUnits = computed(() =>
@@ -120,18 +117,14 @@ function toggleExpanded(): void {
 
 <template>
     <div class="flex flex-col gap-3">
-        <h2
-            v-if="isLargeScreen"
-            class="text-sm font-semibold"
-        >
+        <h2 class="hidden text-sm font-semibold lg:block">
             {{ t.dashboard.holdings_title }}
         </h2>
         <Button
-            v-else
             type="button"
             variant="ghost"
-            class="h-auto w-full justify-between gap-2 px-0 py-1 text-sm font-semibold hover:bg-transparent"
-            :aria-expanded="showHoldingsContent"
+            class="h-auto w-full justify-between gap-2 px-0 py-1 text-sm font-semibold hover:bg-transparent lg:hidden"
+            :aria-expanded="holdingsOpenOnMobile"
             @click="toggleExpanded"
         >
             <span class="flex items-center gap-2">
@@ -142,11 +135,11 @@ function toggleExpanded(): void {
             </span>
             <ChevronDown
                 class="size-4 shrink-0 opacity-60 transition-transform"
-                :class="showHoldingsContent ? 'rotate-180' : ''"
+                :class="holdingsOpenOnMobile ? 'rotate-180' : ''"
             />
         </Button>
 
-        <template v-if="showHoldingsContent">
+        <div :class="holdingsOpenOnMobile ? '' : 'max-lg:hidden'">
             <Card v-if="showEmptyState">
                 <CardHeader class="pb-2">
                     <CardDescription>
@@ -261,6 +254,6 @@ function toggleExpanded(): void {
                     </div>
                 </div>
             </ListSurface>
-        </template>
+        </div>
     </div>
 </template>
