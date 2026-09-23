@@ -64,18 +64,17 @@ const showCollapse = computed(
 
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <Card v-for="alert in visibleAlerts" :key="alert.id">
-                <CardHeader class="space-y-3 pb-2">
-                    <CategoryChip
-                        :name="alert.name"
-                        :icon="alert.icon"
-                        :color="alert.color"
-                    />
-                    <div class="space-y-1">
-                        <p class="text-muted-foreground text-xs">
-                            {{ t.dashboard.month_remaining }}
-                        </p>
+                <CardHeader class="pb-2">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <CategoryChip
+                                :name="alert.name"
+                                :icon="alert.icon"
+                                :color="alert.color"
+                            />
+                        </div>
                         <CardTitle
-                            class="text-destructive text-lg tabular-nums"
+                            class="text-destructive shrink-0 text-lg tabular-nums"
                         >
                             {{ formatMoney(alert.month_remaining_minor_units) }}
                         </CardTitle>
