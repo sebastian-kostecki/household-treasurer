@@ -4,8 +4,8 @@ import { computed, ref } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
-import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
 import DashboardNotices, {
@@ -30,7 +30,7 @@ import type {
     DashboardCategory,
     DashboardTypeTotals,
 } from '@/lib/dashboard-categories';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 import { dashboard } from '@/routes';
 
 type AccountSummary = {
@@ -156,21 +156,6 @@ setLayoutProps({
     ],
 });
 
-function accountTypeLabel(type: AccountSummary['type']): string {
-    return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
-}
-
-function balanceClass(holding: AccountSummary | TermDepositSummary): string {
-    if (holding.is_negative) {
-        return 'text-destructive';
-    }
-
-    if (holding.current_balance_minor_units > 0) {
-        return 'text-success';
-    }
-
-    return '';
-}
 </script>
 
 <template>
@@ -395,101 +380,11 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                 </section>
             </div>
 
-            <aside class="flex flex-col gap-3 lg:col-span-1">
-                <h2 class="text-sm font-semibold">
-                    {{ t.dashboard.holdings_title }}
-                </h2>
-
-                <Card v-if="accounts.length === 0 && termDeposits.length === 0">
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ t.dashboard.no_accounts }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <p class="text-muted-foreground text-sm">
-                            {{ t.accounts.empty }}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <div v-if="accounts.length > 0" class="space-y-2">
-                    <p class="text-muted-foreground text-xs font-medium">
-                        {{ t.nav.accounts }}
-                    </p>
-                    <Card
-                        v-for="account in accounts"
-                        :key="account.id"
-                        class="py-0"
-                    >
-                        <CardContent class="flex items-center justify-between gap-3 py-3">
-                            <AccountIdentityBlock
-                                :name="account.name"
-                                :type="account.type"
-                                :bank="account.bank"
-                                :mark_url="account.mark_url"
-                            >
-                                <p class="text-sm font-medium">
-                                    {{ account.name }}
-                                </p>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ accountTypeLabel(account.type) }}
-                                </p>
-                            </AccountIdentityBlock>
-                            <p
-                                class="text-sm font-semibold tabular-nums"
-                                :class="balanceClass(account)"
-                            >
-                                {{
-                                    formatMoney(
-                                        account.current_balance_minor_units,
-                                    )
-                                }}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div v-if="termDeposits.length > 0" class="space-y-2">
-                    <p class="text-muted-foreground text-xs font-medium">
-                        {{ t.nav.term_deposits }}
-                    </p>
-                    <Card
-                        v-for="termDeposit in termDeposits"
-                        :key="termDeposit.id"
-                        class="py-0"
-                    >
-                        <CardContent class="flex items-center justify-between gap-3 py-3">
-                            <AccountIdentityBlock
-                                :name="termDeposit.name"
-                                type="bank"
-                                :bank="termDeposit.bank"
-                                :mark_url="termDeposit.mark_url"
-                            >
-                                <p class="text-sm font-medium">
-                                    {{ termDeposit.name }}
-                                </p>
-                                <p
-                                    v-if="termDeposit.end_date"
-                                    class="text-muted-foreground text-xs"
-                                >
-                                    {{ t.term_deposits.end_date }}:
-                                    {{ formatDate(termDeposit.end_date) }}
-                                </p>
-                            </AccountIdentityBlock>
-                            <p
-                                class="text-sm font-semibold tabular-nums"
-                                :class="balanceClass(termDeposit)"
-                            >
-                                {{
-                                    formatMoney(
-                                        termDeposit.current_balance_minor_units,
-                                    )
-                                }}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
+            <aside class="lg:col-span-1">
+                <DashboardHoldings
+                    :accounts="accounts"
+                    :term-deposits="termDeposits"
+                />
             </aside>
         </div>
     </div>
