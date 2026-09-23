@@ -21,8 +21,6 @@ export type DashboardTypeTotals = {
     percent_complete: number | null;
 };
 
-export type CategoryOrderMode = 'budget' | 'risk';
-
 export const VISIBLE_CATEGORY_LIMIT = 8;
 
 export const DASHBOARD_SECTION_VISIBLE_CATEGORY_LIMIT = 5;
@@ -31,12 +29,6 @@ export function dashboardVisibleCategoryLimit(
     _categoryType: 'income' | 'expense',
 ): number {
     return DASHBOARD_SECTION_VISIBLE_CATEGORY_LIMIT;
-}
-
-export function dashboardDefaultOrderMode(
-    _categoryType: 'income' | 'expense',
-): CategoryOrderMode {
-    return 'risk';
 }
 
 export function sliceVisibleCategories(
@@ -67,21 +59,6 @@ export function showsYearElapsedMark(
     }
 
     return category.is_paced === true;
-}
-
-export function sortCategoriesByRisk(
-    categories: DashboardCategory[],
-): DashboardCategory[] {
-    return [...categories].sort((left, right) => {
-        if (left.is_over_limit !== right.is_over_limit) {
-            return left.is_over_limit ? -1 : 1;
-        }
-
-        const leftPercent = left.percent_complete ?? -1;
-        const rightPercent = right.percent_complete ?? -1;
-
-        return rightPercent - leftPercent;
-    });
 }
 
 export function planChanged(category: {

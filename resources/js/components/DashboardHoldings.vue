@@ -154,15 +154,13 @@ function toggleExpanded(): void {
             </Card>
 
             <ListSurface v-else>
-                <div
-                    v-if="accounts.length > 0"
-                    class="border-border/60 border-b last:border-b-0"
-                >
+                <div class="border-border/60 border-b last:border-b-0">
                     <div
                         class="text-muted-foreground flex items-center justify-between gap-3 py-2 text-xs font-medium"
                     >
                         <span>{{ t.nav.accounts }}</span>
                         <span
+                            v-if="accounts.length > 0"
                             class="tabular-nums"
                             :class="
                                 groupTotalClass(accountsTotalMinorUnits)
@@ -171,6 +169,12 @@ function toggleExpanded(): void {
                             {{ formatMoney(accountsTotalMinorUnits) }}
                         </span>
                     </div>
+                    <p
+                        v-if="accounts.length === 0"
+                        class="text-muted-foreground border-border/60 border-t py-3 text-sm"
+                    >
+                        {{ t.dashboard.no_accounts }}
+                    </p>
                     <div
                         v-for="account in accounts"
                         :key="account.id"
@@ -205,8 +209,7 @@ function toggleExpanded(): void {
                     class="border-border/60 border-b last:border-b-0"
                 >
                     <div
-                        class="text-muted-foreground flex items-center justify-between gap-3 py-2 text-xs font-medium"
-                        :class="accounts.length > 0 ? 'border-border/60 border-t' : ''"
+                        class="text-muted-foreground border-border/60 flex items-center justify-between gap-3 border-t py-2 text-xs font-medium"
                     >
                         <span>{{ t.nav.term_deposits }}</span>
                         <span

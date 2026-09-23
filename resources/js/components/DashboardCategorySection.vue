@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { ChevronDown } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryMeterRow from '@/components/CategoryMeterRow.vue';
@@ -8,28 +7,18 @@ import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
-    type CategoryOrderMode,
     type DashboardCategory,
     type DashboardTypeTotals,
     progressWidth,
     sectionBarClass,
     sectionPercentClass,
     showsYearElapsedMark,
-    dashboardDefaultOrderMode,
     dashboardVisibleCategoryLimit,
     hiddenDashboardCategoryCount,
     sliceVisibleCategories,
-    sortCategoriesByRisk,
 } from '@/lib/dashboard-categories';
 import { formatDate, formatMoney } from '@/lib/format';
 
@@ -38,7 +27,6 @@ const props = defineProps<{
     categoryType: 'income' | 'expense';
     categories: DashboardCategory[];
     totals: DashboardTypeTotals;
-    showOrderToggle?: boolean;
     yearElapsedAsOf: string;
     yearElapsedPercent: number;
     budgetYear: number;
@@ -48,9 +36,6 @@ const props = defineProps<{
 const t = useTranslations();
 const isExpanded = ref(false);
 const showYearElapsed = ref(false);
-const orderMode = ref<CategoryOrderMode>(
-    dashboardDefaultOrderMode(props.categoryType),
-);
 const createBudgetDialogOpen = ref(false);
 
 const storageKey = computed(
@@ -71,29 +56,13 @@ const yearElapsedLabel = computed(
     () => `${t.dashboard.year_elapsed} ${formatDate(props.yearElapsedAsOf)}`,
 );
 
-const orderModeLabel = computed(() => {
-    if (orderMode.value === 'budget') {
-        return t.dashboard.order_budget;
-    }
-
-    return t.dashboard.order_risk;
-});
-
-const orderedCategories = computed(() => {
-    if (orderMode.value === 'risk') {
-        return sortCategoriesByRisk(props.categories);
-    }
-
-    return props.categories;
-});
-
 const visibleCategoryLimit = computed(() =>
     dashboardVisibleCategoryLimit(props.categoryType),
 );
 
 const visibleCategories = computed(() =>
     sliceVisibleCategories(
-        orderedCategories.value,
+        props.categories,
         visibleCategoryLimit.value,
         isExpanded.value,
     ),
@@ -101,7 +70,7 @@ const visibleCategories = computed(() =>
 
 const hiddenCategoryCount = computed(() =>
     hiddenDashboardCategoryCount(
-        orderedCategories.value.length,
+        props.categories.length,
         visibleCategoryLimit.value,
     ),
 );
@@ -113,7 +82,7 @@ const showExpander = computed(
 const showCollapse = computed(
     () =>
         isExpanded.value &&
-        orderedCategories.value.length > visibleCategoryLimit.value,
+        props.categories.length > visibleCategoryLimit.value,
 );
 
 const createBudgetYearInputId = computed(
@@ -153,29 +122,6 @@ const sectionRemainingClass = computed(() => {
                                 {{ yearElapsedLabel }}
                             </Label>
                         </div>
-                        <DropdownMenu v-if="showOrderToggle">
-                            <DropdownMenuTrigger as-child>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    :aria-label="t.dashboard.order_by"
-                                >
-                                    {{ orderModeLabel }}
-                                    <ChevronDown class="size-4 opacity-60" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuRadioGroup v-model="orderMode">
-                                    <DropdownMenuRadioItem value="budget">
-                                        {{ t.dashboard.order_budget }}
-                                    </DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="risk">
-                                        {{ t.dashboard.order_risk }}
-                                    </DropdownMenuRadioItem>
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </div>
                 </div>
 

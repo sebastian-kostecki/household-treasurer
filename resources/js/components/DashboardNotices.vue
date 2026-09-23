@@ -77,6 +77,18 @@ const showExpander = computed(
     () => hiddenNoticeCount.value > 0 && !isExpanded.value,
 );
 
+function noticeKindLabel(notice: DashboardNotice): string | null {
+    if (notice.kind === 'paced_month_remaining') {
+        return t.dashboard.notice_paced_month_remaining;
+    }
+
+    if (notice.kind === 'one_off_over_limit') {
+        return t.dashboard.notice_one_off_over_limit;
+    }
+
+    return null;
+}
+
 const showCollapse = computed(
     () => isExpanded.value && props.notices.length > VISIBLE_NOTICE_LIMIT,
 );
@@ -196,11 +208,19 @@ function noticeKey(notice: DashboardNotice): string {
                         :color="notice.color"
                     />
                 </div>
-                <p
-                    class="text-destructive shrink-0 font-medium tabular-nums"
-                >
-                    {{ formatMoney(notice.amount_minor_units) }}
-                </p>
+                <div class="shrink-0 text-right">
+                    <p
+                        class="text-destructive font-medium tabular-nums"
+                    >
+                        {{ formatMoney(notice.amount_minor_units) }}
+                    </p>
+                    <p
+                        v-if="noticeKindLabel(notice)"
+                        class="text-muted-foreground text-xs"
+                    >
+                        {{ noticeKindLabel(notice) }}
+                    </p>
+                </div>
             </Link>
         </ListSurface>
 
@@ -216,7 +236,7 @@ function noticeKey(notice: DashboardNotice): string {
                         ? t.dashboard.show_fewer_notices
                         : t.dashboard.show_all_notices.replace(
                               ':count',
-                              String(hiddenNoticeCount),
+                              String(notices.length),
                           )
                 }}
             </Button>

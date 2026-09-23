@@ -30,6 +30,8 @@ class DashboardTest extends TestCase
 
     public function test_authenticated_users_can_visit_the_dashboard(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
 
         $this->actingAs($user)
@@ -41,7 +43,7 @@ class DashboardTest extends TestCase
                 ->where('termDeposits', [])
                 ->where('spendable_liquidity_minor_units', 0)
                 ->where('total_funds_minor_units', 0)
-                ->where('budget_year', (int) date('Y'))
+                ->where('budget_year', 2026)
                 ->where('budget', null)
                 ->where('paced_pool_month_remaining_minor_units', null)
                 ->where('current_month', null)
@@ -279,6 +281,8 @@ class DashboardTest extends TestCase
 
     public function test_category_added_during_execution_shows_zero_initial_plan_on_dashboard(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
@@ -300,6 +304,8 @@ class DashboardTest extends TestCase
 
     public function test_zero_current_plan_shows_null_percent_complete_on_dashboard(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->expense()->create([
@@ -322,6 +328,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_excludes_archived_categories_from_meters_and_totals(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->archived()->create([
@@ -368,6 +376,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_shows_empty_category_lists_when_all_categories_are_archived(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->archived()->create([
@@ -419,6 +429,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_plan_summary_shows_negative_planned_balance(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
@@ -441,6 +453,8 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_draft_budget_uses_current_plan_for_initial_plan_totals(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
         Category::factory()->for($budget)->income()->create([
@@ -506,6 +520,8 @@ class DashboardTest extends TestCase
 
     public function test_user_sees_only_their_own_dashboard_data(): void
     {
+        $this->travelTo('2026-09-23');
+
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
 
@@ -1247,6 +1263,52 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('operations.data', 1)
                 ->where('operations.data.0.id', $operation->id),
+            );
+    }
+
+    public function test_dashboard_lists_income_and_expense_categories_in_budget_order(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'sort_order' => 1,
+            'planned_amount_minor_units' => 100_000,
+            'initial_plan_minor_units' => 100_000,
+            'execution_minor_units' => 10_000,
+        ]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Rent',
+            'sort_order' => 2,
+            'planned_amount_minor_units' => 10_000,
+            'initial_plan_minor_units' => 10_000,
+            'execution_minor_units' => 50_000,
+        ]);
+        Category::factory()->for($budget)->income()->create([
+            'name' => 'Salary',
+            'sort_order' => 1,
+            'planned_amount_minor_units' => 100_000,
+            'initial_plan_minor_units' => 100_000,
+            'execution_minor_units' => 10_000,
+        ]);
+        Category::factory()->for($budget)->income()->create([
+            'name' => 'Bonus',
+            'sort_order' => 2,
+            'planned_amount_minor_units' => 10_000,
+            'initial_plan_minor_units' => 10_000,
+            'execution_minor_units' => 50_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.name', 'Groceries')
+                ->where('expenseCategories.1.name', 'Rent')
+                ->where('incomeCategories.0.name', 'Salary')
+                ->where('incomeCategories.1.name', 'Bonus'),
             );
     }
 }
