@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PRODUCTION_BRANCH="${PRODUCTION_BRANCH:-development}"
+PRODUCTION_BRANCH="${PRODUCTION_BRANCH:-main}"
 
 production_assert_branch() {
     local current_branch
