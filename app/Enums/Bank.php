@@ -26,6 +26,7 @@ enum Bank: string
             self::Pekao => '/marks/pekao.svg',
             self::PkoBp => '/marks/pko-bp.svg',
             self::Revolut => '/marks/revolut.svg',
+            self::Santander => '/marks/santander.svg',
             self::Other => null,
         };
     }

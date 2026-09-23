@@ -156,9 +156,7 @@ export function computeImportMonthRemainingWarnings(
         };
         const todayYear = Number(context.today.slice(0, 4));
         const currentMonth =
-            todayYear === budget.year
-                ? Number(context.today.slice(5, 7))
-                : 1;
+            todayYear === budget.year ? Number(context.today.slice(5, 7)) : 1;
 
         const categoryMonthRemaining = pacedMonthRemainingMinorUnits(
             calculatorOptions,

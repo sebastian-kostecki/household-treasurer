@@ -209,9 +209,7 @@ function noticeKey(notice: DashboardNotice): string {
                     />
                 </div>
                 <div class="shrink-0 text-right">
-                    <p
-                        class="text-destructive font-medium tabular-nums"
-                    >
+                    <p class="text-destructive font-medium tabular-nums">
                         {{ formatMoney(notice.amount_minor_units) }}
                     </p>
                     <p

@@ -88,7 +88,11 @@ const heroPoints = [
 
 <template>
     <Head :title="name">
-        <meta head-key="description" name="description" :content="t.landing.meta_description" />
+        <meta
+            head-key="description"
+            name="description"
+            :content="t.landing.meta_description"
+        />
     </Head>
 
     <div class="bg-background text-foreground min-h-screen">
@@ -146,9 +150,7 @@ const heroPoints = [
 
         <main id="top">
             <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
-                <div
-                    class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16"
-                >
+                <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
                     <div class="space-y-6">
                         <p
                             class="bg-accent text-accent-foreground inline-flex rounded-xl px-3 py-1 text-xs font-medium"
@@ -215,7 +217,9 @@ const heroPoints = [
             >
                 <div class="mx-auto max-w-6xl space-y-10 px-4 sm:px-6">
                     <div class="max-w-2xl space-y-3">
-                        <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                        <h2
+                            class="text-2xl font-semibold tracking-tight sm:text-3xl"
+                        >
                             {{ t.landing.features_title }}
                         </h2>
                         <p class="text-muted-foreground leading-relaxed">
@@ -238,7 +242,9 @@ const heroPoints = [
             <section id="how" class="border-border/60 border-t py-16 sm:py-20">
                 <div class="mx-auto max-w-6xl space-y-10 px-4 sm:px-6">
                     <div class="max-w-2xl space-y-3">
-                        <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
+                        <h2
+                            class="text-2xl font-semibold tracking-tight sm:text-3xl"
+                        >
                             {{ t.landing.how_title }}
                         </h2>
                         <p class="text-muted-foreground leading-relaxed">
@@ -260,7 +266,9 @@ const heroPoints = [
                             <h3 class="text-sm font-semibold">
                                 {{ t.landing[step.titleKey] }}
                             </h3>
-                            <p class="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+                            <p
+                                class="text-muted-foreground mt-1.5 text-sm leading-relaxed"
+                            >
                                 {{ t.landing[step.descriptionKey] }}
                             </p>
                         </li>
@@ -274,10 +282,14 @@ const heroPoints = [
                         class="bg-accent text-accent-foreground flex flex-col items-start justify-between gap-6 rounded-2xl px-6 py-8 sm:flex-row sm:items-center sm:px-10"
                     >
                         <div class="space-y-2">
-                            <h2 class="text-xl font-semibold tracking-tight sm:text-2xl">
+                            <h2
+                                class="text-xl font-semibold tracking-tight sm:text-2xl"
+                            >
                                 {{ t.landing.cta_band_title }}
                             </h2>
-                            <p class="text-accent-foreground/80 text-sm leading-relaxed sm:text-base">
+                            <p
+                                class="text-accent-foreground/80 text-sm leading-relaxed sm:text-base"
+                            >
                                 {{ t.landing.cta_band_lead }}
                             </p>
                         </div>
@@ -291,12 +303,7 @@ const heroPoints = [
                                 {{ t.landing.cta_dashboard }}
                             </Link>
                         </Button>
-                        <Button
-                            v-else
-                            as-child
-                            size="lg"
-                            class="shrink-0"
-                        >
+                        <Button v-else as-child size="lg" class="shrink-0">
                             <Link :href="login()">
                                 {{ t.landing.cta_login }}
                             </Link>

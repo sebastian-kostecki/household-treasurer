@@ -41,9 +41,7 @@ const meters = [
             <aside
                 class="border-border/60 bg-sidebar hidden w-14 shrink-0 flex-col gap-2 border-r p-3 sm:flex"
             >
-                <div
-                    class="bg-sidebar-primary mb-2 size-7 rounded-md"
-                />
+                <div class="bg-sidebar-primary mb-2 size-7 rounded-md" />
                 <div
                     v-for="dot in 5"
                     :key="dot"

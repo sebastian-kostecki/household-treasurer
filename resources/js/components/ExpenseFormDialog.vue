@@ -584,10 +584,7 @@ function closeDialog(): void {
                     </p>
                 </div>
 
-                <Alert
-                    v-if="showExpenseWarnings"
-                    variant="destructive"
-                >
+                <Alert v-if="showExpenseWarnings" variant="destructive">
                     <AlertTriangle class="size-4" />
                     <AlertTitle>{{
                         t.operations.expense_warnings_title
