@@ -256,10 +256,7 @@ function closeDialog(): void {
 
                 <div v-if="type === 'expense'" class="grid gap-2">
                     <div class="flex items-start gap-2">
-                        <Checkbox
-                            id="category-is-paced"
-                            v-model="isPaced"
-                        />
+                        <Checkbox id="category-is-paced" v-model="isPaced" />
                         <div class="grid gap-1">
                             <Label for="category-is-paced">
                                 {{ t.budget.paced_category }}

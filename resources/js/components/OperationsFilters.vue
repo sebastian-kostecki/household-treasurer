@@ -477,11 +477,7 @@ function accountLabel(account: OperationsFilterAccount): string {
                         <option value="">
                             {{ t.operations.filter_year_all }}
                         </option>
-                        <option
-                            v-for="year in years"
-                            :key="year"
-                            :value="year"
-                        >
+                        <option v-for="year in years" :key="year" :value="year">
                             {{ year }}
                         </option>
                     </select>

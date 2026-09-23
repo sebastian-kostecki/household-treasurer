@@ -46,10 +46,7 @@ const resultClass = computed(() => {
             <p class="text-muted-foreground text-xs">
                 {{ t.budget.month_result }}
             </p>
-            <p
-                class="text-lg font-semibold tabular-nums"
-                :class="resultClass"
-            >
+            <p class="text-lg font-semibold tabular-nums" :class="resultClass">
                 {{ formatMoney(monthResultMinorUnits) }}
             </p>
         </div>

@@ -4,8 +4,8 @@ Aplikacja webowa do rocznego budżetu domowego: plan kategorii kontra rzeczywist
 
 Dwie płaszczyzny produktu:
 
-- **Budżet** — plan początkowy, plan aktualny i wykonanie. Kategorie wydatkowe są równomierne (*Paced*) albo jednorazowe (*One-off*).
-- **Płynność** — *Spendable Liquidity* (salda kont) i *Total funds* (te salda plus lokaty).
+- **Budżet** — plan początkowy, plan aktualny i wykonanie. Kategorie wydatkowe są równomierne (_Paced_) albo jednorazowe (_One-off_).
+- **Płynność** — _Spendable Liquidity_ (salda kont) i _Total funds_ (te salda plus lokaty).
 
 Konta logowania tworzy administrator. Samodzielna rejestracja jest wyłączona. Każdy użytkownik widzi wyłącznie własne dane.
 
@@ -15,13 +15,13 @@ Laravel 13, PHP 8.5, PostgreSQL, Vue 3, Inertia 3, Tailwind CSS, Pest. Szczegó�
 
 ## Dokumentacja
 
-| Dokument | Po co |
-| --- | --- |
-| [`CONTEXT.md`](CONTEXT.md) | Słownik domeny (język kodu i agentów) |
-| [`.docs/prd.md`](.docs/prd.md) | Wymagania produktu |
-| [`.docs/mvp.md`](.docs/mvp.md) | Krótki zakres MVP |
-| [`.docs/tech-stack.md`](.docs/tech-stack.md) | Decyzje technologiczne |
-| [`.docs/adr/`](.docs/adr/) | Decyzje architektoniczne |
+| Dokument                                     | Po co                                 |
+| -------------------------------------------- | ------------------------------------- |
+| [`CONTEXT.md`](CONTEXT.md)                   | Słownik domeny (język kodu i agentów) |
+| [`.docs/prd.md`](.docs/prd.md)               | Wymagania produktu                    |
+| [`.docs/mvp.md`](.docs/mvp.md)               | Krótki zakres MVP                     |
+| [`.docs/tech-stack.md`](.docs/tech-stack.md) | Decyzje technologiczne                |
+| [`.docs/adr/`](.docs/adr/)                   | Decyzje architektoniczne              |
 
 Słownik w `CONTEXT.md` jest źródłem nazw. Unikaj synonimów, które ten plik wyklucza.
 
@@ -100,14 +100,14 @@ Pełny zestaw lokalny: `./vendor/bin/sail composer ci:check`.
 
 ## Komendy administracyjne
 
-| Komenda | Działanie |
-| --- | --- |
-| `user:create` | Konto logowania |
-| `user:backup {user}` | Snapshot JSON danych domenowych (wersja 4) |
-| `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika |
-| `user:reset-data {user}` | Wyczyszczenie danych domenowych, konto logowania zostaje |
-| `demo:seed-household {user}` | Dane demo |
-| `backup:restore {path}` | Restore backupu całej instancji (Spatie), nie `user:restore` |
+| Komenda                      | Działanie                                                    |
+| ---------------------------- | ------------------------------------------------------------ |
+| `user:create`                | Konto logowania                                              |
+| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 4)                   |
+| `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika           |
+| `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje     |
+| `demo:seed-household {user}` | Dane demo                                                    |
+| `backup:restore {path}`      | Restore backupu całej instancji (Spatie), nie `user:restore` |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
 

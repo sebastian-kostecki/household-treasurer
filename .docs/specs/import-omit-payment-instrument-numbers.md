@@ -46,10 +46,10 @@ Worked example (BNP Paribas `Opis`):
 - Put omit behind one small interface: given optional text, return optional text with payment-instrument numbers removed and leftover whitespace collapsed. The existing Import row-field mapper (all three format entry points) is the only parse caller. Parsers keep sending raw cells; they do not omit.
 - Mapping order stays as today, then omit on live Description and Counterparty, then truncate to 255, then the empty-Description fallback to remaining Counterparty. Raw Statement Description is joined from the pre-omit cells and is never truncated by this work.
 - Matchers, applied to non-overlapping spans, more specific first so a 26-digit NRB is not partly eaten as a PAN:
-  - Polish NRB: 26 digits, optional `PL` prefix, optional spaces.
-  - IBAN: ISO 13616 (two-letter country, two check digits, BBAN) at a plausible IBAN length, so `POL` and amount fragments such as `24,03` do not match.
-  - Masked PAN: six or more digits, then four or more mask characters (`-` or `_`), then four digits.
-  - Unmasked PAN: a 13–19 digit run that passes Luhn and was not already consumed as NRB/IBAN.
+    - Polish NRB: 26 digits, optional `PL` prefix, optional spaces.
+    - IBAN: ISO 13616 (two-letter country, two check digits, BBAN) at a plausible IBAN length, so `POL` and amount fragments such as `24,03` do not match.
+    - Masked PAN: six or more digits, then four or more mask characters (`-` or `_`), then four digits.
+    - Unmasked PAN: a 13–19 digit run that passes Luhn and was not already consumed as NRB/IBAN.
 - Do not treat a single hyphen between digit groups as a mask (mBank-style `2102625950-0081491110` stays).
 - Preview and commit keep copying mapper output from the Import session. No new request fields. No Vue editor for Description.
 - One-shot backfill: an Action the data migration calls. For every Financial Operation, Own Transfer, and Capital Movement with a non-null Raw Statement Description on that record (either Own Transfer snapshot counts), omit live Description and, on Financial Operations, Counterparty, then apply the same empty-Description fallback. If Description would still be empty, skip that record. Do not write Raw Statement Description. Do not touch Cash Expectations. Do not change Import duplicate identity columns.

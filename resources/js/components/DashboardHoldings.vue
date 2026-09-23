@@ -84,9 +84,7 @@ const termDepositsTotalMinorUnits = computed(() =>
     ),
 );
 
-function amountClass(
-    holding: AccountSummary | TermDepositSummary,
-): string {
+function amountClass(holding: AccountSummary | TermDepositSummary): string {
     if (holding.is_negative) {
         return 'text-destructive';
     }
@@ -162,9 +160,7 @@ function toggleExpanded(): void {
                         <span
                             v-if="accounts.length > 0"
                             class="tabular-nums"
-                            :class="
-                                groupTotalClass(accountsTotalMinorUnits)
-                            "
+                            :class="groupTotalClass(accountsTotalMinorUnits)"
                         >
                             {{ formatMoney(accountsTotalMinorUnits) }}
                         </span>
@@ -196,9 +192,7 @@ function toggleExpanded(): void {
                             :class="amountClass(account)"
                         >
                             {{
-                                formatMoney(
-                                    account.current_balance_minor_units,
-                                )
+                                formatMoney(account.current_balance_minor_units)
                             }}
                         </p>
                     </div>

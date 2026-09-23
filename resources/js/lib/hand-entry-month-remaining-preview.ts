@@ -130,10 +130,7 @@ function executionBeforeMonth(
     return total;
 }
 
-function currentMonthForBudget(
-    budgetYear: number,
-    today: string,
-): number {
+function currentMonthForBudget(budgetYear: number, today: string): number {
     const todayYear = Number(today.slice(0, 4));
 
     if (todayYear === budgetYear) {

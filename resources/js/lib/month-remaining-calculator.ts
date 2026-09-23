@@ -108,16 +108,15 @@ export function pacedMonthRemainingMinorUnits(
     const { year: todayYear, month: todayMonth } = parseToday(options.today);
 
     if (options.isDraft) {
-        return draftMonthRemainingMinorUnits(currentPlanMinorUnits, viewedMonth);
+        return draftMonthRemainingMinorUnits(
+            currentPlanMinorUnits,
+            viewedMonth,
+        );
     }
 
     if (
-        monthTiming(
-            options.budgetYear,
-            viewedMonth,
-            todayYear,
-            todayMonth,
-        ) === 'future'
+        monthTiming(options.budgetYear, viewedMonth, todayYear, todayMonth) ===
+        'future'
     ) {
         return futurePlasterMonthRemainingMinorUnits(
             currentPlanMinorUnits,
@@ -161,12 +160,8 @@ export function pacedPoolMonthRemainingMinorUnits(
     }
 
     if (
-        monthTiming(
-            options.budgetYear,
-            viewedMonth,
-            todayYear,
-            todayMonth,
-        ) === 'future'
+        monthTiming(options.budgetYear, viewedMonth, todayYear, todayMonth) ===
+        'future'
     ) {
         return futurePlasterMonthRemainingMinorUnits(
             totalCurrentPlanMinorUnits,
