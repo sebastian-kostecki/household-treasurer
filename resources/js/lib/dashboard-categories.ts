@@ -25,22 +25,18 @@ export type CategoryOrderMode = 'budget' | 'risk';
 
 export const VISIBLE_CATEGORY_LIMIT = 8;
 
-export const DASHBOARD_EXPENSE_VISIBLE_CATEGORY_LIMIT = 5;
-
-export const DASHBOARD_INCOME_VISIBLE_CATEGORY_LIMIT = 0;
+export const DASHBOARD_SECTION_VISIBLE_CATEGORY_LIMIT = 5;
 
 export function dashboardVisibleCategoryLimit(
-    categoryType: 'income' | 'expense',
+    _categoryType: 'income' | 'expense',
 ): number {
-    return categoryType === 'expense'
-        ? DASHBOARD_EXPENSE_VISIBLE_CATEGORY_LIMIT
-        : DASHBOARD_INCOME_VISIBLE_CATEGORY_LIMIT;
+    return DASHBOARD_SECTION_VISIBLE_CATEGORY_LIMIT;
 }
 
 export function dashboardDefaultOrderMode(
-    categoryType: 'income' | 'expense',
+    _categoryType: 'income' | 'expense',
 ): CategoryOrderMode {
-    return categoryType === 'expense' ? 'risk' : 'budget';
+    return 'risk';
 }
 
 export function sliceVisibleCategories(
