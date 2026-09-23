@@ -8,9 +8,9 @@ import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
-import DashboardPacedMonthAlerts, {
-    type PacedCategoryMonthAlert,
-} from '@/components/DashboardPacedMonthAlerts.vue';
+import DashboardNotices, {
+    type DashboardNotice,
+} from '@/components/DashboardNotices.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -79,7 +79,7 @@ const props = defineProps<{
     expenseTotals: DashboardTypeTotals;
     year_elapsed_as_of: string | null;
     year_elapsed_percent: number | null;
-    pacedCategoryMonthAlerts: PacedCategoryMonthAlert[];
+    dashboardNotices: DashboardNotice[];
     paced_pool_month_remaining_minor_units: number | null;
     current_month: number | null;
     planSummary: PlanSummary | null;
@@ -239,9 +239,11 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
                     </CardContent>
                 </Card>
 
-                <DashboardPacedMonthAlerts
-                    v-if="pacedCategoryMonthAlerts.length > 0"
-                    :alerts="pacedCategoryMonthAlerts"
+                <DashboardNotices
+                    v-if="dashboardNotices.length > 0"
+                    :notices="dashboardNotices"
+                    :budget-year="budget_year"
+                    :current-month="current_month"
                 />
 
                 <div
