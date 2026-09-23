@@ -14,7 +14,30 @@ class DashboardNotices
     /**
      * @param  Collection<int, Account>  $accounts
      * @param  Collection<int, TermDeposit>  $termDeposits
-     * @return list<array<string, mixed>>
+     * @return list<array{
+     *     kind: 'negative_account',
+     *     id: int,
+     *     name: string,
+     *     type: string,
+     *     bank: string|null,
+     *     mark_url: string|null,
+     *     amount_minor_units: int,
+     * }|array{
+     *     kind: 'negative_term_deposit',
+     *     id: int,
+     *     name: string,
+     *     bank: string,
+     *     mark_url: string|null,
+     *     amount_minor_units: int,
+     * }|array{
+     *     kind: 'paced_month_remaining'|'one_off_over_limit',
+     *     id: int,
+     *     name: string,
+     *     icon: string,
+     *     color: string,
+     *     category_name: string,
+     *     amount_minor_units: int,
+     * }>
      */
     public static function forDashboard(
         ?Budget $budget,

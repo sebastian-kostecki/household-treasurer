@@ -166,18 +166,20 @@ setLayoutProps({
             <div class="flex flex-col gap-4 md:gap-5 lg:col-span-2">
                 <Card v-if="shell.firstRun.showChecklist">
                     <CardHeader class="pb-3">
-                        <div class="flex items-start justify-between gap-3">
+                        <div
+                            class="flex justify-between gap-3"
+                            :class="
+                                checklistComplete
+                                    ? 'items-center'
+                                    : 'items-start'
+                            "
+                        >
                             <div class="space-y-1">
                                 <CardTitle class="text-base">
                                     {{ t.dashboard.checklist_title }}
                                 </CardTitle>
-                                <CardDescription>
-                                    {{
-                                        checklistComplete
-                                            ? t.dashboard
-                                                  .checklist_complete_description
-                                            : t.dashboard.checklist_description
-                                    }}
+                                <CardDescription v-if="!checklistComplete">
+                                    {{ t.dashboard.checklist_description }}
                                 </CardDescription>
                             </div>
                             <Form
@@ -375,7 +377,6 @@ setLayoutProps({
                                 :can-select-budget-year="
                                     canSelectCurrentYearInShell
                                 "
-                                show-order-toggle
                             />
 
                             <DashboardCategorySection
@@ -391,7 +392,6 @@ setLayoutProps({
                                 :can-select-budget-year="
                                     canSelectCurrentYearInShell
                                 "
-                                show-order-toggle
                             />
                         </div>
                     </template>
