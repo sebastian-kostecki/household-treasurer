@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { Form } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
+import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryMeterRow from '@/components/CategoryMeterRow.vue';
+import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,8 +25,11 @@ import {
     sectionBarClass,
     sectionPercentClass,
     showsYearElapsedMark,
+    dashboardDefaultOrderMode,
+    dashboardVisibleCategoryLimit,
+    hiddenDashboardCategoryCount,
+    sliceVisibleCategories,
     sortCategoriesByRisk,
-    VISIBLE_CATEGORY_LIMIT,
 } from '@/lib/dashboard-categories';
 import { formatDate, formatMoney } from '@/lib/format';
 
@@ -35,12 +41,17 @@ const props = defineProps<{
     showOrderToggle?: boolean;
     yearElapsedAsOf: string;
     yearElapsedPercent: number;
+    budgetYear: number;
+    canSelectBudgetYear: boolean;
 }>();
 
 const t = useTranslations();
 const isExpanded = ref(false);
 const showYearElapsed = ref(false);
-const orderMode = ref<CategoryOrderMode>('budget');
+const orderMode = ref<CategoryOrderMode>(
+    dashboardDefaultOrderMode(props.categoryType),
+);
+const createBudgetDialogOpen = ref(false);
 
 const storageKey = computed(
     () => `dashboard-year-elapsed-${props.categoryType}`,
@@ -76,19 +87,23 @@ const orderedCategories = computed(() => {
     return props.categories;
 });
 
-const visibleCategories = computed(() => {
-    if (
-        isExpanded.value ||
-        orderedCategories.value.length <= VISIBLE_CATEGORY_LIMIT
-    ) {
-        return orderedCategories.value;
-    }
+const visibleCategoryLimit = computed(() =>
+    dashboardVisibleCategoryLimit(props.categoryType),
+);
 
-    return orderedCategories.value.slice(0, VISIBLE_CATEGORY_LIMIT);
-});
+const visibleCategories = computed(() =>
+    sliceVisibleCategories(
+        orderedCategories.value,
+        visibleCategoryLimit.value,
+        isExpanded.value,
+    ),
+);
 
 const hiddenCategoryCount = computed(() =>
-    Math.max(orderedCategories.value.length - VISIBLE_CATEGORY_LIMIT, 0),
+    hiddenDashboardCategoryCount(
+        orderedCategories.value.length,
+        visibleCategoryLimit.value,
+    ),
 );
 
 const showExpander = computed(
@@ -98,7 +113,11 @@ const showExpander = computed(
 const showCollapse = computed(
     () =>
         isExpanded.value &&
-        orderedCategories.value.length > VISIBLE_CATEGORY_LIMIT,
+        orderedCategories.value.length > visibleCategoryLimit.value,
+);
+
+const createBudgetYearInputId = computed(
+    () => `dashboard-section-budget-year-${props.categoryType}`,
 );
 
 const sectionRemainingClass = computed(() => {
@@ -259,6 +278,36 @@ const sectionRemainingClass = computed(() => {
                           )
                 }}
             </Button>
+        </div>
+
+        <div class="pt-3">
+            <Form
+                v-if="canSelectBudgetYear"
+                v-bind="BudgetController.selectYear.form()"
+                v-slot="{ processing }"
+            >
+                <input type="hidden" name="year" :value="budgetYear" />
+                <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    :disabled="processing"
+                >
+                    {{ t.dashboard.open_budget }}
+                </Button>
+            </Form>
+            <CreateBudgetDialog
+                v-else
+                v-model:open="createBudgetDialogOpen"
+                :year-input-id="createBudgetYearInputId"
+                :suggested-year="budgetYear"
+            >
+                <template #trigger>
+                    <Button variant="outline" size="sm">
+                        {{ t.dashboard.open_budget }}
+                    </Button>
+                </template>
+            </CreateBudgetDialog>
         </div>
     </ListSurface>
 </template>

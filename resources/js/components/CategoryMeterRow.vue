@@ -52,7 +52,7 @@ const showMeterTrack = computed(
             </div>
         </div>
 
-        <div class="category-meter-cell-plan tabular-nums">
+        <div class="category-meter-cell-plan tabular-nums max-md:hidden">
             <span class="text-muted-foreground text-[11px] md:hidden">
                 {{ t.dashboard.current_plan }}
             </span>
@@ -61,7 +61,7 @@ const showMeterTrack = computed(
             </span>
         </div>
 
-        <div class="category-meter-cell-execution tabular-nums">
+        <div class="category-meter-cell-execution tabular-nums max-md:hidden">
             <span class="text-muted-foreground text-[11px] md:hidden">
                 {{ t.dashboard.execution }}
             </span>
@@ -77,7 +77,7 @@ const showMeterTrack = computed(
             class="category-meter-cell-remaining tabular-nums"
             :class="remainingClass(categoryType, category.is_over_limit)"
         >
-            <span class="text-muted-foreground text-[11px] md:hidden">
+            <span class="hidden">
                 {{ t.dashboard.remaining }}
             </span>
             <span class="text-sm">

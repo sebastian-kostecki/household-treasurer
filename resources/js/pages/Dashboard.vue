@@ -104,8 +104,9 @@ const monthRemainingLabel = computed(() => {
     }
 
     const monthName =
-        t.budget[`month_name_${props.current_month}` as keyof typeof t.budget] ??
-        '';
+        t.budget[
+            `month_name_${props.current_month}` as keyof typeof t.budget
+        ] ?? '';
 
     return t.dashboard.paced_pool_month_remaining.replace(':month', monthName);
 });
@@ -155,7 +156,6 @@ setLayoutProps({
         },
     ],
 });
-
 </script>
 
 <template>
@@ -174,7 +174,8 @@ setLayoutProps({
                                 <CardDescription>
                                     {{
                                         checklistComplete
-                                            ? t.dashboard.checklist_complete_description
+                                            ? t.dashboard
+                                                  .checklist_complete_description
                                             : t.dashboard.checklist_description
                                     }}
                                 </CardDescription>
@@ -253,7 +254,9 @@ setLayoutProps({
                         </CardHeader>
                     </Card>
 
-                    <Card :class="showMonthRemainingTile ? '' : 'sm:col-span-2'">
+                    <Card
+                        :class="showMonthRemainingTile ? '' : 'sm:col-span-2'"
+                    >
                         <CardHeader class="pb-2">
                             <CardDescription>
                                 {{ t.dashboard.spendable_liquidity }}
@@ -279,7 +282,9 @@ setLayoutProps({
                 </div>
 
                 <section class="space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-2"
+                    >
                         <h2 class="text-sm font-semibold">
                             {{ budgetYearLabel }}
                         </h2>
@@ -363,7 +368,13 @@ setLayoutProps({
                                 :categories="expenseCategories"
                                 :totals="expenseTotals"
                                 :year-elapsed-as-of="year_elapsed_as_of ?? ''"
-                                :year-elapsed-percent="year_elapsed_percent ?? 0"
+                                :year-elapsed-percent="
+                                    year_elapsed_percent ?? 0
+                                "
+                                :budget-year="budget_year"
+                                :can-select-budget-year="
+                                    canSelectCurrentYearInShell
+                                "
                                 show-order-toggle
                             />
 
@@ -373,7 +384,13 @@ setLayoutProps({
                                 :categories="incomeCategories"
                                 :totals="incomeTotals"
                                 :year-elapsed-as-of="year_elapsed_as_of ?? ''"
-                                :year-elapsed-percent="year_elapsed_percent ?? 0"
+                                :year-elapsed-percent="
+                                    year_elapsed_percent ?? 0
+                                "
+                                :budget-year="budget_year"
+                                :can-select-budget-year="
+                                    canSelectCurrentYearInShell
+                                "
                             />
                         </div>
                     </template>
