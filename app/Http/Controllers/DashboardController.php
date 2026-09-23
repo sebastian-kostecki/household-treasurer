@@ -12,6 +12,7 @@ use App\Support\AccountIdentity;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
+use App\Support\DashboardPacedCategoryMonthAlerts;
 use App\Support\SelectedBudgetYear;
 use App\Support\ShellState;
 use App\Support\YearElapsed;
@@ -54,6 +55,7 @@ class DashboardController extends Controller
 
         $incomeCategories = [];
         $expenseCategories = [];
+        $pacedCategoryMonthAlerts = [];
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
         $expenseTotals = [...$emptyTotals];
@@ -86,6 +88,12 @@ class DashboardController extends Controller
                 ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all();
 
+            $pacedCategoryMonthAlerts = DashboardPacedCategoryMonthAlerts::forBudget(
+                $budget,
+                $allCategories->where('type', CategoryType::Expense)->values(),
+                $today,
+            );
+
             $planSummary = BudgetPlanSummary::forBudget($budget, $visibleCategories);
             $incomeTotals = $planSummary['income'];
             $expenseTotals = $planSummary['expense'];
@@ -102,6 +110,7 @@ class DashboardController extends Controller
             ],
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
+            'pacedCategoryMonthAlerts' => $pacedCategoryMonthAlerts,
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,
             'expenseTotals' => $expenseTotals,

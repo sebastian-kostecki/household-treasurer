@@ -134,6 +134,7 @@ return [
         'year_elapsed' => 'Postęp roku',
         'order_by' => 'Sortuj według',
         'plan_changed' => 'Plan zmieniony',
+        'month_remaining' => 'Pozostało w miesiącu',
     ],
     'budget' => [
         'title' => 'Budżet',
