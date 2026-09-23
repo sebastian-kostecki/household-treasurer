@@ -63,8 +63,12 @@ const showCollapse = computed(
         </h2>
 
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <Card v-for="alert in visibleAlerts" :key="alert.id">
-                <CardHeader class="pb-2">
+            <Card
+                v-for="alert in visibleAlerts"
+                :key="alert.id"
+                class="gap-0 py-0"
+            >
+                <CardHeader class="p-4">
                     <div class="flex items-center justify-between gap-3">
                         <div class="min-w-0">
                             <CategoryChip
