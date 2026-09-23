@@ -13,7 +13,7 @@ use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
-use App\Support\DashboardPacedCategoryMonthAlerts;
+use App\Support\DashboardNotices;
 use App\Support\ShellState;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
@@ -56,7 +56,7 @@ class DashboardController extends Controller
 
         $incomeCategories = [];
         $expenseCategories = [];
-        $pacedCategoryMonthAlerts = [];
+        $dashboardNotices = [];
         $pacedPoolMonthRemainingMinorUnits = null;
         $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
@@ -95,12 +95,6 @@ class DashboardController extends Controller
                     ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                     ->all();
 
-                $pacedCategoryMonthAlerts = DashboardPacedCategoryMonthAlerts::forBudget(
-                    $budget,
-                    $allCategories->where('type', CategoryType::Expense)->values(),
-                    $today,
-                );
-
                 $hasVisiblePacedExpenseCategory = $visibleExpenseCategories->contains(
                     fn (Category $category): bool => $category->is_paced,
                 );
@@ -118,6 +112,13 @@ class DashboardController extends Controller
             }
         }
 
+        $dashboardNotices = DashboardNotices::forDashboard(
+            $budget,
+            $allAccounts,
+            $allTermDeposits,
+            $today,
+        );
+
         return Inertia::render('Dashboard', [
             'accounts' => $accounts,
             'termDeposits' => $termDeposits,
@@ -130,7 +131,7 @@ class DashboardController extends Controller
             ],
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
-            'pacedCategoryMonthAlerts' => $pacedCategoryMonthAlerts,
+            'dashboardNotices' => $dashboardNotices,
             'paced_pool_month_remaining_minor_units' => $pacedPoolMonthRemainingMinorUnits,
             'current_month' => $currentMonth,
             'planSummary' => $planSummary,

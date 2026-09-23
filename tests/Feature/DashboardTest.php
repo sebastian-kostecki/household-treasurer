@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
+use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
@@ -61,7 +62,7 @@ class DashboardTest extends TestCase
                 ])
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
-                ->where('pacedCategoryMonthAlerts', [])
+                ->where('dashboardNotices', [])
                 ->where('year_elapsed_as_of', null)
                 ->where('year_elapsed_percent', null),
             );
@@ -826,13 +827,15 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', [
+                ->where('dashboardNotices', [
                     [
+                        'kind' => 'paced_month_remaining',
                         'id' => $groceries->id,
                         'name' => 'Groceries',
                         'icon' => 'shopping-cart',
                         'color' => '#fa5252',
-                        'month_remaining_minor_units' => -10_000,
+                        'category_name' => 'Groceries',
+                        'amount_minor_units' => -10_000,
                     ],
                 ])
                 ->missing('expenseCategories.0.month_remaining_minor_units'),
@@ -866,7 +869,7 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', []),
+                ->where('dashboardNotices', []),
             );
     }
 
@@ -897,7 +900,7 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', []),
+                ->where('dashboardNotices', []),
             );
     }
 
@@ -928,7 +931,7 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', []),
+                ->where('dashboardNotices', []),
             );
     }
 
@@ -947,7 +950,7 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', []),
+                ->where('dashboardNotices', []),
             );
     }
 
@@ -978,7 +981,7 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', []),
+                ->where('dashboardNotices', []),
             );
     }
 
@@ -997,11 +1000,11 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts', []),
+                ->where('dashboardNotices', []),
             );
     }
 
-    public function test_dashboard_orders_paced_category_month_alerts_by_most_negative_then_budget_order(): void
+    public function test_dashboard_orders_paced_category_notices_by_most_negative_then_budget_order(): void
     {
         $this->travelTo('2026-09-23');
 
@@ -1051,12 +1054,199 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('pacedCategoryMonthAlerts.0.id', $worse->id)
-                ->where('pacedCategoryMonthAlerts.0.month_remaining_minor_units', -20_000)
-                ->where('pacedCategoryMonthAlerts.1.id', $earlierTie->id)
-                ->where('pacedCategoryMonthAlerts.1.month_remaining_minor_units', -10_000)
-                ->where('pacedCategoryMonthAlerts.2.id', $laterTie->id)
-                ->where('pacedCategoryMonthAlerts.2.month_remaining_minor_units', -10_000),
+                ->where('dashboardNotices.0.kind', 'paced_month_remaining')
+                ->where('dashboardNotices.0.id', $worse->id)
+                ->where('dashboardNotices.0.amount_minor_units', -20_000)
+                ->where('dashboardNotices.1.id', $earlierTie->id)
+                ->where('dashboardNotices.1.amount_minor_units', -10_000)
+                ->where('dashboardNotices.2.id', $laterTie->id)
+                ->where('dashboardNotices.2.amount_minor_units', -10_000),
+            );
+    }
+
+    public function test_dashboard_notices_negative_non_archived_account_and_term_deposit(): void
+    {
+        $user = User::factory()->create();
+        $negativeAccount = Account::factory()->for($user)->negative()->create([
+            'name' => 'Overdrawn',
+        ]);
+        Account::factory()->for($user)->archived()->negative()->create([
+            'name' => 'Archived overdrawn',
+        ]);
+        $negativeTermDeposit = TermDeposit::factory()->for($user)->negative()->create([
+            'name' => 'Negative lokata',
+            'bank' => Bank::Mbank,
+        ]);
+        TermDeposit::factory()->for($user)->archived()->negative()->create([
+            'name' => 'Archived lokata',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('dashboardNotices', 2)
+                ->where('dashboardNotices.0.kind', 'negative_account')
+                ->where('dashboardNotices.0.id', $negativeAccount->id)
+                ->where('dashboardNotices.0.amount_minor_units', $negativeAccount->current_balance_minor_units)
+                ->where('dashboardNotices.1.kind', 'negative_term_deposit')
+                ->where('dashboardNotices.1.id', $negativeTermDeposit->id)
+                ->where('dashboardNotices.1.amount_minor_units', $negativeTermDeposit->current_balance_minor_units),
+            );
+    }
+
+    public function test_dashboard_notices_one_off_category_over_limit(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $insurance = Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Insurance',
+            'icon' => 'shield',
+            'color' => '#228be6',
+            'planned_amount_minor_units' => 50_000,
+            'execution_minor_units' => 70_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', [
+                    [
+                        'kind' => 'one_off_over_limit',
+                        'id' => $insurance->id,
+                        'name' => 'Insurance',
+                        'icon' => 'shield',
+                        'color' => '#228be6',
+                        'category_name' => 'Insurance',
+                        'amount_minor_units' => -20_000,
+                    ],
+                ]),
+            );
+    }
+
+    public function test_dashboard_does_not_duplicate_paced_category_as_one_off_notice(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+            'execution_minor_units' => 150_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('dashboardNotices', 1)
+                ->where('dashboardNotices.0.kind', 'paced_month_remaining')
+                ->where('dashboardNotices.0.id', $groceries->id),
+            );
+    }
+
+    public function test_dashboard_orders_notices_by_kind_then_within_kind_rules(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $negativeAccount = Account::factory()->for($user)->negative()->create([
+            'name' => 'Overdrawn',
+        ]);
+        $negativeTermDeposit = TermDeposit::factory()->for($user)->negative()->create([
+            'name' => 'Negative lokata',
+        ]);
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $paced = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'planned_amount_minor_units' => 120_000,
+            'sort_order' => 1,
+        ]);
+        $oneOff = Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Insurance',
+            'planned_amount_minor_units' => 50_000,
+            'execution_minor_units' => 80_000,
+            'sort_order' => 2,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $paced->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices.0.kind', 'negative_account')
+                ->where('dashboardNotices.0.id', $negativeAccount->id)
+                ->where('dashboardNotices.1.kind', 'negative_term_deposit')
+                ->where('dashboardNotices.1.id', $negativeTermDeposit->id)
+                ->where('dashboardNotices.2.kind', 'paced_month_remaining')
+                ->where('dashboardNotices.2.id', $paced->id)
+                ->where('dashboardNotices.3.kind', 'one_off_over_limit')
+                ->where('dashboardNotices.3.id', $oneOff->id),
+            );
+    }
+
+    public function test_operations_category_date_filters_show_current_year_regardless_of_shell_year(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+        ]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+
+        $operation = FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 10_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('operations', [
+                'category_name' => 'Groceries',
+                'category_type' => CategoryType::Expense->value,
+                'date_from' => '2026-09-01',
+                'date_to' => '2026-09-30',
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 1)
+                ->where('operations.data.0.id', $operation->id),
             );
     }
 }

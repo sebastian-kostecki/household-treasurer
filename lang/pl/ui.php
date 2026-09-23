@@ -141,7 +141,9 @@ return [
         'order_by' => 'Sortuj według',
         'plan_changed' => 'Plan zmieniony',
         'month_remaining' => 'Pozostało w miesiącu',
-        'paced_month_alerts_title' => 'Przekroczone w tym miesiącu',
+        'attention_zone_title' => 'Wymaga uwagi',
+        'show_all_notices' => 'Pokaż wszystkie (:count)',
+        'show_fewer_notices' => 'Pokaż mniej',
     ],
     'budget' => [
         'title' => 'Budżet',
