@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
+use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\FinancialOperation;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
@@ -56,6 +58,7 @@ class DashboardTest extends TestCase
                 ])
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
+                ->where('pacedCategoryMonthAlerts', [])
                 ->where('year_elapsed_as_of', null)
                 ->where('year_elapsed_percent', null),
             );
@@ -697,6 +700,271 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('shell.firstRun.showChecklist', false),
+            );
+    }
+
+    public function test_dashboard_alerts_a_paced_category_with_negative_month_remaining(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Groceries',
+            'icon' => 'shopping-cart',
+            'color' => '#fa5252',
+            'planned_amount_minor_units' => 120_000,
+            'sort_order' => 1,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', [
+                    [
+                        'id' => $groceries->id,
+                        'name' => 'Groceries',
+                        'icon' => 'shopping-cart',
+                        'color' => '#fa5252',
+                        'month_remaining_minor_units' => -10_000,
+                    ],
+                ])
+                ->missing('expenseCategories.0.month_remaining_minor_units'),
+            );
+    }
+
+    public function test_dashboard_does_not_alert_when_month_remaining_is_zero(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 30_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', []),
+            );
+    }
+
+    public function test_dashboard_does_not_alert_one_off_categories(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $insurance = Category::factory()->for($budget)->oneOff()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $insurance->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', []),
+            );
+    }
+
+    public function test_dashboard_does_not_alert_archived_paced_categories(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $groceries = Category::factory()->for($budget)->expense()->archived()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', []),
+            );
+    }
+
+    public function test_dashboard_does_not_alert_paced_categories_on_a_draft_budget(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => -120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', []),
+            );
+    }
+
+    public function test_dashboard_does_not_alert_paced_categories_for_a_past_budget_year(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2025-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $groceries = Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $groceries->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2025-09-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', []),
+            );
+    }
+
+    public function test_dashboard_does_not_alert_paced_categories_for_a_future_budget_year(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => -120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts', []),
+            );
+    }
+
+    public function test_dashboard_orders_paced_category_month_alerts_by_most_negative_then_budget_order(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $laterTie = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Later tie',
+            'planned_amount_minor_units' => 120_000,
+            'sort_order' => 3,
+        ]);
+        $worse = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Worse',
+            'planned_amount_minor_units' => 120_000,
+            'sort_order' => 2,
+        ]);
+        $earlierTie = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Earlier tie',
+            'planned_amount_minor_units' => 120_000,
+            'sort_order' => 1,
+        ]);
+
+        foreach ([$laterTie, $earlierTie] as $category) {
+            FinancialOperation::factory()->for($user)->create([
+                'type' => FinancialOperationType::Expense,
+                'account_id' => $account->id,
+                'category_id' => $category->id,
+                'budget_id' => $budget->id,
+                'operation_date' => '2026-09-10',
+                'amount_minor_units' => 40_000,
+            ]);
+        }
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'category_id' => $worse->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-09-10',
+            'amount_minor_units' => 50_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('pacedCategoryMonthAlerts.0.id', $worse->id)
+                ->where('pacedCategoryMonthAlerts.0.month_remaining_minor_units', -20_000)
+                ->where('pacedCategoryMonthAlerts.1.id', $earlierTie->id)
+                ->where('pacedCategoryMonthAlerts.1.month_remaining_minor_units', -10_000)
+                ->where('pacedCategoryMonthAlerts.2.id', $laterTie->id)
+                ->where('pacedCategoryMonthAlerts.2.month_remaining_minor_units', -10_000),
             );
     }
 }

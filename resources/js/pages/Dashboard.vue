@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { Check, Circle } from '@lucide/vue';
+import { AlertTriangle, Check, Circle } from '@lucide/vue';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import CategoryChip from '@/components/CategoryChip.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -53,6 +55,14 @@ type BudgetSummary = {
     phase: 'draft' | 'execution';
 };
 
+type PacedCategoryMonthAlert = {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    month_remaining_minor_units: number;
+};
+
 const props = defineProps<{
     accounts: AccountSummary[];
     termDeposits: TermDepositSummary[];
@@ -65,6 +75,7 @@ const props = defineProps<{
     expenseTotals: DashboardTypeTotals;
     year_elapsed_as_of: string | null;
     year_elapsed_percent: number | null;
+    pacedCategoryMonthAlerts: PacedCategoryMonthAlert[];
 }>();
 
 const t = useTranslations();
@@ -115,6 +126,31 @@ function balanceClass(holding: AccountSummary | TermDepositSummary): string {
     <Head :title="t.dashboard.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
+        <div
+            v-if="pacedCategoryMonthAlerts.length > 0"
+            class="flex flex-col gap-3"
+        >
+            <Alert
+                v-for="alert in pacedCategoryMonthAlerts"
+                :key="alert.id"
+                variant="destructive"
+            >
+                <AlertTriangle />
+                <AlertTitle class="line-clamp-none">
+                    <CategoryChip
+                        :name="alert.name"
+                        :icon="alert.icon"
+                        :color="alert.color"
+                        size="sm"
+                    />
+                </AlertTitle>
+                <AlertDescription class="tabular-nums">
+                    {{ t.dashboard.month_remaining }}:
+                    {{ formatMoney(alert.month_remaining_minor_units) }}
+                </AlertDescription>
+            </Alert>
+        </div>
+
         <Card v-if="shell.firstRun.showChecklist">
             <CardHeader class="pb-3">
                 <div class="flex items-start justify-between gap-3">
