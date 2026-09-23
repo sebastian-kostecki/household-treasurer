@@ -25,6 +25,43 @@ export type CategoryOrderMode = 'budget' | 'risk';
 
 export const VISIBLE_CATEGORY_LIMIT = 8;
 
+export const DASHBOARD_EXPENSE_VISIBLE_CATEGORY_LIMIT = 5;
+
+export const DASHBOARD_INCOME_VISIBLE_CATEGORY_LIMIT = 0;
+
+export function dashboardVisibleCategoryLimit(
+    categoryType: 'income' | 'expense',
+): number {
+    return categoryType === 'expense'
+        ? DASHBOARD_EXPENSE_VISIBLE_CATEGORY_LIMIT
+        : DASHBOARD_INCOME_VISIBLE_CATEGORY_LIMIT;
+}
+
+export function dashboardDefaultOrderMode(
+    categoryType: 'income' | 'expense',
+): CategoryOrderMode {
+    return categoryType === 'expense' ? 'risk' : 'budget';
+}
+
+export function sliceVisibleCategories(
+    categories: DashboardCategory[],
+    visibleLimit: number,
+    isExpanded: boolean,
+): DashboardCategory[] {
+    if (isExpanded || categories.length <= visibleLimit) {
+        return categories;
+    }
+
+    return categories.slice(0, visibleLimit);
+}
+
+export function hiddenDashboardCategoryCount(
+    categoryCount: number,
+    visibleLimit: number,
+): number {
+    return Math.max(categoryCount - visibleLimit, 0);
+}
+
 export function showsYearElapsedMark(
     categoryType: 'income' | 'expense',
     category: DashboardCategory,
