@@ -391,6 +391,7 @@ setLayoutProps({
                                 :can-select-budget-year="
                                     canSelectCurrentYearInShell
                                 "
+                                show-order-toggle
                             />
                         </div>
                     </template>
