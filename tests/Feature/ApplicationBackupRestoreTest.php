@@ -21,6 +21,9 @@ class ApplicationBackupRestoreTest extends TestCase
 
     private string $originalDatabase;
 
+    /** @var list<string> */
+    private array $originalBackupSourceDatabases;
+
     protected function beforeRefreshingDatabase(): void
     {
         if (! $this->usesFileDatabase()) {
@@ -41,6 +44,12 @@ class ApplicationBackupRestoreTest extends TestCase
 
         Config::set('database.default', 'sqlite');
         Config::set('database.connections.sqlite.database', $this->databasePath);
+
+        // backup.backup.source.databases is resolved from the real DB_CONNECTION
+        // env var at boot time, which in CI stays 'pgsql' regardless of the
+        // database.default override above, so it must be forced separately.
+        $this->originalBackupSourceDatabases = Config::array('backup.backup.source.databases');
+        Config::set('backup.backup.source.databases', ['sqlite']);
 
         // Migrations only run once per test run (RefreshDatabaseState::$migrated),
         // so force a re-migration against this freshly created file database.
@@ -71,6 +80,7 @@ class ApplicationBackupRestoreTest extends TestCase
 
         if ($this->usesFileDatabase() && isset($this->originalDatabase)) {
             Config::set('database.connections.sqlite.database', $this->originalDatabase);
+            Config::set('backup.backup.source.databases', $this->originalBackupSourceDatabases);
 
             // Restore migrations for the default connection so later tests
             // in this run get a freshly migrated database.
