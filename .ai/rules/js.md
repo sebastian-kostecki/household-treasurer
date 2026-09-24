@@ -15,3 +15,6 @@ Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,
 
 ## Reuse surface building blocks before writing new markup
 Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading and AccountIdentityBlock first. Surfaces follow ADR-0003: grey floor, white rounded-2xl cards with border/60, no resting shadows. Do not edit components/ui/* for a single screen.
+
+## Non-blocking warnings use the warning Alert variant
+Warnings that do not block saving (over limit, over Month Remaining, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles use the refund and transfer tokens.

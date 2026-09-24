@@ -27,7 +27,8 @@ Geist, wagi 400/500/600. Każda kwota ma `tabular-nums`. Skala: liczby w kafelka
 | `primary` (turkus) | akcja, zaznaczenie, pasek realizacji w normie | dekoracji, statusu pieniędzy |
 | `success` | dochód zaksięgowany, dochód ponad plan | „wszystko OK” poza kwotami |
 | `destructive` | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające | ostrzeżeń, które jeszcze nie są przekroczeniem |
-| `warning` (bursztyn) | ostrzeżenie: w granicach, ale blisko przekroczenia | przekroczeń; typu operacji „Zwrot” (ma własny odcień) |
+| `warning` (bursztyn) | ostrzeżenie: w granicach, ale blisko przekroczenia; ostrzeżenia w formularzach, które nie blokują zapisu | przekroczeń już zaksięgowanych; typu operacji „Zwrot” (ma token `refund`) |
+| `refund`, `transfer` | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`) | czegokolwiek poza typem operacji |
 | `muted-foreground` | podpisy, etykiety, rzeczy zarchiwizowane | kwot |
 
 Kolor kategorii (paleta 24 barw) to tylko tożsamość kategorii: kafelek ikony w `CategoryChip` (tło 15%). Nigdy nie oznacza statusu i nie maluje pasków ani kwot.
@@ -47,7 +48,7 @@ Dwa poziomy, nadawane przez serwer w polu `severity` (ADR-0032):
 
 Strefa „Wymaga uwagi” ma w nagłówku po jednej pigułce na obecny poziom („Przekroczone · n” w `destructive`, „Ostrzeżenia · n” w `warning`), trzy widoczne wiersze i „Pokaż wszystkie (n)” z łączną liczbą. Podnagłówki grup w liście pojawiają się tylko wtedy, gdy są oba poziomy. Każdy wiersz jest linkiem do przyczyny i ma pod kwotą szary powód: „Saldo ujemne”, „Pozostało w miesiącu”, „Ponad limit”. Nowy rodzaj alertu: najpierw pojęcie i progi w `CONTEXT.md`, potem `kind` i `severity` w `App\Support\DashboardNotices`.
 
-Ostrzeżenia w formularzach (np. „Operacja przekroczy dostępny limit kategorii”) nie blokują zapisu; to informacja, nie błąd walidacji.
+Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy dostępny limit kategorii”, ujemne saldo) nie blokują zapisu, więc używają `<Alert variant="warning">`. `variant="destructive"` zostaje dla prawdziwych błędów (`AlertError`), a błąd pola pokazuje `InputError` w `text-destructive`.
 
 ## Gotowe elementy
 
@@ -55,7 +56,7 @@ Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryM
 
 ## Tryb ciemny
 
-Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `.dark`, więc komponent nie potrzebuje wariantów `dark:`, jeśli używa tokenów. Wyjątek to kolory spoza tokenów (np. kafelki typów operacji); każdy taki przypadek wymaga pary jasny/ciemny.
+Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `.dark`, więc komponent nie potrzebuje wariantów `dark:`, jeśli używa tokenów. Kolorów palety Tailwinda w komponentach nie ma, więc warianty `dark:` do kolorów nie są potrzebne.
 
 ## Zmiana systemu
 

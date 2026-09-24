@@ -46,6 +46,9 @@
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
 
+    --color-refund: var(--refund);
+    --color-transfer: var(--transfer);
+
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -114,6 +117,8 @@
     --success-foreground: hsl(0 0% 98%);
     --warning: hsl(26 90.5% 37.1%);
     --warning-foreground: hsl(0 0% 98%);
+    --refund: hsl(26 90.5% 37.1%);
+    --transfer: hsl(224 76.3% 48%);
     --border: hsl(0 0% 90%);
     --input: hsl(0 0% 91%);
     --ring: hsl(189 85% 28%);
@@ -155,6 +160,8 @@
     --success-foreground: hsl(0 0% 98%);
     --warning: hsl(43 96% 56%);
     --warning-foreground: hsl(0 0% 3.9%);
+    --refund: hsl(43 96% 56%);
+    --transfer: hsl(213 94% 68%);
     --border: hsl(0 0% 14.9%);
     --input: hsl(0 0% 14.9%);
     --ring: hsl(189 70% 40%);
