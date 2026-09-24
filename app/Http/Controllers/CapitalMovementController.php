@@ -35,7 +35,7 @@ class CapitalMovementController extends Controller
         RebuildOperation $rebuildOperation,
     ): RedirectResponse {
         if ($request->boolean('convert_to_income')) {
-            $rebuildOperation->capitalMovementToIncome($capitalMovement, $request->payload());
+            $rebuildOperation->capitalMovementToIncome($capitalMovement, $request->incomeConversionPayload());
 
             Inertia::flash('toast', [
                 'type' => 'success',
@@ -46,7 +46,7 @@ class CapitalMovementController extends Controller
         }
 
         if ($request->boolean('convert_to_expense')) {
-            $rebuildOperation->capitalMovementToExpense($capitalMovement, $request->payload());
+            $rebuildOperation->capitalMovementToExpense($capitalMovement, $request->expenseConversionPayload());
 
             Inertia::flash('toast', [
                 'type' => 'success',
@@ -57,7 +57,10 @@ class CapitalMovementController extends Controller
         }
 
         if ($request->boolean('convert_to_own_transfer')) {
-            $rebuildOperation->capitalMovementToOwnTransfer($capitalMovement, $request->payload());
+            $rebuildOperation->capitalMovementToOwnTransfer(
+                $capitalMovement,
+                $request->ownTransferConversionPayload($capitalMovement->direction),
+            );
 
             Inertia::flash('toast', [
                 'type' => 'success',
@@ -67,7 +70,7 @@ class CapitalMovementController extends Controller
             return to_route('operations');
         }
 
-        $manageCapitalMovement->update($capitalMovement, $request->payload());
+        $manageCapitalMovement->update($capitalMovement, $request->capitalMovementPayload());
 
         Inertia::flash('toast', [
             'type' => 'success',

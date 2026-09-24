@@ -13,14 +13,15 @@ class ImportPairCandidateDetector
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate?: bool,
+     *     ...
      * }>  $rows
      * @return list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate?: bool,
@@ -35,6 +36,7 @@ class ImportPairCandidateDetector
      *         converts_financial_operation: bool,
      *         reason: string,
      *     }>,
+     *     ...
      * }>
      */
     public function annotateRows(User $user, int $previewAccountId, array $rows): array
@@ -51,10 +53,19 @@ class ImportPairCandidateDetector
             );
         }
 
-        $oppositeAmounts = array_values(array_unique(array_map(
-            fn (array $row): int => -$row['amount_minor_units'],
-            $eligibleRows,
-        )));
+        $oppositeAmounts = [];
+
+        foreach ($eligibleRows as $eligibleRow) {
+            $amountMinorUnits = $eligibleRow['amount_minor_units'];
+
+            if ($amountMinorUnits === null) {
+                continue;
+            }
+
+            $oppositeAmounts[] = -$amountMinorUnits;
+        }
+
+        $oppositeAmounts = array_values(array_unique($oppositeAmounts));
 
         $financialOperationCandidates = $this->loadFinancialOperationCandidates(
             $user,
@@ -68,21 +79,23 @@ class ImportPairCandidateDetector
         );
 
         return array_map(function (array $row) use ($financialOperationCandidates, $ownTransferCandidates): array {
-            if (! $this->isEligiblePreviewRow($row)) {
+            $amountMinorUnits = $row['amount_minor_units'];
+
+            if (! $this->isEligiblePreviewRow($row) || $amountMinorUnits === null) {
                 return $this->withoutPairCandidates($row);
             }
 
             $pairCandidates = $this->matchCandidatesForRow(
-                $row,
+                [
+                    'operation_date' => $row['operation_date'],
+                    'amount_minor_units' => $amountMinorUnits,
+                    'raw_statement_description' => $row['raw_statement_description'],
+                ],
                 $financialOperationCandidates,
                 $ownTransferCandidates,
             );
 
-            return [
-                ...$row,
-                'import_pair_candidate' => $pairCandidates !== [],
-                'pair_candidates' => $pairCandidates,
-            ];
+            return $this->withPairCandidates($row, $pairCandidates);
         }, $rows);
     }
 
@@ -113,70 +126,112 @@ class ImportPairCandidateDetector
         $oppositeAmountMinorUnits = -$row['amount_minor_units'];
         $previewDate = $row['operation_date'];
 
-        $financialOperationMatches = $financialOperationCandidates
-            ->filter(function (FinancialOperation $operation) use ($oppositeAmountMinorUnits, $previewDate): bool {
-                if ($operation->import_identity_amount_minor_units !== $oppositeAmountMinorUnits) {
-                    return false;
-                }
+        $financialOperationMatches = array_map(
+            $this->financialOperationToCandidate(...),
+            array_values(array_filter(
+                $financialOperationCandidates->all(),
+                function (FinancialOperation $operation) use ($oppositeAmountMinorUnits, $previewDate): bool {
+                    if ($operation->import_identity_amount_minor_units !== $oppositeAmountMinorUnits) {
+                        return false;
+                    }
 
-                return $this->datesWithinInclusiveWindow(
-                    $operation->import_identity_date->toDateString(),
-                    $previewDate,
-                );
-            })
-            ->map(fn (FinancialOperation $operation): array => [
-                'kind' => 'financial_operation',
-                'id' => $operation->id,
-                'account_id' => $operation->import_identity_account_id,
-                'account_name' => $operation->account->name,
+                    return $this->datesWithinInclusiveWindow(
+                        $operation->import_identity_date->toDateString(),
+                        $previewDate,
+                    );
+                },
+            )),
+        );
+
+        $ownTransferMatches = array_map(
+            $this->ownTransferToCandidate(...),
+            array_values(array_filter(
+                $ownTransferCandidates->all(),
+                function (OwnTransfer $transfer) use ($oppositeAmountMinorUnits, $previewDate): bool {
+                    $identity = $this->identityFromOwnTransfer($transfer);
+
+                    if ($identity === null) {
+                        return false;
+                    }
+
+                    if ($identity['amount_minor_units'] !== $oppositeAmountMinorUnits) {
+                        return false;
+                    }
+
+                    return $this->datesWithinInclusiveWindow($identity['date'], $previewDate);
+                },
+            )),
+        );
+
+        return array_merge($financialOperationMatches, $ownTransferMatches);
+    }
+
+    /**
+     * @return array{
+     *     kind: 'financial_operation',
+     *     id: int,
+     *     account_id: int,
+     *     account_name: string,
+     *     date: string,
+     *     description: string,
+     *     converts_financial_operation: bool,
+     *     reason: string,
+     * }
+     */
+    private function financialOperationToCandidate(FinancialOperation $operation): array
+    {
+        return [
+            'kind' => 'financial_operation',
+            'id' => $operation->id,
+            'account_id' => (int) $operation->import_identity_account_id,
+            'account_name' => $operation->account->name,
+            'date' => $operation->import_identity_date->toDateString(),
+            'description' => $operation->description,
+            'converts_financial_operation' => true,
+            'reason' => (string) __(':account (:date): existing income or expense will become this own transfer.', [
+                'account' => $operation->account->name,
                 'date' => $operation->import_identity_date->toDateString(),
-                'description' => $operation->description,
-                'converts_financial_operation' => true,
-                'reason' => __(':account (:date): existing income or expense will become this own transfer.', [
-                    'account' => $operation->account->name,
-                    'date' => $operation->import_identity_date->toDateString(),
-                ]),
-            ]);
+            ]),
+        ];
+    }
 
-        $ownTransferMatches = $ownTransferCandidates
-            ->filter(function (OwnTransfer $transfer) use ($oppositeAmountMinorUnits, $previewDate): bool {
-                $identity = $this->identityFromOwnTransfer($transfer);
+    /**
+     * @return array{
+     *     kind: 'own_transfer',
+     *     id: int,
+     *     account_id: int,
+     *     account_name: string,
+     *     date: string,
+     *     description: string,
+     *     converts_financial_operation: bool,
+     *     reason: string,
+     * }
+     */
+    private function ownTransferToCandidate(OwnTransfer $transfer): array
+    {
+        $identity = $this->identityFromOwnTransfer($transfer);
 
-                if ($identity === null) {
-                    return false;
-                }
+        if ($identity === null) {
+            throw new \RuntimeException('Expected own transfer to have a resolvable import identity.');
+        }
 
-                if ($identity['amount_minor_units'] !== $oppositeAmountMinorUnits) {
-                    return false;
-                }
+        $account = $identity['account_id'] === $transfer->source_account_id
+            ? $transfer->sourceAccount
+            : $transfer->destinationAccount;
 
-                return $this->datesWithinInclusiveWindow($identity['date'], $previewDate);
-            })
-            ->map(function (OwnTransfer $transfer): array {
-                $identity = $this->identityFromOwnTransfer($transfer);
-                $account = $identity['account_id'] === $transfer->source_account_id
-                    ? $transfer->sourceAccount
-                    : $transfer->destinationAccount;
-
-                return [
-                    'kind' => 'own_transfer',
-                    'id' => $transfer->id,
-                    'account_id' => $identity['account_id'],
-                    'account_name' => $account->name,
-                    'date' => $identity['date'],
-                    'description' => $transfer->description,
-                    'converts_financial_operation' => false,
-                    'reason' => __(':account (:date): a second import identity will attach to the existing own transfer.', [
-                        'account' => $account->name,
-                        'date' => $identity['date'],
-                    ]),
-                ];
-            });
-
-        return $financialOperationMatches
-            ->concat($ownTransferMatches)
-            ->values()
-            ->all();
+        return [
+            'kind' => 'own_transfer',
+            'id' => $transfer->id,
+            'account_id' => $identity['account_id'],
+            'account_name' => $account->name,
+            'date' => $identity['date'],
+            'description' => $transfer->description,
+            'converts_financial_operation' => false,
+            'reason' => (string) __(':account (:date): a second import identity will attach to the existing own transfer.', [
+                'account' => $account->name,
+                'date' => $identity['date'],
+            ]),
+        ];
     }
 
     public function datesWithinInclusiveWindow(string $firstDate, string $secondDate): bool
@@ -190,7 +245,7 @@ class ImportPairCandidateDetector
     /**
      * @param  array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate?: bool,
@@ -198,7 +253,7 @@ class ImportPairCandidateDetector
      */
     public function isEligiblePreviewRow(array $row): bool
     {
-        if (($row['valid'] ?? false) !== true) {
+        if ($row['valid'] !== true) {
             return false;
         }
 
@@ -206,11 +261,11 @@ class ImportPairCandidateDetector
             return false;
         }
 
-        if (($row['raw_statement_description'] ?? null) === null) {
+        if ($row['raw_statement_description'] === null) {
             return false;
         }
 
-        return ($row['amount_minor_units'] ?? null) !== null;
+        return $row['amount_minor_units'] !== null;
     }
 
     /**
@@ -301,15 +356,84 @@ class ImportPairCandidateDetector
     }
 
     /**
-     * @param  array<string, mixed>  $row
-     * @return array<string, mixed>
+     * @param  array{
+     *     operation_date: string,
+     *     amount_minor_units: ?int,
+     *     raw_statement_description: ?string,
+     *     valid: bool,
+     *     import_duplicate?: bool,
+     *     ...
+     * }  $row
+     * @return array{
+     *     operation_date: string,
+     *     amount_minor_units: ?int,
+     *     raw_statement_description: ?string,
+     *     valid: bool,
+     *     import_duplicate?: bool,
+     *     import_pair_candidate: bool,
+     *     pair_candidates: list<array{
+     *         kind: 'financial_operation'|'own_transfer',
+     *         id: int,
+     *         account_id: int,
+     *         account_name: string,
+     *         date: string,
+     *         description: string,
+     *         converts_financial_operation: bool,
+     *         reason: string,
+     *     }>,
+     *     ...
+     * }
      */
     private function withoutPairCandidates(array $row): array
     {
+        return $this->withPairCandidates($row, []);
+    }
+
+    /**
+     * @param  array{
+     *     operation_date: string,
+     *     amount_minor_units: ?int,
+     *     raw_statement_description: ?string,
+     *     valid: bool,
+     *     import_duplicate?: bool,
+     *     ...
+     * }  $row
+     * @param  list<array{
+     *     kind: 'financial_operation'|'own_transfer',
+     *     id: int,
+     *     account_id: int,
+     *     account_name: string,
+     *     date: string,
+     *     description: string,
+     *     converts_financial_operation: bool,
+     *     reason: string,
+     * }>  $pairCandidates
+     * @return array{
+     *     operation_date: string,
+     *     amount_minor_units: ?int,
+     *     raw_statement_description: ?string,
+     *     valid: bool,
+     *     import_duplicate?: bool,
+     *     import_pair_candidate: bool,
+     *     pair_candidates: list<array{
+     *         kind: 'financial_operation'|'own_transfer',
+     *         id: int,
+     *         account_id: int,
+     *         account_name: string,
+     *         date: string,
+     *         description: string,
+     *         converts_financial_operation: bool,
+     *         reason: string,
+     *     }>,
+     *     ...
+     * }
+     */
+    private function withPairCandidates(array $row, array $pairCandidates): array
+    {
         return [
             ...$row,
-            'import_pair_candidate' => false,
-            'pair_candidates' => [],
+            'import_pair_candidate' => $pairCandidates !== [],
+            'pair_candidates' => $pairCandidates,
         ];
     }
 }

@@ -11,7 +11,7 @@ class CsvImportSession
     /**
      * @param  array{
      *     account_id: int,
-     *     rows: array<int, array<string, mixed>>,
+     *     rows: list<array<string, mixed>>,
      * }  $payload
      */
     public static function put(User $user, array $payload): void
@@ -27,7 +27,7 @@ class CsvImportSession
      * @return array{
      *     user_id: int,
      *     account_id: int,
-     *     rows: array<int, array<string, mixed>>,
+     *     rows: list<array<string, mixed>>,
      * }|null
      */
     public static function get(User $user): ?array

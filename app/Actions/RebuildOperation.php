@@ -141,11 +141,11 @@ class RebuildOperation
 
     /**
      * @return array{
-     *     raw_statement_description?: string|null,
-     *     import_identity_account_id?: int|null,
-     *     import_identity_date?: string|null,
-     *     import_identity_amount_minor_units?: int|null,
-     *     import_identity_digest?: string|null,
+     *     raw_statement_description: string|null,
+     *     import_identity_account_id: int|null,
+     *     import_identity_date: string|null,
+     *     import_identity_amount_minor_units: int|null,
+     *     import_identity_digest: string|null,
      * }
      */
     private function extractFinancialOperationIdentity(FinancialOperation $operation): array
@@ -161,11 +161,11 @@ class RebuildOperation
 
     /**
      * @return array{
-     *     raw_statement_description?: string|null,
-     *     import_identity_account_id?: int|null,
-     *     import_identity_date?: string|null,
-     *     import_identity_amount_minor_units?: int|null,
-     *     import_identity_digest?: string|null,
+     *     raw_statement_description: string|null,
+     *     import_identity_account_id: int|null,
+     *     import_identity_date: string|null,
+     *     import_identity_amount_minor_units: int|null,
+     *     import_identity_digest: string|null,
      * }
      */
     private function extractOwnTransferIdentity(OwnTransfer $ownTransfer, int $accountId): array
@@ -191,11 +191,11 @@ class RebuildOperation
 
     /**
      * @return array{
-     *     raw_statement_description?: string|null,
-     *     import_identity_account_id?: int|null,
-     *     import_identity_date?: string|null,
-     *     import_identity_amount_minor_units?: int|null,
-     *     import_identity_digest?: string|null,
+     *     raw_statement_description: string|null,
+     *     import_identity_account_id: int|null,
+     *     import_identity_date: string|null,
+     *     import_identity_amount_minor_units: int|null,
+     *     import_identity_digest: string|null,
      * }
      */
     private function extractCapitalMovementIdentity(CapitalMovement $capitalMovement): array

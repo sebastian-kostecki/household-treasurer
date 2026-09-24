@@ -194,9 +194,7 @@ class CsvImportController extends Controller
 
                 $pairFirstLegKind = $selection['pair_first_leg_kind'];
                 $pairFirstLegId = $selection['pair_first_leg_id'];
-                $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
-                    ? $parsedRow['pair_candidates']
-                    : [];
+                $pairCandidates = $this->normalizePairCandidates($parsedRow['pair_candidates'] ?? null);
 
                 if ($pairFirstLegKind !== null || $pairFirstLegId !== null) {
                     if (
@@ -224,9 +222,9 @@ class CsvImportController extends Controller
                     }
 
                     $matchingCandidate = collect($pairCandidates)->first(
-                        fn (array $candidate): bool => ($candidate['kind'] ?? null) === $pairFirstLegKind
-                            && ($candidate['id'] ?? null) === $pairFirstLegId
-                            && ($candidate['account_id'] ?? null) === $selection['other_account_id'],
+                        fn (array $candidate): bool => $candidate['kind'] === $pairFirstLegKind
+                            && $candidate['id'] === $pairFirstLegId
+                            && $candidate['account_id'] === $selection['other_account_id'],
                     );
 
                     if ($matchingCandidate === null) {
@@ -261,9 +259,7 @@ class CsvImportController extends Controller
                     ]);
                 }
 
-                $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
-                    ? $parsedRow['pair_candidates']
-                    : [];
+                $pairCandidates = $this->normalizePairCandidates($parsedRow['pair_candidates'] ?? null);
 
                 if ($this->pairCandidatesContainOwnTransfer($pairCandidates)) {
                     throw ValidationException::withMessages([
@@ -293,9 +289,7 @@ class CsvImportController extends Controller
                 continue;
             }
 
-            $pairCandidates = is_array($parsedRow['pair_candidates'] ?? null)
-                ? $parsedRow['pair_candidates']
-                : [];
+            $pairCandidates = $this->normalizePairCandidates($parsedRow['pair_candidates'] ?? null);
 
             if ($this->pairCandidatesContainOwnTransfer($pairCandidates)) {
                 throw ValidationException::withMessages([
@@ -369,7 +363,7 @@ class CsvImportController extends Controller
     private function otherAccounts(Request $request, Account $importAccount, array $previewRows): array
     {
         $pairCandidateAccountIds = collect($previewRows)
-            ->flatMap(fn (array $row): array => collect($row['pair_candidates'] ?? [])
+            ->flatMap(fn (array $row): array => collect($this->normalizePairCandidates($row['pair_candidates'] ?? null))
                 ->pluck('account_id')
                 ->all())
             ->unique()
@@ -398,12 +392,42 @@ class CsvImportController extends Controller
     }
 
     /**
-     * @param  list<array<string, mixed>>  $pairCandidates
+     * @return list<array{kind: ?string, id: ?int, account_id: ?int}>
+     */
+    private function normalizePairCandidates(mixed $rawPairCandidates): array
+    {
+        if (! is_array($rawPairCandidates)) {
+            return [];
+        }
+
+        $pairCandidates = [];
+
+        foreach ($rawPairCandidates as $candidate) {
+            if (! is_array($candidate)) {
+                continue;
+            }
+
+            $kind = $candidate['kind'] ?? null;
+            $id = $candidate['id'] ?? null;
+            $accountId = $candidate['account_id'] ?? null;
+
+            $pairCandidates[] = [
+                'kind' => is_string($kind) ? $kind : null,
+                'id' => is_int($id) ? $id : null,
+                'account_id' => is_int($accountId) ? $accountId : null,
+            ];
+        }
+
+        return $pairCandidates;
+    }
+
+    /**
+     * @param  list<array{kind: ?string, id: ?int, account_id: ?int}>  $pairCandidates
      */
     private function pairCandidatesContainOwnTransfer(array $pairCandidates): bool
     {
         return collect($pairCandidates)->contains(
-            fn (array $candidate): bool => ($candidate['kind'] ?? null) === 'own_transfer',
+            fn (array $candidate): bool => $candidate['kind'] === 'own_transfer',
         );
     }
 

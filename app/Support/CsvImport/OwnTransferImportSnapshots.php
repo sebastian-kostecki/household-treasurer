@@ -5,7 +5,7 @@ namespace App\Support\CsvImport;
 class OwnTransferImportSnapshots
 {
     /**
-     * @return array<string, string>
+     * @return array{source_raw_statement_description: string}|array{destination_raw_statement_description: string}
      */
     public function rawStatementDescriptionForImportedAccount(int $signedAmountMinorUnits, string $rawStatementDescription): array
     {

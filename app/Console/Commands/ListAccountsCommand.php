@@ -44,7 +44,7 @@ class ListAccountsCommand extends Command
                 $account->id,
                 $account->name,
                 $account->type->value,
-                $account->bank?->value ?? '',
+                $account->bank === null ? '' : $account->bank->value,
                 $account->opening_date->toDateString(),
                 MinorUnits::toMajorDisplay($account->opening_balance_minor_units),
                 MinorUnits::toMajorDisplay($account->current_balance_minor_units),

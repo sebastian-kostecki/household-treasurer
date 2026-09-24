@@ -31,6 +31,11 @@ class ApplicationBackupException extends RuntimeException
         return new self('No database dump found in backup archive.');
     }
 
+    public static function cannotDetermineArchiveSize(string $path): self
+    {
+        return new self("Could not determine backup archive size: {$path}");
+    }
+
     public static function unsupportedDatabaseDump(string $filename): self
     {
         return new self("Unsupported database dump in backup archive: {$filename}");

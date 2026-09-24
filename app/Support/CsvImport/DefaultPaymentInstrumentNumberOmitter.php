@@ -51,6 +51,7 @@ final class DefaultPaymentInstrumentNumberOmitter implements PaymentInstrumentNu
 
     /**
      * @param  list<array{0: int, 1: int}>  $spans
+     * @param  array{0: int, 1: int}  $span
      */
     private function addSpan(array &$spans, array $span): void
     {

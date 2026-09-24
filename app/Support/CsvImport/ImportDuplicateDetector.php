@@ -14,16 +14,18 @@ class ImportDuplicateDetector
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
      *     valid: bool,
+     *     ...
      * }>  $rows
      * @return list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
      *     valid: bool,
      *     import_duplicate: bool,
+     *     ...
      * }>
      */
     public function annotateRows(User $user, int $accountId, array $rows): array
@@ -40,15 +42,15 @@ class ImportDuplicateDetector
         $committedDigests = $this->committedDigests($user, $digests);
 
         return array_map(function (array $row) use ($user, $accountId, $committedDigests): array {
-            if (($row['valid'] ?? false) !== true) {
+            if ($row['valid'] !== true) {
                 return [
                     ...$row,
                     'import_duplicate' => false,
                 ];
             }
 
-            $rawStatementDescription = $row['raw_statement_description'] ?? null;
-            $signedAmountMinorUnits = $row['amount_minor_units'] ?? null;
+            $rawStatementDescription = $row['raw_statement_description'];
+            $signedAmountMinorUnits = $row['amount_minor_units'];
 
             if ($rawStatementDescription === null || $signedAmountMinorUnits === null) {
                 return [
@@ -75,13 +77,15 @@ class ImportDuplicateDetector
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
+     *     ...
      * }>  $rows
      * @return list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
+     *     ...
      * }>
      */
     public function selectedImportDuplicates(User $user, int $accountId, array $rows): array
@@ -93,7 +97,7 @@ class ImportDuplicateDetector
 
         return array_values(array_filter(
             $annotated,
-            fn (array $row): bool => ($row['import_duplicate'] ?? false) === true,
+            fn (array $row): bool => $row['import_duplicate'] === true,
         ));
     }
 

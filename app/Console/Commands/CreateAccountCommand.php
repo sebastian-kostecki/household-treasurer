@@ -93,7 +93,9 @@ class CreateAccountCommand extends Command
         }
 
         if ($this->input->isInteractive()) {
-            return (string) $this->choice($question, $choices);
+            $choice = $this->choice($question, $choices);
+
+            return is_string($choice) ? $choice : ($choice[0] ?? '');
         }
 
         return is_string($value) ? $value : '';

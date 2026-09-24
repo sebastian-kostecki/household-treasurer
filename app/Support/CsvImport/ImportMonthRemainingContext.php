@@ -40,10 +40,9 @@ class ImportMonthRemainingContext
 
         return [
             'today' => $today->toDateString(),
-            'budgets' => $budgets
+            'budgets' => array_values($budgets
                 ->map(fn (Budget $budget): array => self::budgetPayload($budget))
-                ->values()
-                ->all(),
+                ->all()),
         ];
     }
 
@@ -83,14 +82,13 @@ class ImportMonthRemainingContext
             'id' => $budget->id,
             'year' => $budget->year,
             'is_draft' => $budget->isDraft(),
-            'categories' => $categories
+            'categories' => array_values($categories
                 ->map(fn (Category $category): array => [
                     'id' => $category->id,
                     'is_paced' => $category->is_paced,
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 ])
-                ->values()
-                ->all(),
+                ->all()),
             'execution_by_category_and_month' => $executionByCategoryAndMonth,
         ];
     }

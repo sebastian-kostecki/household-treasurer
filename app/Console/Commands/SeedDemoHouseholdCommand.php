@@ -49,7 +49,7 @@ class SeedDemoHouseholdCommand extends Command
             $resetUserData->handle($user);
         }
 
-        $email = $user?->email ?? $identifier;
+        $email = $user === null ? $identifier : $user->email;
 
         $demoHouseholdSeeder->run($email);
 

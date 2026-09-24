@@ -68,7 +68,17 @@ class ImportIdentityFactory
     }
 
     /**
-     * @return array<string, int|string>
+     * @return array{
+     *     source_import_identity_account_id: int,
+     *     source_import_identity_date: string,
+     *     source_import_identity_amount_minor_units: int,
+     *     source_import_identity_digest: string,
+     * }|array{
+     *     destination_import_identity_account_id: int,
+     *     destination_import_identity_date: string,
+     *     destination_import_identity_amount_minor_units: int,
+     *     destination_import_identity_digest: string,
+     * }|array{}
      */
     public function forOwnTransferImportedAccount(
         User $user,

@@ -198,6 +198,7 @@ class BudgetController extends Controller
     }
 
     /**
+     * @param  array{month_remaining_minor_units: int|null, month_execution_minor_units: int}|null  $monthReading
      * @return array{
      *     id: int,
      *     name: string,

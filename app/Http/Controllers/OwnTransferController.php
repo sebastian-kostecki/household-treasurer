@@ -35,7 +35,10 @@ class OwnTransferController extends Controller
         RebuildOperation $rebuildOperation,
     ): RedirectResponse {
         if ($request->boolean('convert_to_capital_movement')) {
-            $rebuildOperation->ownTransferToCapitalMovement($ownTransfer, $request->payload());
+            $rebuildOperation->ownTransferToCapitalMovement(
+                $ownTransfer,
+                $request->capitalMovementConversionPayload('transfer_date'),
+            );
 
             Inertia::flash('toast', [
                 'type' => 'success',
@@ -45,7 +48,7 @@ class OwnTransferController extends Controller
             return to_route('operations');
         }
 
-        $manageOwnTransfer->update($ownTransfer, $request->payload());
+        $manageOwnTransfer->update($ownTransfer, $request->ownTransferPayload());
 
         Inertia::flash('toast', [
             'type' => 'success',
