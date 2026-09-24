@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\RestoreApplicationBackup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -17,6 +18,8 @@ class ApplicationBackupRestoreTest extends TestCase
     use RefreshDatabase;
 
     private string $databasePath;
+
+    private string $originalDatabase;
 
     protected function beforeRefreshingDatabase(): void
     {
@@ -34,8 +37,14 @@ class ApplicationBackupRestoreTest extends TestCase
 
         touch($this->databasePath);
 
+        $this->originalDatabase = Config::string('database.connections.sqlite.database');
+
         Config::set('database.default', 'sqlite');
         Config::set('database.connections.sqlite.database', $this->databasePath);
+
+        // Migrations only run once per test run (RefreshDatabaseState::$migrated),
+        // so force a re-migration against this freshly created file database.
+        RefreshDatabaseState::$migrated = false;
     }
 
     protected function setUp(): void
@@ -58,6 +67,14 @@ class ApplicationBackupRestoreTest extends TestCase
     {
         if ($this->usesFileDatabase() && isset($this->databasePath) && is_file($this->databasePath)) {
             unlink($this->databasePath);
+        }
+
+        if ($this->usesFileDatabase() && isset($this->originalDatabase)) {
+            Config::set('database.connections.sqlite.database', $this->originalDatabase);
+
+            // Restore migrations for the default connection so later tests
+            // in this run get a freshly migrated database.
+            RefreshDatabaseState::$migrated = false;
         }
 
         parent::tearDown();
