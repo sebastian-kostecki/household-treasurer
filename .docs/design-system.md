@@ -22,14 +22,14 @@ Geist, wagi 400/500/600. Każda kwota ma `tabular-nums`. Skala: liczby w kafelka
 
 ## Kolor znaczy coś tylko w trzech miejscach
 
-| Token | Znaczenie | Nie używaj do |
-| --- | --- | --- |
-| `primary` (turkus) | akcja, zaznaczenie, pasek realizacji w normie | dekoracji, statusu pieniędzy |
-| `success` | dochód zaksięgowany, dochód ponad plan | „wszystko OK” poza kwotami |
-| `destructive` | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające | ostrzeżeń, które jeszcze nie są przekroczeniem |
+| Token                | Znaczenie                                                                                                | Nie używaj do                                                             |
+| -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `primary` (turkus)   | akcja, zaznaczenie, pasek realizacji w normie                                                            | dekoracji, statusu pieniędzy                                              |
+| `success`            | dochód zaksięgowany, dochód ponad plan                                                                   | „wszystko OK” poza kwotami                                                |
+| `destructive`        | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające                 | ostrzeżeń, które jeszcze nie są przekroczeniem                            |
 | `warning` (bursztyn) | ostrzeżenie: w granicach, ale blisko przekroczenia; ostrzeżenia w formularzach, które nie blokują zapisu | przekroczeń już zaksięgowanych; typu operacji „Zwrot” (ma token `refund`) |
-| `refund`, `transfer` | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`) | czegokolwiek poza typem operacji |
-| `muted-foreground` | podpisy, etykiety, rzeczy zarchiwizowane | kwot |
+| `refund`, `transfer` | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`)                                  | czegokolwiek poza typem operacji                                          |
+| `muted-foreground`   | podpisy, etykiety, rzeczy zarchiwizowane                                                                 | kwot                                                                      |
 
 Kolor kategorii (paleta 24 barw) to tylko tożsamość kategorii: kafelek ikony w `CategoryChip` (tło 15%). Nigdy nie oznacza statusu i nie maluje pasków ani kwot.
 
