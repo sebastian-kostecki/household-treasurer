@@ -70,7 +70,7 @@ class UpdateOwnTransferRequest extends FormRequest
      *     description: string,
      * }
      */
-    private function ownTransferPayload(): array
+    public function ownTransferPayload(): array
     {
         $validated = $this->safe()->only([
             'source_account_id',

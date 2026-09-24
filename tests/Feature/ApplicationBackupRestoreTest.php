@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\RestoreApplicationBackup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -17,6 +18,11 @@ class ApplicationBackupRestoreTest extends TestCase
     use RefreshDatabase;
 
     private string $databasePath;
+
+    private string $originalDatabaseDefault;
+
+    /** @var list<string> */
+    private array $originalBackupSourceDatabases;
 
     protected function beforeRefreshingDatabase(): void
     {
@@ -34,8 +40,20 @@ class ApplicationBackupRestoreTest extends TestCase
 
         touch($this->databasePath);
 
+        $this->originalDatabaseDefault = Config::string('database.default');
+
         Config::set('database.default', 'sqlite');
         Config::set('database.connections.sqlite.database', $this->databasePath);
+
+        // backup.backup.source.databases is resolved from the real DB_CONNECTION
+        // env var at boot time, which in CI stays 'pgsql' regardless of the
+        // database.default override above, so it must be forced separately.
+        $this->originalBackupSourceDatabases = Config::array('backup.backup.source.databases');
+        Config::set('backup.backup.source.databases', ['sqlite']);
+
+        // Migrations only run once per test run (RefreshDatabaseState::$migrated),
+        // so force a re-migration against this freshly created file database.
+        RefreshDatabaseState::$migrated = false;
     }
 
     protected function setUp(): void
@@ -58,6 +76,22 @@ class ApplicationBackupRestoreTest extends TestCase
     {
         if ($this->usesFileDatabase() && isset($this->databasePath) && is_file($this->databasePath)) {
             unlink($this->databasePath);
+        }
+
+        if ($this->usesFileDatabase() && isset($this->originalDatabaseDefault)) {
+            Config::set('database.default', $this->originalDatabaseDefault);
+
+            // config('database.connections.sqlite.database') is resolved from the
+            // real DB_DATABASE env var at boot time, which in CI holds the pgsql
+            // database name rather than ':memory:'. Restoring that captured value
+            // would break the sqlite connection for the rest of the run, so
+            // restore the actual phpunit.xml testing intent instead.
+            Config::set('database.connections.sqlite.database', ':memory:');
+            Config::set('backup.backup.source.databases', $this->originalBackupSourceDatabases);
+
+            // Restore migrations for the default connection so later tests
+            // in this run get a freshly migrated database.
+            RefreshDatabaseState::$migrated = false;
         }
 
         parent::tearDown();

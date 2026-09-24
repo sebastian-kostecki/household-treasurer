@@ -26,10 +26,15 @@ class RestoreApplicationBackup
 
         try {
             $extractedPath = $this->extractArchive($resolvedPath, $temporaryDirectory);
+            $archiveSizeBytes = filesize($resolvedPath);
+
+            if ($archiveSizeBytes === false) {
+                throw ApplicationBackupException::cannotDetermineArchiveSize($resolvedPath);
+            }
 
             return [
                 'archive_path' => $resolvedPath,
-                'archive_size_bytes' => filesize($resolvedPath),
+                'archive_size_bytes' => $archiveSizeBytes,
                 'database_dumps' => $this->findDatabaseDumps($extractedPath),
                 'file_entries' => $this->countFileEntries($extractedPath),
             ];

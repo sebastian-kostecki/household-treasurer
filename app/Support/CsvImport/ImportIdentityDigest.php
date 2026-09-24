@@ -44,7 +44,7 @@ class ImportIdentityDigest
     /**
      * @param  list<array{
      *     operation_date: string,
-     *     amount_minor_units: int,
+     *     amount_minor_units: ?int,
      *     raw_statement_description: ?string,
      * }>  $rows
      * @return list<string>
@@ -54,8 +54,8 @@ class ImportIdentityDigest
         $digests = [];
 
         foreach ($rows as $row) {
-            $rawStatementDescription = $row['raw_statement_description'] ?? null;
-            $signedAmountMinorUnits = $row['amount_minor_units'] ?? null;
+            $rawStatementDescription = $row['raw_statement_description'];
+            $signedAmountMinorUnits = $row['amount_minor_units'];
 
             if ($rawStatementDescription === null || $signedAmountMinorUnits === null) {
                 continue;

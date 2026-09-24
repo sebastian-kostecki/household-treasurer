@@ -846,6 +846,7 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices', [
                     [
                         'kind' => 'paced_month_remaining',
+                        'severity' => 'exceeded',
                         'id' => $groceries->id,
                         'name' => 'Groceries',
                         'icon' => 'shopping-cart',
@@ -1132,6 +1133,7 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices', [
                     [
                         'kind' => 'one_off_over_limit',
+                        'severity' => 'exceeded',
                         'id' => $insurance->id,
                         'name' => 'Insurance',
                         'icon' => 'shield',
@@ -1224,7 +1226,11 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices.2.kind', 'paced_month_remaining')
                 ->where('dashboardNotices.2.id', $paced->id)
                 ->where('dashboardNotices.3.kind', 'one_off_over_limit')
-                ->where('dashboardNotices.3.id', $oneOff->id),
+                ->where('dashboardNotices.3.id', $oneOff->id)
+                ->where('dashboardNotices.0.severity', 'exceeded')
+                ->where('dashboardNotices.1.severity', 'exceeded')
+                ->where('dashboardNotices.2.severity', 'exceeded')
+                ->where('dashboardNotices.3.severity', 'exceeded'),
             );
     }
 

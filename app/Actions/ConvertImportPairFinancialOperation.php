@@ -122,10 +122,7 @@ class ConvertImportPairFinancialOperation
     }
 
     /**
-     * @return array<string, int|string>
-     */
-    /**
-     * @return array<string, string>
+     * @return array{source_raw_statement_description: string}|array{destination_raw_statement_description: string}|array{}
      */
     private function rawStatementDescriptionsFromFinancialOperation(FinancialOperation $operation): array
     {
@@ -142,7 +139,17 @@ class ConvertImportPairFinancialOperation
     }
 
     /**
-     * @return array<string, int|string>
+     * @return array{
+     *     source_import_identity_account_id: int,
+     *     source_import_identity_date: string,
+     *     source_import_identity_amount_minor_units: int,
+     *     source_import_identity_digest: string,
+     * }|array{
+     *     destination_import_identity_account_id: int,
+     *     destination_import_identity_date: string,
+     *     destination_import_identity_amount_minor_units: int,
+     *     destination_import_identity_digest: string,
+     * }
      */
     private function identityFromFinancialOperation(FinancialOperation $operation): array
     {

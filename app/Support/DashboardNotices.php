@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
+use App\Enums\DashboardNoticeSeverity;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\TermDeposit;
@@ -16,6 +17,7 @@ class DashboardNotices
      * @param  Collection<int, TermDeposit>  $termDeposits
      * @return list<array{
      *     kind: 'negative_account',
+     *     severity: 'exceeded'|'warning',
      *     id: int,
      *     name: string,
      *     type: string,
@@ -24,6 +26,7 @@ class DashboardNotices
      *     amount_minor_units: int,
      * }|array{
      *     kind: 'negative_term_deposit',
+     *     severity: 'exceeded'|'warning',
      *     id: int,
      *     name: string,
      *     bank: string,
@@ -31,6 +34,7 @@ class DashboardNotices
      *     amount_minor_units: int,
      * }|array{
      *     kind: 'paced_month_remaining'|'one_off_over_limit',
+     *     severity: 'exceeded'|'warning',
      *     id: int,
      *     name: string,
      *     icon: string,
@@ -54,6 +58,7 @@ class DashboardNotices
 
             $notices[] = [
                 'kind' => 'negative_account',
+                'severity' => DashboardNoticeSeverity::Exceeded->value,
                 ...AccountIdentity::payload($account),
                 'amount_minor_units' => $account->current_balance_minor_units,
             ];
@@ -66,6 +71,7 @@ class DashboardNotices
 
             $notices[] = [
                 'kind' => 'negative_term_deposit',
+                'severity' => DashboardNoticeSeverity::Exceeded->value,
                 'id' => $termDeposit->id,
                 'name' => $termDeposit->name,
                 'bank' => $termDeposit->bank->value,
@@ -87,6 +93,7 @@ class DashboardNotices
             ) as $alert) {
                 $notices[] = [
                     'kind' => 'paced_month_remaining',
+                    'severity' => DashboardNoticeSeverity::Exceeded->value,
                     'id' => $alert['id'],
                     'name' => $alert['name'],
                     'icon' => $alert['icon'],
@@ -138,6 +145,7 @@ class DashboardNotices
             foreach ($oneOffAlerts as $alert) {
                 $notices[] = [
                     'kind' => 'one_off_over_limit',
+                    'severity' => DashboardNoticeSeverity::Exceeded->value,
                     'id' => $alert['id'],
                     'name' => $alert['name'],
                     'icon' => $alert['icon'],

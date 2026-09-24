@@ -31,10 +31,12 @@ class OwnTransferTest extends TestCase
     {
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->bank()->create([
+            'opening_date' => '2026-01-01',
             'current_balance_minor_units' => 100000,
             'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->cash()->create([
+            'opening_date' => '2026-01-01',
             'current_balance_minor_units' => 0,
             'opening_balance_minor_units' => 0,
         ]);
@@ -64,10 +66,12 @@ class OwnTransferTest extends TestCase
     {
         $user = User::factory()->create();
         $source = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
             'current_balance_minor_units' => 100000,
             'opening_balance_minor_units' => 100000,
         ]);
         $destination = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
             'current_balance_minor_units' => 5000,
             'opening_balance_minor_units' => 5000,
         ]);
