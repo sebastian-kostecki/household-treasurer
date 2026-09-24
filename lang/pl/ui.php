@@ -132,6 +132,7 @@ return [
         'open_budget' => 'Otwórz budżet',
         'paced_pool_month_remaining' => ':month — pozostało',
         'holdings_title' => 'Posiadane środki',
+        'open_accounts' => 'Otwórz konta',
         'show_more_categories' => 'Pokaż jeszcze :count',
         'show_fewer_categories' => 'Pokaż mniej',
         'year_elapsed' => 'Postęp roku',
