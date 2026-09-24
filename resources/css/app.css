@@ -444,6 +444,23 @@
         }
     }
 
+    .category-meter-header-row {
+        display: none;
+    }
+
+    @variant md {
+        .category-meter-header-row {
+            @apply grid items-center gap-x-3 pb-2;
+            grid-template-columns:
+                minmax(0, 1.4fr)
+                5.75rem
+                5.75rem
+                5.75rem
+                minmax(3rem, 1fr)
+                3.25rem;
+        }
+    }
+
     .category-meter-cell-category {
         grid-area: category;
     }

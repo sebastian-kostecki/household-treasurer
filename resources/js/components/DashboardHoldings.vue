@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
@@ -13,6 +14,7 @@ import {
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
 import { formatDate, formatMoney } from '@/lib/format';
+import { index as accountsIndex } from '@/routes/accounts';
 
 const HOLDINGS_EXPANDED_STORAGE_KEY = 'dashboard-holdings-expanded';
 
@@ -24,6 +26,7 @@ type AccountSummary = {
     mark_url: string | null;
     current_balance_minor_units: number;
     is_negative: boolean;
+    is_archived: boolean;
 };
 
 type TermDepositSummary = {
@@ -34,6 +37,7 @@ type TermDepositSummary = {
     end_date: string | null;
     current_balance_minor_units: number;
     is_negative: boolean;
+    is_archived: boolean;
 };
 
 const props = defineProps<{
@@ -115,9 +119,16 @@ function toggleExpanded(): void {
 
 <template>
     <div class="flex flex-col gap-3">
-        <h2 class="hidden text-sm font-semibold lg:block">
-            {{ t.dashboard.holdings_title }}
-        </h2>
+        <div class="hidden items-center justify-between gap-2 lg:flex">
+            <h2 class="text-sm font-semibold">
+                {{ t.dashboard.holdings_title }}
+            </h2>
+            <Button variant="outline" size="sm" as-child>
+                <Link :href="accountsIndex()">
+                    {{ t.dashboard.open_accounts }}
+                </Link>
+            </Button>
+        </div>
         <Button
             type="button"
             variant="ghost"
@@ -137,7 +148,10 @@ function toggleExpanded(): void {
             />
         </Button>
 
-        <div :class="holdingsOpenOnMobile ? '' : 'max-lg:hidden'">
+        <div
+            class="space-y-3"
+            :class="holdingsOpenOnMobile ? '' : 'max-lg:hidden'"
+        >
             <Card v-if="showEmptyState">
                 <CardHeader class="pb-2">
                     <CardDescription>
@@ -151,61 +165,121 @@ function toggleExpanded(): void {
                 </CardContent>
             </Card>
 
-            <ListSurface v-else>
-                <div class="border-border/60 border-b last:border-b-0">
-                    <div
-                        class="text-muted-foreground flex items-center justify-between gap-3 py-2 text-xs font-medium"
-                    >
-                        <span>{{ t.nav.accounts }}</span>
-                        <span
-                            v-if="accounts.length > 0"
-                            class="tabular-nums"
-                            :class="groupTotalClass(accountsTotalMinorUnits)"
-                        >
-                            {{ formatMoney(accountsTotalMinorUnits) }}
-                        </span>
-                    </div>
+            <template v-else>
+                <ListSurface :title="t.nav.accounts">
                     <p
                         v-if="accounts.length === 0"
-                        class="text-muted-foreground border-border/60 border-t py-3 text-sm"
+                        class="text-muted-foreground text-sm"
                     >
                         {{ t.dashboard.no_accounts }}
                     </p>
-                    <div
-                        v-for="account in accounts"
-                        :key="account.id"
-                        class="border-border/60 hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 border-t py-3 transition-colors"
-                    >
-                        <AccountIdentityBlock
-                            class="min-w-0 flex-1"
-                            :name="account.name"
-                            :type="account.type"
-                            :bank="account.bank"
-                            :mark_url="account.mark_url"
-                        >
-                            <p class="text-sm font-medium">
-                                {{ account.name }}
-                            </p>
-                        </AccountIdentityBlock>
-                        <p
-                            class="shrink-0 text-sm font-semibold tabular-nums"
-                            :class="amountClass(account)"
-                        >
-                            {{
-                                formatMoney(account.current_balance_minor_units)
-                            }}
-                        </p>
-                    </div>
-                </div>
 
-                <div
+                    <template v-else>
+                        <div
+                            class="text-muted-foreground flex items-center justify-between gap-3 pb-2 text-xs font-medium tracking-wide uppercase"
+                        >
+                            <span>{{ t.accounts.name }}</span>
+                            <span>{{ t.accounts.current_balance }}</span>
+                        </div>
+
+                        <div class="divide-border/60 divide-y">
+                            <div
+                                v-for="account in accounts"
+                                :key="account.id"
+                                class="hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors"
+                            >
+                                <AccountIdentityBlock
+                                    class="min-w-0 flex-1"
+                                    :name="account.name"
+                                    :type="account.type"
+                                    :bank="account.bank"
+                                    :mark_url="account.mark_url"
+                                >
+                                    <p class="text-sm font-medium">
+                                        {{ account.name }}
+                                    </p>
+                                </AccountIdentityBlock>
+                                <p
+                                    class="shrink-0 text-sm font-semibold tabular-nums"
+                                    :class="amountClass(account)"
+                                >
+                                    {{
+                                        formatMoney(
+                                            account.current_balance_minor_units,
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="border-border/60 flex items-center justify-between border-t pt-3 text-sm font-semibold"
+                        >
+                            <span>{{ t.accounts.liquidity_total }}</span>
+                            <span
+                                class="tabular-nums"
+                                :class="
+                                    groupTotalClass(accountsTotalMinorUnits)
+                                "
+                            >
+                                {{ formatMoney(accountsTotalMinorUnits) }}
+                            </span>
+                        </div>
+                    </template>
+                </ListSurface>
+
+                <ListSurface
                     v-if="termDeposits.length > 0"
-                    class="border-border/60 border-b last:border-b-0"
+                    :title="t.nav.term_deposits"
                 >
                     <div
-                        class="text-muted-foreground border-border/60 flex items-center justify-between gap-3 border-t py-2 text-xs font-medium"
+                        class="text-muted-foreground flex items-center justify-between gap-3 pb-2 text-xs font-medium tracking-wide uppercase"
                     >
-                        <span>{{ t.nav.term_deposits }}</span>
+                        <span>{{ t.term_deposits.name }}</span>
+                        <span>{{ t.term_deposits.current_balance }}</span>
+                    </div>
+
+                    <div class="divide-border/60 divide-y">
+                        <div
+                            v-for="termDeposit in termDeposits"
+                            :key="termDeposit.id"
+                            class="hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors"
+                        >
+                            <AccountIdentityBlock
+                                class="min-w-0 flex-1"
+                                :name="termDeposit.name"
+                                type="bank"
+                                :bank="termDeposit.bank"
+                                :mark_url="termDeposit.mark_url"
+                            >
+                                <p class="text-sm font-medium">
+                                    {{ termDeposit.name }}
+                                </p>
+                                <p
+                                    v-if="termDeposit.end_date"
+                                    class="text-muted-foreground text-xs"
+                                >
+                                    {{ t.term_deposits.end_date }}:
+                                    {{ formatDate(termDeposit.end_date) }}
+                                </p>
+                            </AccountIdentityBlock>
+                            <p
+                                class="shrink-0 text-sm font-semibold tabular-nums"
+                                :class="amountClass(termDeposit)"
+                            >
+                                {{
+                                    formatMoney(
+                                        termDeposit.current_balance_minor_units,
+                                    )
+                                }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="border-border/60 flex items-center justify-between border-t pt-3 text-sm font-semibold"
+                    >
+                        <span>{{ t.term_deposits.total }}</span>
                         <span
                             class="tabular-nums"
                             :class="
@@ -215,42 +289,8 @@ function toggleExpanded(): void {
                             {{ formatMoney(termDepositsTotalMinorUnits) }}
                         </span>
                     </div>
-                    <div
-                        v-for="termDeposit in termDeposits"
-                        :key="termDeposit.id"
-                        class="border-border/60 hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 border-t py-3 transition-colors"
-                    >
-                        <AccountIdentityBlock
-                            class="min-w-0 flex-1"
-                            :name="termDeposit.name"
-                            type="bank"
-                            :bank="termDeposit.bank"
-                            :mark_url="termDeposit.mark_url"
-                        >
-                            <p class="text-sm font-medium">
-                                {{ termDeposit.name }}
-                            </p>
-                            <p
-                                v-if="termDeposit.end_date"
-                                class="text-muted-foreground text-xs"
-                            >
-                                {{ t.term_deposits.end_date }}:
-                                {{ formatDate(termDeposit.end_date) }}
-                            </p>
-                        </AccountIdentityBlock>
-                        <p
-                            class="shrink-0 text-sm font-semibold tabular-nums"
-                            :class="amountClass(termDeposit)"
-                        >
-                            {{
-                                formatMoney(
-                                    termDeposit.current_balance_minor_units,
-                                )
-                            }}
-                        </p>
-                    </div>
-                </div>
-            </ListSurface>
+                </ListSurface>
+            </template>
         </div>
     </div>
 </template>

@@ -4,7 +4,6 @@ import { AlertTriangle, OctagonX } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
-import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
@@ -54,7 +53,8 @@ export type DashboardNotice = {
       }
 );
 
-const VISIBLE_NOTICE_LIMIT = 3;
+// Two rows of the card grid's widest breakpoint (3 columns).
+const VISIBLE_NOTICE_LIMIT = 6;
 
 const props = defineProps<{
     notices: DashboardNotice[];
@@ -92,31 +92,14 @@ const warningCount = computed(
         props.notices.filter((notice) => notice.severity === 'warning').length,
 );
 
-/**
- * Group sub-headings appear only when both severities are present; with one
- * severity the header pill already names it.
- */
-const showsSeverityGroupHeadings = computed(
-    () => exceededCount.value > 0 && warningCount.value > 0,
-);
-
-/**
- * Visible notices split by severity, exceeded first. Groups with no visible
- * notices are dropped so a collapsed list never shows an empty heading.
- */
-const visibleNoticeGroups = computed(() =>
-    (['exceeded', 'warning'] as const)
-        .map((severity) => ({
-            severity,
-            notices: visibleNotices.value.filter(
-                (notice) => notice.severity === severity,
-            ),
-        }))
-        .filter((group) => group.notices.length > 0),
-);
-
 function severityTextClass(severity: DashboardNoticeSeverity): string {
     return severity === 'exceeded' ? 'text-destructive' : 'text-warning';
+}
+
+function severityCardClass(severity: DashboardNoticeSeverity): string {
+    return severity === 'exceeded'
+        ? 'border-destructive/25 bg-destructive/5 hover:bg-destructive/10'
+        : 'border-warning/30 bg-warning/5 hover:bg-warning/10';
 }
 
 function noticeKindLabel(notice: DashboardNotice): string | null {
@@ -237,19 +220,21 @@ function noticeKey(notice: DashboardNotice): string {
             </div>
         </div>
 
-        <ListSurface>
-            <div
-                v-for="group in visibleNoticeGroups"
-                :key="group.severity"
-                class="border-border/60 border-b pt-1 first:pt-0 last:border-b-0"
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+                v-for="notice in visibleNotices"
+                :key="noticeKey(notice)"
+                :href="noticeHref(notice)"
+                class="flex flex-col gap-2 rounded-2xl border p-4 transition-colors"
+                :class="severityCardClass(notice.severity)"
             >
-                <h3
-                    v-if="showsSeverityGroupHeadings"
-                    class="flex items-center gap-1.5 pt-2 pb-1 text-[11px] font-semibold tracking-wider uppercase"
-                    :class="severityTextClass(group.severity)"
+                <span
+                    v-if="noticeKindLabel(notice)"
+                    class="inline-flex items-center gap-1.5 text-xs font-medium"
+                    :class="severityTextClass(notice.severity)"
                 >
                     <OctagonX
-                        v-if="group.severity === 'exceeded'"
+                        v-if="notice.severity === 'exceeded'"
                         class="size-3.5 shrink-0"
                         aria-hidden="true"
                     />
@@ -258,75 +243,53 @@ function noticeKey(notice: DashboardNotice): string {
                         class="size-3.5 shrink-0"
                         aria-hidden="true"
                     />
-                    <span>
-                        {{
-                            group.severity === 'exceeded'
-                                ? t.dashboard.notices_exceeded_group
-                                : t.dashboard.notices_warning_group
-                        }}
+                    {{ noticeKindLabel(notice) }}
+                </span>
+
+                <div class="flex min-w-0 items-center gap-2">
+                    <AccountIdentityBlock
+                        v-if="notice.kind === 'negative_account'"
+                        class="shrink-0"
+                        size="sm"
+                        :name="notice.name"
+                        :type="notice.type"
+                        :bank="notice.bank"
+                        :mark_url="notice.mark_url"
+                    />
+                    <AccountIdentityBlock
+                        v-else-if="notice.kind === 'negative_term_deposit'"
+                        class="shrink-0"
+                        size="sm"
+                        type="bank"
+                        :name="notice.name"
+                        :bank="notice.bank"
+                        :mark_url="notice.mark_url"
+                    />
+                    <CategoryChip
+                        v-else
+                        class="shrink-0"
+                        :name="notice.name"
+                        :icon="notice.icon"
+                        :color="notice.color"
+                        size="sm"
+                        :show-name="false"
+                    />
+
+                    <span
+                        class="min-w-0 flex-1 truncate text-base font-semibold"
+                    >
+                        {{ notice.name }}
                     </span>
-                    <span class="text-muted-foreground tabular-nums">
-                        ·
-                        {{
-                            group.severity === 'exceeded'
-                                ? exceededCount
-                                : warningCount
-                        }}
+
+                    <span
+                        class="shrink-0 text-base font-semibold tabular-nums"
+                        :class="severityTextClass(notice.severity)"
+                    >
+                        {{ formatMoney(notice.amount_minor_units) }}
                     </span>
-                </h3>
-                <Link
-                    v-for="notice in group.notices"
-                    :key="noticeKey(notice)"
-                    :href="noticeHref(notice)"
-                    class="border-border/60 hover:bg-foreground/[0.03] flex items-center justify-between gap-3 border-b py-3 transition-colors last:border-b-0"
-                >
-                    <div class="min-w-0 flex-1">
-                        <AccountIdentityBlock
-                            v-if="notice.kind === 'negative_account'"
-                            :name="notice.name"
-                            :type="notice.type"
-                            :bank="notice.bank"
-                            :mark_url="notice.mark_url"
-                        >
-                            <p class="truncate font-medium">
-                                {{ notice.name }}
-                            </p>
-                        </AccountIdentityBlock>
-                        <AccountIdentityBlock
-                            v-else-if="notice.kind === 'negative_term_deposit'"
-                            type="bank"
-                            :name="notice.name"
-                            :bank="notice.bank"
-                            :mark_url="notice.mark_url"
-                        >
-                            <p class="truncate font-medium">
-                                {{ notice.name }}
-                            </p>
-                        </AccountIdentityBlock>
-                        <CategoryChip
-                            v-else
-                            :name="notice.name"
-                            :icon="notice.icon"
-                            :color="notice.color"
-                        />
-                    </div>
-                    <div class="shrink-0 text-right">
-                        <p
-                            class="font-medium tabular-nums"
-                            :class="severityTextClass(notice.severity)"
-                        >
-                            {{ formatMoney(notice.amount_minor_units) }}
-                        </p>
-                        <p
-                            v-if="noticeKindLabel(notice)"
-                            class="text-muted-foreground text-xs"
-                        >
-                            {{ noticeKindLabel(notice) }}
-                        </p>
-                    </div>
-                </Link>
-            </div>
-        </ListSurface>
+                </div>
+            </Link>
+        </div>
 
         <div v-if="showExpander || showCollapse">
             <Button
