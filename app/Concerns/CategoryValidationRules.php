@@ -42,7 +42,9 @@ trait CategoryValidationRules
                 return;
             }
 
-            $type = $category?->type ?? CategoryType::tryFrom($this->input('type'));
+            $type = $category === null
+                ? CategoryType::tryFrom($this->input('type'))
+                : $category->type;
 
             if ($type === CategoryType::Income) {
                 $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));

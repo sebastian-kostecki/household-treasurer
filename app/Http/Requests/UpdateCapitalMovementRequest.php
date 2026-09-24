@@ -106,7 +106,7 @@ class UpdateCapitalMovementRequest extends FormRequest
      *     description: string,
      * }
      */
-    private function capitalMovementPayload(): array
+    public function capitalMovementPayload(): array
     {
         $validated = $this->safe()->only([
             'account_id',

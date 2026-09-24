@@ -285,7 +285,7 @@ function closeDialog(): void {
                     <InputError :message="errors.amount_minor_units" />
                 </div>
 
-                <Alert v-if="showNegativeBalanceWarning" variant="destructive">
+                <Alert v-if="showNegativeBalanceWarning" variant="warning">
                     <AlertTriangle class="size-4" />
                     <AlertTitle>{{
                         t.operations.expense_warnings_title

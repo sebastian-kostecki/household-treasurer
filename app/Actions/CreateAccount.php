@@ -26,8 +26,8 @@ class CreateAccount
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(AccountType::class)],
             'bank' => [
-                Rule::requiredIf(($attributes['type'] ?? null) === AccountType::Bank->value),
-                Rule::prohibitedIf(($attributes['type'] ?? null) === AccountType::Cash->value),
+                Rule::requiredIf($attributes['type'] === AccountType::Bank->value),
+                Rule::prohibitedIf($attributes['type'] === AccountType::Cash->value),
                 'nullable',
                 Rule::enum(Bank::class),
             ],

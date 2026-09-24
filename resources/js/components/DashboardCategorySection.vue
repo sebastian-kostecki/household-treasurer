@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
-import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
+import { computed, ref } from 'vue';
 import CategoryMeterRow from '@/components/CategoryMeterRow.vue';
-import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     type DashboardCategory,
@@ -20,41 +15,19 @@ import {
     hiddenDashboardCategoryCount,
     sliceVisibleCategories,
 } from '@/lib/dashboard-categories';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 
 const props = defineProps<{
     title: string;
     categoryType: 'income' | 'expense';
     categories: DashboardCategory[];
     totals: DashboardTypeTotals;
-    yearElapsedAsOf: string;
+    showYearElapsed: boolean;
     yearElapsedPercent: number;
-    budgetYear: number;
-    canSelectBudgetYear: boolean;
 }>();
 
 const t = useTranslations();
 const isExpanded = ref(false);
-const showYearElapsed = ref(false);
-const createBudgetDialogOpen = ref(false);
-
-const storageKey = computed(
-    () => `dashboard-year-elapsed-${props.categoryType}`,
-);
-const checkboxId = computed(() => `year-elapsed-${props.categoryType}`);
-
-onMounted(() => {
-    showYearElapsed.value =
-        window.localStorage.getItem(storageKey.value) === '1';
-});
-
-watch(showYearElapsed, (enabled) => {
-    window.localStorage.setItem(storageKey.value, enabled ? '1' : '0');
-});
-
-const yearElapsedLabel = computed(
-    () => `${t.dashboard.year_elapsed} ${formatDate(props.yearElapsedAsOf)}`,
-);
 
 const visibleCategoryLimit = computed(() =>
     dashboardVisibleCategoryLimit(props.categoryType),
@@ -85,10 +58,6 @@ const showCollapse = computed(
         props.categories.length > visibleCategoryLimit.value,
 );
 
-const createBudgetYearInputId = computed(
-    () => `dashboard-section-budget-year-${props.categoryType}`,
-);
-
 const sectionRemainingClass = computed(() => {
     if (
         props.categoryType === 'expense' &&
@@ -99,69 +68,84 @@ const sectionRemainingClass = computed(() => {
 
     return '';
 });
+
+const totalsLabel = computed(() =>
+    props.categoryType === 'income'
+        ? t.dashboard.income_totals
+        : t.dashboard.expense_totals,
+);
 </script>
 
 <template>
-    <ListSurface>
-        <template #header>
-            <div class="space-y-3">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <h3 class="text-base font-semibold">
-                        {{ title }}
-                    </h3>
-                    <div class="flex flex-wrap items-center justify-end gap-3">
-                        <div class="flex items-center gap-2">
-                            <Checkbox
-                                :id="checkboxId"
-                                v-model="showYearElapsed"
-                            />
-                            <Label
-                                :for="checkboxId"
-                                class="cursor-pointer text-sm font-normal"
-                            >
-                                {{ yearElapsedLabel }}
-                            </Label>
-                        </div>
-                    </div>
-                </div>
+    <ListSurface :title="title">
+        <p v-if="categories.length === 0" class="text-muted-foreground text-sm">
+            {{ t.dashboard.no_categories }}
+        </p>
 
-                <div class="grid gap-3 sm:grid-cols-3">
-                    <div>
-                        <p class="text-muted-foreground text-xs">
-                            {{ t.dashboard.current_plan }}
-                        </p>
-                        <p class="font-medium tabular-nums">
-                            {{ formatMoney(totals.current_plan_minor_units) }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-muted-foreground text-xs">
-                            {{ t.dashboard.execution }}
-                        </p>
-                        <p
-                            class="font-medium tabular-nums"
-                            :class="
-                                categoryType === 'income' ? 'text-success' : ''
-                            "
-                        >
-                            {{ formatMoney(totals.execution_minor_units) }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-muted-foreground text-xs">
-                            {{ t.dashboard.remaining }}
-                        </p>
-                        <p
-                            class="font-medium tabular-nums"
-                            :class="sectionRemainingClass"
-                        >
-                            {{ formatMoney(totals.remaining_minor_units) }}
-                        </p>
-                    </div>
-                </div>
+        <template v-else>
+            <div
+                class="category-meter-header-row text-muted-foreground text-xs font-medium tracking-wide uppercase"
+            >
+                <span>{{ t.budget.category }}</span>
+                <span class="text-right">{{ t.dashboard.current_plan }}</span>
+                <span class="text-right">{{ t.dashboard.execution }}</span>
+                <span class="text-right">{{ t.dashboard.remaining }}</span>
+                <span />
+                <span class="text-right">
+                    {{ t.dashboard.percent_complete }}
+                </span>
+            </div>
 
-                <div v-if="totals.percent_complete !== null" class="space-y-1">
-                    <div class="bg-muted h-1.5 overflow-hidden rounded-full">
+            <div class="divide-border/60 divide-y">
+                <CategoryMeterRow
+                    v-for="category in visibleCategories"
+                    :key="category.id"
+                    :category="category"
+                    :category-type="categoryType"
+                    :show-year-elapsed-mark="
+                        showYearElapsed &&
+                        showsYearElapsedMark(categoryType, category)
+                    "
+                    :year-elapsed-percent="yearElapsedPercent"
+                />
+            </div>
+
+            <div
+                class="category-meter-row border-border/60 border-t font-semibold"
+            >
+                <div class="category-meter-cell-category min-w-0">
+                    <span class="text-sm">{{ totalsLabel }}</span>
+                </div>
+                <div
+                    class="category-meter-cell-plan tabular-nums max-md:hidden"
+                >
+                    <span class="text-sm">
+                        {{ formatMoney(totals.current_plan_minor_units) }}
+                    </span>
+                </div>
+                <div
+                    class="category-meter-cell-execution tabular-nums max-md:hidden"
+                >
+                    <span
+                        class="text-sm"
+                        :class="categoryType === 'income' ? 'text-success' : ''"
+                    >
+                        {{ formatMoney(totals.execution_minor_units) }}
+                    </span>
+                </div>
+                <div
+                    class="category-meter-cell-remaining tabular-nums"
+                    :class="sectionRemainingClass"
+                >
+                    <span class="text-sm">
+                        {{ formatMoney(totals.remaining_minor_units) }}
+                    </span>
+                </div>
+                <div class="category-meter-cell-bar">
+                    <div
+                        v-if="totals.percent_complete !== null"
+                        class="bg-muted relative h-1.5 overflow-visible rounded-full"
+                    >
                         <div
                             class="h-full rounded-full transition-all"
                             :class="
@@ -175,44 +159,34 @@ const sectionRemainingClass = computed(() => {
                             }"
                         />
                     </div>
-                    <p
-                        class="text-right text-xs tabular-nums"
-                        :class="
-                            sectionPercentClass(
-                                categoryType,
-                                totals.percent_complete,
-                            )
-                        "
-                    >
+                </div>
+                <div
+                    class="category-meter-cell-percent text-right text-sm tabular-nums"
+                    :class="
+                        totals.percent_complete === null
+                            ? 'text-muted-foreground'
+                            : sectionPercentClass(
+                                  categoryType,
+                                  totals.percent_complete,
+                              )
+                    "
+                >
+                    <template v-if="totals.percent_complete !== null">
                         {{ totals.percent_complete }}%
-                    </p>
+                    </template>
                 </div>
             </div>
         </template>
 
-        <p v-if="categories.length === 0" class="text-muted-foreground text-sm">
-            {{ t.dashboard.no_categories }}
-        </p>
-
-        <div v-else class="divide-border/60 divide-y">
-            <CategoryMeterRow
-                v-for="category in visibleCategories"
-                :key="category.id"
-                :category="category"
-                :category-type="categoryType"
-                :show-year-elapsed-mark="
-                    showYearElapsed &&
-                    showsYearElapsedMark(categoryType, category)
-                "
-                :year-elapsed-percent="yearElapsedPercent"
-            />
-        </div>
-
-        <div v-if="showExpander || showCollapse" class="pt-3">
+        <div
+            v-if="showExpander || showCollapse"
+            class="border-border/60 border-t pt-3"
+        >
             <Button
                 type="button"
                 variant="ghost"
                 size="sm"
+                class="text-primary hover:text-primary -ml-3"
                 @click="isExpanded = !isExpanded"
             >
                 {{
@@ -224,36 +198,6 @@ const sectionRemainingClass = computed(() => {
                           )
                 }}
             </Button>
-        </div>
-
-        <div class="pt-3">
-            <Form
-                v-if="canSelectBudgetYear"
-                v-bind="BudgetController.selectYear.form()"
-                v-slot="{ processing }"
-            >
-                <input type="hidden" name="year" :value="budgetYear" />
-                <Button
-                    type="submit"
-                    variant="outline"
-                    size="sm"
-                    :disabled="processing"
-                >
-                    {{ t.dashboard.open_budget }}
-                </Button>
-            </Form>
-            <CreateBudgetDialog
-                v-else
-                v-model:open="createBudgetDialogOpen"
-                :year-input-id="createBudgetYearInputId"
-                :suggested-year="budgetYear"
-            >
-                <template #trigger>
-                    <Button variant="outline" size="sm">
-                        {{ t.dashboard.open_budget }}
-                    </Button>
-                </template>
-            </CreateBudgetDialog>
         </div>
     </ListSurface>
 </template>

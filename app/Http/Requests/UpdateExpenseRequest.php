@@ -107,7 +107,7 @@ class UpdateExpenseRequest extends FormRequest
      *     convert_to_income?: bool,
      * }
      */
-    private function expensePayload(): array
+    public function expensePayload(): array
     {
         $validated = $this->safe()->only([
             'operation_date',

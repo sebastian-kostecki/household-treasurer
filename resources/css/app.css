@@ -43,6 +43,12 @@
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
 
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+
+    --color-refund: var(--refund);
+    --color-transfer: var(--transfer);
+
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -105,10 +111,14 @@
     --muted-foreground: hsl(0 0% 45.1%);
     --accent: hsl(189 30% 94%);
     --accent-foreground: hsl(189 85% 22%);
-    --destructive: hsl(0 84.2% 60.2%);
+    --destructive: hsl(0 72.2% 50.6%);
     --destructive-foreground: hsl(0 0% 98%);
     --success: hsl(142 71% 35%);
     --success-foreground: hsl(0 0% 98%);
+    --warning: hsl(26 90.5% 37.1%);
+    --warning-foreground: hsl(0 0% 98%);
+    --refund: hsl(26 90.5% 37.1%);
+    --transfer: hsl(224 76.3% 48%);
     --border: hsl(0 0% 90%);
     --input: hsl(0 0% 91%);
     --ring: hsl(189 85% 28%);
@@ -148,6 +158,10 @@
     --destructive-foreground: hsl(0 0% 98%);
     --success: hsl(142 60% 45%);
     --success-foreground: hsl(0 0% 98%);
+    --warning: hsl(43 96% 56%);
+    --warning-foreground: hsl(0 0% 3.9%);
+    --refund: hsl(43 96% 56%);
+    --transfer: hsl(213 94% 68%);
     --border: hsl(0 0% 14.9%);
     --input: hsl(0 0% 14.9%);
     --ring: hsl(189 70% 40%);
@@ -427,6 +441,23 @@
                 minmax(3rem, 1fr)
                 3.25rem;
             grid-template-areas: 'category plan execution remaining bar percent';
+        }
+    }
+
+    .category-meter-header-row {
+        display: none;
+    }
+
+    @variant md {
+        .category-meter-header-row {
+            @apply grid items-center gap-x-3 pb-2;
+            grid-template-columns:
+                minmax(0, 1.4fr)
+                5.75rem
+                5.75rem
+                5.75rem
+                minmax(3rem, 1fr)
+                3.25rem;
         }
     }
 
