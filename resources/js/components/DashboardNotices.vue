@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { AlertTriangle } from '@lucide/vue';
+import { AlertTriangle, OctagonX } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
@@ -12,7 +12,11 @@ import { formatMoney } from '@/lib/format';
 import { operations as operationsRoute } from '@/routes';
 import { index as termDepositsIndex } from '@/routes/term-deposits';
 
-export type DashboardNotice =
+export type DashboardNoticeSeverity = 'exceeded' | 'warning';
+
+export type DashboardNotice = {
+    severity: DashboardNoticeSeverity;
+} & (
     | {
           kind: 'negative_account';
           id: number;
@@ -47,7 +51,8 @@ export type DashboardNotice =
           color: string;
           category_name: string;
           amount_minor_units: number;
-      };
+      }
+);
 
 const VISIBLE_NOTICE_LIMIT = 3;
 
@@ -77,7 +82,51 @@ const showExpander = computed(
     () => hiddenNoticeCount.value > 0 && !isExpanded.value,
 );
 
+const exceededCount = computed(
+    () =>
+        props.notices.filter((notice) => notice.severity === 'exceeded').length,
+);
+
+const warningCount = computed(
+    () =>
+        props.notices.filter((notice) => notice.severity === 'warning').length,
+);
+
+/**
+ * Group sub-headings appear only when both severities are present; with one
+ * severity the header pill already names it.
+ */
+const showsSeverityGroupHeadings = computed(
+    () => exceededCount.value > 0 && warningCount.value > 0,
+);
+
+/**
+ * Visible notices split by severity, exceeded first. Groups with no visible
+ * notices are dropped so a collapsed list never shows an empty heading.
+ */
+const visibleNoticeGroups = computed(() =>
+    (['exceeded', 'warning'] as const)
+        .map((severity) => ({
+            severity,
+            notices: visibleNotices.value.filter(
+                (notice) => notice.severity === severity,
+            ),
+        }))
+        .filter((group) => group.notices.length > 0),
+);
+
+function severityTextClass(severity: DashboardNoticeSeverity): string {
+    return severity === 'exceeded' ? 'text-destructive' : 'text-warning';
+}
+
 function noticeKindLabel(notice: DashboardNotice): string | null {
+    if (
+        notice.kind === 'negative_account' ||
+        notice.kind === 'negative_term_deposit'
+    ) {
+        return t.dashboard.notice_negative_balance;
+    }
+
     if (notice.kind === 'paced_month_remaining') {
         return t.dashboard.notice_paced_month_remaining;
     }
@@ -161,65 +210,122 @@ function noticeKey(notice: DashboardNotice): string {
 
 <template>
     <section class="space-y-3" :aria-labelledby="headingId">
-        <h2
-            :id="headingId"
-            class="flex items-center gap-2 text-sm font-semibold"
-        >
-            <AlertTriangle
-                class="text-destructive size-4 shrink-0"
-                aria-hidden="true"
-            />
-            <span>{{ t.dashboard.attention_zone_title }}</span>
-            <span class="text-muted-foreground tabular-nums">
-                · {{ notices.length }}
-            </span>
-        </h2>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 :id="headingId" class="text-sm font-semibold">
+                {{ t.dashboard.attention_zone_title }}
+            </h2>
+            <div class="flex flex-wrap items-center gap-2">
+                <span
+                    v-if="exceededCount > 0"
+                    class="bg-destructive/10 text-destructive inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                >
+                    <OctagonX class="size-3.5 shrink-0" aria-hidden="true" />
+                    {{ t.dashboard.notices_exceeded_group }} ·
+                    {{ exceededCount }}
+                </span>
+                <span
+                    v-if="warningCount > 0"
+                    class="bg-warning/10 text-warning inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                >
+                    <AlertTriangle
+                        class="size-3.5 shrink-0"
+                        aria-hidden="true"
+                    />
+                    {{ t.dashboard.notices_warning_group }} ·
+                    {{ warningCount }}
+                </span>
+            </div>
+        </div>
 
         <ListSurface>
-            <Link
-                v-for="notice in visibleNotices"
-                :key="noticeKey(notice)"
-                :href="noticeHref(notice)"
-                class="border-border/60 hover:bg-foreground/[0.03] flex items-center justify-between gap-3 border-b py-3 transition-colors last:border-b-0"
+            <div
+                v-for="group in visibleNoticeGroups"
+                :key="group.severity"
+                class="border-border/60 border-b pt-1 first:pt-0 last:border-b-0"
             >
-                <div class="min-w-0 flex-1">
-                    <AccountIdentityBlock
-                        v-if="notice.kind === 'negative_account'"
-                        :name="notice.name"
-                        :type="notice.type"
-                        :bank="notice.bank"
-                        :mark_url="notice.mark_url"
-                    >
-                        <p class="truncate font-medium">{{ notice.name }}</p>
-                    </AccountIdentityBlock>
-                    <AccountIdentityBlock
-                        v-else-if="notice.kind === 'negative_term_deposit'"
-                        type="bank"
-                        :name="notice.name"
-                        :bank="notice.bank"
-                        :mark_url="notice.mark_url"
-                    >
-                        <p class="truncate font-medium">{{ notice.name }}</p>
-                    </AccountIdentityBlock>
-                    <CategoryChip
-                        v-else
-                        :name="notice.name"
-                        :icon="notice.icon"
-                        :color="notice.color"
+                <h3
+                    v-if="showsSeverityGroupHeadings"
+                    class="flex items-center gap-1.5 pt-2 pb-1 text-[11px] font-semibold tracking-wider uppercase"
+                    :class="severityTextClass(group.severity)"
+                >
+                    <OctagonX
+                        v-if="group.severity === 'exceeded'"
+                        class="size-3.5 shrink-0"
+                        aria-hidden="true"
                     />
-                </div>
-                <div class="shrink-0 text-right">
-                    <p class="text-destructive font-medium tabular-nums">
-                        {{ formatMoney(notice.amount_minor_units) }}
-                    </p>
-                    <p
-                        v-if="noticeKindLabel(notice)"
-                        class="text-muted-foreground text-xs"
-                    >
-                        {{ noticeKindLabel(notice) }}
-                    </p>
-                </div>
-            </Link>
+                    <AlertTriangle
+                        v-else
+                        class="size-3.5 shrink-0"
+                        aria-hidden="true"
+                    />
+                    <span>
+                        {{
+                            group.severity === 'exceeded'
+                                ? t.dashboard.notices_exceeded_group
+                                : t.dashboard.notices_warning_group
+                        }}
+                    </span>
+                    <span class="text-muted-foreground tabular-nums">
+                        ·
+                        {{
+                            group.severity === 'exceeded'
+                                ? exceededCount
+                                : warningCount
+                        }}
+                    </span>
+                </h3>
+                <Link
+                    v-for="notice in group.notices"
+                    :key="noticeKey(notice)"
+                    :href="noticeHref(notice)"
+                    class="border-border/60 hover:bg-foreground/[0.03] flex items-center justify-between gap-3 border-b py-3 transition-colors last:border-b-0"
+                >
+                    <div class="min-w-0 flex-1">
+                        <AccountIdentityBlock
+                            v-if="notice.kind === 'negative_account'"
+                            :name="notice.name"
+                            :type="notice.type"
+                            :bank="notice.bank"
+                            :mark_url="notice.mark_url"
+                        >
+                            <p class="truncate font-medium">
+                                {{ notice.name }}
+                            </p>
+                        </AccountIdentityBlock>
+                        <AccountIdentityBlock
+                            v-else-if="notice.kind === 'negative_term_deposit'"
+                            type="bank"
+                            :name="notice.name"
+                            :bank="notice.bank"
+                            :mark_url="notice.mark_url"
+                        >
+                            <p class="truncate font-medium">
+                                {{ notice.name }}
+                            </p>
+                        </AccountIdentityBlock>
+                        <CategoryChip
+                            v-else
+                            :name="notice.name"
+                            :icon="notice.icon"
+                            :color="notice.color"
+                        />
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <p
+                            class="font-medium tabular-nums"
+                            :class="severityTextClass(notice.severity)"
+                        >
+                            {{ formatMoney(notice.amount_minor_units) }}
+                        </p>
+                        <p
+                            v-if="noticeKindLabel(notice)"
+                            class="text-muted-foreground text-xs"
+                        >
+                            {{ noticeKindLabel(notice) }}
+                        </p>
+                    </div>
+                </Link>
+            </div>
         </ListSurface>
 
         <div v-if="showExpander || showCollapse">
