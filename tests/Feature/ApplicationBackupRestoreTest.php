@@ -19,7 +19,7 @@ class ApplicationBackupRestoreTest extends TestCase
 
     private string $databasePath;
 
-    private string $originalDatabase;
+    private string $originalDatabaseDefault;
 
     /** @var list<string> */
     private array $originalBackupSourceDatabases;
@@ -40,7 +40,7 @@ class ApplicationBackupRestoreTest extends TestCase
 
         touch($this->databasePath);
 
-        $this->originalDatabase = Config::string('database.connections.sqlite.database');
+        $this->originalDatabaseDefault = Config::string('database.default');
 
         Config::set('database.default', 'sqlite');
         Config::set('database.connections.sqlite.database', $this->databasePath);
@@ -78,8 +78,15 @@ class ApplicationBackupRestoreTest extends TestCase
             unlink($this->databasePath);
         }
 
-        if ($this->usesFileDatabase() && isset($this->originalDatabase)) {
-            Config::set('database.connections.sqlite.database', $this->originalDatabase);
+        if ($this->usesFileDatabase() && isset($this->originalDatabaseDefault)) {
+            Config::set('database.default', $this->originalDatabaseDefault);
+
+            // config('database.connections.sqlite.database') is resolved from the
+            // real DB_DATABASE env var at boot time, which in CI holds the pgsql
+            // database name rather than ':memory:'. Restoring that captured value
+            // would break the sqlite connection for the rest of the run, so
+            // restore the actual phpunit.xml testing intent instead.
+            Config::set('database.connections.sqlite.database', ':memory:');
             Config::set('backup.backup.source.databases', $this->originalBackupSourceDatabases);
 
             // Restore migrations for the default connection so later tests
