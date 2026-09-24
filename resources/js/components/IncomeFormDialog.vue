@@ -444,7 +444,7 @@ function closeDialog(): void {
 
                 <Alert
                     v-if="showNegativeBalanceWarning || showOverLimitWarning"
-                    variant="destructive"
+                    variant="warning"
                 >
                     <AlertTriangle class="size-4" />
                     <AlertTitle>{{

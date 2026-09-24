@@ -33,13 +33,13 @@ const config = computed(() => {
             return {
                 icon: RotateCcw,
                 label: t.operations.type_refund,
-                className: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+                className: 'bg-refund/10 text-refund',
             };
         case 'transfer':
             return {
                 icon: ArrowLeftRight,
                 label: t.operations.type_own_transfer,
-                className: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
+                className: 'bg-transfer/10 text-transfer',
             };
     }
 });

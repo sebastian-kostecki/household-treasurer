@@ -31,9 +31,9 @@ const passwordInput = useTemplateRef('passwordInput');
             :description="t.settings.delete_account_description"
         />
         <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+            class="border-destructive/20 bg-destructive/5 space-y-4 rounded-lg border p-4"
         >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+            <div class="text-destructive relative space-y-0.5">
                 <p class="font-medium">{{ t.settings.delete_warning }}</p>
                 <p class="text-sm">{{ t.settings.delete_warning_body }}</p>
             </div>

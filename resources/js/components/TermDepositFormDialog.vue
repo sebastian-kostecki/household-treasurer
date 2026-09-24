@@ -219,7 +219,7 @@ function closeDialog(): void {
                     <InputError :message="errors.opening_balance_minor_units" />
                 </div>
 
-                <Alert v-if="showNegativeBalanceWarning" variant="destructive">
+                <Alert v-if="showNegativeBalanceWarning" variant="warning">
                     <AlertDescription>
                         {{ t.term_deposits.negative_balance_warning }}
                     </AlertDescription>

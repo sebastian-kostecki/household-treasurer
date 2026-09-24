@@ -262,7 +262,7 @@ function onPairCandidateChange(value: string): void {
     <div
         class="border-border/60 hover:bg-foreground/[0.03] border-b py-3 transition-colors last:border-b-0"
         :class="{
-            'bg-amber-500/10': row.valid && row.import_duplicate,
+            'bg-warning/10': row.valid && row.import_duplicate,
             'bg-sky-500/10':
                 row.valid && showsPairBadge && !row.import_duplicate,
         }"
@@ -540,7 +540,7 @@ function onPairCandidateChange(value: string): void {
             >
                 {{ row.invalid_reason }}
             </p>
-            <Alert v-if="makesAccountNegative" variant="destructive">
+            <Alert v-if="makesAccountNegative" variant="warning">
                 <AlertDescription>
                     {{ t.operations.negative_balance_warning }}
                 </AlertDescription>
@@ -550,7 +550,7 @@ function onPairCandidateChange(value: string): void {
                     showCategoryMonthRemainingWarning &&
                     monthRemainingPeriodLabel !== null
                 "
-                variant="destructive"
+                variant="warning"
             >
                 <AlertDescription>
                     {{
@@ -566,7 +566,7 @@ function onPairCandidateChange(value: string): void {
                     showPoolMonthRemainingWarning &&
                     monthRemainingPeriodLabel !== null
                 "
-                variant="destructive"
+                variant="warning"
             >
                 <AlertDescription>
                     {{
