@@ -51,7 +51,7 @@ class ShellState
      */
     private static function copyableBudgetSourcesForUser(User $user): array
     {
-        return $user->budgets()
+        return array_values($user->budgets()
             ->whereHas('categories', fn ($query) => $query->whereNull('archived_at'))
             ->orderBy('year')
             ->get(['id', 'year'])
@@ -59,8 +59,7 @@ class ShellState
                 'id' => $budget->id,
                 'year' => $budget->year,
             ])
-            ->values()
-            ->all();
+            ->all());
     }
 
     /**

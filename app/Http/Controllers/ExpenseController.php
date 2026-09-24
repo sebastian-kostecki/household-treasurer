@@ -40,7 +40,7 @@ class ExpenseController extends Controller
         if ($request->boolean('convert_to_capital_movement')) {
             $rebuildOperation->financialOperationToCapitalMovement(
                 $financialOperation,
-                $request->payload(),
+                $request->capitalMovementConversionPayload('operation_date'),
             );
 
             Inertia::flash('toast', [
@@ -51,7 +51,7 @@ class ExpenseController extends Controller
             return to_route('operations');
         }
 
-        $manageFinancialOperation->updateExpense($financialOperation, $request->payload());
+        $manageFinancialOperation->updateExpense($financialOperation, $request->expensePayload());
 
         Inertia::flash('toast', [
             'type' => 'success',

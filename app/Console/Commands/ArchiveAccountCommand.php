@@ -20,7 +20,7 @@ class ArchiveAccountCommand extends Command
             $user = $this->resolveUser($this->argument('user'));
             $account = $this->resolveAccount($user, (string) $this->argument('account'));
         } catch (ModelNotFoundException $exception) {
-            $model = class_basename($exception->getModel() ?? 'Record');
+            $model = class_basename($exception->getModel());
             $this->components->error("{$model} not found.");
 
             return self::FAILURE;

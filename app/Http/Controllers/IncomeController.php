@@ -40,7 +40,7 @@ class IncomeController extends Controller
         if ($request->boolean('convert_to_capital_movement')) {
             $rebuildOperation->financialOperationToCapitalMovement(
                 $financialOperation,
-                $request->payload(),
+                $request->capitalMovementConversionPayload('operation_date'),
             );
 
             Inertia::flash('toast', [
@@ -51,7 +51,7 @@ class IncomeController extends Controller
             return to_route('operations');
         }
 
-        $manageFinancialOperation->updateIncome($financialOperation, $request->payload());
+        $manageFinancialOperation->updateIncome($financialOperation, $request->incomePayload());
 
         Inertia::flash('toast', [
             'type' => 'success',

@@ -8,11 +8,12 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CapitalMovement;
 use App\Models\Category;
+use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 trait OperationRebuildValidationRules
 {
@@ -272,7 +273,7 @@ trait OperationRebuildValidationRules
 
             $ownTransfer = $this->route('own_transfer');
 
-            if ($ownTransfer === null) {
+            if (! $ownTransfer instanceof OwnTransfer) {
                 return;
             }
 
