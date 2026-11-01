@@ -7,31 +7,38 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 export default defineConfig({
-    plugins: lazyPlugins(() => [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.ts'],
-            refresh: true,
-            fonts: [
-                bunny('Geist', {
-                    weights: [400, 500, 600],
-                    subsets: ['latin', 'latin-ext'],
-                }),
-            ],
-        }),
-        inertia(),
-        tailwindcss(),
-        vue({
-            template: {
-                transformAssetUrls: {
-                    base: null,
-                    includeAbsolute: false,
-                },
-            },
-        }),
-        wayfinder({
-            formVariants: true,
-        }),
-    ]),
+    plugins: lazyPlugins(() =>
+        process.env.VITEST
+            ? []
+            : [
+                  laravel({
+                      input: ['resources/css/app.css', 'resources/js/app.ts'],
+                      refresh: true,
+                      fonts: [
+                          bunny('Geist', {
+                              weights: [400, 500, 600],
+                              subsets: ['latin', 'latin-ext'],
+                          }),
+                      ],
+                  }),
+                  inertia(),
+                  tailwindcss(),
+                  vue({
+                      template: {
+                          transformAssetUrls: {
+                              base: null,
+                              includeAbsolute: false,
+                          },
+                      },
+                  }),
+                  wayfinder({
+                      formVariants: true,
+                  }),
+              ],
+    ),
+    test: {
+        include: ['resources/js/**/*.test.ts'],
+    },
     server: {
         host: '0.0.0.0',
         hmr: {
@@ -73,8 +80,11 @@ export default defineConfig({
         singleAttributePerLine: false,
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
+            '.agents/**',
+            '.cursor/**',
             '.github/**',
             'composer.json',
+            'context/**',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
         ],
