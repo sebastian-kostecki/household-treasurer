@@ -219,3 +219,49 @@ Canonical roles map 1:1: `needs-triage`, `needs-info`, `ready-for-agent`, `ready
 ### Domain docs
 
 single-context. See `.docs/agents/domain.md`.
+
+## Project facts
+
+- CI, Sail and production run PHP 8.5. The host CLI is 8.4, and the locked dependencies need at least 8.4.1, so write code that runs on 8.4.1.
+- Run project commands through Sail, for example `./vendor/bin/sail artisan test --compact`. If you use the host CLI instead, say so in your report.
+- npm is the only JS package manager. `pnpm-workspace.yaml` is a leftover.
+- Docs describe more than the code. Confirm the code exists before relying on a term from `CONTEXT.md`, `.docs/prd.md` or `.docs/specs/`. Agenda, Cash Expectation, Reserve and Year Close are not implemented on `main`.
+
+## Fresh checkout or worktree
+
+Before running checks, follow the CI order: `composer install`, copy `.env.example` to `.env`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories (`resources/js/actions`, `resources/js/routes`, `resources/js/wayfinder`), which `npm run types:check` needs.
+
+## When Boost tools are not available
+
+Boost MCP is configured for Cursor only, and `.ai/rules/boost` does not exist. If the Boost tools are missing from your tool list:
+
+- Package docs: check the installed version, then read the matching official docs: `laravel.com/docs/13.x`, `inertiajs.com/docs/v3`, `pestphp.com/docs`.
+- Package skills: read `.cursor/skills/<skill-name>/SKILL.md`.
+- Schema: read `database/migrations/`.
+- Durable rules: edit `.ai/rules/<area>.md` and add its row to `.ai/rules/index.md`.
+
+## Test database
+
+`phpunit.xml` defaults to in-memory SQLite, while CI and production use PostgreSQL, so a green SQLite run proves nothing about PostgreSQL. For migrations, raw SQL, date or JSON functions, and behavior that depends on constraints, run the affected tests on PostgreSQL:
+
+`docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`
+
+## Money
+
+Amounts are integers in minor units: `*_minor_units` columns (`bigint`) and `int` in PHP, with `float` kept out of money code. Parse user input with `App\Support\MinorUnits`. In Vue, follow `.ai/rules/js.md`.
+
+## Inertia props contract
+
+Props are PHP arrays in controllers and hand-written TypeScript types in `defineProps<>`, and `vue-tsc` cannot see the PHP side. When you add, rename or change a prop, change both sides in the same commit and assert the prop with `assertInertia` in a Feature test.
+
+## Wayfinder
+
+Wayfinder is in beta. Copy the pattern from an existing page and read `.cursor/skills/wayfinder-development/SKILL.md` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
+
+## Frontend toolchain
+
+Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `npm run check:fix`. Warnings fail the run. CI also runs `npm run types:check` for Vue templates. Stay within `vp`, because this project has no ESLint, Prettier or Vitest setup. Confirm options with `npx vp --help`, because online docs may describe a newer version than the installed one.
+
+## Month logic lives twice
+
+`app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. Only the PHP side has tests. Change both copies together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.
