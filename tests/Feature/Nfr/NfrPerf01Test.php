@@ -72,6 +72,20 @@ class NfrPerf01Test extends TestCase
 
         $this->assertRequestWithinSeconds(
             fn () => $this->actingAs($fixture['user'])
+                ->get(route('month-plan'))
+                ->assertOk(),
+            'Month plan, current month',
+        );
+
+        $this->assertRequestWithinSeconds(
+            fn () => $this->actingAs($fixture['user'])
+                ->get(route('month-plan', ['month' => 12]))
+                ->assertOk(),
+            'Month plan, future month',
+        );
+
+        $this->assertRequestWithinSeconds(
+            fn () => $this->actingAs($fixture['user'])
                 ->post(route('expenses.store'), [
                     'operation_date' => '2026-03-15',
                     'amount_minor_units' => 25000,

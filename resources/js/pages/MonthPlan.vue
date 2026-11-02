@@ -21,7 +21,10 @@ import {
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
 import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
-import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
+import {
+    toSpendItemMinorUnits,
+    toSpendMinorUnits,
+} from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
 
 type MonthItemKind = 'bill' | 'running';
@@ -274,6 +277,57 @@ function changeKind(row: MonthPlanItemRow, kind: MonthItemKind): void {
 
 const kinds: MonthItemKind[] = ['bill', 'running'];
 
+/** Year used so far: live from the typed plan while editing, else from the server. */
+function yearUsedMinorUnits(row: MonthPlanItemRow): number {
+    if (!isEditable.value || !row.in_plan) {
+        return row.year_used_minor_units;
+    }
+
+    return (
+        row.year_used_before_month_minor_units +
+        toSpendItemMinorUnits({
+            type: row.type,
+            kind: row.month_item_kind,
+            plan: parsedAmount(row) ?? 0,
+            actual: row.actual_minor_units,
+            hasPositiveAmount: row.has_positive_amount,
+        })
+    );
+}
+
+function yearLeftMinorUnits(row: MonthPlanItemRow): number {
+    return row.annual_plan_minor_units - yearUsedMinorUnits(row);
+}
+
+function yearLineText(row: MonthPlanItemRow): string {
+    const left = yearLeftMinorUnits(row);
+    const used = t.month_plan.year_line
+        .replace(':used', formatMoney(yearUsedMinorUnits(row)))
+        .replace(':annual', formatMoney(row.annual_plan_minor_units));
+
+    let remainder: string;
+
+    if (props.viewedMonth === 12) {
+        remainder = t.month_plan.year_gap_december.replace(
+            ':amount',
+            formatMoney(left),
+        );
+    } else if (left < 0) {
+        remainder = t.month_plan.year_over_annual.replace(
+            ':amount',
+            formatMoney(-left),
+        );
+    } else {
+        remainder = (
+            row.type === 'income'
+                ? t.month_plan.year_left_income
+                : t.month_plan.year_left_expense
+        ).replace(':amount', formatMoney(left));
+    }
+
+    return `${used} · ${remainder}`;
+}
+
 function kindLabel(kind: MonthItemKind): string {
     return kind === 'bill' ? t.month_plan.kind_bill : t.month_plan.kind_running;
 }
@@ -505,6 +559,10 @@ const sections = computed(() => [
 
                     <InputError :message="kindError ?? undefined" />
 
+                    <p class="text-muted-foreground text-xs">
+                        {{ t.month_plan.year_hint }}
+                    </p>
+
                     <ListSurface
                         v-for="section in sections"
                         :key="section.key"
@@ -623,6 +681,18 @@ const sections = computed(() => [
                             <span class="text-right text-sm tabular-nums">
                                 {{ formatMoney(row.actual_minor_units) }}
                             </span>
+
+                            <p
+                                class="col-span-full text-xs tabular-nums"
+                                :class="
+                                    row.type === 'expense' &&
+                                    yearLeftMinorUnits(row) < 0
+                                        ? 'text-destructive'
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ yearLineText(row) }}
+                            </p>
                         </div>
                     </ListSurface>
 

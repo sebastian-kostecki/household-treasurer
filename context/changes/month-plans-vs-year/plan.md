@@ -247,33 +247,33 @@ Brak. Odczyt bez nowych danych; snapshot `user:backup` / `user:restore` bez zmia
 
 #### Automated
 
-- [x] 1.1 ToSpendCalculatorTest z przypadkami itemMinorUnits, dotychczasowe bez zmian
-- [x] 1.2 npm test z przypadkami toSpendItemMinorUnits
-- [x] 1.3 MonthPlanYearComparisonTest z tabelą przykładów i liczbą zapytań
-- [x] 1.4 MonthPlanPageTest: trzy nowe propsy dla miesiąca bieżącego, przyszłego i minionego
-- [x] 1.5 Testy fazy przechodzą na PostgreSQL
+- [x] 1.1 ToSpendCalculatorTest z przypadkami itemMinorUnits, dotychczasowe bez zmian — eb2ea35
+- [x] 1.2 npm test z przypadkami toSpendItemMinorUnits — eb2ea35
+- [x] 1.3 MonthPlanYearComparisonTest z tabelą przykładów i liczbą zapytań — eb2ea35
+- [x] 1.4 MonthPlanPageTest: trzy nowe propsy dla miesiąca bieżącego, przyszłego i minionego — eb2ea35
+- [x] 1.5 Testy fazy przechodzą na PostgreSQL — eb2ea35
 - [ ] 1.6 npm run build, check i types:check przechodzą
-- [x] 1.7 Pint i Sloppy przechodzą
+- [x] 1.7 Pint i Sloppy przechodzą — eb2ea35
 
 #### Manual
 
-- [x] 1.8 Wartości testów odczytu odpowiadają tabeli przykładów
+- [x] 1.8 Wartości testów odczytu odpowiadają tabeli przykładów — eb2ea35
 
 ### Phase 2: Linia roczna w widoku planu
 
 #### Automated
 
 - [ ] 2.1 npm run build, check i types:check przechodzą
-- [ ] 2.2 npm test przechodzi
-- [ ] 2.3 MonthPlanPageTest i NfrPerf01Test przechodzą na PostgreSQL
-- [ ] 2.4 Pint i Sloppy przechodzą
+- [x] 2.2 npm test przechodzi
+- [x] 2.3 MonthPlanPageTest i NfrPerf01Test przechodzą na PostgreSQL
+- [x] 2.4 Pint i Sloppy przechodzą
 
 #### Manual
 
-- [ ] 2.5 Linia roczna w propozycji reaguje na zmianę kwoty
-- [ ] 2.6 Destructive tylko dla wydatku ponad plan roczny
-- [ ] 2.7 Grudzień pokazuje różnicę ze znakiem
-- [ ] 2.8 Miesiąc przyszły z planami pośrednimi, miniony z wykonania
-- [ ] 2.9 Jednorazowa i zarchiwizowana mają linię
-- [ ] 2.10 Wąski ekran bez poziomego przewijania
-- [ ] 2.11 Strona Budżet bez zmian
+- [x] 2.5 Linia roczna w propozycji reaguje na zmianę kwoty
+- [x] 2.6 Destructive tylko dla wydatku ponad plan roczny
+- [x] 2.7 Grudzień pokazuje różnicę ze znakiem
+- [x] 2.8 Miesiąc przyszły z planami pośrednimi, miniony z wykonania
+- [x] 2.9 Jednorazowa i zarchiwizowana mają linię
+- [x] 2.10 Wąski ekran bez poziomego przewijania
+- [x] 2.11 Strona Budżet bez zmian

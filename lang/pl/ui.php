@@ -313,6 +313,12 @@ return [
         'draft_description' => 'Budżet jest jeszcze szkicem. Rozpocznij realizację na stronie Budżet.',
         'none_title' => 'Ten miesiąc nie ma planu',
         'none_description' => 'Miniony miesiąc bez zatwierdzonego planu nie ma propozycji ani liczby do wydania.',
+        'year_line' => 'Rok: :used z :annual',
+        'year_left_expense' => 'zostaje na resztę roku :amount',
+        'year_left_income' => 'zostaje do otrzymania :amount',
+        'year_over_annual' => 'ponad plan roczny :amount',
+        'year_gap_december' => 'różnica do planu rocznego :amount',
+        'year_hint' => 'Rok to wykonanie minionych miesięcy, bieżący miesiąc liczony wg zasady „do wydania” oraz plany (także niezatwierdzone propozycje) kolejnych miesięcy do oglądanego. Zostająca kwota nie jest oszczędnością.',
     ],
     'accounts' => [
         'title' => 'Konta',
