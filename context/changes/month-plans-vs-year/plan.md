@@ -252,7 +252,7 @@ Brak. Odczyt bez nowych danych; snapshot `user:backup` / `user:restore` bez zmia
 - [x] 1.3 MonthPlanYearComparisonTest z tabelą przykładów i liczbą zapytań — eb2ea35
 - [x] 1.4 MonthPlanPageTest: trzy nowe propsy dla miesiąca bieżącego, przyszłego i minionego — eb2ea35
 - [x] 1.5 Testy fazy przechodzą na PostgreSQL — eb2ea35
-- [ ] 1.6 npm run build, check i types:check przechodzą
+- [x] 1.6 npm run build, check i types:check przechodzą — c36aeca
 - [x] 1.7 Pint i Sloppy przechodzą — eb2ea35
 
 #### Manual
@@ -263,17 +263,17 @@ Brak. Odczyt bez nowych danych; snapshot `user:backup` / `user:restore` bez zmia
 
 #### Automated
 
-- [ ] 2.1 npm run build, check i types:check przechodzą
-- [x] 2.2 npm test przechodzi
-- [x] 2.3 MonthPlanPageTest i NfrPerf01Test przechodzą na PostgreSQL
-- [x] 2.4 Pint i Sloppy przechodzą
+- [x] 2.1 npm run build, check i types:check przechodzą — c36aeca
+- [x] 2.2 npm test przechodzi — c36aeca
+- [x] 2.3 MonthPlanPageTest i NfrPerf01Test przechodzą na PostgreSQL — c36aeca
+- [x] 2.4 Pint i Sloppy przechodzą — c36aeca
 
 #### Manual
 
-- [x] 2.5 Linia roczna w propozycji reaguje na zmianę kwoty
-- [x] 2.6 Destructive tylko dla wydatku ponad plan roczny
-- [x] 2.7 Grudzień pokazuje różnicę ze znakiem
-- [x] 2.8 Miesiąc przyszły z planami pośrednimi, miniony z wykonania
-- [x] 2.9 Jednorazowa i zarchiwizowana mają linię
-- [x] 2.10 Wąski ekran bez poziomego przewijania
-- [x] 2.11 Strona Budżet bez zmian
+- [x] 2.5 Linia roczna w propozycji reaguje na zmianę kwoty — c36aeca
+- [x] 2.6 Destructive tylko dla wydatku ponad plan roczny — c36aeca
+- [x] 2.7 Grudzień pokazuje różnicę ze znakiem — c36aeca
+- [x] 2.8 Miesiąc przyszły z planami pośrednimi, miniony z wykonania — c36aeca
+- [x] 2.9 Jednorazowa i zarchiwizowana mają linię — c36aeca
+- [x] 2.10 Wąski ekran bez poziomego przewijania — c36aeca
+- [x] 2.11 Strona Budżet bez zmian — c36aeca
