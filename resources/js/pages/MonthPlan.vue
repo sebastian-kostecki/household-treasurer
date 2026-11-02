@@ -40,6 +40,9 @@ type MonthPlanItemRow = {
     has_positive_amount: boolean;
     can_change_kind: boolean;
     in_plan: boolean;
+    annual_plan_minor_units: number;
+    year_used_before_month_minor_units: number;
+    year_used_minor_units: number;
 };
 
 type MonthPlanReading = {

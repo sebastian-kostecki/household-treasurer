@@ -61,3 +61,19 @@ test('set-aside lowers the amount to spend', function () {
 test('a draw raises the amount to spend', function () {
     expect(ToSpendCalculator::toSpendMinorUnits(setAsideExampleItems(), -30_000))->toBe(250_000);
 });
+
+test('item amount: income counts the plan until a positive amount lands', function () {
+    expect(ToSpendCalculator::itemMinorUnits(CategoryType::Income, MonthItemKind::Running, 800_000, 0, false))->toBe(800_000)
+        ->and(ToSpendCalculator::itemMinorUnits(CategoryType::Income, MonthItemKind::Running, 800_000, 810_000, true))->toBe(810_000);
+});
+
+test('item amount: a bill counts the plan until paid, a lone refund keeps the plan', function () {
+    expect(ToSpendCalculator::itemMinorUnits(CategoryType::Expense, MonthItemKind::Bill, 200_000, 0, false))->toBe(200_000)
+        ->and(ToSpendCalculator::itemMinorUnits(CategoryType::Expense, MonthItemKind::Bill, 200_000, 195_000, true))->toBe(195_000)
+        ->and(ToSpendCalculator::itemMinorUnits(CategoryType::Expense, MonthItemKind::Bill, 200_000, -10_000, false))->toBe(200_000);
+});
+
+test('item amount: a running expense counts the larger of plan and actual', function () {
+    expect(ToSpendCalculator::itemMinorUnits(CategoryType::Expense, MonthItemKind::Running, 150_000, 60_000, true))->toBe(150_000)
+        ->and(ToSpendCalculator::itemMinorUnits(CategoryType::Expense, MonthItemKind::Running, 40_000, 52_000, true))->toBe(52_000);
+});

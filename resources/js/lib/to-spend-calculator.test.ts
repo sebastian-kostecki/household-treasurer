@@ -1,5 +1,8 @@
 import { expect, test } from 'vite-plus/test';
-import { toSpendMinorUnits } from './to-spend-calculator';
+import {
+    toSpendItemMinorUnits,
+    toSpendMinorUnits,
+} from './to-spend-calculator';
 import type { ToSpendItem } from './to-spend-calculator';
 
 function canonicalItems(
@@ -127,4 +130,66 @@ test('set-aside lowers the amount to spend', () => {
 
 test('a draw raises the amount to spend', () => {
     expect(toSpendMinorUnits(setAsideExampleItems(), -30_000)).toBe(250_000);
+});
+
+test('item amount: income counts the plan until a positive amount lands', () => {
+    const income = { type: 'income', kind: null, plan: 800_000 } as const;
+
+    expect(
+        toSpendItemMinorUnits({
+            ...income,
+            actual: 0,
+            hasPositiveAmount: false,
+        }),
+    ).toBe(800_000);
+    expect(
+        toSpendItemMinorUnits({
+            ...income,
+            actual: 810_000,
+            hasPositiveAmount: true,
+        }),
+    ).toBe(810_000);
+});
+
+test('item amount: a bill counts the plan until paid, a lone refund keeps the plan', () => {
+    const bill = { type: 'expense', kind: 'bill', plan: 200_000 } as const;
+
+    expect(
+        toSpendItemMinorUnits({ ...bill, actual: 0, hasPositiveAmount: false }),
+    ).toBe(200_000);
+    expect(
+        toSpendItemMinorUnits({
+            ...bill,
+            actual: 195_000,
+            hasPositiveAmount: true,
+        }),
+    ).toBe(195_000);
+    expect(
+        toSpendItemMinorUnits({
+            ...bill,
+            actual: -10_000,
+            hasPositiveAmount: false,
+        }),
+    ).toBe(200_000);
+});
+
+test('item amount: a running expense counts the larger of plan and actual', () => {
+    expect(
+        toSpendItemMinorUnits({
+            type: 'expense',
+            kind: 'running',
+            plan: 150_000,
+            actual: 60_000,
+            hasPositiveAmount: true,
+        }),
+    ).toBe(150_000);
+    expect(
+        toSpendItemMinorUnits({
+            type: 'expense',
+            kind: 'running',
+            plan: 40_000,
+            actual: 52_000,
+            hasPositiveAmount: true,
+        }),
+    ).toBe(52_000);
 });

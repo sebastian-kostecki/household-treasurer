@@ -7,6 +7,18 @@ export type ToSpendItem = {
 };
 
 /**
+ * Copy of App\Support\ToSpendCalculator::itemMinorUnits: the unsigned amount
+ * one item contributes. Change both together.
+ */
+export function toSpendItemMinorUnits(item: ToSpendItem): number {
+    if (item.type === 'income' || item.kind === 'bill') {
+        return item.hasPositiveAmount ? item.actual : item.plan;
+    }
+
+    return Math.max(item.plan, item.actual);
+}
+
+/**
  * Copy of App\Support\ToSpendCalculator::toSpendMinorUnits, used for the live
  * preview while a month plan proposal is edited. Change both together.
  */
@@ -17,19 +29,9 @@ export function toSpendMinorUnits(
     let total = 0;
 
     for (const item of items) {
-        if (item.type === 'income') {
-            total += item.hasPositiveAmount ? item.actual : item.plan;
+        const amount = toSpendItemMinorUnits(item);
 
-            continue;
-        }
-
-        if (item.kind === 'bill') {
-            total -= item.hasPositiveAmount ? item.actual : item.plan;
-
-            continue;
-        }
-
-        total -= Math.max(item.plan, item.actual);
+        total += item.type === 'income' ? amount : -amount;
     }
 
     return total - setAsideMinorUnits;

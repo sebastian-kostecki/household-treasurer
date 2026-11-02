@@ -91,6 +91,79 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_current_month_rows_carry_the_year_comparison_numbers(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->operation($user, $budget, $categories['food'], '2026-05-10', 200_000);
+        $this->incomeOperation($user, $budget, $categories['salary'], '2026-05-25', 800_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.income_items.0.annual_plan_minor_units', 9_600_000)
+                ->where('monthPlan.income_items.0.year_used_before_month_minor_units', 800_000)
+                ->where('monthPlan.income_items.0.year_used_minor_units', 1_600_000)
+                ->where('monthPlan.expense_items.0.annual_plan_minor_units', 2_400_000)
+                ->where('monthPlan.expense_items.0.year_used_before_month_minor_units', 0)
+                ->where('monthPlan.expense_items.0.year_used_minor_units', 195_000)
+                ->where('monthPlan.expense_items.1.annual_plan_minor_units', 1_800_000)
+                ->where('monthPlan.expense_items.1.year_used_before_month_minor_units', 200_000)
+                ->where('monthPlan.expense_items.1.year_used_minor_units', 350_000)
+                ->where('monthPlan.expense_items.3.annual_plan_minor_units', 100_000)
+                ->where('monthPlan.expense_items.3.year_used_before_month_minor_units', 0)
+                ->where('monthPlan.expense_items.3.year_used_minor_units', 30_000),
+            );
+    }
+
+    public function test_future_month_rows_add_the_proposals_between_today_and_the_month(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->operation($user, $budget, $categories['food'], '2026-05-10', 200_000);
+        $this->incomeOperation($user, $budget, $categories['salary'], '2026-05-25', 800_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 8]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.income_items.0.year_used_before_month_minor_units', 2_400_000)
+                ->where('monthPlan.income_items.0.year_used_minor_units', 3_200_000)
+                ->where('monthPlan.expense_items.1.annual_plan_minor_units', 1_800_000)
+                ->where('monthPlan.expense_items.1.year_used_before_month_minor_units', 500_000)
+                ->where('monthPlan.expense_items.1.year_used_minor_units', 650_000)
+                ->where('monthPlan.expense_items.3.year_used_before_month_minor_units', 30_000)
+                ->where('monthPlan.expense_items.3.year_used_minor_units', 30_000),
+            );
+    }
+
+    public function test_past_approved_month_rows_count_execution_only(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->operation($user, $budget, $categories['rent'], '2026-01-05', 80_000);
+        $this->operation($user, $budget, $categories['rent'], '2026-03-05', 90_000);
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['rent']->id,
+            'approved_amount_minor_units' => 100_000,
+            'current_amount_minor_units' => 100_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.expense_items.0.annual_plan_minor_units', 2_400_000)
+                ->where('monthPlan.expense_items.0.year_used_before_month_minor_units', 80_000)
+                ->where('monthPlan.expense_items.0.year_used_minor_units', 170_000),
+            );
+    }
+
     public function test_next_month_can_be_approved_once_the_current_month_is_approved(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
@@ -550,6 +623,16 @@ class MonthPlanPageTest extends TestCase
     {
         FinancialOperation::factory()->for($user)->for($budget)->create([
             'type' => FinancialOperationType::Expense,
+            'category_id' => $category->id,
+            'operation_date' => $date,
+            'amount_minor_units' => $amount,
+        ]);
+    }
+
+    private function incomeOperation(User $user, Budget $budget, Category $category, string $date, int $amount): void
+    {
+        FinancialOperation::factory()->for($user)->for($budget)->create([
+            'type' => FinancialOperationType::Income,
             'category_id' => $category->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,

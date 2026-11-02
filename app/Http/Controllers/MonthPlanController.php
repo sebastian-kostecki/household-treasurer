@@ -13,6 +13,7 @@ use App\Support\CategoryAppearance;
 use App\Support\MonthCategoryActuals;
 use App\Support\MonthPlanProposal;
 use App\Support\MonthPlanReading;
+use App\Support\MonthPlanYearComparison;
 use App\Support\SelectedBudgetYear;
 use App\Support\SpendableLiquidity;
 use App\Support\ToSpendCalculator;
@@ -115,6 +116,7 @@ class MonthPlanController extends Controller
         $proposal = MonthPlanProposal::forBudget($budget, $today);
         $reading = $proposal->reading($month);
         $actuals = MonthCategoryActuals::forMonth($budget, $month);
+        $yearComparison = MonthPlanYearComparison::forMonth($budget, $proposal, $actuals, $month, $today);
 
         $rowIds = array_values(array_unique([
             ...array_keys($reading->amounts),
@@ -131,7 +133,7 @@ class MonthPlanController extends Controller
         $expenseItems = [];
 
         foreach ($categories as $category) {
-            $row = $this->itemRow($category, $reading, $actuals, $timing);
+            $row = $this->itemRow($category, $reading, $actuals, $yearComparison, $timing);
 
             $calculatorItems[] = [
                 'type' => $category->type,
@@ -182,12 +184,16 @@ class MonthPlanController extends Controller
      *     has_positive_amount: bool,
      *     can_change_kind: bool,
      *     in_plan: bool,
+     *     annual_plan_minor_units: int,
+     *     year_used_before_month_minor_units: int,
+     *     year_used_minor_units: int,
      * }
      */
     private function itemRow(
         Category $category,
         MonthPlanReading $reading,
         MonthCategoryActuals $actuals,
+        MonthPlanYearComparison $yearComparison,
         string $timing,
     ): array {
         $isExpense = $category->type === CategoryType::Expense;
@@ -205,6 +211,9 @@ class MonthPlanController extends Controller
             'has_positive_amount' => $actuals->hasPositiveAmount($category->id),
             'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
             'in_plan' => array_key_exists($category->id, $reading->amounts),
+            'annual_plan_minor_units' => $category->planned_amount_minor_units,
+            'year_used_before_month_minor_units' => $yearComparison->usedBeforeMonthMinorUnits($category),
+            'year_used_minor_units' => $yearComparison->usedMinorUnits($category),
         ];
     }
 

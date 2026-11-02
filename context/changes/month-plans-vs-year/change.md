@@ -1,7 +1,7 @@
 ---
 change_id: month-plans-vs-year
 title: Month plans vs year
-status: new
+status: implementing
 created: 2026-11-02
 updated: 2026-11-02
 archived_at: null

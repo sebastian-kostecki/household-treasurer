@@ -17,21 +17,30 @@ class ToSpendCalculator
         $total = 0;
 
         foreach ($items as $item) {
-            if ($item['type'] === CategoryType::Income) {
-                $total += $item['has_positive_amount'] ? $item['actual'] : $item['plan'];
+            $amount = self::itemMinorUnits(
+                $item['type'],
+                $item['kind'],
+                $item['plan'],
+                $item['actual'],
+                $item['has_positive_amount'],
+            );
 
-                continue;
-            }
-
-            if ($item['kind'] === MonthItemKind::Bill) {
-                $total -= $item['has_positive_amount'] ? $item['actual'] : $item['plan'];
-
-                continue;
-            }
-
-            $total -= max($item['plan'], $item['actual']);
+            $total += $item['type'] === CategoryType::Income ? $amount : -$amount;
         }
 
         return $total - $setAsideMinorUnits;
+    }
+
+    /**
+     * The unsigned amount one item contributes: income and bills count the plan until
+     * a positive amount lands and the actual after, a running expense the larger of the two.
+     */
+    public static function itemMinorUnits(CategoryType $type, MonthItemKind $kind, int $plan, int $actual, bool $hasPositiveAmount): int
+    {
+        if ($type === CategoryType::Income || $kind === MonthItemKind::Bill) {
+            return $hasPositiveAmount ? $actual : $plan;
+        }
+
+        return max($plan, $actual);
     }
 }
