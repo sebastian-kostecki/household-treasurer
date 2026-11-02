@@ -28,6 +28,7 @@ Nowy ADR-0033 zastępuje klauzulę ADR-0024 i zapisuje model planu miesiąca; AD
 | Upływ dni | dzień miesiąca / dni, z dziś włącznie | Ta sama reguła co Year Elapsed | Plan |
 | Nazwy | Month Plan, Approved/Current Month Plan, Month Item Kind (Bill/Running), To Spend, Set-aside/Draw, Month Pace, Month Elapsed, Month Summary | Lustro istniejących par rok ↔ miesiąc w słowniku | Plan |
 | Zakres dokumentów | jeden ADR-0033 + `CONTEXT.md` + odsyłacz w ADR-0024 | Minimum odblokowujące S-01 i S-07 bez opisywania nieistniejącego kodu | Plan |
+| „Średnia z rocznego” | floor(Current Plan / 12), grudzień bierze resztę; źródło = poprzedni miesiąc w dowolnym stanie | Dosłownie „średnia” z PRD i ta sama arytmetyka co odczyt wersji roboczej | Plan review |
 
 ## Scope
 
@@ -40,7 +41,7 @@ Nowy ADR-0033 zastępuje klauzulę ADR-0024 i zapisuje model planu miesiąca; AD
 **Out of scope:**
 
 - kod, migracje, testy, `lang/`
-- `.docs/specs/dashboard-hierarchy.md`, `.docs/prd.md` (zmienią je S-06/S-07)
+- dokumenty, które ADR-0033 nadpisuje i wprost wymienia: `.docs/prd.md` FR-TRX-08 (S-08) i FR-REP-13 (S-06), `.docs/specs/dashboard-hierarchy.md` (S-06/S-07), ADR-0031 (S-07), `.ai/rules/js.md:24` (S-08)
 - reguła propozycji dla Set-aside (S-02), UI i kolejność powiadomień (S-07), przechowywanie propozycji i zaokrąglanie (S-01)
 
 ## Architecture / Approach
