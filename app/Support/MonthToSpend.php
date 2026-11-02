@@ -60,16 +60,33 @@ final class MonthToSpend
         $items = [];
 
         foreach ($this->categories as $category) {
+            $amounts = $this->rowAmounts($category);
+
             $items[] = [
                 'type' => $category->type,
                 'kind' => $category->month_item_kind,
-                'plan' => $this->reading->amounts[$category->id] ?? 0,
-                'actual' => $this->actuals->actual($category->id),
-                'has_positive_amount' => $this->actuals->hasPositiveAmount($category->id),
+                'plan' => $amounts['plan_minor_units'],
+                'actual' => $amounts['actual_minor_units'],
+                'has_positive_amount' => $amounts['has_positive_amount'],
             ];
         }
 
         return ToSpendCalculator::toSpendMinorUnits($items);
+    }
+
+    /**
+     * The amounts of one category row, shared by the number and the rows shown
+     * beside it so the two cannot drift apart.
+     *
+     * @return array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}
+     */
+    public function rowAmounts(Category $category): array
+    {
+        return [
+            'plan_minor_units' => $this->reading->amounts[$category->id] ?? 0,
+            'actual_minor_units' => $this->actuals->actual($category->id),
+            'has_positive_amount' => $this->actuals->hasPositiveAmount($category->id),
+        ];
     }
 
     /**
