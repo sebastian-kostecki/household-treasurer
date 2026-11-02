@@ -169,7 +169,9 @@ Nie mogą się zepsuć (wskazane przez użytkownika):
 
 - Istniejące dane nie wymagają ręcznej migracji: kategorie otrzymują domyślny rodzaj „bieżąca”, minione miesiące nie mają planu.
 
-# TODO: plan wycofania zmiany — see Open Questions
+### Wycofanie zmiany
+
+- Wycofanie to wdrożenie poprzedniej wersji aplikacji. Migracje tylko dodają tabele i pola, a dane planów miesięcy i rodzaj pozycji zostają w bazie nieużywane. Budżet roczny i operacje nie zależą od tych danych.
 
 ### Istniejące integracje
 
@@ -220,12 +222,11 @@ Obecny model: konta tworzy administrator (`user:create`), samodzielna rejestracj
 - **Przenoszenie reszty i zamykanie miesiąca.** Rozliczenie to tylko podsumowanie; kolejny miesiąc startuje od zera.
 - **Fundusz wydatków nieregularnych i przelewy na oszczędności.** Oszczędności to jedna kwota „odkładam / dobieram”, nie kategoria i nie przelew.
 - **Płatności w częściach.** Reguła zakłada, że każda pensja ma własną kategorię, a rachunki są płacone jednorazowo.
+- **Procent od zarobków w „odkładam”.** Pierwsza wersja przyjmuje tylko kwotę; procent można dodać później bez zmiany wzoru „do wydania”.
 
 # TODO: non-functional non-goals — see Open Questions
 
 ## Open Questions
 
-1. **Czy „odkładam” ma obsługiwać procent od zarobków?** Arkusz liczy oszczędności jako procent przychodów; użytkownik nie wykluczył tego w Non-Goals, a pierwsza wersja zakłada kwotę. Właściciel: użytkownik.
-2. **Jaki jest koszt obecnego obejścia?** Notatki opisują arkusz i jego strukturę, ale nie nazywają ceny jego utrzymania. Właściciel: użytkownik.
-3. **Jak wygląda plan wycofania zmiany?** Notatki określają brak ręcznej migracji, ale nie mówią, co dzieje się z planami miesięcy i rodzajem pozycji, jeśli zmianę trzeba cofnąć. Właściciel: użytkownik.
-4. **Czy są wymiary jakości, w które ta zmiana świadomie nie celuje?** Non-Goals z notatek są wyłącznie funkcjonalne. Właściciel: użytkownik.
+1. **Jaki jest koszt obecnego obejścia?** Notatki opisują arkusz i jego strukturę, ale nie nazywają ceny jego utrzymania. Właściciel: użytkownik.
+2. **Czy są wymiary jakości, w które ta zmiana świadomie nie celuje?** Non-Goals z notatek są wyłącznie funkcjonalne. Właściciel: użytkownik.

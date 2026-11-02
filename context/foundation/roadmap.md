@@ -42,8 +42,8 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 | ID   | Change ID                   | Outcome (user can …)                                                                             | Prerequisites       | PRD refs                                                   | Status   |
 | ---- | --------------------------- | ------------------------------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------- | -------- |
 | F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | ready    |
-| S-01 | month-plan-and-to-spend     | użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”      | F-01                | US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019      | blocked  |
-| S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | blocked  |
+| S-01 | month-plan-and-to-spend     | użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”      | F-01                | US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019      | proposed |
+| S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | proposed |
 | S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | proposed |
 | S-04 | month-items-plan-vs-actual  | użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe        | S-01                | FR-006, FR-008                                             | proposed |
 | S-05 | month-spending-pace         | użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca                             | S-04                | FR-007                                                     | proposed |
@@ -85,12 +85,11 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Outcome:** (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `CONTEXT.md`.
 - **Change ID:** month-plan-domain-decisions
 - **PRD refs:** Constraints & Compatibility, FR-012
-- **Unlocks:** S-01 (model planu jest niezgodny z ADR-0024, dopóki nowy ADR go nie zastąpi), S-07 (ADR-0032 wymaga terminu i progów przed kodem powiadomienia `warning`), Open Roadmap Question 3.
+- **Unlocks:** S-01 (model planu jest niezgodny z ADR-0024, dopóki nowy ADR go nie zastąpi), S-07 (ADR-0032 wymaga terminu i progów przed kodem powiadomienia `warning`).
 - **Prerequisites:** —
 - **Parallel with:** —
 - **Blockers:** —
-- **Unknowns:**
-  - Jak wygląda plan wycofania zmiany dla planów miesięcy i rodzaju pozycji? — Owner: user. Block: no.
+- **Unknowns:** —
 - **Risk:** Stoi pierwsze, bo decyzje projektu mają być zapisane przed kodem; ryzyko to rozrost w ogólną przebudowę słownika zamiast minimum dla S-01 i S-07.
 - **Status:** ready
 
@@ -104,10 +103,9 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Prerequisites:** F-01
 - **Parallel with:** —
 - **Blockers:** —
-- **Unknowns:**
-  - Jak wygląda plan wycofania zmiany dla planów miesięcy i rodzaju pozycji? — Owner: user. Block: yes.
+- **Unknowns:** —
 - **Risk:** Wprowadza nowe dane i rodzaj pozycji, więc tu powstaje format snapshotu, a przywracanie wersji 1 do 4 ma działać dalej; błąd we wzorze podważa całą resztę mapy.
-- **Status:** blocked
+- **Status:** proposed
 
 ### S-02: Odkładam / dobieram
 
@@ -117,10 +115,9 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Prerequisites:** S-01
 - **Parallel with:** S-03, S-04, S-05, S-06, S-07, S-08, S-10
 - **Blockers:** —
-- **Unknowns:**
-  - Czy „odkładam” ma obsługiwać procent od zarobków? — Owner: user. Block: yes.
-- **Risk:** Stoi osobno, bo odpowiedź o procencie zmienia sposób wpisu kwoty; ostrzeżenie o dobieraniu ponad Spendable Liquidity nie może zmieniać sald.
-- **Status:** blocked
+- **Unknowns:** —
+- **Risk:** Stoi osobno, bo to pierwsza kwota planu spoza kategorii; ostrzeżenie o dobieraniu ponad Spendable Liquidity nie może zmieniać sald.
+- **Status:** proposed
 
 ### S-03: Zmiana zatwierdzonego planu
 
@@ -224,8 +221,8 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 | Roadmap ID | Change ID                   | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                              |
 | ---------- | --------------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------- |
 | F-01       | month-plan-domain-decisions | Zapisać decyzje domenowe planu miesiąca i progi powiadomień  | yes                   | Run `/10x-plan month-plan-domain-decisions`        |
-| S-01       | month-plan-and-to-spend     | Plan miesiąca i liczba „do wydania”                          | no                    | Czeka na F-01 i plan wycofania zmiany              |
-| S-02       | set-aside-and-draw          | Kwota „odkładam / dobieram” w planie miesiąca                | no                    | Czeka na S-01 i pytanie o procent od zarobków      |
+| S-01       | month-plan-and-to-spend     | Plan miesiąca i liczba „do wydania”                          | no                    | Czeka na F-01                                      |
+| S-02       | set-aside-and-draw          | Kwota „odkładam / dobieram” w planie miesiąca                | no                    | Czeka na S-01                                      |
 | S-03       | approved-plan-changes       | Zmiana zatwierdzonego planu miesiąca                         | no                    | Czeka na S-01                                      |
 | S-04       | month-items-plan-vs-actual  | Plan i wykonanie pozycji miesiąca                            | no                    | Czeka na S-01                                      |
 | S-05       | month-spending-pace         | Tempo wydatków względem dni miesiąca                         | no                    | Czeka na S-04                                      |
@@ -239,10 +236,8 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 ## Open Roadmap Questions
 
-1. **Czy „odkładam” ma obsługiwać procent od zarobków?** Arkusz liczy oszczędności jako procent przychodów; użytkownik nie wykluczył tego w Non-Goals, a pierwsza wersja zakłada kwotę. — Owner: user. Block: S-02.
-2. **Jaki jest koszt obecnego obejścia?** Notatki opisują arkusz i jego strukturę, ale nie nazywają ceny jego utrzymania. — Owner: user. Block: none.
-3. **Jak wygląda plan wycofania zmiany?** Notatki określają brak ręcznej migracji, ale nie mówią, co dzieje się z planami miesięcy i rodzajem pozycji, jeśli zmianę trzeba cofnąć. — Owner: user. Block: S-01.
-4. **Czy są wymiary jakości, w które ta zmiana świadomie nie celuje?** Non-Goals z notatek są wyłącznie funkcjonalne. — Owner: user. Block: none.
+1. **Jaki jest koszt obecnego obejścia?** Notatki opisują arkusz i jego strukturę, ale nie nazywają ceny jego utrzymania. — Owner: user. Block: none.
+2. **Czy są wymiary jakości, w które ta zmiana świadomie nie celuje?** Non-Goals z notatek są wyłącznie funkcjonalne. — Owner: user. Block: none.
 
 ## Parked
 
@@ -253,6 +248,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **Przenoszenie reszty i zamykanie miesiąca** — Why parked: PRD §Non-Goals; rozliczenie to tylko podsumowanie.
 - **Fundusz wydatków nieregularnych i przelewy na oszczędności** — Why parked: PRD §Non-Goals; oszczędności to jedna kwota.
 - **Płatności w częściach** — Why parked: PRD §Non-Goals; reguła zakłada rachunki płacone jednorazowo.
+- **Procent od zarobków w „odkładam”** — Why parked: PRD §Non-Goals; pierwsza wersja przyjmuje tylko kwotę.
 - **Śledzenie błędów i metryki** — Why parked: punkt bazowy pokazuje obserwowalność częściową, ale PRD jej nie wymaga, więc nie ma tu elementu przygotowawczego.
 
 ## Milestone History
