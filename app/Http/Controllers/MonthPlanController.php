@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Actions\ApproveMonthPlan;
 use App\Enums\CategoryType;
+use App\Enums\MonthItemKind;
 use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
+use App\Support\CategoryExecutionMetrics;
 use App\Support\MonthCategoryActuals;
+use App\Support\MonthItemDeviation;
 use App\Support\MonthPlanProposal;
 use App\Support\MonthPlanReading;
 use App\Support\SelectedBudgetYear;
@@ -168,6 +171,11 @@ class MonthPlanController extends Controller
      *     has_positive_amount: bool,
      *     can_change_kind: bool,
      *     in_plan: bool,
+     *     deviation_minor_units: int|null,
+     *     is_over_plan: bool,
+     *     is_settled: bool,
+     *     available_limit_minor_units: int|null,
+     *     is_idle_one_off: bool,
      * }
      */
     private function itemRow(
@@ -177,6 +185,11 @@ class MonthPlanController extends Controller
         string $timing,
     ): array {
         $isExpense = $category->type === CategoryType::Expense;
+        $isOneOff = $isExpense && ! $category->is_paced;
+        $plan = $reading->amounts[$category->id] ?? 0;
+        $actual = $actuals->actual($category->id);
+        $hasPositiveAmount = $actuals->hasPositiveAmount($category->id);
+        $isSettledKind = ! $isExpense || $category->month_item_kind === MonthItemKind::Bill;
 
         return [
             'category_id' => $category->id,
@@ -184,13 +197,29 @@ class MonthPlanController extends Controller
             ...CategoryAppearance::fields($category),
             'type' => $category->type->value,
             'month_item_kind' => $isExpense ? $category->month_item_kind->value : null,
-            'is_one_off' => $isExpense && ! $category->is_paced,
+            'is_one_off' => $isOneOff,
             'is_archived' => $category->isArchived(),
-            'plan_minor_units' => $reading->amounts[$category->id] ?? 0,
-            'actual_minor_units' => $actuals->actual($category->id),
-            'has_positive_amount' => $actuals->hasPositiveAmount($category->id),
+            'plan_minor_units' => $plan,
+            'actual_minor_units' => $actual,
+            'has_positive_amount' => $hasPositiveAmount,
             'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
             'in_plan' => array_key_exists($category->id, $reading->amounts),
+            'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits(
+                $category->type,
+                $category->month_item_kind,
+                $plan,
+                $actual,
+                $hasPositiveAmount,
+            ),
+            'is_over_plan' => MonthItemDeviation::isOverPlan($category->type, $plan, $actual),
+            'is_settled' => $isSettledKind && $hasPositiveAmount,
+            'available_limit_minor_units' => $isOneOff
+                ? CategoryExecutionMetrics::remainingMinorUnits(
+                    $category->planned_amount_minor_units,
+                    $category->execution_minor_units,
+                )
+                : null,
+            'is_idle_one_off' => $isOneOff && $plan === 0 && ! $actuals->hasOperations($category->id),
         ];
     }
 

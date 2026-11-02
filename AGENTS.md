@@ -31,6 +31,8 @@ Props are PHP arrays in controllers and hand-written TypeScript types in `define
 
 `app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit.
 
+`app/Support/MonthItemDeviation.php` and `resources/js/lib/month-item-deviation.ts` are a third pair, covered by `tests/Unit/MonthItemDeviationTest.php` and `resources/js/lib/month-item-deviation.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview in the editable month proposal: a proposal cannot be saved before approval, so the preview must react before submit.
+
 ## Wayfinder
 
 Wayfinder is in beta. Copy the pattern from an existing page and read `vendor/laravel/wayfinder/resources/boost/skills/wayfinder-development/SKILL.blade.php` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.

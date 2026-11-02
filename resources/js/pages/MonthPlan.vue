@@ -37,6 +37,11 @@ type MonthPlanItemRow = {
     has_positive_amount: boolean;
     can_change_kind: boolean;
     in_plan: boolean;
+    deviation_minor_units: number | null;
+    is_over_plan: boolean;
+    is_settled: boolean;
+    available_limit_minor_units: number | null;
+    is_idle_one_off: boolean;
 };
 
 type MonthPlanReading = {

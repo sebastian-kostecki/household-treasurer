@@ -341,6 +341,112 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_rows_expose_deviation_over_plan_and_settled_flags(): void
+    {
+        [$user] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.income_items.0.deviation_minor_units', null)
+                ->where('monthPlan.income_items.0.is_over_plan', false)
+                ->where('monthPlan.income_items.0.is_settled', false)
+                ->where('monthPlan.expense_items.0.name', 'Czynsz')
+                ->where('monthPlan.expense_items.0.deviation_minor_units', -5_000)
+                ->where('monthPlan.expense_items.0.is_over_plan', false)
+                ->where('monthPlan.expense_items.0.is_settled', true)
+                ->where('monthPlan.expense_items.1.name', 'Jedzenie')
+                ->where('monthPlan.expense_items.1.deviation_minor_units', -90_000)
+                ->where('monthPlan.expense_items.1.is_over_plan', false)
+                ->where('monthPlan.expense_items.1.is_settled', false)
+                ->where('monthPlan.expense_items.2.name', 'Paliwo')
+                ->where('monthPlan.expense_items.2.deviation_minor_units', 12_000)
+                ->where('monthPlan.expense_items.2.is_over_plan', true)
+                ->where('monthPlan.expense_items.3.name', 'Prezent')
+                ->where('monthPlan.expense_items.3.deviation_minor_units', 30_000)
+                ->where('monthPlan.expense_items.3.is_over_plan', true)
+                ->where('monthPlan.expense_items.3.is_settled', false)
+                ->where('monthPlan.expense_items.3.is_idle_one_off', false),
+            );
+    }
+
+    public function test_one_off_rows_expose_the_annual_available_limit(): void
+    {
+        [$user, , $categories] = $this->canonicalBudget();
+
+        $categories['gift']->update(['execution_minor_units' => 30_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.3.available_limit_minor_units', 70_000)
+                ->where('monthPlan.expense_items.2.available_limit_minor_units', null)
+                ->where('monthPlan.income_items.0.available_limit_minor_units', null),
+            );
+
+        $categories['gift']->update(['execution_minor_units' => 130_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.3.available_limit_minor_units', -30_000),
+            );
+    }
+
+    public function test_one_off_without_plan_and_operations_is_idle(): void
+    {
+        [$user, $budget] = $this->canonicalBudget();
+        Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Wakacje', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
+        ]);
+        $refunded = Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Zwrot', 'sort_order' => 5, 'planned_amount_minor_units' => 0,
+        ]);
+        $this->operation($user, $budget, $refunded, '2026-06-06', -5_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.4.name', 'Wakacje')
+                ->where('monthPlan.expense_items.4.in_plan', true)
+                ->where('monthPlan.expense_items.4.is_idle_one_off', true)
+                ->where('monthPlan.expense_items.5.name', 'Zwrot')
+                ->where('monthPlan.expense_items.5.deviation_minor_units', -5_000)
+                ->where('monthPlan.expense_items.5.is_idle_one_off', false),
+            );
+    }
+
+    public function test_one_off_with_an_approved_plan_amount_is_not_idle(): void
+    {
+        [$user, $budget] = $this->canonicalBudget();
+        $holiday = Category::factory()->for($budget)->oneOff()->create([
+            'name' => 'Wakacje', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
+        ]);
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $holiday->id,
+            'approved_amount_minor_units' => 200_000,
+            'current_amount_minor_units' => 200_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.expense_items.4.name', 'Wakacje')
+                ->where('monthPlan.expense_items.4.plan_minor_units', 200_000)
+                ->where('monthPlan.expense_items.4.deviation_minor_units', -200_000)
+                ->where('monthPlan.expense_items.4.is_idle_one_off', false),
+            );
+    }
+
     public function test_approval_is_forbidden_for_a_draft_budget(): void
     {
         $user = User::factory()->create();
