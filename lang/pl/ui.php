@@ -131,7 +131,7 @@ return [
         'budget_year_label' => 'Budżet :year',
         'draft_badge' => 'Szkic',
         'open_budget' => 'Otwórz budżet',
-        'paced_pool_month_remaining' => ':month — pozostało',
+        'month_to_spend' => ':month — do wydania',
         'holdings_title' => 'Posiadane środki',
         'open_accounts' => 'Otwórz konta',
         'show_more_categories' => 'Pokaż jeszcze :count',

@@ -11,13 +11,10 @@ use App\Models\User;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
-use App\Support\MonthCategoryActuals;
 use App\Support\MonthItemDeviation;
-use App\Support\MonthPlanProposal;
-use App\Support\MonthPlanReading;
+use App\Support\MonthToSpend;
 use App\Support\SelectedBudgetYear;
 use App\Support\SpendableLiquidity;
-use App\Support\ToSpendCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -114,34 +111,14 @@ class MonthPlanController extends Controller
      */
     private function monthPlanPayload(User $user, Budget $budget, int $month, string $timing, CarbonImmutable $today): array
     {
-        $proposal = MonthPlanProposal::forBudget($budget, $today);
-        $reading = $proposal->reading($month);
-        $actuals = MonthCategoryActuals::forMonth($budget, $month);
+        $toSpend = MonthToSpend::forMonth($budget, $month, $today);
+        $reading = $toSpend->reading;
 
-        $rowIds = array_values(array_unique([
-            ...array_keys($reading->amounts),
-            ...$actuals->categoryIds(),
-        ]));
-
-        $categories = $budget->categories()
-            ->whereIn('id', $rowIds)
-            ->ordered()
-            ->get();
-
-        $calculatorItems = [];
         $incomeItems = [];
         $expenseItems = [];
 
-        foreach ($categories as $category) {
-            $row = $this->itemRow($category, $reading, $actuals, $timing);
-
-            $calculatorItems[] = [
-                'type' => $category->type,
-                'kind' => $category->month_item_kind,
-                'plan' => $row['plan_minor_units'],
-                'actual' => $row['actual_minor_units'],
-                'has_positive_amount' => $row['has_positive_amount'],
-            ];
+        foreach ($toSpend->categories as $category) {
+            $row = $this->itemRow($category, $toSpend, $timing);
 
             if ($category->type === CategoryType::Income) {
                 $incomeItems[] = $row;
@@ -155,10 +132,8 @@ class MonthPlanController extends Controller
             'approved_at' => $reading->approvedAt?->toIso8601String(),
             'can_approve' => $reading->state === 'proposal'
                 && $timing !== 'past'
-                && ! $proposal->isBlockedByPreviousMonth($month),
-            'to_spend_minor_units' => $reading->state === 'none'
-                ? null
-                : ToSpendCalculator::toSpendMinorUnits($calculatorItems, $reading->setAsideMinorUnits),
+                && ! $toSpend->proposal->isBlockedByPreviousMonth($month),
+            'to_spend_minor_units' => $toSpend->toSpendMinorUnits(),
             'set_aside_minor_units' => $reading->setAsideMinorUnits,
             'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
                 ? SpendableLiquidity::forUser($user)
@@ -191,17 +166,14 @@ class MonthPlanController extends Controller
      *     is_idle_one_off: bool,
      * }
      */
-    private function itemRow(
-        Category $category,
-        MonthPlanReading $reading,
-        MonthCategoryActuals $actuals,
-        string $timing,
-    ): array {
+    private function itemRow(Category $category, MonthToSpend $toSpend, string $timing): array
+    {
         $isExpense = $category->type === CategoryType::Expense;
         $isOneOff = $isExpense && ! $category->is_paced;
-        $plan = $reading->amounts[$category->id] ?? 0;
-        $actual = $actuals->actual($category->id);
-        $hasPositiveAmount = $actuals->hasPositiveAmount($category->id);
+        $amounts = $toSpend->rowAmounts($category);
+        $plan = $amounts['plan_minor_units'];
+        $actual = $amounts['actual_minor_units'];
+        $hasPositiveAmount = $amounts['has_positive_amount'];
 
         return [
             'category_id' => $category->id,
@@ -215,7 +187,7 @@ class MonthPlanController extends Controller
             'actual_minor_units' => $actual,
             'has_positive_amount' => $hasPositiveAmount,
             'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
-            'in_plan' => array_key_exists($category->id, $reading->amounts),
+            'in_plan' => array_key_exists($category->id, $toSpend->reading->amounts),
             'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits(
                 $category->type,
                 $category->month_item_kind,
@@ -231,7 +203,7 @@ class MonthPlanController extends Controller
                     $category->execution_minor_units,
                 )
                 : null,
-            'is_idle_one_off' => $isOneOff && $plan === 0 && ! $actuals->hasOperations($category->id),
+            'is_idle_one_off' => $isOneOff && $plan === 0 && ! $toSpend->actuals->hasOperations($category->id),
         ];
     }
 
