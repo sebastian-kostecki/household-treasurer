@@ -94,6 +94,22 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_budget_page_sends_the_same_month_to_spend_as_the_month_plan_page(): void
+    {
+        [$user] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['month' => 6]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthToSpend', [
+                    'state' => 'proposal',
+                    'to_spend_minor_units' => 373_000,
+                ]),
+            );
+    }
+
     public function test_future_month_shows_a_proposal_that_waits_for_the_previous_month(): void
     {
         [$user] = $this->canonicalBudget();

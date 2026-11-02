@@ -414,31 +414,31 @@ Brak migracji i zmian danych. Propsy Inertia zmieniają się razem z typami Vue 
 
 #### Automated
 
-- [x] 2.1 `tests/Feature/DashboardTest.php`, `tests/Feature/BudgetTest.php`, `tests/Feature/MonthPlanPageTest.php` przechodzą
-- [x] 2.2 `npm run build`, potem `npm run types:check` bez błędów
-- [x] 2.3 `npm run check` bez ostrzeżeń
-- [x] 2.4 Pint bez zmian po `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 `tests/Feature/DashboardTest.php`, `tests/Feature/BudgetTest.php`, `tests/Feature/MonthPlanPageTest.php` przechodzą — ee52811
+- [x] 2.2 `npm run build`, potem `npm run types:check` bez błędów — ee52811
+- [x] 2.3 `npm run check` bez ostrzeżeń — ee52811
+- [x] 2.4 Pint bez zmian po `vendor/bin/pint --dirty --format agent` — ee52811
 
 #### Manual
 
-- [x] 2.5 Kafelek „listopad — do wydania” z kwotą równą tej ze strony „Plan miesiąca”
-- [x] 2.6 Odznaka „Niezatwierdzony” przy propozycji znika po zatwierdzeniu planu
-- [x] 2.7 Link „Plan miesiąca” przy innym roku sesji otwiera plan bieżącego miesiąca bieżącego roku
-- [x] 2.8 Siatka kafelków na telefonie w kolumnie, od `sm` trzy kafelki obok siebie
+- [x] 2.5 Kafelek „listopad — do wydania” z kwotą równą tej ze strony „Plan miesiąca” — ee52811
+- [x] 2.6 Odznaka „Niezatwierdzony” przy propozycji znika po zatwierdzeniu planu — ee52811
+- [x] 2.7 Link „Plan miesiąca” przy innym roku sesji otwiera plan bieżącego miesiąca bieżącego roku — ee52811
+- [x] 2.8 Siatka kafelków na telefonie w kolumnie, od `sm` trzy kafelki obok siebie — ee52811
 
 ### Phase 3: „Do wydania” w pasku miesiąca strony Budżet
 
 #### Automated
 
-- [ ] 3.1 `tests/Feature/MonthPlanPageTest.php`, `BudgetMonthRemainingTest.php`, `BudgetMonthResultTest.php`, `BudgetTest.php` przechodzą
-- [ ] 3.2 `npm run build`, potem `npm run types:check` bez błędów
-- [ ] 3.3 `npm run check` bez ostrzeżeń
-- [ ] 3.4 Pełna bramka CI na PostgreSQL: `composer ci:check` w obrazie Sail na worktree
+- [x] 3.1 `tests/Feature/MonthPlanPageTest.php`, `BudgetMonthRemainingTest.php`, `BudgetMonthResultTest.php`, `BudgetTest.php` przechodzą
+- [x] 3.2 `npm run build`, potem `npm run types:check` bez błędów
+- [x] 3.3 `npm run check` bez ostrzeżeń
+- [x] 3.4 Pełna bramka CI na PostgreSQL: `composer ci:check` w obrazie Sail na worktree
 
 #### Manual
 
-- [ ] 3.5 Bieżący miesiąc: wiersz „Do wydania” zgodny z Dashboardem i stroną planu, odznaka zgodna ze stanem, link na ten sam miesiąc
-- [ ] 3.6 Przyszły miesiąc: wiersz z odznaką „Niezatwierdzony”
-- [ ] 3.7 Miniony miesiąc bez planu: „Ten miesiąc nie ma planu”, `Wynik` bez zmian
-- [ ] 3.8 Budżet w szkicu: pasek miesiąca jak przed zmianą
-- [ ] 3.9 Telefon (375 px): wiersz zawija się bez poziomego przewijania
+- [x] 3.5 Bieżący miesiąc: wiersz „Do wydania” zgodny z Dashboardem i stroną planu, odznaka zgodna ze stanem, link na ten sam miesiąc
+- [x] 3.6 Przyszły miesiąc: wiersz z odznaką „Niezatwierdzony”
+- [x] 3.7 Miniony miesiąc bez planu: „Ten miesiąc nie ma planu”, `Wynik` bez zmian
+- [x] 3.8 Budżet w szkicu: pasek miesiąca jak przed zmianą
+- [x] 3.9 Telefon (375 px): wiersz zawija się bez poziomego przewijania
