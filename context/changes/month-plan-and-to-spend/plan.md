@@ -666,30 +666,30 @@ Agregacja używa zakresu dat i indeksu `budget_id`, więc przy 10 000 operacji m
 
 #### Automated
 
-- [x] 1.1 Nowy `tests/Feature/CategoryMonthItemKindTest.php` przechodzi (domyślne `running`, zapis `bill`, odrzucenie dla dochodu i zarchiwizowanej, kopiowanie przez `CreateBudget`, prop `month_item_kind` przez `assertInertia`)
-- [x] 1.2 Istniejące testy kategorii przechodzą: `CategoryPacedFlagTest`, `BudgetTest`
-- [x] 1.3 Migracja i test rodzaju przechodzą na PostgreSQL
-- [x] 1.4 `vendor/bin/pint --dirty --format agent`, `npm run check` i `npm run types:check` przechodzą
+- [x] 1.1 Nowy `tests/Feature/CategoryMonthItemKindTest.php` przechodzi (domyślne `running`, zapis `bill`, odrzucenie dla dochodu i zarchiwizowanej, kopiowanie przez `CreateBudget`, prop `month_item_kind` przez `assertInertia`) — 30148ad
+- [x] 1.2 Istniejące testy kategorii przechodzą: `CategoryPacedFlagTest`, `BudgetTest` — 30148ad
+- [x] 1.3 Migracja i test rodzaju przechodzą na PostgreSQL — 30148ad
+- [x] 1.4 `vendor/bin/pint --dirty --format agent`, `npm run check` i `npm run types:check` przechodzą — 30148ad
 
 #### Manual
 
-- [x] 1.5 W dialogu kategorii wydatku widać wybór „Rachunek / Bieżąca”, w dialogu dochodu nie
-- [x] 1.6 Zapisany rodzaj zostaje po ponownym otwarciu dialogu
+- [x] 1.5 W dialogu kategorii wydatku widać wybór „Rachunek / Bieżąca”, w dialogu dochodu nie — 30148ad
+- [x] 1.6 Zapisany rodzaj zostaje po ponownym otwarciu dialogu — 30148ad
 
 ### Phase 2: Model planu i odczyty serwera
 
 #### Automated
 
-- [ ] 2.1 `tests/Unit/ToSpendCalculatorTest.php` przechodzi (3730,00, 3530,00, 3680,00, pusta lista, wynik ujemny)
-- [ ] 2.2 `tests/Feature/MonthPlanProposalTest.php` przechodzi ze wszystkimi przykładami propozycji z planu (w tym granica łańcucha na B₋₁)
-- [ ] 2.3 `tests/Feature/MonthCategoryActualsTest.php` przechodzi (netto ze zwrotem, flaga, zakres miesiąca, przelewy i ruchy kapitału bez wpływu)
-- [ ] 2.4 `tests/Feature/ApproveMonthPlanTest.php` przechodzi (obie kwoty, odrzucenia, budżet roczny bez zmian, reset usuwa plany)
-- [ ] 2.5 Testy feature fazy 2 przechodzą na PostgreSQL
-- [ ] 2.6 `vendor/bin/pint --dirty --format agent` przechodzi
+- [x] 2.1 `tests/Unit/ToSpendCalculatorTest.php` przechodzi (3730,00, 3530,00, 3680,00, pusta lista, wynik ujemny)
+- [x] 2.2 `tests/Feature/MonthPlanProposalTest.php` przechodzi ze wszystkimi przykładami propozycji z planu (w tym granica łańcucha na B₋₁)
+- [x] 2.3 `tests/Feature/MonthCategoryActualsTest.php` przechodzi (netto ze zwrotem, flaga, zakres miesiąca, przelewy i ruchy kapitału bez wpływu)
+- [x] 2.4 `tests/Feature/ApproveMonthPlanTest.php` przechodzi (obie kwoty, odrzucenia, budżet roczny bez zmian, reset usuwa plany)
+- [x] 2.5 Testy feature fazy 2 przechodzą na PostgreSQL
+- [x] 2.6 `vendor/bin/pint --dirty --format agent` przechodzi
 
 #### Manual
 
-- [ ] 2.7 Przegląd: testy propozycji odpowiadają przykładom z planu jeden do jednego
+- [x] 2.7 Przegląd: testy propozycji odpowiadają przykładom z planu jeden do jednego
 
 ### Phase 3: Strona „Plan miesiąca”
 

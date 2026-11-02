@@ -60,6 +60,14 @@ class Budget extends Model
         return $this->hasMany(FinancialOperation::class);
     }
 
+    /**
+     * @return HasMany<MonthPlan, $this>
+     */
+    public function monthPlans(): HasMany
+    {
+        return $this->hasMany(MonthPlan::class);
+    }
+
     public function isDraft(): bool
     {
         return $this->phase === BudgetPhase::Draft;
