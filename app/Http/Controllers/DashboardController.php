@@ -9,11 +9,11 @@ use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
-use App\Support\BudgetMonthReadings;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\DashboardNotices;
+use App\Support\MonthToSpend;
 use App\Support\ShellState;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
@@ -57,7 +57,7 @@ class DashboardController extends Controller
         $incomeCategories = [];
         $expenseCategories = [];
         $dashboardNotices = [];
-        $pacedPoolMonthRemainingMinorUnits = null;
+        $monthToSpend = null;
         $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
@@ -95,19 +95,14 @@ class DashboardController extends Controller
                     ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                     ->all();
 
-                $hasVisiblePacedExpenseCategory = $visibleExpenseCategories->contains(
-                    fn (Category $category): bool => $category->is_paced,
-                );
+                $currentMonth = $today->month;
+                $summary = MonthToSpend::forMonth($budget, $currentMonth, $today)->summary();
 
-                if ($hasVisiblePacedExpenseCategory) {
-                    $monthReadings = BudgetMonthReadings::forBudget(
-                        $budget,
-                        $allCategories->where('type', CategoryType::Expense)->values(),
-                        $today->month,
-                        $today,
-                    );
-                    $pacedPoolMonthRemainingMinorUnits = $monthReadings['paced_pool_month_remaining_minor_units'];
-                    $currentMonth = $monthReadings['current_month'];
+                if ($summary['state'] !== 'none') {
+                    $monthToSpend = [
+                        'state' => $summary['state'],
+                        'to_spend_minor_units' => (int) $summary['to_spend_minor_units'],
+                    ];
                 }
             }
         }
@@ -132,7 +127,7 @@ class DashboardController extends Controller
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
             'dashboardNotices' => $dashboardNotices,
-            'paced_pool_month_remaining_minor_units' => $pacedPoolMonthRemainingMinorUnits,
+            'month_to_spend' => $monthToSpend,
             'current_month' => $currentMonth,
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,

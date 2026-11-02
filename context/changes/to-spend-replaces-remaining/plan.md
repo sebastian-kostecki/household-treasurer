@@ -401,30 +401,30 @@ Brak migracji i zmian danych. Propsy Inertia zmieniają się razem z typami Vue 
 
 #### Automated
 
-- [x] 1.1 Testy strony planu przechodzą bez zmian w pliku testu: `tests/Feature/MonthPlanPageTest.php`
-- [x] 1.2 Nowy `tests/Feature/MonthToSpendTest.php` przechodzi
-- [x] 1.3 `tests/Unit/ToSpendCalculatorTest.php` przechodzi
-- [x] 1.4 Pint bez zmian po `vendor/bin/pint --dirty --format agent`
+- [x] 1.1 Testy strony planu przechodzą bez zmian w pliku testu: `tests/Feature/MonthPlanPageTest.php` — 02d0077
+- [x] 1.2 Nowy `tests/Feature/MonthToSpendTest.php` przechodzi — 02d0077
+- [x] 1.3 `tests/Unit/ToSpendCalculatorTest.php` przechodzi — 02d0077
+- [x] 1.4 Pint bez zmian po `vendor/bin/pint --dirty --format agent` — 02d0077
 
 #### Manual
 
-- [x] 1.5 Strona „Plan miesiąca” w podglądzie z worktree pokazuje dla bieżącego miesiąca tę samą liczbę i te same wiersze co zanotowane przed refaktorem
+- [x] 1.5 Strona „Plan miesiąca” w podglądzie z worktree pokazuje dla bieżącego miesiąca tę samą liczbę i te same wiersze co zanotowane przed refaktorem — 02d0077
 
 ### Phase 2: Kafelek „do wydania” na Dashboardzie
 
 #### Automated
 
-- [ ] 2.1 `tests/Feature/DashboardTest.php`, `tests/Feature/BudgetTest.php`, `tests/Feature/MonthPlanPageTest.php` przechodzą
-- [ ] 2.2 `npm run build`, potem `npm run types:check` bez błędów
-- [ ] 2.3 `npm run check` bez ostrzeżeń
-- [ ] 2.4 Pint bez zmian po `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 `tests/Feature/DashboardTest.php`, `tests/Feature/BudgetTest.php`, `tests/Feature/MonthPlanPageTest.php` przechodzą
+- [x] 2.2 `npm run build`, potem `npm run types:check` bez błędów
+- [x] 2.3 `npm run check` bez ostrzeżeń
+- [x] 2.4 Pint bez zmian po `vendor/bin/pint --dirty --format agent`
 
 #### Manual
 
-- [ ] 2.5 Kafelek „listopad — do wydania” z kwotą równą tej ze strony „Plan miesiąca”
-- [ ] 2.6 Odznaka „Niezatwierdzony” przy propozycji znika po zatwierdzeniu planu
-- [ ] 2.7 Link „Plan miesiąca” przy innym roku sesji otwiera plan bieżącego miesiąca bieżącego roku
-- [ ] 2.8 Siatka kafelków na telefonie w kolumnie, od `sm` trzy kafelki obok siebie
+- [x] 2.5 Kafelek „listopad — do wydania” z kwotą równą tej ze strony „Plan miesiąca”
+- [x] 2.6 Odznaka „Niezatwierdzony” przy propozycji znika po zatwierdzeniu planu
+- [x] 2.7 Link „Plan miesiąca” przy innym roku sesji otwiera plan bieżącego miesiąca bieżącego roku
+- [x] 2.8 Siatka kafelków na telefonie w kolumnie, od `sm` trzy kafelki obok siebie
 
 ### Phase 3: „Do wydania” w pasku miesiąca strony Budżet
 

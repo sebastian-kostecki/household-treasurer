@@ -171,6 +171,10 @@ class BudgetController extends Controller
 
         $request->session()->put('budget_year', $validated['year']);
 
+        if (($validated['destination'] ?? 'budget') === 'month-plan') {
+            return to_route('month-plan');
+        }
+
         return to_route('budget');
     }
 

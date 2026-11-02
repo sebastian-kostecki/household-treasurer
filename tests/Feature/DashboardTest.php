@@ -11,6 +11,8 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
+use App\Models\MonthPlan;
+use App\Models\MonthPlanItem;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
@@ -45,7 +47,7 @@ class DashboardTest extends TestCase
                 ->where('total_funds_minor_units', 0)
                 ->where('budget_year', 2026)
                 ->where('budget', null)
-                ->where('paced_pool_month_remaining_minor_units', null)
+                ->where('month_to_spend', null)
                 ->where('current_month', null)
                 ->where('planSummary', null)
                 ->where('incomeTotals', [
@@ -700,13 +702,13 @@ class DashboardTest extends TestCase
                 ->where('budget.phase', BudgetPhase::Draft->value)
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
-                ->where('paced_pool_month_remaining_minor_units', null)
+                ->where('month_to_spend', null)
                 ->where('current_month', null)
                 ->where('planSummary.planned_balance_minor_units', 150_000),
             );
     }
 
-    public function test_dashboard_sends_paced_pool_month_remaining_for_execution_with_paced_categories(): void
+    public function test_dashboard_sends_proposal_to_spend_of_the_current_month_for_execution(): void
     {
         $this->travelTo('2026-09-23');
 
@@ -734,11 +736,15 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('current_month', 9)
-                ->where('paced_pool_month_remaining_minor_units', -10_000),
+                ->where('month_to_spend', [
+                    'state' => 'proposal',
+                    'to_spend_minor_units' => -40_000,
+                ])
+                ->missing('paced_pool_month_remaining_minor_units'),
             );
     }
 
-    public function test_dashboard_does_not_send_paced_pool_month_remaining_without_paced_categories(): void
+    public function test_dashboard_sends_to_spend_tile_for_execution_without_paced_categories(): void
     {
         $this->travelTo('2026-09-23');
 
@@ -752,8 +758,37 @@ class DashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('paced_pool_month_remaining_minor_units', null)
-                ->where('current_month', null),
+                ->where('month_to_spend', [
+                    'state' => 'proposal',
+                    'to_spend_minor_units' => 0,
+                ])
+                ->where('current_month', 9),
+            );
+    }
+
+    public function test_dashboard_sends_approved_state_when_the_current_month_plan_is_approved(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $salary = Category::factory()->for($budget)->income()->create([
+            'planned_amount_minor_units' => 500_000,
+        ]);
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 9]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $salary->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('current_month', 9)
+                ->where('month_to_spend.state', 'approved'),
             );
     }
 
