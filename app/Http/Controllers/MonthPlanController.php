@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ApproveMonthPlan;
+use App\Actions\ChangeMonthPlan;
 use App\Enums\CategoryType;
 use App\Http\Requests\ApproveMonthPlanRequest;
+use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Support\BudgetViewedMonth;
@@ -84,6 +86,28 @@ class MonthPlanController extends Controller
         Inertia::flash('toast', [
             'type' => 'success',
             'message' => __('Month plan approved.'),
+        ]);
+
+        return to_route('month-plan', ['month' => $month]);
+    }
+
+    public function update(
+        UpdateMonthPlanRequest $request,
+        Budget $budget,
+        int $month,
+        ChangeMonthPlan $changeMonthPlan,
+    ): RedirectResponse {
+        $amounts = [];
+
+        foreach ($request->validated('items') as $item) {
+            $amounts[(int) $item['category_id']] = (int) $item['amount_minor_units'];
+        }
+
+        $changeMonthPlan->handle($budget, $month, $amounts, CarbonImmutable::today('UTC'));
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Month plan changed.'),
         ]);
 
         return to_route('month-plan', ['month' => $month]);

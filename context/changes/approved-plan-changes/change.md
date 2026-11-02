@@ -1,7 +1,7 @@
 ---
 change_id: approved-plan-changes
 title: Approved plan changes
-status: preparing
+status: implementing
 created: 2026-11-02
 updated: 2026-11-02
 archived_at: null
