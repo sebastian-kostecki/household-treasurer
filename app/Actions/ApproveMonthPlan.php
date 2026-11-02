@@ -16,8 +16,9 @@ class ApproveMonthPlan
 {
     /**
      * @param  array<int, int>  $amounts  category id => amount in minor units
+     * @param  int  $setAsideMinorUnits  signed: positive is set aside, negative is a draw
      */
-    public function handle(Budget $budget, int $month, array $amounts, CarbonImmutable $today): MonthPlan
+    public function handle(Budget $budget, int $month, array $amounts, int $setAsideMinorUnits, CarbonImmutable $today): MonthPlan
     {
         if (! $budget->isExecution()) {
             throw new AuthorizationException('Only execution budgets can have an approved month plan.');
@@ -28,7 +29,7 @@ class ApproveMonthPlan
         }
 
         try {
-            return DB::transaction(function () use ($budget, $month, $amounts, $today): MonthPlan {
+            return DB::transaction(function () use ($budget, $month, $amounts, $setAsideMinorUnits, $today): MonthPlan {
                 $proposal = MonthPlanProposal::forBudget($budget, $today);
                 $reading = $proposal->reading($month);
 
@@ -59,6 +60,8 @@ class ApproveMonthPlan
                     'budget_id' => $budget->id,
                     'month' => $month,
                     'approved_at' => $approvedAt,
+                    'approved_set_aside_minor_units' => $setAsideMinorUnits,
+                    'current_set_aside_minor_units' => $setAsideMinorUnits,
                 ]);
 
                 foreach ($amounts as $categoryId => $amount) {

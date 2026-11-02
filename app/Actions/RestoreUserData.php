@@ -254,6 +254,8 @@ class RestoreUserData
                 'budget_id' => $budgetId,
                 'month' => $month,
                 'approved_at' => Carbon::parse($monthPlanData['approved_at']),
+                'approved_set_aside_minor_units' => $monthPlanData['approved_set_aside_minor_units'] ?? 0,
+                'current_set_aside_minor_units' => $monthPlanData['current_set_aside_minor_units'] ?? 0,
             ]);
 
             $seenCategories = [];

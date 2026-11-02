@@ -8,11 +8,11 @@ use App\Enums\MonthItemKind;
 class ToSpendCalculator
 {
     /**
-     * Set-aside is not a parameter yet (it equals 0 until S-02).
+     * The signed set-aside (a draw is negative) is subtracted from the month's net.
      *
      * @param  list<array{type: CategoryType, kind: MonthItemKind, plan: int, actual: int, has_positive_amount: bool}>  $items
      */
-    public static function toSpendMinorUnits(array $items): int
+    public static function toSpendMinorUnits(array $items, int $setAsideMinorUnits): int
     {
         $total = 0;
 
@@ -32,6 +32,6 @@ class ToSpendCalculator
             $total -= max($item['plan'], $item['actual']);
         }
 
-        return $total;
+        return $total - $setAsideMinorUnits;
     }
 }

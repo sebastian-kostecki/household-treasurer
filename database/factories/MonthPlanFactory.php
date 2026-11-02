@@ -20,6 +20,8 @@ class MonthPlanFactory extends Factory
             'budget_id' => Budget::factory()->execution(),
             'month' => fake()->numberBetween(1, 12),
             'approved_at' => now(),
+            'approved_set_aside_minor_units' => 0,
+            'current_set_aside_minor_units' => 0,
         ];
     }
 }

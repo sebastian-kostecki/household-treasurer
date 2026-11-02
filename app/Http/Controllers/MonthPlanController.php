@@ -7,6 +7,7 @@ use App\Enums\CategoryType;
 use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\User;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
@@ -15,6 +16,7 @@ use App\Support\MonthItemDeviation;
 use App\Support\MonthPlanProposal;
 use App\Support\MonthPlanReading;
 use App\Support\SelectedBudgetYear;
+use App\Support\SpendableLiquidity;
 use App\Support\ToSpendCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -64,7 +66,7 @@ class MonthPlanController extends Controller
             'viewedMonthTiming' => $timing,
             'currentMonth' => $today->year === $budget->year ? $today->month : null,
             'monthPlan' => $budget->isExecution()
-                ? $this->monthPlanPayload($budget, $viewedMonth, $timing, $today)
+                ? $this->monthPlanPayload($request->user(), $budget, $viewedMonth, $timing, $today)
                 : null,
         ]);
     }
@@ -81,7 +83,13 @@ class MonthPlanController extends Controller
             $amounts[(int) $item['category_id']] = (int) $item['amount_minor_units'];
         }
 
-        $approveMonthPlan->handle($budget, $month, $amounts, CarbonImmutable::today('UTC'));
+        $approveMonthPlan->handle(
+            $budget,
+            $month,
+            $amounts,
+            (int) $request->validated('set_aside_minor_units'),
+            CarbonImmutable::today('UTC'),
+        );
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -98,11 +106,13 @@ class MonthPlanController extends Controller
      *     approved_at: string|null,
      *     can_approve: bool,
      *     to_spend_minor_units: int|null,
+     *     set_aside_minor_units: int,
+     *     spendable_liquidity_minor_units: int|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
      * }
      */
-    private function monthPlanPayload(Budget $budget, int $month, string $timing, CarbonImmutable $today): array
+    private function monthPlanPayload(User $user, Budget $budget, int $month, string $timing, CarbonImmutable $today): array
     {
         $proposal = MonthPlanProposal::forBudget($budget, $today);
         $reading = $proposal->reading($month);
@@ -148,7 +158,11 @@ class MonthPlanController extends Controller
                 && ! $proposal->isBlockedByPreviousMonth($month),
             'to_spend_minor_units' => $reading->state === 'none'
                 ? null
-                : ToSpendCalculator::toSpendMinorUnits($calculatorItems),
+                : ToSpendCalculator::toSpendMinorUnits($calculatorItems, $reading->setAsideMinorUnits),
+            'set_aside_minor_units' => $reading->setAsideMinorUnits,
+            'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
+                ? SpendableLiquidity::forUser($user)
+                : null,
             'income_items' => $incomeItems,
             'expense_items' => $expenseItems,
         ];

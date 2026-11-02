@@ -10,7 +10,10 @@ export type ToSpendItem = {
  * Copy of App\Support\ToSpendCalculator::toSpendMinorUnits, used for the live
  * preview while a month plan proposal is edited. Change both together.
  */
-export function toSpendMinorUnits(items: ToSpendItem[]): number {
+export function toSpendMinorUnits(
+    items: ToSpendItem[],
+    setAsideMinorUnits: number,
+): number {
     let total = 0;
 
     for (const item of items) {
@@ -29,5 +32,5 @@ export function toSpendMinorUnits(items: ToSpendItem[]): number {
         total -= Math.max(item.plan, item.actual);
     }
 
-    return total;
+    return total - setAsideMinorUnits;
 }
