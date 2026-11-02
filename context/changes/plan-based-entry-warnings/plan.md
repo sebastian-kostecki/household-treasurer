@@ -471,16 +471,16 @@ Brak migracji i zmian danych. Usunięcie annotatora nie zmienia zapisu Importu, 
 
 #### Automated
 
-- [x] 3.1 `npm run check`, `npm run types:check` (po `npm run build`) i `npm test` są zielone
-- [x] 3.2 Testy strony Operacje przechodzą
+- [x] 3.1 `npm run check`, `npm run types:check` (po `npm run build`) i `npm test` są zielone — e2a4090
+- [x] 3.2 Testy strony Operacje przechodzą — e2a4090
 
 #### Manual
 
-- [x] 3.3 Wydatek Running ponad plan sprowadzający „do wydania” poniżej zera pokazuje ostrzeżenie z kwotą zgodną ze stroną „Plan miesiąca” i zapisuje się
-- [x] 3.4 Wydatek Running w granicach planu przy ujemnym „do wydania” nie pokazuje ostrzeżenia
-- [x] 3.5 Miesiąc z planem nie pokazuje ostrzeżeń `Pozostało w miesiącu`, miniony miesiąc bez planu pokazuje je jak dziś
-- [x] 3.6 Pierwszy dochód mniejszy od planu sprowadzający „do wydania” poniżej zera ostrzega w formularzu dochodu
-- [x] 3.7 Edycja przenosząca jedyny wydatek Bill z bieżącego miesiąca ostrzega o bieżącym miesiącu
+- [x] 3.3 Wydatek Running ponad plan sprowadzający „do wydania” poniżej zera pokazuje ostrzeżenie z kwotą zgodną ze stroną „Plan miesiąca” i zapisuje się — e2a4090
+- [x] 3.4 Wydatek Running w granicach planu przy ujemnym „do wydania” nie pokazuje ostrzeżenia — e2a4090
+- [x] 3.5 Miesiąc z planem nie pokazuje ostrzeżeń `Pozostało w miesiącu`, miniony miesiąc bez planu pokazuje je jak dziś — e2a4090
+- [x] 3.6 Pierwszy dochód mniejszy od planu sprowadzający „do wydania” poniżej zera ostrzega w formularzu dochodu — e2a4090
+- [x] 3.7 Edycja przenosząca jedyny wydatek Bill z bieżącego miesiąca ostrzega o bieżącym miesiącu — e2a4090
 
 ### Phase 4: Podgląd Importu i dokumenty
 
