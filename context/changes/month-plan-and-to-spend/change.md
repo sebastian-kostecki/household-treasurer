@@ -1,7 +1,7 @@
 ---
 change_id: month-plan-and-to-spend
 title: Month plan and to spend
-status: new
+status: preparing
 created: 2026-11-02
 updated: 2026-11-02
 archived_at: null
