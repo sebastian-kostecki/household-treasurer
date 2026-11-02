@@ -204,26 +204,26 @@ Nie dotyczy — brak zmian w danych. Wycofanie to revert commitów dokumentacyjn
 
 #### Automated
 
-- [x] 1.1 ADR istnieje i numer 0033 jest jedyny
-- [x] 1.2 ADR-0033 powołuje się na ADR-0024 i ADR-0032
-- [x] 1.3 ADR-0024 odsyła do ADR-0033, a jego dotychczasowe akapity są nietknięte
+- [x] 1.1 ADR istnieje i numer 0033 jest jedyny — 7bf6364
+- [x] 1.2 ADR-0033 powołuje się na ADR-0024 i ADR-0032 — 7bf6364
+- [x] 1.3 ADR-0024 odsyła do ADR-0033, a jego dotychczasowe akapity są nietknięte — 7bf6364
 
 #### Manual
 
-- [x] 1.4 ADR-0033 zawiera każdy punkt z Contract i nie przeczy PRD
-- [x] 1.5 Czytelnik samego ADR-0024 widzi, że klauzula o „second monthly Budget” jest zastąpiona
+- [x] 1.4 ADR-0033 zawiera każdy punkt z Contract i nie przeczy PRD — 7bf6364
+- [x] 1.5 Czytelnik samego ADR-0024 widzi, że klauzula o „second monthly Budget” jest zastąpiona — 7bf6364
 
 ### Phase 2: Terminy i progi w CONTEXT.md
 
 #### Automated
 
-- [ ] 2.1 Wszystkie nowe terminy mają wpis
-- [ ] 2.2 Progi są zapisane dosłownie
-- [ ] 2.3 Diff obejmuje tylko trzy dokumenty
+- [x] 2.1 Wszystkie nowe terminy mają wpis
+- [x] 2.2 Progi są zapisane dosłownie
+- [x] 2.3 Diff obejmuje tylko trzy dokumenty
 
 #### Manual
 
-- [ ] 2.4 Przykład To Spend z wpisu daje 1700 (z Draw 2500)
-- [ ] 2.5 Przykład Month Pace z wpisu (8,3 pp brak ostrzeżenia; 11,7 pp `warning`)
-- [ ] 2.6 Żaden z sześciu poprawionych wpisów nie przeczy ADR-0033; progi brzmią tak samo
-- [ ] 2.7 Słownik nie urósł poza dziewięć nowych terminów i dopiski w sześciu istniejących wpisach
+- [x] 2.4 Przykład To Spend z wpisu daje 1700 (z Draw 2500)
+- [x] 2.5 Przykład Month Pace z wpisu (8,3 pp brak ostrzeżenia; 11,7 pp `warning`)
+- [x] 2.6 Żaden z sześciu poprawionych wpisów nie przeczy ADR-0033; progi brzmią tak samo
+- [x] 2.7 Słownik nie urósł poza dziewięć nowych terminów i dopiski w sześciu istniejących wpisach

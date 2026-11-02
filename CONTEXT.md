@@ -33,16 +33,16 @@ The live planned income amounts and expense limits. May change during execution 
 _Avoid_: Revised budget, Forecast
 
 **Category**:
-An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed. An expense Category is either a Paced Category or a One-off Category. Archive is allowed; archived Categories keep Execution history on that Budget. Dashboard meters and Dashboard plan totals (income, expense, Planned Balance) omit archived Categories. Budget lists them in an archived section and omits them from plan totals unless the User asks to show archived. Month Remaining arithmetic still uses all Paced expense Categories of that Budget, including archived.
+An income or expense bucket that belongs to one Budget. Income categories have a planned amount; expense categories have a limit. A Category on one Budget is not the same Category as one with the same name on another Budget. Matching several years by the same name and type is a query over those records, not one Category. A Category named by a Cash Expectation on Agenda cannot be deleted or have its type changed. An expense Category is either a Paced Category or a One-off Category, and also has a Month Item Kind. An item of a Month Plan is a Category. Archive is allowed; archived Categories keep Execution history on that Budget. Dashboard meters and Dashboard plan totals (income, expense, Planned Balance) omit archived Categories. Budget lists them in an archived section and omits them from plan totals unless the User asks to show archived. Month Remaining arithmetic still uses all Paced expense Categories of that Budget, including archived.
 _Avoid_: Tag, Label, Envelope, Category template, Category kind, a Category identity that spans years
 
 **Paced Category**:
 An expense Category whose leftover Current Plan is read across the remaining calendar months of that Budget year. It has Month Remaining. New expense Categories default to this. Income Categories never have this flag. Polish UI copy: „równomierna”; the Paced pool is „pula równomiernych”.
-_Avoid_: Envelope, monthly Category, scheduled Category, Available Limit (for the month figure)
+_Avoid_: Envelope, monthly Category, scheduled Category, Available Limit (for the month figure), Running (the annual flag is not Month Item Kind)
 
 **One-off Category**:
-An expense Category excluded from the Paced pool and from Month Remaining. A flag only: no target month. It still has annual Available Limit. Income Categories never have this flag. Polish UI copy: „jednorazowa”.
-_Avoid_: Envelope, unbudgeted, unplanned, a Category with a due month
+An expense Category excluded from the Paced pool and from Month Remaining. A flag only: no target month. It still has annual Available Limit. Income Categories never have this flag. Polish UI copy: „jednorazowa”. In a Month Plan it starts at 0 in every Proposal and is not part of Month Pace.
+_Avoid_: Envelope, unbudgeted, unplanned, a Category with a due month, Bill (the annual flag is not Month Item Kind)
 
 **Execution**:
 Booked income and expense amounts against a Category in a Budget that has started execution. Not unpaid Cash Expectations.
@@ -53,20 +53,56 @@ Current Plan of an expense Category minus booked expenses. Not cash on Accounts.
 _Avoid_: Balance, Available funds, Remaining cash, using this figure as Reserve or as an Earmark, Month Remaining
 
 **Month Remaining**:
-A signed reading, in Minor units, of leftover Paced Current Plan for one calendar month of a Budget year: one Paced Category, or the Paced pool (all Paced Categories of that Budget). Not stored. A One-off Category has none. Arithmetic is catch-up leftover, not an even split of Current Plan. Polish UI copy: „Pozostało w miesiącu”.
-_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity, Year Elapsed
+A signed reading, in Minor units, of leftover Paced Current Plan for one calendar month of a Budget year: one Paced Category, or the Paced pool (all Paced Categories of that Budget). Not stored. A One-off Category has none. Arithmetic is catch-up leftover, not an even split of Current Plan. It is read only for past months without a Month Plan; the current and future months (and past months with an Approved Month Plan) show To Spend instead (ADR-0033). Polish UI copy: „Pozostało w miesiącu”.
+_Avoid_: Available Limit, monthly limit, Envelope remaining, Spendable Liquidity, Year Elapsed, To Spend
 
 **Year Elapsed**:
 The fraction of calendar days of a Budget year that have passed as of an as-of date: day-of-year divided by days in that year. The as-of date is today when the selected Budget is the current calendar year, 31 December of that Budget year when it is past, and 1 January of that Budget year when it is future. A mark on a Category meter, not a money reading. Income Categories and Paced expense Categories may show it; a One-off Category does not. Distinct from Execution as a percent of Current Plan and from Month Remaining. Dashboard always reads the current calendar year’s Budget, so its as-of date is today. Polish UI copy: „Postęp roku”; the Dashboard checkbox always shows the as-of date next to that copy.
 _Avoid_: Month Remaining, Year Pace, tempo roku, using percent complete for this mark
+
+**Month Plan**:
+The plan of one calendar month of a Budget in execution, beside the annual Current Plan (ADR-0033). Items are the Categories of that Budget plus one Set-aside. Exists only for the current and future months. Is either a Proposal (not approved; amounts from the Proposal rule in ADR-0033) or Approved. “The month has a plan” includes a Proposal. From the 3rd day of the current month inclusive, a Month Plan still in Proposal state raises a `warning` Dashboard notice. Polish UI copy: „plan miesiąca”, „propozycja” / „niezatwierdzony”, „zatwierdzony”.
+_Avoid_: monthly Budget, second Budget, Month Remaining, Envelope
+
+**Approved Month Plan**:
+The amounts of a Month Plan frozen at approval, immutable afterwards (like Initial Plan). They do not change when the annual Current Plan changes. Polish UI copy: „plan zatwierdzony”.
+_Avoid_: Initial Plan (for this), Baseline
+
+**Current Month Plan**:
+The live amounts of a Month Plan after approval, editable during the month (like Current Plan). At the end of the month it is the final plan. Polish UI copy: „plan miesiąca” during the month, „plan końcowy” in Month Summary.
+_Avoid_: „plan bieżący” (that is the copy of the annual Current Plan, `lang/pl/ui.php:121,163`), Current Plan (without „Month”)
+
+**Month Item Kind**:
+An attribute of an expense Category: Bill or Running. Bill („rachunek”): after the first booked expense in the month on that Category (a Financial Operation with a positive amount) the actual amount, refunds netted, replaces the plan; a refund alone does not. Running („bieżąca”): the plan holds for the whole month and the greater of plan and actual counts. Defaults to Running. An income Category has none (income always counts like Bill). Independent of the Paced / One-off flag. Copied onto a new Budget like the Paced flag (ADR-0024:3; `CreateBudget.php:44`). „Rachunek” here is a kind of item, not an Account („rachunek bankowy” in the UI).
+_Avoid_: Paced (for Running), One-off (for Bill), Account (for Bill), fixed / variable
+
+**To Spend**:
+A signed reading, in Minor units, not stored: income (plan, then the actual amount after the first inflow in the month) − Bill items (plan, then the actual amount after the first expense with a positive amount in the month) − Running items (the greater of plan and actual) − Set-aside. Plan means Current Month Plan, or Proposal before approval. Actual amount means Execution of that Category from operations dated in that month (refunds netted). May be negative and blocks nothing; Own Transfer and Capital Movement do not change it. Below zero it raises an `exceeded` Dashboard notice. An item over plan (an expense Category whose actual amount in the month exceeds its plan amount, any size, including plan 0 and a One-off Category, whatever its Month Item Kind) also raises an `exceeded` Dashboard notice. Polish UI copy: „do wydania”.
+_Avoid_: Spendable Liquidity, Month Remaining, Available Limit, Month Result, Pozostało
+
+**Set-aside**:
+One signed amount per Month Plan: positive („odkładam”) lowers To Spend, negative is a Draw („dobieram”) and raises it. Not a Category, not a transfer, does not change Liquidity. A Draw whose absolute value exceeds Spendable Liquidity (|Draw| > Spendable Liquidity) gives a warning without a block. Polish UI copy: „odkładam / dobieram”.
+_Avoid_: Savings (as Category or Account), Reserve, Earmark, transfer
+
+**Month Pace**:
+A percentage: the sum of actual amounts (Execution alone in the month, not the greater of plan and actual) over the sum of plan amounts of the pool of Running items that are not One-off Categories. No reading when the plan sum of the pool is 0. If Month Pace − Month Elapsed is at least 10 percentage points, a `warning` Dashboard notice is raised. Polish UI copy: „tempo”.
+_Avoid_: Year Elapsed, Year Pace, Month Remaining
+
+**Month Elapsed**:
+The day of the month of the as-of date over the number of days in that month. The as-of date is today for the current month, the last day for a past month, and the first day for a future month (as Year Elapsed). Not an amount.
+_Avoid_: Year Elapsed, Month Pace
+
+**Month Summary**:
+A reading of a month from its Month Plan: Approved and Current (final) Month Plan, Execution, deviations, intended Set-aside and the real set-aside (Month Result), drawn amounts (Draw) also over the year. Settling is only a summary: no carry-over and no closing. Polish UI copy: „podsumowanie miesiąca”.
+_Avoid_: Month close, Year Close, carry-over
 
 **Planned Balance**:
 Income Current Plan minus expense Current Plan for one Budget. A plan-plane summary, not cash on Accounts.
 _Avoid_: Balance (unqualified), Liquidity, Account balance, Available Limit, Month Result. Polish UI copy: „Bilans”.
 
 **Month Result**:
-Execution income minus Execution expense for one calendar month of a Budget year. Booked Financial Operations dated in that month only, all income and expense Categories including archived and One-off. Expense refunds net into the expense figure. Not Planned Balance, not Month Remaining, not unpaid Cash Expectations, not Own Transfer, not Capital Movement.
-_Avoid_: Balance (unqualified), Planned Balance, Available Limit, Month Remaining, Liquidity, Year Result. Polish UI copy: „Wynik”.
+Execution income minus Execution expense for one calendar month of a Budget year. Booked Financial Operations dated in that month only, all income and expense Categories including archived and One-off. Expense refunds net into the expense figure. Not Planned Balance, not Month Remaining, not unpaid Cash Expectations, not Own Transfer, not Capital Movement. At the end of a month it is the real set-aside shown in Month Summary.
+_Avoid_: Balance (unqualified), Planned Balance, Available Limit, Month Remaining, Liquidity, Year Result, To Spend. Polish UI copy: „Wynik”.
 
 **Year Result**:
 Execution income minus Execution expense for one Budget year. Same inclusions as Month Result, for every date in that year rather than one month. A reading; Year Close may post it into Reserve. Polish UI for this reading: „Wynik roku”; the User’s „zysk” / „ostateczny zysk” means this reading, not Planned Balance. Leftover Available Limit is not added on top of it. At Year Close, Earmarks from positive leftovers total at most max(0, this reading); if it is ≤ 0 there are no Earmarks. Not Planned Balance, not a change in Spendable Liquidity or Total funds.
@@ -122,7 +158,7 @@ _Avoid_: Net worth, Wealth, Portfolio, using Liquidity as one number without Spe
 
 **Spendable Liquidity**:
 The sum of Account current balances (bank and cash). Money not in Term Deposits. Does not include Term Deposit balances.
-_Avoid_: Available Limit, Total funds, Liquidity (unqualified), Łączne środki (for this number)
+_Avoid_: Available Limit, Total funds, Liquidity (unqualified), Łączne środki (for this number), To Spend
 
 **Total funds**:
 Spendable Liquidity plus the current balances of Term Deposits. A Capital Movement into a Term Deposit does not change Total funds; it moves money from Spendable Liquidity onto that Term Deposit.
