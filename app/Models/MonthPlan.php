@@ -15,10 +15,12 @@ use Illuminate\Support\Carbon;
  * @property int $budget_id
  * @property int $month
  * @property Carbon $approved_at
+ * @property int $approved_set_aside_minor_units
+ * @property int $current_set_aside_minor_units
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['budget_id', 'month', 'approved_at'])]
+#[Fillable(['budget_id', 'month', 'approved_at', 'approved_set_aside_minor_units', 'current_set_aside_minor_units'])]
 class MonthPlan extends Model
 {
     /** @use HasFactory<MonthPlanFactory> */
@@ -32,6 +34,8 @@ class MonthPlan extends Model
         return [
             'month' => 'integer',
             'approved_at' => 'datetime',
+            'approved_set_aside_minor_units' => 'integer',
+            'current_set_aside_minor_units' => 'integer',
         ];
     }
 

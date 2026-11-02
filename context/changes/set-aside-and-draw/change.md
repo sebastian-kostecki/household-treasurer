@@ -1,7 +1,7 @@
 ---
 change_id: set-aside-and-draw
 title: Set aside and draw
-status: new
+status: implementing
 created: 2026-11-02
 updated: 2026-11-02
 archived_at: null
