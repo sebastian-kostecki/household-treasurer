@@ -378,6 +378,32 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_set_aside_lowers_to_spend_by_its_amount_in_the_same_month(): void
+    {
+        $toSpend = [];
+
+        foreach ([0, 50_000] as $setAside) {
+            [$user, $budget, $categories] = $this->canonicalBudget();
+
+            $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                    'set_aside_minor_units' => $setAside,
+                    'items' => $this->planItems($categories),
+                ])
+                ->assertSessionHasNoErrors();
+
+            $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('month-plan'))
+                ->assertInertia(function (Assert $page) use (&$toSpend): void {
+                    $toSpend[] = $page->toArray()['props']['monthPlan']['to_spend_minor_units'];
+                });
+        }
+
+        $this->assertSame(50_000, $toSpend[0] - $toSpend[1]);
+    }
+
     public function test_spendable_liquidity_is_the_sum_of_all_account_balances_for_current_and_future_months(): void
     {
         [$user] = $this->canonicalBudget();
