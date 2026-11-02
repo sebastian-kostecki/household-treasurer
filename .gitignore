@@ -28,3 +28,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.10x-cli.json
+/.agents
+/.claude
+/.cursor
+/CLAUDE.md
+/skills-lock.json

@@ -49,7 +49,6 @@ export default defineConfig({
             ignored: [
                 '**/.agents/**',
                 '**/.claude/**',
-                '**/.cursor/**',
                 '**/.junie/**',
                 '**/vendor/**',
             ],
@@ -84,7 +83,6 @@ export default defineConfig({
             '.10x-cli.json',
             '.agents/**',
             '.claude/**',
-            '.cursor/**',
             '.github/**',
             'composer.json',
             'context/**',

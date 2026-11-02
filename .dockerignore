@@ -2,7 +2,6 @@
 .git
 .gitignore
 .gitattributes
-.cursor
 .docs
 .agents
 .idea

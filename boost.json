@@ -1,5 +1,5 @@
 {
-    "agents": ["cursor"],
+    "agents": ["claude_code"],
     "cloud": false,
     "guidelines": true,
     "mcp": true,
@@ -12,6 +12,7 @@
         "testing-best-practices",
         "wayfinder-development",
         "inertia-vue-development",
-        "tailwindcss-development"
+        "tailwindcss-development",
+        "openship-ui-development"
     ]
 }
