@@ -45,6 +45,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Sloppy compares a pull request against its merge base, which needs history.
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
@@ -66,6 +68,10 @@ jobs:
 
       - name: Audit Composer dependencies
         run: composer audit --locked
+
+      - name: Sloppy static analysis
+        # PR: annotates only findings the change introduced; push: full scan against .sloppy-baseline.json.
+        run: vendor/bin/sloppy ci
 
       - name: Prepare application
         run: |

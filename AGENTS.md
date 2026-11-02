@@ -19,7 +19,7 @@ That command fails from a worktree. With Sail running and after the fresh-checko
 
 `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`
 
-For the full CI gate, replace `--entrypoint php sail-8.5/app artisan test --compact <path>` with `--entrypoint composer sail-8.5/app ci:check`.
+For the full CI gate, replace `--entrypoint php sail-8.5/app artisan test --compact <path>` with `--entrypoint composer sail-8.5/app ci:check`. CI also runs `vendor/bin/sloppy ci` as a separate step, outside `ci:check`; run `vendor/bin/sloppy ci` on the host before finishing PHP changes. Fix new findings instead of regenerating `.sloppy-baseline.json`.
 
 ## Inertia props contract
 
