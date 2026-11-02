@@ -20,6 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
+import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import {
     consumedFirstLegKeys,
     showsPairCandidateBadge,
@@ -60,6 +61,7 @@ const {
     otherAccounts: OtherAccountRow[];
     termDeposits: TermDepositRow[];
     monthRemainingContext: MonthRemainingContext;
+    entryToSpend: EntryToSpendInputs;
 }>();
 
 const t = useTranslations();

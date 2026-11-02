@@ -7,6 +7,7 @@ import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
 } from '@/components/ExpenseFormDialog.vue';
+import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import FinancialOperationRow, {
     type FinancialOperationRowData,
@@ -67,6 +68,7 @@ const {
     incomeCategories: IncomeFormCategory[];
     expenseCategories: ExpenseFormCategory[];
     handEntryMonthRemaining: HandEntryMonthRemainingInputs;
+    entryToSpend: EntryToSpendInputs;
     filters: OperationsListFilters;
     filtersActive: boolean;
     suppressedSections: Array<
