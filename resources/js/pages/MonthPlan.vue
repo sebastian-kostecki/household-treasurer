@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AlertTriangle } from '@lucide/vue';
 import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
@@ -8,6 +9,7 @@ import CategoryChip from '@/components/CategoryChip.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,6 +20,7 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
+import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
 import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
 
@@ -44,6 +47,8 @@ type MonthPlanReading = {
     approved_at: string | null;
     can_approve: boolean;
     to_spend_minor_units: number | null;
+    set_aside_minor_units: number;
+    spendable_liquidity_minor_units: number | null;
     income_items: MonthPlanItemRow[];
     expense_items: MonthPlanItemRow[];
 };
@@ -95,10 +100,29 @@ function initialAmountInputs(): Record<number, string> {
 
 const amountInputs = ref<Record<number, string>>(initialAmountInputs());
 
+type SetAsideDirection = 'set_aside' | 'draw';
+
+const setAsideDirection = ref<SetAsideDirection>(initialSetAsideDirection());
+const setAsideInput = ref<string>(initialSetAsideInput());
+
+function initialSetAsideDirection(): SetAsideDirection {
+    return (props.monthPlan?.set_aside_minor_units ?? 0) < 0
+        ? 'draw'
+        : 'set_aside';
+}
+
+function initialSetAsideInput(): string {
+    return minorUnitsToMoneyInput(
+        Math.abs(props.monthPlan?.set_aside_minor_units ?? 0),
+    );
+}
+
 watch(
     () => [props.viewedMonth, props.monthPlan?.state, props.budget?.id],
     () => {
         amountInputs.value = initialAmountInputs();
+        setAsideDirection.value = initialSetAsideDirection();
+        setAsideInput.value = initialSetAsideInput();
     },
 );
 
@@ -129,9 +153,57 @@ const parsedPlanAmounts = computed(() =>
     })),
 );
 
-const allAmountsValid = computed(() =>
-    parsedPlanAmounts.value.every((item) => item.amount !== null),
+/** Signed form value: a draw is negative. Null when the amount is invalid. */
+const formSetAsideMinorUnits = computed<number | null>(() => {
+    const parsed = parseMoneyInputToMinorUnits(setAsideInput.value);
+
+    if (parsed === null || parsed < 0 || parsed > MAX_PLAN_AMOUNT_MINOR_UNITS) {
+        return null;
+    }
+
+    return setAsideDirection.value === 'draw' && parsed > 0 ? -parsed : parsed;
+});
+
+const allAmountsValid = computed(
+    () =>
+        parsedPlanAmounts.value.every((item) => item.amount !== null) &&
+        formSetAsideMinorUnits.value !== null,
 );
+
+const shownSetAsideMinorUnits = computed<number | null>(() =>
+    isEditable.value
+        ? formSetAsideMinorUnits.value
+        : (props.monthPlan?.set_aside_minor_units ?? 0),
+);
+
+const drawWarningMessage = computed<string | null>(() => {
+    const value = shownSetAsideMinorUnits.value;
+
+    if (
+        value === null ||
+        !drawExceedsSpendableLiquidity(
+            value,
+            props.monthPlan?.spendable_liquidity_minor_units ?? null,
+        )
+    ) {
+        return null;
+    }
+
+    return t.month_plan.draw_warning
+        .replace(':draw', formatMoney(-value))
+        .replace(
+            ':liquidity',
+            formatMoney(props.monthPlan?.spendable_liquidity_minor_units ?? 0),
+        );
+});
+
+const setAsideDirections: SetAsideDirection[] = ['set_aside', 'draw'];
+
+function setAsideDirectionLabel(direction: SetAsideDirection): string {
+    return direction === 'draw'
+        ? t.month_plan.set_aside_draw
+        : t.month_plan.set_aside_save;
+}
 
 const toSpendPreviewMinorUnits = computed<number | null>(() => {
     if (props.monthPlan === null || props.monthPlan.state === 'none') {
@@ -150,6 +222,7 @@ const toSpendPreviewMinorUnits = computed<number | null>(() => {
             actual: row.actual_minor_units,
             hasPositiveAmount: row.has_positive_amount,
         })),
+        formSetAsideMinorUnits.value ?? 0,
     );
 });
 
@@ -321,6 +394,94 @@ const sections = computed(() => [
                     v-slot="{ errors, processing }"
                     class="space-y-4"
                 >
+                    <Card>
+                        <CardContent class="grid gap-3 pt-6">
+                            <p
+                                class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
+                            >
+                                {{ t.month_plan.set_aside }}
+                            </p>
+
+                            <div
+                                v-if="isEditable"
+                                class="flex flex-wrap items-center gap-3"
+                            >
+                                <div
+                                    role="group"
+                                    :aria-label="
+                                        t.month_plan.set_aside_direction
+                                    "
+                                    class="border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1"
+                                >
+                                    <Button
+                                        v-for="direction in setAsideDirections"
+                                        :key="direction"
+                                        type="button"
+                                        size="sm"
+                                        :variant="
+                                            setAsideDirection === direction
+                                                ? 'default'
+                                                : 'ghost'
+                                        "
+                                        :aria-pressed="
+                                            setAsideDirection === direction
+                                        "
+                                        class="h-7 rounded-lg px-2 text-xs"
+                                        @click="setAsideDirection = direction"
+                                    >
+                                        {{ setAsideDirectionLabel(direction) }}
+                                    </Button>
+                                </div>
+                                <Input
+                                    v-model="setAsideInput"
+                                    inputmode="decimal"
+                                    autocomplete="off"
+                                    :aria-label="t.month_plan.set_aside_amount"
+                                    class="w-40 text-right tabular-nums"
+                                />
+                                <input
+                                    type="hidden"
+                                    name="set_aside_minor_units"
+                                    :value="formSetAsideMinorUnits ?? 0"
+                                />
+                            </div>
+                            <p v-else class="text-sm tabular-nums">
+                                {{
+                                    setAsideDirectionLabel(
+                                        monthPlan.set_aside_minor_units < 0
+                                            ? 'draw'
+                                            : 'set_aside',
+                                    )
+                                }}
+                                {{
+                                    formatMoney(
+                                        Math.abs(
+                                            monthPlan.set_aside_minor_units,
+                                        ),
+                                    )
+                                }}
+                            </p>
+
+                            <InputError
+                                :message="errors.set_aside_minor_units"
+                            />
+
+                            <p class="text-muted-foreground text-xs">
+                                {{ t.month_plan.set_aside_hint }}
+                            </p>
+
+                            <Alert v-if="drawWarningMessage" variant="warning">
+                                <AlertTriangle class="size-4" />
+                                <AlertTitle>{{
+                                    t.month_plan.draw_warning_title
+                                }}</AlertTitle>
+                                <AlertDescription>
+                                    {{ drawWarningMessage }}
+                                </AlertDescription>
+                            </Alert>
+                        </CardContent>
+                    </Card>
+
                     <template v-if="isEditable">
                         <template
                             v-for="(row, index) in planRows"

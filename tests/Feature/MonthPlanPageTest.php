@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
+use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
@@ -97,6 +98,7 @@ class MonthPlanPageTest extends TestCase
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
                 'items' => $this->planItems($categories),
             ])
             ->assertSessionHasNoErrors();
@@ -225,6 +227,7 @@ class MonthPlanPageTest extends TestCase
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
                 'items' => $this->planItems($categories, ['rent' => 210_000]),
             ])
             ->assertSessionHasNoErrors()
@@ -260,6 +263,7 @@ class MonthPlanPageTest extends TestCase
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
                 'items' => $this->planItems($categories),
             ])
             ->assertSessionHasNoErrors()
@@ -277,7 +281,7 @@ class MonthPlanPageTest extends TestCase
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
-            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), ['items' => $items])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), ['set_aside_minor_units' => 0, 'items' => $items])
             ->assertSessionHasErrors('items.1.category_id');
 
         $this->assertDatabaseCount('month_plans', 0);
@@ -290,6 +294,7 @@ class MonthPlanPageTest extends TestCase
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
                 'items' => $this->planItems($categories, ['rent' => -1]),
             ])
             ->assertSessionHasErrors('items.1.amount_minor_units');
@@ -302,6 +307,7 @@ class MonthPlanPageTest extends TestCase
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
                 'items' => $this->planItems($categories, ['rent' => 1_000_000_000_001]),
             ])
             ->assertSessionHasErrors('items.1.amount_minor_units');
@@ -314,10 +320,10 @@ class MonthPlanPageTest extends TestCase
         [$user, $budget, $categories] = $this->canonicalBudget();
         $url = route('month-plans.approve', ['budget' => $budget, 'month' => 6]);
 
-        $this->actingAs($user)->post($url, ['items' => $this->planItems($categories)]);
+        $this->actingAs($user)->post($url, ['set_aside_minor_units' => 0, 'items' => $this->planItems($categories)]);
 
         $this->actingAs($user)
-            ->post($url, ['items' => $this->planItems($categories)])
+            ->post($url, ['set_aside_minor_units' => 0, 'items' => $this->planItems($categories)])
             ->assertSessionHasErrors('items');
     }
 
@@ -341,13 +347,128 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_proposal_copies_the_set_aside_of_the_approved_month(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 50_000,
+                'items' => $this->planItems($categories),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.set_aside_minor_units', 50_000)
+                ->where('monthPlan.to_spend_minor_units', 323_000),
+            );
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 7]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.set_aside_minor_units', 50_000)
+                ->where('monthPlan.to_spend_minor_units', 360_000),
+            );
+    }
+
+    public function test_spendable_liquidity_is_the_sum_of_all_account_balances_for_current_and_future_months(): void
+    {
+        [$user] = $this->canonicalBudget();
+        Account::factory()->for($user)->create(['current_balance_minor_units' => 100_000]);
+        Account::factory()->for($user)->create(['current_balance_minor_units' => -20_000]);
+        Account::factory()->for($user)->create([
+            'current_balance_minor_units' => 5_000,
+            'archived_at' => '2026-05-01',
+        ]);
+
+        foreach ([6, 7] as $month) {
+            $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('month-plan', ['month' => $month]))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('monthPlan.spendable_liquidity_minor_units', 85_000),
+                );
+        }
+    }
+
+    public function test_spendable_liquidity_is_null_for_a_past_approved_month(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        Account::factory()->for($user)->create(['current_balance_minor_units' => 100_000]);
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['salary']->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.spendable_liquidity_minor_units', null),
+            );
+    }
+
+    public function test_approving_a_draw_above_the_liquidity_is_not_blocked_and_moves_no_money(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $account = Account::factory()->for($user)->create(['current_balance_minor_units' => 10_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => -30_000,
+                'items' => $this->planItems($categories),
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('month-plan', ['month' => 6]));
+
+        $this->assertDatabaseHas('month_plans', [
+            'budget_id' => $budget->id,
+            'month' => 6,
+            'approved_set_aside_minor_units' => -30_000,
+            'current_set_aside_minor_units' => -30_000,
+        ]);
+        $this->assertSame(10_000, $account->refresh()->current_balance_minor_units);
+    }
+
+    public function test_approval_requires_a_whole_set_aside_within_the_limit(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $url = route('month-plans.approve', ['budget' => $budget, 'month' => 6]);
+        $items = $this->planItems($categories);
+
+        $this->actingAs($user)
+            ->post($url, ['items' => $items])
+            ->assertSessionHasErrors('set_aside_minor_units');
+
+        foreach (['abc', 1.5, 1_000_000_000_001, -1_000_000_000_001] as $value) {
+            $this->actingAs($user)
+                ->post($url, ['set_aside_minor_units' => $value, 'items' => $items])
+                ->assertSessionHasErrors('set_aside_minor_units');
+        }
+
+        $this->assertDatabaseCount('month_plans', 0);
+    }
+
     public function test_approval_is_forbidden_for_a_draft_budget(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
 
         $this->actingAs($user)
-            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), ['items' => []])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), ['set_aside_minor_units' => 0, 'items' => []])
             ->assertForbidden();
     }
 
@@ -357,6 +478,7 @@ class MonthPlanPageTest extends TestCase
 
         $this->actingAs(User::factory()->create())
             ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
                 'items' => $this->planItems($categories),
             ])
             ->assertForbidden();

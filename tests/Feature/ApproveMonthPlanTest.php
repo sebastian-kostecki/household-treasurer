@@ -44,6 +44,36 @@ class ApproveMonthPlanTest extends TestCase
         ]);
     }
 
+    public function test_it_stores_a_set_aside_in_both_columns(): void
+    {
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $food = Category::factory()->for($budget)->expense()->create();
+
+        $plan = $this->approve($budget, 11, [$food->id => 1], 50_000);
+
+        $this->assertSame(50_000, $plan->approved_set_aside_minor_units);
+        $this->assertSame(50_000, $plan->current_set_aside_minor_units);
+        $this->assertDatabaseHas('month_plans', [
+            'id' => $plan->id,
+            'approved_set_aside_minor_units' => 50_000,
+            'current_set_aside_minor_units' => 50_000,
+        ]);
+    }
+
+    public function test_it_stores_a_draw_in_both_columns(): void
+    {
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $food = Category::factory()->for($budget)->expense()->create();
+
+        $plan = $this->approve($budget, 11, [$food->id => 1], -30_000);
+
+        $this->assertDatabaseHas('month_plans', [
+            'id' => $plan->id,
+            'approved_set_aside_minor_units' => -30_000,
+            'current_set_aside_minor_units' => -30_000,
+        ]);
+    }
+
     public function test_it_does_not_change_the_annual_plan(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
@@ -172,12 +202,13 @@ class ApproveMonthPlanTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
-    private function approve(Budget $budget, int $month, array $amounts): MonthPlan
+    private function approve(Budget $budget, int $month, array $amounts, int $setAside = 0): MonthPlan
     {
         return app(ApproveMonthPlan::class)->handle(
             $budget,
             $month,
             $amounts,
+            $setAside,
             CarbonImmutable::create(2026, 11, 10),
         );
     }

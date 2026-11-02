@@ -15,6 +15,7 @@ use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\DashboardNotices;
 use App\Support\ShellState;
+use App\Support\SpendableLiquidity;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -51,7 +52,7 @@ class DashboardController extends Controller
             ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit))
             ->all();
 
-        $spendableLiquidityMinorUnits = (int) $user->accounts()->sum('current_balance_minor_units');
+        $spendableLiquidityMinorUnits = SpendableLiquidity::forUser($user);
         $termDepositsTotalMinorUnits = (int) $user->termDeposits()->sum('current_balance_minor_units');
 
         $incomeCategories = [];

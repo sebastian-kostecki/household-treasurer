@@ -406,36 +406,36 @@ Jedno dodatkowe zapytanie `sum` na odczyt strony planu dla miesiąca bieżącego
 
 #### Automated
 
-- [x] 1.1 MonthPlanProposalTest obejmuje 6 przykładów reguły propozycji, test liczby zapytań bez zmian
-- [x] 1.2 ApproveMonthPlanTest i MonthPlanPageTest przechodzą bez zmian
-- [x] 1.3 MonthPlanProposalTest przechodzi na PostgreSQL
-- [x] 1.4 Pint przechodzi
+- [x] 1.1 MonthPlanProposalTest obejmuje 6 przykładów reguły propozycji, test liczby zapytań bez zmian — 54cf49e
+- [x] 1.2 ApproveMonthPlanTest i MonthPlanPageTest przechodzą bez zmian — 54cf49e
+- [x] 1.3 MonthPlanProposalTest przechodzi na PostgreSQL — 54cf49e
+- [x] 1.4 Pint przechodzi — 54cf49e
 
 #### Manual
 
-- [x] 1.5 Testy propozycji odpowiadają tabeli przykładów
+- [x] 1.5 Testy propozycji odpowiadają tabeli przykładów — 54cf49e
 
 ### Phase 2: Wzór, zatwierdzenie i strona
 
 #### Automated
 
-- [ ] 2.1 ToSpendCalculatorTest z Set-aside 0 oraz 170 000 i 250 000
-- [ ] 2.2 npm test z parą wzoru i drawExceedsSpendableLiquidity
-- [ ] 2.3 ApproveMonthPlanTest: zapis obu kolumn
-- [ ] 2.4 MonthPlanPageTest: nowe propsy, null dla minionego, Draw ponad płynność przez trasę bez zmiany sald, walidacja
-- [ ] 2.5 DashboardTest bez zmian asercji
-- [ ] 2.6 Testy feature fazy przechodzą na PostgreSQL
-- [ ] 2.7 npm run build, check i types:check przechodzą
-- [ ] 2.8 Pint przechodzi
+- [x] 2.1 ToSpendCalculatorTest z Set-aside 0 oraz 170 000 i 250 000
+- [x] 2.2 npm test z parą wzoru i drawExceedsSpendableLiquidity
+- [x] 2.3 ApproveMonthPlanTest: zapis obu kolumn
+- [x] 2.4 MonthPlanPageTest: nowe propsy, null dla minionego, Draw ponad płynność przez trasę bez zmiany sald, walidacja
+- [x] 2.5 DashboardTest bez zmian asercji
+- [x] 2.6 Testy feature fazy przechodzą na PostgreSQL
+- [x] 2.7 npm run build, check i types:check przechodzą
+- [x] 2.8 Pint przechodzi
 
 #### Manual
 
-- [ ] 2.9 Odkładam/dobieram zmienia „do wydania” od razu
-- [ ] 2.10 Ostrzeżenie o Draw ponad płynność, bez blokady i bez zmiany sald
-- [ ] 2.11 Nieprawidłowa kwota wyłącza Zatwierdź
-- [ ] 2.12 Plan zatwierdzony tylko do odczytu i reguła propozycji w kolejnym miesiącu
-- [ ] 2.13 Miniony miesiąc bez ostrzeżenia
-- [ ] 2.14 Wąski ekran i obsługa klawiaturą
+- [x] 2.9 Odkładam/dobieram zmienia „do wydania” od razu
+- [x] 2.10 Ostrzeżenie o Draw ponad płynność, bez blokady i bez zmiany sald
+- [x] 2.11 Nieprawidłowa kwota wyłącza Zatwierdź
+- [x] 2.12 Plan zatwierdzony tylko do odczytu i reguła propozycji w kolejnym miesiącu
+- [x] 2.13 Miniony miesiąc bez ostrzeżenia
+- [x] 2.14 Wąski ekran i obsługa klawiaturą
 
 ### Phase 3: Snapshot i dokumenty
 

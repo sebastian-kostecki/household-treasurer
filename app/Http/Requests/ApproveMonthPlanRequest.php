@@ -25,6 +25,7 @@ class ApproveMonthPlanRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'set_aside_minor_units' => ['required', 'integer', 'min:-1000000000000', 'max:1000000000000'],
             'items' => ['sometimes', 'array'],
             'items.*.category_id' => ['required', 'integer', 'distinct'],
             'items.*.amount_minor_units' => ['required', 'integer', 'min:0', 'max:1000000000000'],
