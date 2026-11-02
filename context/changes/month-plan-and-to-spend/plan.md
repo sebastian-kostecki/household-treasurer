@@ -695,30 +695,30 @@ Agregacja używa zakresu dat i indeksu `budget_id`, więc przy 10 000 operacji m
 
 #### Automated
 
-- [x] 3.1 `tests/Feature/MonthPlanPageTest.php` przechodzi (propsy przez `assertInertia`, stany miesięcy, brak budżetu i szkic, zarchiwizowana z operacją i `in_plan`, zatwierdzenie z wierszem spoza planu, `distinct`, liczba po operacji)
-- [x] 3.2 Test przełącznika rodzaju przechodzi (zapis `bill`, odrzucenia, redirect wstecz)
-- [x] 3.3 `npm test` przechodzi, w tym `to-spend-calculator.test.ts` z przypadkami jak w PHP
-- [x] 3.4 `npm run build`, `npm run check` i `npm run types:check` przechodzą
-- [x] 3.5 `MonthPlanPageTest` przechodzi na PostgreSQL
-- [x] 3.6 `BudgetTest`, `DashboardTest` i `BudgetMonthRemainingTest` przechodzą bez zmian asercji
+- [x] 3.1 `tests/Feature/MonthPlanPageTest.php` przechodzi (propsy przez `assertInertia`, stany miesięcy, brak budżetu i szkic, zarchiwizowana z operacją i `in_plan`, zatwierdzenie z wierszem spoza planu, `distinct`, liczba po operacji) — 6b2cea1
+- [x] 3.2 Test przełącznika rodzaju przechodzi (zapis `bill`, odrzucenia, redirect wstecz) — 6b2cea1
+- [x] 3.3 `npm test` przechodzi, w tym `to-spend-calculator.test.ts` z przypadkami jak w PHP — 6b2cea1
+- [x] 3.4 `npm run build`, `npm run check` i `npm run types:check` przechodzą — 6b2cea1
+- [x] 3.5 `MonthPlanPageTest` przechodzi na PostgreSQL — 6b2cea1
+- [x] 3.6 `BudgetTest`, `DashboardTest` i `BudgetMonthRemainingTest` przechodzą bez zmian asercji — 6b2cea1
 
 #### Manual
 
-- [x] 3.7 Bieżący miesiąc pokazuje propozycję „niezatwierdzony” i liczbę, która reaguje na zmianę kwoty
-- [x] 3.8 Przełączenie rodzaju zmienia liczbę i nie gubi wpisanych kwot
-- [x] 3.9 „Zatwierdź” zapisuje plan, badge „zatwierdzony”, pola tylko do odczytu
-- [x] 3.10 Dodany wydatek zmienia liczbę na stronie planu
-- [x] 3.11 Przełącznik miesięcy działa, miniony miesiąc pokazuje „bez planu”, strona Budżet przełącza miesiące jak dotąd
-- [x] 3.12 Widok czytelny na telefonie, liczba ujemna w kolorze `destructive`
+- [x] 3.7 Bieżący miesiąc pokazuje propozycję „niezatwierdzony” i liczbę, która reaguje na zmianę kwoty — 6b2cea1
+- [x] 3.8 Przełączenie rodzaju zmienia liczbę i nie gubi wpisanych kwot — 6b2cea1
+- [x] 3.9 „Zatwierdź” zapisuje plan, badge „zatwierdzony”, pola tylko do odczytu — 6b2cea1
+- [x] 3.10 Dodany wydatek zmienia liczbę na stronie planu — 6b2cea1
+- [x] 3.11 Przełącznik miesięcy działa, miniony miesiąc pokazuje „bez planu”, strona Budżet przełącza miesiące jak dotąd — 6b2cea1
+- [x] 3.12 Widok czytelny na telefonie, liczba ujemna w kolorze `destructive` — 6b2cea1
 
 ### Phase 4: Snapshot w wersji 5 i dokumenty
 
 #### Automated
 
-- [ ] 4.1 `tests/Feature/UserSnapshotCommandTest.php` przechodzi (wersja 5, okrągła podróż z planem i `bill`, przywrócenie v4 z domyślnym `running`, odrzucenie v5 bez `month_plans`)
-- [ ] 4.2 `CategoryPacedFlagTest` przechodzi
-- [ ] 4.3 Pełna bramka `composer ci:check` przechodzi na obrazie Sail
+- [x] 4.1 `tests/Feature/UserSnapshotCommandTest.php` przechodzi (wersja 5, okrągła podróż z planem i `bill`, przywrócenie v4 z domyślnym `running`, odrzucenie v5 bez `month_plans`)
+- [x] 4.2 `CategoryPacedFlagTest` przechodzi
+- [x] 4.3 Pełna bramka `composer ci:check` przechodzi na obrazie Sail
 
 #### Manual
 
-- [ ] 4.4 Backup i restore na innym użytkowniku dają ten sam plan i tę samą liczbę
+- [x] 4.4 Backup i restore na innym użytkowniku dają ten sam plan i tę samą liczbę

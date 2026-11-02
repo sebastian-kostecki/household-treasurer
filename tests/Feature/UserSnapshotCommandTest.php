@@ -7,11 +7,14 @@ use App\Actions\RestoreUserData;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
+use App\Enums\MonthItemKind;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
+use App\Models\MonthPlan;
+use App\Models\MonthPlanItem;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
@@ -40,7 +43,9 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(4, $snapshot['version']);
+        $this->assertSame(5, $snapshot['version']);
+        $this->assertSame([], $snapshot['month_plans']);
+        $this->assertSame('running', $snapshot['categories'][0]['month_item_kind']);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
         $this->assertSame($user->email, $snapshot['source']['email']);
         $this->assertCount(2, $snapshot['accounts']);
@@ -162,6 +167,120 @@ class UserSnapshotCommandTest extends TestCase
 
         $this->assertSame(Bank::Other, $restoredTermDeposit->bank);
         $this->assertNull($restoredTermDeposit->end_date);
+    }
+
+    public function test_snapshot_round_trips_month_plan_and_item_kind_with_remapped_ids(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $billCategory = Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $runningCategory = Category::factory()->for($budget)->expense()->create(['name' => 'Food']);
+        $monthPlan = MonthPlan::factory()->for($budget)->create([
+            'month' => 3,
+            'approved_at' => '2026-03-02 10:00:00',
+        ]);
+        MonthPlanItem::factory()->for($monthPlan)->for($billCategory)->create([
+            'approved_amount_minor_units' => 150000,
+            'current_amount_minor_units' => 160000,
+        ]);
+        MonthPlanItem::factory()->for($monthPlan)->for($runningCategory)->create([
+            'approved_amount_minor_units' => 40000,
+            'current_amount_minor_units' => 40000,
+        ]);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertSame(5, $snapshot['version']);
+        $this->assertCount(1, $snapshot['month_plans']);
+        $this->assertCount(2, $snapshot['month_plans'][0]['items']);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restoredBill = Category::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->where('name', 'Rent')
+            ->firstOrFail();
+        $restoredPlan = MonthPlan::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->firstOrFail();
+        $restoredItem = $restoredPlan->items()->where('category_id', $restoredBill->id)->firstOrFail();
+
+        $this->assertSame(MonthItemKind::Bill, $restoredBill->month_item_kind);
+        $this->assertSame(3, $restoredPlan->month);
+        $this->assertSame('2026-03-02 10:00:00', $restoredPlan->approved_at->format('Y-m-d H:i:s'));
+        $this->assertNotSame($monthPlan->id, $restoredPlan->id);
+        $this->assertNotSame($budget->id, $restoredPlan->budget_id);
+        $this->assertSame(150000, $restoredItem->approved_amount_minor_units);
+        $this->assertSame(160000, $restoredItem->current_amount_minor_units);
+        $this->assertSame(2, $restoredPlan->items()->count());
+    }
+
+    public function test_restore_command_restores_v4_snapshot_with_running_kind_and_no_plans(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        MonthPlanItem::factory()
+            ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
+            ->for($category)
+            ->create();
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot['version'] = 4;
+        unset($snapshot['month_plans']);
+        unset($snapshot['categories'][0]['month_item_kind']);
+
+        $legacyPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/legacy-v4.json');
+        Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
+        file_put_contents($legacyPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $legacyPath,
+            '--force' => true,
+        ]);
+
+        $restoredCategory = Category::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->firstOrFail();
+
+        $this->assertSame(MonthItemKind::Running, $restoredCategory->month_item_kind);
+        $this->assertSame(0, MonthPlan::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->count());
+    }
+
+    public function test_restore_command_rejects_v5_snapshot_without_month_plans(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset($snapshot['month_plans']);
+
+        $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-v5.json');
+        file_put_contents($brokenPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $brokenPath,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('month_plans', Artisan::output());
+        $this->assertSame(0, $targetUser->accounts()->count());
     }
 
     public function test_restore_command_fails_for_unsupported_snapshot_version(): void

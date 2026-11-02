@@ -103,7 +103,7 @@ Pełny zestaw lokalny: `./vendor/bin/sail composer ci:check`.
 | Komenda                      | Działanie                                                    |
 | ---------------------------- | ------------------------------------------------------------ |
 | `user:create`                | Konto logowania                                              |
-| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 4)                   |
+| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 5)                   |
 | `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika           |
 | `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje     |
 | `demo:seed-household {user}` | Dane demo                                                    |
