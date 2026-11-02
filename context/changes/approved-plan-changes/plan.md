@@ -284,16 +284,16 @@ Brak migracji i zmian snapshotu. Istniejące plany mają approved == current, wi
 
 #### Automated
 
-- [x] 2.1 `tests/Feature/MonthPlanPageTest.php`, `tests/Feature/ChangeMonthPlanTest.php` i `tests/Feature/MonthPlanProposalTest.php` przechodzą na PostgreSQL
-- [x] 2.2 `vendor/bin/pint --dirty --format agent` przechodzi
-- [x] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
-- [x] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi
+- [x] 2.1 `tests/Feature/MonthPlanPageTest.php`, `tests/Feature/ChangeMonthPlanTest.php` i `tests/Feature/MonthPlanProposalTest.php` przechodzą na PostgreSQL — f30ae85
+- [x] 2.2 `vendor/bin/pint --dirty --format agent` przechodzi — f30ae85
+- [x] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą — f30ae85
+- [x] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi — f30ae85
 
 #### Manual
 
-- [x] 2.5 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”): zatwierdzony bieżący miesiąc pokazuje „Zmień plan”; tryb zmiany pokazuje pola, „Zapisz zmiany” i „Anuluj”, a „do wydania” zmienia się przy wpisywaniu
-- [x] 2.6 Po zapisie strona wraca do odczytu, kwoty są nowe, a zmienione pozycje pokazują „Zatwierdzono: X”
-- [x] 2.7 „Anuluj” przywraca kwoty z serwera bez zapisu
-- [x] 2.8 Kategoria utworzona po zatwierdzeniu pojawia się dopiero w trybie zmiany i po zapisie zostaje w planie z „Zatwierdzono: 0,00 zł”
-- [x] 2.9 Miniony zatwierdzony miesiąc nie ma „Zmień plan”, a przyszły zatwierdzony ma
-- [x] 2.10 Przełącznik „Rachunek / Bieżąca” działa w trybie zmiany i nie gubi wpisanych kwot
+- [x] 2.5 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”): zatwierdzony bieżący miesiąc pokazuje „Zmień plan”; tryb zmiany pokazuje pola, „Zapisz zmiany” i „Anuluj”, a „do wydania” zmienia się przy wpisywaniu — f30ae85
+- [x] 2.6 Po zapisie strona wraca do odczytu, kwoty są nowe, a zmienione pozycje pokazują „Zatwierdzono: X” — f30ae85
+- [x] 2.7 „Anuluj” przywraca kwoty z serwera bez zapisu — f30ae85
+- [x] 2.8 Kategoria utworzona po zatwierdzeniu pojawia się dopiero w trybie zmiany i po zapisie zostaje w planie z „Zatwierdzono: 0,00 zł” — f30ae85
+- [x] 2.9 Miniony zatwierdzony miesiąc nie ma „Zmień plan”, a przyszły zatwierdzony ma — f30ae85
+- [x] 2.10 Przełącznik „Rachunek / Bieżąca” działa w trybie zmiany i nie gubi wpisanych kwot — f30ae85
