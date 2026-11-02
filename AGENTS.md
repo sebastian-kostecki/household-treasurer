@@ -43,7 +43,7 @@ Before running checks, follow the CI order: `composer install`, copy `.env.examp
 
 ## When Boost tools are not available
 
-Boost MCP is configured for Cursor only, and `.ai/rules/boost` does not exist. If the Boost tools are missing from your tool list:
+Boost MCP is configured for Cursor and Claude Code, and `.ai/rules/boost` does not exist. Claude Code starts it with host PHP through `.mcp.json`, so a worktree needs `composer install` and `.env`, and the database tools need the Sail PostgreSQL container running. If the Boost tools are missing from your tool list:
 
 - Package docs: check the installed version, then read the matching official docs: `laravel.com/docs/13.x`, `inertiajs.com/docs/v3`, `pestphp.com/docs`.
 - Package skills: read `.cursor/skills/<skill-name>/SKILL.md`.
