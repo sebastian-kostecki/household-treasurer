@@ -47,6 +47,7 @@ export type BudgetCategoryRow = {
     can_restore: boolean;
     can_align_current_plan: boolean;
     is_paced: boolean;
+    month_item_kind: 'bill' | 'running';
 };
 
 const NAME_FILTER_THRESHOLD = 12;

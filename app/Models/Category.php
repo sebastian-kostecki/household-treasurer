@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
+use App\Enums\MonthItemKind;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property int $sort_order
  * @property CategoryType $type
  * @property bool $is_paced
+ * @property MonthItemKind $month_item_kind
  * @property int $planned_amount_minor_units
  * @property int $initial_plan_minor_units
  * @property int $execution_minor_units
@@ -36,6 +38,7 @@ use Illuminate\Support\Carbon;
     'sort_order',
     'type',
     'is_paced',
+    'month_item_kind',
     'planned_amount_minor_units',
     'initial_plan_minor_units',
     'execution_minor_units',
@@ -54,6 +57,7 @@ class Category extends Model
         return [
             'type' => CategoryType::class,
             'is_paced' => 'boolean',
+            'month_item_kind' => MonthItemKind::class,
             'sort_order' => 'integer',
             'planned_amount_minor_units' => 'integer',
             'initial_plan_minor_units' => 'integer',

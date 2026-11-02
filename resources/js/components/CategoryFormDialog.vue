@@ -38,6 +38,7 @@ export type CategoryFormCategory = {
     type: 'income' | 'expense';
     planned_amount_minor_units: number;
     is_paced: boolean;
+    month_item_kind: 'bill' | 'running';
 };
 
 const props = defineProps<{
@@ -63,6 +64,7 @@ const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
 const plannedAmountMinorUnits = ref(0);
 const isPaced = ref(true);
+const monthItemKind = ref<'bill' | 'running'>('running');
 
 const formBinding = computed(() =>
     props.mode === 'create'
@@ -102,6 +104,7 @@ watch(
                 props.category.planned_amount_minor_units,
             );
             isPaced.value = props.category.is_paced;
+            monthItemKind.value = props.category.month_item_kind;
 
             return;
         }
@@ -113,6 +116,7 @@ watch(
         plannedAmountMinorUnits.value = 0;
         plannedAmountInput.value = '0,00';
         isPaced.value = true;
+        monthItemKind.value = 'running';
     },
     { immediate: true },
 );
@@ -272,6 +276,29 @@ function closeDialog(): void {
                         :value="isPaced ? '1' : '0'"
                     />
                     <InputError :message="errors.is_paced" />
+                </div>
+
+                <div v-if="type === 'expense'" class="grid gap-2">
+                    <Label for="category-month-item-kind">
+                        {{ t.budget.month_item_kind }}
+                    </Label>
+                    <select
+                        id="category-month-item-kind"
+                        name="month_item_kind"
+                        v-model="monthItemKind"
+                        class="native-select"
+                    >
+                        <option value="running">
+                            {{ t.budget.month_item_kind_running }}
+                        </option>
+                        <option value="bill">
+                            {{ t.budget.month_item_kind_bill }}
+                        </option>
+                    </select>
+                    <p class="text-muted-foreground text-sm">
+                        {{ t.budget.month_item_kind_hint }}
+                    </p>
+                    <InputError :message="errors.month_item_kind" />
                 </div>
 
                 <DialogFooter class="gap-2">

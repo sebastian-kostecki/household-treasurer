@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ReorderCategories;
 use App\Enums\CategoryType;
+use App\Enums\MonthItemKind;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
@@ -31,6 +32,9 @@ class CategoryController extends Controller
         $attributes['is_paced'] = $type === CategoryType::Expense
             ? $request->boolean('is_paced', true)
             : true;
+        $attributes['month_item_kind'] = $type === CategoryType::Expense
+            ? ($attributes['month_item_kind'] ?? MonthItemKind::Running->value)
+            : MonthItemKind::Running->value;
         $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
 
         $budget->categories()->create($attributes);
@@ -55,6 +59,7 @@ class CategoryController extends Controller
 
         if ($category->type === CategoryType::Expense && ! $category->isArchived()) {
             $updatableFields[] = 'is_paced';
+            $updatableFields[] = 'month_item_kind';
         }
 
         $category->update($request->safe()->only($updatableFields));
