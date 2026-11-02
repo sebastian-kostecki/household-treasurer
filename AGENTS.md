@@ -1,3 +1,69 @@
+## Project facts
+
+- CI, Sail and production run PHP 8.5. The host CLI is 8.4, and the locked dependencies need at least 8.4.1, so write code that runs on 8.4.1.
+- Run project commands through Sail, for example `./vendor/bin/sail artisan test --compact`. In a worktree, the running Sail stack serves the main checkout, not your code, so run the Sail image directly (see "Test database"). If you use the host CLI, say so in your report.
+- npm is the only JS package manager. Do not add `pnpm-workspace.yaml`, because `vp migrate` reads it and switches the project to pnpm.
+- Docs describe more than the code. Confirm the code exists before relying on a term from `CONTEXT.md`, `.docs/prd.md` or `.docs/specs/`. Agenda, Cash Expectation, Reserve and Year Close are not implemented on `main`.
+
+## Money
+
+Amounts are integers in minor units: `*_minor_units` columns (`bigint`) and `int` in PHP, with `float` kept out of money code. Parse user input with `App\Support\MinorUnits`. In Vue, follow `.ai/rules/js.md`.
+
+## Test database
+
+`phpunit.xml` defaults to in-memory SQLite, while CI and production use PostgreSQL, so a green SQLite run proves nothing about PostgreSQL. For migrations, raw SQL, date or JSON functions, and behavior that depends on constraints, run the affected tests on PostgreSQL:
+
+`docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`
+
+That command fails from a worktree. With Sail running and after the fresh-checkout steps, run the Sail image on the worktree instead. It gives the same PHP 8.5, Node and PostgreSQL as CI:
+
+`docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`
+
+For the full CI gate, replace `--entrypoint php sail-8.5/app artisan test --compact <path>` with `--entrypoint composer sail-8.5/app ci:check`.
+
+## Inertia props contract
+
+Props are PHP arrays in controllers and hand-written TypeScript types in `defineProps<>`, and `vue-tsc` cannot see the PHP side. When you add, rename or change a prop, change both sides in the same commit and assert the prop with `assertInertia` in a Feature test.
+
+## Month logic lives twice
+
+`app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. The calculators are covered by `tests/Unit/MonthRemainingCalculatorTest.php` and `resources/js/lib/month-remaining-calculator.test.ts`; the two preview files have no tests. Change both copies and both tests together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.
+
+## Wayfinder
+
+Wayfinder is in beta. Copy the pattern from an existing page and read `.cursor/skills/wayfinder-development/SKILL.md` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
+
+## Frontend toolchain
+
+Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `npm run check:fix`. Warnings fail the run. CI also runs `npm run types:check` for Vue templates. Frontend tests run through `npm test` (`vp test`): keep `*.test.ts` next to the code, import from `vite-plus/test`, and use relative imports, because Vite plugins and the `@` alias are off during tests. Stay within `vp`, because this project has no separate ESLint, Prettier or Vitest setup. `vite-plus`, the `vite` alias and `overrides.vite` in `package.json` must stay on the same version, so upgrade them together. Confirm options with `npx vp --help`, because online docs may describe a newer version than the installed one.
+
+## Fresh checkout or worktree
+
+Before running checks, follow the CI order: `composer install`, copy `.env.example` to `.env`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories (`resources/js/actions`, `resources/js/routes`, `resources/js/wayfinder`), which `npm run types:check` needs.
+
+## When Boost tools are not available
+
+Boost MCP is configured for Cursor and Claude Code, and `.ai/rules/boost` does not exist. Claude Code starts it with host PHP through `.mcp.json`, so a worktree needs `composer install` and `.env`, and the database tools need the Sail PostgreSQL container running. If the Boost tools are missing from your tool list:
+
+- Package docs: check the installed version, then read the matching official docs: `laravel.com/docs/13.x`, `inertiajs.com/docs/v3`, `pestphp.com/docs`.
+- Package skills: read `.cursor/skills/<skill-name>/SKILL.md`.
+- Schema: read `database/migrations/`.
+- Durable rules: edit `.ai/rules/<area>.md` and add its row to `.ai/rules/index.md`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo’s GitHub Issues (`gh` CLI). See `.docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical roles map 1:1: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `.docs/agents/triage-labels.md`.
+
+### Domain docs
+
+single-context. See `.docs/agents/domain.md`.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
@@ -205,69 +271,3 @@ Vue components must have a single root element.
 - IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 </laravel-boost-guidelines>
-
-## Agent skills
-
-### Issue tracker
-
-Issues live in this repo’s GitHub Issues (`gh` CLI). See `.docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Canonical roles map 1:1: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `.docs/agents/triage-labels.md`.
-
-### Domain docs
-
-single-context. See `.docs/agents/domain.md`.
-
-## Project facts
-
-- CI, Sail and production run PHP 8.5. The host CLI is 8.4, and the locked dependencies need at least 8.4.1, so write code that runs on 8.4.1.
-- Run project commands through Sail, for example `./vendor/bin/sail artisan test --compact`. In a worktree, the running Sail stack serves the main checkout, not your code, so run the Sail image directly (see "Test database"). If you use the host CLI, say so in your report.
-- npm is the only JS package manager. Do not add `pnpm-workspace.yaml`, because `vp migrate` reads it and switches the project to pnpm.
-- Docs describe more than the code. Confirm the code exists before relying on a term from `CONTEXT.md`, `.docs/prd.md` or `.docs/specs/`. Agenda, Cash Expectation, Reserve and Year Close are not implemented on `main`.
-
-## Fresh checkout or worktree
-
-Before running checks, follow the CI order: `composer install`, copy `.env.example` to `.env`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories (`resources/js/actions`, `resources/js/routes`, `resources/js/wayfinder`), which `npm run types:check` needs.
-
-## When Boost tools are not available
-
-Boost MCP is configured for Cursor only, and `.ai/rules/boost` does not exist. If the Boost tools are missing from your tool list:
-
-- Package docs: check the installed version, then read the matching official docs: `laravel.com/docs/13.x`, `inertiajs.com/docs/v3`, `pestphp.com/docs`.
-- Package skills: read `.cursor/skills/<skill-name>/SKILL.md`.
-- Schema: read `database/migrations/`.
-- Durable rules: edit `.ai/rules/<area>.md` and add its row to `.ai/rules/index.md`.
-
-## Test database
-
-`phpunit.xml` defaults to in-memory SQLite, while CI and production use PostgreSQL, so a green SQLite run proves nothing about PostgreSQL. For migrations, raw SQL, date or JSON functions, and behavior that depends on constraints, run the affected tests on PostgreSQL:
-
-`docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`
-
-That command fails from a worktree. With Sail running and after the fresh-checkout steps, run the Sail image on the worktree instead. It gives the same PHP 8.5, Node and PostgreSQL as CI:
-
-`docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`
-
-For the full CI gate, replace `--entrypoint php sail-8.5/app artisan test --compact <path>` with `--entrypoint composer sail-8.5/app ci:check`.
-
-## Money
-
-Amounts are integers in minor units: `*_minor_units` columns (`bigint`) and `int` in PHP, with `float` kept out of money code. Parse user input with `App\Support\MinorUnits`. In Vue, follow `.ai/rules/js.md`.
-
-## Inertia props contract
-
-Props are PHP arrays in controllers and hand-written TypeScript types in `defineProps<>`, and `vue-tsc` cannot see the PHP side. When you add, rename or change a prop, change both sides in the same commit and assert the prop with `assertInertia` in a Feature test.
-
-## Wayfinder
-
-Wayfinder is in beta. Copy the pattern from an existing page and read `.cursor/skills/wayfinder-development/SKILL.md` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
-
-## Frontend toolchain
-
-Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `npm run check:fix`. Warnings fail the run. CI also runs `npm run types:check` for Vue templates. Frontend tests run through `npm test` (`vp test`): keep `*.test.ts` next to the code, import from `vite-plus/test`, and use relative imports, because Vite plugins and the `@` alias are off during tests. Stay within `vp`, because this project has no separate ESLint, Prettier or Vitest setup. `vite-plus`, the `vite` alias and `overrides.vite` in `package.json` must stay on the same version, so upgrade them together. Confirm options with `npx vp --help`, because online docs may describe a newer version than the installed one.
-
-## Month logic lives twice
-
-`app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. The calculators are covered by `tests/Unit/MonthRemainingCalculatorTest.php` and `resources/js/lib/month-remaining-calculator.test.ts`; the two preview files have no tests. Change both copies and both tests together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.

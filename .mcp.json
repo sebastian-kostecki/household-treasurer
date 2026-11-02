@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "php",
+            "args": ["artisan", "boost:mcp"],
+            "env": {
+                "DB_HOST": "127.0.0.1"
+            }
+        }
+    }
+}
