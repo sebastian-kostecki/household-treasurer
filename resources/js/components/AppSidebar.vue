@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     ArrowLeftRight,
+    CalendarDays,
     Landmark,
     LayoutGrid,
     PiggyBank,
@@ -24,7 +25,7 @@ import {
 import { useTranslations } from '@/composables/useTranslations';
 import { index as accounts } from '@/routes/accounts';
 import { index as termDeposits } from '@/routes/term-deposits';
-import { budget, dashboard, operations } from '@/routes';
+import { budget, dashboard, monthPlan, operations } from '@/routes';
 import type { NavItem } from '@/types';
 
 const t = useTranslations();
@@ -39,6 +40,11 @@ const mainNavItems: NavItem[] = [
         title: t.nav.budget,
         href: budget(),
         icon: PiggyBank,
+    },
+    {
+        title: t.nav.month_plan,
+        href: monthPlan(),
+        icon: CalendarDays,
     },
     {
         title: t.nav.accounts,

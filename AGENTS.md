@@ -29,6 +29,8 @@ Props are PHP arrays in controllers and hand-written TypeScript types in `define
 
 `app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. The calculators are covered by `tests/Unit/MonthRemainingCalculatorTest.php` and `resources/js/lib/month-remaining-calculator.test.ts`; the two preview files have no tests. Change both copies and both tests together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.
 
+`app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit.
+
 ## Wayfinder
 
 Wayfinder is in beta. Copy the pattern from an existing page and read `vendor/laravel/wayfinder/resources/boost/skills/wayfinder-development/SKILL.blade.php` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
@@ -40,6 +42,16 @@ Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `n
 ## Fresh checkout or worktree
 
 Before running checks, follow the CI order: `composer install`, copy `.env.example` to `.env`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories (`resources/js/actions`, `resources/js/routes`, `resources/js/wayfinder`), which `npm run types:check` needs.
+
+## Preview from a worktree
+
+Manual checks of a phase need a running app that serves the worktree code. The Sail stack serves the main checkout, so before asking the user to confirm manual checks, build and start a preview and give the address and login:
+
+1. In the worktree `.env` set `DB_DATABASE` to a separate database (`create database <name>` in the `household-treasurer-pgsql-1` container). Never point it at `household_treasurer`: migrating it changes the main checkout's schema.
+2. Run `php artisan migrate --seed --force` with the Sail image on the `household-treasurer_sail` network. `DemoHouseholdSeeder` creates `test@example.com` / `password` with a budget in execution.
+3. Run `npm run build` again after every Vue or route change. The preview serves the built assets, and the Wayfinder step makes the build take a few minutes.
+4. Start `php artisan serve --host=0.0.0.0 --port=8000` in the Sail image with `-d -p 8090:8000 --network household-treasurer_sail` and the worktree mounted at `/var/www/html`, then open http://localhost:8090.
+5. Stop it with `docker rm -f <container>` and drop the database after the change is merged.
 
 ## When Boost tools are not available
 

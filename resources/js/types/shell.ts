@@ -22,6 +22,7 @@ export type UiTranslations = {
     nav: {
         dashboard: string;
         budget: string;
+        month_plan: string;
         accounts: string;
         term_deposits: string;
         operations: string;
@@ -37,6 +38,7 @@ export type UiTranslations = {
     settings: Record<string, string>;
     dashboard: Record<string, string>;
     budget: Record<string, string>;
+    month_plan: Record<string, string>;
     accounts: Record<string, string>;
     term_deposits: Record<string, string>;
     operations: Record<string, string>;

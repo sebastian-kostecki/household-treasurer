@@ -9,6 +9,7 @@ const props = defineProps<{
     viewedMonth: number;
     showArchived: boolean;
     currentMonth: number | null;
+    monthUrl?: (month: number) => string;
 }>();
 
 const t = useTranslations();
@@ -26,12 +27,13 @@ function monthAccessibleName(month: number): string {
 
 function selectMonth(month: number): void {
     router.get(
-        budgetRoute({
-            query: {
-                month,
-                show_archived: props.showArchived ? 1 : undefined,
-            },
-        }),
+        props.monthUrl?.(month) ??
+            budgetRoute({
+                query: {
+                    month,
+                    show_archived: props.showArchived ? 1 : undefined,
+                },
+            }),
         {},
         { preserveState: true, preserveScroll: true },
     );

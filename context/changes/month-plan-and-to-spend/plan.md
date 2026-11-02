@@ -680,36 +680,36 @@ Agregacja używa zakresu dat i indeksu `budget_id`, więc przy 10 000 operacji m
 
 #### Automated
 
-- [x] 2.1 `tests/Unit/ToSpendCalculatorTest.php` przechodzi (3730,00, 3530,00, 3680,00, pusta lista, wynik ujemny)
-- [x] 2.2 `tests/Feature/MonthPlanProposalTest.php` przechodzi ze wszystkimi przykładami propozycji z planu (w tym granica łańcucha na B₋₁)
-- [x] 2.3 `tests/Feature/MonthCategoryActualsTest.php` przechodzi (netto ze zwrotem, flaga, zakres miesiąca, przelewy i ruchy kapitału bez wpływu)
-- [x] 2.4 `tests/Feature/ApproveMonthPlanTest.php` przechodzi (obie kwoty, odrzucenia, budżet roczny bez zmian, reset usuwa plany)
-- [x] 2.5 Testy feature fazy 2 przechodzą na PostgreSQL
-- [x] 2.6 `vendor/bin/pint --dirty --format agent` przechodzi
+- [x] 2.1 `tests/Unit/ToSpendCalculatorTest.php` przechodzi (3730,00, 3530,00, 3680,00, pusta lista, wynik ujemny) — dd5727a
+- [x] 2.2 `tests/Feature/MonthPlanProposalTest.php` przechodzi ze wszystkimi przykładami propozycji z planu (w tym granica łańcucha na B₋₁) — dd5727a
+- [x] 2.3 `tests/Feature/MonthCategoryActualsTest.php` przechodzi (netto ze zwrotem, flaga, zakres miesiąca, przelewy i ruchy kapitału bez wpływu) — dd5727a
+- [x] 2.4 `tests/Feature/ApproveMonthPlanTest.php` przechodzi (obie kwoty, odrzucenia, budżet roczny bez zmian, reset usuwa plany) — dd5727a
+- [x] 2.5 Testy feature fazy 2 przechodzą na PostgreSQL — dd5727a
+- [x] 2.6 `vendor/bin/pint --dirty --format agent` przechodzi — dd5727a
 
 #### Manual
 
-- [x] 2.7 Przegląd: testy propozycji odpowiadają przykładom z planu jeden do jednego
+- [x] 2.7 Przegląd: testy propozycji odpowiadają przykładom z planu jeden do jednego — dd5727a
 
 ### Phase 3: Strona „Plan miesiąca”
 
 #### Automated
 
-- [ ] 3.1 `tests/Feature/MonthPlanPageTest.php` przechodzi (propsy przez `assertInertia`, stany miesięcy, brak budżetu i szkic, zarchiwizowana z operacją i `in_plan`, zatwierdzenie z wierszem spoza planu, `distinct`, liczba po operacji)
-- [ ] 3.2 Test przełącznika rodzaju przechodzi (zapis `bill`, odrzucenia, redirect wstecz)
-- [ ] 3.3 `npm test` przechodzi, w tym `to-spend-calculator.test.ts` z przypadkami jak w PHP
-- [ ] 3.4 `npm run build`, `npm run check` i `npm run types:check` przechodzą
-- [ ] 3.5 `MonthPlanPageTest` przechodzi na PostgreSQL
-- [ ] 3.6 `BudgetTest`, `DashboardTest` i `BudgetMonthRemainingTest` przechodzą bez zmian asercji
+- [x] 3.1 `tests/Feature/MonthPlanPageTest.php` przechodzi (propsy przez `assertInertia`, stany miesięcy, brak budżetu i szkic, zarchiwizowana z operacją i `in_plan`, zatwierdzenie z wierszem spoza planu, `distinct`, liczba po operacji)
+- [x] 3.2 Test przełącznika rodzaju przechodzi (zapis `bill`, odrzucenia, redirect wstecz)
+- [x] 3.3 `npm test` przechodzi, w tym `to-spend-calculator.test.ts` z przypadkami jak w PHP
+- [x] 3.4 `npm run build`, `npm run check` i `npm run types:check` przechodzą
+- [x] 3.5 `MonthPlanPageTest` przechodzi na PostgreSQL
+- [x] 3.6 `BudgetTest`, `DashboardTest` i `BudgetMonthRemainingTest` przechodzą bez zmian asercji
 
 #### Manual
 
-- [ ] 3.7 Bieżący miesiąc pokazuje propozycję „niezatwierdzony” i liczbę, która reaguje na zmianę kwoty
-- [ ] 3.8 Przełączenie rodzaju zmienia liczbę i nie gubi wpisanych kwot
-- [ ] 3.9 „Zatwierdź” zapisuje plan, badge „zatwierdzony”, pola tylko do odczytu
-- [ ] 3.10 Dodany wydatek zmienia liczbę na stronie planu
-- [ ] 3.11 Przełącznik miesięcy działa, miniony miesiąc pokazuje „bez planu”, strona Budżet przełącza miesiące jak dotąd
-- [ ] 3.12 Widok czytelny na telefonie, liczba ujemna w kolorze `destructive`
+- [x] 3.7 Bieżący miesiąc pokazuje propozycję „niezatwierdzony” i liczbę, która reaguje na zmianę kwoty
+- [x] 3.8 Przełączenie rodzaju zmienia liczbę i nie gubi wpisanych kwot
+- [x] 3.9 „Zatwierdź” zapisuje plan, badge „zatwierdzony”, pola tylko do odczytu
+- [x] 3.10 Dodany wydatek zmienia liczbę na stronie planu
+- [x] 3.11 Przełącznik miesięcy działa, miniony miesiąc pokazuje „bez planu”, strona Budżet przełącza miesiące jak dotąd
+- [x] 3.12 Widok czytelny na telefonie, liczba ujemna w kolorze `destructive`
 
 ### Phase 4: Snapshot w wersji 5 i dokumenty
 
