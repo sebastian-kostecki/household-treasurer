@@ -1,10 +1,10 @@
 ---
 change_id: month-plan-and-to-spend
 title: Month plan and to spend
-status: impl_reviewed
+status: archived
 created: 2026-11-02
 updated: 2026-11-02
-archived_at: null
+archived_at: 2026-11-02T10:33:01Z
 ---
 
 ## Notes
