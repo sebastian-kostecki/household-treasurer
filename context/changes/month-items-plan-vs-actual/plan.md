@@ -341,15 +341,15 @@ Brak zmian schematu i danych.
 
 #### Automated
 
-- [x] 2.1 `npm test` przechodzi, w tym `resources/js/lib/format.test.ts`
-- [x] 2.2 `npm run build`, `npm run check` i `npm run types:check` przechodzą
-- [x] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez obraz Sail
-- [x] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`)
+- [x] 2.1 `npm test` przechodzi, w tym `resources/js/lib/format.test.ts` — d529b6c
+- [x] 2.2 `npm run build`, `npm run check` i `npm run types:check` przechodzą — d529b6c
+- [x] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez obraz Sail — d529b6c
+- [x] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`) — d529b6c
 
 #### Manual
 
-- [x] 2.5 Odchylenia, kolory, „—”, plakietki i Pozostały limit roczny zgadzają się z tabelą przypadków
-- [x] 2.6 Zwinięta sekcja: domyślnie zamknięta, licznik, bezczynne jednorazowe z limitem, brak pustego nagłówka
-- [x] 2.7 Edytowalna propozycja: odchylenie na żywo, kwota w zwiniętej sekcji zmienia „do wydania” i trafia do zatwierdzonego planu
-- [x] 2.8 Zatwierdzony i miniony miesiąc bez pól edycji; miniony miesiąc bez planu bez zmian
-- [x] 2.9 360 px bez poziomego przewijania; 768 i 1024 px z sidebarem bez ucięć; tryb ciemny czytelny
+- [x] 2.5 Odchylenia, kolory, „—”, plakietki i Pozostały limit roczny zgadzają się z tabelą przypadków — d529b6c
+- [x] 2.6 Zwinięta sekcja: domyślnie zamknięta, licznik, bezczynne jednorazowe z limitem, brak pustego nagłówka — d529b6c
+- [x] 2.7 Edytowalna propozycja: odchylenie na żywo, kwota w zwiniętej sekcji zmienia „do wydania” i trafia do zatwierdzonego planu — d529b6c
+- [x] 2.8 Zatwierdzony i miniony miesiąc bez pól edycji; miniony miesiąc bez planu bez zmian — d529b6c
+- [x] 2.9 360 px bez poziomego przewijania; 768 i 1024 px z sidebarem bez ucięć; tryb ciemny czytelny — d529b6c

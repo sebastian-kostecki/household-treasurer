@@ -1,7 +1,7 @@
 ---
 change_id: month-items-plan-vs-actual
 title: Month items plan vs actual
-status: implementing
+status: implemented
 created: 2026-11-02
 updated: 2026-11-02
 archived_at: null
