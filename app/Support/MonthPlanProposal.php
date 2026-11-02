@@ -118,7 +118,7 @@ class MonthPlanProposal
             $amounts[$category->id] = $this->proposedAmount($category, $month, $source);
         }
 
-        return new MonthPlanReading('proposal', null, $amounts, max(0, $source?->setAsideMinorUnits ?? 0));
+        return new MonthPlanReading('proposal', null, $amounts, max(0, $source->setAsideMinorUnits ?? 0));
     }
 
     private function isPast(int $year, int $month): bool

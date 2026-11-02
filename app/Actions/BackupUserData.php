@@ -174,6 +174,8 @@ class BackupUserData
             'budget_id' => $monthPlan->budget_id,
             'month' => $monthPlan->month,
             'approved_at' => $monthPlan->approved_at->toIso8601String(),
+            'approved_set_aside_minor_units' => $monthPlan->approved_set_aside_minor_units,
+            'current_set_aside_minor_units' => $monthPlan->current_set_aside_minor_units,
             'items' => $monthPlan->items
                 ->map(fn ($item): array => [
                     'category_id' => $item->category_id,

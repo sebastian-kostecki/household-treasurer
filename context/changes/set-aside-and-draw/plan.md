@@ -419,33 +419,33 @@ Jedno dodatkowe zapytanie `sum` na odczyt strony planu dla miesiąca bieżącego
 
 #### Automated
 
-- [x] 2.1 ToSpendCalculatorTest z Set-aside 0 oraz 170 000 i 250 000
-- [x] 2.2 npm test z parą wzoru i drawExceedsSpendableLiquidity
-- [x] 2.3 ApproveMonthPlanTest: zapis obu kolumn
-- [x] 2.4 MonthPlanPageTest: nowe propsy, null dla minionego, Draw ponad płynność przez trasę bez zmiany sald, walidacja
-- [x] 2.5 DashboardTest bez zmian asercji
-- [x] 2.6 Testy feature fazy przechodzą na PostgreSQL
-- [x] 2.7 npm run build, check i types:check przechodzą
-- [x] 2.8 Pint przechodzi
+- [x] 2.1 ToSpendCalculatorTest z Set-aside 0 oraz 170 000 i 250 000 — dc55644
+- [x] 2.2 npm test z parą wzoru i drawExceedsSpendableLiquidity — dc55644
+- [x] 2.3 ApproveMonthPlanTest: zapis obu kolumn — dc55644
+- [x] 2.4 MonthPlanPageTest: nowe propsy, null dla minionego, Draw ponad płynność przez trasę bez zmiany sald, walidacja — dc55644
+- [x] 2.5 DashboardTest bez zmian asercji — dc55644
+- [x] 2.6 Testy feature fazy przechodzą na PostgreSQL — dc55644
+- [x] 2.7 npm run build, check i types:check przechodzą — dc55644
+- [x] 2.8 Pint przechodzi — dc55644
 
 #### Manual
 
-- [x] 2.9 Odkładam/dobieram zmienia „do wydania” od razu
-- [x] 2.10 Ostrzeżenie o Draw ponad płynność, bez blokady i bez zmiany sald
-- [x] 2.11 Nieprawidłowa kwota wyłącza Zatwierdź
-- [x] 2.12 Plan zatwierdzony tylko do odczytu i reguła propozycji w kolejnym miesiącu
-- [x] 2.13 Miniony miesiąc bez ostrzeżenia
-- [x] 2.14 Wąski ekran i obsługa klawiaturą
+- [x] 2.9 Odkładam/dobieram zmienia „do wydania” od razu — dc55644
+- [x] 2.10 Ostrzeżenie o Draw ponad płynność, bez blokady i bez zmiany sald — dc55644
+- [x] 2.11 Nieprawidłowa kwota wyłącza Zatwierdź — dc55644
+- [x] 2.12 Plan zatwierdzony tylko do odczytu i reguła propozycji w kolejnym miesiącu — dc55644
+- [x] 2.13 Miniony miesiąc bez ostrzeżenia — dc55644
+- [x] 2.14 Wąski ekran i obsługa klawiaturą — dc55644
 
 ### Phase 3: Snapshot i dokumenty
 
 #### Automated
 
-- [ ] 3.1 UserSnapshotCommandTest: okrągła podróż i v5 bez kluczy Set-aside
-- [ ] 3.2 UserSnapshotCommandTest przechodzi na PostgreSQL
-- [ ] 3.3 Pełna bramka CI na obrazie Sail
+- [x] 3.1 UserSnapshotCommandTest: okrągła podróż i v5 bez kluczy Set-aside
+- [x] 3.2 UserSnapshotCommandTest przechodzi na PostgreSQL
+- [x] 3.3 Pełna bramka CI na obrazie Sail
 
 #### Manual
 
-- [ ] 3.4 Backup i restore zachowują Dobieram i liczbę do wydania
-- [ ] 3.5 Dokumenty zgodne z regułą propozycji
+- [x] 3.4 Backup i restore zachowują Dobieram i liczbę do wydania
+- [x] 3.5 Dokumenty zgodne z regułą propozycji
