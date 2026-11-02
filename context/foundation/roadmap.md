@@ -41,7 +41,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 
 | ID   | Change ID                   | Outcome (user can …)                                                                             | Prerequisites       | PRD refs                                                   | Status   |
 | ---- | --------------------------- | ------------------------------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------- | -------- |
-| F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | in-progress |
+| F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | done |
 | S-01 | month-plan-and-to-spend     | użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”      | F-01                | US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019      | proposed |
 | S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | proposed |
 | S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | proposed |
@@ -90,7 +90,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:** —
-- **Status:** in-progress
+- **Status:** done
 - **Status:** planning
 
 ## Slices
@@ -258,3 +258,5 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 ## Done
 
 (Pusta przy pierwszym wygenerowaniu. Wpisy dodaje `/10x-archive`.)
+
+- **F-01: (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `CONTEXT.md`.** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-domain-decisions/`. Lesson: —.
