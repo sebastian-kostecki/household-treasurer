@@ -284,6 +284,7 @@ return [
         'state_approved' => 'Zatwierdzony',
         'proposal_hint' => 'To propozycja. Popraw kwoty i zatwierdź plan, aby go zapisać.',
         'approved_hint' => 'Plan jest zatwierdzony i tylko do odczytu.',
+        'blocked_hint' => 'To propozycja, którą zatwierdzisz po zatwierdzeniu poprzedniego miesiąca.',
         'approve' => 'Zatwierdź',
         'income_table' => 'Dochody',
         'expense_table' => 'Wydatki',

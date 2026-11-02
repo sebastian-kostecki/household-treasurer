@@ -283,6 +283,68 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(0, $targetUser->accounts()->count());
     }
 
+    public function test_restore_command_rejects_malformed_month_plans(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $otherBudget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2025]);
+        $category = Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $otherCategory = Category::factory()->for($otherBudget)->expense()->create(['name' => 'Food']);
+        MonthPlanItem::factory()
+            ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
+            ->for($category)
+            ->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $valid = json_decode(file_get_contents($path), true);
+
+        $mutations = [
+            'month out of range' => function (array $snapshot): array {
+                $snapshot['month_plans'][0]['month'] = 13;
+
+                return $snapshot;
+            },
+            'missing approved_at' => function (array $snapshot): array {
+                unset($snapshot['month_plans'][0]['approved_at']);
+
+                return $snapshot;
+            },
+            'duplicated plan' => function (array $snapshot): array {
+                $snapshot['month_plans'][] = $snapshot['month_plans'][0];
+
+                return $snapshot;
+            },
+            'duplicated category' => function (array $snapshot): array {
+                $snapshot['month_plans'][0]['items'][] = $snapshot['month_plans'][0]['items'][0];
+
+                return $snapshot;
+            },
+            'category of another budget' => function (array $snapshot) use ($otherCategory): array {
+                $snapshot['month_plans'][0]['items'][0]['category_id'] = $otherCategory->id;
+
+                return $snapshot;
+            },
+        ];
+
+        foreach ($mutations as $label => $mutate) {
+            $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-plan.json');
+            file_put_contents($brokenPath, json_encode($mutate($valid), JSON_THROW_ON_ERROR));
+            $targetUser = User::factory()->create();
+
+            $exitCode = Artisan::call('user:restore', [
+                'user' => $targetUser->email,
+                'path' => $brokenPath,
+                '--force' => true,
+            ]);
+
+            $this->assertSame(1, $exitCode, $label);
+            $this->assertSame(0, MonthPlan::query()
+                ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+                ->count(), $label);
+        }
+    }
+
     public function test_restore_command_fails_for_unsupported_snapshot_version(): void
     {
         Storage::fake('local');

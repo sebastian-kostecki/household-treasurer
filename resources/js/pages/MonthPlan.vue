@@ -102,6 +102,9 @@ watch(
     },
 );
 
+/** Matches the server limit in ApproveMonthPlanRequest. */
+const MAX_PLAN_AMOUNT_MINOR_UNITS = 1_000_000_000_000;
+
 function parsedAmount(row: MonthPlanItemRow): number | null {
     if (!row.in_plan) {
         return 0;
@@ -112,7 +115,11 @@ function parsedAmount(row: MonthPlanItemRow): number | null {
             minorUnitsToMoneyInput(row.plan_minor_units),
     );
 
-    return parsed !== null && parsed >= 0 ? parsed : null;
+    return parsed !== null &&
+        parsed >= 0 &&
+        parsed <= MAX_PLAN_AMOUNT_MINOR_UNITS
+        ? parsed
+        : null;
 }
 
 const parsedPlanAmounts = computed(() =>
@@ -167,15 +174,25 @@ function monthUrl(month: number): string {
     return monthPlanRoute({ query: { month } }).url;
 }
 
+const kindError = ref<string | null>(null);
+
 function changeKind(row: MonthPlanItemRow, kind: MonthItemKind): void {
     if (row.month_item_kind === kind) {
         return;
     }
 
+    kindError.value = null;
+
     router.patch(
         CategoryController.updateMonthItemKind.url(row.category_id),
         { month_item_kind: kind },
-        { preserveState: true, preserveScroll: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onError: (errors) => {
+                kindError.value = Object.values(errors)[0] ?? null;
+            },
+        },
     );
 }
 
@@ -286,7 +303,9 @@ const sections = computed(() => [
                             {{
                                 monthPlan.state === 'approved'
                                     ? t.month_plan.approved_hint
-                                    : t.month_plan.proposal_hint
+                                    : monthPlan.can_approve
+                                      ? t.month_plan.proposal_hint
+                                      : t.month_plan.blocked_hint
                             }}
                         </p>
                     </CardContent>
@@ -319,6 +338,8 @@ const sections = computed(() => [
                             />
                         </template>
                     </template>
+
+                    <InputError :message="kindError ?? undefined" />
 
                     <ListSurface
                         v-for="section in sections"

@@ -65,6 +65,15 @@ class ApproveMonthPlanTest extends TestCase
         $this->assertSame(2, MonthPlan::query()->where('budget_id', $budget->id)->count());
     }
 
+    public function test_it_rejects_a_month_while_the_previous_month_is_only_a_proposal(): void
+    {
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $food = Category::factory()->for($budget)->expense()->create();
+
+        $this->assertItemsError(fn () => $this->approve($budget, 12, [$food->id => 1]));
+        $this->assertDatabaseCount('month_plans', 0);
+    }
+
     public function test_it_rejects_a_past_month(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);

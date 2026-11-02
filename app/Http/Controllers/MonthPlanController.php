@@ -102,7 +102,8 @@ class MonthPlanController extends Controller
      */
     private function monthPlanPayload(Budget $budget, int $month, string $timing, CarbonImmutable $today): array
     {
-        $reading = MonthPlanProposal::forBudget($budget, $today)->reading($month);
+        $proposal = MonthPlanProposal::forBudget($budget, $today);
+        $reading = $proposal->reading($month);
         $actuals = MonthCategoryActuals::forMonth($budget, $month);
 
         $rowIds = array_values(array_unique([
@@ -140,7 +141,9 @@ class MonthPlanController extends Controller
         return [
             'state' => $reading->state,
             'approved_at' => $reading->approvedAt?->toIso8601String(),
-            'can_approve' => $reading->state === 'proposal' && $timing !== 'past',
+            'can_approve' => $reading->state === 'proposal'
+                && $timing !== 'past'
+                && ! $proposal->isBlockedByPreviousMonth($month),
             'to_spend_minor_units' => $reading->state === 'none'
                 ? null
                 : ToSpendCalculator::toSpendMinorUnits($calculatorItems),

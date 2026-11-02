@@ -658,6 +658,13 @@ Agregacja używa zakresu dat i indeksu `budget_id`, więc przy 10 000 operacji m
 - Poprzednia zmiana: `context/archive/2026-11-02-month-plan-domain-decisions/plan-brief.md`
 - Wzorce: `app/Actions/StartBudgetExecution.php`, `app/Actions/ReorderCategories.php:25-29`, `tests/Feature/CategoryPacedFlagTest.php`, `resources/js/pages/OperationsImportPreview.vue:282-364`, `resources/js/components/BudgetMonthPicker.vue:27-38`
 
+## Addenda (po przeglądzie implementacji, 2026-11-02)
+
+- **Poza listą plików planu:** `resources/js/types/shell.ts` (ręczny typ `UiTranslations` wymaga kluczy `nav.month_plan` i `month_plan`) oraz sekcja „Preview from a worktree” w `AGENTS.md` (dodana na prośbę użytkownika po fazie 3).
+- **Limit kwot (F1):** `items.*.amount_minor_units` ma `max:1000000000000` (10^12 gr), a `MonthPlan.vue` odrzuca wartości powyżej. Powód: suma w `ToSpendCalculator` mogłaby przepełnić `int`. Dotyczy tylko planu miesiąca, nie `planned_amount_minor_units`.
+- **Restore planów (F2):** `RestoreUserData::restoreMonthPlans` waliduje klucze, miesiąc 1–12, duplikaty planu i kategorii oraz zgodność kategorii z budżetem planu i rzuca `UserSnapshotException`.
+- **Kolejność zatwierdzania (F3, zmiana względem planu):** miesiąc M można zatwierdzić, tylko gdy M−1 tego samego budżetu jest zatwierdzony albo minął (`MonthPlanProposal::isBlockedByPreviousMonth`). Styczeń nie jest blokowany. Dotyczy `ApproveMonthPlan` i `can_approve`; zablokowany miesiąc jest tylko do odczytu z podpowiedzią `month_plan.blocked_hint`.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

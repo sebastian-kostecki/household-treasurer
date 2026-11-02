@@ -27,7 +27,7 @@ class ApproveMonthPlanRequest extends FormRequest
         return [
             'items' => ['sometimes', 'array'],
             'items.*.category_id' => ['required', 'integer', 'distinct'],
-            'items.*.amount_minor_units' => ['required', 'integer', 'min:0'],
+            'items.*.amount_minor_units' => ['required', 'integer', 'min:0', 'max:1000000000000'],
         ];
     }
 }

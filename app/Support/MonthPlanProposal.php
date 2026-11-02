@@ -64,6 +64,15 @@ class MonthPlanProposal
         return $this->planFor(false, $month);
     }
 
+    /**
+     * A month cannot be approved while the previous month of the same budget is still an
+     * unapproved proposal (current or future). January has no previous month in the budget.
+     */
+    public function isBlockedByPreviousMonth(int $month): bool
+    {
+        return $month > 1 && $this->reading($month - 1)->state === 'proposal';
+    }
+
     private function planFor(bool $inPreviousBudget, int $month): MonthPlanReading
     {
         $key = ($inPreviousBudget ? 'previous:' : 'current:').$month;

@@ -72,21 +72,41 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
-    public function test_future_month_shows_a_proposal_that_can_be_approved(): void
+    public function test_future_month_shows_a_proposal_that_waits_for_the_previous_month(): void
     {
         [$user] = $this->canonicalBudget();
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
-            ->get(route('month-plan', ['month' => 8]))
+            ->get(route('month-plan', ['month' => 7]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('viewedMonth', 8)
+                ->where('viewedMonth', 7)
                 ->where('viewedMonthTiming', 'future')
                 ->where('monthPlan.state', 'proposal')
-                ->where('monthPlan.can_approve', true)
+                ->where('monthPlan.can_approve', false)
                 ->where('monthPlan.to_spend_minor_units', 410_000)
                 ->where('monthPlan.expense_items.0.can_change_kind', true),
+            );
+    }
+
+    public function test_next_month_can_be_approved_once_the_current_month_is_approved(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'items' => $this->planItems($categories),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 7]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.can_approve', true),
             );
     }
 
@@ -273,6 +293,20 @@ class MonthPlanPageTest extends TestCase
                 'items' => $this->planItems($categories, ['rent' => -1]),
             ])
             ->assertSessionHasErrors('items.1.amount_minor_units');
+    }
+
+    public function test_approval_rejects_an_amount_above_the_limit(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'items' => $this->planItems($categories, ['rent' => 1_000_000_000_001]),
+            ])
+            ->assertSessionHasErrors('items.1.amount_minor_units');
+
+        $this->assertDatabaseCount('month_plans', 0);
     }
 
     public function test_approval_of_an_already_approved_month_is_an_items_error(): void

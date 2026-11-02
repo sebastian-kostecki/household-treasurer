@@ -29,7 +29,8 @@ class ApproveMonthPlan
 
         try {
             return DB::transaction(function () use ($budget, $month, $amounts, $today): MonthPlan {
-                $reading = MonthPlanProposal::forBudget($budget, $today)->reading($month);
+                $proposal = MonthPlanProposal::forBudget($budget, $today);
+                $reading = $proposal->reading($month);
 
                 if ($reading->state === 'approved') {
                     throw $this->invalid(__('This month plan is already approved.'));
@@ -37,6 +38,10 @@ class ApproveMonthPlan
 
                 if ($reading->state === 'none') {
                     throw $this->invalid(__('A past month cannot be approved.'));
+                }
+
+                if ($proposal->isBlockedByPreviousMonth($month)) {
+                    throw $this->invalid(__('Approve the previous month plan first.'));
                 }
 
                 $submittedIds = array_keys($amounts);

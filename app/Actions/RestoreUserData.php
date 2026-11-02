@@ -225,24 +225,58 @@ class RestoreUserData
      */
     private function restoreMonthPlans(array $monthPlans, array $budgetIdMap, array $categoryIdMap): void
     {
+        $seenPlans = [];
+
         foreach ($monthPlans as $monthPlanData) {
+            if (! isset($monthPlanData['budget_id'], $monthPlanData['month'], $monthPlanData['approved_at'])) {
+                throw new UserSnapshotException('Snapshot month plan is missing budget_id, month or approved_at.');
+            }
+
+            $month = $monthPlanData['month'];
+
+            if (! is_int($month) || $month < 1 || $month > 12) {
+                throw new UserSnapshotException('Snapshot month plan has an invalid month.');
+            }
+
             $budgetId = $budgetIdMap[$monthPlanData['budget_id']] ?? null;
 
             if ($budgetId === null) {
                 throw new UserSnapshotException("Snapshot references unknown budget id {$monthPlanData['budget_id']}.");
             }
 
+            if (isset($seenPlans["{$budgetId}:{$month}"])) {
+                throw new UserSnapshotException('Snapshot contains a duplicated month plan.');
+            }
+
+            $seenPlans["{$budgetId}:{$month}"] = true;
+
             $monthPlan = MonthPlan::query()->create([
                 'budget_id' => $budgetId,
-                'month' => $monthPlanData['month'],
+                'month' => $month,
                 'approved_at' => Carbon::parse($monthPlanData['approved_at']),
             ]);
 
+            $seenCategories = [];
+
             foreach ($monthPlanData['items'] ?? [] as $itemData) {
+                if (! isset($itemData['category_id'], $itemData['approved_amount_minor_units'], $itemData['current_amount_minor_units'])) {
+                    throw new UserSnapshotException('Snapshot month plan item is missing a required key.');
+                }
+
                 $categoryId = $categoryIdMap[$itemData['category_id']] ?? null;
 
                 if ($categoryId === null) {
                     throw new UserSnapshotException("Snapshot references unknown category id {$itemData['category_id']}.");
+                }
+
+                if (isset($seenCategories[$categoryId])) {
+                    throw new UserSnapshotException('Snapshot month plan contains a duplicated category.');
+                }
+
+                $seenCategories[$categoryId] = true;
+
+                if (Category::query()->whereKey($categoryId)->value('budget_id') !== $budgetId) {
+                    throw new UserSnapshotException('Snapshot month plan item references a category of another budget.');
                 }
 
                 $monthPlan->items()->create([
