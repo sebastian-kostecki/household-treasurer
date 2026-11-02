@@ -430,15 +430,15 @@ Brak migracji i zmian danych. Propsy Inertia zmieniają się razem z typami Vue 
 
 #### Automated
 
-- [x] 3.1 `tests/Feature/MonthPlanPageTest.php`, `BudgetMonthRemainingTest.php`, `BudgetMonthResultTest.php`, `BudgetTest.php` przechodzą
-- [x] 3.2 `npm run build`, potem `npm run types:check` bez błędów
-- [x] 3.3 `npm run check` bez ostrzeżeń
-- [x] 3.4 Pełna bramka CI na PostgreSQL: `composer ci:check` w obrazie Sail na worktree
+- [x] 3.1 `tests/Feature/MonthPlanPageTest.php`, `BudgetMonthRemainingTest.php`, `BudgetMonthResultTest.php`, `BudgetTest.php` przechodzą — bababa4
+- [x] 3.2 `npm run build`, potem `npm run types:check` bez błędów — bababa4
+- [x] 3.3 `npm run check` bez ostrzeżeń — bababa4
+- [x] 3.4 Pełna bramka CI na PostgreSQL: `composer ci:check` w obrazie Sail na worktree — bababa4
 
 #### Manual
 
-- [x] 3.5 Bieżący miesiąc: wiersz „Do wydania” zgodny z Dashboardem i stroną planu, odznaka zgodna ze stanem, link na ten sam miesiąc
-- [x] 3.6 Przyszły miesiąc: wiersz z odznaką „Niezatwierdzony”
-- [x] 3.7 Miniony miesiąc bez planu: „Ten miesiąc nie ma planu”, `Wynik` bez zmian
-- [x] 3.8 Budżet w szkicu: pasek miesiąca jak przed zmianą
-- [x] 3.9 Telefon (375 px): wiersz zawija się bez poziomego przewijania
+- [x] 3.5 Bieżący miesiąc: wiersz „Do wydania” zgodny z Dashboardem i stroną planu, odznaka zgodna ze stanem, link na ten sam miesiąc — bababa4
+- [x] 3.6 Przyszły miesiąc: wiersz z odznaką „Niezatwierdzony” — bababa4
+- [x] 3.7 Miniony miesiąc bez planu: „Ten miesiąc nie ma planu”, `Wynik` bez zmian — bababa4
+- [x] 3.8 Budżet w szkicu: pasek miesiąca jak przed zmianą — bababa4
+- [x] 3.9 Telefon (375 px): wiersz zawija się bez poziomego przewijania — bababa4
