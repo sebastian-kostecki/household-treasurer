@@ -1,0 +1,12 @@
+---
+change_id: month-plan-and-to-spend
+title: Month plan and to spend
+status: new
+created: 2026-11-02
+updated: 2026-11-02
+archived_at: null
+---
+
+## Notes
+
+<!-- Free-form notes for this change: links, ad-hoc context, decisions that don't belong in research/frame/plan. -->
