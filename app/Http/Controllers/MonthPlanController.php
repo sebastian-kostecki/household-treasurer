@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\ApproveMonthPlan;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\Category;
@@ -189,7 +188,6 @@ class MonthPlanController extends Controller
         $plan = $reading->amounts[$category->id] ?? 0;
         $actual = $actuals->actual($category->id);
         $hasPositiveAmount = $actuals->hasPositiveAmount($category->id);
-        $isSettledKind = ! $isExpense || $category->month_item_kind === MonthItemKind::Bill;
 
         return [
             'category_id' => $category->id,
@@ -212,7 +210,7 @@ class MonthPlanController extends Controller
                 $hasPositiveAmount,
             ),
             'is_over_plan' => MonthItemDeviation::isOverPlan($category->type, $plan, $actual),
-            'is_settled' => $isSettledKind && $hasPositiveAmount,
+            'is_settled' => MonthItemDeviation::isSettled($category->type, $category->month_item_kind, $hasPositiveAmount),
             'available_limit_minor_units' => $isOneOff
                 ? CategoryExecutionMetrics::remainingMinorUnits(
                     $category->planned_amount_minor_units,

@@ -5,7 +5,6 @@ import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import MonthPlanController from '@/actions/App/Http/Controllers/MonthPlanController';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
-import CategoryChip from '@/components/CategoryChip.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
@@ -245,6 +244,19 @@ const sections = computed(() => {
         },
     ];
 });
+
+const hasInvalidIdleAmount = computed(
+    () =>
+        isEditable.value &&
+        sections.value[1].idleRows.some((row) => parsedAmount(row) === null),
+);
+
+// An invalid amount blocks approval, so reveal the row that causes it.
+watch(hasInvalidIdleAmount, (invalid) => {
+    if (invalid) {
+        idleOpen.value = true;
+    }
+});
 </script>
 
 <template>
@@ -378,7 +390,7 @@ const sections = computed(() => {
                         :title="section.title"
                     >
                         <div
-                            class="border-border/60 text-muted-foreground grid grid-cols-[1fr_7rem_7rem] gap-3 border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
+                            class="border-border/60 text-muted-foreground grid grid-cols-[1fr_5.5rem_5.5rem] gap-3 border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
                         >
                             <span>{{ t.month_plan.category }}</span>
                             <span class="text-right">
@@ -393,7 +405,10 @@ const sections = computed(() => {
                         </div>
 
                         <p
-                            v-if="section.rows.length === 0"
+                            v-if="
+                                section.rows.length === 0 &&
+                                section.idleRows.length === 0
+                            "
                             class="text-muted-foreground py-6 text-center text-sm"
                         >
                             {{ t.month_plan.empty_list }}

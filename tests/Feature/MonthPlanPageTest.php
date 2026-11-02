@@ -372,6 +372,27 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_settled_flag_covers_income_inflow_and_a_bill_with_only_a_refund(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $internet = Category::factory()->for($budget)->bill()->create([
+            'name' => 'Internet', 'sort_order' => 4, 'planned_amount_minor_units' => 600_000,
+        ]);
+        $this->operation($user, $budget, $categories['salary'], '2026-06-10', 820_000);
+        $this->operation($user, $budget, $internet, '2026-06-11', -10_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.income_items.0.deviation_minor_units', 20_000)
+                ->where('monthPlan.income_items.0.is_settled', true)
+                ->where('monthPlan.expense_items.4.name', 'Internet')
+                ->where('monthPlan.expense_items.4.deviation_minor_units', null)
+                ->where('monthPlan.expense_items.4.is_settled', false),
+            );
+    }
+
     public function test_one_off_rows_expose_the_annual_available_limit(): void
     {
         [$user, , $categories] = $this->canonicalBudget();

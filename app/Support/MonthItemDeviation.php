@@ -24,13 +24,20 @@ class MonthItemDeviation
         int $actual,
         bool $hasPositiveAmount,
     ): ?int {
-        $isSettledKind = $type === CategoryType::Income || $kind === MonthItemKind::Bill;
-
-        if ($isSettledKind && ! $hasPositiveAmount) {
+        if (self::hasSettlementKind($type, $kind) && ! $hasPositiveAmount) {
             return null;
         }
 
         return $actual - $plan;
+    }
+
+    /**
+     * A bill is paid, or an income received, once it has a positive amount in the month.
+     * Running expenses are never settled. Server-only: the live preview does not show it.
+     */
+    public static function isSettled(CategoryType $type, ?MonthItemKind $kind, bool $hasPositiveAmount): bool
+    {
+        return self::hasSettlementKind($type, $kind) && $hasPositiveAmount;
     }
 
     /**
@@ -39,5 +46,10 @@ class MonthItemDeviation
     public static function isOverPlan(CategoryType $type, int $plan, int $actual): bool
     {
         return $type === CategoryType::Expense && $actual > $plan;
+    }
+
+    private static function hasSettlementKind(CategoryType $type, ?MonthItemKind $kind): bool
+    {
+        return $type === CategoryType::Income || $kind === MonthItemKind::Bill;
     }
 }

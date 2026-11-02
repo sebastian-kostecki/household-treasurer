@@ -53,7 +53,7 @@ const deviationClass = computed(() => {
 
 <template>
     <div
-        class="border-border/60 grid grid-cols-[1fr_7rem_7rem] items-center gap-3 border-b py-3 last:border-b-0 sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
+        class="border-border/60 grid grid-cols-[1fr_5.5rem_5.5rem] items-center gap-3 border-b py-3 last:border-b-0 sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
     >
         <div class="flex min-w-0 flex-col gap-1">
             <CategoryChip
@@ -166,8 +166,8 @@ const deviationClass = computed(() => {
             <span
                 class="text-xs tabular-nums lg:hidden"
                 :class="deviationClass"
-                :aria-label="t.month_plan.deviation"
             >
+                <span class="sr-only">{{ t.month_plan.deviation }}: </span>
                 {{ deviationText }}
             </span>
         </div>
@@ -176,6 +176,7 @@ const deviationClass = computed(() => {
             class="hidden text-right text-sm tabular-nums lg:block"
             :class="deviationClass"
         >
+            <span class="sr-only">{{ t.month_plan.deviation }}: </span>
             {{ deviationText }}
         </span>
     </div>
