@@ -119,6 +119,7 @@ class MonthPlanController extends Controller
      *     state: 'proposal'|'approved'|'none',
      *     approved_at: string|null,
      *     can_approve: bool,
+     *     can_change: bool,
      *     to_spend_minor_units: int|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
@@ -130,10 +131,22 @@ class MonthPlanController extends Controller
         $reading = $proposal->reading($month);
         $actuals = MonthCategoryActuals::forMonth($budget, $month);
 
+        $canChange = $reading->state === 'approved' && $timing !== 'past';
+
         $rowIds = array_values(array_unique([
             ...array_keys($reading->amounts),
             ...$actuals->categoryIds(),
         ]));
+
+        $joinCandidateIds = $canChange
+            ? $budget->categories()
+                ->whereNull('archived_at')
+                ->whereNotIn('id', $rowIds)
+                ->pluck('id')
+                ->all()
+            : [];
+
+        $rowIds = [...$rowIds, ...$joinCandidateIds];
 
         $categories = $budget->categories()
             ->whereIn('id', $rowIds)
@@ -145,7 +158,13 @@ class MonthPlanController extends Controller
         $expenseItems = [];
 
         foreach ($categories as $category) {
-            $row = $this->itemRow($category, $reading, $actuals, $timing);
+            $row = $this->itemRow(
+                $category,
+                $reading,
+                $actuals,
+                $timing,
+                in_array($category->id, $joinCandidateIds, true),
+            );
 
             $calculatorItems[] = [
                 'type' => $category->type,
@@ -168,6 +187,7 @@ class MonthPlanController extends Controller
             'can_approve' => $reading->state === 'proposal'
                 && $timing !== 'past'
                 && ! $proposal->isBlockedByPreviousMonth($month),
+            'can_change' => $canChange,
             'to_spend_minor_units' => $reading->state === 'none'
                 ? null
                 : ToSpendCalculator::toSpendMinorUnits($calculatorItems),
@@ -192,6 +212,8 @@ class MonthPlanController extends Controller
      *     has_positive_amount: bool,
      *     can_change_kind: bool,
      *     in_plan: bool,
+     *     approved_minor_units: int|null,
+     *     is_join_candidate: bool,
      * }
      */
     private function itemRow(
@@ -199,6 +221,7 @@ class MonthPlanController extends Controller
         MonthPlanReading $reading,
         MonthCategoryActuals $actuals,
         string $timing,
+        bool $isJoinCandidate,
     ): array {
         $isExpense = $category->type === CategoryType::Expense;
 
@@ -215,6 +238,8 @@ class MonthPlanController extends Controller
             'has_positive_amount' => $actuals->hasPositiveAmount($category->id),
             'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
             'in_plan' => array_key_exists($category->id, $reading->amounts),
+            'approved_minor_units' => $reading->approvedAmounts[$category->id] ?? null,
+            'is_join_candidate' => $isJoinCandidate,
         ];
     }
 

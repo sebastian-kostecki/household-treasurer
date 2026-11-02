@@ -275,25 +275,25 @@ Brak migracji i zmian snapshotu. Istniejące plany mają approved == current, wi
 
 #### Automated
 
-- [x] 1.1 `tests/Feature/ChangeMonthPlanTest.php` przechodzi na PostgreSQL (obraz Sail na worktree, `AGENTS.md` „Test database”)
-- [x] 1.2 Istniejące `tests/Feature/ApproveMonthPlanTest.php`, `tests/Feature/MonthPlanPageTest.php`, `tests/Feature/MonthPlanProposalTest.php` przechodzą bez zmian
-- [x] 1.3 `vendor/bin/pint --dirty --format agent` przechodzi
-- [x] 1.4 `php artisan route:list --name=month-plans` pokazuje `month-plans.update` (PATCH)
+- [x] 1.1 `tests/Feature/ChangeMonthPlanTest.php` przechodzi na PostgreSQL (obraz Sail na worktree, `AGENTS.md` „Test database”) — 09f4707
+- [x] 1.2 Istniejące `tests/Feature/ApproveMonthPlanTest.php`, `tests/Feature/MonthPlanPageTest.php`, `tests/Feature/MonthPlanProposalTest.php` przechodzą bez zmian — 09f4707
+- [x] 1.3 `vendor/bin/pint --dirty --format agent` przechodzi — 09f4707
+- [x] 1.4 `php artisan route:list --name=month-plans` pokazuje `month-plans.update` (PATCH) — 09f4707
 
 ### Phase 2: Tryb zmiany na stronie
 
 #### Automated
 
-- [ ] 2.1 `tests/Feature/MonthPlanPageTest.php`, `tests/Feature/ChangeMonthPlanTest.php` i `tests/Feature/MonthPlanProposalTest.php` przechodzą na PostgreSQL
-- [ ] 2.2 `vendor/bin/pint --dirty --format agent` przechodzi
-- [ ] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
-- [ ] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi
+- [x] 2.1 `tests/Feature/MonthPlanPageTest.php`, `tests/Feature/ChangeMonthPlanTest.php` i `tests/Feature/MonthPlanProposalTest.php` przechodzą na PostgreSQL
+- [x] 2.2 `vendor/bin/pint --dirty --format agent` przechodzi
+- [x] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
+- [x] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi
 
 #### Manual
 
-- [ ] 2.5 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”): zatwierdzony bieżący miesiąc pokazuje „Zmień plan”; tryb zmiany pokazuje pola, „Zapisz zmiany” i „Anuluj”, a „do wydania” zmienia się przy wpisywaniu
-- [ ] 2.6 Po zapisie strona wraca do odczytu, kwoty są nowe, a zmienione pozycje pokazują „Zatwierdzono: X”
-- [ ] 2.7 „Anuluj” przywraca kwoty z serwera bez zapisu
-- [ ] 2.8 Kategoria utworzona po zatwierdzeniu pojawia się dopiero w trybie zmiany i po zapisie zostaje w planie z „Zatwierdzono: 0,00 zł”
-- [ ] 2.9 Miniony zatwierdzony miesiąc nie ma „Zmień plan”, a przyszły zatwierdzony ma
-- [ ] 2.10 Przełącznik „Rachunek / Bieżąca” działa w trybie zmiany i nie gubi wpisanych kwot
+- [x] 2.5 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”): zatwierdzony bieżący miesiąc pokazuje „Zmień plan”; tryb zmiany pokazuje pola, „Zapisz zmiany” i „Anuluj”, a „do wydania” zmienia się przy wpisywaniu
+- [x] 2.6 Po zapisie strona wraca do odczytu, kwoty są nowe, a zmienione pozycje pokazują „Zatwierdzono: X”
+- [x] 2.7 „Anuluj” przywraca kwoty z serwera bez zapisu
+- [x] 2.8 Kategoria utworzona po zatwierdzeniu pojawia się dopiero w trybie zmiany i po zapisie zostaje w planie z „Zatwierdzono: 0,00 zł”
+- [x] 2.9 Miniony zatwierdzony miesiąc nie ma „Zmień plan”, a przyszły zatwierdzony ma
+- [x] 2.10 Przełącznik „Rachunek / Bieżąca” działa w trybie zmiany i nie gubi wpisanych kwot

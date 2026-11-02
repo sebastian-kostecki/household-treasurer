@@ -94,12 +94,14 @@ class MonthPlanProposal
 
         if ($plan !== null) {
             $amounts = [];
+            $approvedAmounts = [];
 
             foreach ($plan->items as $item) {
                 $amounts[$item->category_id] = $item->current_amount_minor_units;
+                $approvedAmounts[$item->category_id] = $item->approved_amount_minor_units;
             }
 
-            return new MonthPlanReading('approved', $plan->approved_at, $amounts);
+            return new MonthPlanReading('approved', $plan->approved_at, $amounts, $approvedAmounts);
         }
 
         if ($this->isPast($budget->year, $month)) {

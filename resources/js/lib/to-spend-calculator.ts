@@ -8,7 +8,9 @@ export type ToSpendItem = {
 
 /**
  * Copy of App\Support\ToSpendCalculator::toSpendMinorUnits, used for the live
- * preview while a month plan proposal is edited. Change both together.
+ * preview while a month plan proposal is edited, and while an approved plan is
+ * changed (saving overwrites the final plan, so the preview must react before
+ * save). Change both together.
  */
 export function toSpendMinorUnits(items: ToSpendItem[]): number {
     let total = 0;
