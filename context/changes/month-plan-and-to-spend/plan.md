@@ -715,10 +715,10 @@ Agregacja używa zakresu dat i indeksu `budget_id`, więc przy 10 000 operacji m
 
 #### Automated
 
-- [x] 4.1 `tests/Feature/UserSnapshotCommandTest.php` przechodzi (wersja 5, okrągła podróż z planem i `bill`, przywrócenie v4 z domyślnym `running`, odrzucenie v5 bez `month_plans`)
-- [x] 4.2 `CategoryPacedFlagTest` przechodzi
-- [x] 4.3 Pełna bramka `composer ci:check` przechodzi na obrazie Sail
+- [x] 4.1 `tests/Feature/UserSnapshotCommandTest.php` przechodzi (wersja 5, okrągła podróż z planem i `bill`, przywrócenie v4 z domyślnym `running`, odrzucenie v5 bez `month_plans`) — 0482082
+- [x] 4.2 `CategoryPacedFlagTest` przechodzi — 0482082
+- [x] 4.3 Pełna bramka `composer ci:check` przechodzi na obrazie Sail — 0482082
 
 #### Manual
 
-- [x] 4.4 Backup i restore na innym użytkowniku dają ten sam plan i tę samą liczbę
+- [x] 4.4 Backup i restore na innym użytkowniku dają ten sam plan i tę samą liczbę — 0482082
