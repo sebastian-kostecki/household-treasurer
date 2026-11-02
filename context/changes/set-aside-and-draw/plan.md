@@ -441,11 +441,11 @@ Jedno dodatkowe zapytanie `sum` na odczyt strony planu dla miesiąca bieżącego
 
 #### Automated
 
-- [x] 3.1 UserSnapshotCommandTest: okrągła podróż i v5 bez kluczy Set-aside
-- [x] 3.2 UserSnapshotCommandTest przechodzi na PostgreSQL
-- [x] 3.3 Pełna bramka CI na obrazie Sail
+- [x] 3.1 UserSnapshotCommandTest: okrągła podróż i v5 bez kluczy Set-aside — b329b8a
+- [x] 3.2 UserSnapshotCommandTest przechodzi na PostgreSQL — b329b8a
+- [x] 3.3 Pełna bramka CI na obrazie Sail — b329b8a
 
 #### Manual
 
-- [x] 3.4 Backup i restore zachowują Dobieram i liczbę do wydania
-- [x] 3.5 Dokumenty zgodne z regułą propozycji
+- [x] 3.4 Backup i restore zachowują Dobieram i liczbę do wydania — b329b8a
+- [x] 3.5 Dokumenty zgodne z regułą propozycji — b329b8a
