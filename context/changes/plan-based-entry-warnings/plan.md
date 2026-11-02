@@ -464,8 +464,8 @@ Brak migracji i zmian danych. Usunięcie annotatora nie zmienia zapisu Importu, 
 
 #### Automated
 
-- [ ] 2.1 `npm test` przechodzi, w tym `entry-to-spend-warning.test.ts`
-- [ ] 2.2 `npm run check` jest zielone
+- [x] 2.1 `npm test` przechodzi, w tym `entry-to-spend-warning.test.ts`
+- [x] 2.2 `npm run check` jest zielone
 
 ### Phase 3: Ostrzeżenie przy ręcznej operacji
 
