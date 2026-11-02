@@ -147,7 +147,7 @@ const deviationClass = computed(() => {
 
         <div class="text-right">
             <Input
-                v-if="editable && row.in_plan"
+                v-if="editable && (row.in_plan || !row.is_archived)"
                 v-model="amountInput"
                 inputmode="decimal"
                 autocomplete="off"
@@ -157,6 +157,16 @@ const deviationClass = computed(() => {
             <span v-else class="text-sm tabular-nums">
                 {{ formatMoney(row.plan_minor_units) }}
             </span>
+            <p
+                v-if="
+                    row.approved_minor_units !== null &&
+                    row.approved_minor_units !== row.plan_minor_units
+                "
+                class="text-muted-foreground text-xs tabular-nums"
+            >
+                {{ t.month_plan.approved_amount }}:
+                {{ formatMoney(row.approved_minor_units) }}
+            </p>
         </div>
 
         <div class="flex flex-col items-end">

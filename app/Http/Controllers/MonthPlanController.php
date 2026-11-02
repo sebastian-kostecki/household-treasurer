@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ApproveMonthPlan;
+use App\Actions\ChangeMonthPlan;
 use App\Enums\CategoryType;
 use App\Http\Requests\ApproveMonthPlanRequest;
+use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
@@ -96,12 +98,41 @@ class MonthPlanController extends Controller
         return to_route('month-plan', ['month' => $month]);
     }
 
+    public function update(
+        UpdateMonthPlanRequest $request,
+        Budget $budget,
+        int $month,
+        ChangeMonthPlan $changeMonthPlan,
+    ): RedirectResponse {
+        $amounts = [];
+
+        foreach ($request->validated('items') as $item) {
+            $amounts[(int) $item['category_id']] = (int) $item['amount_minor_units'];
+        }
+
+        $changeMonthPlan->handle(
+            $budget,
+            $month,
+            $amounts,
+            CarbonImmutable::today('UTC'),
+            $request->has('set_aside_minor_units') ? (int) $request->validated('set_aside_minor_units') : null,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Month plan changed.'),
+        ]);
+
+        return to_route('month-plan', ['month' => $month]);
+    }
+
     /**
      * @param  'past'|'current'|'future'  $timing
      * @return array{
      *     state: 'proposal'|'approved'|'none',
      *     approved_at: string|null,
      *     can_approve: bool,
+     *     can_change: bool,
      *     to_spend_minor_units: int|null,
      *     set_aside_minor_units: int,
      *     spendable_liquidity_minor_units: int|null,
@@ -114,11 +145,38 @@ class MonthPlanController extends Controller
         $toSpend = MonthToSpend::forMonth($budget, $month, $today);
         $reading = $toSpend->reading;
 
+        $canChange = $reading->state === 'approved' && $timing !== 'past';
+
+        $categories = $toSpend->categories;
+        $joinCandidateIds = [];
+
+        if ($canChange) {
+            $knownIds = $categories->pluck('id')->all();
+
+            $joinCandidateIds = $budget->categories
+                ->whereNull('archived_at')
+                ->whereNotIn('id', $knownIds)
+                ->pluck('id')
+                ->all();
+
+            if ($joinCandidateIds !== []) {
+                $categories = $budget->categories()
+                    ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
+                    ->ordered()
+                    ->get();
+            }
+        }
+
         $incomeItems = [];
         $expenseItems = [];
 
-        foreach ($toSpend->categories as $category) {
-            $row = $this->itemRow($category, $toSpend, $timing);
+        foreach ($categories as $category) {
+            $row = $this->itemRow(
+                $category,
+                $toSpend,
+                $timing,
+                in_array($category->id, $joinCandidateIds, true),
+            );
 
             if ($category->type === CategoryType::Income) {
                 $incomeItems[] = $row;
@@ -133,6 +191,7 @@ class MonthPlanController extends Controller
             'can_approve' => $reading->state === 'proposal'
                 && $timing !== 'past'
                 && ! $toSpend->proposal->isBlockedByPreviousMonth($month),
+            'can_change' => $canChange,
             'to_spend_minor_units' => $toSpend->toSpendMinorUnits(),
             'set_aside_minor_units' => $reading->setAsideMinorUnits,
             'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
@@ -164,9 +223,11 @@ class MonthPlanController extends Controller
      *     is_settled: bool,
      *     available_limit_minor_units: int|null,
      *     is_idle_one_off: bool,
+     *     approved_minor_units: int|null,
+     *     is_join_candidate: bool,
      * }
      */
-    private function itemRow(Category $category, MonthToSpend $toSpend, string $timing): array
+    private function itemRow(Category $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
     {
         $isExpense = $category->type === CategoryType::Expense;
         $isOneOff = $isExpense && ! $category->is_paced;
@@ -188,6 +249,8 @@ class MonthPlanController extends Controller
             'has_positive_amount' => $hasPositiveAmount,
             'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
             'in_plan' => array_key_exists($category->id, $toSpend->reading->amounts),
+            'approved_minor_units' => $toSpend->reading->approvedAmounts[$category->id] ?? null,
+            'is_join_candidate' => $isJoinCandidate,
             'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits(
                 $category->type,
                 $category->month_item_kind,

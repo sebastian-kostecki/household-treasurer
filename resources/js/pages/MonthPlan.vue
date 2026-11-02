@@ -39,6 +39,7 @@ type MonthPlanReading = {
     state: 'proposal' | 'approved' | 'none';
     approved_at: string | null;
     can_approve: boolean;
+    can_change: boolean;
     to_spend_minor_units: number | null;
     set_aside_minor_units: number;
     spendable_liquidity_minor_units: number | null;
@@ -69,17 +70,31 @@ setLayoutProps({
     ],
 });
 
+const isChanging = ref(false);
+
+function visibleRows(rows: MonthPlanItem[]): MonthPlanItem[] {
+    return isChanging.value
+        ? rows
+        : rows.filter((row) => !row.is_join_candidate);
+}
+
 const allRows = computed<MonthPlanItem[]>(() => [
-    ...(props.monthPlan?.income_items ?? []),
-    ...(props.monthPlan?.expense_items ?? []),
+    ...visibleRows(props.monthPlan?.income_items ?? []),
+    ...visibleRows(props.monthPlan?.expense_items ?? []),
 ]);
 
-const planRows = computed(() => allRows.value.filter((row) => row.in_plan));
+/** A row has an amount field when it is in the plan or can still join it. */
+function isEditableRow(row: MonthPlanItem): boolean {
+    return row.in_plan || !row.is_archived;
+}
+
+const planRows = computed(() => allRows.value.filter(isEditableRow));
 
 const isEditable = computed(
     () =>
-        props.monthPlan?.state === 'proposal' &&
-        props.monthPlan.can_approve === true,
+        (props.monthPlan?.state === 'proposal' &&
+            props.monthPlan.can_approve === true) ||
+        isChanging.value,
 );
 
 function initialAmountInputs(): Record<number, string> {
@@ -119,11 +134,40 @@ watch(
     },
 );
 
-/** Matches the server limit in ApproveMonthPlanRequest. */
+watch(
+    () => [props.viewedMonth, props.budget?.id],
+    () => {
+        isChanging.value = false;
+        amountInputs.value = initialAmountInputs();
+    },
+);
+
+function startChanging(): void {
+    isChanging.value = true;
+    amountInputs.value = initialAmountInputs();
+}
+
+function stopChanging(): void {
+    isChanging.value = false;
+    amountInputs.value = initialAmountInputs();
+}
+
+const formBinding = computed(() => {
+    const route = {
+        budget: props.budget?.id ?? 0,
+        month: props.viewedMonth ?? 0,
+    };
+
+    return props.monthPlan?.state === 'approved'
+        ? MonthPlanController.update.form(route)
+        : MonthPlanController.approve.form(route);
+});
+
+/** Matches the server limit in ApproveMonthPlanRequest and UpdateMonthPlanRequest. */
 const MAX_PLAN_AMOUNT_MINOR_UNITS = 1_000_000_000_000;
 
 function parsedAmount(row: MonthPlanItem): number | null {
-    if (!row.in_plan) {
+    if (!isEditableRow(row)) {
         return 0;
     }
 
@@ -140,10 +184,25 @@ function parsedAmount(row: MonthPlanItem): number | null {
 }
 
 const parsedPlanAmounts = computed(() =>
-    planRows.value.map((row) => ({
-        categoryId: row.category_id,
-        amount: parsedAmount(row),
-    })),
+    planRows.value.map((row) => {
+        const amount = parsedAmount(row);
+
+        return {
+            categoryId: row.category_id,
+            amount,
+            changed: amount !== row.plan_minor_units,
+        };
+    }),
+);
+
+/**
+ * Approval needs the full set of categories. A change sends only the edited
+ * rows, so a stale tab cannot overwrite amounts the user did not touch.
+ */
+const submittedAmounts = computed(() =>
+    isChanging.value
+        ? parsedPlanAmounts.value.filter((item) => item.changed)
+        : parsedPlanAmounts.value,
 );
 
 /** Signed form value: a draw is negative. Null when the amount is invalid. */
@@ -211,7 +270,7 @@ const toSpendPreviewMinorUnits = computed<number | null>(() => {
         allRows.value.map((row) => ({
             type: row.type,
             kind: row.month_item_kind,
-            plan: row.in_plan ? (parsedAmount(row) ?? 0) : 0,
+            plan: isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0,
             actual: row.actual_minor_units,
             hasPositiveAmount: row.has_positive_amount,
         })),
@@ -300,8 +359,8 @@ function rowReading(row: MonthPlanItem): {
 const idleOpen = ref(false);
 
 const sections = computed(() => {
-    const incomeItems = props.monthPlan?.income_items ?? [];
-    const expenseItems = props.monthPlan?.expense_items ?? [];
+    const incomeItems = visibleRows(props.monthPlan?.income_items ?? []);
+    const expenseItems = visibleRows(props.monthPlan?.expense_items ?? []);
 
     return [
         {
@@ -418,25 +477,25 @@ watch(hasInvalidIdleAmount, (invalid) => {
                         </p>
                         <p class="text-muted-foreground text-xs">
                             {{
-                                monthPlan.state === 'approved'
-                                    ? t.month_plan.approved_hint
-                                    : monthPlan.can_approve
-                                      ? t.month_plan.proposal_hint
-                                      : t.month_plan.blocked_hint
+                                isChanging
+                                    ? t.month_plan.changing_hint
+                                    : monthPlan.state === 'approved'
+                                      ? monthPlan.can_change
+                                          ? t.month_plan.approved_hint
+                                          : t.month_plan.approved_past_hint
+                                      : monthPlan.can_approve
+                                        ? t.month_plan.proposal_hint
+                                        : t.month_plan.blocked_hint
                             }}
                         </p>
                     </CardContent>
                 </Card>
 
                 <Form
-                    v-bind="
-                        MonthPlanController.approve.form({
-                            budget: budget.id,
-                            month: viewedMonth,
-                        })
-                    "
+                    v-bind="formBinding"
                     v-slot="{ errors, processing }"
                     class="space-y-4"
+                    @success="stopChanging"
                 >
                     <Card>
                         <CardContent class="grid gap-3 pt-6">
@@ -528,18 +587,18 @@ watch(hasInvalidIdleAmount, (invalid) => {
 
                     <template v-if="isEditable">
                         <template
-                            v-for="(row, index) in planRows"
-                            :key="row.category_id"
+                            v-for="(item, index) in submittedAmounts"
+                            :key="item.categoryId"
                         >
                             <input
                                 type="hidden"
                                 :name="`items[${index}][category_id]`"
-                                :value="row.category_id"
+                                :value="item.categoryId"
                             />
                             <input
                                 type="hidden"
                                 :name="`items[${index}][amount_minor_units]`"
-                                :value="parsedPlanAmounts[index]?.amount ?? 0"
+                                :value="item.amount ?? 0"
                             />
                         </template>
                     </template>
@@ -626,6 +685,38 @@ watch(hasInvalidIdleAmount, (invalid) => {
                             </CollapsibleContent>
                         </Collapsible>
                     </ListSurface>
+
+                    <div v-if="monthPlan.can_change" class="space-y-2">
+                        <InputError :message="errors.items" />
+                        <div class="flex justify-end gap-2">
+                            <Button
+                                v-if="!isChanging"
+                                type="button"
+                                @click="startChanging"
+                            >
+                                {{ t.month_plan.change }}
+                            </Button>
+                            <template v-else>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    @click="stopChanging"
+                                >
+                                    {{ t.month_plan.cancel }}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    :disabled="
+                                        processing ||
+                                        !allAmountsValid ||
+                                        submittedAmounts.length === 0
+                                    "
+                                >
+                                    {{ t.month_plan.save_changes }}
+                                </Button>
+                            </template>
+                        </div>
+                    </div>
 
                     <div v-if="monthPlan.can_approve" class="space-y-2">
                         <InputError :message="errors.items" />

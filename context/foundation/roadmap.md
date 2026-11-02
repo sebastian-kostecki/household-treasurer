@@ -44,7 +44,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 | F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | done |
 | S-01 | month-plan-and-to-spend     | użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”      | F-01                | US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019      | done |
 | S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | done |
-| S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | proposed |
+| S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | done |
 | S-04 | month-items-plan-vs-actual  | użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe        | S-01                | FR-006, FR-008                                             | done |
 | S-05 | month-spending-pace         | użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca                             | S-04                | FR-007                                                     | proposed |
 | S-06 | to-spend-replaces-remaining | użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu | S-01                | FR-011, FR-013                                             | done |
@@ -129,7 +129,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Podsumowanie potrzebuje planu zatwierdzonego i końcowego, więc oba muszą pozostać rozróżnialne od pierwszej zmiany.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Pozycje miesiąca: plan i wykonanie
 
@@ -262,5 +262,6 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **F-01: (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `CONTEXT.md`.** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-domain-decisions/`. Lesson: —.
 - **S-01: użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-and-to-spend/`. Lesson: —.
 - **S-02: użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-set-aside-and-draw/`. Lesson: —.
+- **S-03: użytkownik może zmienić zatwierdzony plan w trakcie miesiąca** — Archived 2026-11-02 → `context/archive/2026-11-02-approved-plan-changes/`. Lesson: —.
 - **S-04: użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe** — Archived 2026-11-02 → `context/archive/2026-11-02-month-items-plan-vs-actual/`. Lesson: —.
 - **S-06: użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu** — Archived 2026-11-02 → `context/archive/2026-11-02-to-spend-replaces-remaining/`. Lesson: —.

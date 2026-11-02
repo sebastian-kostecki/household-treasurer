@@ -48,6 +48,7 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.state', 'proposal')
                 ->where('monthPlan.approved_at', null)
                 ->where('monthPlan.can_approve', true)
+                ->where('monthPlan.can_change', false)
                 ->where('monthPlan.to_spend_minor_units', 373_000)
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 4)
@@ -59,6 +60,8 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.income_items.0.has_positive_amount', false)
                 ->where('monthPlan.income_items.0.can_change_kind', false)
                 ->where('monthPlan.income_items.0.in_plan', true)
+                ->where('monthPlan.income_items.0.approved_minor_units', null)
+                ->where('monthPlan.income_items.0.is_join_candidate', false)
                 ->where('monthPlan.expense_items.0.name', 'Czynsz')
                 ->where('monthPlan.expense_items.0.month_item_kind', 'bill')
                 ->where('monthPlan.expense_items.0.plan_minor_units', 200_000)
@@ -194,10 +197,12 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.state', 'approved')
                 ->whereNot('monthPlan.approved_at', null)
                 ->where('monthPlan.can_approve', false)
+                ->where('monthPlan.can_change', false)
                 ->where('monthPlan.to_spend_minor_units', 400_000)
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 1)
-                ->where('monthPlan.expense_items.0.can_change_kind', false),
+                ->where('monthPlan.expense_items.0.can_change_kind', false)
+                ->where('monthPlan.expense_items.0.is_join_candidate', false),
             );
     }
 
@@ -255,6 +260,121 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.4.actual_minor_units', 20_000)
                 ->where('monthPlan.expense_items.4.can_change_kind', false)
                 ->where('monthPlan.to_spend_minor_units', 353_000),
+            );
+    }
+
+    public function test_current_approved_month_can_be_changed_and_keeps_the_approved_amounts(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->approveJune($user, $budget, $categories);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.can_change', true)
+                ->where('monthPlan.expense_items.1.plan_minor_units', 150_000)
+                ->where('monthPlan.expense_items.1.approved_minor_units', 150_000),
+            );
+
+        MonthPlanItem::query()
+            ->where('category_id', $categories['food']->id)
+            ->update(['current_amount_minor_units' => 180_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.1.plan_minor_units', 180_000)
+                ->where('monthPlan.expense_items.1.approved_minor_units', 150_000)
+                ->where('monthPlan.expense_items.1.is_join_candidate', false)
+                ->where('monthPlan.to_spend_minor_units', 343_000),
+            );
+    }
+
+    public function test_active_category_without_an_item_is_a_join_candidate_only_when_the_plan_can_change(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->approveJune($user, $budget, $categories);
+        Category::factory()->for($budget)->expense()->create(['name' => 'Wesele', 'sort_order' => 10]);
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Archiwalna',
+            'sort_order' => 11,
+            'archived_at' => '2026-05-01',
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', fn ($items) => ! collect($items)->pluck('name')->contains('Archiwalna'))
+                ->has('monthPlan.expense_items', 5)
+                ->where('monthPlan.expense_items.4.name', 'Wesele')
+                ->where('monthPlan.expense_items.4.is_join_candidate', true)
+                ->where('monthPlan.expense_items.4.in_plan', false)
+                ->where('monthPlan.expense_items.4.approved_minor_units', null)
+                ->where('monthPlan.expense_items.4.plan_minor_units', 0)
+                ->where('monthPlan.expense_items.4.actual_minor_units', 0)
+                ->where('monthPlan.to_spend_minor_units', 373_000),
+            );
+
+        MonthPlan::query()->where('budget_id', $budget->id)->update(['month' => 3]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.can_change', false)
+                ->has('monthPlan.expense_items', 4),
+            );
+    }
+
+    public function test_future_approved_month_can_be_changed(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 7]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['salary']->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 7]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'future')
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.can_change', true),
+            );
+    }
+
+    public function test_changing_an_approved_plan_from_the_page_redirects_with_a_toast_and_shows_new_amounts(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->approveJune($user, $budget, $categories);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->patch(route('month-plans.update', ['budget' => $budget, 'month' => 6]), [
+                'items' => [
+                    ['category_id' => $categories['food']->id, 'amount_minor_units' => 180_000],
+                ],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('month-plan', ['month' => 6]))
+            ->assertInertiaFlash('toast.type', 'success');
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.1.plan_minor_units', 180_000)
+                ->where('monthPlan.expense_items.1.approved_minor_units', 150_000)
+                ->where('monthPlan.to_spend_minor_units', 343_000),
             );
     }
 
@@ -675,6 +795,20 @@ class MonthPlanPageTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseCount('month_plans', 0);
+    }
+
+    /**
+     * @param  array<string, Category>  $categories
+     */
+    private function approveJune(User $user, Budget $budget, array $categories): void
+    {
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 0,
+                'items' => $this->planItems($categories),
+            ])
+            ->assertSessionHasNoErrors();
     }
 
     /**

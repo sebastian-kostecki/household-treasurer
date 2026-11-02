@@ -19,4 +19,6 @@ export type MonthPlanItem = {
     is_settled: boolean;
     available_limit_minor_units: number | null;
     is_idle_one_off: boolean;
+    approved_minor_units: number | null;
+    is_join_candidate: boolean;
 };
