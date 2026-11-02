@@ -133,9 +133,9 @@ Zakres pierwszej wersji: zatwierdzany plan, plan i faktyczna kwota na pozycji, l
     > Socratic: Kontrargument: powiadomienia o drobiazgach uczą ignorowania strefy uwagi. Rozstrzygnięcie: „brak planu” od 3. dnia miesiąca; „pozycja ponad plan” przy każdym przekroczeniu, bo to już fakt.
 - [new] FR-019: User can ustawić na kategorii rodzaj pozycji: „rachunek” albo „bieżąca”. Priority: must-have.
     > Socratic: Kontrargument rozstrzygnięty przy FR-006, FR-007 i FR-018: bez rodzaju pozycji liczba i tempo byłyby nieścisłe. Domyślnie „bieżąca”, kopiowane na nowy rok jak flaga równomierna.
-- [modified] FR-013: User can zobaczyć na Dashboardzie i stronie Budżet „do wydania” zamiast `Pozostało w miesiącu` w bieżącym i przyszłych miesiącach; minione miesiące zachowują stary odczyt. Priority: must-have.
-    > Socratic: Kontrargument: szkic liczy od razu, więc stary odczyt zostaje tylko dla minionych miesięcy. Rozstrzygnięcie: zostaje dla minionych, historia wygląda jak dziś, kosztem utrzymania starego kodu.
-- [modified] FR-014: User can zobaczyć przy ręcznej operacji i w podglądzie Importu ostrzeżenia liczone z planu miesiąca, gdy miesiąc ma plan; bez planu zostają obecne. Priority: must-have.
+- [modified] FR-013: User can zobaczyć na Dashboardzie i stronie Budżet „do wydania” zamiast `Pozostało w miesiącu` w bieżącym i przyszłych miesiącach; minione miesiące z zatwierdzonym planem pokazują podsumowanie i końcowe „do wydania”, a minione bez planu zachowują stary odczyt. Priority: must-have.
+    > Socratic: Kontrargument: szkic liczy od razu, więc stary odczyt zostaje tylko dla minionych miesięcy bez planu. Rozstrzygnięcie: zostaje dla nich, historia wygląda jak dziś, kosztem utrzymania starego kodu.
+- [modified] FR-014: User can zobaczyć przy ręcznej operacji i w podglądzie Importu ostrzeżenia liczone z planu miesiąca, gdy miesiąc ma plan, także niezatwierdzoną propozycję; bez planu zostają obecne. Priority: must-have.
     > Socratic: Kontrargument: Import może mieć wiersze z kilku miesięcy. Rozstrzygnięcie: każdy wiersz sprawdzany jest według miesiąca swojej daty.
 
 ### Zachowane
@@ -184,7 +184,7 @@ Nie mogą się zepsuć (wskazane przez użytkownika):
 
 Aplikacja pokazuje, ile można jeszcze wydać w miesiącu: przychody miesiąca minus zobowiązania miesiąca, z kwotami faktycznymi tam, gdzie już są, a odstępstwo od zasady „nie więcej, niż zarobiono” jest jawną decyzją, a nie błędem.
 
-Obecnie system liczy `Wynik` (zaksięgowane dochody minus wydatki) oraz `Pozostało w miesiącu` (bieżąca część rocznego planu). Ta zmiana dodaje nową regułę dla bieżącego i przyszłych miesięcy; minione miesiące działają jak dotąd.
+Obecnie system liczy `Wynik` (zaksięgowane dochody minus wydatki) oraz `Pozostało w miesiącu` (bieżąca część rocznego planu). Ta zmiana dodaje nową regułę dla bieżącego i przyszłych miesięcy oraz minionych miesięcy z zatwierdzonym planem; minione miesiące bez planu działają jak dotąd.
 
 `do wydania` = przychody (plan, a po wpływie kwota faktyczna) − pozycje „rachunek” (plan, a po wpłacie kwota faktyczna) − pozycje „bieżąca” (większa z: plan, kwota faktyczna) − odkładam + dobieram.
 
@@ -199,7 +199,10 @@ Liczba może być ujemna i niczego nie blokuje, tak jak dziś przekroczenie limi
 - **Wydatki nieregularne: sekcja + planowane, gdy znane.** Bez funduszu i przelewów. Kategoria jednorazowa jest pozycją planu z domyślną kwotą 0, a sekcja pokazuje resztę rocznego limitu. Obniża „do wydania”, gdy zostanie wpisana do planu albo gdy wydatek zostanie zaksięgowany. Odrzucone: tylko po zaksięgowaniu (ostrzeżenie po fakcie), średnia co miesiąc (fundusz oparty na założeniu).
 - **Oszczędności: pole „odkładam / dobieram” w planie miesiąca.** Jedna kwota, nie kategoria i nie przelew. Odkładam obniża „do wydania”, dobieram je podnosi. Użytkownik nie chce niepotrzebnych przelewów na oszczędności.
 - **Rozliczenie końca miesiąca: tylko podsumowanie.** Plan, wykonanie, odchylenia, odkładane zamierzone i realne. Kolejny miesiąc startuje od zera, pieniądze zostają na kontach, a późna operacja po prostu zmienia podsumowanie. Odrzucone: przenoszenie (łańcuch miesięcy, podwójne liczenie z „dobieram”) i zamykanie (można dołożyć później).
-- **Propozycja kwot: plan poprzedniego miesiąca.** Dla pierwszego miesiąca średnia z rocznego, jednorazowe od 0. Odrzucone: osobna domyślna kwota kategorii, zawsze średnia z rocznego.
+- **Propozycja kwot: plan poprzedniego miesiąca.** Dla pierwszego miesiąca średnia z rocznego. Kategorie jednorazowe nie kopiują kwoty: w każdej propozycji startują od 0, żeby jednorazowy wydatek nie wracał i nie zaniżał „do wydania”. Odrzucone: osobna domyślna kwota kategorii, zawsze średnia z rocznego.
+- **Tempo: bez kategorii jednorazowych.** Większy jednorazowy wydatek nie daje ostrzeżenia o tempie, także gdy kategoria ma domyślny rodzaj „bieżąca”.
+- **„Miesiąc ma plan” obejmuje niezatwierdzoną propozycję.** Ostrzeżenia z FR-014 i odczyt z FR-013 liczą według tej samej reguły także przed zatwierdzeniem.
+- **Miniony miesiąc z zatwierdzonym planem:** podsumowanie i końcowe „do wydania”. `Pozostało w miesiącu` zostaje tylko dla minionych miesięcy bez planu.
 - **`Wynik` zostaje.** To fakt (zarobione minus wydane) i na koniec miesiąca jest miarą realnego odkładania.
 
 ## Access Control Changes
@@ -226,7 +229,3 @@ Obecny model: konta tworzy administrator (`user:create`), samodzielna rejestracj
 2. **Jaki jest koszt obecnego obejścia?** Notatki opisują arkusz i jego strukturę, ale nie nazywają ceny jego utrzymania. Właściciel: użytkownik.
 3. **Jak wygląda plan wycofania zmiany?** Notatki określają brak ręcznej migracji, ale nie mówią, co dzieje się z planami miesięcy i rodzajem pozycji, jeśli zmianę trzeba cofnąć. Właściciel: użytkownik.
 4. **Czy są wymiary jakości, w które ta zmiana świadomie nie celuje?** Non-Goals z notatek są wyłącznie funkcjonalne. Właściciel: użytkownik.
-5. **Czy propozycja planu kopiuje kwotę kategorii jednorazowej z poprzedniego miesiąca?** Rozstrzygnięcia mówią jednocześnie „plan poprzedniego miesiąca” i „domyślna kwota 0”. Przy kopiowaniu jednorazowy wydatek z jednego miesiąca wraca w propozycji kolejnego i obniża „do wydania”. Właściciel: użytkownik.
-6. **Czy kategorie jednorazowe liczą się do tempa wydatków?** Istniejące kategorie dostają domyślnie rodzaj „bieżąca”, a tempo obejmuje pozycje „bieżące” (FR-007, FR-018), więc jednorazowy większy wydatek może dać fałszywe ostrzeżenie o tempie, chyba że użytkownik oznaczy kategorię jako „rachunek”. Właściciel: użytkownik.
-7. **Czy „miesiąc ma plan” w FR-014 obejmuje niezatwierdzoną propozycję?** Przy niezatwierdzonym bieżącym miesiącu FR-013 pokazuje „do wydania” z propozycji, a FR-014 może zostawić przy operacjach obecne ostrzeżenia liczone inną regułą. Właściciel: użytkownik.
-8. **Co pokazuje miniony miesiąc, który miał zatwierdzony plan?** FR-013 i Business Logic Changes mówią, że minione miesiące zachowują stary odczyt, a FR-009 daje im podsumowanie planu. Nie jest rozstrzygnięte, czy po końcu miesiąca „do wydania” ustępuje `Pozostało w miesiącu`. Właściciel: użytkownik.
