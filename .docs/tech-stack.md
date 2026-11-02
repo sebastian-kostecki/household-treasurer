@@ -5,11 +5,11 @@ Decyzje technologiczne MVP. Wymagania produktowe pozostają w `.docs/prd.md` i `
 ## 1. Wybrany stack
 
 - **Laravel 13** — backend, routing, uwierzytelnianie, trwały zapis, reguły biznesowe.
-- **PHP 8.5** — wersja wymagana przez Laravel 13.
+- **PHP 8.5** — wersja docelowa w Sail, CI i na produkcji. Zablokowane zależności wymagają co najmniej 8.4.1.
 - **PostgreSQL** — jedyny silnik bazy w developmentcie i na produkcji.
 - **Vue 3** (Composition API) + **TypeScript** — warstwa UI.
 - **Inertia 3** — most między Laravel a Vue. Aplikacja jest monolitem full-stack, nie osobnym SPA z REST API.
-- **Vite** — bundler i serwer deweloperski assetów frontendu.
+- **Vite** — bundler i serwer deweloperski assetów frontendu, uruchamiany przez Vite+ (`vp`), który obsługuje też formatowanie i lint.
 - **Tailwind CSS** + **shadcn-vue** — stylowanie i gotowe komponenty UI.
 - **Pest** — testy PHP.
 - **Docker** — środowisko uruchomieniowe.
@@ -36,7 +36,7 @@ Osobne REST/JSON API nie powstaje w MVP.
 
 ## 3. Baza, cache, kolejki
 
-PostgreSQL jest źródłem prawdy. Sail instaluje usługę `pgsql`. Testy feature/integracyjne też idą na PostgreSQL w Sail. SQLite nie jest bazą aplikacji.
+PostgreSQL jest źródłem prawdy. Sail instaluje usługę `pgsql`. Testy feature/integracyjne domyślnie idą na SQLite w pamięci (`phpunit.xml`), a w CI na PostgreSQL. SQLite nie jest bazą aplikacji.
 
 Redis nie wchodzi do MVP. Sesje, cache i kolejka zostają na defaultach Laravel wystarczających przy jednym kontenerze aplikacji:
 
