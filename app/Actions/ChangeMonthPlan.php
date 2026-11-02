@@ -62,6 +62,9 @@ class ChangeMonthPlan
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
 
+                $joining = [];
+                $now = now();
+
                 foreach ($amounts as $categoryId => $amount) {
                     $item = $items->get($categoryId);
 
@@ -72,13 +75,19 @@ class ChangeMonthPlan
                     }
 
                     if ($amount > 0) {
-                        MonthPlanItem::query()->create([
+                        $joining[] = [
                             'month_plan_id' => $plan->id,
                             'category_id' => $categoryId,
                             'approved_amount_minor_units' => 0,
                             'current_amount_minor_units' => $amount,
-                        ]);
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
                     }
+                }
+
+                if ($joining !== []) {
+                    MonthPlanItem::query()->insert($joining);
                 }
 
                 return $plan;
