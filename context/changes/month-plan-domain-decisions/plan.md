@@ -217,13 +217,13 @@ Nie dotyczy — brak zmian w danych. Wycofanie to revert commitów dokumentacyjn
 
 #### Automated
 
-- [x] 2.1 Wszystkie nowe terminy mają wpis
-- [x] 2.2 Progi są zapisane dosłownie
-- [x] 2.3 Diff obejmuje tylko trzy dokumenty
+- [x] 2.1 Wszystkie nowe terminy mają wpis — 72f7f5a
+- [x] 2.2 Progi są zapisane dosłownie — 72f7f5a
+- [x] 2.3 Diff obejmuje tylko trzy dokumenty — 72f7f5a
 
 #### Manual
 
-- [x] 2.4 Przykład To Spend z wpisu daje 1700 (z Draw 2500)
-- [x] 2.5 Przykład Month Pace z wpisu (8,3 pp brak ostrzeżenia; 11,7 pp `warning`)
-- [x] 2.6 Żaden z sześciu poprawionych wpisów nie przeczy ADR-0033; progi brzmią tak samo
-- [x] 2.7 Słownik nie urósł poza dziewięć nowych terminów i dopiski w sześciu istniejących wpisach
+- [x] 2.4 Przykład To Spend z wpisu daje 1700 (z Draw 2500) — 72f7f5a
+- [x] 2.5 Przykład Month Pace z wpisu (8,3 pp brak ostrzeżenia; 11,7 pp `warning`) — 72f7f5a
+- [x] 2.6 Żaden z sześciu poprawionych wpisów nie przeczy ADR-0033; progi brzmią tak samo — 72f7f5a
+- [x] 2.7 Słownik nie urósł poza dziewięć nowych terminów i dopiski w sześciu istniejących wpisach — 72f7f5a
