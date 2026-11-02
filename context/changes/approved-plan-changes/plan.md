@@ -46,7 +46,7 @@ Za `context/changes/approved-plan-changes/research.md`:
 
 ## Implementation Approach
 
-Osobna ścieżka zapisu obok zatwierdzenia: nowa trasa, FormRequest i akcja `ChangeMonthPlan`, wzorowane na `ApproveMonthPlan`. Akcja w transakcji blokuje wiersz `month_plans` (`lockForUpdate`), aktualizuje `current_amount_minor_units` przesłanych pozycji i tworzy pozycje dołączających kategorii z `approved = 0`. Pozycje nieprzesłane zostają bez zmian (formularz zawsze przesyła wszystkie edytowalne wiersze; tolerancja chroni przed kategorią utworzoną w innej karcie między odczytem a zapisem).
+Osobna ścieżka zapisu obok zatwierdzenia: nowa trasa, FormRequest i akcja `ChangeMonthPlan`, wzorowane na `ApproveMonthPlan`. Akcja w transakcji blokuje wiersz `month_plans` (`lockForUpdate`), aktualizuje `current_amount_minor_units` przesłanych pozycji i tworzy pozycje dołączających kategorii z `approved = 0`. Pozycje nieprzesłane zostają bez zmian (tryb zmiany na stronie przesyła tylko wiersze, których kwota różni się od odczytanej — przegląd F1; dzięki temu nieobecna pozycja i kategoria utworzona w innej karcie nie są nadpisywane).
 
 Strona dostaje z serwera: `can_change` (plan zatwierdzony ∧ miesiąc nie miniony), w wierszu `approved_minor_units` (kwota zatwierdzona albo `null`) i `is_join_candidate` (wiersz dodany tylko po to, by kategoria mogła dołączyć w trybie zmiany). Vue rozszerza istniejący mechanizm formularza propozycji o flagę `isChanging`; `<Form>` przełącza akcję między `approve` a `update` jak `IncomeFormDialog`.
 
@@ -61,7 +61,7 @@ Dla budżetu B, miesiąca M, „dziś” = `CarbonImmutable::today('UTC')`:
 - `[B.year, M] < [today.year, today.month]` → błąd `items` „A past month plan cannot be changed.” (także gdy plan istnieje).
 - Brak `month_plans` dla (B, M) → błąd `items` „Approve this month plan first.”
 - Dozwolone kategorie = kategorie pozycji planu ∪ kategorie B z `archived_at = null`. Przesłana kategoria spoza tego zbioru (inny budżet, zarchiwizowana bez pozycji, nieistniejąca) → błąd `items` „The month plan items are invalid.”; nic nie jest zapisane.
-- Przesłana kategoria z pozycją → `current = kwota`, `approved` bez zmian. Bez pozycji i kwota > 0 → nowa pozycja `approved = 0`, `current = kwota`. Bez pozycji i kwota 0 → bez zmian (formularz przesyła wszystkie edytowalne wiersze, więc 0 nie oznacza dołączenia; brak pozycji i pozycja 0 dają to samo „do wydania” i tę samą propozycję M+1).
+- Przesłana kategoria z pozycją → `current = kwota`, `approved` bez zmian. Bez pozycji i kwota > 0 → nowa pozycja `approved = 0`, `current = kwota`. Bez pozycji i kwota 0 → bez zmian (0 nie oznacza dołączenia; brak pozycji i pozycja 0 dają to samo „do wydania” i tę samą propozycję M+1).
 - Pozycja nieprzesłana → bez zmian. `approved_at` planu → bez zmian.
 - Pozycja zarchiwizowanej kategorii, która już jest w planie → edytowalna.
 
@@ -97,7 +97,7 @@ Trasa, walidacja, akcja i kontroler zapisujące kwoty bieżące zatwierdzonego p
 
 **Intent**: Zapisać kwoty bieżące według „Reguł zmiany” w jednej transakcji, z blokadą wiersza planu, żeby równoległe zmiany się szeregowały.
 
-**Contract**: `handle(Budget $budget, int $month, array $amounts, CarbonImmutable $today): MonthPlan` z `@param array<int, int> $amounts` (category id → kwota). Kolejność sprawdzeń jak w „Regułach zmiany”; wszystkie odrzucenia jako `ValidationException::withMessages(['items' => …])`. Plan pobierany z `lockForUpdate()`; pozycje czytane dopiero po blokadzie, w tej samej transakcji (`$plan->items()->get()`, bez wcześniejszego eager loadu), żeby równoległe dołączenie tej samej kategorii nie trafiło w unikalność (plan, kategoria). Nie czyta `MonthPlanProposal` (nie potrzebuje propozycji). Docblock klasy nazywa niezmiennik: `approved_amount_minor_units` istniejącej pozycji nigdy nie jest zapisywane.
+**Contract**: `handle(Budget $budget, int $month, array $amounts, CarbonImmutable $today): MonthPlan` z `@param array<int, int> $amounts` (category id → kwota). Kolejność sprawdzeń jak w „Regułach zmiany”; wszystkie odrzucenia jako `ValidationException::withMessages(['items' => …])`. Plan pobierany z `lockForUpdate()`; pozycje czytane dopiero po blokadzie, w tej samej transakcji (`$plan->items()->get()`, bez wcześniejszego eager loadu), żeby równoległe dołączenie tej samej kategorii nie trafiło w unikalność (plan, kategoria). Nie czyta `MonthPlanProposal` (nie potrzebuje propozycji). Docblock klasy nazywa niezmiennik: `approved_amount_minor_units` istniejącej pozycji nigdy nie jest zapisywane. Naruszenie unikalności (plan, kategoria) mimo blokady (np. na SQLite, gdzie `lockForUpdate` nic nie robi) jest łapane poza transakcją i mapowane na błąd `items` (addendum po przeglądzie implementacji, F3).
 
 #### 4. Kontroler
 

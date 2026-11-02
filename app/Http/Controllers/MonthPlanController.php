@@ -139,7 +139,7 @@ class MonthPlanController extends Controller
         ]));
 
         $joinCandidateIds = $canChange
-            ? $budget->categories()
+            ? $budget->categories
                 ->whereNull('archived_at')
                 ->whereNotIn('id', $rowIds)
                 ->pluck('id')

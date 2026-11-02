@@ -259,7 +259,7 @@ class MonthPlanPageTest extends TestCase
         $this->approveJune($user, $budget, $categories);
         Category::factory()->for($budget)->expense()->create(['name' => 'Wesele', 'sort_order' => 10]);
         Category::factory()->for($budget)->expense()->create([
-            'name' => 'Stara',
+            'name' => 'Archiwalna',
             'sort_order' => 11,
             'archived_at' => '2026-05-01',
         ]);
@@ -268,6 +268,7 @@ class MonthPlanPageTest extends TestCase
             ->withSession(['budget_year' => 2026])
             ->get(route('month-plan'))
             ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', fn ($items) => ! collect($items)->pluck('name')->contains('Archiwalna'))
                 ->has('monthPlan.expense_items', 5)
                 ->where('monthPlan.expense_items.4.name', 'Wesele')
                 ->where('monthPlan.expense_items.4.is_join_candidate', true)
@@ -286,6 +287,28 @@ class MonthPlanPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('monthPlan.can_change', false)
                 ->has('monthPlan.expense_items', 4),
+            );
+    }
+
+    public function test_future_approved_month_can_be_changed(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 7]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['salary']->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 7]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'future')
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.can_change', true),
             );
     }
 

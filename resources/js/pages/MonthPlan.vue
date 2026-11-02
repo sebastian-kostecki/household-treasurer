@@ -148,7 +148,7 @@ const formBinding = computed(() => {
         : MonthPlanController.approve.form(route);
 });
 
-/** Matches the server limit in ApproveMonthPlanRequest. */
+/** Matches the server limit in ApproveMonthPlanRequest and UpdateMonthPlanRequest. */
 const MAX_PLAN_AMOUNT_MINOR_UNITS = 1_000_000_000_000;
 
 function parsedAmount(row: MonthPlanItemRow): number | null {
@@ -169,10 +169,25 @@ function parsedAmount(row: MonthPlanItemRow): number | null {
 }
 
 const parsedPlanAmounts = computed(() =>
-    planRows.value.map((row) => ({
-        categoryId: row.category_id,
-        amount: parsedAmount(row),
-    })),
+    planRows.value.map((row) => {
+        const amount = parsedAmount(row);
+
+        return {
+            categoryId: row.category_id,
+            amount,
+            changed: amount !== row.plan_minor_units,
+        };
+    }),
+);
+
+/**
+ * Approval needs the full set of categories. A change sends only the edited
+ * rows, so a stale tab cannot overwrite amounts the user did not touch.
+ */
+const submittedAmounts = computed(() =>
+    isChanging.value
+        ? parsedPlanAmounts.value.filter((item) => item.changed)
+        : parsedPlanAmounts.value,
 );
 
 const allAmountsValid = computed(() =>
@@ -369,18 +384,18 @@ const sections = computed(() => [
                 >
                     <template v-if="isEditable">
                         <template
-                            v-for="(row, index) in planRows"
-                            :key="row.category_id"
+                            v-for="(item, index) in submittedAmounts"
+                            :key="item.categoryId"
                         >
                             <input
                                 type="hidden"
                                 :name="`items[${index}][category_id]`"
-                                :value="row.category_id"
+                                :value="item.categoryId"
                             />
                             <input
                                 type="hidden"
                                 :name="`items[${index}][amount_minor_units]`"
-                                :value="parsedPlanAmounts[index]?.amount ?? 0"
+                                :value="item.amount ?? 0"
                             />
                         </template>
                     </template>
@@ -539,7 +554,11 @@ const sections = computed(() => [
                                 </Button>
                                 <Button
                                     type="submit"
-                                    :disabled="processing || !allAmountsValid"
+                                    :disabled="
+                                        processing ||
+                                        !allAmountsValid ||
+                                        submittedAmounts.length === 0
+                                    "
                                 >
                                     {{ t.month_plan.save_changes }}
                                 </Button>

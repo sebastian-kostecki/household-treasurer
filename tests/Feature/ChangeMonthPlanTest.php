@@ -12,6 +12,7 @@ use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ChangeMonthPlanTest extends TestCase
@@ -86,6 +87,15 @@ class ChangeMonthPlanTest extends TestCase
         $this->change(6, [$this->food->id => 0]);
 
         $this->assertDatabaseMissing('month_plan_items', ['category_id' => $this->food->id]);
+        $this->actingAs($this->user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 6]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', fn ($items) => collect($items)
+                    ->contains(fn ($row) => $row['category_id'] === $this->food->id
+                        && $row['in_plan'] === false
+                        && $row['is_join_candidate'] === true)),
+            );
     }
 
     public function test_it_changes_a_future_approved_month(): void
@@ -181,6 +191,23 @@ class ChangeMonthPlanTest extends TestCase
         $this->actingAs($this->user)
             ->patch(route('month-plans.update', ['budget' => $draft, 'month' => 6]), $payload)
             ->assertForbidden();
+    }
+
+    public function test_route_rejects_a_past_month_and_a_month_without_an_approved_plan(): void
+    {
+        $past = $this->approvedPlan(5, [$this->food->id => 100]);
+        $payload = ['items' => [['category_id' => $this->food->id, 'amount_minor_units' => 70]]];
+
+        foreach ([5, 6] as $month) {
+            $this->actingAs($this->user)
+                ->from(route('month-plan'))
+                ->patch(route('month-plans.update', ['budget' => $this->budget, 'month' => $month]), $payload)
+                ->assertRedirect(route('month-plan'))
+                ->assertSessionHasErrors('items');
+        }
+
+        $this->assertItem($past, $this->food, 100, 100);
+        $this->assertDatabaseCount('month_plan_items', 1);
     }
 
     public function test_route_rejects_invalid_payloads(): void
