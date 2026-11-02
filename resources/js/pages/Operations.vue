@@ -51,6 +51,7 @@ const {
     incomeCategories,
     expenseCategories,
     handEntryMonthRemaining,
+    entryToSpend,
     filters,
     filtersActive,
     suppressedSections,
@@ -334,6 +335,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         mode="create"
         :accounts="accounts"
         :income-categories="incomeCategories"
+        :entry-to-spend="entryToSpend"
     />
 
     <IncomeFormDialog
@@ -343,6 +345,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :accounts="accounts"
         :income-categories="incomeCategories"
         :expense-categories="expenseCategories"
+        :entry-to-spend="entryToSpend"
     />
 
     <ExpenseFormDialog
@@ -351,6 +354,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :accounts="accounts"
         :expense-categories="expenseCategories"
         :hand-entry-month-remaining="handEntryMonthRemaining"
+        :entry-to-spend="entryToSpend"
     />
 
     <ExpenseFormDialog
@@ -361,6 +365,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :expense-categories="expenseCategories"
         :income-categories="incomeCategories"
         :hand-entry-month-remaining="handEntryMonthRemaining"
+        :entry-to-spend="entryToSpend"
     />
 
     <OwnTransferFormDialog
