@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
+import { ChevronDown } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import MonthPlanController from '@/actions/App/Http/Controllers/MonthPlanController';
@@ -8,49 +9,36 @@ import CategoryChip from '@/components/CategoryChip.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     formatMoney,
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
+import {
+    isMonthItemOverPlan,
+    monthItemDeviationMinorUnits,
+} from '@/lib/month-item-deviation';
 import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
-
-type MonthItemKind = 'bill' | 'running';
-
-type MonthPlanItemRow = {
-    category_id: number;
-    name: string;
-    icon: string;
-    color: string;
-    type: 'income' | 'expense';
-    month_item_kind: MonthItemKind | null;
-    is_one_off: boolean;
-    is_archived: boolean;
-    plan_minor_units: number;
-    actual_minor_units: number;
-    has_positive_amount: boolean;
-    can_change_kind: boolean;
-    in_plan: boolean;
-    deviation_minor_units: number | null;
-    is_over_plan: boolean;
-    is_settled: boolean;
-    available_limit_minor_units: number | null;
-    is_idle_one_off: boolean;
-};
+import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
 
 type MonthPlanReading = {
     state: 'proposal' | 'approved' | 'none';
     approved_at: string | null;
     can_approve: boolean;
     to_spend_minor_units: number | null;
-    income_items: MonthPlanItemRow[];
-    expense_items: MonthPlanItemRow[];
+    income_items: MonthPlanItem[];
+    expense_items: MonthPlanItem[];
 };
 
 const props = defineProps<{
@@ -76,7 +64,7 @@ setLayoutProps({
     ],
 });
 
-const allRows = computed<MonthPlanItemRow[]>(() => [
+const allRows = computed<MonthPlanItem[]>(() => [
     ...(props.monthPlan?.income_items ?? []),
     ...(props.monthPlan?.expense_items ?? []),
 ]);
@@ -110,7 +98,7 @@ watch(
 /** Matches the server limit in ApproveMonthPlanRequest. */
 const MAX_PLAN_AMOUNT_MINOR_UNITS = 1_000_000_000_000;
 
-function parsedAmount(row: MonthPlanItemRow): number | null {
+function parsedAmount(row: MonthPlanItem): number | null {
     if (!row.in_plan) {
         return 0;
     }
@@ -181,7 +169,7 @@ function monthUrl(month: number): string {
 
 const kindError = ref<string | null>(null);
 
-function changeKind(row: MonthPlanItemRow, kind: MonthItemKind): void {
+function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     if (row.month_item_kind === kind) {
         return;
     }
@@ -201,24 +189,62 @@ function changeKind(row: MonthPlanItemRow, kind: MonthItemKind): void {
     );
 }
 
-const kinds: MonthItemKind[] = ['bill', 'running'];
+/**
+ * While the proposal is edited the deviation follows the typed plan amount;
+ * otherwise the server reading is shown.
+ */
+function rowReading(row: MonthPlanItem): {
+    deviation: number | null;
+    overPlan: boolean;
+} {
+    if (!isEditable.value) {
+        return {
+            deviation: row.deviation_minor_units,
+            overPlan: row.is_over_plan,
+        };
+    }
 
-function kindLabel(kind: MonthItemKind): string {
-    return kind === 'bill' ? t.month_plan.kind_bill : t.month_plan.kind_running;
+    const plan = parsedAmount(row);
+
+    if (plan === null) {
+        return { deviation: null, overPlan: false };
+    }
+
+    const item = {
+        type: row.type,
+        kind: row.month_item_kind,
+        plan,
+        actual: row.actual_minor_units,
+        hasPositiveAmount: row.has_positive_amount,
+    };
+
+    return {
+        deviation: monthItemDeviationMinorUnits(item),
+        overPlan: isMonthItemOverPlan(item),
+    };
 }
 
-const sections = computed(() => [
-    {
-        key: 'income',
-        title: t.month_plan.income_table,
-        rows: props.monthPlan?.income_items ?? [],
-    },
-    {
-        key: 'expense',
-        title: t.month_plan.expense_table,
-        rows: props.monthPlan?.expense_items ?? [],
-    },
-]);
+const idleOpen = ref(false);
+
+const sections = computed(() => {
+    const incomeItems = props.monthPlan?.income_items ?? [];
+    const expenseItems = props.monthPlan?.expense_items ?? [];
+
+    return [
+        {
+            key: 'income',
+            title: t.month_plan.income_table,
+            rows: incomeItems,
+            idleRows: [] as MonthPlanItem[],
+        },
+        {
+            key: 'expense',
+            title: t.month_plan.expense_table,
+            rows: expenseItems.filter((row) => !row.is_idle_one_off),
+            idleRows: expenseItems.filter((row) => row.is_idle_one_off),
+        },
+    ];
+});
 </script>
 
 <template>
@@ -352,7 +378,7 @@ const sections = computed(() => [
                         :title="section.title"
                     >
                         <div
-                            class="border-border/60 text-muted-foreground grid grid-cols-[1fr_7rem_7rem] gap-3 border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase sm:grid-cols-[1fr_9rem_9rem]"
+                            class="border-border/60 text-muted-foreground grid grid-cols-[1fr_7rem_7rem] gap-3 border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
                         >
                             <span>{{ t.month_plan.category }}</span>
                             <span class="text-right">
@@ -360,6 +386,9 @@ const sections = computed(() => [
                             </span>
                             <span class="text-right">
                                 {{ t.month_plan.actual }}
+                            </span>
+                            <span class="hidden text-right lg:block">
+                                {{ t.month_plan.deviation }}
                             </span>
                         </div>
 
@@ -370,101 +399,55 @@ const sections = computed(() => [
                             {{ t.month_plan.empty_list }}
                         </p>
 
-                        <div
+                        <MonthPlanItemRow
                             v-for="row in section.rows"
                             :key="row.category_id"
-                            class="border-border/60 grid grid-cols-[1fr_7rem_7rem] items-center gap-3 border-b py-3 last:border-b-0 sm:grid-cols-[1fr_9rem_9rem]"
+                            v-model="amountInputs[row.category_id]"
+                            :row="row"
+                            :editable="isEditable"
+                            :deviation="rowReading(row).deviation"
+                            :over-plan="rowReading(row).overPlan"
+                            @change-kind="changeKind(row, $event)"
+                        />
+
+                        <Collapsible
+                            v-if="section.idleRows.length > 0"
+                            v-model:open="idleOpen"
+                            class="border-border/60 border-t pt-2"
                         >
-                            <div class="flex min-w-0 flex-col gap-1">
-                                <CategoryChip
-                                    :name="row.name"
-                                    :icon="row.icon"
-                                    :color="row.color"
-                                />
-                                <div
-                                    v-if="
-                                        row.is_one_off ||
-                                        row.is_archived ||
-                                        !row.in_plan
-                                    "
-                                    class="flex flex-wrap gap-1"
+                            <CollapsibleTrigger as-child>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="gap-2 px-0 hover:bg-transparent"
                                 >
-                                    <Badge
-                                        v-if="row.is_one_off"
-                                        variant="outline"
-                                    >
-                                        {{ t.month_plan.one_off_badge }}
-                                    </Badge>
-                                    <Badge
-                                        v-if="row.is_archived"
-                                        variant="secondary"
-                                    >
-                                        {{ t.month_plan.archived_badge }}
-                                    </Badge>
-                                    <Badge
-                                        v-if="!row.in_plan"
-                                        variant="outline"
-                                    >
-                                        {{ t.month_plan.not_in_plan }}
-                                    </Badge>
-                                </div>
-
-                                <div>
-                                    <div
-                                        v-if="
-                                            row.month_item_kind !== null &&
-                                            row.can_change_kind
-                                        "
-                                        role="group"
-                                        :aria-label="t.month_plan.kind"
-                                        class="border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1"
-                                    >
-                                        <Button
-                                            v-for="kind in kinds"
-                                            :key="kind"
-                                            type="button"
-                                            size="sm"
-                                            :variant="
-                                                row.month_item_kind === kind
-                                                    ? 'default'
-                                                    : 'ghost'
-                                            "
-                                            :aria-pressed="
-                                                row.month_item_kind === kind
-                                            "
-                                            class="h-7 rounded-lg px-2 text-xs"
-                                            @click="changeKind(row, kind)"
-                                        >
-                                            {{ kindLabel(kind) }}
-                                        </Button>
-                                    </div>
-                                    <span
-                                        v-else-if="row.month_item_kind !== null"
-                                        class="text-muted-foreground text-sm"
-                                    >
-                                        {{ kindLabel(row.month_item_kind) }}
+                                    <span class="text-sm font-medium">
+                                        {{ t.month_plan.idle_one_offs }}
                                     </span>
-                                </div>
-                            </div>
-
-                            <div class="text-right">
-                                <Input
-                                    v-if="isEditable && row.in_plan"
+                                    <Badge variant="secondary">
+                                        {{ section.idleRows.length }}
+                                    </Badge>
+                                    <ChevronDown
+                                        class="size-4 transition-transform"
+                                        :class="idleOpen ? 'rotate-180' : ''"
+                                        aria-hidden="true"
+                                    />
+                                </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                                <MonthPlanItemRow
+                                    v-for="row in section.idleRows"
+                                    :key="row.category_id"
                                     v-model="amountInputs[row.category_id]"
-                                    inputmode="decimal"
-                                    autocomplete="off"
-                                    :aria-label="`${t.month_plan.plan}: ${row.name}`"
-                                    class="text-right tabular-nums"
+                                    :row="row"
+                                    :editable="isEditable"
+                                    :deviation="rowReading(row).deviation"
+                                    :over-plan="rowReading(row).overPlan"
+                                    @change-kind="changeKind(row, $event)"
                                 />
-                                <span v-else class="text-sm tabular-nums">
-                                    {{ formatMoney(row.plan_minor_units) }}
-                                </span>
-                            </div>
-
-                            <span class="text-right text-sm tabular-nums">
-                                {{ formatMoney(row.actual_minor_units) }}
-                            </span>
-                        </div>
+                            </CollapsibleContent>
+                        </Collapsible>
                     </ListSurface>
 
                     <div v-if="monthPlan.can_approve" class="space-y-2">

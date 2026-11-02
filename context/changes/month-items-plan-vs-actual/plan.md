@@ -333,23 +333,23 @@ Brak zmian schematu i danych.
 
 #### Automated
 
-- [x] 1.1 `tests/Unit/MonthItemDeviationTest.php` i `tests/Feature/MonthPlanPageTest.php` przechodzą na PostgreSQL przez obraz Sail
-- [x] 1.2 `npm test` przechodzi, w tym `resources/js/lib/month-item-deviation.test.ts`
-- [x] 1.3 `vendor/bin/pint --dirty --format agent`, `npm run check` i `npm run types:check` (po `npm run build`) przechodzą
+- [x] 1.1 `tests/Unit/MonthItemDeviationTest.php` i `tests/Feature/MonthPlanPageTest.php` przechodzą na PostgreSQL przez obraz Sail — 8eb5b24
+- [x] 1.2 `npm test` przechodzi, w tym `resources/js/lib/month-item-deviation.test.ts` — 8eb5b24
+- [x] 1.3 `vendor/bin/pint --dirty --format agent`, `npm run check` i `npm run types:check` (po `npm run build`) przechodzą — 8eb5b24
 
 ### Phase 2: Widok pozycji i zwinięta sekcja
 
 #### Automated
 
-- [ ] 2.1 `npm test` przechodzi, w tym `resources/js/lib/format.test.ts`
-- [ ] 2.2 `npm run build`, `npm run check` i `npm run types:check` przechodzą
-- [ ] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez obraz Sail
-- [ ] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`)
+- [x] 2.1 `npm test` przechodzi, w tym `resources/js/lib/format.test.ts`
+- [x] 2.2 `npm run build`, `npm run check` i `npm run types:check` przechodzą
+- [x] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez obraz Sail
+- [x] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`)
 
 #### Manual
 
-- [ ] 2.5 Odchylenia, kolory, „—”, plakietki i Pozostały limit roczny zgadzają się z tabelą przypadków
-- [ ] 2.6 Zwinięta sekcja: domyślnie zamknięta, licznik, bezczynne jednorazowe z limitem, brak pustego nagłówka
-- [ ] 2.7 Edytowalna propozycja: odchylenie na żywo, kwota w zwiniętej sekcji zmienia „do wydania” i trafia do zatwierdzonego planu
-- [ ] 2.8 Zatwierdzony i miniony miesiąc bez pól edycji; miniony miesiąc bez planu bez zmian
-- [ ] 2.9 360 px bez poziomego przewijania; 768 i 1024 px z sidebarem bez ucięć; tryb ciemny czytelny
+- [x] 2.5 Odchylenia, kolory, „—”, plakietki i Pozostały limit roczny zgadzają się z tabelą przypadków
+- [x] 2.6 Zwinięta sekcja: domyślnie zamknięta, licznik, bezczynne jednorazowe z limitem, brak pustego nagłówka
+- [x] 2.7 Edytowalna propozycja: odchylenie na żywo, kwota w zwiniętej sekcji zmienia „do wydania” i trafia do zatwierdzonego planu
+- [x] 2.8 Zatwierdzony i miniony miesiąc bez pól edycji; miniony miesiąc bez planu bez zmian
+- [x] 2.9 360 px bez poziomego przewijania; 768 i 1024 px z sidebarem bez ucięć; tryb ciemny czytelny
