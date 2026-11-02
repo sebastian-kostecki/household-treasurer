@@ -455,10 +455,10 @@ Brak migracji i zmian danych. Usunięcie annotatora nie zmienia zapisu Importu, 
 
 #### Automated
 
-- [x] 1.1 Testy `MonthCategoryActualsTest`, `EntryToSpendInputsTest`, `CsvImportTest` i testu strony Operacje przechodzą na SQLite
-- [x] 1.2 Te same testy przechodzą na PostgreSQL (obraz Sail na worktree)
-- [x] 1.3 Grep `annotateRows|ImportMonthRemainingWarningAnnotator|show_category_month_remaining_warning` po `app`, `resources/js`, `tests` nie daje trafień
-- [x] 1.4 `vendor/bin/pint --dirty --format agent`, `npm run check` i `npm run types:check` (po `npm run build`) są zielone
+- [x] 1.1 Testy `MonthCategoryActualsTest`, `EntryToSpendInputsTest`, `CsvImportTest` i testu strony Operacje przechodzą na SQLite — 6b4b706
+- [x] 1.2 Te same testy przechodzą na PostgreSQL (obraz Sail na worktree) — 6b4b706
+- [x] 1.3 Grep `annotateRows|ImportMonthRemainingWarningAnnotator|show_category_month_remaining_warning` po `app`, `resources/js`, `tests` nie daje trafień — 6b4b706
+- [x] 1.4 `vendor/bin/pint --dirty --format agent`, `npm run check` i `npm run types:check` (po `npm run build`) są zielone — 6b4b706
 
 ### Phase 2: Czysta logika ostrzeżenia w TS
 
