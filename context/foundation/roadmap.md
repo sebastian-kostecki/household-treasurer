@@ -41,7 +41,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 
 | ID   | Change ID                   | Outcome (user can …)                                                                             | Prerequisites       | PRD refs                                                   | Status   |
 | ---- | --------------------------- | ------------------------------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------- | -------- |
-| F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | planning |
+| F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | in-progress |
 | S-01 | month-plan-and-to-spend     | użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”      | F-01                | US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019      | proposed |
 | S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | proposed |
 | S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | proposed |
@@ -90,7 +90,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Parallel with:** —
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Stoi pierwsze, bo decyzje projektu mają być zapisane przed kodem; ryzyko to rozrost w ogólną przebudowę słownika zamiast minimum dla S-01 i S-07.
+- **Status:** in-progress
 - **Status:** planning
 
 ## Slices

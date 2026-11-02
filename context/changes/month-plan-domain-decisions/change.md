@@ -1,7 +1,7 @@
 ---
 change_id: month-plan-domain-decisions
 title: Record month plan domain decisions and warning notice thresholds
-status: plan_reviewed
+status: implementing
 created: 2026-11-02
 updated: 2026-11-02
 archived_at: null

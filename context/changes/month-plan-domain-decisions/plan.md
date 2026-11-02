@@ -204,14 +204,14 @@ Nie dotyczy — brak zmian w danych. Wycofanie to revert commitów dokumentacyjn
 
 #### Automated
 
-- [ ] 1.1 ADR istnieje i numer 0033 jest jedyny
-- [ ] 1.2 ADR-0033 powołuje się na ADR-0024 i ADR-0032
-- [ ] 1.3 ADR-0024 odsyła do ADR-0033, a jego dotychczasowe akapity są nietknięte
+- [x] 1.1 ADR istnieje i numer 0033 jest jedyny
+- [x] 1.2 ADR-0033 powołuje się na ADR-0024 i ADR-0032
+- [x] 1.3 ADR-0024 odsyła do ADR-0033, a jego dotychczasowe akapity są nietknięte
 
 #### Manual
 
-- [ ] 1.4 ADR-0033 zawiera każdy punkt z Contract i nie przeczy PRD
-- [ ] 1.5 Czytelnik samego ADR-0024 widzi, że klauzula o „second monthly Budget” jest zastąpiona
+- [x] 1.4 ADR-0033 zawiera każdy punkt z Contract i nie przeczy PRD
+- [x] 1.5 Czytelnik samego ADR-0024 widzi, że klauzula o „second monthly Budget” jest zastąpiona
 
 ### Phase 2: Terminy i progi w CONTEXT.md
 
