@@ -10,10 +10,9 @@ use App\Models\Category;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\MonthCategoryActuals;
-use App\Support\MonthPlanProposal;
 use App\Support\MonthPlanReading;
+use App\Support\MonthToSpend;
 use App\Support\SelectedBudgetYear;
-use App\Support\ToSpendCalculator;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -102,34 +101,14 @@ class MonthPlanController extends Controller
      */
     private function monthPlanPayload(Budget $budget, int $month, string $timing, CarbonImmutable $today): array
     {
-        $proposal = MonthPlanProposal::forBudget($budget, $today);
-        $reading = $proposal->reading($month);
-        $actuals = MonthCategoryActuals::forMonth($budget, $month);
+        $toSpend = MonthToSpend::forMonth($budget, $month, $today);
+        $reading = $toSpend->reading;
 
-        $rowIds = array_values(array_unique([
-            ...array_keys($reading->amounts),
-            ...$actuals->categoryIds(),
-        ]));
-
-        $categories = $budget->categories()
-            ->whereIn('id', $rowIds)
-            ->ordered()
-            ->get();
-
-        $calculatorItems = [];
         $incomeItems = [];
         $expenseItems = [];
 
-        foreach ($categories as $category) {
-            $row = $this->itemRow($category, $reading, $actuals, $timing);
-
-            $calculatorItems[] = [
-                'type' => $category->type,
-                'kind' => $category->month_item_kind,
-                'plan' => $row['plan_minor_units'],
-                'actual' => $row['actual_minor_units'],
-                'has_positive_amount' => $row['has_positive_amount'],
-            ];
+        foreach ($toSpend->categories as $category) {
+            $row = $this->itemRow($category, $reading, $toSpend->actuals, $timing);
 
             if ($category->type === CategoryType::Income) {
                 $incomeItems[] = $row;
@@ -143,10 +122,8 @@ class MonthPlanController extends Controller
             'approved_at' => $reading->approvedAt?->toIso8601String(),
             'can_approve' => $reading->state === 'proposal'
                 && $timing !== 'past'
-                && ! $proposal->isBlockedByPreviousMonth($month),
-            'to_spend_minor_units' => $reading->state === 'none'
-                ? null
-                : ToSpendCalculator::toSpendMinorUnits($calculatorItems),
+                && ! $toSpend->proposal->isBlockedByPreviousMonth($month),
+            'to_spend_minor_units' => $toSpend->toSpendMinorUnits(),
             'income_items' => $incomeItems,
             'expense_items' => $expenseItems,
         ];
