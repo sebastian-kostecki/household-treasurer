@@ -12,33 +12,11 @@ import {
     CardHeader,
 } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
 import { formatDate, formatMoney } from '@/lib/format';
 import { index as accountsIndex } from '@/routes/accounts';
+import type { AccountSummary, TermDepositSummary } from '@/types/dashboard';
 
 const HOLDINGS_EXPANDED_STORAGE_KEY = 'dashboard-holdings-expanded';
-
-type AccountSummary = {
-    id: number;
-    name: string;
-    type: 'bank' | 'cash';
-    bank: AccountBank | null;
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
-
-type TermDepositSummary = {
-    id: number;
-    name: string;
-    bank: AccountBank;
-    mark_url: string | null;
-    end_date: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
 
 const props = defineProps<{
     accounts: AccountSummary[];

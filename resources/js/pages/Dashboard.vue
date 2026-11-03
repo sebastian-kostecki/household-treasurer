@@ -8,9 +8,7 @@ import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
-import DashboardNotices, {
-    type DashboardNotice,
-} from '@/components/DashboardNotices.vue';
+import DashboardNotices from '@/components/DashboardNotices.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,70 +25,13 @@ import {
     useShell,
     useTranslations,
 } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
-import type {
-    DashboardCategory,
-    DashboardTypeTotals,
-} from '@/lib/dashboard-categories';
 import { formatDate, formatMoney } from '@/lib/format';
 import { dashboard } from '@/routes';
+import type { DashboardPageProps } from '@/types/dashboard';
 
 const YEAR_ELAPSED_STORAGE_KEY = 'dashboard-year-elapsed';
 
-type AccountSummary = {
-    id: number;
-    name: string;
-    type: 'bank' | 'cash';
-    bank: AccountBank | null;
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
-
-type TermDepositSummary = {
-    id: number;
-    name: string;
-    bank: AccountBank;
-    mark_url: string | null;
-    end_date: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
-
-type BudgetSummary = {
-    year: number;
-    phase: 'draft' | 'execution';
-};
-
-type PlanSummary = {
-    income: DashboardTypeTotals;
-    expense: DashboardTypeTotals;
-    planned_balance_minor_units: number;
-};
-
-const props = defineProps<{
-    accounts: AccountSummary[];
-    termDeposits: TermDepositSummary[];
-    spendable_liquidity_minor_units: number;
-    total_funds_minor_units: number;
-    budget_year: number;
-    budget: BudgetSummary | null;
-    incomeCategories: DashboardCategory[];
-    expenseCategories: DashboardCategory[];
-    incomeTotals: DashboardTypeTotals;
-    expenseTotals: DashboardTypeTotals;
-    year_elapsed_as_of: string | null;
-    year_elapsed_percent: number | null;
-    dashboardNotices: DashboardNotice[];
-    month_to_spend: {
-        state: 'proposal' | 'approved';
-        to_spend_minor_units: number;
-    } | null;
-    current_month: number | null;
-    planSummary: PlanSummary | null;
-}>();
+const props = defineProps<DashboardPageProps>();
 
 const t = useTranslations();
 const shell = useShell();
