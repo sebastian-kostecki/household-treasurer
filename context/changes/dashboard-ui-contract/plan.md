@@ -450,28 +450,28 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 #### Automated
 
-- [x] 1.1 Test helpera tonu przechodzi: `npm test`
-- [x] 1.2 Lint i format przechodzą: `npm run check`
-- [x] 1.3 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check`
-- [x] 1.4 Test Feature kitchen sinka przechodzi (404 w `testing`, strona `dev/DashboardKitchenSink` przy `local`, gość przekierowany do logowania)
-- [x] 1.5 Istniejące testy Dashboardu przechodzą bez zmian
+- [x] 1.1 Test helpera tonu przechodzi: `npm test` — e84e65f
+- [x] 1.2 Lint i format przechodzą: `npm run check` — e84e65f
+- [x] 1.3 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check` — e84e65f
+- [x] 1.4 Test Feature kitchen sinka przechodzi (404 w `testing`, strona `dev/DashboardKitchenSink` przy `local`, gość przekierowany do logowania) — e84e65f
+- [x] 1.5 Istniejące testy Dashboardu przechodzą bez zmian — e84e65f
 
 #### Manual
 
-- [x] 1.6 `/dev/ui/dashboard` lokalnie pokazuje wszystkie 7 scenariuszy z nagłówkami, a Dashboard wygląda tak samo jak przed fazą
-- [x] 1.7 Zrzuty „przed” (desktop i 390 px, jasny i ciemny) są w `screenshots/before/`
+- [x] 1.6 `/dev/ui/dashboard` lokalnie pokazuje wszystkie 7 scenariuszy z nagłówkami, a Dashboard wygląda tak samo jak przed fazą — e84e65f
+- [x] 1.7 Zrzuty „przed” (desktop i 390 px, jasny i ciemny) są w `screenshots/before/` — e84e65f
 
 ### Phase 2: Wartości tokenów
 
 #### Automated
 
-- [ ] 2.1 Lint, format i sortowanie klas Tailwind przechodzą: `npm run check`
-- [ ] 2.2 Build CSS przechodzi: `npm run build`
+- [x] 2.1 Lint, format i sortowanie klas Tailwind przechodzą: `npm run check`
+- [x] 2.2 Build CSS przechodzi: `npm run build`
 
 #### Manual
 
-- [ ] 2.3 Nagłówki tabel na `/accounts` i `/term-deposits` wyglądają tak samo jak przed zmianą
-- [ ] 2.4 `design-system.md` opisuje `column-caption`, regułę zera, warianty `Badge` i `StatTile`
+- [x] 2.3 Nagłówki tabel na `/accounts` i `/term-deposits` wyglądają tak samo jak przed zmianą
+- [x] 2.4 `design-system.md` opisuje `column-caption`, regułę zera, warianty `Badge` i `StatTile`
 
 ### Phase 3: Jeden widok (C1–C4)
 
