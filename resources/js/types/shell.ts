@@ -33,6 +33,7 @@ export type UiTranslations = {
         no_budget_year: string;
         add_budget_year: string;
         select_year: string;
+        select_year_failed: string;
     };
     auth: Record<string, Record<string, string>>;
     settings: Record<string, string>;

@@ -432,6 +432,12 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 - Wzorzec błędu wyboru roku: `resources/js/lib/budget-year-selection.ts`, `resources/js/pages/Dashboard.vue` (na `development`)
 - Spec powłoki: `.docs/specs/app-shell-openship-visual-language.md:24-25,59-60`; ADR-0001, ADR-0031
 
+## Addendum (przegląd implementacji, 2026-11-03)
+
+- **Wzorzec `check:ui` rozszerzony (faza 5).** Plan mówił o dopisaniu plików do istniejącej listy; commit `bfba586` dodał też do `PATTERN` w `scripts/check-ui-literals.mjs` kolory `white|black` oraz `dark:`. Bez tego kryterium 5.2 (kod 1 na `text-white` w `Welcome.vue`) nie mogłoby zadziałać. Pliki dashboardu zostają na 0 trafień.
+- **`DashboardKitchenSink.vue` (faza 1).** `Dashboard` jest ładowany przez `defineAsyncComponent`, bo statyczny import psuł `AppShellTest` (manifest Vite traci wejście strony). To plik innej zmiany; poprawka zgodna z `development`.
+- **Przełącznik roku po przeglądzie.** Podpis używa `text-sidebar-foreground/80` (kontrast ≥ 4,5:1 na `sidebar-accent`), w trakcie POST przycisk ma `aria-disabled` zamiast `disabled` (fokus zostaje na przycisku), a `CreateBudgetDialog` leży wewnątrz `SidebarMenu` (jeden korzeń). Dialog nadal otwiera się w `nextTick` po `@select`; ryzyko zaakceptowane, bo kontrola 3.9 przeszła (poprawny hak w reka 2.11 to `@close-auto-focus` z ręcznym fokusem).
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -457,70 +463,70 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 
 #### Automated
 
-- [x] 2.1 Martwy token `--sidebar` zniknął z `app.css`
-- [x] 2.2 Nic nie czyta `var(--sidebar)`
-- [x] 2.3 Lint, format i sortowanie klas przechodzą: `npm run check`
-- [x] 2.4 Build CSS przechodzi: `npm run build`
+- [x] 2.1 Martwy token `--sidebar` zniknął z `app.css` — 21accb5
+- [x] 2.2 Nic nie czyta `var(--sidebar)` — 21accb5
+- [x] 2.3 Lint, format i sortowanie klas przechodzą: `npm run check` — 21accb5
+- [x] 2.4 Build CSS przechodzi: `npm run build` — 21accb5
 
 #### Manual
 
-- [x] 2.5 Sidebar i landing wyglądają tak samo jak przed fazą, w obu motywach
-- [x] 2.6 `design-system.md` ma sekcję „Sidebar” z rolami tokenów, uwagą o kontraście glifu i zasadą trybu ikon
+- [x] 2.5 Sidebar i landing wyglądają tak samo jak przed fazą, w obu motywach — 21accb5
+- [x] 2.6 `design-system.md` ma sekcję „Sidebar” z rolami tokenów, uwagą o kontraście glifu i zasadą trybu ikon — 21accb5
 
 ### Phase 3: Jeden widok (C1, C2, C3, C5)
 
 #### Automated
 
-- [ ] 3.1 Lint i format przechodzą: `npm run check`
-- [ ] 3.2 Typy przechodzą: `npm run types:check`
-- [ ] 3.3 Testy frontendu przechodzą: `npm test`
-- [ ] 3.4 Testy powłoki, kitchen sinka i budżetu przechodzą w obrazie Sail
-- [ ] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
-- [ ] 3.6 `NavFooter.vue` nie istnieje i nic go nie importuje
-- [ ] 3.7 Żaden wywołujący `AppLogoIcon` nie ma `fill-current`
+- [x] 3.1 Lint i format przechodzą: `npm run check` — 14f46dc
+- [x] 3.2 Typy przechodzą: `npm run types:check` — 14f46dc
+- [x] 3.3 Testy frontendu przechodzą: `npm test` — 14f46dc
+- [x] 3.4 Testy powłoki, kitchen sinka i budżetu przechodzą w obrazie Sail — 14f46dc
+- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku — 14f46dc
+- [x] 3.6 `NavFooter.vue` nie istnieje i nic go nie importuje — 14f46dc
+- [x] 3.7 Żaden wywołujący `AppLogoIcon` nie ma `fill-current` — 14f46dc
 
 #### Manual
 
-- [ ] 3.8 W zwiniętym sidebarze przełącznik to kafelek 32 px z podpowiedzią; nic nie wychodzi na treść
-- [ ] 3.9 Z paska ikon menu otwiera się w prawo; wybór roku i „Dodaj rok” działają, fokus wraca na przełącznik
-- [ ] 3.10 Stan bez lat (rozwinięty i zwinięty) otwiera dialog jednym kliknięciem
-- [ ] 3.11 Przy 390 px przełącznik w Sheet działa jak w rozwiniętym sidebarze
-- [ ] 3.12 Na podstronach importu aktywna jest „Operacje”; na `/budget` tylko „Budżet”
-- [ ] 3.13 W trybie ciemnym glif logo jest jasny; inicjały awatara czytelne w obu motywach
-- [ ] 3.14 Znak `Vault` widać we wszystkich miejscach użycia, bez wypełnienia
-- [ ] 3.15 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
+- [x] 3.8 W zwiniętym sidebarze przełącznik to kafelek 32 px z podpowiedzią; nic nie wychodzi na treść — 14f46dc
+- [x] 3.9 Z paska ikon menu otwiera się w prawo; wybór roku i „Dodaj rok” działają, fokus wraca na przełącznik — 14f46dc
+- [x] 3.10 Stan bez lat (rozwinięty i zwinięty) otwiera dialog jednym kliknięciem — 14f46dc
+- [x] 3.11 Przy 390 px przełącznik w Sheet działa jak w rozwiniętym sidebarze — 14f46dc
+- [x] 3.12 Na podstronach importu aktywna jest „Operacje”; na `/budget` tylko „Budżet” — 14f46dc
+- [x] 3.13 W trybie ciemnym glif logo jest jasny; inicjały awatara czytelne w obu motywach — 14f46dc
+- [x] 3.14 Znak `Vault` widać we wszystkich miejscach użycia, bez wypełnienia — 14f46dc
+- [x] 3.15 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie — 14f46dc
 
 ### Phase 4: Stany
 
 #### Automated
 
-- [ ] 4.1 Lint i format przechodzą: `npm run check`
-- [ ] 4.2 Typy przechodzą: `npm run types:check`
-- [ ] 4.3 Testy frontendu przechodzą: `npm test`
-- [ ] 4.4 Testy powłoki i kitchen sinka przechodzą w obrazie Sail
-- [ ] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku
+- [x] 4.1 Lint i format przechodzą: `npm run check` — 741dd2d
+- [x] 4.2 Typy przechodzą: `npm run types:check` — 741dd2d
+- [x] 4.3 Testy frontendu przechodzą: `npm test` — 741dd2d
+- [x] 4.4 Testy powłoki i kitchen sinka przechodzą w obrazie Sail — 741dd2d
+- [x] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku — 741dd2d
 
 #### Manual
 
-- [ ] 4.6 Wybór usuniętego roku pokazuje toast; udany wybór działa jak dotąd
-- [ ] 4.7 Podczas POST przełącznik jest wyłączony i czytelny w obu motywach
-- [ ] 4.8 Fokus klawiatury na przełączniku ma pierścień `sidebar-ring`
-- [ ] 4.9 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
-- [ ] 4.10 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
+- [x] 4.6 Wybór usuniętego roku pokazuje toast; udany wybór działa jak dotąd — 741dd2d
+- [x] 4.7 Podczas POST przełącznik jest wyłączony i czytelny w obu motywach — 741dd2d
+- [x] 4.8 Fokus klawiatury na przełączniku ma pierścień `sidebar-ring` — 741dd2d
+- [x] 4.9 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem — 741dd2d
+- [x] 4.10 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie — 741dd2d
 
 ### Phase 5: Zabezpieczenie
 
 #### Automated
 
-- [ ] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui`
-- [ ] 5.2 Kontrola zatrzymuje literał w `Welcome.vue` (kod 1, `text-white`)
-- [ ] 5.3 Lint i format przechodzą: `npm run check`
-- [ ] 5.4 Pełna bramka CI przechodzi w obrazie Sail na worktree: `composer ci:check`
-- [ ] 5.5 Sloppy przechodzi: `vendor/bin/sloppy ci`
+- [x] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui` — bfba586
+- [x] 5.2 Kontrola zatrzymuje literał w `Welcome.vue` (kod 1, `text-white`) — bfba586
+- [x] 5.3 Lint i format przechodzą: `npm run check` — bfba586
+- [x] 5.4 Pełna bramka CI przechodzi w obrazie Sail na worktree: `composer ci:check` — bfba586
+- [x] 5.5 Sloppy przechodzi: `vendor/bin/sloppy ci` — bfba586
 
 #### Manual
 
-- [ ] 5.6 `.ai/rules/js.md` ma sekcję „Sidebar”, a `.ai/rules/index.md` nadal wskazuje ten plik
-- [ ] 5.7 Spec, `SKILL.md` i `design-system.md` opisują nową kontrolkę roku i kitchen sink
-- [ ] 5.8 `research.md` oznacza docelowy znak i kontrast ciemnego `--primary` jako deferred z powodem
-- [ ] 5.9 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione
+- [x] 5.6 `.ai/rules/js.md` ma sekcję „Sidebar”, a `.ai/rules/index.md` nadal wskazuje ten plik — bfba586
+- [x] 5.7 Spec, `SKILL.md` i `design-system.md` opisują nową kontrolkę roku i kitchen sink — bfba586
+- [x] 5.8 `research.md` oznacza docelowy znak i kontrast ciemnego `--primary` jako deferred z powodem — bfba586
+- [x] 5.9 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione — bfba586

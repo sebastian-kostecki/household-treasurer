@@ -19,6 +19,8 @@ class SidebarKitchenSinkTest extends TestCase
 
     public function test_it_is_not_found_outside_the_local_environment(): void
     {
+        $this->app['env'] = 'production';
+
         $this->actingAs(User::factory()->create())
             ->get(route('dev.ui.sidebar'))
             ->assertNotFound();

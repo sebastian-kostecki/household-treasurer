@@ -20,5 +20,9 @@ export function isCurrentSection(href: string, currentPath: string): boolean {
         return true;
     }
 
-    return current.startsWith(path === '/' ? '/' : `${path}/`);
+    if (path === '/') {
+        return false;
+    }
+
+    return current.startsWith(`${path}/`);
 }

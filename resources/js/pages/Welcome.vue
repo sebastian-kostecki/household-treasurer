@@ -106,7 +106,7 @@ const heroPoints = [
                     <div
                         class="bg-sidebar-primary text-sidebar-primary-foreground flex size-8 items-center justify-center rounded-md"
                     >
-                        <AppLogoIcon class="size-5 fill-current text-white" />
+                        <AppLogoIcon class="size-5 text-white" />
                     </div>
                     <span class="text-sm font-semibold">{{ name }}</span>
                 </a>
@@ -321,7 +321,7 @@ const heroPoints = [
                     <div
                         class="bg-sidebar-primary text-sidebar-primary-foreground flex size-7 items-center justify-center rounded-md"
                     >
-                        <AppLogoIcon class="size-4 fill-current text-white" />
+                        <AppLogoIcon class="size-4 text-white" />
                     </div>
                     <div>
                         <p class="text-foreground font-medium">{{ name }}</p>

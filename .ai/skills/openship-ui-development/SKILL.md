@@ -52,7 +52,7 @@ Restyle through `resources/js/components/ui/` primitives so auth, settings, and 
 
 ## Out of scope for this skill
 
-- Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout.
+- Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout. Sidebar tokens and slot rules: section "Sidebar" in `.ai/rules/js.md`.
 - Ink primary, copying Wallet Master files, new CSS frameworks.
 - Replacing native selects with Reka Select in domain forms.
 - Asserting Tailwind classes in Pest tests.

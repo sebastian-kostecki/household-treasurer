@@ -15,6 +15,7 @@ return [
         'no_budget_year' => 'Brak roku budżetu',
         'add_budget_year' => 'Dodaj rok',
         'select_year' => 'Wybierz rok',
+        'select_year_failed' => 'Nie udało się otworzyć wybranego roku. Odśwież stronę i spróbuj ponownie.',
     ],
     'auth' => [
         'login' => [
