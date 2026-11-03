@@ -284,29 +284,29 @@ Bez migracji danych. Zmienia się tylko payload Inertia `dashboardNotices` (nowe
 
 #### Automated
 
-- [x] 1.1 Dashboard feature tests pass: `php artisan test --compact tests/Feature/DashboardTest.php`
-- [x] 1.2 Full PHP suite passes: `php artisan test --compact`
-- [x] 1.3 PHPStan passes: `composer types:check`
-- [x] 1.4 Pint passes: `composer lint:check`
-- [x] 1.5 No PHP/test reference to the Paced notice remains
+- [x] 1.1 Dashboard feature tests pass: `php artisan test --compact tests/Feature/DashboardTest.php` — e862652
+- [x] 1.2 Full PHP suite passes: `php artisan test --compact` — e862652
+- [x] 1.3 PHPStan passes: `composer types:check` — e862652
+- [x] 1.4 Pint passes: `composer lint:check` — e862652
+- [x] 1.5 No PHP/test reference to the Paced notice remains — e862652
 
 ### Phase 2: Frontend — karty nowych rodzajów
 
 #### Automated
 
-- [ ] 2.1 Type check passes: `npm run types:check`
-- [ ] 2.2 Lint/format check passes: `npm run check`
-- [ ] 2.3 JS unit tests pass: `npm test`
-- [ ] 2.4 No frontend reference to the Paced notice remains
+- [x] 2.1 Type check passes: `npm run types:check`
+- [x] 2.2 Lint/format check passes: `npm run check`
+- [x] 2.3 JS unit tests pass: `npm test`
+- [x] 2.4 No frontend reference to the Paced notice remains
 - [ ] 2.5 Full CI check passes: `composer ci:check`
 
 #### Manual
 
-- [ ] 2.6 Unapproved November plan shows an amber „Plan niezatwierdzony” card with the warning pill
-- [ ] 2.7 Month-plan card opens Plan miesiąca 2026 / November regardless of shell year
-- [ ] 2.8 Over-plan card shows Category chip, negative amount and links to Operations for the month
-- [ ] 2.9 Red cards come before amber cards; grid holds at 375 px and desktop
-- [ ] 2.10 Button-cards have visible focus and activate with Enter
+- [x] 2.6 Unapproved November plan shows an amber „Plan niezatwierdzony” card with the warning pill
+- [x] 2.7 Month-plan card opens Plan miesiąca 2026 / November regardless of shell year
+- [x] 2.8 Over-plan card shows Category chip, negative amount and links to Operations for the month
+- [x] 2.9 Red cards come before amber cards; grid holds at 375 px and desktop
+- [x] 2.10 Button-cards have visible focus and activate with Enter
 
 ### Phase 3: Dokumenty
 

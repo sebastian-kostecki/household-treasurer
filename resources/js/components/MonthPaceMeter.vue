@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTranslations } from '@/composables/useTranslations';
+import { monthElapsedPercent } from '@/lib/month-pace-calculator';
 
 const props = defineProps<{
     percent: number | null;
@@ -12,9 +13,7 @@ const props = defineProps<{
 const t = useTranslations();
 
 const elapsedPercent = computed(() =>
-    props.daysInMonth > 0
-        ? Math.round((100 * props.elapsedDay) / props.daysInMonth)
-        : 0,
+    monthElapsedPercent(props.elapsedDay, props.daysInMonth),
 );
 
 const markerLeft = computed(() =>

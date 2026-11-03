@@ -1,6 +1,7 @@
 import { expect, test } from 'vite-plus/test';
 import {
     isMonthPaceAhead,
+    monthElapsedPercent,
     monthPacePercent,
     monthPacePoolSums,
 } from './month-pace-calculator';
@@ -115,4 +116,11 @@ test('a negative actual sum gives a negative percent rounded away from zero on a
 test('a past month uses the whole month as elapsed', () => {
     expect(isMonthPaceAhead(100_000, 115_000, 31, 31)).toBe(true);
     expect(isMonthPaceAhead(100_000, 105_000, 31, 31)).toBe(false);
+});
+
+test('elapsed percent rounds to a whole number and guards an empty month', () => {
+    expect(monthElapsedPercent(15, 30)).toBe(50);
+    expect(monthElapsedPercent(10, 30)).toBe(33);
+    expect(monthElapsedPercent(20, 30)).toBe(67);
+    expect(monthElapsedPercent(5, 0)).toBe(0);
 });

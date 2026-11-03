@@ -66,3 +66,11 @@ export function isMonthPaceAhead(
         planSum * daysInMonth
     );
 }
+
+/** Share of the month's days that have elapsed, rounded to a whole percent. */
+export function monthElapsedPercent(
+    elapsedDay: number,
+    daysInMonth: number,
+): number {
+    return daysInMonth > 0 ? Math.round((100 * elapsedDay) / daysInMonth) : 0;
+}
