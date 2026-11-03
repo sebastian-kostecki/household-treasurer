@@ -95,4 +95,4 @@ Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `
 1. Zmień token w `app.css` w obu trybach.
 2. Zaktualizuj tę stronę, a jeśli to decyzja, dopisz ADR.
 3. Zasady dla agentów żyją w `.ai/rules` (zapis przez `record-rule` z Laravel Boost); trzymaj je zgodne z tą stroną.
-4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.
+4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.

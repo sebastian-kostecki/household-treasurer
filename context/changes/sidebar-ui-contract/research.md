@@ -72,11 +72,20 @@ Kolejność wg wpływu na użytkownika.
 - **Historia:** wartości `--sidebar-primary`, `--sidebar-accent(-foreground)`, `--sidebar-ring` zmieniono celowo na turkus w commicie 9195e82 (app shell, ADR-0001); `--sidebar-background`, `--sidebar-foreground`, `--sidebar-border` i gołe `--sidebar` pochodzą ze scaffoldu d6196b1.
 - **Wpływ:** użytkownik nie widzi różnicy dziś; kolejna osoba edytująca `--sidebar` (nazwa sugeruje „tło sidebara”) nie zobaczy żadnej zmiany i doda literał w komponencie.
 
-### C5 — Pozostałości startera Laravel w powłoce (przypadkowa architektura) — **niski / decyzja produktowa**
+### C5 — Pozostałości startera Laravel w powłoce (przypadkowa architektura) — **niski / decyzja produktowa** (docelowy znak produktu: **deferred**, zob. C5a)
 
 - **Dowód:** `resources/js/components/NavFooter.vue` — brak importerów w `resources/js` (import usunięty w 9195e82), klasy palety w `NavFooter.vue:28`. `resources/js/components/AppLogoIcon.vue:16-28` — znak startera Laravel (od d6196b1), renderowany w `AppLogo.vue:12` w nagłówku sidebara i w Sheet. Brak w `.docs/` jakiejkolwiek decyzji o logo.
 - **Wpływ na użytkownika:** produkt pokazuje na każdym ekranie znak kitu Laravel, czego US-31 chciał uniknąć dla linków stopki (`.docs/specs/app-shell-openship-visual-language.md:45`). `NavFooter.vue` nie ma wpływu na użytkownika, ale jest wzorcem z kolorami palety, który agent może skopiować.
 - **Proponowany podział:** usunięcie `NavFooter.vue` mieści się w tej zmianie; wymiana znaku wymaga decyzji o nowym logo — kandydat na **deferred**, jeśli użytkownik nie dostarczy znaku.
+
+### C5a — Docelowy znak produktu — **deferred**
+
+- Część C5 (znak startera Laravel w `AppLogoIcon.vue:16-28`): w tej zmianie znak jest tymczasowo `Vault` z lucide. Prawdziwe logo to osobna zmiana, bo wymaga dostarczenia znaku.
+
+### C6 — Kontrast tekstu na ciemnym `--primary` — **deferred**
+
+- Biały `--primary-foreground` na `hsl(189 70% 40%)` (ciemny `--primary`) daje ok. 3,3:1 na przyciskach w całej aplikacji, poniżej 4,5:1 dla tekstu.
+- Powód odroczenia: zmiana globalnego tokenu leży poza powłoką sidebara i dotknęłaby każdy widok.
 
 ### Ustalenie dla kroku „Utrwal to” (nie zarzut)
 

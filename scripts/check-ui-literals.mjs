@@ -16,6 +16,17 @@ const FILES = [
     'resources/js/components/CreateBudgetDialog.vue',
     'resources/js/components/StatTile.vue',
     'resources/js/pages/dev/DashboardKitchenSink.vue',
+    'resources/js/components/AppSidebar.vue',
+    'resources/js/components/BudgetYearSwitcher.vue',
+    'resources/js/components/NavMain.vue',
+    'resources/js/components/NavUser.vue',
+    'resources/js/components/UserInfo.vue',
+    'resources/js/components/UserMenuContent.vue',
+    'resources/js/components/AppLogo.vue',
+    'resources/js/components/AppLogoIcon.vue',
+    'resources/js/components/AppSidebarHeader.vue',
+    'resources/js/layouts/app/AppSidebarLayout.vue',
+    'resources/js/pages/dev/SidebarKitchenSink.vue',
 ];
 
 const PALETTE =
@@ -24,7 +35,7 @@ const PREFIXES =
     'bg|text|border(?:-[trblxyse])?|ring|fill|stroke|from|to|via|divide|shadow|outline|decoration|accent|caret|placeholder';
 // Hex colour: not an HTML entity (&#128;), not part of a word, not an anchor (href="#add").
 const PATTERN = new RegExp(
-    String.raw`(?<![&\w])(?<!href=["'])#[0-9a-f]{3,8}\b|(?:rgb|rgba|hsl|hsla|oklch)\(|-\[[0-9.]+(?:px|rem)\]|\b(?:${PREFIXES})-(?:${PALETTE})-[0-9]+`,
+    String.raw`(?<![&\w])(?<!href=["'])#[0-9a-f]{3,8}\b|(?:rgb|rgba|hsl|hsla|oklch)\(|-\[[0-9.]+(?:px|rem)\]|\b(?:${PREFIXES})-(?:${PALETTE})-[0-9]+|\b(?:${PREFIXES})-(?:white|black)\b|\bdark:`,
     'gi',
 );
 
