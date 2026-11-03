@@ -27,12 +27,9 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    formatMoney,
-    minorUnitsToMoneyInput,
-    parseMoneyInputToMinorUnits,
-} from '@/lib/format';
+import { formatMoney, minorUnitsToMoneyInput } from '@/lib/format';
 import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
+import { parsePlanAmountInput } from '@/lib/month-plan-amount';
 import {
     isMonthItemOverPlan,
     monthItemDeviationMinorUnits,
@@ -124,12 +121,22 @@ function initialSetAsideInput(): string {
     );
 }
 
+/** Amount fields the user has left once; an invalid one is flagged only after that. */
+const touchedAmounts = ref<Record<number, boolean>>({});
+const setAsideTouched = ref(false);
+
+function resetTouched(): void {
+    touchedAmounts.value = {};
+    setAsideTouched.value = false;
+}
+
 watch(
     () => [props.viewedMonth, props.monthPlan?.state, props.budget?.id],
     () => {
         amountInputs.value = initialAmountInputs();
         setAsideDirection.value = initialSetAsideDirection();
         setAsideInput.value = initialSetAsideInput();
+        resetTouched();
     },
 );
 
@@ -138,17 +145,20 @@ watch(
     () => {
         isChanging.value = false;
         amountInputs.value = initialAmountInputs();
+        resetTouched();
     },
 );
 
 function startChanging(): void {
     isChanging.value = true;
     amountInputs.value = initialAmountInputs();
+    resetTouched();
 }
 
 function stopChanging(): void {
     isChanging.value = false;
     amountInputs.value = initialAmountInputs();
+    resetTouched();
 }
 
 const formBinding = computed(() => {
@@ -162,24 +172,23 @@ const formBinding = computed(() => {
         : MonthPlanController.approve.form(route);
 });
 
-/** Matches the server limit in ApproveMonthPlanRequest and UpdateMonthPlanRequest. */
-const MAX_PLAN_AMOUNT_MINOR_UNITS = 1_000_000_000_000;
-
 function parsedAmount(row: MonthPlanItem): number | null {
     if (!isEditableRow(row)) {
         return 0;
     }
 
-    const parsed = parseMoneyInputToMinorUnits(
+    return parsePlanAmountInput(
         amountInputs.value[row.category_id] ??
             minorUnitsToMoneyInput(row.plan_minor_units),
     );
+}
 
-    return parsed !== null &&
-        parsed >= 0 &&
-        parsed <= MAX_PLAN_AMOUNT_MINOR_UNITS
-        ? parsed
-        : null;
+function isAmountFlagged(row: MonthPlanItem): boolean {
+    return (
+        isEditable.value &&
+        touchedAmounts.value[row.category_id] === true &&
+        parsedAmount(row) === null
+    );
 }
 
 const parsedPlanAmounts = computed(() =>
@@ -206,19 +215,29 @@ const submittedAmounts = computed(() =>
 
 /** Signed form value: a draw is negative. Null when the amount is invalid. */
 const formSetAsideMinorUnits = computed<number | null>(() => {
-    const parsed = parseMoneyInputToMinorUnits(setAsideInput.value);
+    const parsed = parsePlanAmountInput(setAsideInput.value);
 
-    if (parsed === null || parsed < 0 || parsed > MAX_PLAN_AMOUNT_MINOR_UNITS) {
+    if (parsed === null) {
         return null;
     }
 
     return setAsideDirection.value === 'draw' && parsed > 0 ? -parsed : parsed;
 });
 
-const allAmountsValid = computed(
+/** Every wrong amount field, touched or not: it explains why submit is disabled. */
+const invalidAmountCount = computed(
     () =>
-        parsedPlanAmounts.value.every((item) => item.amount !== null) &&
-        formSetAsideMinorUnits.value !== null,
+        parsedPlanAmounts.value.filter((item) => item.amount === null).length +
+        (formSetAsideMinorUnits.value === null ? 1 : 0),
+);
+
+const allAmountsValid = computed(() => invalidAmountCount.value === 0);
+
+const setAsideFlagged = computed(
+    () =>
+        isEditable.value &&
+        setAsideTouched.value &&
+        formSetAsideMinorUnits.value === null,
 );
 
 const shownSetAsideMinorUnits = computed<number | null>(() =>
@@ -325,7 +344,8 @@ function monthUrl(month: number): string {
     return monthPlanRoute({ query: { month } }).url;
 }
 
-const kindError = ref<string | null>(null);
+const kindPendingCategoryId = ref<number | null>(null);
+const kindError = ref<{ categoryId: number; message: string } | null>(null);
 
 function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     if (row.month_item_kind === kind) {
@@ -333,6 +353,7 @@ function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     }
 
     kindError.value = null;
+    kindPendingCategoryId.value = row.category_id;
 
     router.patch(
         CategoryController.updateMonthItemKind.url(row.category_id),
@@ -341,10 +362,25 @@ function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
             preserveState: true,
             preserveScroll: true,
             onError: (errors) => {
-                kindError.value = Object.values(errors)[0] ?? null;
+                const message = Object.values(errors)[0];
+
+                kindError.value = message
+                    ? { categoryId: row.category_id, message }
+                    : null;
+            },
+            onFinish: () => {
+                if (kindPendingCategoryId.value === row.category_id) {
+                    kindPendingCategoryId.value = null;
+                }
             },
         },
     );
+}
+
+function kindErrorFor(row: MonthPlanItem): string | undefined {
+    return kindError.value?.categoryId === row.category_id
+        ? kindError.value.message
+        : undefined;
 }
 
 /**
@@ -418,7 +454,14 @@ const sections = computed(() => {
             rows: expenseItems.filter((row) => !row.is_idle_one_off),
             idleRows: expenseItems.filter((row) => row.is_idle_one_off),
         },
-    ];
+    ].map((section) => ({
+        ...section,
+        showsKindScopeNote:
+            section.key === 'expense' &&
+            [...section.rows, ...section.idleRows].some(
+                (row) => row.can_change_kind,
+            ),
+    }));
 });
 
 const hasInvalidIdleAmount = computed(
@@ -592,7 +635,16 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                     inputmode="decimal"
                                     autocomplete="off"
                                     :aria-label="t.month_plan.set_aside_amount"
+                                    :aria-invalid="
+                                        setAsideFlagged ? 'true' : undefined
+                                    "
+                                    :aria-describedby="
+                                        setAsideFlagged
+                                            ? 'month-plan-set-aside-error'
+                                            : undefined
+                                    "
                                     class="w-40 text-right tabular-nums"
+                                    @blur="setAsideTouched = true"
                                 />
                                 <input
                                     type="hidden"
@@ -617,6 +669,11 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                 }}
                             </p>
 
+                            <InputError
+                                v-if="setAsideFlagged"
+                                id="month-plan-set-aside-error"
+                                :message="t.month_plan.amount_invalid"
+                            />
                             <InputError
                                 :message="errors.set_aside_minor_units"
                             />
@@ -655,12 +712,15 @@ watch(hasInvalidIdleAmount, (invalid) => {
                         </template>
                     </template>
 
-                    <InputError :message="kindError ?? undefined" />
-
                     <ListSurface
                         v-for="section in sections"
                         :key="section.key"
                         :title="section.title"
+                        :description="
+                            section.showsKindScopeNote
+                                ? t.month_plan.kind_scope_note
+                                : undefined
+                        "
                     >
                         <div
                             class="month-plan-grid border-border/60 border-b pb-2.5"
@@ -711,7 +771,15 @@ watch(hasInvalidIdleAmount, (invalid) => {
                             :deviation="rowReading(row).deviation"
                             :over-plan="rowReading(row).overPlan"
                             :year-stale="yearStale(row)"
+                            :kind-pending="
+                                kindPendingCategoryId === row.category_id
+                            "
+                            :kind-error="kindErrorFor(row)"
+                            :invalid="isAmountFlagged(row)"
                             @change-kind="changeKind(row, $event)"
+                            @amount-blur="
+                                touchedAmounts[row.category_id] = true
+                            "
                         />
 
                         <Collapsible
@@ -749,7 +817,16 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                     :deviation="rowReading(row).deviation"
                                     :over-plan="rowReading(row).overPlan"
                                     :year-stale="yearStale(row)"
+                                    :kind-pending="
+                                        kindPendingCategoryId ===
+                                        row.category_id
+                                    "
+                                    :kind-error="kindErrorFor(row)"
+                                    :invalid="isAmountFlagged(row)"
                                     @change-kind="changeKind(row, $event)"
+                                    @amount-blur="
+                                        touchedAmounts[row.category_id] = true
+                                    "
                                 />
                             </CollapsibleContent>
                         </Collapsible>
@@ -799,6 +876,7 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                 ? allAmountsValid && submittedAmounts.length > 0
                                 : allAmountsValid
                         "
+                        :invalid-count="invalidAmountCount"
                         :error="errors.items"
                         @cancel="stopChanging"
                     />

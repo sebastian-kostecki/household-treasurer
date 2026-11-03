@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney } from '@/lib/format';
 
-defineProps<{
-    toSpendMinorUnits: number | null;
-    mode: 'approve' | 'change';
-    processing: boolean;
-    canSubmit: boolean;
-    error?: string;
-}>();
+withDefaults(
+    defineProps<{
+        toSpendMinorUnits: number | null;
+        mode: 'approve' | 'change';
+        processing: boolean;
+        canSubmit: boolean;
+        error?: string;
+        invalidCount?: number;
+    }>(),
+    { invalidCount: 0 },
+);
 
 const emit = defineEmits<{
     cancel: [];
@@ -38,7 +43,15 @@ const t = useTranslations();
                     {{ formatMoney(toSpendMinorUnits ?? 0) }}
                 </span>
             </p>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <p v-if="invalidCount > 0" class="text-destructive text-sm">
+                    {{
+                        t.month_plan.invalid_amounts.replace(
+                            ':count',
+                            String(invalidCount),
+                        )
+                    }}
+                </p>
                 <template v-if="mode === 'change'">
                     <Button
                         type="button"
@@ -48,6 +61,7 @@ const t = useTranslations();
                         {{ t.month_plan.cancel }}
                     </Button>
                     <Button type="submit" :disabled="processing || !canSubmit">
+                        <Spinner v-if="processing" />
                         {{ t.month_plan.save_changes }}
                     </Button>
                 </template>
@@ -56,6 +70,7 @@ const t = useTranslations();
                     type="submit"
                     :disabled="processing || !canSubmit"
                 >
+                    <Spinner v-if="processing" />
                     {{ t.month_plan.approve }}
                 </Button>
             </div>

@@ -2,10 +2,12 @@
 import { Check } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import InputError from '@/components/InputError.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, formatSignedMoney } from '@/lib/format';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
@@ -17,13 +19,21 @@ const props = withDefaults(
         deviation: number | null;
         overPlan: boolean;
         yearStale?: boolean;
+        kindPending?: boolean;
+        kindError?: string;
+        invalid?: boolean;
     }>(),
-    { yearStale: false },
+    { yearStale: false, kindPending: false, invalid: false },
 );
 
 const emit = defineEmits<{
     'change-kind': [kind: MonthItemKind];
+    'amount-blur': [];
 }>();
+
+const amountErrorId = computed(
+    () => `month-plan-amount-error-${props.row.category_id}`,
+);
 
 const amountInput = defineModel<string>();
 
@@ -141,13 +151,20 @@ function onKindUpdate(kind: MonthItemKind): void {
             </p>
 
             <div v-if="row.month_item_kind !== null" class="sm:hidden">
-                <SegmentedControl
-                    v-if="row.can_change_kind"
-                    :model-value="row.month_item_kind"
-                    :options="kindOptions"
-                    :ariaLabel="t.month_plan.kind"
-                    @update:model-value="onKindUpdate"
-                />
+                <div v-if="row.can_change_kind" class="grid gap-1">
+                    <div class="flex items-center gap-2">
+                        <SegmentedControl
+                            :model-value="row.month_item_kind"
+                            :options="kindOptions"
+                            :ariaLabel="t.month_plan.kind"
+                            tone="neutral"
+                            :disabled="kindPending"
+                            @update:model-value="onKindUpdate"
+                        />
+                        <Spinner v-if="kindPending" />
+                    </div>
+                    <InputError :message="kindError" />
+                </div>
                 <span v-else class="text-muted-foreground text-sm">
                     {{ kindLabel(row.month_item_kind) }}
                 </span>
@@ -156,13 +173,20 @@ function onKindUpdate(kind: MonthItemKind): void {
 
         <div v-if="hasKindColumn" class="hidden sm:block">
             <template v-if="row.month_item_kind !== null">
-                <SegmentedControl
-                    v-if="row.can_change_kind"
-                    :model-value="row.month_item_kind"
-                    :options="kindOptions"
-                    :ariaLabel="t.month_plan.kind"
-                    @update:model-value="onKindUpdate"
-                />
+                <div v-if="row.can_change_kind" class="grid gap-1">
+                    <div class="flex items-center gap-2">
+                        <SegmentedControl
+                            :model-value="row.month_item_kind"
+                            :options="kindOptions"
+                            :ariaLabel="t.month_plan.kind"
+                            tone="neutral"
+                            :disabled="kindPending"
+                            @update:model-value="onKindUpdate"
+                        />
+                        <Spinner v-if="kindPending" />
+                    </div>
+                    <InputError :message="kindError" />
+                </div>
                 <span v-else class="text-muted-foreground text-sm">
                     {{ kindLabel(row.month_item_kind) }}
                 </span>
@@ -176,11 +200,20 @@ function onKindUpdate(kind: MonthItemKind): void {
                 inputmode="decimal"
                 autocomplete="off"
                 :aria-label="`${t.month_plan.plan}: ${row.name}`"
+                :aria-invalid="invalid ? 'true' : undefined"
+                :aria-describedby="invalid ? amountErrorId : undefined"
                 class="text-right tabular-nums"
+                @blur="emit('amount-blur')"
             />
             <span v-else class="text-sm tabular-nums">
                 {{ formatMoney(row.plan_minor_units) }}
             </span>
+            <InputError
+                v-if="editable && invalid"
+                :id="amountErrorId"
+                class="text-right"
+                :message="t.month_plan.amount_invalid"
+            />
             <p
                 v-if="
                     row.approved_minor_units !== null &&

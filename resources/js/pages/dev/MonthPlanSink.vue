@@ -2,12 +2,14 @@
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     expenseRows,
@@ -20,15 +22,8 @@ import type { MonthPlanItem } from '@/types/month-plan';
 
 const t = useTranslations();
 
-const stateMatrix = [
-    'default',
-    'hover',
-    'focus-visible',
-    'disabled',
-    'error',
-    'empty',
-    'loading',
-];
+const focusAmount = ref('1200,50');
+const invalidSetAside = ref('abc');
 
 const amounts = ref<Record<number, string>>(
     Object.fromEntries(
@@ -321,17 +316,166 @@ const disabledValue = ref('current');
             </p>
         </section>
 
-        <section class="space-y-3">
+        <section class="space-y-6">
             <h2 class="text-base font-medium">Macierz stanów</h2>
-            <section
-                v-for="state in stateMatrix"
-                :key="state"
-                class="space-y-1"
-            >
-                <h3 class="text-sm font-medium">{{ state }}</h3>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">default</h3>
                 <p class="text-muted-foreground text-xs">
-                    Do wypełnienia w kolejnych fazach.
+                    Wiersze odczytu i edycji, pasek edycji i wiersz tytułu:
+                    sekcje powyżej.
                 </p>
+            </section>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">hover</h3>
+                <p class="text-muted-foreground text-xs">
+                    Najedź na przełącznik, przycisk i wiersz zwijania
+                    jednorazowych.
+                </p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <SegmentedControl
+                        v-model="neutralValue"
+                        :options="contractKinds"
+                        ariaLabel="Hover: przełącznik"
+                        tone="neutral"
+                    />
+                    <Button type="button">{{ t.month_plan.change }}</Button>
+                    <Button type="button" variant="outline">
+                        {{ t.month_plan.cancel }}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        class="gap-2 px-0 hover:bg-transparent"
+                    >
+                        <span class="text-sm font-medium">
+                            {{ t.month_plan.idle_one_offs }}
+                        </span>
+                        <Badge variant="secondary">1</Badge>
+                    </Button>
+                </div>
+            </section>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">focus-visible</h3>
+                <p class="text-muted-foreground text-xs">
+                    Przejdź klawiszem Tab przez przełącznik, pole kwoty i
+                    przyciski paska.
+                </p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <SegmentedControl
+                        v-model="neutralValue"
+                        :options="contractKinds"
+                        ariaLabel="Fokus: przełącznik"
+                        tone="neutral"
+                    />
+                    <Input
+                        v-model="focusAmount"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        aria-label="Fokus: kwota"
+                        class="w-40 text-right tabular-nums"
+                    />
+                </div>
+                <MonthPlanEditBar
+                    :to-spend-minor-units="373000"
+                    mode="change"
+                    :processing="false"
+                    :can-submit="true"
+                />
+            </section>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">disabled</h3>
+                <p class="text-muted-foreground text-xs">
+                    Przycisk paska przy błędnej kwocie z podpisem liczby i
+                    przełącznik rodzaju w czasie zapisu.
+                </p>
+                <MonthPlanEditBar
+                    :to-spend-minor-units="373000"
+                    mode="approve"
+                    :processing="false"
+                    :can-submit="false"
+                    :invalid-count="1"
+                />
+                <ListSurface :title="t.month_plan.expense_table">
+                    <MonthPlanItemRow
+                        :row="runningExpense"
+                        :editable="true"
+                        :deviation="runningExpense.deviation_minor_units"
+                        :over-plan="false"
+                        :kind-pending="true"
+                        model-value="2000,00"
+                    />
+                </ListSurface>
+            </section>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">error</h3>
+                <p class="text-muted-foreground text-xs">
+                    Pole kwoty z aria-invalid i komunikatem, pole odkładania,
+                    błąd rodzaju w wierszu i błąd listy w pasku.
+                </p>
+                <ListSurface :title="t.month_plan.expense_table">
+                    <MonthPlanItemRow
+                        :row="runningExpense"
+                        :editable="true"
+                        :deviation="null"
+                        :over-plan="false"
+                        :invalid="true"
+                        :kind-error="'Nie udało się zapisać rodzaju pozycji.'"
+                        model-value="12,3,4"
+                    />
+                </ListSurface>
+                <div class="grid gap-1">
+                    <Input
+                        v-model="invalidSetAside"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        :aria-label="t.month_plan.set_aside_amount"
+                        aria-invalid="true"
+                        aria-describedby="sink-set-aside-error"
+                        class="w-40 text-right tabular-nums"
+                    />
+                    <InputError
+                        id="sink-set-aside-error"
+                        :message="t.month_plan.amount_invalid"
+                    />
+                </div>
+                <MonthPlanEditBar
+                    :to-spend-minor-units="373000"
+                    mode="approve"
+                    :processing="false"
+                    :can-submit="false"
+                    :invalid-count="2"
+                    error="Dodaj co najmniej jedną pozycję planu."
+                />
+            </section>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">empty</h3>
+                <p class="text-muted-foreground text-xs">
+                    Puste stany: sekcja „Puste stany” powyżej (brak budżetu,
+                    szkic, miniony bez planu i „Brak pozycji w tym miesiącu”).
+                </p>
+            </section>
+
+            <section class="space-y-2">
+                <h3 class="text-sm font-medium">loading</h3>
+                <p class="text-muted-foreground text-xs">
+                    Przełącznik rodzaju ze Spinner (wyżej, w „disabled”) i pasek
+                    z processing. Zmiana miesiąca to nawigacja Inertia z paskiem
+                    postępu, a propsy przychodzą w całości: brak skeletonu i
+                    przeskoku układu, więc N/A.
+                </p>
+                <MonthPlanEditBar
+                    :to-spend-minor-units="373000"
+                    mode="change"
+                    :processing="true"
+                    :can-submit="true"
+                />
             </section>
         </section>
     </div>

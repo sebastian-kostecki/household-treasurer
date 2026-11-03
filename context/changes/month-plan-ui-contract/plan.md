@@ -587,19 +587,19 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 #### Automated
 
-- [ ] 4.1 `npm test` przechodzi, w tym `month-plan-amount.test.ts`
-- [ ] 4.2 `php artisan test --compact tests/Feature/MonthPlanPageTest.php tests/Feature/CategoryMonthItemKindTest.php` przechodzi (obraz Sail, PostgreSQL)
-- [ ] 4.3 `npm run check` i `npm run types:check` (po `npm run build`) przechodzą
-- [ ] 4.4 Skan wartości zakodowanych na sztywno na plikach widoku daje 0 trafień
+- [x] 4.1 `npm test` przechodzi, w tym `month-plan-amount.test.ts`
+- [x] 4.2 `php artisan test --compact tests/Feature/MonthPlanPageTest.php tests/Feature/CategoryMonthItemKindTest.php` przechodzi (obraz Sail, PostgreSQL)
+- [x] 4.3 `npm run check` i `npm run types:check` (po `npm run build`) przechodzą
+- [x] 4.4 Skan wartości zakodowanych na sztywno na plikach widoku daje 0 trafień
 
 #### Manual
 
-- [ ] 4.5 W trybie „Zmień” przełączenie rodzaju: spinner na czas zapisu, podpowiedź o „Anuluj”, nota pod „Wydatki”
-- [ ] 4.6 Błąd zapisu rodzaju pokazuje się pod przełącznikiem tego wiersza
-- [ ] 4.7 Wyczyszczenie kwoty nie świeci na czerwono; „12,3,4” + Tab daje pole z `aria-invalid` i komunikatem; poprawienie zdejmuje oznaczenie
-- [ ] 4.8 Pasek pokazuje „Niepoprawne kwoty: 1” przy wyłączonym „Zatwierdź”
-- [ ] 4.9 Kitchen sink pokazuje każdą komórkę macierzy (lub N/A z powodem) w trybie jasnym i ciemnym
-- [ ] 4.10 Zrzuty fazy 4 zapisane w `screenshots/`
+- [x] 4.5 W trybie „Zmień” przełączenie rodzaju: spinner na czas zapisu, podpowiedź o „Anuluj”, nota pod „Wydatki”
+- [x] 4.6 Błąd zapisu rodzaju pokazuje się pod przełącznikiem tego wiersza
+- [x] 4.7 Wyczyszczenie kwoty nie świeci na czerwono; „12,3,4” + Tab daje pole z `aria-invalid` i komunikatem; poprawienie zdejmuje oznaczenie
+- [x] 4.8 Pasek pokazuje „Niepoprawne kwoty: 1” przy wyłączonym „Zatwierdź”
+- [x] 4.9 Kitchen sink pokazuje każdą komórkę macierzy (lub N/A z powodem) w trybie jasnym i ciemnym
+- [x] 4.10 Zrzuty fazy 4 zapisane w `screenshots/`
 
 ### Phase 5: Utrwalenie
 
