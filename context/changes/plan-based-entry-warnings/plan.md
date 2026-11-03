@@ -486,12 +486,12 @@ Brak migracji i zmian danych. Usunięcie annotatora nie zmienia zapisu Importu, 
 
 #### Automated
 
-- [ ] 4.1 `npm test` przechodzi, w tym `import-to-spend-warnings.test.ts`
-- [ ] 4.2 `npm run check` i `npm run types:check` (po `npm run build`) są zielone
-- [ ] 4.3 Pełna bramka CI na PostgreSQL przechodzi (`composer ci:check` w obrazie Sail)
+- [x] 4.1 `npm test` przechodzi, w tym `import-to-spend-warnings.test.ts`
+- [x] 4.2 `npm run check` i `npm run types:check` (po `npm run build`) są zielone
+- [x] 4.3 Pełna bramka CI na PostgreSQL przechodzi (`composer ci:check` w obrazie Sail)
 
 #### Manual
 
-- [ ] 4.4 Zaznaczone wiersze bieżącego miesiąca kumulują się i ostrzegają od pierwszego wiersza, który sprowadza „do wydania” poniżej zera
-- [ ] 4.5 Wiersz minionego miesiąca bez planu pokazuje `Pozostało w miesiącu`, wiersz bieżącego miesiąca nie
-- [ ] 4.6 Odznaczenie albo zmiana kategorii przelicza ostrzeżenia natychmiast, a Import zapisuje się bez dodatkowego kroku
+- [x] 4.4 Zaznaczone wiersze bieżącego miesiąca kumulują się i ostrzegają od pierwszego wiersza, który sprowadza „do wydania” poniżej zera
+- [x] 4.5 Wiersz minionego miesiąca bez planu pokazuje `Pozostało w miesiącu`, wiersz bieżącego miesiąca nie
+- [x] 4.6 Odznaczenie albo zmiana kategorii przelicza ostrzeżenia natychmiast, a Import zapisuje się bez dodatkowego kroku

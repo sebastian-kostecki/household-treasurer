@@ -24,6 +24,7 @@ import {
     uniquePairCandidate,
     type PairCandidate,
 } from '@/lib/import-pair-selection';
+import type { ToSpendWarning } from '@/lib/entry-to-spend-warning';
 import type { MonthRemainingWarningState } from '@/lib/import-month-remaining-warnings';
 import {
     categoriesForRow,
@@ -49,6 +50,7 @@ const {
     termDeposits,
     consumedFirstLegKeys,
     monthRemainingWarnings,
+    toSpendWarning,
 } = defineProps<{
     row: ImportRow;
     accountBalanceMinorUnits: number;
@@ -58,6 +60,7 @@ const {
     termDeposits: TermDepositRow[];
     consumedFirstLegKeys: Set<string>;
     monthRemainingWarnings?: MonthRemainingWarningState;
+    toSpendWarning?: ToSpendWarning | null;
 }>();
 
 const selection = defineModel<RowSelection>('selection', { required: true });
@@ -543,6 +546,23 @@ function onPairCandidateChange(value: string): void {
             <Alert v-if="makesAccountNegative" variant="warning">
                 <AlertDescription>
                     {{ t.operations.negative_balance_warning }}
+                </AlertDescription>
+            </Alert>
+            <Alert v-if="toSpendWarning" variant="warning">
+                <AlertDescription>
+                    {{
+                        t.operations.to_spend_negative_warning
+                            .replace(
+                                ':amount',
+                                formatMoney(
+                                    toSpendWarning.toSpendAfterMinorUnits,
+                                ),
+                            )
+                            .replace(
+                                ':month_year',
+                                `${t.budget[`month_name_${toSpendWarning.month}` as keyof typeof t.budget] ?? ''} ${toSpendWarning.year}`,
+                            )
+                    }}
                 </AlertDescription>
             </Alert>
             <Alert

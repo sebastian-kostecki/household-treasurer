@@ -17,8 +17,8 @@ class EntryToSpendInputs
      *         year: int,
      *         categories: list<array{
      *             id: int,
-     *             type: 'income'|'expense',
-     *             month_item_kind: 'bill'|'running'|null,
+     *             type: string,
+     *             month_item_kind: string|null,
      *         }>,
      *         months: list<array{
      *             month: int,
@@ -51,7 +51,7 @@ class EntryToSpendInputs
     /**
      * @return array{
      *     year: int,
-     *     categories: list<array{id: int, type: 'income'|'expense', month_item_kind: 'bill'|'running'|null}>,
+     *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
      *     months: list<array{
      *         month: int,
      *         items: list<array{category_id: int, plan_minor_units: int, actual_minor_units: int, positive_amount_count: int}>,

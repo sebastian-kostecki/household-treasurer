@@ -1,10 +1,10 @@
-import { parseMoneyInputToMinorUnits } from '@/lib/format';
+import { parseMoneyInputToMinorUnits } from './format';
 import {
     locksTypeToOwnTransfer,
     uniquePairCandidate,
     type PairCandidate,
     type PairRowSelection,
-} from '@/lib/import-pair-selection';
+} from './import-pair-selection';
 
 export type ImportRow = {
     index: number;
