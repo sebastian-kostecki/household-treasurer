@@ -313,17 +313,17 @@ Brak migracji, zapisu tempa i zmian snapshotu. S-07 (month-plan-notices) użyje 
 
 #### Automated
 
-- [x] 2.1 `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthPaceTest.php` przechodzą na PostgreSQL
-- [x] 2.2 `npm test` przechodzi
-- [x] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
-- [x] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi
-- [x] 2.5 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk
+- [x] 2.1 `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthPaceTest.php` przechodzą na PostgreSQL — 849d4a3
+- [x] 2.2 `npm test` przechodzi — 849d4a3
+- [x] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą — 849d4a3
+- [x] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi — 849d4a3
+- [x] 2.5 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk — 849d4a3
 
 #### Manual
 
-- [x] 2.6 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”) bieżący miesiąc pokazuje pod „do wydania” pasek tempa ze znacznikiem dni i tekst „Tempo X% · upływ dni d z n (Y%)”
-- [x] 2.7 W propozycji (albo w trybie „Zmień plan”) zmiana kwoty pozycji bieżącej przesuwa tempo na żywo; zmiana kwoty rachunku, jednorazowej albo dochodu go nie zmienia
-- [x] 2.8 Przy tempie wyprzedzającym upływ dni o ≥ 10 pp pasek i procent są bursztynowe i widać podpis ostrzeżenia; po podniesieniu planu bieżących poniżej progu kolor i podpis znikają
-- [x] 2.9 Wyzerowanie planów wszystkich pozycji bieżących pokazuje komunikat „Pozycje bieżące nie mają planu…” zamiast paska
-- [x] 2.10 Miniony zatwierdzony miesiąc pokazuje tempo z upływem „n z n”, a przyszły miesiąc nie pokazuje tempa
-- [x] 2.11 Na szerokości telefonu karta „do wydania” z tempem nie przewija się poziomo, a tempo > 100% nie wychodzi poza tor
+- [x] 2.6 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”) bieżący miesiąc pokazuje pod „do wydania” pasek tempa ze znacznikiem dni i tekst „Tempo X% · upływ dni d z n (Y%)” — 849d4a3
+- [x] 2.7 W propozycji (albo w trybie „Zmień plan”) zmiana kwoty pozycji bieżącej przesuwa tempo na żywo; zmiana kwoty rachunku, jednorazowej albo dochodu go nie zmienia — 849d4a3
+- [x] 2.8 Przy tempie wyprzedzającym upływ dni o ≥ 10 pp pasek i procent są bursztynowe i widać podpis ostrzeżenia; po podniesieniu planu bieżących poniżej progu kolor i podpis znikają — 849d4a3
+- [x] 2.9 Wyzerowanie planów wszystkich pozycji bieżących pokazuje komunikat „Pozycje bieżące nie mają planu…” zamiast paska — 849d4a3
+- [x] 2.10 Miniony zatwierdzony miesiąc pokazuje tempo z upływem „n z n”, a przyszły miesiąc nie pokazuje tempa — 849d4a3
+- [x] 2.11 Na szerokości telefonu karta „do wydania” z tempem nie przewija się poziomo, a tempo > 100% nie wychodzi poza tor — 849d4a3
