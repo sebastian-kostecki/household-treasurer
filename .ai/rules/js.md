@@ -39,7 +39,8 @@ Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid
 
 Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
 Signed amount colour goes through amountToneClass, column labels through the column-caption class, severity pills through Badge (variants warning / destructive-soft).
-No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard and /dev/ui/accounts.
+Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
+No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts and /dev/ui/term-deposits.
 Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are `rounded-xl`.
 
 ## Sidebar

@@ -86,10 +86,12 @@ Status `active` = to be mapped to a plan phase; `deferred` = recorded with reaso
 
 | Item | Reason |
 | --- | --- |
-| `h1 text-lg` vs `.docs/design-system.md:23` `text-xl` | Repo-wide: 7 inspected domain pages use `text-lg`; only dev sinks use `text-xl`. Deferred in month-plan research and budget/month-plan plans; open in accounts research Q1. Keep `text-lg` here, decide once for the repo. |
+| `h1 text-lg` vs `.docs/design-system.md:23` `text-xl` | Repo-wide: 7 inspected domain pages use `text-lg`; only dev sinks use `text-xl`. Deferred in month-plan research and budget/month-plan plans; open in accounts research Q1. Keep `text-lg` here, decide once for the repo. **Resolved by `accounts-ui-contract`** (doc updated to `text-lg` there). |
 | `hover:bg-foreground/[0.03]` (`TermDeposits.vue:159`) | Documented row-hover convention (`.docs/design-system.md:16`); rejected as a charge, same decision as `dashboard-ui-contract`. |
 | Dashboard "Suma lokat" excludes archived, page includes them | Other view (Dashboard); `.docs/specs/dashboard-hierarchy.md:40,58` does not specify. Record for a Dashboard pass. |
-| Bank picker tile copies and `text-[10px]` (`AccountBankSelect.vue:66,89`), Reka Select vs `.native-select` rule | Shared with Accounts; owned by `accounts-ui-contract` C3/C4. This form inherits the fix. |
+| Bank picker tile copies and `text-[10px]` (`AccountBankSelect.vue:66,89`), Reka Select vs `.native-select` rule | Shared with Accounts; owned by `accounts-ui-contract` C3/C4. This form inherits the fix. **Closed by `accounts-ui-contract`.** |
+| `archive_confirm_body` does not mention the deposit stays in the total | Explained by the tile footer; copy change is separate. |
+| Unused `is_negative` prop in the deposits payload | The page no longer reads it; removing it changes the props contract without user gain (same decision as Accounts). |
 | English flash toasts / error (`TermDepositController.php:57,79,91,99,113,127`; no `lang/pl.json`) | i18n, not UI contract; separate change. Note: C3's error display will show the English text until then. |
 | Dialog close X: `focus:ring-2 ring-offset-2` on `:focus` and English `sr-only` "Close" (`components/ui/dialog/DialogContent.vue:43-49`) | Primitive used by every dialog; change it in a dedicated pass, not under one view. |
 | `TermDepositPolicy::update` ownership-only; UI hides Edit for archived rows (`TermDeposits.vue:197-198`) | Backend authorization, not UI; no UI path. |

@@ -33,6 +33,9 @@ const FILES = [
     'resources/js/components/AccountMarkCompact.vue',
     'resources/js/components/ConfirmActionDialog.vue',
     'resources/js/pages/dev/AccountsKitchenSink.vue',
+    'resources/js/pages/TermDeposits.vue',
+    'resources/js/components/TermDepositFormDialog.vue',
+    'resources/js/pages/dev/TermDepositsKitchenSink.vue',
 ];
 
 const PALETTE =
