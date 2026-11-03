@@ -3,8 +3,10 @@ import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -47,8 +49,6 @@ function rowReading(row: MonthPlanItem): {
     };
 }
 
-const direction = ref<'set_aside' | 'draw'>('set_aside');
-
 const contractKinds = [
     { value: 'current', label: 'Bieżący' },
     { value: 'bill', label: 'Rachunek' },
@@ -84,12 +84,21 @@ const disabledValue = ref('current');
             </ListSurface>
             <ListSurface :title="t.month_plan.expense_table">
                 <div
-                    class="border-border/60 text-muted-foreground grid grid-cols-[1fr_5.5rem_5.5rem] gap-3 border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
+                    class="month-plan-grid month-plan-grid-kind border-border/60 border-b pb-2.5"
                 >
-                    <span>{{ t.month_plan.category }}</span>
-                    <span class="text-right">{{ t.month_plan.plan }}</span>
-                    <span class="text-right">{{ t.month_plan.actual }}</span>
-                    <span class="hidden text-right lg:block">
+                    <span class="column-header">
+                        {{ t.month_plan.category }}
+                    </span>
+                    <span class="column-header hidden sm:block">
+                        {{ t.month_plan.kind_column }}
+                    </span>
+                    <span class="column-header text-right">
+                        {{ t.month_plan.plan }}
+                    </span>
+                    <span class="column-header text-right">
+                        {{ t.month_plan.actual }}
+                    </span>
+                    <span class="column-header hidden text-right lg:block">
                         {{ t.month_plan.deviation }}
                     </span>
                 </div>
@@ -120,29 +129,47 @@ const disabledValue = ref('current');
         </section>
 
         <section class="space-y-3">
-            <h2 class="text-base font-medium">Przełączniki (stan obecny)</h2>
-            <div
-                role="group"
-                :aria-label="t.month_plan.set_aside_direction"
-                class="border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1"
-            >
-                <Button
-                    v-for="option in ['set_aside', 'draw'] as const"
-                    :key="option"
-                    type="button"
-                    size="sm"
-                    :variant="direction === option ? 'default' : 'ghost'"
-                    :aria-pressed="direction === option"
-                    class="h-7 rounded-lg px-2 text-xs"
-                    @click="direction = option"
-                >
-                    {{
-                        option === 'set_aside'
-                            ? t.month_plan.set_aside_direction
-                            : t.month_plan.set_aside
-                    }}
-                </Button>
+            <h2 class="text-base font-medium">Wiersz tytułu</h2>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="text-lg font-semibold capitalize">
+                        czerwiec 2026
+                    </h3>
+                    <Badge variant="secondary">
+                        {{ t.month_plan.state_approved }}
+                    </Badge>
+                </div>
+                <Button type="button">{{ t.month_plan.change }}</Button>
             </div>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="text-lg font-semibold capitalize">
+                        lipiec 2026
+                    </h3>
+                    <Badge variant="outline">
+                        {{ t.month_plan.state_proposal }}
+                    </Badge>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-base font-medium">Pasek edycji</h2>
+            <p class="text-muted-foreground text-sm">
+                W widoku pasek jest przyklejony do dołu ekranu.
+            </p>
+            <MonthPlanEditBar
+                :to-spend-minor-units="373000"
+                mode="approve"
+                :processing="false"
+                :can-submit="true"
+            />
+            <MonthPlanEditBar
+                :to-spend-minor-units="-12000"
+                mode="change"
+                :processing="false"
+                :can-submit="true"
+            />
         </section>
 
         <section class="space-y-3">

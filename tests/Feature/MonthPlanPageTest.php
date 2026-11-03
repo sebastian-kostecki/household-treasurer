@@ -46,6 +46,8 @@ class MonthPlanPageTest extends TestCase
                 ->where('viewedMonth', 6)
                 ->where('viewedMonthTiming', 'current')
                 ->where('currentMonth', 6)
+                ->where('translations.month_plan.kind_column', 'Rodzaj')
+                ->where('translations.month_plan.edit_bar_label', 'Edycja planu')
                 ->where('monthPlan.state', 'proposal')
                 ->where('monthPlan.approved_at', null)
                 ->where('monthPlan.can_approve', true)

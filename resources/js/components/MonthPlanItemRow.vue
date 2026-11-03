@@ -3,8 +3,8 @@ import { Check } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, formatSignedMoney } from '@/lib/format';
@@ -29,7 +29,12 @@ const amountInput = defineModel<string>();
 
 const t = useTranslations();
 
-const kinds: MonthItemKind[] = ['bill', 'running'];
+const kindOptions = computed<{ value: MonthItemKind; label: string }[]>(() => [
+    { value: 'bill', label: t.month_plan.kind_bill },
+    { value: 'running', label: t.month_plan.kind_running },
+]);
+
+const hasKindColumn = computed(() => props.row.type === 'expense');
 
 function kindLabel(kind: MonthItemKind): string {
     return kind === 'bill' ? t.month_plan.kind_bill : t.month_plan.kind_running;
@@ -54,27 +59,24 @@ const deviationClass = computed(() => {
 
     return '';
 });
+
+function onKindUpdate(kind: MonthItemKind): void {
+    emit('change-kind', kind);
+}
 </script>
 
 <template>
     <div
-        class="border-border/60 grid grid-cols-[1fr_5.5rem_5.5rem] items-center gap-3 border-b py-3 last:border-b-0 sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
+        class="month-plan-grid border-border/60 items-center border-b py-3 last:border-b-0"
+        :class="hasKindColumn ? 'month-plan-grid-kind' : ''"
     >
         <div class="flex min-w-0 flex-col gap-1">
-            <CategoryChip
-                :name="row.name"
-                :icon="row.icon"
-                :color="row.color"
-            />
-            <div
-                v-if="
-                    row.is_one_off ||
-                    row.is_archived ||
-                    !row.in_plan ||
-                    row.is_settled
-                "
-                class="flex flex-wrap gap-1"
-            >
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <CategoryChip
+                    :name="row.name"
+                    :icon="row.icon"
+                    :color="row.color"
+                />
                 <Badge v-if="row.is_one_off" variant="outline">
                     {{ t.month_plan.one_off_badge }}
                 </Badge>
@@ -138,35 +140,33 @@ const deviationClass = computed(() => {
                 </span>
             </p>
 
-            <div>
-                <div
-                    v-if="row.month_item_kind !== null && row.can_change_kind"
-                    role="group"
-                    :aria-label="t.month_plan.kind"
-                    class="border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1"
-                >
-                    <Button
-                        v-for="kind in kinds"
-                        :key="kind"
-                        type="button"
-                        size="sm"
-                        :variant="
-                            row.month_item_kind === kind ? 'default' : 'ghost'
-                        "
-                        :aria-pressed="row.month_item_kind === kind"
-                        class="h-7 rounded-lg px-2 text-xs"
-                        @click="emit('change-kind', kind)"
-                    >
-                        {{ kindLabel(kind) }}
-                    </Button>
-                </div>
-                <span
-                    v-else-if="row.month_item_kind !== null"
-                    class="text-muted-foreground text-sm"
-                >
+            <div v-if="row.month_item_kind !== null" class="sm:hidden">
+                <SegmentedControl
+                    v-if="row.can_change_kind"
+                    :model-value="row.month_item_kind"
+                    :options="kindOptions"
+                    :ariaLabel="t.month_plan.kind"
+                    @update:model-value="onKindUpdate"
+                />
+                <span v-else class="text-muted-foreground text-sm">
                     {{ kindLabel(row.month_item_kind) }}
                 </span>
             </div>
+        </div>
+
+        <div v-if="hasKindColumn" class="hidden sm:block">
+            <template v-if="row.month_item_kind !== null">
+                <SegmentedControl
+                    v-if="row.can_change_kind"
+                    :model-value="row.month_item_kind"
+                    :options="kindOptions"
+                    :ariaLabel="t.month_plan.kind"
+                    @update:model-value="onKindUpdate"
+                />
+                <span v-else class="text-muted-foreground text-sm">
+                    {{ kindLabel(row.month_item_kind) }}
+                </span>
+            </template>
         </div>
 
         <div class="text-right">

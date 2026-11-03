@@ -330,6 +330,8 @@ return [
         'plan' => 'Plan',
         'actual' => 'Faktycznie',
         'kind' => 'Rodzaj pozycji',
+        'kind_column' => 'Rodzaj',
+        'edit_bar_label' => 'Edycja planu',
         'kind_bill' => 'Rachunek',
         'kind_running' => 'Bieżąca',
         'not_in_plan' => 'Poza planem',
