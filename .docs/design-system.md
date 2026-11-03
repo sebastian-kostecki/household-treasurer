@@ -14,7 +14,7 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 - Szare tło strony (`background`), białe karty (`card`, `rounded-2xl`, obramowanie `border/60`). Bez cieni spoczynkowych: głębię daje kontrast tła i karty.
 - Kontrolki (przyciski, pola, selecty): wysokość 36 px (`h-9`), `rounded-xl`, fokus = pierścień 3 px `ring/50`.
 - Selecty: `.native-select` dla prostych wyliczeń bez ikon; `Select` (Reka) gdy opcja pokazuje ikonę lub logo (np. `AccountBankSelect`). Oba mają `rounded-xl`; `.native-select` stylizuje też `aria-invalid` (czerwona ramka).
-- Lista Budżetu używa `.budget-category-grid` (jeden markup na każdej szerokości, jak `.operations-grid` w Operacjach): na telefonie wiersz ma 2–3 linie, od `md` kolumny. Zarchiwizowane wiersze są w całości `muted-foreground`, bez kolorów statusu i bez `opacity`; reguły kolorów komórek są w `resources/js/lib/budget-category-cells.ts`.
+- Lista Budżetu używa `.budget-category-grid` (jeden markup na każdej szerokości, jak `.operations-grid` w Operacjach): na telefonie wiersz ma 2–3 linie, od `md` kolumny. Zarchiwizowane wiersze są w całości `muted-foreground`, bez kolorów statusu i bez `opacity`; reguły kolorów komórek są w `resources/js/lib/budget-category-cells.ts`. Wyjątek: ujemne saldo zarchiwizowanej lokaty zostaje `text-destructive` (FR-TD-08).
 - Listy i tabele: `ListSurface` z wierszami na siatce (`.operations-grid`, `.budget-category-grid`); wiersze oddzielone linią `border/60`, hover `foreground/3%`. Nagłówki kolumn i podpisy mobilne nad wartościami (11 px, wersaliki, `muted-foreground`) przez klasę `column-caption` z `app.css`, nigdy ręcznie złożoną z `text-xs … uppercase`.
 - Siatka wiersza planu miesiąca to `.month-plan-grid`; etykieta sekcji `.section-label`, nagłówek kolumny `.column-header`, tabele `.list-surface-table`. W widokach nie ma wartości arbitralnych (`text-[11px]`, `grid-cols-[...]`), tylko nazwane klasy z `app.css`.
 - Odstępy: 16 px między kartami i na krawędzi strony, 20 px od `md`, 24 px wewnątrz karty.
@@ -25,14 +25,14 @@ Geist, wagi 400/500/600. Każda kwota ma `tabular-nums`. Skala: liczby w kafelka
 
 ## Kolor znaczy coś tylko w trzech miejscach
 
-| Token                | Znaczenie                                                                                                | Nie używaj do                                                             |
-| -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `primary` (turkus)   | akcja, zaznaczenie, pasek realizacji w normie                                                            | dekoracji, statusu pieniędzy                                              |
-| `success`            | dochód zaksięgowany, dochód ponad plan                                                                   | „wszystko OK” poza kwotami                                                |
-| `destructive`        | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające                 | ostrzeżeń, które jeszcze nie są przekroczeniem                            |
-| `warning` (bursztyn) | ostrzeżenie: w granicach, ale blisko przekroczenia; ostrzeżenia w formularzach, które nie blokują zapisu | przekroczeń już zaksięgowanych; typu operacji „Zwrot” (ma token `refund`) |
-| `refund`, `transfer` | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`)                                  | czegokolwiek poza typem operacji                                          |
-| `muted-foreground`   | podpisy, etykiety, rzeczy zarchiwizowane (cały wiersz, także kwoty i %, bez `success`/`destructive`)     | kwot aktywnych wierszy                                                    |
+| Token                | Znaczenie                                                                                                                                                                                | Nie używaj do                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `primary` (turkus)   | akcja, zaznaczenie, pasek realizacji w normie                                                                                                                                            | dekoracji, statusu pieniędzy                                              |
+| `success`            | dochód zaksięgowany, dochód ponad plan                                                                                                                                                   | „wszystko OK” poza kwotami                                                |
+| `destructive`        | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające                                                                                                 | ostrzeżeń, które jeszcze nie są przekroczeniem                            |
+| `warning` (bursztyn) | ostrzeżenie: w granicach, ale blisko przekroczenia; ostrzeżenia w formularzach, które nie blokują zapisu                                                                                 | przekroczeń już zaksięgowanych; typu operacji „Zwrot” (ma token `refund`) |
+| `refund`, `transfer` | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`)                                                                                                                  | czegokolwiek poza typem operacji                                          |
+| `muted-foreground`   | podpisy, etykiety, rzeczy zarchiwizowane (cały wiersz, także kwoty i %, bez `success`/`destructive`). Wyjątek: ujemne saldo zarchiwizowanej lokaty zostaje `text-destructive` (FR-TD-08) | kwot aktywnych wierszy                                                    |
 
 Kolor kategorii (paleta 24 barw) to tylko tożsamość kategorii: kafelek ikony w `CategoryChip` (tło 15%). Nigdy nie oznacza statusu i nie maluje pasków ani kwot.
 
@@ -96,4 +96,4 @@ Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `
 1. Zmień token w `app.css` w obu trybach.
 2. Zaktualizuj tę stronę, a jeśli to decyzja, dopisz ADR.
 3. Zasady dla agentów żyją w `.ai/rules` (zapis przez `record-rule` z Laravel Boost); trzymaj je zgodne z tą stroną.
-4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard` i `/dev/ui/accounts`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.
+4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`, `/dev/ui/accounts` i `/dev/ui/term-deposits`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.

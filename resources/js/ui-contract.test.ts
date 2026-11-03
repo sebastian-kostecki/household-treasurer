@@ -30,10 +30,7 @@ const BUDGET_VIEW_FILES = [
 
 // Dead reka-ui Checkbox bindings tracked in GitHub issue #186.
 // Fix the file, then remove it from this list (the test fails until you do).
-const DEAD_CHECKBOX_BINDING_EXCEPTIONS = [
-    'pages/TermDeposits.vue',
-    'pages/OperationsImport.vue',
-];
+const DEAD_CHECKBOX_BINDING_EXCEPTIONS = ['pages/OperationsImport.vue'];
 
 const DEAD_CHECKBOX_BINDING = /:checked=|@update:checked|v-model:checked/;
 
