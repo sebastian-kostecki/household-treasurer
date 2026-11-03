@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -47,6 +48,14 @@ function rowReading(row: MonthPlanItem): {
 }
 
 const direction = ref<'set_aside' | 'draw'>('set_aside');
+
+const contractKinds = [
+    { value: 'current', label: 'Bieżący' },
+    { value: 'bill', label: 'Rachunek' },
+];
+const primaryValue = ref('current');
+const neutralValue = ref('bill');
+const disabledValue = ref('current');
 </script>
 
 <template>
@@ -134,6 +143,136 @@ const direction = ref<'set_aside' | 'draw'>('set_aside');
                     }}
                 </Button>
             </div>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-base font-medium">Kontrakt: SegmentedControl</h2>
+            <p class="text-muted-foreground text-sm">
+                Tab: jeden przystanek na przełącznik. Strzałki, Home i End
+                zmieniają fokus, Spacja i Enter wybierają. Kliknięcie aktywnej
+                opcji jej nie odznacza. Najedź, by zobaczyć hover.
+            </p>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="space-y-1">
+                    <p class="section-label">primary</p>
+                    <SegmentedControl
+                        v-model="primaryValue"
+                        :options="contractKinds"
+                        ariaLabel="Ton primary"
+                        tone="primary"
+                    />
+                </div>
+                <div class="space-y-1">
+                    <p class="section-label">neutral</p>
+                    <SegmentedControl
+                        v-model="neutralValue"
+                        :options="contractKinds"
+                        ariaLabel="Ton neutral"
+                        tone="neutral"
+                    />
+                </div>
+                <div class="space-y-1">
+                    <p class="section-label">disabled</p>
+                    <SegmentedControl
+                        v-model="disabledValue"
+                        :options="contractKinds"
+                        ariaLabel="Wyłączony"
+                        disabled
+                    />
+                </div>
+            </div>
+            <p class="text-muted-foreground text-xs">
+                Wartości: primary={{ primaryValue }}, neutral={{ neutralValue }}
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-base font-medium">
+                Kontrakt: .month-plan-grid i .column-header
+            </h2>
+            <ListSurface :title="t.month_plan.expense_table">
+                <div class="month-plan-grid border-border/60 border-b pb-2.5">
+                    <span class="column-header">
+                        {{ t.month_plan.category }}
+                    </span>
+                    <span class="column-header text-right">
+                        {{ t.month_plan.plan }}
+                    </span>
+                    <span class="column-header text-right">
+                        {{ t.month_plan.actual }}
+                    </span>
+                    <span class="column-header hidden text-right lg:block">
+                        {{ t.month_plan.deviation }}
+                    </span>
+                </div>
+                <div
+                    class="month-plan-grid border-border/60 items-center border-b py-3"
+                >
+                    <span class="min-w-0 text-sm">
+                        Bardzo długa nazwa kategorii, która musi się zawinąć bez
+                        rozpychania kolumn z kwotami
+                    </span>
+                    <span class="text-right text-sm tabular-nums">
+                        1 234,56 zł
+                    </span>
+                    <span class="text-right text-sm tabular-nums">
+                        999,00 zł
+                    </span>
+                    <span
+                        class="hidden text-right text-sm tabular-nums lg:block"
+                    >
+                        235,56 zł
+                    </span>
+                </div>
+            </ListSurface>
+            <ListSurface :title="t.month_plan.expense_table">
+                <div
+                    class="month-plan-grid month-plan-grid-kind border-border/60 border-b pb-2.5"
+                >
+                    <span class="column-header">
+                        {{ t.month_plan.category }}
+                    </span>
+                    <span class="column-header hidden sm:block">
+                        {{ t.month_plan.kind }}
+                    </span>
+                    <span class="column-header text-right">
+                        {{ t.month_plan.plan }}
+                    </span>
+                    <span class="column-header text-right">
+                        {{ t.month_plan.actual }}
+                    </span>
+                    <span class="column-header hidden text-right lg:block">
+                        {{ t.month_plan.deviation }}
+                    </span>
+                </div>
+                <div
+                    class="month-plan-grid month-plan-grid-kind border-border/60 items-center border-b py-3"
+                >
+                    <span class="min-w-0 text-sm">
+                        Bardzo długa nazwa kategorii, która musi się zawinąć bez
+                        rozpychania kolumn z kwotami i rodzajem
+                    </span>
+                    <span class="hidden sm:block">
+                        <SegmentedControl
+                            v-model="primaryValue"
+                            :options="contractKinds"
+                            ariaLabel="Rodzaj"
+                            tone="neutral"
+                        />
+                    </span>
+                    <span class="text-right text-sm tabular-nums">
+                        1 234,56 zł
+                    </span>
+                    <span class="text-right text-sm tabular-nums">
+                        999,00 zł
+                    </span>
+                    <span
+                        class="hidden text-right text-sm tabular-nums lg:block"
+                    >
+                        235,56 zł
+                    </span>
+                </div>
+            </ListSurface>
         </section>
 
         <section class="space-y-3">
