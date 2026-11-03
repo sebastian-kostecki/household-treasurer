@@ -55,7 +55,9 @@ defineProps<{
                         : 'text-muted-foreground/50'
                 "
                 :aria-current="link.active ? 'page' : undefined"
-                :aria-disabled="link.active ? undefined : 'true'"
+                :aria-disabled="
+                    link.active || link.label === '...' ? undefined : 'true'
+                "
                 v-html="link.label"
             />
         </template>

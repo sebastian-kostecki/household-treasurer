@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeftRight, Plus, Upload } from '@lucide/vue';
+import { ArrowLeftRight, Landmark, Plus, Upload } from '@lucide/vue';
 import { computed, useId } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import { Button } from '@/components/ui/button';
@@ -66,7 +66,7 @@ const capitalMovementReason = computed(() => {
                 "
                 @click="emit('add-transfer')"
             >
-                <ArrowLeftRight class="size-4" />
+                <Landmark class="size-4" />
                 {{ t.operations.add_transfer }}
             </Button>
             <Button

@@ -59,15 +59,42 @@ describe('listenForOperationsListVisits', () => {
 
     const start = (method: string, path: string) =>
         handlers.start({ detail: { visit: visit(method, path) } });
+    const finish = (method: string, path: string) =>
+        handlers.finish({ detail: { visit: visit(method, path) } });
 
     it('reports busy for list visits and clears it on finish', () => {
         const onBusyChange = vi.fn();
         listenForOperationsListVisits('/operations', onBusyChange);
 
         start('get', '/operations?page=2');
-        handlers.finish({});
+        finish('get', '/operations?page=2');
 
         expect(onBusyChange.mock.calls).toEqual([[true], [false]]);
+    });
+
+    it('stays busy until the last overlapping list visit finishes', () => {
+        const onBusyChange = vi.fn();
+        listenForOperationsListVisits('/operations', onBusyChange);
+
+        start('get', '/operations?page=2');
+        start('get', '/operations?page=3');
+        finish('get', '/operations?page=2');
+
+        expect(onBusyChange).not.toHaveBeenLastCalledWith(false);
+
+        finish('get', '/operations?page=3');
+
+        expect(onBusyChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('is not cleared by the finish of a non-list visit', () => {
+        const onBusyChange = vi.fn();
+        listenForOperationsListVisits('/operations', onBusyChange);
+
+        start('get', '/operations?page=2');
+        finish('delete', '/incomes/1');
+
+        expect(onBusyChange.mock.calls).toEqual([[true]]);
     });
 
     it('ignores visits that are not the list', () => {
@@ -75,7 +102,7 @@ describe('listenForOperationsListVisits', () => {
         listenForOperationsListVisits('/operations', onBusyChange);
 
         start('delete', '/incomes/1');
-        handlers.finish({});
+        finish('delete', '/incomes/1');
 
         expect(onBusyChange).not.toHaveBeenCalled();
     });

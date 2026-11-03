@@ -487,16 +487,17 @@
         }
     }
 
+    /* Wiersz posiadań na Dashboardzie (konta i lokaty). */
+    .dashboard-holdings-row {
+        @apply hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+    }
+
     /**
      * Nagłówek kolumn i wiersz listy Operacji. Muszą stać PO `.operations-grid`
      * (oba ustawiają `display`), a `display: grid` nagłówka wraca dopiero od `md`.
      */
     .operations-header-row {
         @apply column-caption border-border/60 hidden border-b pb-2.5;
-    }
-
-    .dashboard-holdings-row {
-        @apply hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
     }
 
     .operations-row {

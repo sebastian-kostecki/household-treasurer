@@ -45,7 +45,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                     class="operations-raw-trigger flex min-w-0 items-stretch gap-2.5"
                     tabindex="0"
                     role="group"
-                    :aria-label="`${primaryLine}. ${t.operations.raw_statement_description}: ${tooltipLabel}`"
+                    :aria-label="primaryLine"
                 >
                     <OperationTypeTile :variant="variant" />
                     <div class="min-w-0">

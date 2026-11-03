@@ -22,18 +22,24 @@ export function listenForOperationsListVisits(
     operationsPath: string,
     onBusyChange: (busy: boolean) => void,
 ): () => void {
-    let busy = false;
+    let inFlight = 0;
 
     const offStart = router.on('start', (event) => {
         if (isOperationsListVisit(event.detail.visit, operationsPath)) {
-            busy = true;
+            inFlight++;
             onBusyChange(true);
         }
     });
-    const offFinish = router.on('finish', () => {
-        if (busy) {
-            busy = false;
-            onBusyChange(false);
+    const offFinish = router.on('finish', (event) => {
+        if (
+            inFlight > 0 &&
+            isOperationsListVisit(event.detail.visit, operationsPath)
+        ) {
+            inFlight--;
+
+            if (inFlight === 0) {
+                onBusyChange(false);
+            }
         }
     });
 
