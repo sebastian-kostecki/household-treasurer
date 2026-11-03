@@ -512,15 +512,15 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 
 #### Automated
 
-- [x] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui`
-- [x] 5.2 Kontrola zatrzymuje literał w `Welcome.vue` (kod 1, `text-white`)
-- [x] 5.3 Lint i format przechodzą: `npm run check`
-- [x] 5.4 Pełna bramka CI przechodzi w obrazie Sail na worktree: `composer ci:check`
-- [x] 5.5 Sloppy przechodzi: `vendor/bin/sloppy ci`
+- [x] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui` — bfba586
+- [x] 5.2 Kontrola zatrzymuje literał w `Welcome.vue` (kod 1, `text-white`) — bfba586
+- [x] 5.3 Lint i format przechodzą: `npm run check` — bfba586
+- [x] 5.4 Pełna bramka CI przechodzi w obrazie Sail na worktree: `composer ci:check` — bfba586
+- [x] 5.5 Sloppy przechodzi: `vendor/bin/sloppy ci` — bfba586
 
 #### Manual
 
-- [x] 5.6 `.ai/rules/js.md` ma sekcję „Sidebar”, a `.ai/rules/index.md` nadal wskazuje ten plik
-- [x] 5.7 Spec, `SKILL.md` i `design-system.md` opisują nową kontrolkę roku i kitchen sink
-- [x] 5.8 `research.md` oznacza docelowy znak i kontrast ciemnego `--primary` jako deferred z powodem
-- [x] 5.9 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione
+- [x] 5.6 `.ai/rules/js.md` ma sekcję „Sidebar”, a `.ai/rules/index.md` nadal wskazuje ten plik — bfba586
+- [x] 5.7 Spec, `SKILL.md` i `design-system.md` opisują nową kontrolkę roku i kitchen sink — bfba586
+- [x] 5.8 `research.md` oznacza docelowy znak i kontrast ciemnego `--primary` jako deferred z powodem — bfba586
+- [x] 5.9 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione — bfba586
