@@ -535,28 +535,28 @@ Brak migracji danych. Zmiana nazwy propsa dotyczy tylko `Operations.vue`; przy s
 
 #### Automated
 
-- [x] 4.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsEmptyStateTest.php tests/Feature/OperationsPaginationTest.php tests/Feature/FinancialOperationEditDeleteTest.php` obrazem Sail
-- [x] 4.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build`
-- [x] 4.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/PaginationLinks.vue resources/js/components/OperationDescriptionCell.vue resources/js/components/FinancialOperationActions.vue resources/js/components/OwnTransferActions.vue resources/js/components/CapitalMovementActions.vue resources/js/pages/dev/OperationsSink.vue`
+- [x] 4.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsEmptyStateTest.php tests/Feature/OperationsPaginationTest.php tests/Feature/FinancialOperationEditDeleteTest.php` obrazem Sail — 0cb97ab
+- [x] 4.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build` — 0cb97ab
+- [x] 4.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/PaginationLinks.vue resources/js/components/OperationDescriptionCell.vue resources/js/components/FinancialOperationActions.vue resources/js/components/OwnTransferActions.vue resources/js/components/CapitalMovementActions.vue resources/js/pages/dev/OperationsSink.vue` — 0cb97ab
 
 #### Manual
 
-- [x] 4.4 Tab po `/operations`: linki paginacji mają pierścień 3 px, wyłączona „poprzednia” jest pomijana; wiersz z opisem z banku dostaje fokus i otwiera dymek
-- [x] 4.5 Przejście na stronę 2 przy dławieniu sieci (DevTools „Slow 4G”): sekcja się wycisza; szybka odpowiedź nie mruga
-- [x] 4.6 Usunięcie operacji: przycisk pokazuje spinner, w DOM `aria-label="Ładowanie"`
-- [x] 4.7 Fokus paginacji w `/accounts` i `/budget` wygląda tak samo jak w Operacjach (zamierzona zmiana wspólnego komponentu)
-- [x] 4.8 Zrzuty `phase-4-*` zapisane
+- [x] 4.4 Tab po `/operations`: linki paginacji mają pierścień 3 px, wyłączona „poprzednia” jest pomijana; wiersz z opisem z banku dostaje fokus i otwiera dymek — 0cb97ab
+- [x] 4.5 Przejście na stronę 2 przy dławieniu sieci (DevTools „Slow 4G”): sekcja się wycisza; szybka odpowiedź nie mruga — 0cb97ab
+- [x] 4.6 Usunięcie operacji: przycisk pokazuje spinner, w DOM `aria-label="Ładowanie"` — 0cb97ab
+- [x] 4.7 Fokus paginacji w `/accounts` i `/budget` wygląda tak samo jak w Operacjach (zamierzona zmiana wspólnego komponentu) — 0cb97ab
+- [x] 4.8 Zrzuty `phase-4-*` zapisane — 0cb97ab
 
 ### Phase 5: Utrwalenie
 
 #### Automated
 
-- [ ] 5.1 Strażnik przechodzi na pełnej liście: `npm run check:ui`
-- [ ] 5.2 Strażnik łapie odcień: `node scripts/check-ui-literals.mjs <plik tymczasowy z hover:bg-foreground/[0.03]>` kończy się kodem 1
-- [ ] 5.3 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
-- [ ] 5.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 5.1 Strażnik przechodzi na pełnej liście: `npm run check:ui`
+- [x] 5.2 Strażnik łapie odcień: `node scripts/check-ui-literals.mjs <plik tymczasowy z hover:bg-foreground/[0.03]>` kończy się kodem 1
+- [x] 5.3 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
+- [x] 5.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
 
 #### Manual
 
-- [ ] 5.5 `/dashboard` i `/dev/ui/dashboard`: wiersze kont i lokat bez widocznej zmiany, hover działa
-- [ ] 5.6 Zrzuty `phase-5-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice
+- [x] 5.5 `/dashboard` i `/dev/ui/dashboard`: wiersze kont i lokat bez widocznej zmiany, hover działa
+- [x] 5.6 Zrzuty `phase-5-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice

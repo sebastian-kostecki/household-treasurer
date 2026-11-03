@@ -139,7 +139,7 @@ function toggleExpanded(): void {
                             <div
                                 v-for="account in accounts"
                                 :key="account.id"
-                                class="hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors"
+                                class="dashboard-holdings-row"
                             >
                                 <AccountIdentityBlock
                                     class="min-w-0 flex-1"
@@ -200,7 +200,7 @@ function toggleExpanded(): void {
                         <div
                             v-for="termDeposit in termDeposits"
                             :key="termDeposit.id"
-                            class="hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors"
+                            class="dashboard-holdings-row"
                         >
                             <AccountIdentityBlock
                                 class="min-w-0 flex-1"

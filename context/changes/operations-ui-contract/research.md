@@ -51,6 +51,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### C1 — Brakujące tokeny: nagłówek kolumn listy bez nazwy, przepis 11 px w czterech kopiach
 
+- **Status:** fixed (faza 3; klasy i funkcje: faza 2, stany: faza 4).
+
 - **Kotwica (widok):** `resources/js/pages/Operations.vue:232`, `:272`, `:305` — cały wiersz nagłówka złożony ręcznie: `operations-grid … border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid`, skopiowany 3×.
 - **Kotwica (źródło):** `resources/css/app.css:199-201` `@utility column-caption`; `:233-235` `.column-header` (identyczny `@apply`); `:267-268` `.list-surface-table thead th` (ten sam przepis literalnie); `:375-377` `.budget-category-header-row` (ten sam przepis literalnie + `hidden border-b pb-2.5`).
 - **Dowód kierunku źródło → widoki:** `column-caption` ma 4 konsumentów (`BudgetPlanSummaryStrip.vue:21`, `DashboardCategorySection.vue:86`, `DashboardHoldings.vue:132,193`) + kitchen sink dashboardu; `.column-header` ma 1 widok (`MonthPlan.vue:733-749`) + `MonthPlanSink.vue`. W plikach widoku Operacje nie ma żadnej z tych klas (przeszukane 19 plików widoku, wg agenta audytu źródła).
@@ -60,12 +62,16 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### C2 — Brakujący token: wiersz listy Operacji bez nazwanej klasy
 
+- **Status:** fixed (faza 3; klasy i funkcje: faza 2, stany: faza 4).
+
 - **Kotwica:** `resources/js/components/FinancialOperationRow.vue:49`, `OwnTransferRow.vue:27`, `CapitalMovementRow.vue:26` — identyczny ciąg `border-border/60 hover:bg-foreground/[0.03] gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0 md:gap-y-0`.
 - **Dowód:** wartość hover jest w kontrakcie (`design-system.md:17` „hover `foreground/3%`”) i trzy zmiany odmówiły uznania jej za zarzut (dashboard `plan.md:45`, accounts `research.md:33,84`, budget `research.md:116`). Precedens nazwy istnieje: `.budget-category-row` (`app.css:371-373`) i `.list-surface-table tbody tr` (`:271-273`) trzymają ten sam literał w źródle tokenów, nie w widoku. Żaden ze strażników nie łapie formy `/[` (`scripts/check-ui-literals.mjs` wzorzec `-\[[0-9.]+(px|rem)\]`; wg agenta także `MonthPlanHardcodedUiTest`).
 - **Wpływ na użytkownika:** trzy typy wierszy na jednej stronie mogą się rozjechać (już się rozjechały w innych widokach: `Accounts.vue:157`, `TermDeposits.vue:159`, `DashboardHoldings.vue:142,203`, `ImportPreviewRow.vue:266` mają warianty tego ciągu); hover nie jest strojony z warstwy tokenów.
 - **Kierunek:** `.operations-row` w `app.css` obok `.operations-grid` (wzorzec `.budget-category-row`); wartość `foreground/[0.03]` bez zmian. Wspólna klasa „wiersz listy” dla całej aplikacji — deferred (D9).
 
 ### C3 — Przypadkowa architektura: powód wyłączenia przycisku jest niewidoczny
+
+- **Status:** fixed (faza 3; klasy i funkcje: faza 2, stany: faza 4).
 
 - **Kotwica:** `resources/js/pages/Operations.vue:144-168` — „Dodaj transfer” (`:disabled="accounts.length < 2"`) i „Dodaj ruch kapitału” (`accounts.length === 0 || termDeposits.length === 0`) z powodem w `:title`.
 - **Dowód:** `resources/js/components/ui/button/index.ts:7` daje `disabled:pointer-events-none`, więc natywny `title` nie pojawi się po najechaniu; wyłączony `<button>` wypada z kolejności Tab, a `title` nie trafia do drzewa dostępności jako opis. `title=` na wyłączonym przycisku występuje w `resources/js` tylko w `Operations.vue:146,159` (wg agenta stanów, grep repo). `IconAction` też nie opakowuje przycisku w `span` (`IconAction.vue:41-64`), więc nie jest gotowym rozwiązaniem. Teksty istnieją: `lang/pl/ui.php:490,501`.
@@ -74,12 +80,16 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### C4 — Hierarchia wiersza tytułu: pięć równorzędnych przycisków primary
 
+- **Status:** fixed (faza 3; klasy i funkcje: faza 2, stany: faza 4).
+
 - **Kotwica:** `resources/js/pages/Operations.vue:136-174` — pięć `<Button>` w wariancie domyślnym (primary, turkus); „Dodaj transfer” (`:153`) i „Dodaj ruch kapitału” (`:167`) bez ikon, pozostałe z `Plus` / `Upload`.
 - **Dowód:** sprawdzone wiersze tytułu mają co najwyżej jeden przycisk primary: `Budget.vue:196-263` (jeden warunkowy primary + `DropdownMenu` `outline`), `MonthPlan.vue:530-535` (jeden warunkowy), `Accounts.vue:105-110` i `TermDeposits.vue:107-112` (jeden). `design-system.md` tabela kolorów: `primary` = „akcja, zaznaczenie”. **Ograniczenie:** issue #35, kryterium 21: „Add income / expense / transfer / import stay four separate controls; no … actions dropdown” — zgrupowanie w menu „Dodaj” odwraca tę decyzję.
 - **Wpływ na użytkownika:** żadna akcja nie jest główna; na 390 px pięć przycisków `h-9` zawija się w ok. 3 rzędy turkusu nad filtrami (szacunek z długości etykiet, nie mierzone), lista zaczyna się niżej, a dwa przyciski bez ikon wyglądają na inną rodzinę.
 - **Kierunek:** zachować pięć osobnych kontrolek (#35), zróżnicować warianty (jeden `default`, reszta `outline`) i ujednolicić ikony. Który przycisk jest główny — Decyzja 5 (wybór produktowy). Rozmiar `h1` → D1.
 
 ### C5 — Przypadkowa architektura: pusty stan i filtry zależą tylko od dochodów/wydatków
+
+- **Status:** fixed (faza 3; klasy i funkcje: faza 2, stany: faza 4).
 
 - **Kotwica:** `resources/js/pages/Operations.vue:178` (`OperationsFilters v-if="hasFinancialOperations"`), `:189` (`IndexEmptyState v-if="!hasFinancialOperations"`), `:266`, `:299` (sekcje przelewów i ruchów kapitału z własnym `v-if` na `total > 0`); `app/Http/Controllers/OperationsController.php:189` (`'hasFinancialOperations' => $user->financialOperations()->exists()`); tekst `lang/pl/ui.php:454` „Brak operacji finansowych”.
 - **Dowód:** przy `hasFinancialOperations = false` i `ownTransfers.total > 0` renderują się jednocześnie stan pusty (z CTA „Dodaj dochód” / „Import”) i lista przelewów, a filtry znikają. Przypadek nie jest testowany: `tests/Feature/CapitalMovementTest.php:372` buduje takiego użytkownika, ale nie sprawdza `hasFinancialOperations` (wg agenta decyzji); `OperationsFilterTest` pinuje `hasFinancialOperations` (`:45,500,511`).
@@ -88,7 +98,7 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### Deferred (poza zakresem tej zmiany, z powodem)
 
-_Status D1–D10: deferred._
+_Status D1–D11: deferred._
 
 - **D1 — Rozmiar `h1` na stronach domenowych** (`text-lg` w 7 widokach vs `design-system.md:23` `text-xl`). Rozstrzygnąć dokumentem albo kodem dla wszystkich stron naraz; odroczone już w month-plan D3, budget `research.md:115`, accounts Open Q1.
 - **D2 — Spłaszczenie trzech list w jedną chronologiczną.** Issue #19 („No … merged chronological ledger”, osobne parametry stron), #80 (ruchy kapitału jako trzecia kolekcja „pagination like Own Transfers”), #35 („Financial Operations list shell has no duplicate page title” — stąd karta bez tytułu `Operations.vue:226-230`). Nie zakazuje tego ADR ani spec, ale to decyzja domenowa, nie wizualna (`CONTEXT.md:127-153` — trzy różne typy zapisów).
@@ -99,6 +109,7 @@ _Status D1–D10: deferred._
 - **D7 — `InputError` bez `id` / `aria-describedby` w dialogach formularzy** (`InputError.vue:8-12`; np. `IncomeFormDialog.vue:330-453`) — dialogi są poza widokiem tej zmiany.
 - **D8 — Ręcznie zbudowane powierzchnie w filtrach:** karta na korzeniu `Collapsible` (`OperationsFilters.vue:389`) i pigułka chipa (`OperationsActiveFilterChips.vue:256`) zamiast `Card` / `Badge`. Tokeny są poprawne (0 trafień skanu); zamiana wymaga zmiany struktury komponentu reka `Collapsible`, bez zysku dla użytkownika w tej zmianie.
 - **D9 — Wspólna klasa wiersza listy dla całej aplikacji** i te same literały w innych widokach (`Accounts.vue:157`, `TermDeposits.vue:159`, `DashboardHoldings.vue:142,203`, `ImportPreviewRow.vue:266`, nagłówek `OperationsImportPreview.vue:301`). Zasada „jeden widok na zmianę”; klasy z C1/C2 będą gotowe do przyjęcia.
+- **D11 — Błąd usunięcia w dialogu (403/404/500)** — usunięcie nie ma walidacji; błąd serwera pokazuje domyślny modal błędu Inertia. Komórka `error` w macierzy 7 stanów ma „N/A” z tym powodem.
 - **D10 — Powiązanie wierszy kont/lokat z `operations?account_id=`** (dashboard `plan.md:42`) — funkcja, nie kontrakt UI.
 
 ## Detailed Findings

@@ -495,6 +495,10 @@
         @apply column-caption border-border/60 hidden border-b pb-2.5;
     }
 
+    .dashboard-holdings-row {
+        @apply hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+    }
+
     .operations-row {
         @apply border-border/60 hover:bg-foreground/[0.03] gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
     }
