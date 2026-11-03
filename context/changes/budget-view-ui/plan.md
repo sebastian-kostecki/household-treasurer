@@ -583,18 +583,18 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Automated
 
-- [x] 5.1 `npm test`, `npm run build && npm run types:check && npm run check` przechodzą
-- [x] 5.2 Skan literałów na plikach widoku daje 0 trafień
-- [x] 5.3 Testy Feature MonthPlan i Budżetu bez regresji: `php artisan test --compact tests/Feature/BudgetTest.php tests/Feature/BudgetMonthRemainingTest.php tests/Feature/MonthPlanPageTest.php` (obraz Sail na worktree)
+- [x] 5.1 `npm test`, `npm run build && npm run types:check && npm run check` przechodzą — c543590
+- [x] 5.2 Skan literałów na plikach widoku daje 0 trafień — c543590
+- [x] 5.3 Testy Feature MonthPlan i Budżetu bez regresji: `php artisan test --compact tests/Feature/BudgetTest.php tests/Feature/BudgetMonthRemainingTest.php tests/Feature/MonthPlanPageTest.php` (obraz Sail na worktree) — c543590
 
 #### Manual
 
-- [x] 5.4 Kitchen sink pokazuje każdą komórkę macierzy 7 stanów (default, hover, focus-visible, disabled, error, empty, loading) albo jej N/A z powodem, w obu motywach
-- [x] 5.5 Fraza bez trafień pokazuje komunikat; po wyczyszczeniu wiersze wracają
-- [x] 5.6 DevTools offline + przeciągnięcie: kolejność wraca i pojawia się toast; w trakcie zapisu nie da się przeciągnąć drugi raz
-- [x] 5.7 DevTools „Slow 3G” + klik w miesiąc: miesiąc zaznacza się od razu (na `/budget` i na MonthPlan), pasek nie skacze
-- [x] 5.8 Tab przez stronę: każda kontrolka ma widoczny pierścień `ring` i dostępną nazwę (filtr ogłaszany z nazwą)
-- [x] 5.9 Zrzuty desktop + 390 px (`p5-*.png`)
+- [x] 5.4 Kitchen sink pokazuje każdą komórkę macierzy 7 stanów (default, hover, focus-visible, disabled, error, empty, loading) albo jej N/A z powodem, w obu motywach — c543590
+- [x] 5.5 Fraza bez trafień pokazuje komunikat; po wyczyszczeniu wiersze wracają — c543590
+- [x] 5.6 DevTools offline + przeciągnięcie: kolejność wraca i pojawia się toast; w trakcie zapisu nie da się przeciągnąć drugi raz — c543590
+- [x] 5.7 DevTools „Slow 3G” + klik w miesiąc: miesiąc zaznacza się od razu (na `/budget` i na MonthPlan), pasek nie skacze — c543590
+- [x] 5.8 Tab przez stronę: każda kontrolka ma widoczny pierścień `ring` i dostępną nazwę (filtr ogłaszany z nazwą) — c543590
+- [x] 5.9 Zrzuty desktop + 390 px (`p5-*.png`) — c543590
 
 ### Phase 6: Zabezpieczenie — strażnik, issue, reguła
 
