@@ -571,17 +571,17 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 #### Automated
 
-- [x] 3.1 `php artisan test --compact tests/Feature/MonthPlanPageTest.php` przechodzi (obraz Sail, PostgreSQL)
-- [x] 3.2 `npm run check`, `npm test`, `npm run types:check` (po `npm run build`) przechodzą
-- [x] 3.3 Skan wartości zakodowanych na sztywno na plikach widoku daje 0 trafień; `grid-cols-[` na plikach widoku daje 0
+- [x] 3.1 `php artisan test --compact tests/Feature/MonthPlanPageTest.php` przechodzi (obraz Sail, PostgreSQL) — 011128f
+- [x] 3.2 `npm run check`, `npm test`, `npm run types:check` (po `npm run build`) przechodzą — 011128f
+- [x] 3.3 Skan wartości zakodowanych na sztywno na plikach widoku daje 0 trafień; `grid-cols-[` na plikach widoku daje 0 — 011128f
 
 #### Manual
 
-- [x] 3.4 Telefon (390), propozycja z kilkunastoma pozycjami: „Do wydania” i „Zatwierdź” widoczne u dołu ekranu przy przewijaniu list; pasek nie zasłania ostatniego wiersza
-- [x] 3.5 Plan zatwierdzony bieżącego miesiąca: „Zmień plan” w wierszu tytułu; po kliknięciu pasek z „Anuluj / Zapisz zmiany”; „Anuluj” przywraca kwoty
-- [x] 3.6 Nagłówki „Plan / Faktycznie / Odchylenie” stoją nad swoimi kwotami przy 390, 640 i 1280
-- [x] 3.7 Tab przez stronę: każdy przełącznik to jeden przystanek
-- [x] 3.8 Zrzuty fazy 3 (strona i kitchen sink) zapisane w `screenshots/`
+- [x] 3.4 Telefon (390), propozycja z kilkunastoma pozycjami: „Do wydania” i „Zatwierdź” widoczne u dołu ekranu przy przewijaniu list; pasek nie zasłania ostatniego wiersza — 011128f
+- [x] 3.5 Plan zatwierdzony bieżącego miesiąca: „Zmień plan” w wierszu tytułu; po kliknięciu pasek z „Anuluj / Zapisz zmiany”; „Anuluj” przywraca kwoty — 011128f
+- [x] 3.6 Nagłówki „Plan / Faktycznie / Odchylenie” stoją nad swoimi kwotami przy 390, 640 i 1280 — 011128f
+- [x] 3.7 Tab przez stronę: każdy przełącznik to jeden przystanek — 011128f
+- [x] 3.8 Zrzuty fazy 3 (strona i kitchen sink) zapisane w `screenshots/` — 011128f
 
 ### Phase 4: Stany (C3, C5, macierz 7 stanów)
 
