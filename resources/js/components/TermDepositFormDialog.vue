@@ -23,16 +23,7 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
-
-export type TermDepositFormTermDeposit = {
-    id: number;
-    name: string;
-    bank: AccountBank;
-    opening_date: string;
-    end_date: string | null;
-    opening_balance_minor_units: number;
-    current_balance_minor_units: number;
-};
+import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
 
 const props = defineProps<{
     open: boolean;

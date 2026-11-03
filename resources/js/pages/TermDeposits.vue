@@ -3,9 +3,7 @@ import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import TermDepositController from '@/actions/App/Http/Controllers/TermDepositController';
-import TermDepositFormDialog, {
-    type TermDepositFormTermDeposit,
-} from '@/components/TermDepositFormDialog.vue';
+import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -33,23 +31,12 @@ import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
 import { formatDate, formatMoney } from '@/lib/format';
 import { index as termDepositsRoute } from '@/routes/term-deposits';
+import type {
+    TermDepositRow,
+    TermDepositsPageProps,
+} from '@/types/term-deposits';
 
-type TermDepositRow = TermDepositFormTermDeposit & {
-    bank: AccountBank;
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-    can_delete: boolean;
-    can_archive: boolean;
-    can_restore: boolean;
-};
-
-const props = defineProps<{
-    termDeposits: TermDepositRow[];
-    term_deposits_total_minor_units: number;
-    show_archived: boolean;
-}>();
+const props = defineProps<TermDepositsPageProps>();
 
 const t = useTranslations();
 

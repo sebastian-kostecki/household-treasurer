@@ -8,6 +8,7 @@ use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
+use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthPlanController;
@@ -22,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');
+    Route::get('dev/ui/term-deposits', [TermDepositsKitchenSinkController::class, 'show'])->name('dev.ui.term-deposits');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])
         ->name('dashboard.first-run-checklist.dismiss');
     Route::get('budget', [BudgetController::class, 'show'])->name('budget');
