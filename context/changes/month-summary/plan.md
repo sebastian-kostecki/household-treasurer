@@ -347,14 +347,14 @@ Bez migracji. Plany zatwierdzone przed S-02 mają `approved_set_aside_minor_unit
 
 #### Automated
 
-- [x] 1.1 Testy podsumowania przechodzą na SQLite
-- [x] 1.2 Testy podsumowania i odczytu planu przechodzą na PostgreSQL
-- [x] 1.3 Pint bez zmian
-- [x] 1.4 Analiza statyczna przechodzi
+- [x] 1.1 Testy podsumowania przechodzą na SQLite — 3a795ae
+- [x] 1.2 Testy podsumowania i odczytu planu przechodzą na PostgreSQL — 3a795ae
+- [x] 1.3 Pint bez zmian — 3a795ae
+- [x] 1.4 Analiza statyczna przechodzi — 3a795ae
 
 #### Manual
 
-- [x] 1.5 Wpis Month Summary w CONTEXT.md jednoznaczny i zgodny z przykładami
+- [x] 1.5 Wpis Month Summary w CONTEXT.md jednoznaczny i zgodny z przykładami — 3a795ae
 
 ### Phase 2: Prop i strona
 
