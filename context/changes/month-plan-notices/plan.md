@@ -294,27 +294,27 @@ Bez migracji danych. Zmienia się tylko payload Inertia `dashboardNotices` (nowe
 
 #### Automated
 
-- [x] 2.1 Type check passes: `npm run types:check`
-- [x] 2.2 Lint/format check passes: `npm run check`
-- [x] 2.3 JS unit tests pass: `npm test`
-- [x] 2.4 No frontend reference to the Paced notice remains
+- [x] 2.1 Type check passes: `npm run types:check` — 7c16c58
+- [x] 2.2 Lint/format check passes: `npm run check` — 7c16c58
+- [x] 2.3 JS unit tests pass: `npm test` — 7c16c58
+- [x] 2.4 No frontend reference to the Paced notice remains — 7c16c58
 - [ ] 2.5 Full CI check passes: `composer ci:check`
 
 #### Manual
 
-- [x] 2.6 Unapproved November plan shows an amber „Plan niezatwierdzony” card with the warning pill
-- [x] 2.7 Month-plan card opens Plan miesiąca 2026 / November regardless of shell year
-- [x] 2.8 Over-plan card shows Category chip, negative amount and links to Operations for the month
-- [x] 2.9 Red cards come before amber cards; grid holds at 375 px and desktop
-- [x] 2.10 Button-cards have visible focus and activate with Enter
+- [x] 2.6 Unapproved November plan shows an amber „Plan niezatwierdzony” card with the warning pill — 7c16c58
+- [x] 2.7 Month-plan card opens Plan miesiąca 2026 / November regardless of shell year — 7c16c58
+- [x] 2.8 Over-plan card shows Category chip, negative amount and links to Operations for the month — 7c16c58
+- [x] 2.9 Red cards come before amber cards; grid holds at 375 px and desktop — 7c16c58
+- [x] 2.10 Button-cards have visible focus and activate with Enter — 7c16c58
 
 ### Phase 3: Dokumenty
 
 #### Automated
 
-- [ ] 3.1 Current docs no longer describe the Paced notice
-- [ ] 3.2 `.ai/rules/support.md` no longer says all kinds are exceeded
+- [x] 3.1 Current docs no longer describe the Paced notice
+- [x] 3.2 `.ai/rules/support.md` no longer says all kinds are exceeded
 
 #### Manual
 
-- [ ] 3.3 Spec, ADR-0031 and ADR-0032 give one consistent picture of the notices
+- [x] 3.3 Spec, ADR-0031 and ADR-0032 give one consistent picture of the notices
