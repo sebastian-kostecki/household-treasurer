@@ -490,29 +490,29 @@ Brak migracji danych. Zmiana nazwy propsa dotyczy tylko `Operations.vue`; przy s
 
 #### Automated
 
-- [x] 1.1 Test trasy przechodzi na PostgreSQL: `tests/Feature/DevOperationsSinkTest.php` obrazem Sail (AGENTS.md „Test database”)
-- [x] 1.2 Typy przechodzą: `npm run types:check`
-- [x] 1.3 Statyczne kontrole przechodzą: `npm run check`
+- [x] 1.1 Test trasy przechodzi na PostgreSQL: `tests/Feature/DevOperationsSinkTest.php` obrazem Sail (AGENTS.md „Test database”) — 3c1cb0c
+- [x] 1.2 Typy przechodzą: `npm run types:check` — 3c1cb0c
+- [x] 1.3 Statyczne kontrole przechodzą: `npm run check` — 3c1cb0c
 
 #### Manual
 
-- [x] 1.4 `/dev/operations` w podglądzie z worktree renderuje trzy listy z danymi z fixture przy 1280 i 390 px
-- [x] 1.5 Zrzuty `phase-1-*` (4 pliki) leżą w `context/changes/operations-ui-contract/screenshots/`
+- [x] 1.4 `/dev/operations` w podglądzie z worktree renderuje trzy listy z danymi z fixture przy 1280 i 390 px — 3c1cb0c
+- [x] 1.5 Zrzuty `phase-1-*` (4 pliki) leżą w `context/changes/operations-ui-contract/screenshots/` — 3c1cb0c
 
 ### Phase 2: Elementy kontraktu
 
 #### Automated
 
-- [ ] 2.1 Testy TS przechodzą: `npm test`
-- [ ] 2.2 Statyczne kontrole przechodzą: `npm run check`
-- [ ] 2.3 Typy przechodzą: `npm run types:check`
-- [ ] 2.4 Build przechodzi: `npm run build`
+- [x] 2.1 Testy TS przechodzą: `npm test`
+- [x] 2.2 Statyczne kontrole przechodzą: `npm run check`
+- [x] 2.3 Typy przechodzą: `npm run types:check`
+- [x] 2.4 Build przechodzi: `npm run build`
 
 #### Manual
 
-- [ ] 2.5 W `/dev/operations` wiersze na nowych klasach wyglądają identycznie jak dzisiejsze (1280 i 390 px)
-- [ ] 2.6 `/dev/month-plan` i `/dev/kitchen-sink/budget` bez widocznej zmiany nagłówków kolumn i tabel względem stanu przed fazą
-- [ ] 2.7 Zrzuty `phase-2-*` zapisane
+- [x] 2.5 W `/dev/operations` wiersze na nowych klasach wyglądają identycznie jak dzisiejsze (1280 i 390 px)
+- [x] 2.6 `/dev/month-plan` i `/dev/kitchen-sink/budget` bez widocznej zmiany nagłówków kolumn i tabel względem stanu przed fazą
+- [x] 2.7 Zrzuty `phase-2-*` zapisane
 
 ### Phase 3: Widok (C1–C5)
 

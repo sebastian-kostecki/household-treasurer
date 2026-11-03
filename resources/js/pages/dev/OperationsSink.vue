@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import CapitalMovementRow from '@/components/CapitalMovementRow.vue';
+import CategoryChip from '@/components/CategoryChip.vue';
+import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import FinancialOperationRow from '@/components/FinancialOperationRow.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
+import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import OwnTransferRow from '@/components/OwnTransferRow.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    financialOperationAmountClass,
+    formatFinancialOperationAmount,
+    formatMoney,
+} from '@/lib/format';
+import {
     capitalMovementFixtures,
+    capitalMovementToDeposit,
+    expenseOperation,
     financialOperationFixtures,
+    ownTransferFixture,
     ownTransferFixtures,
     paginate,
 } from '@/lib/operations-fixtures';
@@ -122,6 +134,207 @@ const capitalMovements = paginate(capitalMovementFixtures);
                     :key="movement.id"
                     :movement="movement"
                 />
+            </ListSurface>
+        </section>
+
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Kontrakt</h2>
+
+            <ListSurface :description="t.operations.list_description">
+                <div class="operations-grid operations-header-row">
+                    <span class="operations-cell-date">
+                        {{ t.operations.date }}
+                    </span>
+                    <span class="operations-cell-description">
+                        {{ t.operations.description }}
+                    </span>
+                    <span class="operations-cell-category">
+                        {{ t.operations.category }}
+                    </span>
+                    <span class="operations-cell-account">
+                        {{ t.operations.account }}
+                    </span>
+                    <span class="operations-cell-amount">
+                        {{ t.operations.amount }}
+                    </span>
+                    <span class="operations-cell-actions text-right">
+                        {{ t.operations.actions }}
+                    </span>
+                </div>
+
+                <div class="operations-grid operations-row">
+                    <div class="operations-cell-date">
+                        <OperationsDateCell
+                            :date="expenseOperation.operation_date"
+                        />
+                    </div>
+                    <div class="operations-cell-description">
+                        <OperationDescriptionCell
+                            variant="expense"
+                            :description="expenseOperation.description"
+                        />
+                    </div>
+                    <div class="operations-cell-category">
+                        <CategoryChip
+                            :name="expenseOperation.category_name"
+                            :icon="expenseOperation.category_icon"
+                            :color="expenseOperation.category_color"
+                        />
+                    </div>
+                    <CompactAccountIdentity
+                        class="operations-cell-account"
+                        mark-size="md"
+                        :name="expenseOperation.account_name"
+                        :type="expenseOperation.account_type"
+                        :bank="expenseOperation.account_bank"
+                        :mark_url="expenseOperation.account_mark_url"
+                    />
+                    <p
+                        class="operations-cell-amount"
+                        :class="
+                            financialOperationAmountClass(
+                                expenseOperation.type,
+                                expenseOperation.amount_minor_units,
+                            )
+                        "
+                    >
+                        {{
+                            formatFinancialOperationAmount(
+                                expenseOperation.type,
+                                expenseOperation.amount_minor_units,
+                            )
+                        }}
+                    </p>
+                </div>
+            </ListSurface>
+
+            <ListSurface :title="t.operations.own_transfers">
+                <div
+                    class="operations-grid operations-grid-transfer operations-header-row"
+                >
+                    <span class="operations-cell-date">
+                        {{ t.operations.date }}
+                    </span>
+                    <span class="operations-cell-description">
+                        {{ t.operations.description }}
+                    </span>
+                    <span class="operations-cell-account">
+                        {{ t.operations.accounts }}
+                    </span>
+                    <span class="operations-cell-amount">
+                        {{ t.operations.amount }}
+                    </span>
+                    <span class="operations-cell-actions text-right">
+                        {{ t.operations.actions }}
+                    </span>
+                </div>
+
+                <div
+                    class="operations-grid operations-grid-transfer operations-row"
+                >
+                    <div class="operations-cell-date">
+                        <OperationsDateCell
+                            :date="ownTransferFixture.transfer_date"
+                        />
+                    </div>
+                    <div class="operations-cell-description">
+                        <OperationDescriptionCell
+                            variant="transfer"
+                            :description="ownTransferFixture.description"
+                        />
+                    </div>
+                    <div
+                        class="operations-cell-account flex items-center gap-1"
+                    >
+                        <CompactAccountIdentity
+                            class="min-w-0 flex-1"
+                            mark-size="md"
+                            :name="ownTransferFixture.source_account_name"
+                            :type="ownTransferFixture.source_account_type"
+                            :bank="ownTransferFixture.source_account_bank"
+                            :mark_url="
+                                ownTransferFixture.source_account_mark_url
+                            "
+                        />
+                        <span class="text-muted-foreground shrink-0">→</span>
+                        <CompactAccountIdentity
+                            class="min-w-0 flex-1"
+                            mark-size="md"
+                            :name="ownTransferFixture.destination_account_name"
+                            :type="ownTransferFixture.destination_account_type"
+                            :bank="ownTransferFixture.destination_account_bank"
+                            :mark_url="
+                                ownTransferFixture.destination_account_mark_url
+                            "
+                        />
+                    </div>
+                    <p class="operations-cell-amount">
+                        {{ formatMoney(ownTransferFixture.amount_minor_units) }}
+                    </p>
+                </div>
+            </ListSurface>
+
+            <ListSurface :title="t.operations.capital_movements">
+                <div
+                    class="operations-grid operations-grid-transfer operations-header-row"
+                >
+                    <span class="operations-cell-date">
+                        {{ t.operations.date }}
+                    </span>
+                    <span class="operations-cell-description">
+                        {{ t.operations.description }}
+                    </span>
+                    <span class="operations-cell-account">
+                        {{ t.operations.accounts }}
+                    </span>
+                    <span class="operations-cell-amount">
+                        {{ t.operations.amount }}
+                    </span>
+                    <span class="operations-cell-actions text-right">
+                        {{ t.operations.actions }}
+                    </span>
+                </div>
+
+                <div
+                    class="operations-grid operations-grid-transfer operations-row"
+                >
+                    <div class="operations-cell-date">
+                        <OperationsDateCell
+                            :date="capitalMovementToDeposit.movement_date"
+                        />
+                    </div>
+                    <div class="operations-cell-description">
+                        <OperationDescriptionCell
+                            variant="transfer"
+                            :description="capitalMovementToDeposit.description"
+                        />
+                    </div>
+                    <div
+                        class="operations-cell-account flex items-center gap-1"
+                    >
+                        <CompactAccountIdentity
+                            class="min-w-0 flex-1"
+                            mark-size="md"
+                            :name="capitalMovementToDeposit.account_name"
+                            :type="capitalMovementToDeposit.account_type"
+                            :bank="capitalMovementToDeposit.account_bank"
+                            :mark_url="
+                                capitalMovementToDeposit.account_mark_url
+                            "
+                        />
+                        <span class="text-muted-foreground shrink-0">→</span>
+                        <span class="min-w-0 flex-1 truncate font-medium">
+                            {{ capitalMovementToDeposit.term_deposit_name }}
+                        </span>
+                    </div>
+                    <p class="operations-cell-amount">
+                        {{
+                            formatMoney(
+                                capitalMovementToDeposit.amount_minor_units,
+                            )
+                        }}
+                    </p>
+                </div>
             </ListSurface>
         </section>
     </div>
