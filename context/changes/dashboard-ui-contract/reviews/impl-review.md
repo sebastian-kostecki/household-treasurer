@@ -97,3 +97,8 @@
 - **Detail**: `CardTitle` renderuje `<h3>` z kwotą, a etykieta to osobny `CardDescription`; czytnik ogłasza liczbę jako nagłówek. Tak wyglądały też trzy kafelki przed zmianą (zachowanie odziedziczone, nie regresja).
 - **Fix**: Odroczyć do przeglądu a11y całej aplikacji albo dodać `aria-labelledby`.
 - **Decision**: FIXED — `StatTile` ma `role="group"` i `aria-labelledby` wskazujące etykietę (`useId()`); `CardTitle` (h3) bez zmian, bo `components/ui/*` nie jest edytowane pod jeden widok. Nazwa grupy obejmuje też treść slotu `label-extra` (np. „Propozycja”). check, types:check, npm test (91), check:ui zielone.
+
+## Zamknięcie
+
+- 2026-11-03: zmianę zamknięto na decyzję właściciela bez zrzutów (`screenshots/before`, `after-phase-3`, `after-phase-4` nie istnieją). Pola 1.7, 3.14, 4.8, 4.9 i 5.7 zaznaczone bez dowodu w repo; 5.7 (checklista UI) nie została przejęta punkt po punkcie z zewnętrznym dowodem wizualnym. F4 pozostaje otwarty w sensie dowodowym.
+- `./vendor/bin/sail composer ci:check`: zielony (Pest 820: 818 zaliczonych, 2 pominięte).

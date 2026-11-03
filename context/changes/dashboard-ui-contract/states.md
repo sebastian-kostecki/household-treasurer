@@ -2,17 +2,17 @@
 
 Zrzuty leżą w `screenshots/after-phase-4/`. Nazwa: `<stan>-<scenariusz>-<szerokość>-<motyw>.png`, szerokość `1440` lub `390`, motyw `light` lub `dark`. Kolumna „Zrzut” ma zostać uzupełniona nazwami plików albo `N/A` z powodem. Wiersz bez pliku ani powodu nie jest gotowy (krok 4.8).
 
-Stan zapisany jako **TODO** czeka na zrzut. Stanów zależnych od interakcji (hover, focus-visible, disabled) kitchen sink nie pokaże, więc zrzuty robimy z działającej aplikacji `/dashboard` (demo użytkownik z `DemoHouseholdSeeder`).
+**Uwaga (2026-11-03):** zmianę zamknięto bez zrzutów. Katalog `screenshots/` nie istnieje, więc wiersze poniżej nie mają plików; pola 1.7, 3.14, 4.8 i 4.9 w `plan.md` zaznaczono na decyzję właściciela, nie na podstawie dowodu. Stanów zależnych od interakcji (hover, focus-visible, disabled) kitchen sink nie pokaże, więc zrzuty robimy z działającej aplikacji `/dashboard` (demo użytkownik z `DemoHouseholdSeeder`).
 
 | Stan | Gdzie pokazany | Jak go wywołać | Zrzut |
 | --- | --- | --- | --- |
-| default | `/dev/ui/dashboard`: scenariusze `default`, `zero-amounts`, `negative` | otworzyć stronę, przewinąć do scenariusza | TODO |
-| empty | `/dev/ui/dashboard`: scenariusze `empty-new-user`, `no-budget`, `draft`, `no-categories` | jak wyżej | TODO |
+| default | `/dev/ui/dashboard`: scenariusze `default`, `zero-amounts`, `negative` | otworzyć stronę, przewinąć do scenariusza | Pominięte: zrzutów nie wykonano (decyzja właściciela przy zamknięciu zmiany) |
+| empty | `/dev/ui/dashboard`: scenariusze `empty-new-user`, `no-budget`, `draft`, `no-categories` | jak wyżej | Pominięte: zrzutów nie wykonano (decyzja właściciela przy zamknięciu zmiany) |
 | loading | N/A | — | N/A: strona nie ma deferred props i `<Deferred>`, a skeletony wyklucza `.docs/specs/dashboard-hierarchy.md:78`. Jedyny „loading” to `processing`, pokazany jako disabled. |
-| error | `/dev/ui/dashboard`: przycisk „Pokaż błąd wyboru roku” (toast). `/dashboard`: `InputError` w `CreateBudgetDialog` | toast: kliknąć przycisk. `InputError`: „Utwórz budżet” dla roku, który już ma budżet | TODO |
-| disabled | `/dashboard` przy spowolnionej sieci: przyciski z `processing` i karty powiadomień miesięcznych podczas POST | DevTools → Network → „Slow 3G”, kliknąć „Plan miesiąca” albo kartę miesięczną | TODO |
-| hover | `/dashboard`: wiersz kont, wiersz kategorii, karta powiadomienia | najechać kursorem | TODO |
-| focus-visible | `/dashboard`: karta powiadomienia i przycisk „Otwórz budżet” obok siebie | Tab (pierścień 3 px, `ring/50` na obu) | TODO |
+| error | `/dev/ui/dashboard`: przycisk „Pokaż błąd wyboru roku” (toast). `/dashboard`: `InputError` w `CreateBudgetDialog` | toast: kliknąć przycisk. `InputError`: „Utwórz budżet” dla roku, który już ma budżet | Pominięte: zrzutów nie wykonano (decyzja właściciela przy zamknięciu zmiany) |
+| disabled | `/dashboard` przy spowolnionej sieci: przyciski z `processing` i karty powiadomień miesięcznych podczas POST | DevTools → Network → „Slow 3G”, kliknąć „Plan miesiąca” albo kartę miesięczną | Pominięte: zrzutów nie wykonano (decyzja właściciela przy zamknięciu zmiany) |
+| hover | `/dashboard`: wiersz kont, wiersz kategorii, karta powiadomienia | najechać kursorem | Pominięte: zrzutów nie wykonano (decyzja właściciela przy zamknięciu zmiany) |
+| focus-visible | `/dashboard`: karta powiadomienia i przycisk „Otwórz budżet” obok siebie | Tab (pierścień 3 px, `ring/50` na obu) | Pominięte: zrzutów nie wykonano (decyzja właściciela przy zamknięciu zmiany) |
 
 ## Ręczna kontrola błędu wyboru roku (krok 4.6)
 

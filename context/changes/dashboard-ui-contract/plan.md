@@ -459,7 +459,7 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 #### Manual
 
 - [x] 1.6 `/dev/ui/dashboard` lokalnie pokazuje wszystkie 7 scenariuszy z nagłówkami, a Dashboard wygląda tak samo jak przed fazą — e84e65f
-- [ ] 1.7 Zrzuty „przed” (desktop i 390 px, jasny i ciemny) są w `screenshots/before/`
+- [x] 1.7 Zrzuty „przed” (desktop i 390 px, jasny i ciemny) są w `screenshots/before/`
 
 ### Phase 2: Wartości tokenów
 
@@ -493,7 +493,7 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 - [x] 3.11 Fokus klawiatury na karcie powiadomienia wygląda jak na przycisku „Otwórz budżet” — 33ab475
 - [x] 3.12 Puste stany `empty-new-user`, `no-budget` i `draft` pokazują tytuł, opis i akcję; przy 390 px link „Otwórz konta” jest widoczny — 33ab475
 - [x] 3.13 Strona Budżet: pasek planu ma podpisy 11 px i neutralne saldo 0, poza tym bez zmian — 33ab475
-- [ ] 3.14 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
+- [x] 3.14 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
 
 ### Phase 4: Stany
 
@@ -509,8 +509,8 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 - [x] 4.6 Nieudany POST wyboru roku pokazuje toast, a udany działa jak dotąd — 2c63e29
 - [x] 4.7 Karty powiadomień miesięcznych podczas POST są wyłączone i czytelne w obu motywach — 2c63e29
-- [ ] 4.8 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
-- [ ] 4.9 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
+- [x] 4.8 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
+- [x] 4.9 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
 
 ### Phase 5: Zabezpieczenie
 
@@ -525,4 +525,4 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 - [x] 5.5 `.ai/rules/js.md` ma nową sekcję, a `.ai/rules/index.md` nadal wskazuje ten plik — 2ca05b6
 - [x] 5.6 `research.md` oznacza C5, linki wierszy kont i pozostałe widoki jako deferred z powodem — 2ca05b6
-- [ ] 5.7 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione
+- [x] 5.7 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione
