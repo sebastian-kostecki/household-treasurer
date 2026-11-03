@@ -30,3 +30,9 @@ reka-ui `Checkbox` takes `modelValue` and emits `update:modelValue`; `:checked`,
 ## Responsive lists are one markup on a grid, inside ListSurface
 
 Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid-template-areas class (`.operations-grid`, `.budget-category-grid`) inside a single `ListSurface`, with a `hidden md:grid` header row. States of the Budget page (the 7-state matrix) are shown in the kitchen sink at `/dev/kitchen-sink/budget` (`local` only); add a new Budget state there.
+
+## Tokens and shared components come first; the UI literal check guards cleaned views
+
+Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
+Signed amount colour goes through amountToneClass, column labels through the column-caption class, severity pills through Badge (variants warning / destructive-soft).
+No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandbox: /dev/ui/dashboard.

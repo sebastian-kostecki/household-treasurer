@@ -53,18 +53,12 @@ const showMeterTrack = computed(
         </div>
 
         <div class="category-meter-cell-plan tabular-nums max-md:hidden">
-            <span class="text-muted-foreground text-[11px] md:hidden">
-                {{ t.dashboard.current_plan }}
-            </span>
             <span class="text-sm">
                 {{ formatMoney(category.current_plan_minor_units) }}
             </span>
         </div>
 
         <div class="category-meter-cell-execution tabular-nums max-md:hidden">
-            <span class="text-muted-foreground text-[11px] md:hidden">
-                {{ t.dashboard.execution }}
-            </span>
             <span
                 class="text-sm"
                 :class="categoryType === 'income' ? 'text-success' : ''"
@@ -77,7 +71,7 @@ const showMeterTrack = computed(
             class="category-meter-cell-remaining tabular-nums"
             :class="remainingClass(categoryType, category.is_over_limit)"
         >
-            <span class="hidden">
+            <span class="sr-only">
                 {{ t.dashboard.remaining }}
             </span>
             <span class="text-sm">
