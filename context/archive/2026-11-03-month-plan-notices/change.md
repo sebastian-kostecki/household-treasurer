@@ -1,10 +1,10 @@
 ---
 change_id: month-plan-notices
 title: Month plan notices
-status: impl_reviewed
+status: archived
 created: 2026-11-03
 updated: 2026-11-03
-archived_at: null
+archived_at: 2026-11-03T09:27:11Z
 ---
 
 ## Notes
