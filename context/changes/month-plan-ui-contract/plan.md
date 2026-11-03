@@ -605,12 +605,12 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 #### Automated
 
-- [x] 5.1 `MonthPlanHardcodedUiTest` przechodzi i failuje z plik:linia po tymczasowym dopisaniu `text-[11px]`
-- [x] 5.2 Pełna bramka CI w obrazie Sail: `composer ci:check`
-- [x] 5.3 `vendor/bin/sloppy ci` na hoście bez nowych znalezisk
-- [x] 5.4 `npm run check`, `npm test`, `npm run types:check` przechodzą
+- [x] 5.1 `MonthPlanHardcodedUiTest` przechodzi i failuje z plik:linia po tymczasowym dopisaniu `text-[11px]` — 60974f6
+- [x] 5.2 Pełna bramka CI w obrazie Sail: `composer ci:check` — 60974f6
+- [x] 5.3 `vendor/bin/sloppy ci` na hoście bez nowych znalezisk — 60974f6
+- [x] 5.4 `npm run check`, `npm test`, `npm run types:check` przechodzą — 60974f6
 
 #### Manual
 
-- [x] 5.5 Zrzuty końcowe `/month-plan` i kitchen sink, desktop i mobile, porównane z fazą 1
-- [x] 5.6 Reguła w `.ai/rules/js.md` i `.docs/design-system.md` czytelne i zgodne z kodem
+- [x] 5.5 Zrzuty końcowe `/month-plan` i kitchen sink, desktop i mobile, porównane z fazą 1 — 60974f6
+- [x] 5.6 Reguła w `.ai/rules/js.md` i `.docs/design-system.md` czytelne i zgodne z kodem — 60974f6
