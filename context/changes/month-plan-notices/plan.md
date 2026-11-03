@@ -312,9 +312,9 @@ Bez migracji danych. Zmienia się tylko payload Inertia `dashboardNotices` (nowe
 
 #### Automated
 
-- [x] 3.1 Current docs no longer describe the Paced notice
-- [x] 3.2 `.ai/rules/support.md` no longer says all kinds are exceeded
+- [x] 3.1 Current docs no longer describe the Paced notice — c5e2826
+- [x] 3.2 `.ai/rules/support.md` no longer says all kinds are exceeded — c5e2826
 
 #### Manual
 
-- [x] 3.3 Spec, ADR-0031 and ADR-0032 give one consistent picture of the notices
+- [x] 3.3 Spec, ADR-0031 and ADR-0032 give one consistent picture of the notices — c5e2826
