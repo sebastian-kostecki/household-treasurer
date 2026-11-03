@@ -88,6 +88,8 @@ const hiddenNoticeCount = computed(() =>
     Math.max(props.notices.length - VISIBLE_NOTICE_LIMIT, 0),
 );
 
+const monthPlanRequestPending = ref(false);
+
 const visibleNotices = computed(() => {
     if (isExpanded.value || props.notices.length <= VISIBLE_NOTICE_LIMIT) {
         return props.notices;
@@ -239,14 +241,18 @@ function noticeHref(notice: DashboardNotice) {
         });
     }
 
-    return operationsRoute({
-        query: {
-            category_name: notice.category_name,
-            category_type: 'expense',
-            date_from: `${props.budgetYear}-01-01`,
-            date_to: `${props.budgetYear}-12-31`,
-        },
-    });
+    if (notice.kind === 'one_off_over_limit') {
+        return operationsRoute({
+            query: {
+                category_name: notice.category_name,
+                category_type: 'expense',
+                date_from: `${props.budgetYear}-01-01`,
+                date_to: `${props.budgetYear}-12-31`,
+            },
+        });
+    }
+
+    return notice satisfies never;
 }
 
 function noticeKey(notice: DashboardNotice): string {
@@ -298,8 +304,15 @@ function noticeKey(notice: DashboardNotice): string {
                         : undefined
                 "
                 :as="isMonthNotice(notice) ? 'button' : 'a'"
-                class="focus-visible:ring-ring flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                :disabled="
+                    isMonthNotice(notice) && monthPlanRequestPending
+                        ? true
+                        : undefined
+                "
+                class="focus-visible:ring-ring flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
                 :class="severityCardClass(notice.severity)"
+                @start="monthPlanRequestPending = true"
+                @finish="monthPlanRequestPending = false"
             >
                 <span
                     class="inline-flex items-center gap-1.5 text-xs font-medium"

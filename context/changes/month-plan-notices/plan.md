@@ -298,7 +298,7 @@ Bez migracji danych. Zmienia się tylko payload Inertia `dashboardNotices` (nowe
 - [x] 2.2 Lint/format check passes: `npm run check` — 7c16c58
 - [x] 2.3 JS unit tests pass: `npm test` — 7c16c58
 - [x] 2.4 No frontend reference to the Paced notice remains — 7c16c58
-- [ ] 2.5 Full CI check passes: `composer ci:check`
+- [x] 2.5 Full CI check passes: `composer ci:check` — verified in impl-review (2026-11-03)
 
 #### Manual
 

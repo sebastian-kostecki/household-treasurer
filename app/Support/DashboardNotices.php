@@ -100,7 +100,10 @@ class DashboardNotices
             ];
         }
 
-        $monthReading = $monthToSpend !== null && $monthToSpend->reading->state !== 'none'
+        $monthReading = $monthToSpend !== null
+            && $budget !== null
+            && $today->year === $budget->year
+            && $monthToSpend->reading->state !== 'none'
             ? $monthToSpend
             : null;
 
@@ -207,7 +210,7 @@ class DashboardNotices
             }
         }
 
-        if ($monthReading !== null && $budget !== null) {
+        if ($monthReading !== null) {
             if ($monthReading->reading->state === 'proposal' && $today->day >= 3) {
                 $notices[] = [
                     'kind' => 'month_plan_not_approved',

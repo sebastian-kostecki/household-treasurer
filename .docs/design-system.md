@@ -44,9 +44,9 @@ Zapisywane jako całkowite Minor units. Wyświetlane przez `formatMoney`: `1 234
 Dwa poziomy, nadawane przez serwer w polu `severity` (ADR-0032):
 
 - **`exceeded`**: coś już jest przekroczone. Kwota w `text-destructive`.
-- **`warning`**: jeszcze w granicach, ale blisko. Kwota w `text-warning`. Żaden rodzaj alertu go jeszcze nie emituje.
+- **`warning`**: jeszcze w granicach, ale blisko. Kwota (jeśli jest) w `text-warning`. Emitują go `month_plan_not_approved` i `month_pace_ahead` (progi w `CONTEXT.md`).
 
-Strefa „Wymaga uwagi” ma w nagłówku po jednej pigułce na obecny poziom („Przekroczone · n” w `destructive`, „Ostrzeżenia · n” w `warning`), trzy widoczne wiersze i „Pokaż wszystkie (n)” z łączną liczbą. Podnagłówki grup w liście pojawiają się tylko wtedy, gdy są oba poziomy. Każdy wiersz jest linkiem do przyczyny i ma pod kwotą szary powód: „Saldo ujemne”, „Pozostało w miesiącu”, „Ponad limit”. Nowy rodzaj alertu: najpierw pojęcie i progi w `CONTEXT.md`, potem `kind` i `severity` w `App\Support\DashboardNotices`.
+Strefa „Wymaga uwagi” ma w nagłówku po jednej pigułce na obecny poziom („Przekroczone · n” w `destructive`, „Ostrzeżenia · n” w `warning`), płaską siatkę kart (jedna kolumna na mobile, dwie od `sm`, trzy od `lg`) z sześcioma widocznymi kartami i „Pokaż wszystkie (n)” z łączną liczbą. Karty są ułożone „exceeded” przed „warning”, bez podnagłówków grup. Każda karta jest linkiem do przyczyny i ma u góry etykietę rodzaju (np. „Saldo ujemne”, „Ponad plan miesiąca”, „Plan niezatwierdzony”, „Tempo przed upływem dni”, „Do wydania poniżej zera”, „Ponad limit”), a kolor i tło bierze tylko z wagi. Nowy rodzaj alertu: najpierw pojęcie i progi w `CONTEXT.md`, potem `kind` i `severity` w `App\Support\DashboardNotices`.
 
 Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy dostępny limit kategorii”, ujemne saldo) nie blokują zapisu, więc używają `<Alert variant="warning">`. `variant="destructive"` zostaje dla prawdziwych błędów (`AlertError`), a błąd pola pokazuje `InputError` w `text-destructive`.
 
