@@ -46,7 +46,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 | S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | done |
 | S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | done |
 | S-04 | month-items-plan-vs-actual  | użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe        | S-01                | FR-006, FR-008                                             | done |
-| S-05 | month-spending-pace         | użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca                             | S-04                | FR-007                                                     | proposed |
+| S-05 | month-spending-pace         | użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca                             | S-04                | FR-007                                                     | done |
 | S-06 | to-spend-replaces-remaining | użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu | S-01                | FR-011, FR-013                                             | done |
 | S-07 | month-plan-notices          | użytkownik może zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca                | F-01, S-04, S-05    | FR-012                                                     | proposed |
 | S-08 | plan-based-entry-warnings   | użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu        | S-01                | FR-014, FR-017                                             | done |
@@ -153,7 +153,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Fałszywe ostrzeżenia uczą ignorowania sygnału, dlatego tempo obejmuje tylko pozycje „bieżące” bez kategorii jednorazowych.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: „Do wydania” zamiast `Pozostało w miesiącu`
 
@@ -264,6 +264,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-02: użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-set-aside-and-draw/`. Lesson: —.
 - **S-03: użytkownik może zmienić zatwierdzony plan w trakcie miesiąca** — Archived 2026-11-02 → `context/archive/2026-11-02-approved-plan-changes/`. Lesson: —.
 - **S-04: użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe** — Archived 2026-11-02 → `context/archive/2026-11-02-month-items-plan-vs-actual/`. Lesson: —.
+- **S-05: użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca** — Archived 2026-11-03 → `context/archive/2026-11-03-month-spending-pace/`. Lesson: —.
 - **S-06: użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu** — Archived 2026-11-02 → `context/archive/2026-11-02-to-spend-replaces-remaining/`. Lesson: —.
 - **S-08: użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu** — Archived 2026-11-03 → `context/archive/2026-11-02-plan-based-entry-warnings/`. Lesson: —.
 - **S-09: użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne** — Archived 2026-11-03 → `context/archive/2026-11-03-month-summary/`. Lesson: —.

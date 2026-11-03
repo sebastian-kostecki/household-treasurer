@@ -9,6 +9,7 @@ import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import MonthPaceMeter from '@/components/MonthPaceMeter.vue';
 import ColumnHeaderHint from '@/components/ColumnHeaderHint.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
@@ -34,10 +35,12 @@ import {
     isMonthItemOverPlan,
     monthItemDeviationMinorUnits,
 } from '@/lib/month-item-deviation';
+import { monthPacePreview } from '@/lib/month-pace-preview';
 import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
 import type {
     MonthItemKind,
+    MonthPace,
     MonthPlanItem,
     MonthYearComparison,
     MonthSummary,
@@ -51,6 +54,7 @@ type MonthPlanReading = {
     to_spend_minor_units: number | null;
     set_aside_minor_units: number;
     spendable_liquidity_minor_units: number | null;
+    month_pace: MonthPace | null;
     income_items: MonthPlanItem[];
     expense_items: MonthPlanItem[];
     year_totals: {
@@ -291,6 +295,28 @@ const toSpendPreviewMinorUnits = computed<number | null>(() => {
     );
 });
 
+const pacePreview = computed<{
+    percent: number | null;
+    isAhead: boolean;
+} | null>(() => {
+    const pace = props.monthPlan?.month_pace ?? null;
+
+    if (pace === null) {
+        return null;
+    }
+
+    if (!isEditable.value) {
+        return { percent: pace.percent, isAhead: pace.is_ahead };
+    }
+
+    return monthPacePreview(
+        allRows.value,
+        (row) => (isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0),
+        pace.elapsed_day,
+        pace.days_in_month,
+    );
+});
+
 const viewedMonthLabel = computed(() => {
     if (props.budget === null || props.viewedMonth === null) {
         return '';
@@ -522,6 +548,24 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                         : t.month_plan.blocked_hint
                             }}
                         </p>
+                        <div
+                            v-if="pacePreview !== null && monthPlan.month_pace"
+                            class="mt-3 grid gap-2 border-t pt-4"
+                        >
+                            <p
+                                class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
+                            >
+                                {{ t.month_plan.pace }}
+                            </p>
+                            <MonthPaceMeter
+                                :percent="pacePreview.percent"
+                                :is-ahead="pacePreview.isAhead"
+                                :elapsed-day="monthPlan.month_pace.elapsed_day"
+                                :days-in-month="
+                                    monthPlan.month_pace.days_in_month
+                                "
+                            />
+                        </div>
                     </CardContent>
                 </Card>
 

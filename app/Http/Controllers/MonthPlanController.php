@@ -14,6 +14,7 @@ use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\MonthItemDeviation;
+use App\Support\MonthPace;
 use App\Support\MonthSummary;
 use App\Support\MonthToSpend;
 use App\Support\MonthYearComparison;
@@ -141,6 +142,7 @@ class MonthPlanController extends Controller
      *     to_spend_minor_units: int|null,
      *     set_aside_minor_units: int,
      *     spendable_liquidity_minor_units: int|null,
+     *     month_pace: array{as_of: string, elapsed_day: int, days_in_month: int, pool_plan_minor_units: int, pool_actual_minor_units: int, percent: int|null, is_ahead: bool}|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
      *     year_totals: array{income: YearComparison, expense: YearComparison}|null,
@@ -209,6 +211,9 @@ class MonthPlanController extends Controller
             'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
                 ? SpendableLiquidity::forUser($user)
                 : null,
+            'month_pace' => $timing === 'future'
+                ? null
+                : MonthPace::forMonth($toSpend, $budget->year, $month, $today),
             'income_items' => $incomeItems,
             'expense_items' => $expenseItems,
             'year_totals' => $timing === 'current'

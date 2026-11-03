@@ -1,5 +1,15 @@
 export type MonthItemKind = 'bill' | 'running';
 
+export type MonthPace = {
+    as_of: string;
+    elapsed_day: number;
+    days_in_month: number;
+    pool_plan_minor_units: number;
+    pool_actual_minor_units: number;
+    percent: number | null;
+    is_ahead: boolean;
+};
+
 export type MonthYearComparison = {
     year_minor_units: number;
     annual_plan_minor_units: number;
