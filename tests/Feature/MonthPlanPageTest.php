@@ -219,6 +219,32 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_past_approved_month_reads_the_pace_against_the_whole_month(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['food']->id,
+            'approved_amount_minor_units' => 100_000,
+            'current_amount_minor_units' => 100_000,
+        ]);
+        $this->operation($user, $budget, $categories['food'], '2026-03-10', 130_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.month_pace.as_of', '2026-03-31')
+                ->where('monthPlan.month_pace.pool_plan_minor_units', 100_000)
+                ->where('monthPlan.month_pace.pool_actual_minor_units', 130_000)
+                ->where('monthPlan.month_pace.percent', 130)
+                ->where('monthPlan.month_pace.is_ahead', true),
+            );
+    }
+
     public function test_spending_the_running_pool_early_in_the_month_is_ahead_of_the_month(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();

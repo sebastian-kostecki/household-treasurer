@@ -32,11 +32,7 @@ import {
     isMonthItemOverPlan,
     monthItemDeviationMinorUnits,
 } from '@/lib/month-item-deviation';
-import {
-    isMonthPaceAhead,
-    monthPacePercent,
-    monthPacePoolSums,
-} from '@/lib/month-pace-calculator';
+import { monthPacePreview } from '@/lib/month-pace-preview';
 import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
 import type {
@@ -303,25 +299,12 @@ const pacePreview = computed<{
         return { percent: pace.percent, isAhead: pace.is_ahead };
     }
 
-    const sums = monthPacePoolSums(
-        allRows.value.map((row) => ({
-            type: row.type,
-            kind: row.month_item_kind,
-            isOneOff: row.is_one_off,
-            plan: isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0,
-            actual: row.actual_minor_units,
-        })),
+    return monthPacePreview(
+        allRows.value,
+        (row) => (isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0),
+        pace.elapsed_day,
+        pace.days_in_month,
     );
-
-    return {
-        percent: monthPacePercent(sums.planMinorUnits, sums.actualMinorUnits),
-        isAhead: isMonthPaceAhead(
-            sums.planMinorUnits,
-            sums.actualMinorUnits,
-            pace.elapsed_day,
-            pace.days_in_month,
-        ),
-    };
 });
 
 const viewedMonthLabel = computed(() => {
