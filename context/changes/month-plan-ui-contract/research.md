@@ -50,6 +50,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### C1 — Brakujący współdzielony komponent: przełącznik segmentowy (2 kopie w widoku)
 
+- **Status:** planned → faza 2
+
 - **Gdzie:** `resources/js/pages/MonthPlan.vue:595-620` (odkładam / dobieram) oraz `resources/js/components/MonthPlanItemRow.vue:143-160` (rachunek / bieżąca).
 - **Dowód:** oba miejsca używają tego samego markupu. Kontener to `div role="group"` z klasami `border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1`. W środku są `Button size="sm"`, wariant `default`/`ghost` przez `aria-pressed`, z nadpisaniem `h-7 rounded-lg px-2 text-xs`.
   - Nadpisanie omija rozmiary z `resources/js/components/ui/button/index.ts:28-35`, gdzie `sm` = `h-8 rounded-xl`.
@@ -58,6 +60,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 - **Kierunek:** `resources/js/components/SegmentedControl.vue` na `ToggleGroupRoot` / `ToggleGroupItem` z reka-ui (szczegóły w „Decyzja 1”), a potem migracja obu miejsc.
 
 ### C2 — Brakujące tokeny: siatka kolumn i typografia etykiet bez nazwy
+
+- **Status:** planned → faza 3
 
 - **Gdzie (siatka):** nagłówek kolumn w `MonthPlan.vue:697` i wiersz w `MonthPlanItemRow.vue:61` mają ten sam szablon `grid-cols-[1fr_5.5rem_5.5rem] sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]`.
   - Czwarta kolumna (odchylenie) jest ukrywana w dwóch miejscach: `MonthPlan.vue:706` (`hidden … lg:block`) i `MonthPlanItemRow.vue:210`. Na małych ekranach jej kopia wisi pod kwotą faktyczną (`MonthPlanItemRow.vue:201`, `lg:hidden`).
@@ -75,6 +79,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
   Widok ma przestać zawierać `text-[11px]` i arbitralne `grid-cols-[…]`. Pozostałe widoki z tymi ciągami są poza zakresem (patrz „Deferred”).
 
 ### C3 — Przypadkowa architektura: globalny zapis rodzaju pozycji wygląda jak lokalna kontrolka formularza
+
+- **Status:** planned → faza 4
 
 - **Gdzie:** kontrolka w `MonthPlanItemRow.vue:143-160` emituje zdarzenie do `MonthPlan.vue:343-361`. Tam `router.patch(CategoryController.updateMonthItemKind…)` z `preserveState`, które obsługuje `app/Http/Controllers/CategoryController.php:76-81`. Kontroler aktualizuje kolumnę kategorii `month_item_kind` (migracja `database/migrations/2026_11_02_090956_add_month_item_kind_to_categories_table.php:12`).
 - **Dowód zakresu:**
@@ -95,6 +101,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### C4 — Przypadkowa architektura: kolejność strony odzwierciedla kolejność dodawania funkcji, akcje są na dole
 
+- **Status:** planned → faza 3
+
 - **Gdzie:**
   - wiersz tytułu bez akcji: `MonthPlan.vue:484-496` (tylko lewa połowa, brak `justify-between`);
   - wybór miesiąca jako osobna `Card`: `:498-508`;
@@ -113,6 +121,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
 
 ### C5 — Stany error/disabled: zła kwota wyłącza przycisk bez wskazania wiersza
 
+- **Status:** planned → faza 4
+
 - **Gdzie:** pole kwoty `MonthPlanItemRow.vue:173-180` (`Input` bez `aria-invalid`, bez `InputError`) → walidacja `allAmountsValid` (`MonthPlan.vue:236-240`, na podstawie `parsedAmount`, `:186-201`) → `:disabled` przycisków (`:828-832`, `:845`).
 - **Dowód:**
   - `Input` ma gotowe style `aria-invalid:border-destructive aria-invalid:ring-destructive/20` (`resources/js/components/ui/input/Input.vue`, trzeci argument `cn`), ale widok nigdy nie ustawia `aria-invalid`.
@@ -125,6 +135,8 @@ Format: kategoria, kotwica, dowód, wpływ na użytkownika, kierunek poprawki. S
   - Przy wyłączonym przycisku podpis z liczbą błędnych pól.
 
 ### Deferred (poza zakresem tej zmiany, z powodem)
+
+_Status D1–D6: deferred._
 
 - **D1 — Inne widoki z tymi samymi ciągami** (`Operations.vue:232,272,305`, `OperationsImportPreview.vue:301`, `BudgetMonthStrip.vue:42,76`, `BudgetPlanSummaryStrip.vue:34`, `DashboardCategorySection.vue:87` z dryfem `text-xs tracking-wide`). Powód: zasada „jeden widok na zmianę”. Nowe klasy z C2 będą gotowe do przyjęcia tam w osobnych zmianach.
 - **D2 — `AppearanceTabs.vue:16-26`**: klasy palety `bg-neutral-100`, `bg-white`, `text-neutral-500`, `hover:text-black`, surowe `<button>` bez `aria-pressed`. To najlepszy trzeci konsument `SegmentedControl`, ale to inny widok (ustawienia). Do osobnej zmiany.

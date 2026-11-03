@@ -13,7 +13,7 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 
 - Szare tło strony (`background`), białe karty (`card`, `rounded-2xl`, obramowanie `border/60`). Bez cieni spoczynkowych: głębię daje kontrast tła i karty.
 - Kontrolki (przyciski, pola, selecty): wysokość 36 px (`h-9`), `rounded-xl`, fokus = pierścień 3 px `ring/50`.
-- Listy i tabele: `ListSurface` / `.list-surface-table`; wiersze oddzielone linią `border/60`, hover `foreground/3%`, nagłówki kolumn 11 px wersalikami w `muted-foreground`.
+- Listy i tabele: `ListSurface` / `.list-surface-table`; wiersze oddzielone linią `border/60`, hover `foreground/3%`, nagłówki kolumn 11 px wersalikami w `muted-foreground` (klasa `.column-header`, etykieta sekcji `.section-label`). Siatka wiersza planu miesiąca to `.month-plan-grid`; w widokach nie ma wartości arbitralnych (`text-[11px]`, `grid-cols-[...]`), tylko nazwane klasy z `app.css`.
 - Odstępy: 16 px między kartami i na krawędzi strony, 20 px od `md`, 24 px wewnątrz karty.
 
 ## Typografia
@@ -52,7 +52,18 @@ Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy do
 
 ## Gotowe elementy
 
-Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`. Ikony: `@lucide/vue`, 16 px w kontrolkach.
+Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `SegmentedControl`. Ikony: `@lucide/vue`, 16 px w kontrolkach.
+
+`Heading` służy sekcjom ustawień. Strony domenowe budują wiersz tytułu (`h1` + `Badge` po lewej, akcja po prawej) wg `Budget.vue`.
+
+`SegmentedControl` (reka-ui `ToggleGroup`, jeden przystanek Tab, strzałki zmieniają opcję) ma dwa tony:
+
+- `primary` – wybór w formularzu, który zmienia stan dopiero po zapisie (np. odkładam / dobieram);
+- `neutral` – ustawienie zapisywane od razu (np. rodzaj pozycji kategorii), więc wygląda inaczej niż kontrolka formularza.
+
+### Kitchen sink i zrzuty
+
+`/dev/month-plan` (tylko `APP_ENV=local`) renderuje widok Plan miesiąca z danych testowych (`resources/js/lib/month-plan-fixtures.ts`) w macierzy 7 stanów (default, hover, focus-visible, disabled, error, empty, loading; komórka niemożliwa ma „N/A” z powodem). Po zmianie widoku: `npm run build`, podgląd z worktree (AGENTS.md „Preview from a worktree”), jednorazowy skrypt Playwright robi pełne zrzuty `/dev/month-plan` i `/month-plan` przy 1280 i 390 px do `context/changes/<change-id>/screenshots/`. Skrypt nie jest commitowany.
 
 ## Tryb ciemny
 
