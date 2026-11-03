@@ -50,6 +50,13 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.can_approve', true)
                 ->where('monthPlan.can_change', false)
                 ->where('monthPlan.to_spend_minor_units', 373_000)
+                ->where('monthPlan.month_pace.as_of', '2026-06-15')
+                ->where('monthPlan.month_pace.elapsed_day', 15)
+                ->where('monthPlan.month_pace.days_in_month', 30)
+                ->where('monthPlan.month_pace.pool_plan_minor_units', 190_000)
+                ->where('monthPlan.month_pace.pool_actual_minor_units', 112_000)
+                ->where('monthPlan.month_pace.percent', 59)
+                ->where('monthPlan.month_pace.is_ahead', false)
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 4)
                 ->where('monthPlan.income_items.0.name', 'Pensja')
@@ -128,6 +135,7 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.state', 'proposal')
                 ->where('monthPlan.can_approve', false)
                 ->where('monthPlan.to_spend_minor_units', 410_000)
+                ->where('monthPlan.month_pace', null)
                 ->where('monthPlan.expense_items.0.can_change_kind', true),
             );
     }
@@ -199,10 +207,33 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.can_approve', false)
                 ->where('monthPlan.can_change', false)
                 ->where('monthPlan.to_spend_minor_units', 400_000)
+                ->where('monthPlan.month_pace.elapsed_day', 31)
+                ->where('monthPlan.month_pace.days_in_month', 31)
+                ->where('monthPlan.month_pace.as_of', '2026-03-31')
+                ->where('monthPlan.month_pace.percent', null)
+                ->where('monthPlan.month_pace.is_ahead', false)
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 1)
                 ->where('monthPlan.expense_items.0.can_change_kind', false)
                 ->where('monthPlan.expense_items.0.is_join_candidate', false),
+            );
+    }
+
+    public function test_spending_the_running_pool_early_in_the_month_is_ahead_of_the_month(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->operation($user, $budget, $categories['food'], '2026-06-02', 40_000);
+        $this->travelTo('2026-06-03');
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.month_pace.elapsed_day', 3)
+                ->where('monthPlan.month_pace.pool_actual_minor_units', 152_000)
+                ->where('monthPlan.month_pace.percent', 80)
+                ->where('monthPlan.month_pace.is_ahead', true),
             );
     }
 

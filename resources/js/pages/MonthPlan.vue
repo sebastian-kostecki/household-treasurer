@@ -33,7 +33,11 @@ import {
 } from '@/lib/month-item-deviation';
 import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
-import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
+import type {
+    MonthItemKind,
+    MonthPace,
+    MonthPlanItem,
+} from '@/types/month-plan';
 
 type MonthPlanReading = {
     state: 'proposal' | 'approved' | 'none';
@@ -43,6 +47,7 @@ type MonthPlanReading = {
     to_spend_minor_units: number | null;
     set_aside_minor_units: number;
     spendable_liquidity_minor_units: number | null;
+    month_pace: MonthPace | null;
     income_items: MonthPlanItem[];
     expense_items: MonthPlanItem[];
 };
