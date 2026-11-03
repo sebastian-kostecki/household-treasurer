@@ -565,18 +565,18 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Automated
 
-- [ ] 4.1 Testy frontendu przechodzą: `npm test`
-- [ ] 4.2 `npm run build && npm run types:check && npm run check` przechodzą
-- [ ] 4.3 Skan literałów na plikach widoku (z nowymi `BudgetAmountCell.vue`, `BudgetCategoryRow.vue`, `BudgetCategoryHeaderRow.vue`) daje 0 trafień
-- [ ] 4.4 `grep -c "draggable" resources/js/components/BudgetCategoryList.vue` pokazuje jedną instancję `<draggable`, a `grep -n "md:hidden" resources/js/components/BudgetCategoryList.vue` nic nie zwraca
-- [ ] 4.5 Testy Feature Budżetu bez regresji: `php artisan test --compact tests/Feature/BudgetTest.php tests/Feature/ArchiveCategoryTest.php` (obraz Sail na worktree)
+- [x] 4.1 Testy frontendu przechodzą: `npm test`
+- [x] 4.2 `npm run build && npm run types:check && npm run check` przechodzą
+- [x] 4.3 Skan literałów na plikach widoku (z nowymi `BudgetAmountCell.vue`, `BudgetCategoryRow.vue`, `BudgetCategoryHeaderRow.vue`) daje 0 trafień
+- [x] 4.4 `grep -c "draggable" resources/js/components/BudgetCategoryList.vue` pokazuje jedną instancję `<draggable`, a `grep -n "md:hidden" resources/js/components/BudgetCategoryList.vue` nic nie zwraca
+- [x] 4.5 Testy Feature Budżetu bez regresji: `php artisan test --compact tests/Feature/BudgetTest.php tests/Feature/ArchiveCategoryTest.php` (obraz Sail na worktree)
 
 #### Manual
 
-- [ ] 4.6 Desktop: kolumny i wartości odpowiadają zrzutowi „przed” (poza zamierzonymi zmianami: kolor archiwum); nagłówek i suma przyklejone przy długiej liście
-- [ ] 4.7 390 px: wiersze w jednym `ListSurface`, kolejność kwot jak na desktopie, suma na końcu listy, bez zagnieżdżonego przewijania
-- [ ] 4.8 Przeciąganie zmienia kolejność na desktopie i na telefonie (dotyk), a po odświeżeniu kolejność zostaje
-- [ ] 4.9 Zarchiwizowany wydatek ponad limit jest w całości wyciszony
+- [x] 4.6 Desktop: kolumny i wartości odpowiadają zrzutowi „przed” (poza zamierzonymi zmianami: kolor archiwum); nagłówek i suma przyklejone przy długiej liście
+- [x] 4.7 390 px: wiersze w jednym `ListSurface`, kolejność kwot jak na desktopie, suma na końcu listy, bez zagnieżdżonego przewijania
+- [x] 4.8 Przeciąganie zmienia kolejność na desktopie i na telefonie (dotyk), a po odświeżeniu kolejność zostaje
+- [x] 4.9 Zarchiwizowany wydatek ponad limit jest w całości wyciszony
 - [ ] 4.10 Zrzuty desktop + 390 px (`p4-*.png`)
 
 ### Phase 5: Stany (C4) i macierz 7 stanów

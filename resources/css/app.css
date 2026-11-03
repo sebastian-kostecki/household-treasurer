@@ -195,30 +195,6 @@
         @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
     }
 
-    .list-surface-table {
-        @apply w-full text-sm;
-    }
-
-    .list-surface-table thead tr {
-        @apply border-border/60 border-b;
-    }
-
-    .list-surface-table thead th {
-        @apply text-muted-foreground pb-2.5 text-left text-[11px] font-medium tracking-wider uppercase;
-    }
-
-    .list-surface-table tbody tr {
-        @apply border-border/60 hover:bg-foreground/[0.03] border-b transition-colors last:border-b-0;
-    }
-
-    .list-surface-table tbody td {
-        @apply py-3;
-    }
-
-    .list-surface-table .tabular-amount {
-        @apply text-right font-medium tabular-nums;
-    }
-
     /**
      * Thin, low-contrast scrollbar for scroll containers inside lifted
      * surfaces. Colours derive from `--foreground` so the thumb stays visible
@@ -261,39 +237,6 @@
         );
     }
 
-    .list-surface-table-scroll {
-        @apply max-h-[min(32rem,70vh)] overflow-auto overscroll-contain;
-    }
-
-    /**
-     * Sticky heads and totals keep their hairline via inset shadows, because a
-     * border on the non-sticky `tr` scrolls away with the rows.
-     */
-    .list-surface-table-scroll .list-surface-table thead th {
-        @apply bg-card sticky top-0 z-10;
-        box-shadow: inset 0 -1px 0
-            color-mix(in srgb, var(--border) 60%, transparent);
-    }
-
-    .list-surface-table tfoot tr {
-        @apply border-border/60 bg-foreground/[0.02] border-t;
-    }
-
-    .list-surface-table tfoot td {
-        @apply py-3;
-    }
-
-    .list-surface-table-scroll .list-surface-table tfoot td {
-        @apply sticky bottom-0 z-10;
-        background-color: var(--card);
-        background-image: linear-gradient(
-            color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
-            color-mix(in srgb, var(--foreground) 2%, transparent) 100%
-        );
-        box-shadow: inset 0 1px 0
-            color-mix(in srgb, var(--border) 60%, transparent);
-    }
-
     /**
      * Budget category list: one markup on every width. Below `md` a row is
      * three lines (name + actions, then two amount pairs); from `md` it is one
@@ -304,7 +247,7 @@
         grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
         grid-template-areas:
             'handle category category actions'
-            'handle initial current .'
+            'handle opening current .'
             'handle execution remaining .';
     }
 
@@ -312,7 +255,7 @@
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
         grid-template-areas:
             'category category actions'
-            'initial current .'
+            'opening current .'
             'execution remaining .';
     }
 
@@ -320,12 +263,12 @@
         .budget-category-grid {
             @apply items-center;
             grid-template-columns: 2.5rem minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
-            grid-template-areas: 'handle category initial current execution remaining actions';
+            grid-template-areas: 'handle category opening current execution remaining actions';
         }
 
         .budget-category-grid-no-handle {
             grid-template-columns: minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
-            grid-template-areas: 'category initial current execution remaining actions';
+            grid-template-areas: 'category opening current execution remaining actions';
         }
     }
 
@@ -373,7 +316,7 @@
     }
 
     .budget-category-cell-initial {
-        grid-area: initial;
+        grid-area: opening;
         @apply text-right tabular-nums;
     }
 
