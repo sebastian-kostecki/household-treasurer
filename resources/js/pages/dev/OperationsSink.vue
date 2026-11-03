@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { Plus, Upload } from '@lucide/vue';
 import CapitalMovementRow from '@/components/CapitalMovementRow.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import FinancialOperationRow from '@/components/FinancialOperationRow.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
 import OperationsDateCell from '@/components/OperationsDateCell.vue';
+import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferRow from '@/components/OwnTransferRow.vue';
+import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     financialOperationAmountClass,
@@ -25,6 +29,13 @@ import {
 } from '@/lib/operations-fixtures';
 
 const t = useTranslations();
+
+const actionStates = [
+    { label: '2 konta, 1 lokata', accountsCount: 2, termDepositsCount: 1 },
+    { label: '1 konto, 1 lokata', accountsCount: 1, termDepositsCount: 1 },
+    { label: '2 konta, 0 lokat', accountsCount: 2, termDepositsCount: 0 },
+    { label: '0 kont, 0 lokat', accountsCount: 0, termDepositsCount: 0 },
+];
 
 const operations = paginate(financialOperationFixtures);
 const ownTransfers = paginate(ownTransferFixtures);
@@ -44,9 +55,7 @@ const capitalMovements = paginate(capitalMovementFixtures);
                 :description="t.operations.list_description"
                 :paginator="operations"
             >
-                <div
-                    class="operations-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
-                >
+                <div class="operations-grid operations-header-row">
                     <span class="operations-cell-date">
                         {{ t.operations.date }}
                     </span>
@@ -79,7 +88,7 @@ const capitalMovements = paginate(capitalMovementFixtures);
                 :paginator="ownTransfers"
             >
                 <div
-                    class="operations-grid operations-grid-transfer border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
+                    class="operations-grid operations-grid-transfer operations-header-row"
                 >
                     <span class="operations-cell-date">
                         {{ t.operations.date }}
@@ -110,7 +119,7 @@ const capitalMovements = paginate(capitalMovementFixtures);
                 :paginator="capitalMovements"
             >
                 <div
-                    class="operations-grid operations-grid-transfer border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
+                    class="operations-grid operations-grid-transfer operations-header-row"
                 >
                     <span class="operations-cell-date">
                         {{ t.operations.date }}
@@ -335,6 +344,66 @@ const capitalMovements = paginate(capitalMovementFixtures);
                         }}
                     </p>
                 </div>
+            </ListSurface>
+        </section>
+
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Wiersz tytułu</h2>
+
+            <div
+                v-for="state in actionStates"
+                :key="state.label"
+                class="flex flex-col gap-2"
+            >
+                <p class="text-muted-foreground text-xs">{{ state.label }}</p>
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <h3 class="text-lg font-semibold">
+                        {{ t.operations.title }}
+                    </h3>
+                    <OperationsPageActions
+                        :accounts-count="state.accountsCount"
+                        :term-deposits-count="state.termDepositsCount"
+                    />
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Puste stany</h2>
+
+            <ListSurface>
+                <IndexEmptyState
+                    :title="t.operations.empty_title"
+                    :description="t.operations.empty_description"
+                >
+                    <template #actions>
+                        <Button as-child>
+                            <Link href="#">
+                                <Upload class="size-4" />
+                                {{ t.operations.import_title }}
+                            </Link>
+                        </Button>
+                        <Button variant="outline">
+                            <Plus class="size-4" />
+                            {{ t.operations.add_income }}
+                        </Button>
+                    </template>
+                </IndexEmptyState>
+            </ListSurface>
+
+            <ListSurface>
+                <IndexEmptyState
+                    :title="t.operations.empty_filtered_title"
+                    :description="t.operations.empty_filtered_description"
+                >
+                    <template #actions>
+                        <Button variant="outline" as-child>
+                            <Link href="#">
+                                {{ t.operations.filter_clear }}
+                            </Link>
+                        </Button>
+                    </template>
+                </IndexEmptyState>
             </ListSurface>
         </section>
     </div>

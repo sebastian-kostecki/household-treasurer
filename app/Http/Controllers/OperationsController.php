@@ -186,7 +186,9 @@ class OperationsController extends Controller
                 fn (OperationsListSection $section): string => $section->value,
                 $suppressedSections,
             ),
-            'hasFinancialOperations' => $user->financialOperations()->exists(),
+            'hasAnyRecords' => $user->financialOperations()->exists()
+                || $user->ownTransfers()->exists()
+                || $user->capitalMovements()->exists(),
             'filterYears' => OperationsFilterOptions::years($user),
             'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),
             'filterAccounts' => OperationsFilterOptions::accounts($user),

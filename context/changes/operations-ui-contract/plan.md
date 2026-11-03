@@ -503,33 +503,33 @@ Brak migracji danych. Zmiana nazwy propsa dotyczy tylko `Operations.vue`; przy s
 
 #### Automated
 
-- [x] 2.1 Testy TS przechodzą: `npm test`
-- [x] 2.2 Statyczne kontrole przechodzą: `npm run check`
-- [x] 2.3 Typy przechodzą: `npm run types:check`
-- [x] 2.4 Build przechodzi: `npm run build`
+- [x] 2.1 Testy TS przechodzą: `npm test` — b6d926a
+- [x] 2.2 Statyczne kontrole przechodzą: `npm run check` — b6d926a
+- [x] 2.3 Typy przechodzą: `npm run types:check` — b6d926a
+- [x] 2.4 Build przechodzi: `npm run build` — b6d926a
 
 #### Manual
 
-- [x] 2.5 W `/dev/operations` wiersze na nowych klasach wyglądają identycznie jak dzisiejsze (1280 i 390 px)
-- [x] 2.6 `/dev/month-plan` i `/dev/kitchen-sink/budget` bez widocznej zmiany nagłówków kolumn i tabel względem stanu przed fazą
-- [x] 2.7 Zrzuty `phase-2-*` zapisane
+- [x] 2.5 W `/dev/operations` wiersze na nowych klasach wyglądają identycznie jak dzisiejsze (1280 i 390 px) — b6d926a
+- [x] 2.6 `/dev/month-plan` i `/dev/kitchen-sink/budget` bez widocznej zmiany nagłówków kolumn i tabel względem stanu przed fazą — b6d926a
+- [x] 2.7 Zrzuty `phase-2-*` zapisane — b6d926a
 
 ### Phase 3: Widok (C1–C5)
 
 #### Automated
 
-- [ ] 3.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsFilterTest.php tests/Feature/OperationsEmptyStateTest.php tests/Feature/CapitalMovementTest.php tests/Feature/OwnTransferTest.php` obrazem Sail
-- [ ] 3.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check`
-- [ ] 3.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/Operations.vue resources/js/components/FinancialOperationRow.vue resources/js/components/OwnTransferRow.vue resources/js/components/CapitalMovementRow.vue resources/js/components/OperationsPageActions.vue`
-- [ ] 3.4 Brak `title=` na przyciskach w `Operations.vue` i `OperationsPageActions.vue`: `grep -n 'title=' …` zwraca tylko `Head` / tytuły kart
-- [ ] 3.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 3.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsFilterTest.php tests/Feature/OperationsEmptyStateTest.php tests/Feature/CapitalMovementTest.php tests/Feature/OwnTransferTest.php` obrazem Sail
+- [x] 3.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check`
+- [x] 3.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/Operations.vue resources/js/components/FinancialOperationRow.vue resources/js/components/OwnTransferRow.vue resources/js/components/CapitalMovementRow.vue resources/js/components/OperationsPageActions.vue`
+- [x] 3.4 Brak `title=` na przyciskach w `Operations.vue` i `OperationsPageActions.vue`: `grep -n 'title=' …` zwraca tylko `Head` / tytuły kart
+- [x] 3.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
 
 #### Manual
 
-- [ ] 3.6 `/operations` dla `test@example.com`: jeden przycisk turkusowy (Import), cztery `outline`, każdy z ikoną; przy 390 px przyciski nie tworzą ściany turkusu
-- [ ] 3.7 Użytkownik z jednym kontem: pod przyciskami widać „Potrzebujesz co najmniej dwóch kont…”, czytnik ekranu (lub inspektor dostępności) podaje go jako opis przycisku
-- [ ] 3.8 Użytkownik z samymi transferami własnymi: brak „Brak operacji finansowych”, filtry widoczne, lista transferów pod nimi
-- [ ] 3.9 Zrzuty `phase-3-*` zapisane
+- [x] 3.6 `/operations` dla `test@example.com`: jeden przycisk turkusowy (Import), cztery `outline`, każdy z ikoną; przy 390 px przyciski nie tworzą ściany turkusu
+- [x] 3.7 Użytkownik z jednym kontem: pod przyciskami widać „Potrzebujesz co najmniej dwóch kont…”, czytnik ekranu (lub inspektor dostępności) podaje go jako opis przycisku
+- [x] 3.8 Użytkownik z samymi transferami własnymi: brak „Brak operacji finansowych”, filtry widoczne, lista transferów pod nimi
+- [x] 3.9 Zrzuty `phase-3-*` zapisane
 
 ### Phase 4: Stany z macierzy
 

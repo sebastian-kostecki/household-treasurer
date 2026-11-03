@@ -29,6 +29,7 @@ import CapitalMovementFormDialog, {
 import CapitalMovementRow, {
     type CapitalMovementRowData,
 } from '@/components/CapitalMovementRow.vue';
+import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import OwnTransferRow, {
     type OwnTransferRowData,
@@ -55,7 +56,7 @@ const {
     filters,
     filtersActive,
     suppressedSections,
-    hasFinancialOperations,
+    hasAnyRecords,
     filterYears,
     filterCategories,
     filterAccounts,
@@ -75,7 +76,7 @@ const {
     suppressedSections: Array<
         'financial_operations' | 'own_transfers' | 'capital_movements'
     >;
-    hasFinancialOperations: boolean;
+    hasAnyRecords: boolean;
     filterYears: number[];
     filterCategories: OperationsFilterCategory[];
     filterAccounts: OperationsFilterAccount[];
@@ -130,53 +131,20 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
     <Head :title="t.operations.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-start justify-between gap-3">
             <h1 class="text-lg font-semibold">{{ t.operations.title }}</h1>
-            <div class="flex flex-wrap gap-2">
-                <Button @click="incomeDialogOpen = true">
-                    <Plus class="mr-2 size-4" />
-                    {{ t.operations.add_income }}
-                </Button>
-                <Button @click="expenseDialogOpen = true">
-                    <Plus class="mr-2 size-4" />
-                    {{ t.operations.add_expense }}
-                </Button>
-                <Button
-                    :disabled="accounts.length < 2"
-                    :title="
-                        accounts.length < 2
-                            ? t.operations.transfer_requires_two_accounts
-                            : undefined
-                    "
-                    @click="createDialogOpen = true"
-                >
-                    {{ t.operations.add_transfer }}
-                </Button>
-                <Button
-                    :disabled="
-                        accounts.length === 0 || termDeposits.length === 0
-                    "
-                    :title="
-                        accounts.length === 0 || termDeposits.length === 0
-                            ? t.operations
-                                  .capital_movement_requires_account_and_term_deposit
-                            : undefined
-                    "
-                    @click="capitalMovementCreateDialogOpen = true"
-                >
-                    {{ t.operations.add_capital_movement }}
-                </Button>
-                <Button as-child>
-                    <Link :href="CsvImportController.create.url()">
-                        <Upload class="mr-2 size-4" />
-                        {{ t.operations.import_title }}
-                    </Link>
-                </Button>
-            </div>
+            <OperationsPageActions
+                :accounts-count="accounts.length"
+                :term-deposits-count="termDeposits.length"
+                @add-income="incomeDialogOpen = true"
+                @add-expense="expenseDialogOpen = true"
+                @add-transfer="createDialogOpen = true"
+                @add-capital-movement="capitalMovementCreateDialogOpen = true"
+            />
         </div>
 
         <OperationsFilters
-            v-if="hasFinancialOperations"
+            v-if="hasAnyRecords"
             :filters="filters"
             :filters-active="filtersActive"
             :years="filterYears"
@@ -187,20 +155,20 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         />
 
         <IndexEmptyState
-            v-if="!hasFinancialOperations"
+            v-if="!hasAnyRecords"
             :title="t.operations.empty_title"
             :description="t.operations.empty_description"
         >
             <template #actions>
-                <Button @click="incomeDialogOpen = true">
-                    <Plus class="mr-2 size-4" />
-                    {{ t.operations.add_income }}
-                </Button>
-                <Button variant="outline" as-child>
+                <Button as-child>
                     <Link :href="CsvImportController.create.url()">
-                        <Upload class="mr-2 size-4" />
+                        <Upload class="size-4" />
                         {{ t.operations.import_title }}
                     </Link>
+                </Button>
+                <Button variant="outline" @click="incomeDialogOpen = true">
+                    <Plus class="size-4" />
+                    {{ t.operations.add_income }}
                 </Button>
             </template>
         </IndexEmptyState>
@@ -228,9 +196,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :description="t.operations.list_description"
             :paginator="operations"
         >
-            <div
-                class="operations-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
-            >
+            <div class="operations-grid operations-header-row">
                 <span class="operations-cell-date">
                     {{ t.operations.date }}
                 </span>
@@ -269,7 +235,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :paginator="ownTransfers"
         >
             <div
-                class="operations-grid operations-grid-transfer border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
+                class="operations-grid operations-grid-transfer operations-header-row"
             >
                 <span class="operations-cell-date">
                     {{ t.operations.date }}
@@ -302,7 +268,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             :paginator="capitalMovements"
         >
             <div
-                class="operations-grid operations-grid-transfer border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase md:grid"
+                class="operations-grid operations-grid-transfer operations-header-row"
             >
                 <span class="operations-cell-date">
                     {{ t.operations.date }}
