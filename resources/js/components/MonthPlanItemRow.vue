@@ -3,11 +3,10 @@ import { Check } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import InputError from '@/components/InputError.vue';
+import MonthPlanKindCell from '@/components/MonthPlanKindCell.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
-import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, formatSignedMoney } from '@/lib/format';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
@@ -39,16 +38,7 @@ const amountInput = defineModel<string>();
 
 const t = useTranslations();
 
-const kindOptions = computed<{ value: MonthItemKind; label: string }[]>(() => [
-    { value: 'bill', label: t.month_plan.kind_bill },
-    { value: 'running', label: t.month_plan.kind_running },
-]);
-
 const hasKindColumn = computed(() => props.row.type === 'expense');
-
-function kindLabel(kind: MonthItemKind): string {
-    return kind === 'bill' ? t.month_plan.kind_bill : t.month_plan.kind_running;
-}
 
 const deviationText = computed(() =>
     props.deviation === null ? '—' : formatSignedMoney(props.deviation),
@@ -69,10 +59,6 @@ const deviationClass = computed(() => {
 
     return '';
 });
-
-function onKindUpdate(kind: MonthItemKind): void {
-    emit('change-kind', kind);
-}
 </script>
 
 <template>
@@ -151,46 +137,25 @@ function onKindUpdate(kind: MonthItemKind): void {
             </p>
 
             <div v-if="row.month_item_kind !== null" class="sm:hidden">
-                <div v-if="row.can_change_kind" class="grid gap-1">
-                    <div class="flex items-center gap-2">
-                        <SegmentedControl
-                            :model-value="row.month_item_kind"
-                            :options="kindOptions"
-                            :ariaLabel="t.month_plan.kind"
-                            tone="neutral"
-                            :disabled="kindPending"
-                            @update:model-value="onKindUpdate"
-                        />
-                        <Spinner v-if="kindPending" />
-                    </div>
-                    <InputError :message="kindError" />
-                </div>
-                <span v-else class="text-muted-foreground text-sm">
-                    {{ kindLabel(row.month_item_kind) }}
-                </span>
+                <MonthPlanKindCell
+                    :kind="row.month_item_kind"
+                    :can-change="row.can_change_kind"
+                    :pending="kindPending"
+                    :error="kindError"
+                    @change="emit('change-kind', $event)"
+                />
             </div>
         </div>
 
         <div v-if="hasKindColumn" class="hidden sm:block">
-            <template v-if="row.month_item_kind !== null">
-                <div v-if="row.can_change_kind" class="grid gap-1">
-                    <div class="flex items-center gap-2">
-                        <SegmentedControl
-                            :model-value="row.month_item_kind"
-                            :options="kindOptions"
-                            :ariaLabel="t.month_plan.kind"
-                            tone="neutral"
-                            :disabled="kindPending"
-                            @update:model-value="onKindUpdate"
-                        />
-                        <Spinner v-if="kindPending" />
-                    </div>
-                    <InputError :message="kindError" />
-                </div>
-                <span v-else class="text-muted-foreground text-sm">
-                    {{ kindLabel(row.month_item_kind) }}
-                </span>
-            </template>
+            <MonthPlanKindCell
+                v-if="row.month_item_kind !== null"
+                :kind="row.month_item_kind"
+                :can-change="row.can_change_kind"
+                :pending="kindPending"
+                :error="kindError"
+                @change="emit('change-kind', $event)"
+            />
         </div>
 
         <div class="text-right">

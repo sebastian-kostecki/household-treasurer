@@ -564,7 +564,7 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 - [x] 2.4 W kitchen sink `SegmentedControl` ma jeden przystanek Tab, strzałki zmieniają fokus, Spacja/Enter wybiera, kliknięcie aktywnej opcji jej nie odznacza — a5cf11c
 - [x] 2.5 Pierścień fokusu ma 3 px `ring/50` w obu tonach i obu motywach — a5cf11c
-- [x] 2.6 `.month-plan-grid`: długa nazwa kategorii zawija się bez rozpychania kolumn kwot przy 390 i 1280 — a5cf11c
+- [x] 2.6 `.month-plan-grid` i `.month-plan-grid-kind`: długa nazwa kategorii zawija się bez rozpychania kolumn kwot i rodzaju przy 390 i 1280 — a5cf11c
 - [x] 2.7 Zrzuty fazy 2 zapisane w `screenshots/` — a5cf11c
 
 ### Phase 3: Widok (C1, C2, C4)
@@ -579,7 +579,7 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 - [x] 3.4 Telefon (390), propozycja z kilkunastoma pozycjami: „Do wydania” i „Zatwierdź” widoczne u dołu ekranu przy przewijaniu list; pasek nie zasłania ostatniego wiersza — 011128f
 - [x] 3.5 Plan zatwierdzony bieżącego miesiąca: „Zmień plan” w wierszu tytułu; po kliknięciu pasek z „Anuluj / Zapisz zmiany”; „Anuluj” przywraca kwoty — 011128f
-- [x] 3.6 Nagłówki „Plan / Faktycznie / Odchylenie” stoją nad swoimi kwotami przy 390, 640 i 1280 — 011128f
+- [x] 3.6 Nagłówki „Rodzaj / Plan / Faktycznie / Odchylenie” stoją nad swoimi kolumnami przy 390, 640 i 1280; przełącznik rodzaju jest w kolumnie od 640, a przy 390 pod nazwą — 011128f
 - [x] 3.7 Tab przez stronę: każdy przełącznik to jeden przystanek — 011128f
 - [x] 3.8 Zrzuty fazy 3 (strona i kitchen sink) zapisane w `screenshots/` — 011128f
 
@@ -595,8 +595,8 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 #### Manual
 
 - [x] 4.5 W trybie „Zmień” przełączenie rodzaju: spinner na czas zapisu, podpowiedź o „Anuluj”, nota pod „Wydatki” — 495c656
-- [x] 4.6 Błąd zapisu rodzaju pokazuje się pod przełącznikiem tego wiersza
-- [x] 4.7 Wyczyszczenie kwoty nie świeci na czerwono; „12,3,4” + Tab daje pole z `aria-invalid` i komunikatem; poprawienie zdejmuje oznaczenie
+- [x] 4.6 Błąd zapisu rodzaju pokazuje się pod przełącznikiem tego wiersza — tylko kitchen sink (przegląd implementacji: brak zrzutu z prawdziwego błędu PATCH)
+- [x] 4.7 Wyczyszczenie kwoty nie świeci na czerwono; „12,3,4” + Tab daje pole z `aria-invalid` i komunikatem; poprawienie zdejmuje oznaczenie — zrzuty `phase-5-month-plan-proposal-invalid-*` (przegląd implementacji)
 - [x] 4.8 Pasek pokazuje „Niepoprawne kwoty: 1” przy wyłączonym „Zatwierdź” — 495c656
 - [x] 4.9 Kitchen sink pokazuje każdą komórkę macierzy (lub N/A z powodem) w trybie jasnym i ciemnym — 495c656
 - [x] 4.10 Zrzuty fazy 4 zapisane w `screenshots/` — 495c656
@@ -612,5 +612,5 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 #### Manual
 
-- [x] 5.5 Zrzuty końcowe `/month-plan` i kitchen sink, desktop i mobile, porównane z fazą 1 — 60974f6
+- [x] 5.5 Zrzuty końcowe `/month-plan` i kitchen sink, desktop i mobile, porównane z fazą 1 — 60974f6; zrzuty końcowe `phase-4-*` (plan zatwierdzony, kitchen sink) i `phase-5-month-plan-proposal-*` (propozycja) dodane w przeglądzie implementacji
 - [x] 5.6 Reguła w `.ai/rules/js.md` i `.docs/design-system.md` czytelne i zgodne z kodem — 60974f6

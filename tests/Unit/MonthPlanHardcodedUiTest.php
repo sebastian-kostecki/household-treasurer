@@ -7,6 +7,8 @@
 const MONTH_PLAN_VIEW_FILES = [
     'resources/js/pages/MonthPlan.vue',
     'resources/js/components/MonthPlanItemRow.vue',
+    'resources/js/components/MonthPlanKindCell.vue',
+    'resources/js/components/ColumnHeaderHint.vue',
     'resources/js/components/MonthPaceMeter.vue',
     'resources/js/components/MonthSummaryCard.vue',
     'resources/js/components/MonthYearSummary.vue',
