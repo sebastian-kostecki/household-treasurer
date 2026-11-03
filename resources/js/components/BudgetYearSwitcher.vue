@@ -1,97 +1,161 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
-import { CalendarPlus } from '@lucide/vue';
+import { router } from '@inertiajs/vue3';
+import { CalendarDays, CalendarPlus, ChevronsUpDown } from '@lucide/vue';
+import { nextTick, ref } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
+} from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
-import { ref } from 'vue';
 
 type Props = {
     budgetYears: number[];
     budgetYear: number | null;
 };
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const t = useTranslations();
+const { isMobile, state } = useSidebar();
 const createDialogOpen = ref(false);
+const pending = ref(false);
+
+defineExpose({ pending });
+
+function openCreateDialog(): void {
+    void nextTick(() => {
+        createDialogOpen.value = true;
+    });
+}
+
+function selectYear(value: unknown): void {
+    const year = Number(value);
+
+    if (Number.isNaN(year) || year === props.budgetYear || pending.value) {
+        return;
+    }
+
+    router.post(
+        BudgetController.selectYear().url,
+        { year },
+        {
+            onStart: () => {
+                pending.value = true;
+            },
+            onFinish: () => {
+                pending.value = false;
+            },
+        },
+    );
+}
 </script>
 
 <template>
-    <div class="px-2 py-2">
-        <p class="text-muted-foreground mb-1 px-2 text-xs font-medium">
-            {{ t.shell.budget_year }}
-        </p>
-        <div
-            v-if="budgetYears.length === 0"
-            class="border-sidebar-border flex flex-col gap-2 rounded-md border border-dashed px-2 py-2"
-        >
-            <p class="text-muted-foreground text-xs">
-                {{ t.shell.no_budget_year }}
-            </p>
-            <CreateBudgetDialog
-                v-model:open="createDialogOpen"
-                year-input-id="shell-create-budget-year-empty"
+    <SidebarMenu>
+        <SidebarMenuItem v-if="budgetYears.length === 0">
+            <SidebarMenuButton
+                size="lg"
+                :tooltip="t.shell.add_budget_year"
+                @click="createDialogOpen = true"
             >
-                <template #trigger>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        class="h-8 w-full justify-start gap-2"
-                    >
-                        <CalendarPlus class="size-4" />
-                        {{ t.shell.add_budget_year }}
-                    </Button>
-                </template>
-            </CreateBudgetDialog>
-        </div>
-        <div v-else class="space-y-2 px-2">
-            <Form
-                v-bind="BudgetController.selectYear.form()"
-                class="space-y-1"
-                v-slot="{ processing }"
-            >
-                <Label for="shell-budget-year" class="sr-only">
-                    {{ t.shell.select_year }}
-                </Label>
-                <select
-                    id="shell-budget-year"
-                    name="year"
-                    class="native-select h-8 px-2"
-                    :value="budgetYear ?? ''"
-                    :disabled="processing"
-                    @change="
-                        (
-                            $event.target as HTMLSelectElement
-                        ).form?.requestSubmit()
-                    "
+                <div
+                    class="bg-sidebar-accent text-sidebar-accent-foreground flex size-8 shrink-0 items-center justify-center rounded-md"
                 >
-                    <option
-                        v-for="year in budgetYears"
-                        :key="year"
-                        :value="year"
-                    >
-                        {{ year }}
-                    </option>
-                </select>
-            </Form>
-            <CreateBudgetDialog
-                v-model:open="createDialogOpen"
-                year-input-id="shell-create-budget-year"
-            >
-                <template #trigger>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        class="h-8 w-full justify-start gap-2"
-                    >
-                        <CalendarPlus class="size-4" />
+                    <CalendarPlus class="size-4" />
+                </div>
+                <div class="grid flex-1 text-left text-sm leading-tight">
+                    <span class="text-muted-foreground truncate text-xs">
+                        {{ t.shell.no_budget_year }}
+                    </span>
+                    <span class="truncate font-semibold">
                         {{ t.shell.add_budget_year }}
-                    </Button>
-                </template>
-            </CreateBudgetDialog>
-        </div>
-    </div>
+                    </span>
+                </div>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem v-else>
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <SidebarMenuButton
+                        size="lg"
+                        class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        :tooltip="`${t.shell.budget_year}: ${budgetYear}`"
+                        :disabled="pending"
+                        :aria-busy="pending"
+                    >
+                        <div
+                            class="bg-sidebar-accent text-sidebar-accent-foreground flex size-8 shrink-0 items-center justify-center rounded-md"
+                        >
+                            <CalendarDays class="size-4" />
+                        </div>
+                        <div
+                            class="grid flex-1 text-left text-sm leading-tight"
+                        >
+                            <span
+                                class="text-muted-foreground truncate text-xs"
+                            >
+                                {{ t.shell.budget_year }}
+                            </span>
+                            <span class="truncate font-semibold tabular-nums">
+                                {{ budgetYear }}
+                            </span>
+                        </div>
+                        <ChevronsUpDown class="ml-auto size-4" />
+                    </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                    class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                    :side="
+                        !isMobile && state === 'collapsed' ? 'right' : 'bottom'
+                    "
+                    align="start"
+                    :side-offset="4"
+                >
+                    <DropdownMenuLabel>
+                        {{ t.shell.select_year }}
+                    </DropdownMenuLabel>
+                    <DropdownMenuRadioGroup
+                        :model-value="String(budgetYear ?? '')"
+                        @update:model-value="selectYear"
+                    >
+                        <DropdownMenuRadioItem
+                            v-for="year in budgetYears"
+                            :key="year"
+                            :value="String(year)"
+                            class="tabular-nums"
+                        >
+                            {{ year }}
+                        </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem @select="openCreateDialog">
+                        <CalendarPlus />
+                        {{ t.shell.add_budget_year }}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </SidebarMenuItem>
+    </SidebarMenu>
+    <CreateBudgetDialog
+        v-model:open="createDialogOpen"
+        :year-input-id="
+            budgetYears.length === 0
+                ? 'shell-create-budget-year-empty'
+                : 'shell-create-budget-year'
+        "
+    />
 </template>

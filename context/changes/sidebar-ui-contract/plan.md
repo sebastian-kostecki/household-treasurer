@@ -457,38 +457,38 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 
 #### Automated
 
-- [x] 2.1 Martwy token `--sidebar` zniknął z `app.css`
-- [x] 2.2 Nic nie czyta `var(--sidebar)`
-- [x] 2.3 Lint, format i sortowanie klas przechodzą: `npm run check`
-- [x] 2.4 Build CSS przechodzi: `npm run build`
+- [x] 2.1 Martwy token `--sidebar` zniknął z `app.css` — 21accb5
+- [x] 2.2 Nic nie czyta `var(--sidebar)` — 21accb5
+- [x] 2.3 Lint, format i sortowanie klas przechodzą: `npm run check` — 21accb5
+- [x] 2.4 Build CSS przechodzi: `npm run build` — 21accb5
 
 #### Manual
 
-- [x] 2.5 Sidebar i landing wyglądają tak samo jak przed fazą, w obu motywach
-- [x] 2.6 `design-system.md` ma sekcję „Sidebar” z rolami tokenów, uwagą o kontraście glifu i zasadą trybu ikon
+- [x] 2.5 Sidebar i landing wyglądają tak samo jak przed fazą, w obu motywach — 21accb5
+- [x] 2.6 `design-system.md` ma sekcję „Sidebar” z rolami tokenów, uwagą o kontraście glifu i zasadą trybu ikon — 21accb5
 
 ### Phase 3: Jeden widok (C1, C2, C3, C5)
 
 #### Automated
 
-- [ ] 3.1 Lint i format przechodzą: `npm run check`
-- [ ] 3.2 Typy przechodzą: `npm run types:check`
-- [ ] 3.3 Testy frontendu przechodzą: `npm test`
-- [ ] 3.4 Testy powłoki, kitchen sinka i budżetu przechodzą w obrazie Sail
-- [ ] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
-- [ ] 3.6 `NavFooter.vue` nie istnieje i nic go nie importuje
-- [ ] 3.7 Żaden wywołujący `AppLogoIcon` nie ma `fill-current`
+- [x] 3.1 Lint i format przechodzą: `npm run check`
+- [x] 3.2 Typy przechodzą: `npm run types:check`
+- [x] 3.3 Testy frontendu przechodzą: `npm test`
+- [x] 3.4 Testy powłoki, kitchen sinka i budżetu przechodzą w obrazie Sail
+- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
+- [x] 3.6 `NavFooter.vue` nie istnieje i nic go nie importuje
+- [x] 3.7 Żaden wywołujący `AppLogoIcon` nie ma `fill-current`
 
 #### Manual
 
-- [ ] 3.8 W zwiniętym sidebarze przełącznik to kafelek 32 px z podpowiedzią; nic nie wychodzi na treść
-- [ ] 3.9 Z paska ikon menu otwiera się w prawo; wybór roku i „Dodaj rok” działają, fokus wraca na przełącznik
-- [ ] 3.10 Stan bez lat (rozwinięty i zwinięty) otwiera dialog jednym kliknięciem
-- [ ] 3.11 Przy 390 px przełącznik w Sheet działa jak w rozwiniętym sidebarze
-- [ ] 3.12 Na podstronach importu aktywna jest „Operacje”; na `/budget` tylko „Budżet”
-- [ ] 3.13 W trybie ciemnym glif logo jest jasny; inicjały awatara czytelne w obu motywach
-- [ ] 3.14 Znak `Vault` widać we wszystkich miejscach użycia, bez wypełnienia
-- [ ] 3.15 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
+- [x] 3.8 W zwiniętym sidebarze przełącznik to kafelek 32 px z podpowiedzią; nic nie wychodzi na treść
+- [x] 3.9 Z paska ikon menu otwiera się w prawo; wybór roku i „Dodaj rok” działają, fokus wraca na przełącznik
+- [x] 3.10 Stan bez lat (rozwinięty i zwinięty) otwiera dialog jednym kliknięciem
+- [x] 3.11 Przy 390 px przełącznik w Sheet działa jak w rozwiniętym sidebarze
+- [x] 3.12 Na podstronach importu aktywna jest „Operacje”; na `/budget` tylko „Budżet”
+- [x] 3.13 W trybie ciemnym glif logo jest jasny; inicjały awatara czytelne w obu motywach
+- [x] 3.14 Znak `Vault` widać we wszystkich miejscach użycia, bez wypełnienia
+- [x] 3.15 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
 
 ### Phase 4: Stany
 
