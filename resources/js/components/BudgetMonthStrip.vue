@@ -107,7 +107,12 @@ const viewedMonthLabel = computed(() => {
                     :href="monthPlanRoute({ query: { month: viewedMonth } })"
                     class="text-primary text-sm font-medium hover:underline"
                 >
-                    {{ t.nav.month_plan }}
+                    {{
+                        viewedMonthTiming === 'past' &&
+                        monthToSpend.state === 'approved'
+                            ? t.month_plan.summary_title
+                            : t.nav.month_plan
+                    }}
                 </Link>
             </div>
             <BudgetMonthResultSummary

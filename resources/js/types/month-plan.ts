@@ -22,3 +22,22 @@ export type MonthPlanItem = {
     approved_minor_units: number | null;
     is_join_candidate: boolean;
 };
+
+export type MonthSummaryTotals = {
+    approved_minor_units: number;
+    final_minor_units: number;
+    actual_minor_units: number;
+    deviation_minor_units: number;
+};
+
+export type MonthSummary = {
+    income: MonthSummaryTotals;
+    expense: MonthSummaryTotals;
+    set_aside: {
+        approved_minor_units: number;
+        final_minor_units: number;
+        real_minor_units: number;
+        difference_minor_units: number;
+    };
+    year_draw_minor_units: number;
+};

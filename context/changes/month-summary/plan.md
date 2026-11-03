@@ -360,15 +360,15 @@ Bez migracji. Plany zatwierdzone przed S-02 mają `approved_set_aside_minor_unit
 
 #### Automated
 
-- [ ] 2.1 Testy strony przechodzą
-- [ ] 2.2 Testy strony przechodzą na PostgreSQL
-- [ ] 2.3 Pełna bramka CI przechodzi w obrazie Sail
-- [ ] 2.4 Frontend przechodzi: build, check, types:check, test
+- [x] 2.1 Testy strony przechodzą
+- [x] 2.2 Testy strony przechodzą na PostgreSQL
+- [x] 2.3 Pełna bramka CI przechodzi w obrazie Sail
+- [x] 2.4 Frontend przechodzi: build, check, types:check, test
 
 #### Manual
 
-- [ ] 2.5 Miniony zatwierdzony miesiąc pokazuje kartę podsumowania i etykietę „Do wydania (końcowe)”
-- [ ] 2.6 Bieżący i miniony bez planu nie pokazują karty
-- [ ] 2.7 Operacja w minionym miesiącu zmienia podsumowanie po odświeżeniu
-- [ ] 2.8 Link w pasku Budżetu ma właściwy tekst
-- [ ] 2.9 Karta czytelna na szerokości telefonu
+- [x] 2.5 Miniony zatwierdzony miesiąc pokazuje kartę podsumowania i etykietę „Do wydania (końcowe)”
+- [x] 2.6 Bieżący i miniony bez planu nie pokazują karty
+- [x] 2.7 Operacja w minionym miesiącu zmienia podsumowanie po odświeżeniu
+- [x] 2.8 Link w pasku Budżetu ma właściwy tekst
+- [x] 2.9 Karta czytelna na szerokości telefonu
