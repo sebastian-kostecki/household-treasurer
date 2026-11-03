@@ -9,7 +9,7 @@ main_goal: market-feedback
 top_blocker: decisions
 milestone_id: month-control-without-spreadsheet
 milestone_seq: 1
-milestone_status: open
+milestone_status: done
 ---
 
 # Roadmap: Household Treasurer
@@ -20,7 +20,7 @@ milestone_status: open
 
 ## Milestone
 
-**M-1: Kontrola miesiąca bez arkusza** — Status: open
+**M-1: Kontrola miesiąca bez arkusza** — Status: done
 
 - **Intent:** Użytkownik prowadzi kontrolę całego miesiąca wyłącznie w aplikacji, od planu po podsumowanie, bez zakładek miesięcznych arkusza `budget_szablon.xlsx`.
 - **Source materials:** `context/foundation/prd.md` (v1), z blokiem przekazania dla mapy drogowej z `context/foundation/shape-notes.md`.
@@ -91,7 +91,6 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Blockers:** —
 - **Unknowns:** —
 - **Status:** done
-- **Status:** planning
 
 ## Slices
 
@@ -253,7 +252,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 ## Milestone History
 
-(Pusta: to pierwszy kamień milowy.)
+- **M-1: Kontrola miesiąca bez arkusza** (`month-control-without-spreadsheet`) — closed 2026-11-03. Wszystkie elementy F-01 i S-01 do S-10 mają status `done`; warunek „pełny miesiąc w aplikacji” (kryterium sukcesu PRD) do potwierdzenia w użyciu.
 
 ## Done
 
