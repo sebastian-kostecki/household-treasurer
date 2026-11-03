@@ -135,7 +135,9 @@ class TermDepositTest extends TestCase
                 ->where('termDeposits.1.mark_url', null)
                 ->where('termDeposits.1.end_date', null)
                 ->where('termDeposits.1.current_balance_minor_units', 25050)
-                ->where('term_deposits_total_minor_units', 125050),
+                ->where('term_deposits_total_minor_units', 125050)
+                ->where('archived_term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_count', 0),
             );
     }
 

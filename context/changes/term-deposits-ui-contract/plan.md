@@ -456,21 +456,21 @@ Bez migracji danych.
 
 #### Automated
 
-- [ ] 3.1 Testy propsów `archived_term_deposits_total_minor_units` i `archived_term_deposits_count` przechodzą: `php artisan test --compact tests/Feature/TermDepositTest.php tests/Feature/ArchiveTermDepositTest.php`
-- [ ] 3.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs resources/js/pages/TermDeposits.vue resources/js/components/TermDepositFormDialog.vue resources/js/pages/dev/TermDepositsKitchenSink.vue`
-- [ ] 3.3 Lint, format, typy i testy frontendu przechodzą: `npm run check && npm run types:check && npm test`
-- [ ] 3.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [ ] 3.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 3.1 Testy propsów `archived_term_deposits_total_minor_units` i `archived_term_deposits_count` przechodzą: `php artisan test --compact tests/Feature/TermDepositTest.php tests/Feature/ArchiveTermDepositTest.php`
+- [x] 3.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs resources/js/pages/TermDeposits.vue resources/js/components/TermDepositFormDialog.vue resources/js/pages/dev/TermDepositsKitchenSink.vue`
+- [x] 3.3 Lint, format, typy i testy frontendu przechodzą: `npm run check && npm run types:check && npm test`
+- [x] 3.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 3.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
 
 #### Manual
 
-- [ ] 3.6 Z jedną zarchiwizowaną lokatą z saldem: kafelek pokazuje „W tym zarchiwizowane: X zł” przy włączonym i wyłączonym filtrze; bez zarchiwizowanych sald stopki nie ma
-- [ ] 3.7 Po zarchiwizowaniu wszystkich lokat (filtr wyłączony) widać „Wszystkie lokaty są zarchiwizowane”, a „Pokaż zarchiwizowane” je pokazuje
-- [ ] 3.8 Nowy użytkownik bez lokat nie widzi przełącznika i widzi „Brak lokat”
-- [ ] 3.9 W trakcie przeładowania przełącznik jest wyłączony
-- [ ] 3.10 Wpis `12,3,4` w saldzie otwarcia pokazuje komunikat przy polu i blokuje Zapisz; poprawny wpis zdejmuje blokadę; Zapisz pokazuje spinner w trakcie żądania
-- [ ] 3.11 Każda komórka macierzy w `/dev/ui/term-deposits` jest pokazana albo ma N/A z powodem, w obu motywach
-- [ ] 3.12 Zrzuty `after-phase-3/` (z ujęciami stanów) są w folderze zmiany
+- [x] 3.6 Z jedną zarchiwizowaną lokatą z saldem: kafelek pokazuje „W tym zarchiwizowane: X zł” przy włączonym i wyłączonym filtrze; bez zarchiwizowanych sald stopki nie ma
+- [x] 3.7 Po zarchiwizowaniu wszystkich lokat (filtr wyłączony) widać „Wszystkie lokaty są zarchiwizowane”, a „Pokaż zarchiwizowane” je pokazuje
+- [x] 3.8 Nowy użytkownik bez lokat nie widzi przełącznika i widzi „Brak lokat”
+- [x] 3.9 W trakcie przeładowania przełącznik jest wyłączony
+- [x] 3.10 Wpis `12,3,4` w saldzie otwarcia pokazuje komunikat przy polu i blokuje Zapisz; poprawny wpis zdejmuje blokadę; Zapisz pokazuje spinner w trakcie żądania
+- [x] 3.11 Każda komórka macierzy w `/dev/ui/term-deposits` jest pokazana albo ma N/A z powodem, w obu motywach
+- [x] 3.12 Zrzuty `after-phase-3/` (z ujęciami stanów) są w folderze zmiany
 
 ### Phase 4: Zabezpieczenie
 

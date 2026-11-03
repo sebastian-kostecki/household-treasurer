@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
 import {
@@ -44,6 +45,9 @@ const openingDate = ref('');
 const endDate = ref('');
 const openingBalanceInput = ref('0,00');
 const openingBalanceMinorUnits = ref(0);
+const openingBalanceInvalid = computed(
+    () => parseMoneyInputToMinorUnits(openingBalanceInput.value) === null,
+);
 
 const formBinding = computed(() => {
     const options = props.showArchived
@@ -109,13 +113,13 @@ watch(
     { immediate: true },
 );
 
-function syncOpeningBalance(): void {
-    const parsed = parseMoneyInputToMinorUnits(openingBalanceInput.value);
+watch(openingBalanceInput, (value) => {
+    const parsed = parseMoneyInputToMinorUnits(value);
 
     if (parsed !== null) {
         openingBalanceMinorUnits.value = parsed;
     }
-}
+});
 
 function closeDialog(): void {
     emit('update:open', false);
@@ -159,13 +163,17 @@ function closeDialog(): void {
                         v-model="name"
                         required
                         autocomplete="off"
+                        :aria-invalid="errors.name ? 'true' : undefined"
                     />
                     <InputError :message="errors.name" />
                 </div>
 
                 <div class="grid gap-2">
                     <Label for="account-bank">{{ t.term_deposits.bank }}</Label>
-                    <AccountBankSelect v-model="bank" />
+                    <AccountBankSelect
+                        v-model="bank"
+                        :invalid="Boolean(errors.bank)"
+                    />
                     <InputError :message="errors.bank" />
                 </div>
 
@@ -179,6 +187,7 @@ function closeDialog(): void {
                         v-model="openingDate"
                         type="date"
                         required
+                        :aria-invalid="errors.opening_date ? 'true' : undefined"
                     />
                     <InputError :message="errors.opening_date" />
                 </div>
@@ -192,6 +201,7 @@ function closeDialog(): void {
                         name="end_date"
                         v-model="endDate"
                         type="date"
+                        :aria-invalid="errors.end_date ? 'true' : undefined"
                     />
                     <p class="text-muted-foreground text-sm">
                         {{ t.term_deposits.end_date_hint }}
@@ -208,14 +218,25 @@ function closeDialog(): void {
                         v-model="openingBalanceInput"
                         inputmode="decimal"
                         autocomplete="off"
-                        @blur="syncOpeningBalance"
+                        :aria-invalid="
+                            openingBalanceInvalid ||
+                            errors.opening_balance_minor_units
+                                ? 'true'
+                                : undefined
+                        "
                     />
                     <input
                         type="hidden"
                         name="opening_balance_minor_units"
                         :value="openingBalanceMinorUnits"
                     />
-                    <InputError :message="errors.opening_balance_minor_units" />
+                    <InputError
+                        :message="
+                            openingBalanceInvalid
+                                ? t.term_deposits.opening_balance_invalid
+                                : errors.opening_balance_minor_units
+                        "
+                    />
                 </div>
 
                 <Alert v-if="showNegativeBalanceWarning" variant="warning">
@@ -240,7 +261,11 @@ function closeDialog(): void {
                             {{ t.term_deposits.cancel }}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" :disabled="processing">
+                    <Button
+                        type="submit"
+                        :disabled="processing || openingBalanceInvalid"
+                    >
+                        <Spinner v-if="processing" />
                         {{ t.term_deposits.save }}
                     </Button>
                 </DialogFooter>

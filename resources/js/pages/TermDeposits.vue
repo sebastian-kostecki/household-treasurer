@@ -60,15 +60,14 @@ setLayoutProps({
     ],
 });
 
-function balanceClass(termDeposit: TermDepositRow): string | undefined {
-    if (
-        termDeposit.is_archived &&
-        termDeposit.current_balance_minor_units >= 0
-    ) {
-        return undefined;
-    }
+function archivedAmountClass(amountMinorUnits: number): string | undefined {
+    return amountMinorUnits < 0 ? amountToneClass(amountMinorUnits) : undefined;
+}
 
-    return amountToneClass(termDeposit.current_balance_minor_units);
+function balanceClass(termDeposit: TermDepositRow): string | undefined {
+    return termDeposit.is_archived
+        ? archivedAmountClass(termDeposit.current_balance_minor_units)
+        : amountToneClass(termDeposit.current_balance_minor_units);
 }
 
 function openEditDialog(termDeposit: TermDepositRow): void {
@@ -111,9 +110,35 @@ function toggleShowArchived(checked: boolean): void {
         <StatTile
             :label="t.term_deposits.total"
             :amount-minor-units="term_deposits_total_minor_units"
-        />
+        >
+            <template
+                v-if="archived_term_deposits_total_minor_units !== 0"
+                #footer
+            >
+                <p class="text-muted-foreground text-sm">
+                    {{ t.term_deposits.archived_total }}:
+                    <span
+                        class="tabular-nums"
+                        :class="
+                            archivedAmountClass(
+                                archived_term_deposits_total_minor_units,
+                            )
+                        "
+                    >
+                        {{
+                            formatMoney(
+                                archived_term_deposits_total_minor_units,
+                            )
+                        }}
+                    </span>
+                </p>
+            </template>
+        </StatTile>
 
-        <div class="flex items-center gap-2">
+        <div
+            v-if="archived_term_deposits_count > 0 || show_archived"
+            class="flex items-center gap-2"
+        >
             <Checkbox
                 id="show-archived-term-deposits"
                 v-model="showArchived"
@@ -128,7 +153,25 @@ function toggleShowArchived(checked: boolean): void {
         </div>
 
         <IndexEmptyState
-            v-if="termDeposits.length === 0"
+            v-if="termDeposits.length === 0 && archived_term_deposits_count > 0"
+            :title="t.term_deposits.all_archived_title"
+            :description="t.term_deposits.all_archived_description"
+        >
+            <template #actions>
+                <Button
+                    :disabled="isTogglingArchived"
+                    @click="showArchived = true"
+                >
+                    {{ t.term_deposits.show_archived }}
+                </Button>
+                <Button variant="secondary" @click="createDialogOpen = true">
+                    {{ t.term_deposits.add }}
+                </Button>
+            </template>
+        </IndexEmptyState>
+
+        <IndexEmptyState
+            v-else-if="termDeposits.length === 0"
             :title="t.term_deposits.empty_title"
             :description="t.term_deposits.empty_description"
         >

@@ -1,16 +1,36 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
+import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
+import { Button } from '@/components/ui/button';
 import { termDepositsScenarios } from './term-deposits-fixtures';
 
 const TermDeposits = defineAsyncComponent(
     () => import('@/pages/TermDeposits.vue'),
 );
 
+const errorDialogOpen = ref(false);
+
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-total i negative-total poniżej.',
+        where: 'Scenariusze default, zero-total, negative-total i with-archived poniżej (stopka sumy „W tym zarchiwizowane”, zarchiwizowane saldo ujemne na czerwono).',
+    },
+    {
+        state: 'hover',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): wiersze listy i IconAction.',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Zrzuty z działającej aplikacji po Tab: przycisk „Dodaj lokatę”, przełącznik, IconAction, X dialogu, wybór banku.',
+    },
+    {
+        state: 'disabled',
+        where: 'Zrzuty z działającej aplikacji z opóźnionym POST (przycisk potwierdzenia i Zapisz ze spinnerem, zablokowane Anuluj w potwierdzeniu) oraz Zapisz zablokowany przy nieparsowalnej kwocie.',
+    },
+    {
+        state: 'error',
+        where: 'Przycisk „Otwórz formularz lokaty” poniżej: wpisz 12,3,4 w saldzie otwarcia, by zobaczyć komunikat. errors.term_deposit przy usuwaniu: test test_user_cannot_delete_term_deposit_with_capital_movements i ręczne sprawdzenie na nieaktualnej stronie.',
     },
     {
         state: 'empty',
@@ -18,23 +38,7 @@ const stateMatrix = [
     },
     {
         state: 'loading',
-        where: 'N/A: strona nie ma deferred props ani skeletonów.',
-    },
-    {
-        state: 'error',
-        where: 'Zrzuty z działającej aplikacji (InputError w TermDepositFormDialog).',
-    },
-    {
-        state: 'disabled',
-        where: 'Zrzuty z działającej aplikacji (processing na formularzach).',
-    },
-    {
-        state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
-    },
-    {
-        state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Przełącznik zablokowany w trakcie wizyty: zrzut z działającej aplikacji z opóźnioną odpowiedzią. Skeleton N/A, bo strona nie ma deferred props.',
     },
 ];
 </script>
@@ -50,8 +54,8 @@ const stateMatrix = [
                 każdym scenariuszu danych. Zduplikowane id pól w kilku
                 TermDepositFormDialog są tu dopuszczalne. Akcje formularzy nie
                 działają, bo fixture'ów nie ma w bazie. Przełącznik „Pokaż
-                zarchiwizowane” (a później także przycisk o tej nazwie w pustym
-                stanie) przechodzi na prawdziwe /term-deposits.
+                zarchiwizowane” (i przycisk o tej nazwie w pustym stanie)
+                przechodzi na prawdziwe /term-deposits.
             </p>
         </header>
 
@@ -81,6 +85,21 @@ const stateMatrix = [
                     </tr>
                 </tbody>
             </table>
+        </section>
+
+        <section class="space-y-2" data-section="error-form">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                error: formularz lokaty (tryb tworzenia)
+            </h2>
+            <Button variant="secondary" @click="errorDialogOpen = true">
+                Otwórz formularz lokaty
+            </Button>
+            <TermDepositFormDialog
+                v-model:open="errorDialogOpen"
+                mode="create"
+            />
         </section>
 
         <section

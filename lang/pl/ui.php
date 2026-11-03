@@ -451,6 +451,10 @@ return [
         'restore_confirm_body' => 'Lokata będzie ponownie dostępna przy tworzeniu nowych ruchów kapitału.',
         'archived_badge' => 'Zarchiwizowane',
         'show_archived' => 'Pokaż zarchiwizowane',
+        'archived_total' => 'W tym zarchiwizowane',
+        'all_archived_title' => 'Wszystkie lokaty są zarchiwizowane',
+        'all_archived_description' => 'Pokaż zarchiwizowane lokaty, aby je przejrzeć lub przywrócić.',
+        'opening_balance_invalid' => 'Wpisz kwotę, np. 1200,50.',
         'negative_balance_warning' => 'Saldo lokaty będzie ujemne.',
     ],
     'operations' => [

@@ -32,9 +32,14 @@ class TermDepositController extends Controller
             ->values()
             ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit));
 
+        $archivedTermDeposits = $allTermDeposits
+            ->filter(fn (TermDeposit $termDeposit): bool => $termDeposit->isArchived());
+
         return Inertia::render('TermDeposits', [
             'termDeposits' => $termDeposits,
             'term_deposits_total_minor_units' => (int) $allTermDeposits->sum('current_balance_minor_units'),
+            'archived_term_deposits_total_minor_units' => (int) $archivedTermDeposits->sum('current_balance_minor_units'),
+            'archived_term_deposits_count' => $archivedTermDeposits->count(),
             'show_archived' => $showArchived,
         ]);
     }
