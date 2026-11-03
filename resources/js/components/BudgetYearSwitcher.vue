@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import { CalendarDays, CalendarPlus, ChevronsUpDown } from '@lucide/vue';
-import { nextTick, ref } from 'vue';
+import { nextTick, onUnmounted, ref } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import {
@@ -21,6 +21,10 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
 
 type Props = {
     budgetYears: number[];
@@ -35,6 +39,14 @@ const createDialogOpen = ref(false);
 const pending = ref(false);
 
 defineExpose({ pending });
+
+const stopListeningForYearSelectionFailure =
+    listenForBudgetYearSelectionFailure(
+        () => pending.value,
+        t.shell.select_year_failed,
+    );
+
+onUnmounted(stopListeningForYearSelectionFailure);
 
 function openCreateDialog(): void {
     void nextTick(() => {
@@ -55,6 +67,9 @@ function selectYear(value: unknown): void {
         {
             onStart: () => {
                 pending.value = true;
+            },
+            onError: () => {
+                notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
             },
             onFinish: () => {
                 pending.value = false;

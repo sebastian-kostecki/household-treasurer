@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import AppSidebar from '@/components/AppSidebar.vue';
+import { Button } from '@/components/ui/button';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { useTranslations } from '@/composables/useTranslations';
+import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 
 type SidebarFrame = {
     key: string;
@@ -10,6 +13,43 @@ type SidebarFrame = {
     budgetYears: number[];
     budgetYear: number | null;
 };
+
+const t = useTranslations();
+
+const stateMatrix = [
+    {
+        state: 'default',
+        where: 'Ramki expanded-years i collapsed-years poniżej.',
+    },
+    {
+        state: 'empty',
+        where: 'Ramki expanded-empty i collapsed-empty poniżej (brak lat budżetu).',
+    },
+    {
+        state: 'loading',
+        where: 'N/A: powłoka nie ma deferred props. Jedyne oczekiwanie to pending przełącznika roku, pokazane jako disabled.',
+    },
+    {
+        state: 'error',
+        where: 'Przycisk „Pokaż błąd wyboru roku” poniżej (toast).',
+    },
+    {
+        state: 'hover',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+    },
+    {
+        state: 'disabled',
+        where: 'Zrzuty z działającej aplikacji przy spowolnionej sieci (przełącznik roku podczas POST).',
+    },
+];
+
+function showYearSelectionError(): void {
+    notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
+}
 
 const frames: SidebarFrame[] = [
     {
@@ -58,6 +98,42 @@ const frames: SidebarFrame[] = [
                 CreateBudgetDialog są tu dopuszczalne.
             </p>
         </header>
+
+        <section class="space-y-3" data-section="state-matrix">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                Macierz stanów
+            </h2>
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr>
+                        <th class="column-caption pb-2.5 text-left">Stan</th>
+                        <th class="column-caption pb-2.5 text-left">
+                            Gdzie widoczny
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="row in stateMatrix"
+                        :key="row.state"
+                        class="border-t align-top"
+                    >
+                        <td class="py-2 pr-4 font-mono">{{ row.state }}</td>
+                        <td class="py-2">{{ row.where }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                @click="showYearSelectionError"
+            >
+                Pokaż błąd wyboru roku
+            </Button>
+        </section>
 
         <div class="grid grid-cols-2 gap-6">
             <section

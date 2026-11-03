@@ -471,42 +471,42 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 
 #### Automated
 
-- [x] 3.1 Lint i format przechodzą: `npm run check`
-- [x] 3.2 Typy przechodzą: `npm run types:check`
-- [x] 3.3 Testy frontendu przechodzą: `npm test`
-- [x] 3.4 Testy powłoki, kitchen sinka i budżetu przechodzą w obrazie Sail
-- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
-- [x] 3.6 `NavFooter.vue` nie istnieje i nic go nie importuje
-- [x] 3.7 Żaden wywołujący `AppLogoIcon` nie ma `fill-current`
+- [x] 3.1 Lint i format przechodzą: `npm run check` — 14f46dc
+- [x] 3.2 Typy przechodzą: `npm run types:check` — 14f46dc
+- [x] 3.3 Testy frontendu przechodzą: `npm test` — 14f46dc
+- [x] 3.4 Testy powłoki, kitchen sinka i budżetu przechodzą w obrazie Sail — 14f46dc
+- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku — 14f46dc
+- [x] 3.6 `NavFooter.vue` nie istnieje i nic go nie importuje — 14f46dc
+- [x] 3.7 Żaden wywołujący `AppLogoIcon` nie ma `fill-current` — 14f46dc
 
 #### Manual
 
-- [x] 3.8 W zwiniętym sidebarze przełącznik to kafelek 32 px z podpowiedzią; nic nie wychodzi na treść
-- [x] 3.9 Z paska ikon menu otwiera się w prawo; wybór roku i „Dodaj rok” działają, fokus wraca na przełącznik
-- [x] 3.10 Stan bez lat (rozwinięty i zwinięty) otwiera dialog jednym kliknięciem
-- [x] 3.11 Przy 390 px przełącznik w Sheet działa jak w rozwiniętym sidebarze
-- [x] 3.12 Na podstronach importu aktywna jest „Operacje”; na `/budget` tylko „Budżet”
-- [x] 3.13 W trybie ciemnym glif logo jest jasny; inicjały awatara czytelne w obu motywach
-- [x] 3.14 Znak `Vault` widać we wszystkich miejscach użycia, bez wypełnienia
-- [x] 3.15 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
+- [x] 3.8 W zwiniętym sidebarze przełącznik to kafelek 32 px z podpowiedzią; nic nie wychodzi na treść — 14f46dc
+- [x] 3.9 Z paska ikon menu otwiera się w prawo; wybór roku i „Dodaj rok” działają, fokus wraca na przełącznik — 14f46dc
+- [x] 3.10 Stan bez lat (rozwinięty i zwinięty) otwiera dialog jednym kliknięciem — 14f46dc
+- [x] 3.11 Przy 390 px przełącznik w Sheet działa jak w rozwiniętym sidebarze — 14f46dc
+- [x] 3.12 Na podstronach importu aktywna jest „Operacje”; na `/budget` tylko „Budżet” — 14f46dc
+- [x] 3.13 W trybie ciemnym glif logo jest jasny; inicjały awatara czytelne w obu motywach — 14f46dc
+- [x] 3.14 Znak `Vault` widać we wszystkich miejscach użycia, bez wypełnienia — 14f46dc
+- [x] 3.15 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie — 14f46dc
 
 ### Phase 4: Stany
 
 #### Automated
 
-- [ ] 4.1 Lint i format przechodzą: `npm run check`
-- [ ] 4.2 Typy przechodzą: `npm run types:check`
-- [ ] 4.3 Testy frontendu przechodzą: `npm test`
-- [ ] 4.4 Testy powłoki i kitchen sinka przechodzą w obrazie Sail
-- [ ] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku
+- [x] 4.1 Lint i format przechodzą: `npm run check`
+- [x] 4.2 Typy przechodzą: `npm run types:check`
+- [x] 4.3 Testy frontendu przechodzą: `npm test`
+- [x] 4.4 Testy powłoki i kitchen sinka przechodzą w obrazie Sail
+- [x] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku
 
 #### Manual
 
-- [ ] 4.6 Wybór usuniętego roku pokazuje toast; udany wybór działa jak dotąd
-- [ ] 4.7 Podczas POST przełącznik jest wyłączony i czytelny w obu motywach
-- [ ] 4.8 Fokus klawiatury na przełączniku ma pierścień `sidebar-ring`
-- [ ] 4.9 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
-- [ ] 4.10 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
+- [x] 4.6 Wybór usuniętego roku pokazuje toast; udany wybór działa jak dotąd
+- [x] 4.7 Podczas POST przełącznik jest wyłączony i czytelny w obu motywach
+- [x] 4.8 Fokus klawiatury na przełączniku ma pierścień `sidebar-ring`
+- [x] 4.9 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
+- [x] 4.10 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
 
 ### Phase 5: Zabezpieczenie
 
