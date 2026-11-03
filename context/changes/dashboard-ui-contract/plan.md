@@ -459,7 +459,7 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 #### Manual
 
 - [x] 1.6 `/dev/ui/dashboard` lokalnie pokazuje wszystkie 7 scenariuszy z nagłówkami, a Dashboard wygląda tak samo jak przed fazą — e84e65f
-- [x] 1.7 Zrzuty „przed” (desktop i 390 px, jasny i ciemny) są w `screenshots/before/` — e84e65f
+- [ ] 1.7 Zrzuty „przed” (desktop i 390 px, jasny i ciemny) są w `screenshots/before/`
 
 ### Phase 2: Wartości tokenów
 
@@ -516,13 +516,13 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 #### Automated
 
-- [x] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui`
-- [x] 5.2 Kontrola zatrzymuje literał: skrypt na `Operations.vue` kończy się kodem 1 i wskazuje `text-[11px]`
-- [x] 5.3 Lint i format przechodzą (także dla nowego skryptu): `npm run check`
-- [x] 5.4 Pełna bramka CI przechodzi: `./vendor/bin/sail composer ci:check`
+- [x] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui` — 2ca05b6
+- [x] 5.2 Kontrola zatrzymuje literał: skrypt na `Operations.vue` kończy się kodem 1 i wskazuje `text-[11px]` — 2ca05b6
+- [x] 5.3 Lint i format przechodzą (także dla nowego skryptu): `npm run check` — 2ca05b6
+- [x] 5.4 Pełna bramka CI przechodzi: `./vendor/bin/sail composer ci:check` — 2ca05b6
 
 #### Manual
 
-- [x] 5.5 `.ai/rules/js.md` ma nową sekcję, a `.ai/rules/index.md` nadal wskazuje ten plik
-- [x] 5.6 `research.md` oznacza C5, linki wierszy kont i pozostałe widoki jako deferred z powodem
+- [x] 5.5 `.ai/rules/js.md` ma nową sekcję, a `.ai/rules/index.md` nadal wskazuje ten plik — 2ca05b6
+- [x] 5.6 `research.md` oznacza C5, linki wierszy kont i pozostałe widoki jako deferred z powodem — 2ca05b6
 - [ ] 5.7 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione

@@ -330,7 +330,7 @@ function noticeKey(notice: DashboardNotice): string {
                 "
                 class="focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:opacity-60"
                 :class="severityCardClass(notice.severity)"
-                @start="monthPlanRequestPending = true"
+                @start="monthPlanRequestPending = isMonthNotice(notice)"
                 @error="
                     isMonthNotice(notice) ? onMonthPlanRequestFailed() : null
                 "

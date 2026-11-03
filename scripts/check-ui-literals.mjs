@@ -20,8 +20,11 @@ const FILES = [
 
 const PALETTE =
     'red|amber|green|blue|slate|gray|zinc|neutral|stone|orange|yellow|lime|emerald|teal|cyan|sky|indigo|violet|purple|fuchsia|pink|rose';
+const PREFIXES =
+    'bg|text|border(?:-[trblxyse])?|ring|fill|stroke|from|to|via|divide|shadow|outline|decoration|accent|caret|placeholder';
+// Hex colour: not an HTML entity (&#128;), not part of a word, not an anchor (href="#add").
 const PATTERN = new RegExp(
-    String.raw`#[0-9a-f]{3,8}\b|(?:rgb|rgba|hsl|hsla|oklch)\(|-\[[0-9.]+(?:px|rem)\]|\b(?:bg|text|border|ring|fill|stroke|from|to|via)-(?:${PALETTE})-[0-9]+`,
+    String.raw`(?<![&\w])(?<!href=["'])#[0-9a-f]{3,8}\b|(?:rgb|rgba|hsl|hsla|oklch)\(|-\[[0-9.]+(?:px|rem)\]|\b(?:${PREFIXES})-(?:${PALETTE})-[0-9]+`,
     'gi',
 );
 
@@ -31,7 +34,14 @@ const files = args.length > 0 ? args : FILES;
 let hits = 0;
 
 for (const file of files) {
-    const lines = readFileSync(resolve(root, file), 'utf8').split('\n');
+    let source;
+    try {
+        source = readFileSync(resolve(root, file), 'utf8');
+    } catch {
+        console.error(`Brak pliku: ${file}`);
+        process.exit(2);
+    }
+    const lines = source.split('\n');
     lines.forEach((line, index) => {
         for (const match of line.matchAll(PATTERN)) {
             hits += 1;
