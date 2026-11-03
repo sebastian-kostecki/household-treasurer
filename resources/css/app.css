@@ -294,6 +294,137 @@
             color-mix(in srgb, var(--border) 60%, transparent);
     }
 
+    /**
+     * Budget category list: one markup on every width. Below `md` a row is
+     * three lines (name + actions, then two amount pairs); from `md` it is one
+     * line of columns. The drag handle spans the whole row height.
+     */
+    .budget-category-grid {
+        @apply grid w-full gap-x-4;
+        grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+        grid-template-areas:
+            'handle category category actions'
+            'handle initial current .'
+            'handle execution remaining .';
+    }
+
+    .budget-category-grid-no-handle {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        grid-template-areas:
+            'category category actions'
+            'initial current .'
+            'execution remaining .';
+    }
+
+    @variant md {
+        .budget-category-grid {
+            @apply items-center;
+            grid-template-columns: 2.5rem minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
+            grid-template-areas: 'handle category initial current execution remaining actions';
+        }
+
+        .budget-category-grid-no-handle {
+            grid-template-columns: minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
+            grid-template-areas: 'category initial current execution remaining actions';
+        }
+    }
+
+    .budget-category-grid-draft {
+        @apply items-center;
+        grid-template-columns: 2.5rem minmax(0, 1fr) 8rem 4.5rem;
+        grid-template-areas: 'handle category plan actions';
+    }
+
+    .budget-category-grid-draft.budget-category-grid-no-handle {
+        grid-template-columns: minmax(0, 1fr) 8rem 4.5rem;
+        grid-template-areas: 'category plan actions';
+    }
+
+    .budget-category-row {
+        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+    }
+
+    .budget-category-header-row {
+        @apply border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase;
+    }
+
+    @variant md {
+        .budget-category-header-row {
+            @apply grid;
+        }
+    }
+
+    .budget-category-totals-row {
+        @apply border-border/60 bg-foreground/[0.02] border-t py-3 text-sm;
+    }
+
+    .budget-category-cell-handle {
+        grid-area: handle;
+    }
+
+    .budget-category-cell-category {
+        grid-area: category;
+        @apply min-w-0;
+    }
+
+    .budget-category-cell-plan {
+        grid-area: plan;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-initial {
+        grid-area: initial;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-current {
+        grid-area: current;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-execution {
+        grid-area: execution;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-remaining {
+        grid-area: remaining;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-actions {
+        grid-area: actions;
+        @apply text-right;
+    }
+
+    /**
+     * Scrolls only from `md`; on a phone the list flows with the page. Sticky
+     * head and totals keep their hairline via inset shadows, because a border
+     * on a sticky element scrolls away with the rows.
+     */
+    @variant md {
+        .budget-category-scroll {
+            @apply max-h-[min(32rem,70vh)] overflow-auto overscroll-contain;
+        }
+
+        .budget-category-scroll .budget-category-header-row {
+            @apply bg-card sticky top-0 z-10;
+            box-shadow: inset 0 -1px 0
+                color-mix(in srgb, var(--border) 60%, transparent);
+        }
+
+        .budget-category-scroll .budget-category-totals-row {
+            @apply sticky bottom-0 z-10;
+            background-color: var(--card);
+            background-image: linear-gradient(
+                color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
+                color-mix(in srgb, var(--foreground) 2%, transparent) 100%
+            );
+            box-shadow: inset 0 1px 0
+                color-mix(in srgb, var(--border) 60%, transparent);
+        }
+    }
+
     .operations-grid {
         @apply grid w-full gap-x-4;
         grid-template-columns: minmax(0, 1fr) auto;

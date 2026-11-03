@@ -542,9 +542,9 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Automated
 
-- [ ] 2.1 Testy frontendu przechodzą, w tym nowy `budget-category-cells.test.ts`: `npm test`
-- [ ] 2.2 Lint i formatowanie przechodzą: `npm run check`
-- [ ] 2.3 Build przechodzi: `npm run build`
+- [x] 2.1 Testy frontendu przechodzą, w tym nowy `budget-category-cells.test.ts`: `npm test`
+- [x] 2.2 Lint i formatowanie przechodzą: `npm run check`
+- [x] 2.3 Build przechodzi: `npm run build`
 
 ### Phase 3: Widok — strona (C1, C3)
 
