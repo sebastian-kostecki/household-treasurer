@@ -29,7 +29,7 @@ Props are PHP arrays in controllers and hand-written TypeScript types in `define
 
 `app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. The calculators are covered by `tests/Unit/MonthRemainingCalculatorTest.php` and `resources/js/lib/month-remaining-calculator.test.ts`; the two preview files have no tests. Change both copies and both tests together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.
 
-`app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit.
+`app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit. It also feeds the entry warning ("do wydania" below zero) in `resources/js/lib/entry-to-spend-warning.ts` and `import-to-spend-warnings.ts`, both covered by `*.test.ts` next to them, so a change to the calculator affects the hand-entry and Import previews too.
 
 ## Wayfinder
 
