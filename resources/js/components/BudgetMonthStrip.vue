@@ -63,13 +63,13 @@ const viewedMonthLabel = computed(() => {
             />
             <p
                 v-if="monthToSpend?.state === 'none'"
-                class="text-muted-foreground text-sm"
+                class="text-muted-foreground flex min-h-7 items-center text-sm"
             >
                 {{ t.month_plan.none_title }}
             </p>
             <div
                 v-else-if="monthToSpend"
-                class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
+                class="flex min-h-7 flex-wrap items-center justify-between gap-x-4 gap-y-2"
             >
                 <div class="flex flex-wrap items-center gap-2">
                     <span

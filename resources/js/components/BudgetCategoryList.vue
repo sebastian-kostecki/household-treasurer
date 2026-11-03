@@ -2,6 +2,7 @@
 import { useHttp } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import draggable from 'vuedraggable';
 import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
 import BudgetAmountCell from '@/components/BudgetAmountCell.vue';
@@ -136,6 +137,13 @@ const filteredArchivedCategories = computed(() =>
     archivedCategories.value.filter(matchesNameFilter),
 );
 
+const hasNoFilterResults = computed(
+    () =>
+        isFiltering.value &&
+        !activeCategories.value.some(matchesNameFilter) &&
+        filteredArchivedCategories.value.length === 0,
+);
+
 const totalsAreOverLimit = computed(
     () =>
         props.categoryType === 'expense' &&
@@ -160,6 +168,7 @@ async function onDragEnd(): Promise<void> {
         await reorderHttp.patch(reorder.url(props.budgetId));
     } catch {
         localCategories.value = [...orderBeforeDrag.value];
+        toast.error(t.budget.reorder_failed);
     }
 }
 </script>
@@ -222,7 +231,7 @@ async function onDragEnd(): Promise<void> {
                 tag="div"
                 item-key="id"
                 handle=".drag-handle"
-                :disabled="!canDrag"
+                :disabled="!canDrag || reorderHttp.processing"
                 :animation="150"
                 ghost-class="opacity-50"
                 @start="onDragStart"
@@ -239,6 +248,13 @@ async function onDragEnd(): Promise<void> {
                     />
                 </template>
             </draggable>
+            <p
+                v-if="hasNoFilterResults"
+                class="text-muted-foreground px-4 py-6 text-center text-sm"
+                role="status"
+            >
+                {{ t.budget.filter_no_results }}
+            </p>
             <div
                 class="budget-category-grid budget-category-totals-row font-semibold"
                 :class="{

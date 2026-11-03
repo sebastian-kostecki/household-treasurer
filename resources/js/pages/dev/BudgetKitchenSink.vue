@@ -193,6 +193,37 @@ const showArchivedUnchecked = ref(false);
 const createBudgetOpen = ref(false);
 
 const noop = (): void => undefined;
+
+const stateMatrix: { state: string; where: string }[] = [
+    {
+        state: 'default',
+        where: 'Wszystkie sekcje poniżej (szkic, realizacja, archiwum, paski).',
+    },
+    {
+        state: 'hover',
+        where: 'Najedź na wiersz akcji, przyciski, miesiące i uchwyt przeciągania w sekcjach list.',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Sekcja „Fokus”: przejdź Tab-em przez filtr, przycisk dodawania, wyzwalacz archiwum, menu akcji, checkbox i miesiące. Uchwyt przeciągania: N/A, bo jest tylko dla wskaźnika (tabindex -1), a przestawianie z klawiatury jest odroczone.',
+    },
+    {
+        state: 'disabled',
+        where: 'Sekcja „Bez zmiany kolejności” (canReorder = false: brak uchwytów). Przycisk w trakcie wysyłki dialogu: otwórz „Dodaj” w sekcji „Brak budżetu” i wyślij formularz.',
+    },
+    {
+        state: 'error',
+        where: 'N/A w fiksurach: błąd zmiany kolejności to toast sprawdzany ręcznie w podglądzie (DevTools offline + przeciągnięcie w prawdziwym /budget).',
+    },
+    {
+        state: 'empty',
+        where: 'Sekcje „Pusta lista”, „Brak budżetu” oraz „14 kategorii” z frazą bez trafień.',
+    },
+    {
+        state: 'loading',
+        where: 'N/A dla listy: dane przychodzą z serwera razem ze stroną. Wizyta miesiąca (aria-busy, natychmiastowe zaznaczenie) jest sprawdzana ręcznie na /budget z „Slow 3G”.',
+    },
+];
 </script>
 
 <template>
@@ -207,6 +238,20 @@ const noop = (): void => undefined;
                 nie istnieją w bazie.
             </p>
         </header>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-matrix">
+            <h2 id="ks-matrix" class="text-base font-semibold">
+                Macierz stanów
+            </h2>
+            <ul class="flex flex-col gap-2 text-sm">
+                <li v-for="entry in stateMatrix" :key="entry.state">
+                    <span class="font-medium">{{ entry.state }}:</span>
+                    <span class="text-muted-foreground">
+                        {{ entry.where }}
+                    </span>
+                </li>
+            </ul>
+        </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-draft">
             <h2 id="ks-draft" class="text-base font-semibold">
@@ -318,6 +363,10 @@ const noop = (): void => undefined;
             <h2 id="ks-many" class="text-base font-semibold">
                 14 kategorii (widoczny filtr nazw)
             </h2>
+            <p class="text-muted-foreground text-sm">
+                Wpisz „zzz”, aby zobaczyć komunikat braku wyników; po
+                wyczyszczeniu wiersze wracają.
+            </p>
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="manyCategories"
@@ -400,6 +449,15 @@ const noop = (): void => undefined;
                     to_spend_minor_units: -25000,
                 }"
             />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-focus">
+            <h2 id="ks-focus" class="text-base font-semibold">Fokus</h2>
+            <p class="text-muted-foreground text-sm">
+                Przejdź Tab-em przez listy powyżej, paski miesiąca i
+                przełączniki poniżej: każda kontrolka ma pierścień ring i
+                dostępną nazwę.
+            </p>
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-toggle">

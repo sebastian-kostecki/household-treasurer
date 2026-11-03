@@ -275,6 +275,8 @@ return [
         'planned_balance' => 'Bilans',
         'plan' => 'Plan',
         'filter_by_name' => 'Filtruj po nazwie',
+        'filter_no_results' => 'Brak kategorii pasujących do filtra',
+        'reorder_failed' => 'Nie udało się zapisać kolejności. Przywrócono poprzednią.',
         'archived_section' => 'Zarchiwizowane kategorie',
         'totals' => 'Razem',
         'more_actions' => 'Więcej akcji',
