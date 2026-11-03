@@ -56,6 +56,23 @@ Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy do
 
 Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `StatTile` (kafelek KPI: etykieta, kwota z `amountToneClass`, sloty `label-extra` i `footer`). Ikony: `@lucide/vue`, 16 px w kontrolkach.
 
+## Sidebar
+
+Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`; nie ma tokenu `--sidebar`.
+
+| Token (utility)                                  | Rola                                                                 |
+| ------------------------------------------------ | -------------------------------------------------------------------- |
+| `sidebar` (z `--sidebar-background`)             | tło sidebara                                                         |
+| `sidebar-foreground`                             | tekst i ikony pozycji menu                                           |
+| `sidebar-primary` / `sidebar-primary-foreground` | kafelek logo; czytają je też `Welcome.vue` i `LandingAppPreview.vue` |
+| `sidebar-accent` / `sidebar-accent-foreground`   | hover, aktywna pozycja menu, otwarte menu, kafelek przełącznika roku |
+| `sidebar-border`                                 | obramowania i separatory sidebara                                    |
+| `sidebar-ring`                                   | fokus                                                                |
+
+- Glif na `sidebar-primary` jest jasny w obu trybach. W trybie ciemnym ma ok. 3,3:1, co wystarcza dla grafiki (WCAG 1.4.11), więc na `sidebar-primary` w trybie ciemnym nie kładziemy tekstu.
+- Wszystko w slotach `SidebarHeader` / `SidebarFooter` budujemy z `SidebarMenuButton` (albo obsługujemy `group-data-[collapsible=icon]`), żeby działało w pasie 3rem po zwinięciu.
+- Aktywna pozycja menu: `isCurrentSection` (ścieżka i jej podstrony; `resources/js/lib/nav-active.ts`).
+
 ## Tryb ciemny
 
 Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `.dark`, więc komponent nie potrzebuje wariantów `dark:`, jeśli używa tokenów. Kolorów palety Tailwinda w komponentach nie ma, więc warianty `dark:` do kolorów nie są potrzebne.

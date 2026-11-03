@@ -440,32 +440,32 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 
 #### Automated
 
-- [x] 1.1 Merge `development` jest w historii gałęzi
-- [x] 1.2 Test helpera aktywnej sekcji przechodzi: `npm test`
-- [x] 1.3 Lint i format przechodzą: `npm run check`
-- [x] 1.4 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check`
-- [x] 1.5 Testy kitchen sinka i powłoki przechodzą w obrazie Sail na worktree
-- [x] 1.6 Pint i Sloppy przechodzą
+- [x] 1.1 Merge `development` jest w historii gałęzi — cc5a14b
+- [x] 1.2 Test helpera aktywnej sekcji przechodzi: `npm test` — cc5a14b
+- [x] 1.3 Lint i format przechodzą: `npm run check` — cc5a14b
+- [x] 1.4 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check` — cc5a14b
+- [x] 1.5 Testy kitchen sinka i powłoki przechodzą w obrazie Sail na worktree — cc5a14b
+- [x] 1.6 Pint i Sloppy przechodzą — cc5a14b
 
 #### Manual
 
-- [x] 1.7 `/dev/ui/sidebar` pokazuje cztery ramki z nagłówkami, każda z własnym sidebarem w granicach ramki
-- [x] 1.8 Sidebar w aplikacji wygląda tak samo jak na zrzutach `before/` z researchu
-- [x] 1.9 Zrzuty `sink-desktop-{light,dark}.png` są w `screenshots/before/`
+- [x] 1.7 `/dev/ui/sidebar` pokazuje cztery ramki z nagłówkami, każda z własnym sidebarem w granicach ramki — cc5a14b
+- [x] 1.8 Sidebar w aplikacji wygląda tak samo jak na zrzutach `before/` z researchu — cc5a14b
+- [x] 1.9 Zrzuty `sink-desktop-{light,dark}.png` są w `screenshots/before/` — cc5a14b
 
 ### Phase 2: Wartości tokenów (C4)
 
 #### Automated
 
-- [ ] 2.1 Martwy token `--sidebar` zniknął z `app.css`
-- [ ] 2.2 Nic nie czyta `var(--sidebar)`
-- [ ] 2.3 Lint, format i sortowanie klas przechodzą: `npm run check`
-- [ ] 2.4 Build CSS przechodzi: `npm run build`
+- [x] 2.1 Martwy token `--sidebar` zniknął z `app.css`
+- [x] 2.2 Nic nie czyta `var(--sidebar)`
+- [x] 2.3 Lint, format i sortowanie klas przechodzą: `npm run check`
+- [x] 2.4 Build CSS przechodzi: `npm run build`
 
 #### Manual
 
-- [ ] 2.5 Sidebar i landing wyglądają tak samo jak przed fazą, w obu motywach
-- [ ] 2.6 `design-system.md` ma sekcję „Sidebar” z rolami tokenów, uwagą o kontraście glifu i zasadą trybu ikon
+- [x] 2.5 Sidebar i landing wyglądają tak samo jak przed fazą, w obu motywach
+- [x] 2.6 `design-system.md` ma sekcję „Sidebar” z rolami tokenów, uwagą o kontraście glifu i zasadą trybu ikon
 
 ### Phase 3: Jeden widok (C1, C2, C3, C5)
 
