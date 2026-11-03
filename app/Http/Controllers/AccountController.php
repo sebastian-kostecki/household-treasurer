@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Models\Account;
 use App\Support\AccountIdentity;
+use App\Support\SpendableLiquidity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class AccountController extends Controller
 
         return Inertia::render('Accounts', [
             'accounts' => $accounts,
-            'liquidity_total_minor_units' => $allAccounts->sum('current_balance_minor_units'),
+            'liquidity_total_minor_units' => SpendableLiquidity::forUser($request->user()),
             'show_archived' => $showArchived,
         ]);
     }
@@ -54,7 +55,7 @@ class AccountController extends Controller
             'message' => __('Account created.'),
         ]);
 
-        return to_route('accounts.index');
+        return $this->redirectToIndex($request);
     }
 
     public function update(UpdateAccountRequest $request, Account $account): RedirectResponse
@@ -73,7 +74,7 @@ class AccountController extends Controller
             'message' => __('Account updated.'),
         ]);
 
-        return to_route('accounts.index');
+        return $this->redirectToIndex($request);
     }
 
     public function destroy(Request $request, Account $account): RedirectResponse
@@ -93,7 +94,7 @@ class AccountController extends Controller
             'message' => __('Account deleted.'),
         ]);
 
-        return to_route('accounts.index');
+        return $this->redirectToIndex($request);
     }
 
     public function archive(Request $request, Account $account): RedirectResponse
@@ -107,7 +108,7 @@ class AccountController extends Controller
             'message' => __('Account archived.'),
         ]);
 
-        return to_route('accounts.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return $this->redirectToIndex($request);
     }
 
     public function restore(Request $request, Account $account): RedirectResponse
@@ -121,6 +122,11 @@ class AccountController extends Controller
             'message' => __('Account restored.'),
         ]);
 
+        return $this->redirectToIndex($request);
+    }
+
+    private function redirectToIndex(Request $request): RedirectResponse
+    {
         return to_route('accounts.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 

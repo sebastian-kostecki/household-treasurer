@@ -493,35 +493,35 @@ Bez migracji danych.
 
 #### Automated
 
-- [x] 2.1 Lint, format i skan przechodzą: `npm run check && npm run check:ui`
-- [x] 2.2 Typy przechodzą: `npm run types:check`
-- [x] 2.3 Testy frontendu przechodzą: `npm test`
+- [x] 2.1 Lint, format i skan przechodzą: `npm run check && npm run check:ui` — 914fe15
+- [x] 2.2 Typy przechodzą: `npm run types:check` — 914fe15
+- [x] 2.3 Testy frontendu przechodzą: `npm test` — 914fe15
 
 #### Manual
 
-- [x] 2.4 W dialogu „Dodaj konto” wyzwalacz banku ma te same rogi co pole „Nazwa”, a otwarta lista też ma `rounded-xl`
-- [x] 2.5 Tab do X w dowolnym dialogu pokazuje pierścień 3 px `ring/50`, a klik myszą go nie pokazuje
-- [x] 2.6 Formularze z `Select` poza Kontami (wydatek z `CategorySelect`, przelew własny z `AccountSelect`, ruch kapitału) wyglądają poprawnie w obu motywach
-- [x] 2.7 Zrzuty `after-phase-2/` są w folderze zmiany
+- [x] 2.4 W dialogu „Dodaj konto” wyzwalacz banku ma te same rogi co pole „Nazwa”, a otwarta lista też ma `rounded-xl` — 914fe15
+- [x] 2.5 Tab do X w dowolnym dialogu pokazuje pierścień 3 px `ring/50`, a klik myszą go nie pokazuje — 914fe15
+- [x] 2.6 Formularze z `Select` poza Kontami (wydatek z `CategorySelect`, przelew własny z `AccountSelect`, ruch kapitału) wyglądają poprawnie w obu motywach — 914fe15
+- [x] 2.7 Zrzuty `after-phase-2/` są w folderze zmiany — 914fe15
 
 ### Phase 3: Jeden widok (C1–C5)
 
 #### Automated
 
-- [ ] 3.1 Testy kont przechodzą (redirect z filtrem dla 5 akcji, suma płynności): `php artisan test --compact tests/Feature/AccountTest.php tests/Feature/ArchiveAccountTest.php`
-- [ ] 3.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku>`
-- [ ] 3.3 Lint, format, typy i testy frontendu (w tym `ui-contract.test.ts` bez wpisu `pages/Accounts.vue`) przechodzą: `npm run check && npm run types:check && npm test`
-- [ ] 3.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [ ] 3.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 3.1 Testy kont przechodzą (redirect z filtrem dla 5 akcji, suma płynności): `php artisan test --compact tests/Feature/AccountTest.php tests/Feature/ArchiveAccountTest.php`
+- [x] 3.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku>`
+- [x] 3.3 Lint, format, typy i testy frontendu (w tym `ui-contract.test.ts` bez wpisu `pages/Accounts.vue`) przechodzą: `npm run check && npm run types:check && npm test`
+- [x] 3.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 3.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
 
 #### Manual
 
-- [ ] 3.6 Na podglądzie: zaznaczenie „Pokaż zarchiwizowane” pokazuje zarchiwizowane konta i zmienia URL, odznaczenie je chowa, a odświeżenie z `?show_archived=1` pokazuje zaznaczony przełącznik
-- [ ] 3.7 Z włączonym filtrem: archiwizacja, przywrócenie, edycja i dodanie konta wracają do listy z włączonym filtrem
-- [ ] 3.8 Dialog usuwania ma czerwony przycisk ze spinnerem w trakcie żądania, a Anuluj, X i Escape nie zamykają go w tym czasie
-- [ ] 3.9 Selektor banku pokazuje te same kafelki co lista, a „Inny bank” ma ikonę budynku
-- [ ] 3.10 Suma 0 zł jest bez koloru, ujemna czerwona, dodatnia zielona, z etykietą „Płynność dysponowalna”; „Konta” pada raz poza okruszkami
-- [ ] 3.11 Zrzuty `after-phase-3/` są w folderze zmiany
+- [x] 3.6 Na podglądzie: zaznaczenie „Pokaż zarchiwizowane” pokazuje zarchiwizowane konta i zmienia URL, odznaczenie je chowa, a odświeżenie z `?show_archived=1` pokazuje zaznaczony przełącznik
+- [x] 3.7 Z włączonym filtrem: archiwizacja, przywrócenie, edycja i dodanie konta wracają do listy z włączonym filtrem
+- [x] 3.8 Dialog usuwania ma czerwony przycisk ze spinnerem w trakcie żądania, a Anuluj, X i Escape nie zamykają go w tym czasie
+- [x] 3.9 Selektor banku pokazuje te same kafelki co lista, a „Inny bank” ma ikonę budynku
+- [x] 3.10 Suma 0 zł jest bez koloru, ujemna czerwona, dodatnia zielona, z etykietą „Płynność dysponowalna”; „Konta” pada raz poza okruszkami
+- [x] 3.11 Zrzuty `after-phase-3/` są w folderze zmiany
 
 ### Phase 4: Stany
 

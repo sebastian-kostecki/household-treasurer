@@ -31,6 +31,7 @@ const props = defineProps<{
     open: boolean;
     mode: 'create' | 'edit';
     account?: AccountFormAccount | null;
+    showArchived?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -46,11 +47,15 @@ const openingDate = ref('');
 const openingBalanceInput = ref('0,00');
 const openingBalanceMinorUnits = ref(0);
 
-const formBinding = computed(() =>
-    props.mode === 'create'
-        ? AccountController.store.form()
-        : AccountController.update.form(props.account ?? { id: 0 }),
-);
+const formBinding = computed(() => {
+    const options = props.showArchived
+        ? { query: { show_archived: 1 } }
+        : undefined;
+
+    return props.mode === 'create'
+        ? AccountController.store.form(options)
+        : AccountController.update.form(props.account ?? { id: 0 }, options);
+});
 
 watch(
     () => [props.open, props.mode, props.account] as const,

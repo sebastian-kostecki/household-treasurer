@@ -376,7 +376,7 @@ return [
         'show_archived' => 'Pokaż zarchiwizowane',
         'add' => 'Dodaj konto',
         'add_hint' => 'Funkcja dostępna wkrótce',
-        'liquidity_total' => 'Łączna płynność',
+        'liquidity_total' => 'Płynność dysponowalna',
         'current_balance' => 'Saldo bieżące',
         'opening_balance' => 'Saldo otwarcia',
         'opening_date' => 'Data otwarcia',

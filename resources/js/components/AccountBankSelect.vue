@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
 import {
     Select,
     SelectContent,
@@ -52,22 +53,12 @@ function bankLabel(bank: AccountBank): string {
         <SelectTrigger id="account-bank" class="w-full">
             <SelectValue>
                 <span class="flex items-center gap-2">
-                    <span
-                        class="border-border/60 bg-muted flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-lg border"
-                    >
-                        <img
-                            v-if="bankMarkPath(selectedBank)"
-                            :src="bankMarkPath(selectedBank)!"
-                            :alt="bankLabel(selectedBank)"
-                            class="size-full object-cover"
-                        />
-                        <span
-                            v-else
-                            class="text-muted-foreground text-[10px] font-medium"
-                        >
-                            •
-                        </span>
-                    </span>
+                    <AccountMarkCompact
+                        type="bank"
+                        :bank="selectedBank"
+                        :mark_url="bankMarkPath(selectedBank)"
+                        :name="bankLabel(selectedBank)"
+                    />
                     <span>{{ bankLabel(selectedBank) }}</span>
                 </span>
             </SelectValue>
@@ -75,22 +66,12 @@ function bankLabel(bank: AccountBank): string {
         <SelectContent>
             <SelectItem v-for="bank in bankOptions" :key="bank" :value="bank">
                 <span class="flex items-center gap-2">
-                    <span
-                        class="border-border/60 bg-muted flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-lg border"
-                    >
-                        <img
-                            v-if="bankMarkPath(bank)"
-                            :src="bankMarkPath(bank)!"
-                            :alt="bankLabel(bank)"
-                            class="size-full object-cover"
-                        />
-                        <span
-                            v-else
-                            class="text-muted-foreground text-[10px] font-medium"
-                        >
-                            •
-                        </span>
-                    </span>
+                    <AccountMarkCompact
+                        type="bank"
+                        :bank="bank"
+                        :mark_url="bankMarkPath(bank)"
+                        :name="bankLabel(bank)"
+                    />
                     <span>{{ bankLabel(bank) }}</span>
                 </span>
             </SelectItem>
