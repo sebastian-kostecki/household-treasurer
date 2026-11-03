@@ -52,6 +52,10 @@ export function parseMoneyInputToMinorUnits(value: string): number | null {
     const gr = Number.parseInt(grPart.padEnd(2, '0').slice(0, 2), 10);
     const minorUnits = zl * 100 + gr;
 
+    if (!Number.isSafeInteger(minorUnits)) {
+        return null;
+    }
+
     return negative ? -minorUnits : minorUnits;
 }
 

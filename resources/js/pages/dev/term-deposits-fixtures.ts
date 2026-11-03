@@ -67,6 +67,7 @@ const activeRows = [
         can_delete: true,
     }),
     termDeposit(4, 'Lokata Pekao ujemna', 'pekao', -35000, {
+        can_delete: true,
         can_archive: false,
     }),
 ];
@@ -96,6 +97,22 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
             term_deposits_total_minor_units: 1983000,
             archived_term_deposits_total_minor_units: 288000,
             archived_term_deposits_count: 3,
+            show_archived: true,
+        },
+    },
+    {
+        key: 'with-archived-negative',
+        title: 'with-archived-negative: zarchiwizowane saldo ujemne, stopka sumy na czerwono',
+        props: {
+            termDeposits: [
+                termDeposit(41, 'Lokata mBank 6M', 'mbank', 500000, {
+                    can_delete: true,
+                }),
+                archived(42, 'Zarchiwizowana ujemna', 'other', -30000),
+            ],
+            term_deposits_total_minor_units: 470000,
+            archived_term_deposits_total_minor_units: -30000,
+            archived_term_deposits_count: 1,
             show_archived: true,
         },
     },

@@ -168,6 +168,25 @@ class ArchiveTermDepositTest extends TestCase
         }
     }
 
+    public function test_archived_totals_ignore_other_users_term_deposits(): void
+    {
+        $user = User::factory()->create();
+        TermDeposit::factory()->for(User::factory()->create())->archived()->create([
+            'current_balance_minor_units' => 70000,
+            'opening_balance_minor_units' => 70000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('term-deposits.index', ['show_archived' => 1]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('termDeposits', 0)
+                ->where('term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_count', 0),
+            );
+    }
+
     public function test_archived_term_deposit_with_zero_balance_is_counted_with_zero_amount(): void
     {
         $user = User::factory()->create();

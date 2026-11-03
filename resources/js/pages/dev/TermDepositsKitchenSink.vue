@@ -14,7 +14,7 @@ const errorDialogOpen = ref(false);
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-total, negative-total i with-archived poniżej (stopka sumy „W tym zarchiwizowane”, zarchiwizowane saldo ujemne na czerwono).',
+        where: 'Scenariusze default, zero-total, negative-total, with-archived i with-archived-negative poniżej (stopka sumy „W tym zarchiwizowane”, zarchiwizowane saldo ujemne na czerwono w wierszu i w stopce).',
     },
     {
         state: 'hover',

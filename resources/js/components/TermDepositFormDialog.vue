@@ -44,9 +44,11 @@ const bank = ref<AccountBank>('other');
 const openingDate = ref('');
 const endDate = ref('');
 const openingBalanceInput = ref('0,00');
-const openingBalanceMinorUnits = ref(0);
+const openingBalanceMinorUnits = computed(() =>
+    parseMoneyInputToMinorUnits(openingBalanceInput.value),
+);
 const openingBalanceInvalid = computed(
-    () => parseMoneyInputToMinorUnits(openingBalanceInput.value) === null,
+    () => openingBalanceMinorUnits.value === null,
 );
 
 const formBinding = computed(() => {
@@ -63,8 +65,10 @@ const formBinding = computed(() => {
 });
 
 const projectedCurrentBalanceMinorUnits = computed(() => {
+    const openingBalance = openingBalanceMinorUnits.value ?? 0;
+
     if (props.mode === 'create') {
-        return openingBalanceMinorUnits.value;
+        return openingBalance;
     }
 
     if (!props.termDeposit) {
@@ -72,14 +76,15 @@ const projectedCurrentBalanceMinorUnits = computed(() => {
     }
 
     const openingDelta =
-        openingBalanceMinorUnits.value -
-        props.termDeposit.opening_balance_minor_units;
+        openingBalance - props.termDeposit.opening_balance_minor_units;
 
     return props.termDeposit.current_balance_minor_units + openingDelta;
 });
 
 const showNegativeBalanceWarning = computed(
-    () => projectedCurrentBalanceMinorUnits.value < 0,
+    () =>
+        !openingBalanceInvalid.value &&
+        projectedCurrentBalanceMinorUnits.value < 0,
 );
 
 watch(
@@ -94,8 +99,6 @@ watch(
             bank.value = props.termDeposit.bank;
             openingDate.value = props.termDeposit.opening_date;
             endDate.value = props.termDeposit.end_date ?? '';
-            openingBalanceMinorUnits.value =
-                props.termDeposit.opening_balance_minor_units;
             openingBalanceInput.value = minorUnitsToMoneyInput(
                 props.termDeposit.opening_balance_minor_units,
             );
@@ -107,32 +110,35 @@ watch(
         bank.value = 'other';
         openingDate.value = new Date().toISOString().slice(0, 10);
         endDate.value = '';
-        openingBalanceMinorUnits.value = 0;
         openingBalanceInput.value = '0,00';
     },
     { immediate: true },
 );
 
-watch(openingBalanceInput, (value) => {
-    const parsed = parseMoneyInputToMinorUnits(value);
-
-    if (parsed !== null) {
-        openingBalanceMinorUnits.value = parsed;
-    }
-});
+const busy = ref(false);
 
 function closeDialog(): void {
     emit('update:open', false);
 }
+
+function onOpenChange(next: boolean): void {
+    if (!next && busy.value) {
+        return;
+    }
+
+    emit('update:open', next);
+}
 </script>
 
 <template>
-    <Dialog :open="open" @update:open="emit('update:open', $event)">
-        <DialogContent>
+    <Dialog :open="open" @update:open="onOpenChange">
+        <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="formBinding"
                 class="space-y-4"
                 reset-on-success
+                @start="busy = true"
+                @finish="busy = false"
                 @success="closeDialog"
                 v-slot="{ errors, processing, reset, clearErrors }"
             >
@@ -228,7 +234,7 @@ function closeDialog(): void {
                     <input
                         type="hidden"
                         name="opening_balance_minor_units"
-                        :value="openingBalanceMinorUnits"
+                        :value="openingBalanceMinorUnits ?? ''"
                     />
                     <InputError
                         :message="
@@ -250,6 +256,7 @@ function closeDialog(): void {
                         <Button
                             type="button"
                             variant="secondary"
+                            :disabled="processing"
                             @click="
                                 () => {
                                     clearErrors();
