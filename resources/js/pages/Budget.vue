@@ -156,7 +156,13 @@ function toggleShowArchived(checked: boolean): void {
             },
         }),
         {},
-        { preserveState: true, preserveScroll: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: () => {
+                showArchived.value = props.show_archived;
+            },
+        },
     );
 }
 

@@ -1,7 +1,7 @@
 ---
 change_id: budget-view-ui
 title: Budget view ui
-status: implementing
+status: impl_reviewed
 created: 2026-11-03
 updated: 2026-11-03
 archived_at: null

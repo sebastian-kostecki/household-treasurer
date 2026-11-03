@@ -521,6 +521,14 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 - Toast: `resources/js/lib/flashToast.ts`
 - Issue źródłowe: GitHub #21 (story 14), #25
 
+## Addendum po przeglądzie implementacji (2026-11-03)
+
+Odstępstwa od brzmienia planu bez zmiany intencji (`reviews/impl-review.md`, F4):
+
+- `BudgetAmountCell` ma propsy `amount` i `labelHidden` poza kontraktem (formatowanie kwoty w komórce; ukryta etykieta dla komórki planu).
+- `canDrag` w `BudgetCategoryList.vue` to `canReorder && !isFiltering`; blokada na czas zapisu jest w `:disabled="!canDrag || reorderHttp.processing"`.
+- `pendingMonth` w `BudgetMonthPicker.vue` jest ustawiane w `onStart` wizyty, nie przy samym kliknięciu; czyszczone w `onFinish` tylko dla tego samego miesiąca.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -559,7 +567,7 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 - [x] 3.5 W podglądzie klik „Pokaż zarchiwizowane” pokazuje i ukrywa zarchiwizowane kategorie; wejście z `?show_archived=1` pokazuje zaznaczone pole, które da się odznaczyć; przełączenie miesiąca zachowuje stan pola — 7b8c991
 - [x] 3.6 Konto bez budżetu: wyśrodkowany pusty stan z `<h1>` „Budżet”, tekst „Nie masz jeszcze budżetu”, dialog tworzenia działa — 7b8c991
-- [x] 3.7 Zrzuty desktop + 390 px (`p3-*.png`) — 7b8c991
+- [ ] 3.7 Zrzuty desktop + 390 px (`p3-*.png`)
 
 ### Phase 4: Widok — jedna lista (C2, C5)
 
@@ -573,7 +581,7 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Manual
 
-- [x] 4.6 Desktop: kolumny i wartości odpowiadają zrzutowi „przed” (poza zamierzonymi zmianami: kolor archiwum); nagłówek i suma przyklejone przy długiej liście — c190eb0
+- [ ] 4.6 Desktop: kolumny i wartości odpowiadają zrzutowi „przed” (poza zamierzonymi zmianami: kolor archiwum); nagłówek i suma przyklejone przy długiej liście
 - [x] 4.7 390 px: wiersze w jednym `ListSurface`, kolejność kwot jak na desktopie, suma na końcu listy, bez zagnieżdżonego przewijania — c190eb0
 - [x] 4.8 Przeciąganie zmienia kolejność na desktopie i na telefonie (dotyk), a po odświeżeniu kolejność zostaje — c190eb0
 - [x] 4.9 Zarchiwizowany wydatek ponad limit jest w całości wyciszony — c190eb0
@@ -594,7 +602,7 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 - [x] 5.6 DevTools offline + przeciągnięcie: kolejność wraca i pojawia się toast; w trakcie zapisu nie da się przeciągnąć drugi raz — c543590
 - [x] 5.7 DevTools „Slow 3G” + klik w miesiąc: miesiąc zaznacza się od razu (na `/budget` i na MonthPlan), pasek nie skacze — c543590
 - [x] 5.8 Tab przez stronę: każda kontrolka ma widoczny pierścień `ring` i dostępną nazwę (filtr ogłaszany z nazwą) — c543590
-- [x] 5.9 Zrzuty desktop + 390 px (`p5-*.png`) — c543590
+- [ ] 5.9 Zrzuty desktop + 390 px (`p5-*.png`)
 
 ### Phase 6: Zabezpieczenie — strażnik, issue, reguła
 

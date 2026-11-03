@@ -209,7 +209,7 @@ const stateMatrix: { state: string; where: string }[] = [
     },
     {
         state: 'disabled',
-        where: 'Sekcja „Bez zmiany kolejności” (canReorder = false: brak uchwytów). Przycisk w trakcie wysyłki dialogu: otwórz „Dodaj” w sekcji „Brak budżetu” i wyślij formularz.',
+        where: 'Sekcja „Bez zmiany kolejności” (canReorder = false: brak uchwytów). Przycisk w trakcie wysyłki dialogu: otwórz „Dodaj” w sekcji „Brak budżetu” i wyślij formularz. Uwaga: to prawdziwa trasa, więc wysłanie utworzy budżet na koncie deweloperskim.',
     },
     {
         state: 'error',

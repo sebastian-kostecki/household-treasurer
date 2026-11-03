@@ -45,7 +45,9 @@ function selectMonth(month: number): void {
                 pendingMonth.value = month;
             },
             onFinish: () => {
-                pendingMonth.value = null;
+                if (pendingMonth.value === month) {
+                    pendingMonth.value = null;
+                }
             },
         },
     );
