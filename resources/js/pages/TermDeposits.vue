@@ -1,34 +1,21 @@
 <script setup lang="ts">
-import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import TermDepositController from '@/actions/App/Http/Controllers/TermDepositController';
-import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import StatTile from '@/components/StatTile.vue';
+import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
+import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoney } from '@/lib/format';
 import { index as termDepositsRoute } from '@/routes/term-deposits';
 import type {
@@ -44,10 +31,24 @@ const createDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingTermDeposit = ref<TermDepositRow | null>(null);
 
-const totalClass = computed(() =>
-    props.term_deposits_total_minor_units < 0
-        ? 'text-destructive'
-        : 'text-success',
+const showArchived = ref(props.show_archived);
+const isTogglingArchived = ref(false);
+
+watch(
+    () => props.show_archived,
+    (value) => {
+        showArchived.value = value;
+    },
+);
+
+watch(showArchived, (value) => {
+    if (value !== props.show_archived) {
+        toggleShowArchived(value);
+    }
+});
+
+const filterQuery = computed(() =>
+    props.show_archived ? { query: { show_archived: 1 } } : undefined,
 );
 
 setLayoutProps({
@@ -59,16 +60,15 @@ setLayoutProps({
     ],
 });
 
-function balanceClass(termDeposit: TermDepositRow): string {
-    if (termDeposit.is_negative) {
-        return 'text-destructive';
+function balanceClass(termDeposit: TermDepositRow): string | undefined {
+    if (
+        termDeposit.is_archived &&
+        termDeposit.current_balance_minor_units >= 0
+    ) {
+        return undefined;
     }
 
-    if (termDeposit.current_balance_minor_units > 0) {
-        return 'text-success';
-    }
-
-    return '';
+    return amountToneClass(termDeposit.current_balance_minor_units);
 }
 
 function openEditDialog(termDeposit: TermDepositRow): void {
@@ -82,7 +82,17 @@ function toggleShowArchived(checked: boolean): void {
             query: { show_archived: checked ? 1 : undefined },
         }),
         {},
-        { preserveState: true, preserveScroll: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onStart: () => {
+                isTogglingArchived.value = true;
+            },
+            onFinish: () => {
+                isTogglingArchived.value = false;
+                showArchived.value = props.show_archived;
+            },
+        },
     );
 }
 </script>
@@ -98,22 +108,16 @@ function toggleShowArchived(checked: boolean): void {
             </Button>
         </div>
 
-        <Card>
-            <CardHeader class="pb-2">
-                <CardDescription>
-                    {{ t.term_deposits.total }}
-                </CardDescription>
-                <CardTitle class="text-2xl" :class="totalClass">
-                    {{ formatMoney(term_deposits_total_minor_units) }}
-                </CardTitle>
-            </CardHeader>
-        </Card>
+        <StatTile
+            :label="t.term_deposits.total"
+            :amount-minor-units="term_deposits_total_minor_units"
+        />
 
         <div class="flex items-center gap-2">
             <Checkbox
                 id="show-archived-term-deposits"
-                :checked="show_archived"
-                @update:checked="toggleShowArchived"
+                v-model="showArchived"
+                :disabled="isTogglingArchived"
             />
             <Label
                 for="show-archived-term-deposits"
@@ -135,16 +139,12 @@ function toggleShowArchived(checked: boolean): void {
             </template>
         </IndexEmptyState>
 
-        <ListSurface
-            v-else
-            :title="t.term_deposits.title"
-            :description="t.term_deposits.list_description"
-        >
+        <ListSurface v-else :description="t.term_deposits.list_description">
             <div
                 v-for="termDeposit in termDeposits"
                 :key="termDeposit.id"
                 class="border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0"
-                :class="termDeposit.is_archived ? 'opacity-60' : ''"
+                :class="termDeposit.is_archived ? 'text-muted-foreground' : ''"
             >
                 <AccountIdentityBlock
                     class="min-w-0 flex-1 basis-40"
@@ -187,158 +187,86 @@ function toggleShowArchived(checked: boolean): void {
                         :label="t.term_deposits.edit"
                         @click="openEditDialog(termDeposit)"
                     />
-                    <Dialog v-if="termDeposit.can_delete">
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="Trash2"
-                            :label="t.term_deposits.delete"
-                            destructive
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="
-                                    TermDepositController.destroy.form(
-                                        termDeposit,
-                                    )
-                                "
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{
-                                            t.term_deposits.delete_confirm_title
-                                        }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.term_deposits.delete_confirm_body
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.term_deposits.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.term_deposits.delete }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
-                    <Dialog v-if="termDeposit.can_archive">
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="Archive"
-                            :label="t.term_deposits.archive"
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="
-                                    TermDepositController.archive.form(
-                                        termDeposit,
-                                    )
-                                "
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{
-                                            t.term_deposits
-                                                .archive_confirm_title
-                                        }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.term_deposits.archive_confirm_body
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.term_deposits.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.term_deposits.archive }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
-                    <Dialog v-if="termDeposit.can_restore">
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="ArchiveRestore"
-                            :label="t.term_deposits.restore"
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="
-                                    TermDepositController.restore.form(
-                                        termDeposit,
-                                    )
-                                "
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{
-                                            t.term_deposits
-                                                .restore_confirm_title
-                                        }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.term_deposits.restore_confirm_body
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.term_deposits.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.term_deposits.restore }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                    <ConfirmActionDialog
+                        v-if="termDeposit.can_delete"
+                        :form="
+                            TermDepositController.destroy.form(
+                                termDeposit,
+                                filterQuery,
+                            )
+                        "
+                        :title="t.term_deposits.delete_confirm_title"
+                        :description="t.term_deposits.delete_confirm_body"
+                        :confirm-label="t.term_deposits.delete"
+                        :cancel-label="t.term_deposits.cancel"
+                        destructive
+                    >
+                        <template #trigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="Trash2"
+                                :label="t.term_deposits.delete"
+                                destructive
+                            />
+                        </template>
+                    </ConfirmActionDialog>
+                    <ConfirmActionDialog
+                        v-if="termDeposit.can_archive"
+                        :form="
+                            TermDepositController.archive.form(
+                                termDeposit,
+                                filterQuery,
+                            )
+                        "
+                        :title="t.term_deposits.archive_confirm_title"
+                        :description="t.term_deposits.archive_confirm_body"
+                        :confirm-label="t.term_deposits.archive"
+                        :cancel-label="t.term_deposits.cancel"
+                    >
+                        <template #trigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="Archive"
+                                :label="t.term_deposits.archive"
+                            />
+                        </template>
+                    </ConfirmActionDialog>
+                    <ConfirmActionDialog
+                        v-if="termDeposit.can_restore"
+                        :form="
+                            TermDepositController.restore.form(
+                                termDeposit,
+                                filterQuery,
+                            )
+                        "
+                        :title="t.term_deposits.restore_confirm_title"
+                        :description="t.term_deposits.restore_confirm_body"
+                        :confirm-label="t.term_deposits.restore"
+                        :cancel-label="t.term_deposits.cancel"
+                    >
+                        <template #trigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="ArchiveRestore"
+                                :label="t.term_deposits.restore"
+                            />
+                        </template>
+                    </ConfirmActionDialog>
                 </div>
             </div>
         </ListSurface>
     </div>
 
-    <TermDepositFormDialog v-model:open="createDialogOpen" mode="create" />
+    <TermDepositFormDialog
+        v-model:open="createDialogOpen"
+        mode="create"
+        :show-archived="show_archived"
+    />
 
     <TermDepositFormDialog
         v-model:open="editDialogOpen"
         mode="edit"
         :term-deposit="editingTermDeposit"
+        :show-archived="show_archived"
     />
 </template>

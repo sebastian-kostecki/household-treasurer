@@ -29,6 +29,7 @@ const props = defineProps<{
     open: boolean;
     mode: 'create' | 'edit';
     termDeposit?: TermDepositFormTermDeposit | null;
+    showArchived?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -44,11 +45,18 @@ const endDate = ref('');
 const openingBalanceInput = ref('0,00');
 const openingBalanceMinorUnits = ref(0);
 
-const formBinding = computed(() =>
-    props.mode === 'create'
-        ? TermDepositController.store.form()
-        : TermDepositController.update.form(props.termDeposit ?? { id: 0 }),
-);
+const formBinding = computed(() => {
+    const options = props.showArchived
+        ? { query: { show_archived: 1 } }
+        : undefined;
+
+    return props.mode === 'create'
+        ? TermDepositController.store.form(options)
+        : TermDepositController.update.form(
+              props.termDeposit ?? { id: 0 },
+              options,
+          );
+});
 
 const projectedCurrentBalanceMinorUnits = computed(() => {
     if (props.mode === 'create') {

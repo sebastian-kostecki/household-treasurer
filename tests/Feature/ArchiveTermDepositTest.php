@@ -45,6 +45,28 @@ class ArchiveTermDepositTest extends TestCase
         $this->assertNull($termDeposit->archived_at);
     }
 
+    public function test_archive_and_restore_redirects_keep_show_archived_filter_only_when_requested(): void
+    {
+        $user = User::factory()->create();
+        [, $termDeposit] = $this->createAccountAndTermDepositWithMovement($user);
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.archive', ['term_deposit' => $termDeposit, 'show_archived' => 1]))
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.restore', ['term_deposit' => $termDeposit, 'show_archived' => 1]))
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.archive', $termDeposit))
+            ->assertRedirect(route('term-deposits.index'));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.restore', $termDeposit))
+            ->assertRedirect(route('term-deposits.index'));
+    }
+
     public function test_user_cannot_archive_term_deposit_without_capital_movements(): void
     {
         $user = User::factory()->create();

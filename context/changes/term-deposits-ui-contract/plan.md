@@ -437,20 +437,20 @@ Bez migracji danych.
 
 #### Automated
 
-- [ ] 2.1 Testy lokat przechodzą (redirect z filtrem dla 5 akcji): `php artisan test --compact tests/Feature/TermDepositTest.php tests/Feature/ArchiveTermDepositTest.php`
-- [ ] 2.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs resources/js/pages/TermDeposits.vue resources/js/components/TermDepositFormDialog.vue`
-- [ ] 2.3 Lint, format, typy i testy frontendu (w tym `ui-contract.test.ts` bez wpisu `pages/TermDeposits.vue`) przechodzą: `npm run check && npm run types:check && npm test`
-- [ ] 2.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [ ] 2.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 2.1 Testy lokat przechodzą (redirect z filtrem dla 5 akcji): `php artisan test --compact tests/Feature/TermDepositTest.php tests/Feature/ArchiveTermDepositTest.php`
+- [x] 2.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs resources/js/pages/TermDeposits.vue resources/js/components/TermDepositFormDialog.vue`
+- [x] 2.3 Lint, format, typy i testy frontendu (w tym `ui-contract.test.ts` bez wpisu `pages/TermDeposits.vue`) przechodzą: `npm run check && npm run types:check && npm test`
+- [x] 2.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 2.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
 
 #### Manual
 
-- [ ] 2.6 Na podglądzie: zaznaczenie „Pokaż zarchiwizowane” pokazuje zarchiwizowane lokaty i zmienia URL, odznaczenie je chowa, a odświeżenie z `?show_archived=1` pokazuje zaznaczony przełącznik
-- [ ] 2.7 Z włączonym filtrem: archiwizacja, przywrócenie, edycja, dodanie i usunięcie lokaty wracają do listy z włączonym filtrem
-- [ ] 2.8 Dialog usuwania ma czerwony przycisk ze spinnerem w trakcie żądania, a Anuluj, X i Escape nie zamykają go w tym czasie
-- [ ] 2.9 Suma 0 zł jest bez koloru, ujemna czerwona, dodatnia zielona; „Lokaty” pada raz poza okruszkami
-- [ ] 2.10 Zarchiwizowany wiersz jest szary bez przezroczystości (przycisk Przywróć ma pełny kontrast), a ujemne saldo w nim jest czerwone
-- [ ] 2.11 Zrzuty `after-phase-2/` są w folderze zmiany
+- [x] 2.6 Na podglądzie: zaznaczenie „Pokaż zarchiwizowane” pokazuje zarchiwizowane lokaty i zmienia URL, odznaczenie je chowa, a odświeżenie z `?show_archived=1` pokazuje zaznaczony przełącznik
+- [x] 2.7 Z włączonym filtrem: archiwizacja, przywrócenie, edycja, dodanie i usunięcie lokaty wracają do listy z włączonym filtrem
+- [x] 2.8 Dialog usuwania ma czerwony przycisk ze spinnerem w trakcie żądania, a Anuluj, X i Escape nie zamykają go w tym czasie
+- [x] 2.9 Suma 0 zł jest bez koloru, ujemna czerwona, dodatnia zielona; „Lokaty” pada raz poza okruszkami
+- [x] 2.10 Zarchiwizowany wiersz jest szary bez przezroczystości (przycisk Przywróć ma pełny kontrast), a ujemne saldo w nim jest czerwone
+- [x] 2.11 Zrzuty `after-phase-2/` są w folderze zmiany
 
 ### Phase 3: Stany i nowe propsy (C2 + macierz)
 
