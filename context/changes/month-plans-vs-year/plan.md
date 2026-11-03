@@ -334,15 +334,15 @@ Nie dotyczy: bez zmian w schemacie i danych.
 
 #### Automated
 
-- [x] 2.1 `npm run build`, `npm run check` i `npm run types:check` przechodzą
-- [x] 2.2 `npm test` przechodzi
-- [x] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez Sail
-- [x] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`, polecenie z `AGENTS.md`) oraz `vendor/bin/sloppy ci` na hoście
+- [x] 2.1 `npm run build`, `npm run check` i `npm run types:check` przechodzą — 0ff3548
+- [x] 2.2 `npm test` przechodzi — 0ff3548
+- [x] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez Sail — 0ff3548
+- [x] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`, polecenie z `AGENTS.md`) oraz `vendor/bin/sloppy ci` na hoście — 0ff3548
 
 #### Manual
 
-- [x] 2.5 W bieżącej propozycji (konto `test@example.com` z `DemoHouseholdSeeder`) linie „W roku” zgadzają się z ręcznym rachunkiem dla jednej bieżącej, jednego rachunku, jednej jednorazowej i jednego przychodu. Wydatek ponad rok ma `destructive`, przychód ponad plan roczny ma `success`
-- [x] 2.6 Jednorazowa na liście pokazuje tylko linię roczną, a bezczynna jednorazowa w zwiniętej sekcji tylko „Pozostały limit roczny”. Miesiąc przyszły i miniony nie mają linii rocznych ani sum, a jednorazowe mają tam „Pozostały limit roczny” jak przed zmianą
-- [x] 2.7 W edytowalnej propozycji i w trybie zmiany zatwierdzonego planu zmiana kwoty przyciemnia linię roczną tego wiersza. Po zatwierdzeniu lub zapisaniu linia pokazuje nowe wartości, a budżet roczny (strona Budżet: plan bieżący i wykonanie) jest bez zmian
-- [x] 2.8 Wiersze „Razem w roku” są na końcu obu sekcji, a podpowiedź z definicją otwiera się klawiaturą i myszą
-- [x] 2.9 Przy szerokości 360 px nie ma poziomego przewijania. Przy 768 px i 1024 px z rozwiniętym sidebarem nic nie jest ucięte. W trybie ciemnym kolory `destructive` i `success` są czytelne
+- [x] 2.5 W bieżącej propozycji (konto `test@example.com` z `DemoHouseholdSeeder`) linie „W roku” zgadzają się z ręcznym rachunkiem dla jednej bieżącej, jednego rachunku, jednej jednorazowej i jednego przychodu. Wydatek ponad rok ma `destructive`, przychód ponad plan roczny ma `success` — 0ff3548
+- [x] 2.6 Jednorazowa na liście pokazuje tylko linię roczną, a bezczynna jednorazowa w zwiniętej sekcji tylko „Pozostały limit roczny”. Miesiąc przyszły i miniony nie mają linii rocznych ani sum, a jednorazowe mają tam „Pozostały limit roczny” jak przed zmianą — 0ff3548
+- [x] 2.7 W edytowalnej propozycji i w trybie zmiany zatwierdzonego planu zmiana kwoty przyciemnia linię roczną tego wiersza. Po zatwierdzeniu lub zapisaniu linia pokazuje nowe wartości, a budżet roczny (strona Budżet: plan bieżący i wykonanie) jest bez zmian — 0ff3548
+- [x] 2.8 Wiersze „Razem w roku” są na końcu obu sekcji, a podpowiedź z definicją otwiera się klawiaturą i myszą — 0ff3548
+- [x] 2.9 Przy szerokości 360 px nie ma poziomego przewijania. Przy 768 px i 1024 px z rozwiniętym sidebarem nic nie jest ucięte. W trybie ciemnym kolory `destructive` i `success` są czytelne — 0ff3548
