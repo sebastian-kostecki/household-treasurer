@@ -5,6 +5,12 @@ namespace App\Support;
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
 
+/**
+ * The To Spend rule. `toSpendMinorUnits` has a TypeScript copy in
+ * resources/js/lib/to-spend-calculator.ts (the sum reacts live while editing);
+ * `itemMinorUnits` is also read by MonthYearComparison, which has no TS copy
+ * because the page reloads after a save.
+ */
 class ToSpendCalculator
 {
     /**

@@ -105,16 +105,16 @@ const deviationClass = computed(() => {
             <p
                 v-if="row.year_comparison !== null && !row.is_idle_one_off"
                 class="text-muted-foreground text-xs"
-                :class="yearStale ? 'opacity-60' : ''"
-                :title="yearStale ? t.month_plan.year_stale_hint : undefined"
             >
-                {{ t.month_plan.year_line }}:
-                <MonthYearSummary
-                    :comparison="row.year_comparison"
-                    :type="row.type"
-                />
-                <span v-if="yearStale" class="sr-only">
-                    ({{ t.month_plan.year_stale_hint }})
+                <span :class="yearStale ? 'opacity-60' : ''">
+                    {{ t.month_plan.year_line }}:
+                    <MonthYearSummary
+                        :comparison="row.year_comparison"
+                        :type="row.type"
+                    />
+                </span>
+                <span v-if="yearStale">
+                    · {{ t.month_plan.year_stale_hint }}
                 </span>
             </p>
 

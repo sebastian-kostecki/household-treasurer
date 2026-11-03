@@ -15,12 +15,14 @@ use App\Models\Category;
  * stored Execution minus the actual amount in the month. For any other month that
  * identity breaks and the numbers would be wrong. There is no copy in
  * resources/js/lib: the page reloads after a save.
+ *
+ * @phpstan-type YearComparison array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}
  */
 class MonthYearComparison
 {
     /**
      * @param  array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}  $rowAmounts  as MonthToSpend::rowAmounts
-     * @return array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}
+     * @return YearComparison
      */
     public static function forCategory(Category $category, array $rowAmounts): array
     {
@@ -38,8 +40,8 @@ class MonthYearComparison
     }
 
     /**
-     * @param  list<array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}>  $comparisons  results of forCategory
-     * @return array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}
+     * @param  list<YearComparison>  $comparisons  results of forCategory
+     * @return YearComparison
      */
     public static function totals(array $comparisons, CategoryType $type): array
     {
@@ -55,7 +57,7 @@ class MonthYearComparison
     }
 
     /**
-     * @return array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}
+     * @return YearComparison
      */
     private static function result(CategoryType $type, int $year, int $annual): array
     {

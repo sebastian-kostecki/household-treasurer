@@ -378,6 +378,14 @@ function yearStale(row: MonthPlanItem): boolean {
     );
 }
 
+/** The section total is built from the saved plan, so one stale row dims it too. */
+function sectionYearStale(section: {
+    rows: MonthPlanItem[];
+    idleRows: MonthPlanItem[];
+}): boolean {
+    return [...section.rows, ...section.idleRows].some(yearStale);
+}
+
 const idleOpen = ref(false);
 
 const sections = computed(() => {
@@ -719,17 +727,37 @@ watch(hasInvalidIdleAmount, (invalid) => {
                         </Collapsible>
 
                         <div
-                            v-if="monthPlan.year_totals !== null"
+                            v-if="
+                                monthPlan.year_totals !== null &&
+                                (section.rows.length > 0 ||
+                                    section.idleRows.length > 0)
+                            "
                             class="border-border/60 text-muted-foreground flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t pt-3 text-xs"
                         >
                             <ColumnHeaderHint
                                 :label="t.month_plan.year_total"
                                 :hint="t.month_plan.year_total_hint"
                             />
-                            <MonthYearSummary
-                                :comparison="monthPlan.year_totals[section.key]"
-                                :type="section.key"
-                            />
+                            <span
+                                :class="
+                                    sectionYearStale(section)
+                                        ? 'opacity-60'
+                                        : ''
+                                "
+                            >
+                                <MonthYearSummary
+                                    :comparison="
+                                        monthPlan.year_totals[section.key]
+                                    "
+                                    :type="section.key"
+                                />
+                            </span>
+                            <span
+                                v-if="sectionYearStale(section)"
+                                class="basis-full text-right"
+                            >
+                                {{ t.month_plan.year_stale_hint }}
+                            </span>
                         </div>
                     </ListSurface>
 

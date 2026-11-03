@@ -11,8 +11,15 @@ const props = defineProps<{
 
 const t = useTranslations();
 
+/** Expense: the server decides (`is_over_year`). Income has no such flag, so a negative remainder is its "over the annual plan". */
+const isOver = computed(() =>
+    props.type === 'expense'
+        ? props.comparison.is_over_year
+        : props.comparison.remaining_minor_units < 0,
+);
+
 const remainingClass = computed(() => {
-    if (props.comparison.remaining_minor_units >= 0) {
+    if (!isOver.value) {
         return '';
     }
 
@@ -20,7 +27,7 @@ const remainingClass = computed(() => {
 });
 
 const remainingLabel = computed(() => {
-    if (props.comparison.remaining_minor_units >= 0) {
+    if (!isOver.value) {
         return t.month_plan.year_remaining;
     }
 

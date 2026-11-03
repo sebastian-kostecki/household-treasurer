@@ -26,6 +26,9 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * @phpstan-import-type YearComparison from MonthYearComparison
+ */
 class MonthPlanController extends Controller
 {
     use AuthorizesRequests;
@@ -140,7 +143,7 @@ class MonthPlanController extends Controller
      *     spendable_liquidity_minor_units: int|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
-     *     year_totals: array{income: array<string, int|bool>, expense: array<string, int|bool>}|null,
+     *     year_totals: array{income: YearComparison, expense: YearComparison}|null,
      *     summary: array{
      *         income: array{approved_minor_units: int, final_minor_units: int, actual_minor_units: int, deviation_minor_units: int},
      *         expense: array{approved_minor_units: int, final_minor_units: int, actual_minor_units: int, deviation_minor_units: int},
@@ -218,7 +221,7 @@ class MonthPlanController extends Controller
     /**
      * @param  list<array<string, mixed>>  $incomeItems
      * @param  list<array<string, mixed>>  $expenseItems
-     * @return array{income: array<string, int|bool>, expense: array<string, int|bool>}
+     * @return array{income: YearComparison, expense: YearComparison}
      */
     private function yearTotals(array $incomeItems, array $expenseItems): array
     {
@@ -251,7 +254,7 @@ class MonthPlanController extends Controller
      *     is_idle_one_off: bool,
      *     approved_minor_units: int|null,
      *     is_join_candidate: bool,
-     *     year_comparison: array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}|null,
+     *     year_comparison: YearComparison|null,
      * }
      */
     private function itemRow(Category $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array

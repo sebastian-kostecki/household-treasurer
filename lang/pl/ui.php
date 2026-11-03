@@ -336,7 +336,7 @@ return [
         'year_over_expense' => 'ponad rok o',
         'year_over_income' => 'ponad plan roczny o',
         'year_total' => 'Razem w roku',
-        'year_total_hint' => 'Wykonanie przed tym miesiącem plus pozycja tego miesiąca liczona jak w „do wydania”, wobec planu bieżącego na rok.',
+        'year_total_hint' => 'Wykonanie przed tym miesiącem plus pozycja tego miesiąca liczona jak w „do wydania”, wobec planu bieżącego na rok. Suma obejmuje też pozycje, których nie widać na liście, np. zwinięte jednorazowe.',
         'year_stale_hint' => 'Przeliczy się po zapisaniu planu',
         'idle_one_offs' => 'Jednorazowe bez planu i wydatków',
         'empty_list' => 'Brak pozycji w tym miesiącu',

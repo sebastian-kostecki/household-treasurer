@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\ManageFinancialOperation;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
@@ -894,6 +895,51 @@ class MonthPlanPageTest extends TestCase
                     'year_minor_units' => 1_210_000,
                     'annual_plan_minor_units' => 5_380_000,
                     'remaining_minor_units' => 4_170_000,
+                    'is_over_year' => false,
+                ]),
+            );
+    }
+
+    public function test_year_comparison_follows_the_execution_counter_kept_by_the_operations_action(): void
+    {
+        $this->travelTo('2026-11-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $account = Account::factory()->for($user)->create();
+        $food = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Jedzenie', 'sort_order' => 0, 'planned_amount_minor_units' => 1_800_000,
+        ]);
+
+        $manage = app(ManageFinancialOperation::class);
+
+        foreach ([
+            ['2026-10-10', 100_000],
+            ['2026-11-03', 200_000],
+            ['2026-11-04', -20_000],
+        ] as [$date, $amount]) {
+            $manage->createExpense($user, [
+                'operation_date' => $date,
+                'amount_minor_units' => $amount,
+                'description' => 'Zakupy',
+                'account_id' => $account->id,
+                'category_id' => $food->id,
+            ]);
+        }
+
+        $this->assertSame(280_000, $food->refresh()->execution_minor_units);
+
+        // Before the month: 100 000. The month counts at the net actual amount 180 000 (above the plan 150 000).
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.0.actual_minor_units', 180_000)
+                ->where('monthPlan.expense_items.0.year_comparison', [
+                    'year_minor_units' => 280_000,
+                    'annual_plan_minor_units' => 1_800_000,
+                    'remaining_minor_units' => 1_520_000,
                     'is_over_year' => false,
                 ]),
             );

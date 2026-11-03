@@ -55,6 +55,18 @@ test('running category compares the year with the annual plan', function (
     ]);
 })->with('food comparison cases');
 
+test('a net refund month counts at the plan and lowers the execution before the month', function () {
+    // Execution 90 000 includes the month's net -10 000, so 100 000 was spent before the month.
+    $food = comparisonCategory(CategoryType::Expense, MonthItemKind::Running, 1_800_000, 90_000);
+
+    expect(MonthYearComparison::forCategory($food, comparisonAmounts(150_000, -10_000)))->toBe([
+        'year_minor_units' => 250_000,
+        'annual_plan_minor_units' => 1_800_000,
+        'remaining_minor_units' => 1_550_000,
+        'is_over_year' => false,
+    ]);
+});
+
 test('bill counts at plan before payment and at the actual amount after it', function () {
     $rent = comparisonCategory(CategoryType::Expense, MonthItemKind::Bill, 2_400_000, 1_000_000);
     $paid = comparisonCategory(CategoryType::Expense, MonthItemKind::Bill, 2_400_000, 1_000_000 + 195_000);
@@ -114,4 +126,18 @@ test('totals sum the amounts and flag only an expense below zero', function () {
     ])
         ->and(MonthYearComparison::totals([$rows[0]], CategoryType::Expense)['is_over_year'])->toBeTrue()
         ->and(MonthYearComparison::totals([$rows[0]], CategoryType::Income)['is_over_year'])->toBeFalse();
+});
+
+test('income totals sum the amounts and never flag over the year', function () {
+    $rows = [
+        ['year_minor_units' => 9_500_000, 'annual_plan_minor_units' => 9_000_000, 'remaining_minor_units' => -500_000, 'is_over_year' => false],
+        ['year_minor_units' => 1_000_000, 'annual_plan_minor_units' => 1_200_000, 'remaining_minor_units' => 200_000, 'is_over_year' => false],
+    ];
+
+    expect(MonthYearComparison::totals($rows, CategoryType::Income))->toBe([
+        'year_minor_units' => 10_500_000,
+        'annual_plan_minor_units' => 10_200_000,
+        'remaining_minor_units' => -300_000,
+        'is_over_year' => false,
+    ]);
 });

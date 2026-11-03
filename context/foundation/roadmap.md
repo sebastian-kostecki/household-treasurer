@@ -51,7 +51,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 | S-07 | month-plan-notices          | użytkownik może zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca                | F-01, S-04, S-05    | FR-012                                                     | proposed |
 | S-08 | plan-based-entry-warnings   | użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu        | S-01                | FR-014, FR-017                                             | done |
 | S-09 | month-summary               | użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne             | S-02, S-03, S-04    | US-01, FR-009, FR-013                                      | done |
-| S-10 | month-plans-vs-year         | użytkownik może porównać plany miesięcy z budżetem rocznym                                       | S-01                | FR-010                                                     | proposed |
+| S-10 | month-plans-vs-year         | użytkownik może porównać plany miesięcy z budżetem rocznym                                       | S-01                | FR-010                                                     | in-progress |
 
 ## Streams
 
@@ -214,7 +214,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Stoi na końcu, bo nie jest potrzebne do prowadzenia miesiąca, a porównanie nie może zmieniać budżetu rocznego.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Backlog Handoff
 
