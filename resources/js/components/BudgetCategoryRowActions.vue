@@ -81,7 +81,7 @@ function openDeleteDialog(): void {
                     size="icon-sm"
                     :aria-label="t.budget.more_actions"
                 >
-                    <MoreVertical class="size-4" />
+                    <MoreVertical class="size-4" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
