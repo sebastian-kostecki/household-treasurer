@@ -38,6 +38,8 @@ Kolejność według wpływu na użytkownika. Każdy zarzut ma kategorię z `/10x
 
 ### C1 (A) — martwy przełącznik „Pokaż zarchiwizowane”
 
+> **Status planu `budget-view-ui`:** zaadresowany w fazie 3 (`v-model`); strażnik w fazie 6 (`resources/js/ui-contract.test.ts`). Pozostałe widoki: issue #186.
+
 - **Dowód:** `resources/js/pages/Budget.vue:307-311` — `<Checkbox id="show-archived-budget" :checked="show_archived" @update:checked="toggleShowArchived" />`. Wrapper `resources/js/components/ui/checkbox/Checkbox.vue:9-14` forwarduje tylko `CheckboxRootProps`/`CheckboxRootEmits`. reka-ui 2.11.0: propsy `CheckboxRoot` to `defaultValue, modelValue, disabled, value, id, trueValue, falseValue, asChild, as, name, required` (`node_modules/reka-ui/dist/Checkbox/CheckboxRoot.js:22-72`), jedyne zdarzenie `update:modelValue` (`:73`). Bez `modelValue` stan jest lokalny (`useVModel … passive`, `:80-83`), startuje od `false`, a klik przełącza go bez wywołania handlera (`:104-117`).
 - **Wpływ:** użytkownik klika „Pokaż zarchiwizowane”, pole się zaznacza, lista się nie zmienia — nie dotrze do zarchiwizowanych kategorii ani ich nie przywróci z tego widoku. Po wejściu z linku `?show_archived=1` lista pokazuje archiwalne wiersze, a pole jest odznaczone i nie da się go wyłączyć bez edycji URL. Z `preserveState: true` przy zmianie miesiąca lokalne „zaznaczenie” przetrwa obok listy bez archiwalnych wierszy.
 - **Stany:** default (rozbieżny z danymi), focus-visible (do sprawdzenia po naprawie).
@@ -45,6 +47,8 @@ Kolejność według wpływu na użytkownika. Każdy zarzut ma kategorię z `/10x
 - **Poza zakresem tego widoku → odroczone (patrz niżej):** `Accounts.vue:124-127`, `TermDeposits.vue:126-129`, `OperationsImport.vue:351-356`.
 
 ### C2 (K) — komórki kwot ×6 i nagłówek z filtrem ×2 bez wspólnego komponentu; kopie już się rozjechały
+
+> **Status planu `budget-view-ui`:** zaadresowany w fazach 2 i 4 (`BudgetAmountCell`, `lib/budget-category-cells.ts`, `.budget-category-grid`).
 
 - **Dowód — mapa kopii** (`resources/js/components/BudgetCategoryList.vue`):
 
@@ -68,6 +72,8 @@ Kolejność według wpływu na użytkownika. Każdy zarzut ma kategorię z `/10x
 
 ### C3 (K + A) — stan „brak budżetu” poza `IndexEmptyState`, bez `<h1>`, z mylącym tytułem
 
+> **Status planu `budget-view-ui`:** zaadresowany w fazie 3 (`<h1>` strony, `IndexEmptyState`, nowy tekst).
+
 - **Dowód:** `resources/js/pages/Budget.vue:169-192` — `<Card class="w-full max-w-lg">` z `CardTitle` (renderuje `<h3>`) + `CreateBudgetDialog`; `<h1>` istnieje tylko w gałęzi z budżetem (`:197`). `SelectedBudgetYear::resolve` zwraca `null` tylko przy braku jakiegokolwiek budżetu (`app/Support/SelectedBudgetYear.php:18-21`), w przeciwnym razie istniejący rok z sesji albo najstarszy (`:24-34`). Tytuł: `'no_budget' => 'Brak budżetu na wybrany rok'` (`lang/pl/ui.php:188`).
 - **Kontrakt:** issue #21 story 14 — „Budget empty states on the floor”; `IndexEmptyState` na liście „sprawdź najpierw” (`.docs/design-system.md:55`, `.ai/rules/js.md:20`). Pustą listę kategorii ten sam widok już renderuje przez `IndexEmptyState` (`BudgetCategoryList.vue:199-209`); MonthPlan dla braku budżetu też (`MonthPlan.vue:455-467`). `max-w-lg` pochodzi z `c5f6690` (sprzed restyle'u #25, który tej gałęzi nie przeniósł).
 - **Ograniczenie z kontraktu:** `.docs/specs/copy-categories-on-budget-create.md:25,35` — ta gałąź jest „Budget empty state”, który musi dzielić `CreateBudgetDialog` i payload z przełącznikiem roku w sidebarze.
@@ -75,6 +81,8 @@ Kolejność według wpływu na użytkownika. Każdy zarzut ma kategorię z `/10x
 - **Stany:** empty.
 
 ### C4 (K + stany) — kontrolki bez nazwy, zgaszony hover, uchwyt bez fokusu, ciche błędy i brak stanów oczekiwania
+
+> **Status planu `budget-view-ui`:** zaadresowany w fazie 5. Odroczone: przestawianie z klawiatury, tooltip menu akcji, podpowiedzi mobile, kicker.
 
 - **Filtr bez dostępnej nazwy:** `BudgetCategoryList.vue:238-243` i `:597-602` — `Input type="search"` z samym `placeholder` (`t.budget.filter_by_name`), bez `Label`/`aria-label`. `ui/input/Input.vue` przepuszcza atrybuty do `<input>`, więc `aria-label` zadziała. Wpływ: czytnik ekranu ogłasza „pole wyszukiwania” bez nazwy. Stan: focus-visible/nazwa.
 - **Wyzwalacz archiwum:** `:456-475` (i mobile `:868-886`) — `<h4>` wewnątrz `<Button>` (nagłówek w treści przycisku traci rolę) oraz `class="… hover:bg-transparent"`. Wariant ghost ma `hover:bg-accent … dark:hover:bg-accent/50` (`ui/button/index.ts:19-20`) — twMerge usuwa tylko pierwszy, więc w jasnym motywie hover znika, a w ciemnym zostaje. Precedens: `MonthPlan.vue:738-747` używa `<span>`. Wpływ: brak widocznej reakcji na najechanie w jasnym motywie, niespójność między motywami. Stan: hover.
@@ -85,6 +93,8 @@ Kolejność według wpływu na użytkownika. Każdy zarzut ma kategorię z `/10x
 - **Menu akcji wiersza:** `BudgetCategoryRowActions.vue:78-85` — `Button size="icon-sm"` z `aria-label`, bez tooltipa (w odróżnieniu od `IconAction`), ikona bez `aria-hidden`. Niski wpływ.
 
 ### C5 (A) — drugi layout mobilny poza `ListSurface`, zawsze zamontowany
+
+> **Status planu `budget-view-ui`:** zaadresowany w fazie 4 (jeden markup w jednym `ListSurface`).
 
 - **Dowód:** desktop `<ListSurface class="hidden md:block">` (`BudgetCategoryList.vue:212`); mobile to goły `div.space-y-3` (`:578`) z osobnym `draggable` kart (`:604-759`), sumą w `Card class="border-dashed"` (`:761-861`) i drugim `Collapsible` archiwum (`:863-1012`). Oba drzewa są ukrywane wyłącznie CSS-em, więc w DOM są jednocześnie: 2 instancje `draggable`, 2 pola filtra na tym samym `nameFilter`, 2× `BudgetCategoryRowActions` na kategorię (każdy z dialogami archiwizacji/przywrócenia/usunięcia).
 - **Kontrakt — korekta pre-audytu:** issue #25 („Budget lists: quiet tables and mobile rows”, zamknięte) wymaga „Operations-style stacked rows on a phone” i „a dual stacked card/row layout like Operations, not a sideways-only table” — **karta na kategorię jest więc dopuszczona**, a twierdzenie z pre-audytu „wbrew ADR-0003” jest nietrafne w tej części. Operations realizuje to jednak jednym markupem (`.operations-grid` w `ListSurface`, `Operations.vue:226-264`, `FinancialOperationRow.vue:49`); wśród sprawdzonych list `/budget` jako jedyna ma osobne drzewo mobilne (sprawdzone, jeden markup: `CategoryMeterRow.vue:55-65`, `DashboardCategorySection.vue:120-127`, `Accounts.vue:149`, `MonthPlanItemRow.vue:61`). Lista na mobile nie leży na żadnej powierzchni — karty stoją bezpośrednio na szarym tle, wbrew `.docs/design-system.md:16` (listy w `ListSurface`).
@@ -100,8 +110,8 @@ Kolejność według wpływu na użytkownika. Każdy zarzut ma kategorię z `/10x
 
 | Zarzut | Kotwica | Powód odroczenia |
 |---|---|---|
-| Ten sam martwy `:checked`/`@update:checked` | `Accounts.vue:124-127`, `TermDeposits.vue:126-129` | inne widoki; jedna zmiana = jeden widok. Wpływ identyczny jak C1. |
-| `OperationsImport.vue` — `:checked="hasHeader"` | `OperationsImport.vue:351-356`, `:36`, `:362-367` | inny widok, ale **możliwy błąd danych**: ukryte pole formularza reka-ui idzie za stanem wizualnym, a etykiety kolumn (`:124`, `:152`) za nieaktualnym `hasHeader` — import może dostać inny `has_header` niż pokazuje UI (wniosek z kodu). Zalecana osobna zmiana o wyższym priorytecie. |
+| Ten sam martwy `:checked`/`@update:checked` | `Accounts.vue:124-127`, `TermDeposits.vue:126-129` | inne widoki; jedna zmiana = jeden widok. Wpływ identyczny jak C1. **Issue: #186**; pliki na liście wyjątków strażnika. |
+| `OperationsImport.vue` — `:checked="hasHeader"` | `OperationsImport.vue:351-356`, `:36`, `:362-367` | inny widok, ale **możliwy błąd danych**: ukryte pole formularza reka-ui idzie za stanem wizualnym, a etykiety kolumn (`:124`, `:152`) za nieaktualnym `hasHeader` — import może dostać inny `has_header` niż pokazuje UI (wniosek z kodu). Zalecana osobna zmiana o wyższym priorytecie. **Issue: #186**; plik na liście wyjątków strażnika. |
 | Nagłówek strony: `Heading.vue` (`<h2 text-xl mb-8`) vs surowe `<h1 class="text-lg">` na każdej stronie niebędącej ustawieniami vs `.docs/design-system.md:21` (`text-xl`) | `Heading.vue:14-27`, np. `Operations.vue:134` | rozjazd dokumentu, komponentu i kodu dotyczy wszystkich stron — decyzja globalna. |
 | Kontrakt listy sam używa wartości arbitralnych (`text-[11px]`, `/[0.03]`, `/[0.02]`) | `app.css:207`, `:211`, `:279` | źródło tokenów, nie widok; zmiana dotknęłaby wszystkich list. |
 | Przestawianie kolejności z klawiatury | `BudgetCategoryList.vue:254-265` (vuedraggable) | wymaga nowego mechanizmu (np. „przesuń w górę/dół” w menu akcji) — osobna decyzja produktowa. |
