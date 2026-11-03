@@ -6,6 +6,7 @@ use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dev\AccountsKitchenSinkController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
@@ -22,6 +23,7 @@ Route::inertia('/', 'Welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
+    Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');
     Route::get('dev/ui/term-deposits', [TermDepositsKitchenSinkController::class, 'show'])->name('dev.ui.term-deposits');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])

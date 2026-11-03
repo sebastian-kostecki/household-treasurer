@@ -13,6 +13,7 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 
 - Szare tło strony (`background`), białe karty (`card`, `rounded-2xl`, obramowanie `border/60`). Bez cieni spoczynkowych: głębię daje kontrast tła i karty.
 - Kontrolki (przyciski, pola, selecty): wysokość 36 px (`h-9`), `rounded-xl`, fokus = pierścień 3 px `ring/50`.
+- Selecty: `.native-select` dla prostych wyliczeń bez ikon; `Select` (Reka) gdy opcja pokazuje ikonę lub logo (np. `AccountBankSelect`). Oba mają `rounded-xl`; `.native-select` stylizuje też `aria-invalid` (czerwona ramka).
 - Lista Budżetu używa `.budget-category-grid` (jeden markup na każdej szerokości, jak `.operations-grid` w Operacjach): na telefonie wiersz ma 2–3 linie, od `md` kolumny. Zarchiwizowane wiersze są w całości `muted-foreground`, bez kolorów statusu i bez `opacity`; reguły kolorów komórek są w `resources/js/lib/budget-category-cells.ts`.
 - Listy i tabele: `ListSurface` z wierszami na siatce (`.operations-grid`, `.budget-category-grid`); wiersze oddzielone linią `border/60`, hover `foreground/3%`. Nagłówki kolumn i podpisy mobilne nad wartościami (11 px, wersaliki, `muted-foreground`) przez klasę `column-caption` z `app.css`, nigdy ręcznie złożoną z `text-xs … uppercase`.
 - Siatka wiersza planu miesiąca to `.month-plan-grid`; etykieta sekcji `.section-label`, nagłówek kolumny `.column-header`, tabele `.list-surface-table`. W widokach nie ma wartości arbitralnych (`text-[11px]`, `grid-cols-[...]`), tylko nazwane klasy z `app.css`.
@@ -20,7 +21,7 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 
 ## Typografia
 
-Geist, wagi 400/500/600. Każda kwota ma `tabular-nums`. Skala: liczby w kafelkach `text-3xl`, nagłówek strony `text-xl font-semibold`, tytuł karty `text-base font-semibold`, treść i kontrolki `text-sm`, podpisy `text-xs text-muted-foreground`.
+Geist, wagi 400/500/600. Każda kwota ma `tabular-nums`. Skala: liczby w kafelkach `text-3xl`, nagłówek strony domenowej `text-lg font-semibold` (strony dev mogą mieć `text-xl`), tytuł karty `text-base font-semibold`, treść i kontrolki `text-sm`, podpisy `text-xs text-muted-foreground`.
 
 ## Kolor znaczy coś tylko w trzech miejscach
 
@@ -56,7 +57,7 @@ Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy do
 
 ## Gotowe elementy
 
-Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `StatTile` (kafelek KPI: etykieta, kwota z `amountToneClass`, sloty `label-extra` i `footer`), `SegmentedControl`. Ikony: `@lucide/vue`, 16 px w kontrolkach.
+Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `StatTile` (kafelek KPI: etykieta, kwota z `amountToneClass`, sloty `label-extra` i `footer`), `SegmentedControl`, `ConfirmActionDialog` (potwierdzenie z `Form`, spinner, blokada zamykania w trakcie żądania, błędy serwera), `AccountMarkCompact` (kafelek znaku banku/gotówki). Ikony: `@lucide/vue`, 16 px w kontrolkach.
 
 `Heading` służy sekcjom ustawień. Strony domenowe budują wiersz tytułu (`h1` + `Badge` po lewej, akcja po prawej) wg `Budget.vue`.
 
@@ -95,4 +96,4 @@ Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `
 1. Zmień token w `app.css` w obu trybach.
 2. Zaktualizuj tę stronę, a jeśli to decyzja, dopisz ADR.
 3. Zasady dla agentów żyją w `.ai/rules` (zapis przez `record-rule` z Laravel Boost); trzymaj je zgodne z tą stroną.
-4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.
+4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard` i `/dev/ui/accounts`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.

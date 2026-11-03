@@ -87,6 +87,10 @@ Each charge: category, evidence (file:line), user impact, proposed fix direction
 | `h1` size on other pages | Repo-wide decision; this change records the decision, does not restyle other pages. |
 | English validation messages and flash toasts (`lang/pl` has only `pagination.php`, `ui.php`; `AccountController.php:54,73,93,107,121` use English `__()` keys) | i18n, not UI contract; separate change. |
 | Bank mark path map duplicated PHP/TS | Data duplication, not visual. |
+| Dialog close X in `ui/sheet` | Same problem as `ui/dialog`, but this view does not use it; separate pass. |
+| Radius of `DropdownMenuContent` | Same radius mismatch as `Select`; this view does not use it. |
+| Amount validation in other forms (TermDeposit, Category, Income, Expense, OwnTransfer, CapitalMovement) | Each form has its own behaviour on unparseable input; separate passes. |
+| `is_negative` in the accounts payload | The page no longer reads it after phase 3; removing it changes the props contract with no user gain. |
 | 403 on archive/restore policy failure shows Inertia default error page (`AccountController.php:101,115`, `AccountPolicy.php:35-45`) | Only reachable by stale page / forged request; no UI path. |
 
 ## Detailed Findings
