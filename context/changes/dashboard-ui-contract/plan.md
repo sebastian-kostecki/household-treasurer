@@ -465,34 +465,34 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 #### Automated
 
-- [x] 2.1 Lint, format i sortowanie klas Tailwind przechodzą: `npm run check`
-- [x] 2.2 Build CSS przechodzi: `npm run build`
+- [x] 2.1 Lint, format i sortowanie klas Tailwind przechodzą: `npm run check` — e4b3733
+- [x] 2.2 Build CSS przechodzi: `npm run build` — e4b3733
 
 #### Manual
 
-- [x] 2.3 Nagłówki tabel na `/accounts` i `/term-deposits` wyglądają tak samo jak przed zmianą
-- [x] 2.4 `design-system.md` opisuje `column-caption`, regułę zera, warianty `Badge` i `StatTile`
+- [x] 2.3 Nagłówki tabel na `/accounts` i `/term-deposits` wyglądają tak samo jak przed zmianą — e4b3733
+- [x] 2.4 `design-system.md` opisuje `column-caption`, regułę zera, warianty `Badge` i `StatTile` — e4b3733
 
 ### Phase 3: Jeden widok (C1–C4)
 
 #### Automated
 
-- [ ] 3.1 Lint i format przechodzą: `npm run check`
-- [ ] 3.2 Typy przechodzą: `npm run types:check`
-- [ ] 3.3 Testy frontendu przechodzą: `npm test`
-- [ ] 3.4 Testy Dashboardu przechodzą
-- [ ] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
-- [ ] 3.6 W widoku nie ma już helperów tonu poza `amountToneClass`
+- [x] 3.1 Lint i format przechodzą: `npm run check`
+- [x] 3.2 Typy przechodzą: `npm run types:check`
+- [x] 3.3 Testy frontendu przechodzą: `npm test`
+- [x] 3.4 Testy Dashboardu przechodzą
+- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
+- [x] 3.6 W widoku nie ma już helperów tonu poza `amountToneClass`
 
 #### Manual
 
-- [ ] 3.7 W scenariuszu `zero-amounts` żadna kwota 0,00 zł nie jest zielona; `default` i `negative` mają zielone dodatnie i czerwone ujemne
-- [ ] 3.8 Przy 390 px listy kategorii mają nagłówek „Kategoria · Pozostało”, także nad wierszem sumy
-- [ ] 3.9 Czytnik ekranu czyta „Pozostało” przy kwocie w wierszu kategorii i w sumie
-- [ ] 3.10 Pigułki wagi wyglądają jak w zrzucie „przed” (dopuszczalna różnica ikony i paddingu `Badge`)
-- [ ] 3.11 Fokus klawiatury na karcie powiadomienia wygląda jak na przycisku „Otwórz budżet”
-- [ ] 3.12 Puste stany `empty-new-user`, `no-budget` i `draft` pokazują tytuł, opis i akcję; przy 390 px link „Otwórz konta” jest widoczny
-- [ ] 3.13 Strona Budżet: pasek planu ma podpisy 11 px i neutralne saldo 0, poza tym bez zmian
+- [x] 3.7 W scenariuszu `zero-amounts` żadna kwota 0,00 zł nie jest zielona; `default` i `negative` mają zielone dodatnie i czerwone ujemne
+- [x] 3.8 Przy 390 px listy kategorii mają nagłówek „Kategoria · Pozostało”, także nad wierszem sumy
+- [x] 3.9 Czytnik ekranu czyta „Pozostało” przy kwocie w wierszu kategorii i w sumie
+- [x] 3.10 Pigułki wagi wyglądają jak w zrzucie „przed” (dopuszczalna różnica ikony i paddingu `Badge`)
+- [x] 3.11 Fokus klawiatury na karcie powiadomienia wygląda jak na przycisku „Otwórz budżet”
+- [x] 3.12 Puste stany `empty-new-user`, `no-budget` i `draft` pokazują tytuł, opis i akcję; przy 390 px link „Otwórz konta” jest widoczny
+- [x] 3.13 Strona Budżet: pasek planu ma podpisy 11 px i neutralne saldo 0, poza tym bez zmian
 - [ ] 3.14 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
 
 ### Phase 4: Stany

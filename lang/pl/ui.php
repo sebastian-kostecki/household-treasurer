@@ -130,6 +130,8 @@ return [
         'no_budget_for_year' => 'Brak budżetu na rok :year',
         'budget_year_label' => 'Budżet :year',
         'draft_badge' => 'Szkic',
+        'draft_categories_title' => 'Budżet jest w szkicu',
+        'draft_categories_description' => 'Kategorie i ich wykonanie pojawią się tutaj po rozpoczęciu realizacji budżetu.',
         'open_budget' => 'Otwórz budżet',
         'month_to_spend' => ':month — do wydania',
         'holdings_title' => 'Posiadane środki',

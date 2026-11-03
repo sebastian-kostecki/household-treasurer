@@ -4,6 +4,7 @@ import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
@@ -271,17 +272,19 @@ function noticeKey(notice: DashboardNotice): string {
                 {{ t.dashboard.attention_zone_title }}
             </h2>
             <div class="flex flex-wrap items-center gap-2">
-                <span
+                <Badge
                     v-if="exceededCount > 0"
-                    class="bg-destructive/10 text-destructive inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                    variant="destructive-soft"
+                    class="gap-1.5 tabular-nums"
                 >
                     <OctagonX class="size-3.5 shrink-0" aria-hidden="true" />
                     {{ t.dashboard.notices_exceeded_group }} ·
                     {{ exceededCount }}
-                </span>
-                <span
+                </Badge>
+                <Badge
                     v-if="warningCount > 0"
-                    class="bg-warning/10 text-warning inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                    variant="warning"
+                    class="gap-1.5 tabular-nums"
                 >
                     <AlertTriangle
                         class="size-3.5 shrink-0"
@@ -289,7 +292,7 @@ function noticeKey(notice: DashboardNotice): string {
                     />
                     {{ t.dashboard.notices_warning_group }} ·
                     {{ warningCount }}
-                </span>
+                </Badge>
             </div>
         </div>
 
@@ -309,7 +312,7 @@ function noticeKey(notice: DashboardNotice): string {
                         ? true
                         : undefined
                 "
-                class="focus-visible:ring-ring flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-60"
+                class="focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:opacity-60"
                 :class="severityCardClass(notice.severity)"
                 @start="monthPlanRequestPending = true"
                 @finish="monthPlanRequestPending = false"

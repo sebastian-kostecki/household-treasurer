@@ -5,6 +5,8 @@ import { Check, Circle } from '@lucide/vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import StatTile from '@/components/StatTile.vue';
 import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
@@ -25,7 +27,7 @@ import {
     useShell,
     useTranslations,
 } from '@/composables/useTranslations';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { dashboard } from '@/routes';
 import type { DashboardPageProps } from '@/types/dashboard';
 
@@ -78,27 +80,6 @@ const monthToSpendLabel = computed(() => {
 
     return t.dashboard.month_to_spend.replace(':month', monthName);
 });
-
-const monthToSpendClass = computed(() => {
-    if (
-        props.month_to_spend === null ||
-        props.month_to_spend.to_spend_minor_units >= 0
-    ) {
-        return 'text-success';
-    }
-
-    return 'text-destructive';
-});
-
-const spendableLiquidityClass = computed(() =>
-    props.spendable_liquidity_minor_units < 0
-        ? 'text-destructive'
-        : 'text-success',
-);
-
-const totalFundsClass = computed(() =>
-    props.total_funds_minor_units < 0 ? 'text-destructive' : 'text-success',
-);
 
 const budgetYearLabel = computed(() =>
     t.dashboard.budget_year_label.replace(':year', String(props.budget_year)),
@@ -190,25 +171,20 @@ setLayoutProps({
         </Card>
 
         <div class="grid gap-3" :class="headlineTilesClass">
-            <Card v-if="month_to_spend !== null">
-                <CardHeader class="pb-2">
-                    <CardDescription class="flex items-center gap-2">
-                        {{ monthToSpendLabel }}
-                        <Badge
-                            v-if="month_to_spend.state === 'proposal'"
-                            variant="outline"
-                        >
-                            {{ t.month_plan.state_proposal }}
-                        </Badge>
-                    </CardDescription>
-                    <CardTitle
-                        class="text-3xl tabular-nums"
-                        :class="monthToSpendClass"
-                    >
-                        {{ formatMoney(month_to_spend.to_spend_minor_units) }}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent class="pt-0">
+            <StatTile
+                v-if="month_to_spend !== null"
+                :label="monthToSpendLabel"
+                :amount-minor-units="month_to_spend.to_spend_minor_units"
+            >
+                <template
+                    v-if="month_to_spend.state === 'proposal'"
+                    #label-extra
+                >
+                    <Badge variant="outline">
+                        {{ t.month_plan.state_proposal }}
+                    </Badge>
+                </template>
+                <template #footer>
                     <Form
                         v-bind="BudgetController.selectYear.form()"
                         v-slot="{ processing }"
@@ -229,36 +205,18 @@ setLayoutProps({
                             {{ t.nav.month_plan }}
                         </Button>
                     </Form>
-                </CardContent>
-            </Card>
+                </template>
+            </StatTile>
 
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.spendable_liquidity }}
-                    </CardDescription>
-                    <CardTitle
-                        class="text-3xl tabular-nums"
-                        :class="spendableLiquidityClass"
-                    >
-                        {{ formatMoney(spendable_liquidity_minor_units) }}
-                    </CardTitle>
-                </CardHeader>
-            </Card>
+            <StatTile
+                :label="t.dashboard.spendable_liquidity"
+                :amount-minor-units="spendable_liquidity_minor_units"
+            />
 
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.total_funds }}
-                    </CardDescription>
-                    <CardTitle
-                        class="text-3xl tabular-nums"
-                        :class="totalFundsClass"
-                    >
-                        {{ formatMoney(total_funds_minor_units) }}
-                    </CardTitle>
-                </CardHeader>
-            </Card>
+            <StatTile
+                :label="t.dashboard.total_funds"
+                :amount-minor-units="total_funds_minor_units"
+            />
         </div>
 
         <DashboardNotices
@@ -338,24 +296,21 @@ setLayoutProps({
                 </div>
 
                 <Card v-if="budget === null">
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ noBudgetMessage }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <CreateBudgetDialog
-                            v-model:open="createBudgetDialogOpen"
-                            year-input-id="dashboard-create-budget-year"
-                            :suggested-year="budget_year"
-                        >
-                            <template #trigger>
-                                <Button>
-                                    {{ t.budget.create_budget }}
-                                </Button>
-                            </template>
-                        </CreateBudgetDialog>
-                    </CardContent>
+                    <IndexEmptyState :title="noBudgetMessage">
+                        <template #actions>
+                            <CreateBudgetDialog
+                                v-model:open="createBudgetDialogOpen"
+                                year-input-id="dashboard-create-budget-year"
+                                :suggested-year="budget_year"
+                            >
+                                <template #trigger>
+                                    <Button>
+                                        {{ t.budget.create_budget }}
+                                    </Button>
+                                </template>
+                            </CreateBudgetDialog>
+                        </template>
+                    </IndexEmptyState>
                 </Card>
 
                 <template v-else>
@@ -367,6 +322,15 @@ setLayoutProps({
                             planSummary.planned_balance_minor_units
                         "
                     />
+
+                    <Card v-if="budget.phase === 'draft'">
+                        <IndexEmptyState
+                            :title="t.dashboard.draft_categories_title"
+                            :description="
+                                t.dashboard.draft_categories_description
+                            "
+                        />
+                    </Card>
 
                     <div v-if="showBudgetCategories" class="space-y-3">
                         <DashboardCategorySection
