@@ -479,30 +479,30 @@ Bez migracji danych.
 
 #### Automated
 
-- [x] 1.1 Lint i format przechodzą: `npm run check`
-- [x] 1.2 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check`
-- [x] 1.3 Test Feature kitchen sinka przechodzi: `php artisan test --compact tests/Feature/AccountsKitchenSinkTest.php` (obraz Sail na worktree)
-- [x] 1.4 Istniejące testy kont przechodzą bez zmian: `php artisan test --compact tests/Feature/AccountTest.php tests/Feature/ArchiveAccountTest.php`
+- [x] 1.1 Lint i format przechodzą: `npm run check` — 86a31de
+- [x] 1.2 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check` — 86a31de
+- [x] 1.3 Test Feature kitchen sinka przechodzi: `php artisan test --compact tests/Feature/AccountsKitchenSinkTest.php` (obraz Sail na worktree) — 86a31de
+- [x] 1.4 Istniejące testy kont przechodzą bez zmian: `php artisan test --compact tests/Feature/AccountTest.php tests/Feature/ArchiveAccountTest.php` — 86a31de
 
 #### Manual
 
-- [x] 1.5 `/dev/ui/accounts` lokalnie pokazuje 6 scenariuszy z nagłówkami, a `/accounts` wygląda tak samo jak przed fazą
-- [x] 1.6 Zrzuty „przed” (2 widoki + dialog, 1280 i 390 px, jasny i ciemny) są w `screenshots/before/`
+- [x] 1.5 `/dev/ui/accounts` lokalnie pokazuje 6 scenariuszy z nagłówkami, a `/accounts` wygląda tak samo jak przed fazą — 86a31de
+- [x] 1.6 Zrzuty „przed” (2 widoki + dialog, 1280 i 390 px, jasny i ciemny) są w `screenshots/before/` — 86a31de
 
 ### Phase 2: Wartości kontraktu
 
 #### Automated
 
-- [ ] 2.1 Lint, format i skan przechodzą: `npm run check && npm run check:ui`
-- [ ] 2.2 Typy przechodzą: `npm run types:check`
-- [ ] 2.3 Testy frontendu przechodzą: `npm test`
+- [x] 2.1 Lint, format i skan przechodzą: `npm run check && npm run check:ui`
+- [x] 2.2 Typy przechodzą: `npm run types:check`
+- [x] 2.3 Testy frontendu przechodzą: `npm test`
 
 #### Manual
 
-- [ ] 2.4 W dialogu „Dodaj konto” wyzwalacz banku ma te same rogi co pole „Nazwa”, a otwarta lista też ma `rounded-xl`
-- [ ] 2.5 Tab do X w dowolnym dialogu pokazuje pierścień 3 px `ring/50`, a klik myszą go nie pokazuje
-- [ ] 2.6 Formularze z `Select` poza Kontami (wydatek z `CategorySelect`, przelew własny z `AccountSelect`, ruch kapitału) wyglądają poprawnie w obu motywach
-- [ ] 2.7 Zrzuty `after-phase-2/` są w folderze zmiany
+- [x] 2.4 W dialogu „Dodaj konto” wyzwalacz banku ma te same rogi co pole „Nazwa”, a otwarta lista też ma `rounded-xl`
+- [x] 2.5 Tab do X w dowolnym dialogu pokazuje pierścień 3 px `ring/50`, a klik myszą go nie pokazuje
+- [x] 2.6 Formularze z `Select` poza Kontami (wydatek z `CategorySelect`, przelew własny z `AccountSelect`, ruch kapitału) wyglądają poprawnie w obu motywach
+- [x] 2.7 Zrzuty `after-phase-2/` są w folderze zmiany
 
 ### Phase 3: Jeden widok (C1–C5)
 
