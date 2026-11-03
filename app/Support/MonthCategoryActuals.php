@@ -69,6 +69,11 @@ class MonthCategoryActuals
         return ($this->byCategory[$categoryId]['positive_count'] ?? 0) > 0;
     }
 
+    public function hasOperations(int $categoryId): bool
+    {
+        return array_key_exists($categoryId, $this->byCategory);
+    }
+
     public function positiveCount(int $categoryId): int
     {
         return $this->byCategory[$categoryId]['positive_count'] ?? 0;

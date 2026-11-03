@@ -29,6 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budgets/{budget}/month-plans/{month}/approve', [MonthPlanController::class, 'approve'])
         ->whereNumber('month')
         ->name('month-plans.approve');
+    Route::patch('budgets/{budget}/month-plans/{month}', [MonthPlanController::class, 'update'])
+        ->whereNumber('month')
+        ->name('month-plans.update');
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');

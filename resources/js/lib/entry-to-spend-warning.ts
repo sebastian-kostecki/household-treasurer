@@ -15,6 +15,7 @@ export type EntryToSpendItem = {
 
 export type EntryToSpendMonth = {
     month: number;
+    set_aside_minor_units: number; // signed: positive sets aside, negative draws
     items: EntryToSpendItem[];
 };
 
@@ -125,7 +126,10 @@ function applyChange(
     }
 }
 
-function toSpendOf(states: Map<number, MonthState>): number {
+function toSpendOf(
+    states: Map<number, MonthState>,
+    setAsideMinorUnits: number,
+): number {
     return toSpendMinorUnits(
         [...states.values()].map((state) => ({
             type: state.category.type,
@@ -134,6 +138,7 @@ function toSpendOf(states: Map<number, MonthState>): number {
             actual: state.actual,
             hasPositiveAmount: state.positiveCount > 0,
         })),
+        setAsideMinorUnits,
     );
 }
 
@@ -200,13 +205,13 @@ export function previewToSpendWarnings(
             }
         }
 
-        const before = toSpendOf(states);
+        const before = toSpendOf(states, found.month.set_aside_minor_units);
 
         for (const change of byMonth.get(key) ?? []) {
             applyChange(states, found.budget, change);
         }
 
-        const after = toSpendOf(states);
+        const after = toSpendOf(states, found.month.set_aside_minor_units);
 
         if (after < 0 && after < before) {
             warnings.push({ year, month, toSpendAfterMinorUnits: after });

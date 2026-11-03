@@ -54,6 +54,7 @@ class EntryToSpendInputs
      *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
      *     months: list<array{
      *         month: int,
+     *         set_aside_minor_units: int,
      *         items: list<array{category_id: int, plan_minor_units: int, actual_minor_units: int, positive_amount_count: int}>,
      *     }>,
      * }
@@ -98,7 +99,11 @@ class EntryToSpendInputs
                 ];
             }
 
-            $months[] = ['month' => $month, 'items' => $items];
+            $months[] = [
+                'month' => $month,
+                'set_aside_minor_units' => $reading->setAsideMinorUnits,
+                'items' => $items,
+            ];
         }
 
         return [

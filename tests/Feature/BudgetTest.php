@@ -243,6 +243,28 @@ class BudgetTest extends TestCase
             );
     }
 
+    public function test_select_year_with_month_plan_destination_redirects_to_month_plan(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'month-plan'])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2025)
+            ->assertRedirect(route('month-plan'));
+    }
+
+    public function test_select_year_rejects_an_unknown_destination(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'elsewhere'])
+            ->assertSessionHasErrors('destination');
+    }
+
     public function test_user_cannot_change_another_users_budget_or_categories(): void
     {
         $owner = User::factory()->create();

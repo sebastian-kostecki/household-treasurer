@@ -81,7 +81,7 @@ A signed reading, in Minor units, not stored: income (plan, then the actual amou
 _Avoid_: Spendable Liquidity, Month Remaining, Available Limit, Month Result, Pozostało
 
 **Set-aside**:
-One signed amount per Month Plan: positive („odkładam”) lowers To Spend, negative is a Draw („dobieram”) and raises it. Not a Category, not a transfer, does not change Liquidity. A Draw whose absolute value exceeds Spendable Liquidity (|Draw| > Spendable Liquidity) gives a warning without a block. Polish UI copy: „odkładam / dobieram”.
+One signed amount per Month Plan: positive („odkładam”) lowers To Spend, negative is a Draw („dobieram”) and raises it. Not a Category, not a transfer, does not change Liquidity. Set-aside has an Approved and a Current amount like a Category amount, and a Proposal copies a positive Set-aside from the source of the Proposal rule (ADR-0033), while a Draw or no source gives 0. A Draw whose absolute value exceeds Spendable Liquidity (|Draw| > Spendable Liquidity) gives a warning without a block. Polish UI copy: „odkładam / dobieram”.
 _Avoid_: Savings (as Category or Account), Reserve, Earmark, transfer
 
 **Month Pace**:

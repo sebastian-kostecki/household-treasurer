@@ -86,6 +86,85 @@ class MonthPlanProposalTest extends TestCase
         $this->assertSame(9_500, $reading->amounts[$food->id]);
     }
 
+    public function test_proposal_copies_a_positive_set_aside_through_the_chain(): void
+    {
+        $budget = $this->budget(2026);
+        $this->food($budget);
+        $this->approve($budget, 10, [], 50_000);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(50_000, $proposal->reading(10)->setAsideMinorUnits);
+        $this->assertSame(50_000, $proposal->reading(11)->setAsideMinorUnits);
+        $this->assertSame(50_000, $proposal->reading(12)->setAsideMinorUnits);
+    }
+
+    public function test_proposal_does_not_copy_a_draw(): void
+    {
+        $budget = $this->budget(2026);
+        $this->food($budget);
+        $this->approve($budget, 10, [], -30_000);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(-30_000, $proposal->reading(10)->setAsideMinorUnits);
+        $this->assertSame(0, $proposal->reading(11)->setAsideMinorUnits);
+        $this->assertSame(0, $proposal->reading(12)->setAsideMinorUnits);
+    }
+
+    public function test_proposal_without_a_source_has_no_set_aside(): void
+    {
+        $budget = $this->budget(2026);
+        $this->food($budget);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame('none', $proposal->reading(10)->state);
+        $this->assertSame(0, $proposal->reading(10)->setAsideMinorUnits);
+        $this->assertSame(0, $proposal->reading(11)->setAsideMinorUnits);
+    }
+
+    public function test_january_copies_a_positive_set_aside_from_december_of_the_previous_budget(): void
+    {
+        $previous = $this->budget(2026);
+        $this->food($previous);
+        $this->approve($previous, 12, [], 20_000);
+
+        $budget = $this->budget(2027);
+        $this->food($budget);
+
+        $january = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
+
+        $this->assertSame('proposal', $january->state);
+        $this->assertSame(20_000, $january->setAsideMinorUnits);
+    }
+
+    public function test_january_does_not_copy_a_draw_from_the_previous_budget(): void
+    {
+        $previous = $this->budget(2026);
+        $this->food($previous);
+        $this->approve($previous, 12, [], -10_000);
+
+        $budget = $this->budget(2027);
+        $this->food($budget);
+
+        $january = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
+
+        $this->assertSame(0, $january->setAsideMinorUnits);
+    }
+
+    public function test_approved_reading_uses_the_current_set_aside(): void
+    {
+        $budget = $this->budget(2026);
+        $this->food($budget);
+        $plan = $this->approve($budget, 11, [], 50_000);
+        $plan->update(['current_set_aside_minor_units' => 70_000]);
+
+        $reading = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11);
+
+        $this->assertSame(70_000, $reading->setAsideMinorUnits);
+    }
+
     public function test_past_month_without_a_plan_is_none(): void
     {
         $budget = $this->budget(2026);
@@ -271,9 +350,13 @@ class MonthPlanProposalTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
-    private function approve(Budget $budget, int $month, array $amounts): MonthPlan
+    private function approve(Budget $budget, int $month, array $amounts, int $setAside = 0): MonthPlan
     {
-        $plan = MonthPlan::factory()->for($budget)->create(['month' => $month]);
+        $plan = MonthPlan::factory()->for($budget)->create([
+            'month' => $month,
+            'approved_set_aside_minor_units' => $setAside,
+            'current_set_aside_minor_units' => $setAside,
+        ]);
 
         foreach ($amounts as $categoryId => $amount) {
             MonthPlanItem::factory()->create([

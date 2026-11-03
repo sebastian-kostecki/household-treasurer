@@ -41,8 +41,17 @@ function inputsWith(
     year: number,
     month: number,
     items: EntryToSpendItem[],
+    setAside = 0,
 ): EntryToSpendInputs {
-    return { budgets: [{ year, categories, months: [{ month, items }] }] };
+    return {
+        budgets: [
+            {
+                year,
+                categories,
+                months: [{ month, set_aside_minor_units: setAside, items }],
+            },
+        ],
+    };
 }
 
 /** To Spend of the month: 800 000 − 200 000 − 150 000 = 450 000. */
@@ -192,12 +201,24 @@ test('changes in December and January land in their own budgets in order', () =>
             {
                 year: 2025,
                 categories,
-                months: [{ month: 12, items: [item(SALARY, 120_000)] }],
+                months: [
+                    {
+                        month: 12,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 120_000)],
+                    },
+                ],
             },
             {
                 year: 2026,
                 categories,
-                months: [{ month: 1, items: [item(SALARY, 100_000)] }],
+                months: [
+                    {
+                        month: 1,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 100_000)],
+                    },
+                ],
             },
         ],
     };
@@ -332,4 +353,34 @@ test('hand entry: incomplete form gives no changes, also when editing', () => {
             handEntryToSpendChanges({ ...base, amountMinorUnits: 0 }),
         ).toEqual([]);
     }
+});
+
+test('a set-aside lowers To Spend before and after the entry', () => {
+    // 800 000 − 200 000 − 150 000 − 300 000 odłożone = 150 000; po wydatku 350 000: −50 000
+    const inputs = inputsWith(
+        2026,
+        11,
+        [item(SALARY, 800_000), item(RENT, 200_000), item(GROCERIES, 150_000)],
+        300_000,
+    );
+
+    expect(
+        previewToSpendWarnings(inputs, [change(GROCERIES, 100_000)]),
+    ).toEqual([]);
+    expect(
+        previewToSpendWarnings(inputs, [change(GROCERIES, 350_000)]),
+    ).toEqual([{ year: 2026, month: 11, toSpendAfterMinorUnits: -50_000 }]);
+});
+
+test('a draw raises To Spend, so the same entry does not warn', () => {
+    const inputs = inputsWith(
+        2026,
+        11,
+        [item(SALARY, 800_000), item(RENT, 200_000), item(GROCERIES, 150_000)],
+        -300_000,
+    );
+
+    expect(
+        previewToSpendWarnings(inputs, [change(GROCERIES, 350_000)]),
+    ).toEqual([]);
 });

@@ -13,6 +13,16 @@ export function formatMoney(minorUnits: number): string {
 }
 
 /**
+ * Format minor units with an explicit plus for positive values,
+ * e.g. 123456 -> "+1 234,56 zł". Negative and zero match formatMoney.
+ */
+export function formatSignedMoney(minorUnits: number): string {
+    const formatted = formatMoney(minorUnits);
+
+    return minorUnits > 0 ? `+${formatted}` : formatted;
+}
+
+/**
  * Format minor units for editable PLN input, e.g. 123456 -> "1234,56"
  */
 export function minorUnitsToMoneyInput(minorUnits: number): string {

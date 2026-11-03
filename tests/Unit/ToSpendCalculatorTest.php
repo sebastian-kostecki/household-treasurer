@@ -19,24 +19,45 @@ function canonicalToSpendItems(int $salaryActual = 0, int $rentActual = 195_000,
 }
 
 test('canonical example gives 3730,00', function () {
-    expect(ToSpendCalculator::toSpendMinorUnits(canonicalToSpendItems()))->toBe(373_000);
+    expect(ToSpendCalculator::toSpendMinorUnits(canonicalToSpendItems(), 0))->toBe(373_000);
 });
 
 test('income received replaces the planned amount', function () {
-    expect(ToSpendCalculator::toSpendMinorUnits(canonicalToSpendItems(salaryActual: 780_000)))->toBe(353_000);
+    expect(ToSpendCalculator::toSpendMinorUnits(canonicalToSpendItems(salaryActual: 780_000), 0))->toBe(353_000);
 });
 
 test('bill with only a refund still counts at plan', function () {
-    expect(ToSpendCalculator::toSpendMinorUnits(canonicalToSpendItems(rentActual: -10_000, rentHasPositive: false)))->toBe(368_000);
+    expect(ToSpendCalculator::toSpendMinorUnits(canonicalToSpendItems(rentActual: -10_000, rentHasPositive: false), 0))->toBe(368_000);
 });
 
 test('empty list is zero', function () {
-    expect(ToSpendCalculator::toSpendMinorUnits([]))->toBe(0);
+    expect(ToSpendCalculator::toSpendMinorUnits([], 0))->toBe(0);
 });
 
 test('result can be negative', function () {
     expect(ToSpendCalculator::toSpendMinorUnits([
         ['type' => CategoryType::Income, 'kind' => MonthItemKind::Running, 'plan' => 100_000, 'actual' => 0, 'has_positive_amount' => false],
         ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 20_000, 'actual' => 150_000, 'has_positive_amount' => true],
-    ]))->toBe(-50_000);
+    ], 0))->toBe(-50_000);
+});
+
+/**
+ * @return list<array{type: CategoryType, kind: MonthItemKind, plan: int, actual: int, has_positive_amount: bool}>
+ */
+function setAsideExampleItems(): array
+{
+    return [
+        ['type' => CategoryType::Income, 'kind' => MonthItemKind::Running, 'plan' => 600_000, 'actual' => 0, 'has_positive_amount' => false],
+        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Bill, 'plan' => 200_000, 'actual' => 195_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 150_000, 'actual' => 40_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 30_000, 'actual' => 35_000, 'has_positive_amount' => true],
+    ];
+}
+
+test('set-aside lowers the amount to spend', function () {
+    expect(ToSpendCalculator::toSpendMinorUnits(setAsideExampleItems(), 50_000))->toBe(170_000);
+});
+
+test('a draw raises the amount to spend', function () {
+    expect(ToSpendCalculator::toSpendMinorUnits(setAsideExampleItems(), -30_000))->toBe(250_000);
 });

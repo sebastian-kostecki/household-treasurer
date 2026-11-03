@@ -8,10 +8,15 @@ export type ToSpendItem = {
 
 /**
  * Copy of App\Support\ToSpendCalculator::toSpendMinorUnits, used for the live
- * preview while a month plan proposal is edited and for the entry warnings
- * (entry-to-spend-warning.ts, import-to-spend-warnings.ts). Change both together.
+ * preview while a month plan proposal is edited, while an approved plan is
+ * changed (saving overwrites the final plan, so the preview must react before
+ * save) and for the entry warnings (entry-to-spend-warning.ts,
+ * import-to-spend-warnings.ts). Change both together.
  */
-export function toSpendMinorUnits(items: ToSpendItem[]): number {
+export function toSpendMinorUnits(
+    items: ToSpendItem[],
+    setAsideMinorUnits: number,
+): number {
     let total = 0;
 
     for (const item of items) {
@@ -30,5 +35,5 @@ export function toSpendMinorUnits(items: ToSpendItem[]): number {
         total -= Math.max(item.plan, item.actual);
     }
 
-    return total;
+    return total - setAsideMinorUnits;
 }

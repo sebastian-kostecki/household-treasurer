@@ -52,6 +52,11 @@ type BudgetSummary = {
     can_reorder: boolean;
 };
 
+type MonthToSpend = {
+    state: 'proposal' | 'approved' | 'none';
+    to_spend_minor_units: number | null;
+};
+
 type DeficitWarning = {
     planned_deficit_minor_units: number;
     liquidity_at_year_start_minor_units: number;
@@ -80,6 +85,7 @@ const props = defineProps<{
     monthResultMinorUnits: number | null;
     currentMonth: number | null;
     viewedMonthTiming: 'past' | 'current' | 'future' | null;
+    monthToSpend: MonthToSpend | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
@@ -294,6 +300,7 @@ function openDeleteBudgetDialog(): void {
                     monthExpenseExecutionMinorUnits
                 "
                 :month-result-minor-units="monthResultMinorUnits"
+                :month-to-spend="monthToSpend"
             />
 
             <div class="flex items-center gap-2">

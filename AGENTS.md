@@ -21,6 +21,16 @@ That command fails from a worktree. With Sail running and after the fresh-checko
 
 For the full CI gate, replace `--entrypoint php sail-8.5/app artisan test --compact <path>` with `--entrypoint composer sail-8.5/app ci:check`.
 
+## Sloppy (static analysis)
+
+[Sloppy](https://github.com/heyosseus/sloppy) (`heyosseus/sloppy`, dev dependency) flags code-quality debt in PHP: god methods and classes, queries in loops, possible N+1, duplicated logic. CI runs `vendor/bin/sloppy ci` as its own step, outside `composer ci:check`, so the Sail `ci:check` gate does not cover it.
+
+- Run `vendor/bin/sloppy ci` on the host before finishing PHP changes. It reads git history, and it was verified on the host (including from a worktree), not inside the Sail image. In a pull request it reports only findings the change introduced; on a push it scans everything against the baseline.
+- `.sloppy-baseline.json` holds the 26 findings that existed when Sloppy was added, keyed by class and member, not line number. Editing a baselined method does not resurface its finding. Do not regenerate the baseline to silence a new finding: fix it. Run `vendor/bin/sloppy baseline` only after you have fixed a baselined finding, so the entry is dropped.
+- See everything, baseline included: `vendor/bin/sloppy scan --no-baseline --all`. Narrow it with `--rule=SL101` or `--path=app/Actions`.
+- There is no `sloppy.php`, so package defaults apply (`fail_on: high`, `tests` and `vendor` excluded). Add a config file only for a decision about the whole project, not to hide one finding.
+- Findings are heuristics. `SL203` guesses from a property name: `$termDeposit->bank` is a `Bank` enum cast, not a relation, so no eager loading helps. Check the model's `casts()` and relations before "fixing" an N+1 report.
+
 ## Inertia props contract
 
 Props are PHP arrays in controllers and hand-written TypeScript types in `defineProps<>`, and `vue-tsc` cannot see the PHP side. When you add, rename or change a prop, change both sides in the same commit and assert the prop with `assertInertia` in a Feature test.
@@ -29,7 +39,9 @@ Props are PHP arrays in controllers and hand-written TypeScript types in `define
 
 `app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. The calculators are covered by `tests/Unit/MonthRemainingCalculatorTest.php` and `resources/js/lib/month-remaining-calculator.test.ts`; the two preview files have no tests. Change both copies and both tests together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.
 
-`app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit. It also feeds the entry warning ("do wydania" below zero) in `resources/js/lib/entry-to-spend-warning.ts` and `import-to-spend-warnings.ts`, both covered by `*.test.ts` next to them, so a change to the calculator affects the hand-entry and Import previews too.
+`app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit. A second reason is changing an approved plan: the save overwrites the final plan, so the preview must react before save. It also feeds the entry warning ("do wydania" below zero) in `resources/js/lib/entry-to-spend-warning.ts` and `import-to-spend-warnings.ts`, both covered by `*.test.ts` next to them, so a change to the calculator affects the hand-entry and Import previews too.
+
+`app/Support/MonthItemDeviation.php` and `resources/js/lib/month-item-deviation.ts` are a third pair, covered by `tests/Unit/MonthItemDeviationTest.php` and `resources/js/lib/month-item-deviation.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview in the editable month proposal: a proposal cannot be saved before approval, so the preview must react before submit.
 
 ## Wayfinder
 

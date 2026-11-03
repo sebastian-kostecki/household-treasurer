@@ -41,6 +41,7 @@ function inputs(): EntryToSpendInputs {
                 months: [
                     {
                         month: 11,
+                        set_aside_minor_units: 0,
                         items: [
                             item(SALARY, 500_000, 5_000),
                             item(GROCERIES, 0),

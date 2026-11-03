@@ -84,7 +84,10 @@ const props = defineProps<{
     year_elapsed_as_of: string | null;
     year_elapsed_percent: number | null;
     dashboardNotices: DashboardNotice[];
-    paced_pool_month_remaining_minor_units: number | null;
+    month_to_spend: {
+        state: 'proposal' | 'approved';
+        to_spend_minor_units: number;
+    } | null;
     current_month: number | null;
     planSummary: PlanSummary | null;
 }>();
@@ -116,15 +119,13 @@ const checklistComplete = computed(() =>
     checklist.value.every((item) => item.done),
 );
 
-const showMonthRemainingTile = computed(
-    () => props.paced_pool_month_remaining_minor_units !== null,
-);
+const showMonthToSpendTile = computed(() => props.month_to_spend !== null);
 
 const headlineTilesClass = computed(() =>
-    showMonthRemainingTile.value ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+    showMonthToSpendTile.value ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
 );
 
-const monthRemainingLabel = computed(() => {
+const monthToSpendLabel = computed(() => {
     if (props.current_month === null) {
         return '';
     }
@@ -134,13 +135,13 @@ const monthRemainingLabel = computed(() => {
             `month_name_${props.current_month}` as keyof typeof t.budget
         ] ?? '';
 
-    return t.dashboard.paced_pool_month_remaining.replace(':month', monthName);
+    return t.dashboard.month_to_spend.replace(':month', monthName);
 });
 
-const monthRemainingClass = computed(() => {
+const monthToSpendClass = computed(() => {
     if (
-        props.paced_pool_month_remaining_minor_units === null ||
-        props.paced_pool_month_remaining_minor_units >= 0
+        props.month_to_spend === null ||
+        props.month_to_spend.to_spend_minor_units >= 0
     ) {
         return 'text-success';
     }
@@ -248,20 +249,46 @@ setLayoutProps({
         </Card>
 
         <div class="grid gap-3" :class="headlineTilesClass">
-            <Card v-if="showMonthRemainingTile">
+            <Card v-if="month_to_spend !== null">
                 <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ monthRemainingLabel }}
+                    <CardDescription class="flex items-center gap-2">
+                        {{ monthToSpendLabel }}
+                        <Badge
+                            v-if="month_to_spend.state === 'proposal'"
+                            variant="outline"
+                        >
+                            {{ t.month_plan.state_proposal }}
+                        </Badge>
                     </CardDescription>
                     <CardTitle
                         class="text-3xl tabular-nums"
-                        :class="monthRemainingClass"
+                        :class="monthToSpendClass"
                     >
-                        {{
-                            formatMoney(paced_pool_month_remaining_minor_units!)
-                        }}
+                        {{ formatMoney(month_to_spend.to_spend_minor_units) }}
                     </CardTitle>
                 </CardHeader>
+                <CardContent class="pt-0">
+                    <Form
+                        v-bind="BudgetController.selectYear.form()"
+                        v-slot="{ processing }"
+                    >
+                        <input type="hidden" name="year" :value="budget_year" />
+                        <input
+                            type="hidden"
+                            name="destination"
+                            value="month-plan"
+                        />
+                        <Button
+                            type="submit"
+                            variant="link"
+                            size="sm"
+                            class="h-auto p-0"
+                            :disabled="processing"
+                        >
+                            {{ t.nav.month_plan }}
+                        </Button>
+                    </Form>
+                </CardContent>
             </Card>
 
             <Card>

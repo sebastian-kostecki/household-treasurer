@@ -180,6 +180,8 @@ class UserSnapshotCommandTest extends TestCase
         $monthPlan = MonthPlan::factory()->for($budget)->create([
             'month' => 3,
             'approved_at' => '2026-03-02 10:00:00',
+            'approved_set_aside_minor_units' => 50000,
+            'current_set_aside_minor_units' => -30000,
         ]);
         MonthPlanItem::factory()->for($monthPlan)->for($billCategory)->create([
             'approved_amount_minor_units' => 150000,
@@ -214,6 +216,8 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame('2026-03-02 10:00:00', $restoredPlan->approved_at->format('Y-m-d H:i:s'));
         $this->assertNotSame($monthPlan->id, $restoredPlan->id);
         $this->assertNotSame($budget->id, $restoredPlan->budget_id);
+        $this->assertSame(50000, $restoredPlan->approved_set_aside_minor_units);
+        $this->assertSame(-30000, $restoredPlan->current_set_aside_minor_units);
         $this->assertSame(150000, $restoredItem->approved_amount_minor_units);
         $this->assertSame(160000, $restoredItem->current_amount_minor_units);
         $this->assertSame(2, $restoredPlan->items()->count());
@@ -256,6 +260,43 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(0, MonthPlan::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->count());
+    }
+
+    public function test_restore_command_restores_v5_month_plan_without_set_aside_keys_as_zero(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        MonthPlan::factory()->for($budget)->create([
+            'month' => 3,
+            'approved_set_aside_minor_units' => 50000,
+            'current_set_aside_minor_units' => -30000,
+        ]);
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset(
+            $snapshot['month_plans'][0]['approved_set_aside_minor_units'],
+            $snapshot['month_plans'][0]['current_set_aside_minor_units'],
+        );
+
+        $legacyPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v5-without-set-aside.json');
+        file_put_contents($legacyPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $legacyPath,
+            '--force' => true,
+        ]);
+
+        $restoredPlan = MonthPlan::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->firstOrFail();
+
+        $this->assertSame(0, $restoredPlan->approved_set_aside_minor_units);
+        $this->assertSame(0, $restoredPlan->current_set_aside_minor_units);
     }
 
     public function test_restore_command_rejects_v5_snapshot_without_month_plans(): void

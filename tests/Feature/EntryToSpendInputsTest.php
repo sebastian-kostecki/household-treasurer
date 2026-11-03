@@ -64,6 +64,29 @@ class EntryToSpendInputsTest extends TestCase
         $this->assertSame(7_000, $months[0]['items'][0]['plan_minor_units']);
     }
 
+    public function test_each_month_carries_its_signed_set_aside(): void
+    {
+        $budget = $this->budget(2026);
+        $food = $this->food($budget);
+        $plan = MonthPlan::factory()->for($budget)->create([
+            'month' => 9,
+            'approved_set_aside_minor_units' => 120_000,
+            'current_set_aside_minor_units' => -30_000,
+        ]);
+        MonthPlanItem::factory()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $food->id,
+            'approved_amount_minor_units' => 7_000,
+            'current_amount_minor_units' => 7_000,
+        ]);
+
+        $months = EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['budgets'][0]['months'];
+
+        $this->assertSame([9, 11], array_column($months, 'month'));
+        $this->assertSame(-30_000, $months[0]['set_aside_minor_units']);
+        $this->assertIsInt($months[1]['set_aside_minor_units']);
+    }
+
     public function test_past_month_without_a_plan_and_future_months_are_absent(): void
     {
         $budget = $this->budget(2026);

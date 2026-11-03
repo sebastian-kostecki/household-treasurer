@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import BudgetMonthResultSummary from '@/components/BudgetMonthResultSummary.vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
+import { formatMoney } from '@/lib/format';
+import { monthPlan as monthPlanRoute } from '@/routes';
 
 const props = defineProps<{
     budgetYear: number;
@@ -15,6 +18,10 @@ const props = defineProps<{
     monthIncomeExecutionMinorUnits: number;
     monthExpenseExecutionMinorUnits: number;
     monthResultMinorUnits: number;
+    monthToSpend?: {
+        state: 'proposal' | 'approved' | 'none';
+        to_spend_minor_units: number | null;
+    } | null;
 }>();
 
 const t = useTranslations();
@@ -54,6 +61,55 @@ const viewedMonthLabel = computed(() => {
                 :show-archived="showArchived"
                 :current-month="currentMonth"
             />
+            <p
+                v-if="monthToSpend?.state === 'none'"
+                class="text-muted-foreground text-sm"
+            >
+                {{ t.month_plan.none_title }}
+            </p>
+            <div
+                v-else-if="monthToSpend"
+                class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
+            >
+                <div class="flex flex-wrap items-center gap-2">
+                    <span
+                        class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
+                    >
+                        {{ t.month_plan.to_spend }}
+                    </span>
+                    <span
+                        class="text-lg font-semibold tabular-nums"
+                        :class="
+                            (monthToSpend.to_spend_minor_units ?? 0) < 0
+                                ? 'text-destructive'
+                                : ''
+                        "
+                    >
+                        {{
+                            formatMoney(monthToSpend.to_spend_minor_units ?? 0)
+                        }}
+                    </span>
+                    <Badge
+                        :variant="
+                            monthToSpend.state === 'approved'
+                                ? 'secondary'
+                                : 'outline'
+                        "
+                    >
+                        {{
+                            monthToSpend.state === 'approved'
+                                ? t.month_plan.state_approved
+                                : t.month_plan.state_proposal
+                        }}
+                    </Badge>
+                </div>
+                <Link
+                    :href="monthPlanRoute({ query: { month: viewedMonth } })"
+                    class="text-primary text-sm font-medium hover:underline"
+                >
+                    {{ t.nav.month_plan }}
+                </Link>
+            </div>
             <BudgetMonthResultSummary
                 :income-execution-minor-units="monthIncomeExecutionMinorUnits"
                 :expense-execution-minor-units="monthExpenseExecutionMinorUnits"

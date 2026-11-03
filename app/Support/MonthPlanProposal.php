@@ -87,23 +87,25 @@ class MonthPlanProposal
         $categories = $inPreviousBudget ? $this->previousCategories : $this->categories;
 
         if ($budget === null || $plans === null || $categories === null) {
-            return new MonthPlanReading('none', null, []);
+            return new MonthPlanReading('none', null, [], 0);
         }
 
         $plan = $plans[$month] ?? null;
 
         if ($plan !== null) {
             $amounts = [];
+            $approvedAmounts = [];
 
             foreach ($plan->items as $item) {
                 $amounts[$item->category_id] = $item->current_amount_minor_units;
+                $approvedAmounts[$item->category_id] = $item->approved_amount_minor_units;
             }
 
-            return new MonthPlanReading('approved', $plan->approved_at, $amounts);
+            return new MonthPlanReading('approved', $plan->approved_at, $amounts, $plan->current_set_aside_minor_units, $approvedAmounts);
         }
 
         if ($this->isPast($budget->year, $month)) {
-            return new MonthPlanReading('none', null, []);
+            return new MonthPlanReading('none', null, [], 0);
         }
 
         $source = $this->sourceFor($inPreviousBudget, $month);
@@ -118,7 +120,7 @@ class MonthPlanProposal
             $amounts[$category->id] = $this->proposedAmount($category, $month, $source);
         }
 
-        return new MonthPlanReading('proposal', null, $amounts);
+        return new MonthPlanReading('proposal', null, $amounts, max(0, $source->setAsideMinorUnits ?? 0));
     }
 
     private function isPast(int $year, int $month): bool
