@@ -551,12 +551,12 @@ Brak migracji danych. Zmiana nazwy propsa dotyczy tylko `Operations.vue`; przy s
 
 #### Automated
 
-- [x] 5.1 Strażnik przechodzi na pełnej liście: `npm run check:ui`
-- [x] 5.2 Strażnik łapie odcień: `node scripts/check-ui-literals.mjs <plik tymczasowy z hover:bg-foreground/[0.03]>` kończy się kodem 1
-- [x] 5.3 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
-- [x] 5.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 5.1 Strażnik przechodzi na pełnej liście: `npm run check:ui` — f96821a
+- [x] 5.2 Strażnik łapie odcień: `node scripts/check-ui-literals.mjs <plik tymczasowy z hover:bg-foreground/[0.03]>` kończy się kodem 1 — f96821a
+- [x] 5.3 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”) — f96821a
+- [x] 5.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście — f96821a
 
 #### Manual
 
-- [x] 5.5 `/dashboard` i `/dev/ui/dashboard`: wiersze kont i lokat bez widocznej zmiany, hover działa
-- [x] 5.6 Zrzuty `phase-5-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice
+- [x] 5.5 `/dashboard` i `/dev/ui/dashboard`: wiersze kont i lokat bez widocznej zmiany, hover działa — f96821a
+- [x] 5.6 Zrzuty `phase-5-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice — f96821a
