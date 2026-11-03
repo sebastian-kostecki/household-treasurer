@@ -529,13 +529,13 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Automated
 
-- [x] 1.1 Test trasy przechodzi: `php artisan test --compact tests/Feature/BudgetKitchenSinkTest.php` (obraz Sail na worktree)
-- [x] 1.2 Typy i lint frontendu przechodzą: `npm run build && npm run types:check && npm run check`
-- [x] 1.3 Skan literałów `/10x-ui` na plikach widoku i `pages/dev/BudgetKitchenSink.vue` daje 0 trafień
+- [x] 1.1 Test trasy przechodzi: `php artisan test --compact tests/Feature/BudgetKitchenSinkTest.php` (obraz Sail na worktree) — 164d9c5
+- [x] 1.2 Typy i lint frontendu przechodzą: `npm run build && npm run types:check && npm run check` — 164d9c5
+- [x] 1.3 Skan literałów `/10x-ui` na plikach widoku i `pages/dev/BudgetKitchenSink.vue` daje 0 trafień — 164d9c5
 
 #### Manual
 
-- [x] 1.4 `http://localhost:8090/dev/kitchen-sink/budget` renderuje wszystkie sekcje z fiksurami w obu motywach
+- [x] 1.4 `http://localhost:8090/dev/kitchen-sink/budget` renderuje wszystkie sekcje z fiksurami w obu motywach — 164d9c5
 - [ ] 1.5 Zrzuty „przed” (desktop + 390 px) zapisane w `screenshots/`
 
 ### Phase 2: Kontrakt — siatka wiersza i reguły kolorów komórek
