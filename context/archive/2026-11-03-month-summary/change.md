@@ -1,10 +1,10 @@
 ---
 change_id: month-summary
 title: Month summary
-status: impl_reviewed
+status: archived
 created: 2026-11-03
 updated: 2026-11-03
-archived_at: null
+archived_at: 2026-11-03T06:28:21Z
 ---
 
 ## Notes
