@@ -22,3 +22,9 @@ Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction
 ## Non-blocking warnings use the warning Alert variant
 
 Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles use the refund and transfer tokens.
+
+## Tokens and shared components come first; the UI literal check guards cleaned views
+
+Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
+Signed amount colour goes through amountToneClass, column labels through the column-caption class, severity pills through Badge (variants warning / destructive-soft).
+No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandbox: /dev/ui/dashboard.

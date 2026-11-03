@@ -1,38 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
+import { amountToneClass } from '@/lib/amount-tone';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 
-const props = defineProps<{
+defineProps<{
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
     plannedBalanceMinorUnits: number;
 }>();
 
 const t = useTranslations();
-
-const balanceClass = computed(() => {
-    if (props.plannedBalanceMinorUnits < 0) {
-        return 'text-destructive';
-    }
-
-    if (props.plannedBalanceMinorUnits > 0) {
-        return 'text-success';
-    }
-
-    return '';
-});
 </script>
 
 <template>
     <Card>
         <CardContent class="grid gap-4 pt-6 sm:grid-cols-3">
             <div class="sm:col-span-3">
-                <p
-                    class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
-                >
+                <p class="column-caption">
                     {{ t.budget.annual_plan }}
                 </p>
             </div>
@@ -58,7 +44,7 @@ const balanceClass = computed(() => {
                 </p>
                 <p
                     class="text-lg font-semibold tabular-nums"
-                    :class="balanceClass"
+                    :class="amountToneClass(plannedBalanceMinorUnits)"
                 >
                     {{ formatMoney(plannedBalanceMinorUnits) }}
                 </p>

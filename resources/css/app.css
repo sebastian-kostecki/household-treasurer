@@ -190,6 +190,15 @@
     }
 }
 
+/**
+ * Column caption: header cells and mobile captions above values.
+ * Contract in `.docs/design-system.md` ("Listy i tabele"). Registered as a
+ * utility (not a component class) so `@apply column-caption` works.
+ */
+@utility column-caption {
+    @apply text-muted-foreground text-[11px] font-medium tracking-wider uppercase;
+}
+
 @layer components {
     .native-select {
         @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
@@ -204,7 +213,7 @@
     }
 
     .list-surface-table thead th {
-        @apply text-muted-foreground pb-2.5 text-left text-[11px] font-medium tracking-wider uppercase;
+        @apply column-caption pb-2.5 text-left;
     }
 
     .list-surface-table tbody tr {
@@ -445,12 +454,12 @@
     }
 
     .category-meter-header-row {
-        display: none;
+        @apply grid items-center gap-x-3 pb-2;
+        grid-template-columns: minmax(0, 1fr) auto;
     }
 
     @variant md {
         .category-meter-header-row {
-            @apply grid items-center gap-x-3 pb-2;
             grid-template-columns:
                 minmax(0, 1.4fr)
                 5.75rem

@@ -13,7 +13,7 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 
 - Szare tło strony (`background`), białe karty (`card`, `rounded-2xl`, obramowanie `border/60`). Bez cieni spoczynkowych: głębię daje kontrast tła i karty.
 - Kontrolki (przyciski, pola, selecty): wysokość 36 px (`h-9`), `rounded-xl`, fokus = pierścień 3 px `ring/50`.
-- Listy i tabele: `ListSurface` / `.list-surface-table`; wiersze oddzielone linią `border/60`, hover `foreground/3%`, nagłówki kolumn 11 px wersalikami w `muted-foreground`.
+- Listy i tabele: `ListSurface` / `.list-surface-table`; wiersze oddzielone linią `border/60`, hover `foreground/3%`. Nagłówki kolumn i podpisy mobilne nad wartościami (11 px, wersaliki, `muted-foreground`) przez klasę `column-caption` z `app.css`, nigdy ręcznie złożoną z `text-xs … uppercase`.
 - Odstępy: 16 px między kartami i na krawędzi strony, 20 px od `md`, 24 px wewnątrz karty.
 
 ## Typografia
@@ -39,6 +39,8 @@ Tekst na białym musi mieć kontrast co najmniej 4,5:1. Dlatego `destructive` w 
 
 Zapisywane jako całkowite Minor units. Wyświetlane przez `formatMoney`: `1 234,56 zł`, spacja tysięcy, przecinek, zawsze dwa miejsca, wyrównanie do prawej. Pola edycji: `minorUnitsToMoneyInput` / `parseMoneyInputToMinorUnits`. Znak minus przed kwotą, nie nawias.
 
+Kolor kwoty ze znakiem (saldo, „do wydania”, różnica) daje wyłącznie `amountToneClass` z `resources/js/lib/amount-tone.ts`: `> 0` → `text-success`, `0` → bez koloru, `< 0` → `text-destructive`. Zero nigdy nie jest zielone. Nie pisz lokalnych helperów „znak → kolor”.
+
 ## Alerty (Dashboard notices)
 
 Dwa poziomy, nadawane przez serwer w polu `severity` (ADR-0032):
@@ -46,13 +48,13 @@ Dwa poziomy, nadawane przez serwer w polu `severity` (ADR-0032):
 - **`exceeded`**: coś już jest przekroczone. Kwota w `text-destructive`.
 - **`warning`**: jeszcze w granicach, ale blisko. Kwota (jeśli jest) w `text-warning`. Emitują go `month_plan_not_approved` i `month_pace_ahead` (progi w `CONTEXT.md`).
 
-Strefa „Wymaga uwagi” ma w nagłówku po jednej pigułce na obecny poziom („Przekroczone · n” w `destructive`, „Ostrzeżenia · n” w `warning`), płaską siatkę kart (jedna kolumna na mobile, dwie od `sm`, trzy od `lg`) z sześcioma widocznymi kartami i „Pokaż wszystkie (n)” z łączną liczbą. Karty są ułożone „exceeded” przed „warning”, bez podnagłówków grup. Każda karta jest linkiem do przyczyny i ma u góry etykietę rodzaju (np. „Saldo ujemne”, „Ponad plan miesiąca”, „Plan niezatwierdzony”, „Tempo przed upływem dni”, „Do wydania poniżej zera”, „Ponad limit”), a kolor i tło bierze tylko z wagi. Nowy rodzaj alertu: najpierw pojęcie i progi w `CONTEXT.md`, potem `kind` i `severity` w `App\Support\DashboardNotices`.
+Strefa „Wymaga uwagi” ma w nagłówku po jednej pigułce na obecny poziom („Przekroczone · n” jako `<Badge variant="destructive-soft">`, „Ostrzeżenia · n” jako `<Badge variant="warning">`; pigułek wagi nie buduje się ręcznie), płaską siatkę kart (jedna kolumna na mobile, dwie od `sm`, trzy od `lg`) z sześcioma widocznymi kartami i „Pokaż wszystkie (n)” z łączną liczbą. Karty są ułożone „exceeded” przed „warning”, bez podnagłówków grup. Każda karta jest linkiem do przyczyny i ma u góry etykietę rodzaju (np. „Saldo ujemne”, „Ponad plan miesiąca”, „Plan niezatwierdzony”, „Tempo przed upływem dni”, „Do wydania poniżej zera”, „Ponad limit”), a kolor i tło bierze tylko z wagi. Nowy rodzaj alertu: najpierw pojęcie i progi w `CONTEXT.md`, potem `kind` i `severity` w `App\Support\DashboardNotices`.
 
 Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy dostępny limit kategorii”, ujemne saldo) nie blokują zapisu, więc używają `<Alert variant="warning">`. `variant="destructive"` zostaje dla prawdziwych błędów (`AlertError`), a błąd pola pokazuje `InputError` w `text-destructive`.
 
 ## Gotowe elementy
 
-Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`. Ikony: `@lucide/vue`, 16 px w kontrolkach.
+Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `StatTile` (kafelek KPI: etykieta, kwota z `amountToneClass`, sloty `label-extra` i `footer`). Ikony: `@lucide/vue`, 16 px w kontrolkach.
 
 ## Tryb ciemny
 
@@ -63,3 +65,4 @@ Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `
 1. Zmień token w `app.css` w obu trybach.
 2. Zaktualizuj tę stronę, a jeśli to decyzja, dopisz ADR.
 3. Zasady dla agentów żyją w `.ai/rules` (zapis przez `record-rule` z Laravel Boost); trzymaj je zgodne z tą stroną.
+4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.

@@ -6,6 +6,7 @@ use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthPlanController;
@@ -18,6 +19,7 @@ Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
+    Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])
         ->name('dashboard.first-run-checklist.dismiss');
     Route::get('budget', [BudgetController::class, 'show'])->name('budget');

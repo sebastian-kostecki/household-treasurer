@@ -8,6 +8,7 @@
         "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
+        "check:ui": "node scripts/check-ui-literals.mjs",
         "types:check": "vue-tsc --noEmit",
         "test": "vp test"
     },
