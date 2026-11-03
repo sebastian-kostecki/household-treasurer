@@ -1,10 +1,10 @@
 ---
 change_id: dashboard-ui-contract
 title: Dashboard UI contract pass (tokens, shared components, states)
-status: implemented
+status: archived
 created: 2026-11-03
 updated: 2026-11-03
-archived_at: null
+archived_at: 2026-11-03T13:42:47Z
 ---
 
 ## Notes
