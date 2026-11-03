@@ -476,11 +476,11 @@ Bez migracji danych.
 
 #### Automated
 
-- [x] 4.1 Skan przechodzi na rozszerzonej liście: `npm run check:ui`
-- [x] 4.2 Pełna bramka CI przechodzi: `composer ci:check` (obraz Sail)
-- [x] 4.3 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 4.1 Skan przechodzi na rozszerzonej liście: `npm run check:ui` — 76b5337
+- [x] 4.2 Pełna bramka CI przechodzi: `composer ci:check` (obraz Sail) — 76b5337
+- [x] 4.3 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host) — 76b5337
 
 #### Manual
 
-- [x] 4.4 Reguły w `js.md` są zgodne z `design-system.md` i nie przeczą sobie (w tym wyjątek FR-TD-08)
-- [x] 4.5 Lista kontrolna `ui-quality-checklist` przejrzana punkt po punkcie z dowodami w zrzutach i kitchen sinku
+- [x] 4.4 Reguły w `js.md` są zgodne z `design-system.md` i nie przeczą sobie (w tym wyjątek FR-TD-08) — 76b5337
+- [x] 4.5 Lista kontrolna `ui-quality-checklist` przejrzana punkt po punkcie z dowodami w zrzutach i kitchen sinku — 76b5337
