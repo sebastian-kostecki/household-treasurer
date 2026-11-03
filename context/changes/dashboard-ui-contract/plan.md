@@ -499,16 +499,16 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 #### Automated
 
-- [x] 4.1 Lint i format przechodzą: `npm run check`
-- [x] 4.2 Typy przechodzą: `npm run types:check`
-- [x] 4.3 Testy frontendu przechodzą: `npm test`
-- [x] 4.4 Testy Dashboardu i kitchen sinka przechodzą
-- [x] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku i w kitchen sinku
+- [x] 4.1 Lint i format przechodzą: `npm run check` — 2c63e29
+- [x] 4.2 Typy przechodzą: `npm run types:check` — 2c63e29
+- [x] 4.3 Testy frontendu przechodzą: `npm test` — 2c63e29
+- [x] 4.4 Testy Dashboardu i kitchen sinka przechodzą — 2c63e29
+- [x] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku i w kitchen sinku — 2c63e29
 
 #### Manual
 
-- [x] 4.6 Nieudany POST wyboru roku pokazuje toast, a udany działa jak dotąd
-- [x] 4.7 Karty powiadomień miesięcznych podczas POST są wyłączone i czytelne w obu motywach
+- [x] 4.6 Nieudany POST wyboru roku pokazuje toast, a udany działa jak dotąd — 2c63e29
+- [x] 4.7 Karty powiadomień miesięcznych podczas POST są wyłączone i czytelne w obu motywach — 2c63e29
 - [ ] 4.8 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
 - [ ] 4.9 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
 
@@ -516,13 +516,13 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 #### Automated
 
-- [ ] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui`
-- [ ] 5.2 Kontrola zatrzymuje literał: skrypt na `Operations.vue` kończy się kodem 1 i wskazuje `text-[11px]`
-- [ ] 5.3 Lint i format przechodzą (także dla nowego skryptu): `npm run check`
-- [ ] 5.4 Pełna bramka CI przechodzi: `./vendor/bin/sail composer ci:check`
+- [x] 5.1 Kontrola przechodzi na oczyszczonych plikach: `npm run check:ui`
+- [x] 5.2 Kontrola zatrzymuje literał: skrypt na `Operations.vue` kończy się kodem 1 i wskazuje `text-[11px]`
+- [x] 5.3 Lint i format przechodzą (także dla nowego skryptu): `npm run check`
+- [x] 5.4 Pełna bramka CI przechodzi: `./vendor/bin/sail composer ci:check`
 
 #### Manual
 
-- [ ] 5.5 `.ai/rules/js.md` ma nową sekcję, a `.ai/rules/index.md` nadal wskazuje ten plik
-- [ ] 5.6 `research.md` oznacza C5, linki wierszy kont i pozostałe widoki jako deferred z powodem
+- [x] 5.5 `.ai/rules/js.md` ma nową sekcję, a `.ai/rules/index.md` nadal wskazuje ten plik
+- [x] 5.6 `research.md` oznacza C5, linki wierszy kont i pozostałe widoki jako deferred z powodem
 - [ ] 5.7 Przegląd z `ui-quality-checklist.md`: wszystkie pozycje zaznaczone albo uzasadnione
