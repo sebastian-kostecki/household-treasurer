@@ -325,24 +325,24 @@ Nie dotyczy: bez zmian w schemacie i danych.
 
 #### Automated
 
-- [x] 1.1 `tests/Unit/ToSpendCalculatorTest.php`, `tests/Unit/MonthYearComparisonTest.php`, `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthToSpendTest.php` przechodzą na PostgreSQL przez Sail (polecenie z `AGENTS.md`, „Test database”)
-- [x] 1.2 `vendor/bin/pint --dirty --format agent` przechodzi
-- [x] 1.3 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk
-- [x] 1.4 `npm run check` i `npm run types:check` przechodzą
+- [x] 1.1 `tests/Unit/ToSpendCalculatorTest.php`, `tests/Unit/MonthYearComparisonTest.php`, `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthToSpendTest.php` przechodzą na PostgreSQL przez Sail (polecenie z `AGENTS.md`, „Test database”) — 27c140f
+- [x] 1.2 `vendor/bin/pint --dirty --format agent` przechodzi — 27c140f
+- [x] 1.3 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk — 27c140f
+- [x] 1.4 `npm run check` i `npm run types:check` przechodzą — 27c140f
 
 ### Phase 2: Widok porównania na Planie miesiąca
 
 #### Automated
 
-- [ ] 2.1 `npm run build`, `npm run check` i `npm run types:check` przechodzą
-- [ ] 2.2 `npm test` przechodzi
-- [ ] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez Sail
-- [ ] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`, polecenie z `AGENTS.md`) oraz `vendor/bin/sloppy ci` na hoście
+- [x] 2.1 `npm run build`, `npm run check` i `npm run types:check` przechodzą
+- [x] 2.2 `npm test` przechodzi
+- [x] 2.3 `tests/Feature/MonthPlanPageTest.php` przechodzi na PostgreSQL przez Sail
+- [x] 2.4 Pełna bramka CI przechodzi na obrazie Sail (`composer ci:check`, polecenie z `AGENTS.md`) oraz `vendor/bin/sloppy ci` na hoście
 
 #### Manual
 
-- [ ] 2.5 W bieżącej propozycji (konto `test@example.com` z `DemoHouseholdSeeder`) linie „W roku” zgadzają się z ręcznym rachunkiem dla jednej bieżącej, jednego rachunku, jednej jednorazowej i jednego przychodu. Wydatek ponad rok ma `destructive`, przychód ponad plan roczny ma `success`
-- [ ] 2.6 Jednorazowa na liście pokazuje tylko linię roczną, a bezczynna jednorazowa w zwiniętej sekcji tylko „Pozostały limit roczny”. Miesiąc przyszły i miniony nie mają linii rocznych ani sum, a jednorazowe mają tam „Pozostały limit roczny” jak przed zmianą
-- [ ] 2.7 W edytowalnej propozycji i w trybie zmiany zatwierdzonego planu zmiana kwoty przyciemnia linię roczną tego wiersza. Po zatwierdzeniu lub zapisaniu linia pokazuje nowe wartości, a budżet roczny (strona Budżet: plan bieżący i wykonanie) jest bez zmian
-- [ ] 2.8 Wiersze „Razem w roku” są na końcu obu sekcji, a podpowiedź z definicją otwiera się klawiaturą i myszą
-- [ ] 2.9 Przy szerokości 360 px nie ma poziomego przewijania. Przy 768 px i 1024 px z rozwiniętym sidebarem nic nie jest ucięte. W trybie ciemnym kolory `destructive` i `success` są czytelne
+- [x] 2.5 W bieżącej propozycji (konto `test@example.com` z `DemoHouseholdSeeder`) linie „W roku” zgadzają się z ręcznym rachunkiem dla jednej bieżącej, jednego rachunku, jednej jednorazowej i jednego przychodu. Wydatek ponad rok ma `destructive`, przychód ponad plan roczny ma `success`
+- [x] 2.6 Jednorazowa na liście pokazuje tylko linię roczną, a bezczynna jednorazowa w zwiniętej sekcji tylko „Pozostały limit roczny”. Miesiąc przyszły i miniony nie mają linii rocznych ani sum, a jednorazowe mają tam „Pozostały limit roczny” jak przed zmianą
+- [x] 2.7 W edytowalnej propozycji i w trybie zmiany zatwierdzonego planu zmiana kwoty przyciemnia linię roczną tego wiersza. Po zatwierdzeniu lub zapisaniu linia pokazuje nowe wartości, a budżet roczny (strona Budżet: plan bieżący i wykonanie) jest bez zmian
+- [x] 2.8 Wiersze „Razem w roku” są na końcu obu sekcji, a podpowiedź z definicją otwiera się klawiaturą i myszą
+- [x] 2.9 Przy szerokości 360 px nie ma poziomego przewijania. Przy 768 px i 1024 px z rozwiniętym sidebarem nic nie jest ucięte. W trybie ciemnym kolory `destructive` i `success` są czytelne

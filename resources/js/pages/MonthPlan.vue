@@ -9,7 +9,9 @@ import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import ColumnHeaderHint from '@/components/ColumnHeaderHint.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
+import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -364,6 +366,15 @@ function rowReading(row: MonthPlanItem): {
     };
 }
 
+/** The year line is not recomputed while editing, so a changed amount dims it. */
+function yearStale(row: MonthPlanItem): boolean {
+    return (
+        isEditable.value &&
+        isEditableRow(row) &&
+        parsedAmount(row) !== row.plan_minor_units
+    );
+}
+
 const idleOpen = ref(false);
 
 const sections = computed(() => {
@@ -372,13 +383,13 @@ const sections = computed(() => {
 
     return [
         {
-            key: 'income',
+            key: 'income' as const,
             title: t.month_plan.income_table,
             rows: incomeItems,
             idleRows: [] as MonthPlanItem[],
         },
         {
-            key: 'expense',
+            key: 'expense' as const,
             title: t.month_plan.expense_table,
             rows: expenseItems.filter((row) => !row.is_idle_one_off),
             idleRows: expenseItems.filter((row) => row.is_idle_one_off),
@@ -651,6 +662,7 @@ watch(hasInvalidIdleAmount, (invalid) => {
                             :editable="isEditable"
                             :deviation="rowReading(row).deviation"
                             :over-plan="rowReading(row).overPlan"
+                            :year-stale="yearStale(row)"
                             @change-kind="changeKind(row, $event)"
                         />
 
@@ -688,10 +700,25 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                     :editable="isEditable"
                                     :deviation="rowReading(row).deviation"
                                     :over-plan="rowReading(row).overPlan"
+                                    :year-stale="yearStale(row)"
                                     @change-kind="changeKind(row, $event)"
                                 />
                             </CollapsibleContent>
                         </Collapsible>
+
+                        <div
+                            v-if="monthPlan.year_totals !== null"
+                            class="border-border/60 text-muted-foreground flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t pt-3 text-xs"
+                        >
+                            <ColumnHeaderHint
+                                :label="t.month_plan.year_total"
+                                :hint="t.month_plan.year_total_hint"
+                            />
+                            <MonthYearSummary
+                                :comparison="monthPlan.year_totals[section.key]"
+                                :type="section.key"
+                            />
+                        </div>
                     </ListSurface>
 
                     <div v-if="monthPlan.can_change" class="space-y-2">
