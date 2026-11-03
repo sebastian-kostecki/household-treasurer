@@ -21,6 +21,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])
         ->name('dashboard.first-run-checklist.dismiss');
     Route::get('budget', [BudgetController::class, 'show'])->name('budget');
+
+    if (app()->isLocal()) {
+        Route::inertia('dev/kitchen-sink/budget', 'dev/BudgetKitchenSink');
+    }
+
     Route::post('budgets', [BudgetController::class, 'store'])->name('budgets.store');
     Route::delete('budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
     Route::post('budgets/{budget}/start-execution', [BudgetController::class, 'startExecution'])->name('budgets.start-execution');
