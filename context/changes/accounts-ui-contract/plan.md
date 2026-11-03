@@ -527,29 +527,29 @@ Bez migracji danych.
 
 #### Automated
 
-- [x] 4.1 Test propsa `archived_accounts_count` przechodzi: `php artisan test --compact tests/Feature/AccountTest.php`
-- [x] 4.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku> resources/js/pages/dev/AccountsKitchenSink.vue`
-- [x] 4.3 Lint, format, typy i testy frontendu przechodzą: `npm run check && npm run types:check && npm test`
-- [x] 4.4 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 4.1 Test propsa `archived_accounts_count` przechodzi: `php artisan test --compact tests/Feature/AccountTest.php` — 818dd28
+- [x] 4.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku> resources/js/pages/dev/AccountsKitchenSink.vue` — 818dd28
+- [x] 4.3 Lint, format, typy i testy frontendu przechodzą: `npm run check && npm run types:check && npm test` — 818dd28
+- [x] 4.4 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host) — 818dd28
 
 #### Manual
 
-- [x] 4.5 Po zarchiwizowaniu wszystkich kont (filtr wyłączony) widać „Wszystkie konta są zarchiwizowane”, a „Pokaż zarchiwizowane” je pokazuje
-- [x] 4.6 Nowy użytkownik bez kont nie widzi przełącznika i widzi „Brak kont bankowych ani gotówkowych”
-- [x] 4.7 W trakcie przeładowania przełącznik jest wyłączony
-- [x] 4.8 Wpis `12,3,4` w saldzie otwarcia pokazuje komunikat przy polu i blokuje Zapisz; poprawny wpis zdejmuje blokadę
-- [x] 4.9 Każda komórka macierzy w `/dev/ui/accounts` jest pokazana albo ma N/A z powodem, w obu motywach
-- [x] 4.10 Zrzuty `after-phase-4/` (z ujęciami stanów) są w folderze zmiany
+- [x] 4.5 Po zarchiwizowaniu wszystkich kont (filtr wyłączony) widać „Wszystkie konta są zarchiwizowane”, a „Pokaż zarchiwizowane” je pokazuje — 818dd28
+- [x] 4.6 Nowy użytkownik bez kont nie widzi przełącznika i widzi „Brak kont bankowych ani gotówkowych” — 818dd28
+- [x] 4.7 W trakcie przeładowania przełącznik jest wyłączony — 818dd28
+- [x] 4.8 Wpis `12,3,4` w saldzie otwarcia pokazuje komunikat przy polu i blokuje Zapisz; poprawny wpis zdejmuje blokadę — 818dd28
+- [x] 4.9 Każda komórka macierzy w `/dev/ui/accounts` jest pokazana albo ma N/A z powodem, w obu motywach — 818dd28
+- [x] 4.10 Zrzuty `after-phase-4/` (z ujęciami stanów) są w folderze zmiany — 818dd28
 
 ### Phase 5: Zabezpieczenie
 
 #### Automated
 
-- [ ] 5.1 Skan przechodzi na rozszerzonej liście: `npm run check:ui`
-- [ ] 5.2 Pełna bramka CI przechodzi: `composer ci:check` (obraz Sail na worktree)
-- [ ] 5.3 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 5.1 Skan przechodzi na rozszerzonej liście: `npm run check:ui`
+- [x] 5.2 Pełna bramka CI przechodzi: `composer ci:check` (obraz Sail na worktree)
+- [x] 5.3 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
 
 #### Manual
 
-- [ ] 5.4 Reguły w `js.md` i `SKILL.md` są zgodne z `design-system.md` i nie przeczą sobie
-- [ ] 5.5 Lista kontrolna `ui-quality-checklist` przejrzana punkt po punkcie z dowodami w zrzutach i kitchen sinku
+- [x] 5.4 Reguły w `js.md` i `SKILL.md` są zgodne z `design-system.md` i nie przeczą sobie
+- [x] 5.5 Lista kontrolna `ui-quality-checklist` przejrzana punkt po punkcie z dowodami w zrzutach i kitchen sinku
