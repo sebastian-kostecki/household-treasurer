@@ -600,14 +600,14 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Automated
 
-- [x] 6.1 Strażnik przechodzi: `npm test`
-- [x] 6.2 Strażnik działa: tymczasowe dodanie `:checked="x"` do `Budget.vue` albo `text-red-500` do `BudgetCategoryRow.vue` powoduje porażkę `npm test` (zmiana cofnięta przed commitem)
-- [x] 6.3 Pełna bramka CI na worktree: `composer ci:check` w obrazie Sail (`AGENTS.md` → Test database)
-- [x] 6.4 `vendor/bin/sloppy ci` na hoście bez nowych ustaleń (zmiany PHP: trasa i test)
-- [x] 6.5 `vendor/bin/pint --dirty --format agent` bez zmian
+- [x] 6.1 Strażnik przechodzi: `npm test` — c079446
+- [x] 6.2 Strażnik działa: tymczasowe dodanie `:checked="x"` do `Budget.vue` albo `text-red-500` do `BudgetCategoryRow.vue` powoduje porażkę `npm test` (zmiana cofnięta przed commitem) — c079446
+- [x] 6.3 Pełna bramka CI na worktree: `composer ci:check` w obrazie Sail (`AGENTS.md` → Test database) — c079446
+- [x] 6.4 `vendor/bin/sloppy ci` na hoście bez nowych ustaleń (zmiany PHP: trasa i test) — c079446
+- [x] 6.5 `vendor/bin/pint --dirty --format agent` bez zmian — c079446
 
 #### Manual
 
-- [x] 6.6 Issue widoczne na GitHubie z kotwicami i oznaczeniem OperationsImport
-- [x] 6.7 Reguła w `.ai/rules/js.md` czytelna i zgodna z `.docs/design-system.md`
-- [x] 6.8 Lista kontrolna skilla `/10x-ui` (`references/ui-quality-checklist.md`) przejrzana przed `/10x-impl-review`
+- [x] 6.6 Issue widoczne na GitHubie z kotwicami i oznaczeniem OperationsImport — c079446
+- [x] 6.7 Reguła w `.ai/rules/js.md` czytelna i zgodna z `.docs/design-system.md` — c079446
+- [x] 6.8 Lista kontrolna skilla `/10x-ui` (`references/ui-quality-checklist.md`) przejrzana przed `/10x-impl-review` — c079446
