@@ -186,7 +186,7 @@ function toggleShowArchived(checked: boolean): void {
             <div
                 v-for="termDeposit in termDeposits"
                 :key="termDeposit.id"
-                class="border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0"
+                class="holdings-list-row"
                 :class="termDeposit.is_archived ? 'text-muted-foreground' : ''"
             >
                 <AccountIdentityBlock
