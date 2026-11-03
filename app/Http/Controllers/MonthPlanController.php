@@ -15,6 +15,7 @@ use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\MonthItemDeviation;
 use App\Support\MonthToSpend;
+use App\Support\MonthYearComparison;
 use App\Support\SelectedBudgetYear;
 use App\Support\SpendableLiquidity;
 use Carbon\CarbonImmutable;
@@ -138,6 +139,7 @@ class MonthPlanController extends Controller
      *     spendable_liquidity_minor_units: int|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
+     *     year_totals: array{income: array<string, int|bool>, expense: array<string, int|bool>}|null,
      * }
      */
     private function monthPlanPayload(User $user, Budget $budget, int $month, string $timing, CarbonImmutable $today): array
@@ -199,6 +201,22 @@ class MonthPlanController extends Controller
                 : null,
             'income_items' => $incomeItems,
             'expense_items' => $expenseItems,
+            'year_totals' => $timing === 'current'
+                ? $this->yearTotals($incomeItems, $expenseItems)
+                : null,
+        ];
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $incomeItems
+     * @param  list<array<string, mixed>>  $expenseItems
+     * @return array{income: array<string, int|bool>, expense: array<string, int|bool>}
+     */
+    private function yearTotals(array $incomeItems, array $expenseItems): array
+    {
+        return [
+            'income' => MonthYearComparison::totals(array_column($incomeItems, 'year_comparison'), CategoryType::Income),
+            'expense' => MonthYearComparison::totals(array_column($expenseItems, 'year_comparison'), CategoryType::Expense),
         ];
     }
 
@@ -225,6 +243,7 @@ class MonthPlanController extends Controller
      *     is_idle_one_off: bool,
      *     approved_minor_units: int|null,
      *     is_join_candidate: bool,
+     *     year_comparison: array{year_minor_units: int, annual_plan_minor_units: int, remaining_minor_units: int, is_over_year: bool}|null,
      * }
      */
     private function itemRow(Category $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
@@ -267,6 +286,9 @@ class MonthPlanController extends Controller
                 )
                 : null,
             'is_idle_one_off' => $isOneOff && $plan === 0 && ! $toSpend->actuals->hasOperations($category->id),
+            'year_comparison' => $timing === 'current'
+                ? MonthYearComparison::forCategory($category, $amounts)
+                : null,
         ];
     }
 

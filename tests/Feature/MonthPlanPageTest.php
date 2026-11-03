@@ -773,6 +773,154 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_current_month_proposal_exposes_the_year_comparison_and_section_totals(): void
+    {
+        [$user, $budget, $categories] = $this->novemberBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'current')
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.income_items.0.year_comparison', [
+                    'year_minor_units' => 800_000,
+                    'annual_plan_minor_units' => 9_600_000,
+                    'remaining_minor_units' => 8_800_000,
+                    'is_over_year' => false,
+                ])
+                ->where('monthPlan.expense_items.1.name', 'Jedzenie')
+                ->where('monthPlan.expense_items.1.year_comparison', [
+                    'year_minor_units' => 1_150_000,
+                    'annual_plan_minor_units' => 1_800_000,
+                    'remaining_minor_units' => 650_000,
+                    'is_over_year' => false,
+                ])
+                ->where('monthPlan.expense_items.3.name', 'Prezent')
+                ->where('monthPlan.expense_items.3.year_comparison.year_minor_units', 30_000)
+                ->where('monthPlan.expense_items.3.year_comparison.remaining_minor_units', 70_000)
+                ->where('monthPlan.year_totals.income', [
+                    'year_minor_units' => 800_000,
+                    'annual_plan_minor_units' => 9_600_000,
+                    'remaining_minor_units' => 8_800_000,
+                    'is_over_year' => false,
+                ])
+                ->where('monthPlan.year_totals.expense', [
+                    'year_minor_units' => 1_420_000,
+                    'annual_plan_minor_units' => 4_780_000,
+                    'remaining_minor_units' => 3_360_000,
+                    'is_over_year' => false,
+                ]),
+            );
+
+        $categories['food']->update(['planned_amount_minor_units' => 1_050_000, 'execution_minor_units' => 1_130_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.1.year_comparison', [
+                    'year_minor_units' => 1_177_500,
+                    'annual_plan_minor_units' => 1_050_000,
+                    'remaining_minor_units' => -127_500,
+                    'is_over_year' => true,
+                ]),
+            );
+    }
+
+    public function test_current_approved_month_counts_the_current_amount_and_candidates_enter_the_totals(): void
+    {
+        [$user, $budget, $categories] = $this->novemberBudget();
+        Category::factory()->for($budget)->expense()->create([
+            'name' => 'Wesele', 'sort_order' => 10, 'planned_amount_minor_units' => 600_000,
+        ]);
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 11]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['salary']->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['food']->id,
+            'approved_amount_minor_units' => 150_000,
+            'current_amount_minor_units' => 180_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.can_change', true)
+                ->where('monthPlan.expense_items.1.name', 'Jedzenie')
+                ->where('monthPlan.expense_items.1.year_comparison.year_minor_units', 1_180_000)
+                ->where('monthPlan.expense_items.4.name', 'Wesele')
+                ->where('monthPlan.expense_items.4.is_join_candidate', true)
+                ->where('monthPlan.expense_items.4.year_comparison.annual_plan_minor_units', 600_000)
+                ->where('monthPlan.year_totals.income.year_minor_units', 500_000)
+                ->where('monthPlan.year_totals.expense', [
+                    'year_minor_units' => 1_210_000,
+                    'annual_plan_minor_units' => 5_380_000,
+                    'remaining_minor_units' => 4_170_000,
+                    'is_over_year' => false,
+                ]),
+            );
+    }
+
+    public function test_future_and_past_months_have_no_year_comparison(): void
+    {
+        [$user, $budget, $categories] = $this->novemberBudget();
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['food']->id,
+            'approved_amount_minor_units' => 150_000,
+            'current_amount_minor_units' => 150_000,
+        ]);
+
+        foreach ([12, 3] as $month) {
+            $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('month-plan', ['month' => $month]))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('monthPlan.year_totals', null)
+                    ->where('monthPlan.expense_items.0.year_comparison', null),
+                );
+        }
+    }
+
+    public function test_budget_of_a_past_year_has_no_year_comparison(): void
+    {
+        $this->travelTo('2026-11-15');
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $food = Category::factory()->for($budget)->expense()->create([
+            'name' => 'Jedzenie', 'sort_order' => 1, 'planned_amount_minor_units' => 1_800_000,
+        ]);
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 12]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $food->id,
+            'approved_amount_minor_units' => 150_000,
+            'current_amount_minor_units' => 150_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'past')
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.year_totals', null)
+                ->where('monthPlan.expense_items.0.year_comparison', null),
+            );
+    }
+
     public function test_approval_is_forbidden_for_a_draft_budget(): void
     {
         $user = User::factory()->create();
@@ -841,6 +989,25 @@ class MonthPlanPageTest extends TestCase
         $this->operation($user, $budget, $categories['food'], '2026-06-03', 60_000);
         $this->operation($user, $budget, $categories['fuel'], '2026-06-04', 52_000);
         $this->operation($user, $budget, $categories['gift'], '2026-06-05', 30_000);
+
+        return [$user, $budget, $categories];
+    }
+
+    /**
+     * The canonical budget on 2026-11-15, with execution counters set to match the operations.
+     *
+     * @return array{0: User, 1: Budget, 2: array<string, Category>}
+     */
+    private function novemberBudget(): array
+    {
+        $this->travelTo('2026-11-15');
+
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $this->operation($user, $budget, $categories['food'], '2026-11-03', 40_000);
+        $this->operation($user, $budget, $categories['gift'], '2026-11-05', 30_000);
+        $categories['food']->update(['execution_minor_units' => 1_040_000]);
+        $categories['gift']->update(['execution_minor_units' => 30_000]);
 
         return [$user, $budget, $categories];
     }

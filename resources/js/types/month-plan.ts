@@ -1,5 +1,12 @@
 export type MonthItemKind = 'bill' | 'running';
 
+export type MonthYearComparison = {
+    year_minor_units: number;
+    annual_plan_minor_units: number;
+    remaining_minor_units: number;
+    is_over_year: boolean;
+};
+
 export type MonthPlanItem = {
     category_id: number;
     name: string;
@@ -21,4 +28,5 @@ export type MonthPlanItem = {
     is_idle_one_off: boolean;
     approved_minor_units: number | null;
     is_join_candidate: boolean;
+    year_comparison: MonthYearComparison | null;
 };
