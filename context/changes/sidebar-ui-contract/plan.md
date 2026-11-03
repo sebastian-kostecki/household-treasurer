@@ -432,6 +432,12 @@ Brak migracji danych i zmian propsów Inertia. Id `shell-budget-year` znika (nie
 - Wzorzec błędu wyboru roku: `resources/js/lib/budget-year-selection.ts`, `resources/js/pages/Dashboard.vue` (na `development`)
 - Spec powłoki: `.docs/specs/app-shell-openship-visual-language.md:24-25,59-60`; ADR-0001, ADR-0031
 
+## Addendum (przegląd implementacji, 2026-11-03)
+
+- **Wzorzec `check:ui` rozszerzony (faza 5).** Plan mówił o dopisaniu plików do istniejącej listy; commit `bfba586` dodał też do `PATTERN` w `scripts/check-ui-literals.mjs` kolory `white|black` oraz `dark:`. Bez tego kryterium 5.2 (kod 1 na `text-white` w `Welcome.vue`) nie mogłoby zadziałać. Pliki dashboardu zostają na 0 trafień.
+- **`DashboardKitchenSink.vue` (faza 1).** `Dashboard` jest ładowany przez `defineAsyncComponent`, bo statyczny import psuł `AppShellTest` (manifest Vite traci wejście strony). To plik innej zmiany; poprawka zgodna z `development`.
+- **Przełącznik roku po przeglądzie.** Podpis używa `text-sidebar-foreground/80` (kontrast ≥ 4,5:1 na `sidebar-accent`), w trakcie POST przycisk ma `aria-disabled` zamiast `disabled` (fokus zostaje na przycisku), a `CreateBudgetDialog` leży wewnątrz `SidebarMenu` (jeden korzeń). Dialog nadal otwiera się w `nextTick` po `@select`; ryzyko zaakceptowane, bo kontrola 3.9 przeszła (poprawny hak w reka 2.11 to `@close-auto-focus` z ręcznym fokusem).
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

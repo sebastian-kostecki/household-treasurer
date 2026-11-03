@@ -1,7 +1,7 @@
 ---
 change_id: sidebar-ui-contract
 title: Sidebar UI contract pass (tokens, nav state, year switcher)
-status: implemented
+status: impl_reviewed
 created: 2026-11-03
 updated: 2026-11-03
 archived_at: null

@@ -93,7 +93,7 @@ function selectYear(value: unknown): void {
                     <CalendarPlus class="size-4" />
                 </div>
                 <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="text-muted-foreground truncate text-xs">
+                    <span class="text-sidebar-foreground/80 truncate text-xs">
                         {{ t.shell.no_budget_year }}
                     </span>
                     <span class="truncate font-semibold">
@@ -109,7 +109,7 @@ function selectYear(value: unknown): void {
                         size="lg"
                         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         :tooltip="`${t.shell.budget_year}: ${budgetYear}`"
-                        :disabled="pending"
+                        :aria-disabled="pending"
                         :aria-busy="pending"
                     >
                         <div
@@ -121,7 +121,7 @@ function selectYear(value: unknown): void {
                             class="grid flex-1 text-left text-sm leading-tight"
                         >
                             <span
-                                class="text-muted-foreground truncate text-xs"
+                                class="text-sidebar-foreground/80 truncate text-xs"
                             >
                                 {{ t.shell.budget_year }}
                             </span>
@@ -164,13 +164,13 @@ function selectYear(value: unknown): void {
                 </DropdownMenuContent>
             </DropdownMenu>
         </SidebarMenuItem>
+        <CreateBudgetDialog
+            v-model:open="createDialogOpen"
+            :year-input-id="
+                budgetYears.length === 0
+                    ? 'shell-create-budget-year-empty'
+                    : 'shell-create-budget-year'
+            "
+        />
     </SidebarMenu>
-    <CreateBudgetDialog
-        v-model:open="createDialogOpen"
-        :year-input-id="
-            budgetYears.length === 0
-                ? 'shell-create-budget-year-empty'
-                : 'shell-create-budget-year'
-        "
-    />
 </template>
