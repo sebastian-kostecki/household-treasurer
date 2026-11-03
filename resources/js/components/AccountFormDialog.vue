@@ -25,15 +25,7 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
-
-export type AccountFormAccount = {
-    id: number;
-    name: string;
-    type: AccountTypeValue;
-    bank: AccountBank | null;
-    opening_date: string;
-    opening_balance_minor_units: number;
-};
+import type { AccountFormAccount } from '@/types/accounts';
 
 const props = defineProps<{
     open: boolean;

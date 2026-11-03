@@ -3,9 +3,7 @@ import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
-import AccountFormDialog, {
-    type AccountFormAccount,
-} from '@/components/AccountFormDialog.vue';
+import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -32,22 +30,9 @@ import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
+import type { AccountRow, AccountsPageProps } from '@/types/accounts';
 
-type AccountRow = AccountFormAccount & {
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-    can_delete: boolean;
-    can_archive: boolean;
-    can_restore: boolean;
-};
-
-const props = defineProps<{
-    accounts: AccountRow[];
-    liquidity_total_minor_units: number;
-    show_archived: boolean;
-}>();
+const props = defineProps<AccountsPageProps>();
 
 const t = useTranslations();
 
