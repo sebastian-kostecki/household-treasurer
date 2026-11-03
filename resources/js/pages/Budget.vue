@@ -1,24 +1,17 @@
 <script setup lang="ts">
 import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { MoreHorizontal } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
-import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
+import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
 import BudgetMonthStrip from '@/components/BudgetMonthStrip.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
@@ -97,6 +90,20 @@ const createExpenseDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingCategory = ref<BudgetCategoryRow | null>(null);
 const deleteBudgetDialogOpen = ref(false);
+const showArchived = ref(props.show_archived);
+
+watch(
+    () => props.show_archived,
+    (value) => {
+        showArchived.value = value;
+    },
+);
+
+watch(showArchived, (value) => {
+    if (value !== props.show_archived) {
+        toggleShowArchived(value);
+    }
+});
 
 const phaseLabel = computed(() =>
     props.budget?.phase === 'execution'
@@ -149,7 +156,13 @@ function toggleShowArchived(checked: boolean): void {
             },
         }),
         {},
-        { preserveState: true, preserveScroll: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: () => {
+                showArchived.value = props.show_archived;
+            },
+        },
     );
 }
 
@@ -166,30 +179,10 @@ function openDeleteBudgetDialog(): void {
     <Head :title="t.budget.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
-        <div v-if="budget === null" class="flex flex-col items-start gap-4">
-            <Card class="w-full max-w-lg">
-                <CardHeader>
-                    <CardTitle class="text-base">
-                        {{ t.budget.no_budget }}
-                    </CardTitle>
-                    <CardDescription>
-                        {{ t.budget.no_budget_description }}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <CreateBudgetDialog
-                        v-model:open="createBudgetDialogOpen"
-                        year-input-id="budget-page-create-budget-year"
-                    >
-                        <template #trigger>
-                            <Button>
-                                {{ t.budget.create_budget }}
-                            </Button>
-                        </template>
-                    </CreateBudgetDialog>
-                </CardContent>
-            </Card>
-        </div>
+        <BudgetEmptyState
+            v-if="budget === null"
+            v-model:open="createBudgetDialogOpen"
+        />
 
         <template v-else>
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -304,11 +297,7 @@ function openDeleteBudgetDialog(): void {
             />
 
             <div class="flex items-center gap-2">
-                <Checkbox
-                    id="show-archived-budget"
-                    :checked="show_archived"
-                    @update:checked="toggleShowArchived"
-                />
+                <Checkbox id="show-archived-budget" v-model="showArchived" />
                 <Label
                     for="show-archived-budget"
                     class="text-muted-foreground text-sm"
