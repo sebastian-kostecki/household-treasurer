@@ -1,10 +1,10 @@
 ---
 change_id: operations-ui-contract
 title: Operations UI contract pass (tokens, shared components, states)
-status: impl_reviewed
+status: archived
 created: 2026-11-03
 updated: 2026-11-03
-archived_at: null
+archived_at: 2026-11-03T22:20:41Z
 ---
 
 ## Notes
