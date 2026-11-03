@@ -1,38 +1,42 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
+import AccountFormDialog from '@/components/AccountFormDialog.vue';
+import { Button } from '@/components/ui/button';
 import { accountsScenarios } from './accounts-fixtures';
 
 const Accounts = defineAsyncComponent(() => import('@/pages/Accounts.vue'));
 
+const createDialogOpen = ref(false);
+
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, with-archived, zero-total i negative-total poniżej.',
-    },
-    {
-        state: 'empty',
-        where: 'Scenariusze empty-new-user i all-archived poniżej.',
-    },
-    {
-        state: 'loading',
-        where: 'Do uzupełnienia w fazie 4.',
-    },
-    {
-        state: 'error',
-        where: 'Do uzupełnienia w fazie 4.',
-    },
-    {
-        state: 'disabled',
-        where: 'Do uzupełnienia w fazie 4.',
+        where: 'Scenariusze default, zero-total, negative-total i with-archived poniżej.',
     },
     {
         state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): wiersze listy i IconAction.',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Zrzuty po Tab z działającej aplikacji: przycisk „Dodaj konto”, przełącznik, IconAction, X dialogu, wyzwalacz banku.',
+    },
+    {
+        state: 'disabled',
+        where: 'Zrzuty z opóźnionym POST (przycisk potwierdzenia ze spinnerem, zablokowane Anuluj) oraz przycisk poniżej: Zapisz jest zablokowany przy nieparsowalnej kwocie.',
+    },
+    {
+        state: 'error',
+        where: 'Przycisk poniżej otwiera formularz konta: wpisz 12,3,4 w saldzie otwarcia. Błąd serwera errors.account przy usuwaniu: test Feature destroy z historią i sprawdzenie na nieaktualnej stronie.',
+    },
+    {
+        state: 'empty',
+        where: 'Scenariusze empty-new-user (brak kont, bez przełącznika) i all-archived (wszystkie zarchiwizowane) poniżej.',
+    },
+    {
+        state: 'loading',
+        where: 'Zrzut z opóźnioną odpowiedzią: przełącznik zablokowany w trakcie wizyty. Skeleton N/A, bo strona nie ma deferred props.',
     },
 ];
 </script>
@@ -78,6 +82,18 @@ const stateMatrix = [
                     </tr>
                 </tbody>
             </table>
+        </section>
+
+        <section class="space-y-2" data-section="error-form">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                error / disabled — formularz konta
+            </h2>
+            <Button @click="createDialogOpen = true">
+                Otwórz formularz konta
+            </Button>
+            <AccountFormDialog v-model:open="createDialogOpen" mode="create" />
         </section>
 
         <section

@@ -17,6 +17,7 @@ import {
 
 const props = defineProps<{
     modelValue: AccountBank;
+    invalid?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -50,7 +51,11 @@ function bankLabel(bank: AccountBank): string {
 
 <template>
     <Select v-model="selectedBank">
-        <SelectTrigger id="account-bank" class="w-full">
+        <SelectTrigger
+            id="account-bank"
+            class="w-full"
+            :aria-invalid="invalid ? 'true' : undefined"
+        >
             <SelectValue>
                 <span class="flex items-center gap-2">
                     <AccountMarkCompact

@@ -29,6 +29,7 @@ const editDialogOpen = ref(false);
 const editingAccount = ref<AccountRow | null>(null);
 
 const showArchived = ref(props.show_archived);
+const isTogglingArchived = ref(false);
 
 watch(
     () => props.show_archived,
@@ -72,7 +73,11 @@ function toggleShowArchived(checked: boolean): void {
         {
             preserveState: true,
             preserveScroll: true,
+            onStart: () => {
+                isTogglingArchived.value = true;
+            },
             onFinish: () => {
+                isTogglingArchived.value = false;
                 showArchived.value = props.show_archived;
             },
         },
@@ -96,8 +101,15 @@ function toggleShowArchived(checked: boolean): void {
             :amount-minor-units="liquidity_total_minor_units"
         />
 
-        <div class="flex items-center gap-2">
-            <Checkbox id="show-archived-accounts" v-model="showArchived" />
+        <div
+            v-if="archived_accounts_count > 0 || show_archived"
+            class="flex items-center gap-2"
+        >
+            <Checkbox
+                id="show-archived-accounts"
+                v-model="showArchived"
+                :disabled="isTogglingArchived"
+            />
             <Label
                 for="show-archived-accounts"
                 class="text-muted-foreground text-sm"
@@ -107,7 +119,25 @@ function toggleShowArchived(checked: boolean): void {
         </div>
 
         <IndexEmptyState
-            v-if="accounts.length === 0"
+            v-if="accounts.length === 0 && archived_accounts_count > 0"
+            :title="t.accounts.all_archived_title"
+            :description="t.accounts.all_archived_description"
+        >
+            <template #actions>
+                <Button
+                    :disabled="isTogglingArchived"
+                    @click="showArchived = true"
+                >
+                    {{ t.accounts.show_archived }}
+                </Button>
+                <Button variant="secondary" @click="createDialogOpen = true">
+                    {{ t.accounts.add }}
+                </Button>
+            </template>
+        </IndexEmptyState>
+
+        <IndexEmptyState
+            v-else-if="accounts.length === 0"
             :title="t.accounts.empty_title"
             :description="t.accounts.empty_description"
         >

@@ -23,4 +23,5 @@ export type AccountsPageProps = {
     accounts: AccountRow[];
     liquidity_total_minor_units: number;
     show_archived: boolean;
+    archived_accounts_count: number;
 };

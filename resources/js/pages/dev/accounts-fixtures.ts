@@ -89,6 +89,7 @@ export const accountsScenarios: AccountsScenario[] = [
             accounts: [mbank, otherBank, cash, overdrawn],
             liquidity_total_minor_units: 221975,
             show_archived: false,
+            archived_accounts_count: 0,
         },
     },
     {
@@ -98,6 +99,7 @@ export const accountsScenarios: AccountsScenario[] = [
             accounts: [mbank, cash, archivedBank, archivedCash],
             liquidity_total_minor_units: 257050,
             show_archived: true,
+            archived_accounts_count: 2,
         },
     },
     {
@@ -115,6 +117,7 @@ export const accountsScenarios: AccountsScenario[] = [
             ],
             liquidity_total_minor_units: 0,
             show_archived: false,
+            archived_accounts_count: 0,
         },
     },
     {
@@ -124,6 +127,7 @@ export const accountsScenarios: AccountsScenario[] = [
             accounts: [overdrawn],
             liquidity_total_minor_units: -35075,
             show_archived: false,
+            archived_accounts_count: 0,
         },
     },
     {
@@ -133,6 +137,7 @@ export const accountsScenarios: AccountsScenario[] = [
             accounts: [],
             liquidity_total_minor_units: 0,
             show_archived: false,
+            archived_accounts_count: 0,
         },
     },
     {
@@ -142,6 +147,7 @@ export const accountsScenarios: AccountsScenario[] = [
             accounts: [],
             liquidity_total_minor_units: 52000,
             show_archived: false,
+            archived_accounts_count: 2,
         },
     },
 ];

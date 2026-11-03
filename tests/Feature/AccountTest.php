@@ -403,6 +403,30 @@ class AccountTest extends TestCase
                 ->where('liquidity_total_minor_units', 150000));
     }
 
+    public function test_accounts_page_counts_archived_accounts_regardless_of_the_filter(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('archived_accounts_count', 0));
+
+        Account::factory()->for($user)->count(2)->create(['archived_at' => now()]);
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('accounts', 1)
+                ->where('archived_accounts_count', 2));
+
+        $this->actingAs($user)
+            ->get(route('accounts.index', ['show_archived' => 1]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('accounts', 3)
+                ->where('archived_accounts_count', 2));
+    }
+
     public function test_user_can_delete_account_without_financial_history(): void
     {
         $user = User::factory()->create();

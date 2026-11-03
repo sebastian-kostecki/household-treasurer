@@ -38,6 +38,9 @@ class AccountController extends Controller
             'accounts' => $accounts,
             'liquidity_total_minor_units' => SpendableLiquidity::forUser($request->user()),
             'show_archived' => $showArchived,
+            'archived_accounts_count' => $allAccounts
+                ->filter(fn (Account $account): bool => $account->isArchived())
+                ->count(),
         ]);
     }
 

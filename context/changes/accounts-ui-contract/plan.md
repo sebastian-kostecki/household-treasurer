@@ -508,38 +508,38 @@ Bez migracji danych.
 
 #### Automated
 
-- [x] 3.1 Testy kont przechodzą (redirect z filtrem dla 5 akcji, suma płynności): `php artisan test --compact tests/Feature/AccountTest.php tests/Feature/ArchiveAccountTest.php`
-- [x] 3.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku>`
-- [x] 3.3 Lint, format, typy i testy frontendu (w tym `ui-contract.test.ts` bez wpisu `pages/Accounts.vue`) przechodzą: `npm run check && npm run types:check && npm test`
-- [x] 3.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [x] 3.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 3.1 Testy kont przechodzą (redirect z filtrem dla 5 akcji, suma płynności): `php artisan test --compact tests/Feature/AccountTest.php tests/Feature/ArchiveAccountTest.php` — 0a24761
+- [x] 3.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku>` — 0a24761
+- [x] 3.3 Lint, format, typy i testy frontendu (w tym `ui-contract.test.ts` bez wpisu `pages/Accounts.vue`) przechodzą: `npm run check && npm run types:check && npm test` — 0a24761
+- [x] 3.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent` — 0a24761
+- [x] 3.5 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host) — 0a24761
 
 #### Manual
 
-- [x] 3.6 Na podglądzie: zaznaczenie „Pokaż zarchiwizowane” pokazuje zarchiwizowane konta i zmienia URL, odznaczenie je chowa, a odświeżenie z `?show_archived=1` pokazuje zaznaczony przełącznik
-- [x] 3.7 Z włączonym filtrem: archiwizacja, przywrócenie, edycja i dodanie konta wracają do listy z włączonym filtrem
-- [x] 3.8 Dialog usuwania ma czerwony przycisk ze spinnerem w trakcie żądania, a Anuluj, X i Escape nie zamykają go w tym czasie
-- [x] 3.9 Selektor banku pokazuje te same kafelki co lista, a „Inny bank” ma ikonę budynku
-- [x] 3.10 Suma 0 zł jest bez koloru, ujemna czerwona, dodatnia zielona, z etykietą „Płynność dysponowalna”; „Konta” pada raz poza okruszkami
-- [x] 3.11 Zrzuty `after-phase-3/` są w folderze zmiany
+- [x] 3.6 Na podglądzie: zaznaczenie „Pokaż zarchiwizowane” pokazuje zarchiwizowane konta i zmienia URL, odznaczenie je chowa, a odświeżenie z `?show_archived=1` pokazuje zaznaczony przełącznik — 0a24761
+- [x] 3.7 Z włączonym filtrem: archiwizacja, przywrócenie, edycja i dodanie konta wracają do listy z włączonym filtrem — 0a24761
+- [x] 3.8 Dialog usuwania ma czerwony przycisk ze spinnerem w trakcie żądania, a Anuluj, X i Escape nie zamykają go w tym czasie — 0a24761
+- [x] 3.9 Selektor banku pokazuje te same kafelki co lista, a „Inny bank” ma ikonę budynku — 0a24761
+- [x] 3.10 Suma 0 zł jest bez koloru, ujemna czerwona, dodatnia zielona, z etykietą „Płynność dysponowalna”; „Konta” pada raz poza okruszkami — 0a24761
+- [x] 3.11 Zrzuty `after-phase-3/` są w folderze zmiany — 0a24761
 
 ### Phase 4: Stany
 
 #### Automated
 
-- [ ] 4.1 Test propsa `archived_accounts_count` przechodzi: `php artisan test --compact tests/Feature/AccountTest.php`
-- [ ] 4.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku> resources/js/pages/dev/AccountsKitchenSink.vue`
-- [ ] 4.3 Lint, format, typy i testy frontendu przechodzą: `npm run check && npm run types:check && npm test`
-- [ ] 4.4 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
+- [x] 4.1 Test propsa `archived_accounts_count` przechodzi: `php artisan test --compact tests/Feature/AccountTest.php`
+- [x] 4.2 Skan na plikach widoku daje 0 trafień: `node scripts/check-ui-literals.mjs <pliki widoku> resources/js/pages/dev/AccountsKitchenSink.vue`
+- [x] 4.3 Lint, format, typy i testy frontendu przechodzą: `npm run check && npm run types:check && npm test`
+- [x] 4.4 Sloppy bez nowych ustaleń: `vendor/bin/sloppy ci` (host)
 
 #### Manual
 
-- [ ] 4.5 Po zarchiwizowaniu wszystkich kont (filtr wyłączony) widać „Wszystkie konta są zarchiwizowane”, a „Pokaż zarchiwizowane” je pokazuje
-- [ ] 4.6 Nowy użytkownik bez kont nie widzi przełącznika i widzi „Brak kont bankowych ani gotówkowych”
-- [ ] 4.7 W trakcie przeładowania przełącznik jest wyłączony
-- [ ] 4.8 Wpis `12,3,4` w saldzie otwarcia pokazuje komunikat przy polu i blokuje Zapisz; poprawny wpis zdejmuje blokadę
-- [ ] 4.9 Każda komórka macierzy w `/dev/ui/accounts` jest pokazana albo ma N/A z powodem, w obu motywach
-- [ ] 4.10 Zrzuty `after-phase-4/` (z ujęciami stanów) są w folderze zmiany
+- [x] 4.5 Po zarchiwizowaniu wszystkich kont (filtr wyłączony) widać „Wszystkie konta są zarchiwizowane”, a „Pokaż zarchiwizowane” je pokazuje
+- [x] 4.6 Nowy użytkownik bez kont nie widzi przełącznika i widzi „Brak kont bankowych ani gotówkowych”
+- [x] 4.7 W trakcie przeładowania przełącznik jest wyłączony
+- [x] 4.8 Wpis `12,3,4` w saldzie otwarcia pokazuje komunikat przy polu i blokuje Zapisz; poprawny wpis zdejmuje blokadę
+- [x] 4.9 Każda komórka macierzy w `/dev/ui/accounts` jest pokazana albo ma N/A z powodem, w obu motywach
+- [x] 4.10 Zrzuty `after-phase-4/` (z ujęciami stanów) są w folderze zmiany
 
 ### Phase 5: Zabezpieczenie
 
