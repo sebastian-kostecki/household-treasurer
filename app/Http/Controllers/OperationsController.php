@@ -16,6 +16,7 @@ use App\Models\TermDeposit;
 use App\Support\AccountIdentity;
 use App\Support\CategoryAppearance;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
+use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
 use App\Support\OperationsFilterOptions;
 use Inertia\Inertia;
@@ -178,6 +179,7 @@ class OperationsController extends Controller
             'incomeCategories' => $incomeCategories,
             'expenseCategories' => $expenseCategories,
             'handEntryMonthRemaining' => HandEntryMonthRemainingInputs::forUser($user),
+            'entryToSpend' => EntryToSpendInputs::forUser($user),
             'filters' => $filters->toArray(),
             'filtersActive' => $filters->isActive(),
             'suppressedSections' => array_map(

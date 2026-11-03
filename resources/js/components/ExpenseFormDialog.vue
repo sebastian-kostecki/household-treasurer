@@ -25,6 +25,12 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
+import {
+    handEntryToSpendChanges,
+    monthHasPlan,
+    previewToSpendWarnings,
+} from '@/lib/entry-to-spend-warning';
+import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import { previewHandEntryMonthRemainingWarnings } from '@/lib/hand-entry-month-remaining-preview';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
@@ -72,6 +78,7 @@ const props = defineProps<{
     expenseCategories: ExpenseFormCategory[];
     incomeCategories?: ExpenseFormIncomeCategory[];
     handEntryMonthRemaining: HandEntryMonthRemainingInputs;
+    entryToSpend: EntryToSpendInputs;
 }>();
 
 const emit = defineEmits<{
@@ -247,13 +254,51 @@ const showNegativeBalanceWarning = computed(
     () => warningPreview.value.showNegativeBalanceWarning,
 );
 
+const operationMonthHasPlan = computed(() =>
+    monthHasPlan(props.entryToSpend, operationDate.value),
+);
+
 const showOverMonthCategoryWarning = computed(
-    () => monthRemainingWarningPreview.value.showOverMonthCategoryWarning,
+    () =>
+        !operationMonthHasPlan.value &&
+        monthRemainingWarningPreview.value.showOverMonthCategoryWarning,
 );
 
 const showOverMonthPoolWarning = computed(
-    () => monthRemainingWarningPreview.value.showOverMonthPoolWarning,
+    () =>
+        !operationMonthHasPlan.value &&
+        monthRemainingWarningPreview.value.showOverMonthPoolWarning,
 );
+
+const toSpendWarnings = computed(() =>
+    previewToSpendWarnings(
+        props.entryToSpend,
+        handEntryToSpendChanges({
+            kind: proposalKind.value,
+            operationDate: operationDate.value,
+            categoryId: categoryId.value === '' ? null : categoryId.value,
+            amountMinorUnits: amountMinorUnits.value,
+            original:
+                props.mode === 'edit' &&
+                props.operation !== null &&
+                props.operation !== undefined &&
+                originalCategoryId.value !== null
+                    ? {
+                          operationDate: props.operation.operation_date,
+                          categoryId: originalCategoryId.value,
+                          amountMinorUnits: originalAmountMinorUnits.value,
+                      }
+                    : null,
+        }),
+    ),
+);
+
+function monthYearLabel(year: number, month: number): string {
+    const monthName =
+        t.budget[`month_name_${month}` as keyof typeof t.budget] ?? '';
+
+    return `${monthName} ${year}`;
+}
 
 const operationMonthYearLabel = computed(() => {
     if (operationDate.value === '') {
@@ -273,7 +318,8 @@ const showExpenseWarnings = computed(
         showOverLimitWarning.value ||
         showNegativeBalanceWarning.value ||
         showOverMonthCategoryWarning.value ||
-        showOverMonthPoolWarning.value,
+        showOverMonthPoolWarning.value ||
+        toSpendWarnings.value.length > 0,
 );
 
 watch(
@@ -611,6 +657,27 @@ function closeDialog(): void {
                                         ':month_year',
                                         operationMonthYearLabel,
                                     )
+                                }}
+                            </li>
+                            <li
+                                v-for="warning in toSpendWarnings"
+                                :key="`${warning.year}-${warning.month}`"
+                            >
+                                {{
+                                    t.operations.to_spend_negative_warning
+                                        .replace(
+                                            ':amount',
+                                            formatMoney(
+                                                warning.toSpendAfterMinorUnits,
+                                            ),
+                                        )
+                                        .replace(
+                                            ':month_year',
+                                            monthYearLabel(
+                                                warning.year,
+                                                warning.month,
+                                            ),
+                                        )
                                 }}
                             </li>
                         </ul>

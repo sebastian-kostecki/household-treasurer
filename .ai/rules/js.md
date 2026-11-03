@@ -21,4 +21,4 @@ Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction
 
 ## Non-blocking warnings use the warning Alert variant
 
-Warnings that do not block saving (over limit, over Month Remaining, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles use the refund and transfer tokens.
+Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles use the refund and transfer tokens.

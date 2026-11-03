@@ -7,6 +7,7 @@ import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
 } from '@/components/ExpenseFormDialog.vue';
+import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import FinancialOperationRow, {
     type FinancialOperationRowData,
@@ -50,6 +51,7 @@ const {
     incomeCategories,
     expenseCategories,
     handEntryMonthRemaining,
+    entryToSpend,
     filters,
     filtersActive,
     suppressedSections,
@@ -67,6 +69,7 @@ const {
     incomeCategories: IncomeFormCategory[];
     expenseCategories: ExpenseFormCategory[];
     handEntryMonthRemaining: HandEntryMonthRemainingInputs;
+    entryToSpend: EntryToSpendInputs;
     filters: OperationsListFilters;
     filtersActive: boolean;
     suppressedSections: Array<
@@ -332,6 +335,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         mode="create"
         :accounts="accounts"
         :income-categories="incomeCategories"
+        :entry-to-spend="entryToSpend"
     />
 
     <IncomeFormDialog
@@ -341,6 +345,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :accounts="accounts"
         :income-categories="incomeCategories"
         :expense-categories="expenseCategories"
+        :entry-to-spend="entryToSpend"
     />
 
     <ExpenseFormDialog
@@ -349,6 +354,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :accounts="accounts"
         :expense-categories="expenseCategories"
         :hand-entry-month-remaining="handEntryMonthRemaining"
+        :entry-to-spend="entryToSpend"
     />
 
     <ExpenseFormDialog
@@ -359,6 +365,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :expense-categories="expenseCategories"
         :income-categories="incomeCategories"
         :hand-entry-month-remaining="handEntryMonthRemaining"
+        :entry-to-spend="entryToSpend"
     />
 
     <OwnTransferFormDialog

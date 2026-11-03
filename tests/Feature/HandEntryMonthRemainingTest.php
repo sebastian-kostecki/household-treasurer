@@ -50,7 +50,11 @@ test('operations page includes hand entry month remaining inputs', function () {
             ->where('handEntryMonthRemaining.budgets.0.categories.0.is_paced', true)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.planned_amount_minor_units', 120_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.1', 25_000)
-            ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.3', 10_000),
+            ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.3', 10_000)
+            ->has('entryToSpend.budgets', 1)
+            ->where('entryToSpend.budgets.0.year', 2026)
+            ->where('entryToSpend.budgets.0.categories.0.id', $category->id)
+            ->where('entryToSpend.budgets.0.months.0.month', 6),
         );
 });
 

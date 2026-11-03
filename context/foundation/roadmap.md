@@ -3,7 +3,7 @@ project: 'Household Treasurer'
 version: 1
 status: draft
 created: 2026-11-02
-updated: 2026-11-02
+updated: 2026-11-03
 prd_version: 1
 main_goal: market-feedback
 top_blocker: decisions
@@ -49,7 +49,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 | S-05 | month-spending-pace         | użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca                             | S-04                | FR-007                                                     | proposed |
 | S-06 | to-spend-replaces-remaining | użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu | S-01                | FR-011, FR-013                                             | done |
 | S-07 | month-plan-notices          | użytkownik może zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca                | F-01, S-04, S-05    | FR-012                                                     | proposed |
-| S-08 | plan-based-entry-warnings   | użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu        | S-01                | FR-014, FR-017                                             | proposed |
+| S-08 | plan-based-entry-warnings   | użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu        | S-01                | FR-014, FR-017                                             | done |
 | S-09 | month-summary               | użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne             | S-02, S-03, S-04    | US-01, FR-009, FR-013                                      | proposed |
 | S-10 | month-plans-vs-year         | użytkownik może porównać plany miesięcy z budżetem rocznym                                       | S-01                | FR-010                                                     | proposed |
 
@@ -190,7 +190,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Logika ostrzeżeń istnieje dziś w dwóch kopiach, więc zmiana musi objąć obie, a wprowadzanie operacji nie może stać się dłuższe.
-- **Status:** proposed
+- **Status:** done
 
 ### S-09: Podsumowanie miesiąca
 
@@ -265,3 +265,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-03: użytkownik może zmienić zatwierdzony plan w trakcie miesiąca** — Archived 2026-11-02 → `context/archive/2026-11-02-approved-plan-changes/`. Lesson: —.
 - **S-04: użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe** — Archived 2026-11-02 → `context/archive/2026-11-02-month-items-plan-vs-actual/`. Lesson: —.
 - **S-06: użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu** — Archived 2026-11-02 → `context/archive/2026-11-02-to-spend-replaces-remaining/`. Lesson: —.
+- **S-08: użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu** — Archived 2026-11-03 → `context/archive/2026-11-02-plan-based-entry-warnings/`. Lesson: —.

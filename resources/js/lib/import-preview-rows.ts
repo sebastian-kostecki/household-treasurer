@@ -1,10 +1,10 @@
-import { parseMoneyInputToMinorUnits } from '@/lib/format';
+import { parseMoneyInputToMinorUnits } from './format';
 import {
     locksTypeToOwnTransfer,
     uniquePairCandidate,
     type PairCandidate,
     type PairRowSelection,
-} from '@/lib/import-pair-selection';
+} from './import-pair-selection';
 
 export type ImportRow = {
     index: number;
@@ -18,9 +18,6 @@ export type ImportRow = {
     import_duplicate: boolean;
     import_pair_candidate: boolean;
     pair_candidates: PairCandidate[];
-    show_category_month_remaining_warning?: boolean;
-    show_pool_month_remaining_warning?: boolean;
-    month_remaining_period_label?: string | null;
 };
 
 export type CategoryRow = {

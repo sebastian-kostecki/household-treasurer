@@ -15,27 +15,48 @@ class MonthCategoryActuals
 
     public static function forMonth(Budget $budget, int $month): self
     {
-        $firstDay = CarbonImmutable::create($budget->year, $month, 1)->startOfDay();
-        $nextMonthFirstDay = $firstDay->addMonth();
+        return self::forMonths($budget, [$month])[$month];
+    }
+
+    /**
+     * Reads the actuals of several months of the budget's year with a single query.
+     *
+     * @param  list<int>  $months
+     * @return array<int, self> month number => actuals, one entry per requested month
+     */
+    public static function forMonths(Budget $budget, array $months): array
+    {
+        if ($months === []) {
+            return [];
+        }
+
+        $firstDay = CarbonImmutable::create($budget->year, min($months), 1)->startOfDay();
+        $afterLastDay = CarbonImmutable::create($budget->year, max($months), 1)->startOfDay()->addMonth();
 
         $rows = FinancialOperation::query()
             ->where('budget_id', $budget->id)
             ->where('operation_date', '>=', $firstDay->toDateString())
-            ->where('operation_date', '<', $nextMonthFirstDay->toDateString())
-            ->groupBy('category_id')
-            ->selectRaw('category_id, SUM(amount_minor_units) as actual_total, SUM(CASE WHEN amount_minor_units > 0 THEN 1 ELSE 0 END) as positive_count')
+            ->where('operation_date', '<', $afterLastDay->toDateString())
+            ->groupBy('category_id', 'operation_date')
+            ->selectRaw('category_id, operation_date, SUM(amount_minor_units) as actual_total, SUM(CASE WHEN amount_minor_units > 0 THEN 1 ELSE 0 END) as positive_count')
             ->get();
 
-        $byCategory = [];
+        $byMonth = array_fill_keys($months, []);
 
         foreach ($rows as $row) {
-            $byCategory[(int) $row->getAttribute('category_id')] = [
-                'actual' => (int) $row->getAttribute('actual_total'),
-                'positive_count' => (int) $row->getAttribute('positive_count'),
-            ];
+            $month = CarbonImmutable::parse((string) $row->getAttribute('operation_date'))->month;
+
+            if (! array_key_exists($month, $byMonth)) {
+                continue;
+            }
+
+            $categoryId = (int) $row->getAttribute('category_id');
+            $byMonth[$month][$categoryId] ??= ['actual' => 0, 'positive_count' => 0];
+            $byMonth[$month][$categoryId]['actual'] += (int) $row->getAttribute('actual_total');
+            $byMonth[$month][$categoryId]['positive_count'] += (int) $row->getAttribute('positive_count');
         }
 
-        return new self($byCategory);
+        return array_map(fn (array $byCategory): self => new self($byCategory), $byMonth);
     }
 
     public function actual(int $categoryId): int
@@ -51,6 +72,11 @@ class MonthCategoryActuals
     public function hasOperations(int $categoryId): bool
     {
         return array_key_exists($categoryId, $this->byCategory);
+    }
+
+    public function positiveCount(int $categoryId): int
+    {
+        return $this->byCategory[$categoryId]['positive_count'] ?? 0;
     }
 
     /**
