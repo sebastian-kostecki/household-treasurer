@@ -38,9 +38,9 @@ Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
 Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
-Signed amount colour goes through amountToneClass, column labels through the column-caption class, severity pills through Badge (variants warning / destructive-soft).
+Signed amount colour goes through amountToneClass, column labels through the column-caption class (the only caption recipe; `.column-header` is an alias kept for the month plan), severity pills through Badge (variants warning / destructive-soft).
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
-No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts and /dev/ui/term-deposits.
+No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits and /dev/operations.
 Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are `rounded-xl`.
 
 ## Sidebar
@@ -55,3 +55,8 @@ No `dark:` variants and no literals in sidebar files: `npm run check:ui` guards 
 Tokens live in resources/css/app.css. Named classes in `@layer components` cover repeated layout: `.month-plan-grid`, `.column-header`, `.section-label`, `.segmented-control*`. When a view needs a new grid, size or label style, add a named class there instead of an arbitrary value (`text-[11px]`, `grid-cols-[1fr_auto]`) in the template.
 A value switch (one option selected, as in put aside / take) is `SegmentedControl` (tone `primary` for a form choice, `neutral` for a setting saved immediately), not a `Button` with `aria-pressed`.
 The month plan view is checked by tests/Unit/MonthPlanHardcodedUiTest.php (part of `composer ci:check`); it lists the view files and fails with file:line. Add a new month plan component to its file list. The kitchen sink at /dev/month-plan (`APP_ENV=local` only) renders every state of the view from resources/js/lib/month-plan-fixtures.ts; extend it when you add a state.
+
+## Operations list: named classes, one primary action, visible reason for a disabled action
+
+The Operations view uses `.operations-grid`, `.operations-header-row` (hidden below md, caption through `column-caption`) and `.operations-row` (hover `foreground/3%`); do not rebuild them from utilities. The kitchen sink at `/dev/operations` (`local` only) renders the view's 7-state matrix from `resources/js/lib/operations-fixtures.ts`; add new states there. `npm run check:ui` also catches opacity literals in the form `/[0.03]`.
+The reason a create action is disabled is visible text referenced by `aria-describedby`, never `title` on a disabled `Button` (`pointer-events-none` hides it and it is not a description). A domain page title row has at most one primary `Button`; the other actions are `outline`, all with an icon.

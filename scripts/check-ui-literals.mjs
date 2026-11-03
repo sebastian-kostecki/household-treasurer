@@ -36,6 +36,19 @@ const FILES = [
     'resources/js/pages/TermDeposits.vue',
     'resources/js/components/TermDepositFormDialog.vue',
     'resources/js/pages/dev/TermDepositsKitchenSink.vue',
+    'resources/js/pages/Operations.vue',
+    'resources/js/components/FinancialOperationRow.vue',
+    'resources/js/components/OwnTransferRow.vue',
+    'resources/js/components/CapitalMovementRow.vue',
+    'resources/js/components/OperationsPageActions.vue',
+    'resources/js/components/OperationsFilters.vue',
+    'resources/js/components/OperationsActiveFilterChips.vue',
+    'resources/js/components/OperationDescriptionCell.vue',
+    'resources/js/components/FinancialOperationActions.vue',
+    'resources/js/components/OwnTransferActions.vue',
+    'resources/js/components/CapitalMovementActions.vue',
+    'resources/js/components/PaginationLinks.vue',
+    'resources/js/pages/dev/OperationsSink.vue',
 ];
 
 const PALETTE =
@@ -44,7 +57,7 @@ const PREFIXES =
     'bg|text|border(?:-[trblxyse])?|ring|fill|stroke|from|to|via|divide|shadow|outline|decoration|accent|caret|placeholder';
 // Hex colour: not an HTML entity (&#128;), not part of a word, not an anchor (href="#add").
 const PATTERN = new RegExp(
-    String.raw`(?<![&\w])(?<!href=["'])#[0-9a-f]{3,8}\b|(?:rgb|rgba|hsl|hsla|oklch)\(|-\[[0-9.]+(?:px|rem)\]|\b(?:${PREFIXES})-(?:${PALETTE})-[0-9]+|\b(?:${PREFIXES})-(?:white|black)\b|\bdark:`,
+    String.raw`(?<![&\w])(?<!href=["'])#[0-9a-f]{3,8}\b|(?:rgb|rgba|hsl|hsla|oklch)\(|-\[[0-9.]+(?:px|rem)\]|\/\[0?\.[0-9]+\]|\b(?:${PREFIXES})-(?:${PALETTE})-[0-9]+|\b(?:${PREFIXES})-(?:white|black)\b|\bdark:`,
     'gi',
 );
 

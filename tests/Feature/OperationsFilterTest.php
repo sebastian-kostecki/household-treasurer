@@ -42,7 +42,7 @@ class OperationsFilterTest extends TestCase
                 ->has('operations.data', 1)
                 ->where('operations.data.0.description', 'Biedronka groceries')
                 ->where('filters.q', 'biedronka')
-                ->where('hasFinancialOperations', true),
+                ->where('hasAnyRecords', true),
             );
     }
 
@@ -497,7 +497,7 @@ class OperationsFilterTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('operations.data', 0)
-                ->where('hasFinancialOperations', true)
+                ->where('hasAnyRecords', true)
                 ->where('filtersActive', true),
             );
 
@@ -508,7 +508,7 @@ class OperationsFilterTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('operations.data', 0)
-                ->where('hasFinancialOperations', false)
+                ->where('hasAnyRecords', false)
                 ->where('filtersActive', false),
             );
     }
