@@ -204,6 +204,81 @@
         @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
     }
 
+    .month-plan-grid {
+        @apply grid gap-x-3;
+        grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;
+    }
+
+    @variant sm {
+        .month-plan-grid {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem;
+        }
+
+        .month-plan-grid-kind {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
+        }
+    }
+
+    @variant lg {
+        .month-plan-grid {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
+        }
+
+        .month-plan-grid-kind {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem 9rem;
+        }
+    }
+
+    .column-header {
+        @apply text-muted-foreground text-[11px] font-medium tracking-wider uppercase;
+    }
+
+    .section-label {
+        @apply text-muted-foreground text-xs font-medium tracking-wider uppercase;
+    }
+
+    .segmented-control {
+        @apply border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1;
+    }
+
+    .segmented-control-item {
+        @apply text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50;
+    }
+
+    .segmented-control[data-tone='primary']
+        .segmented-control-item[data-state='on'] {
+        @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground;
+    }
+
+    .segmented-control[data-tone='neutral']
+        .segmented-control-item[data-state='on'] {
+        @apply bg-card text-foreground border-border hover:bg-card;
+    }
+
+    .list-surface-table {
+        @apply w-full text-sm;
+    }
+
+    .list-surface-table thead tr {
+        @apply border-border/60 border-b;
+    }
+
+    .list-surface-table thead th {
+        @apply text-muted-foreground pb-2.5 text-left text-[11px] font-medium tracking-wider uppercase;
+    }
+
+    .list-surface-table tbody tr {
+        @apply border-border/60 hover:bg-foreground/[0.03] border-b transition-colors last:border-b-0;
+    }
+
+    .list-surface-table tbody td {
+        @apply py-3;
+    }
+
+    .list-surface-table .tabular-amount {
+        @apply text-right font-medium tabular-nums;
+    }
+
     /**
      * Thin, low-contrast scrollbar for scroll containers inside lifted
      * surfaces. Colours derive from `--foreground` so the thumb stays visible

@@ -2,9 +2,10 @@
 import { Check } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import InputError from '@/components/InputError.vue';
+import MonthPlanKindCell from '@/components/MonthPlanKindCell.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, formatSignedMoney } from '@/lib/format';
@@ -17,23 +18,27 @@ const props = withDefaults(
         deviation: number | null;
         overPlan: boolean;
         yearStale?: boolean;
+        kindPending?: boolean;
+        kindError?: string;
+        invalid?: boolean;
     }>(),
-    { yearStale: false },
+    { yearStale: false, kindPending: false, invalid: false },
 );
 
 const emit = defineEmits<{
     'change-kind': [kind: MonthItemKind];
+    'amount-blur': [];
 }>();
+
+const amountErrorId = computed(
+    () => `month-plan-amount-error-${props.row.category_id}`,
+);
 
 const amountInput = defineModel<string>();
 
 const t = useTranslations();
 
-const kinds: MonthItemKind[] = ['bill', 'running'];
-
-function kindLabel(kind: MonthItemKind): string {
-    return kind === 'bill' ? t.month_plan.kind_bill : t.month_plan.kind_running;
-}
+const hasKindColumn = computed(() => props.row.type === 'expense');
 
 const deviationText = computed(() =>
     props.deviation === null ? '—' : formatSignedMoney(props.deviation),
@@ -58,23 +63,16 @@ const deviationClass = computed(() => {
 
 <template>
     <div
-        class="border-border/60 grid grid-cols-[1fr_5.5rem_5.5rem] items-center gap-3 border-b py-3 last:border-b-0 sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
+        class="month-plan-grid border-border/60 items-center border-b py-3 last:border-b-0"
+        :class="hasKindColumn ? 'month-plan-grid-kind' : ''"
     >
         <div class="flex min-w-0 flex-col gap-1">
-            <CategoryChip
-                :name="row.name"
-                :icon="row.icon"
-                :color="row.color"
-            />
-            <div
-                v-if="
-                    row.is_one_off ||
-                    row.is_archived ||
-                    !row.in_plan ||
-                    row.is_settled
-                "
-                class="flex flex-wrap gap-1"
-            >
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <CategoryChip
+                    :name="row.name"
+                    :icon="row.icon"
+                    :color="row.color"
+                />
                 <Badge v-if="row.is_one_off" variant="outline">
                     {{ t.month_plan.one_off_badge }}
                 </Badge>
@@ -138,35 +136,26 @@ const deviationClass = computed(() => {
                 </span>
             </p>
 
-            <div>
-                <div
-                    v-if="row.month_item_kind !== null && row.can_change_kind"
-                    role="group"
-                    :aria-label="t.month_plan.kind"
-                    class="border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1"
-                >
-                    <Button
-                        v-for="kind in kinds"
-                        :key="kind"
-                        type="button"
-                        size="sm"
-                        :variant="
-                            row.month_item_kind === kind ? 'default' : 'ghost'
-                        "
-                        :aria-pressed="row.month_item_kind === kind"
-                        class="h-7 rounded-lg px-2 text-xs"
-                        @click="emit('change-kind', kind)"
-                    >
-                        {{ kindLabel(kind) }}
-                    </Button>
-                </div>
-                <span
-                    v-else-if="row.month_item_kind !== null"
-                    class="text-muted-foreground text-sm"
-                >
-                    {{ kindLabel(row.month_item_kind) }}
-                </span>
+            <div v-if="row.month_item_kind !== null" class="sm:hidden">
+                <MonthPlanKindCell
+                    :kind="row.month_item_kind"
+                    :can-change="row.can_change_kind"
+                    :pending="kindPending"
+                    :error="kindError"
+                    @change="emit('change-kind', $event)"
+                />
             </div>
+        </div>
+
+        <div v-if="hasKindColumn" class="hidden sm:block">
+            <MonthPlanKindCell
+                v-if="row.month_item_kind !== null"
+                :kind="row.month_item_kind"
+                :can-change="row.can_change_kind"
+                :pending="kindPending"
+                :error="kindError"
+                @change="emit('change-kind', $event)"
+            />
         </div>
 
         <div class="text-right">
@@ -176,11 +165,20 @@ const deviationClass = computed(() => {
                 inputmode="decimal"
                 autocomplete="off"
                 :aria-label="`${t.month_plan.plan}: ${row.name}`"
+                :aria-invalid="invalid ? 'true' : undefined"
+                :aria-describedby="invalid ? amountErrorId : undefined"
                 class="text-right tabular-nums"
+                @blur="emit('amount-blur')"
             />
             <span v-else class="text-sm tabular-nums">
                 {{ formatMoney(row.plan_minor_units) }}
             </span>
+            <InputError
+                v-if="editable && invalid"
+                :id="amountErrorId"
+                class="text-right"
+                :message="t.month_plan.amount_invalid"
+            />
             <p
                 v-if="
                     row.approved_minor_units !== null &&

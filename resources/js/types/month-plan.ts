@@ -59,3 +59,21 @@ export type MonthSummary = {
     };
     year_draw_minor_units: number;
 };
+
+export type MonthPlanReading = {
+    state: 'proposal' | 'approved' | 'none';
+    approved_at: string | null;
+    can_approve: boolean;
+    can_change: boolean;
+    to_spend_minor_units: number | null;
+    set_aside_minor_units: number;
+    spendable_liquidity_minor_units: number | null;
+    month_pace: MonthPace | null;
+    income_items: MonthPlanItem[];
+    expense_items: MonthPlanItem[];
+    year_totals: {
+        income: MonthYearComparison;
+        expense: MonthYearComparison;
+    } | null;
+    summary: MonthSummary | null;
+};

@@ -11,9 +11,11 @@ import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import MonthPaceMeter from '@/components/MonthPaceMeter.vue';
 import ColumnHeaderHint from '@/components/ColumnHeaderHint.vue';
+import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import MonthSummaryCard from '@/components/MonthSummaryCard.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,12 +27,9 @@ import {
 } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    formatMoney,
-    minorUnitsToMoneyInput,
-    parseMoneyInputToMinorUnits,
-} from '@/lib/format';
+import { formatMoney, minorUnitsToMoneyInput } from '@/lib/format';
 import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
+import { parsePlanAmountInput } from '@/lib/month-plan-amount';
 import {
     isMonthItemOverPlan,
     monthItemDeviationMinorUnits,
@@ -40,29 +39,9 @@ import { toSpendMinorUnits } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
 import type {
     MonthItemKind,
-    MonthPace,
     MonthPlanItem,
-    MonthYearComparison,
-    MonthSummary,
+    MonthPlanReading,
 } from '@/types/month-plan';
-
-type MonthPlanReading = {
-    state: 'proposal' | 'approved' | 'none';
-    approved_at: string | null;
-    can_approve: boolean;
-    can_change: boolean;
-    to_spend_minor_units: number | null;
-    set_aside_minor_units: number;
-    spendable_liquidity_minor_units: number | null;
-    month_pace: MonthPace | null;
-    income_items: MonthPlanItem[];
-    expense_items: MonthPlanItem[];
-    year_totals: {
-        income: MonthYearComparison;
-        expense: MonthYearComparison;
-    } | null;
-    summary: MonthSummary | null;
-};
 
 const props = defineProps<{
     budget: {
@@ -142,12 +121,22 @@ function initialSetAsideInput(): string {
     );
 }
 
+/** Amount fields the user has left once; an invalid one is flagged only after that. */
+const touchedAmounts = ref<Record<number, boolean>>({});
+const setAsideTouched = ref(false);
+
+function resetTouched(): void {
+    touchedAmounts.value = {};
+    setAsideTouched.value = false;
+}
+
 watch(
     () => [props.viewedMonth, props.monthPlan?.state, props.budget?.id],
     () => {
         amountInputs.value = initialAmountInputs();
         setAsideDirection.value = initialSetAsideDirection();
         setAsideInput.value = initialSetAsideInput();
+        resetTouched();
     },
 );
 
@@ -156,17 +145,20 @@ watch(
     () => {
         isChanging.value = false;
         amountInputs.value = initialAmountInputs();
+        resetTouched();
     },
 );
 
 function startChanging(): void {
     isChanging.value = true;
     amountInputs.value = initialAmountInputs();
+    resetTouched();
 }
 
 function stopChanging(): void {
     isChanging.value = false;
     amountInputs.value = initialAmountInputs();
+    resetTouched();
 }
 
 const formBinding = computed(() => {
@@ -180,24 +172,23 @@ const formBinding = computed(() => {
         : MonthPlanController.approve.form(route);
 });
 
-/** Matches the server limit in ApproveMonthPlanRequest and UpdateMonthPlanRequest. */
-const MAX_PLAN_AMOUNT_MINOR_UNITS = 1_000_000_000_000;
-
 function parsedAmount(row: MonthPlanItem): number | null {
     if (!isEditableRow(row)) {
         return 0;
     }
 
-    const parsed = parseMoneyInputToMinorUnits(
+    return parsePlanAmountInput(
         amountInputs.value[row.category_id] ??
             minorUnitsToMoneyInput(row.plan_minor_units),
     );
+}
 
-    return parsed !== null &&
-        parsed >= 0 &&
-        parsed <= MAX_PLAN_AMOUNT_MINOR_UNITS
-        ? parsed
-        : null;
+function isAmountFlagged(row: MonthPlanItem): boolean {
+    return (
+        isEditable.value &&
+        touchedAmounts.value[row.category_id] === true &&
+        parsedAmount(row) === null
+    );
 }
 
 const parsedPlanAmounts = computed(() =>
@@ -224,19 +215,29 @@ const submittedAmounts = computed(() =>
 
 /** Signed form value: a draw is negative. Null when the amount is invalid. */
 const formSetAsideMinorUnits = computed<number | null>(() => {
-    const parsed = parseMoneyInputToMinorUnits(setAsideInput.value);
+    const parsed = parsePlanAmountInput(setAsideInput.value);
 
-    if (parsed === null || parsed < 0 || parsed > MAX_PLAN_AMOUNT_MINOR_UNITS) {
+    if (parsed === null) {
         return null;
     }
 
     return setAsideDirection.value === 'draw' && parsed > 0 ? -parsed : parsed;
 });
 
-const allAmountsValid = computed(
+/** Every wrong amount field, touched or not: it explains why submit is disabled. */
+const invalidAmountCount = computed(
     () =>
-        parsedPlanAmounts.value.every((item) => item.amount !== null) &&
-        formSetAsideMinorUnits.value !== null,
+        parsedPlanAmounts.value.filter((item) => item.amount === null).length +
+        (formSetAsideMinorUnits.value === null ? 1 : 0),
+);
+
+const allAmountsValid = computed(() => invalidAmountCount.value === 0);
+
+const setAsideFlagged = computed(
+    () =>
+        isEditable.value &&
+        setAsideTouched.value &&
+        formSetAsideMinorUnits.value === null,
 );
 
 const shownSetAsideMinorUnits = computed<number | null>(() =>
@@ -266,13 +267,18 @@ const drawWarningMessage = computed<string | null>(() => {
         );
 });
 
-const setAsideDirections: SetAsideDirection[] = ['set_aside', 'draw'];
-
 function setAsideDirectionLabel(direction: SetAsideDirection): string {
     return direction === 'draw'
         ? t.month_plan.set_aside_draw
         : t.month_plan.set_aside_save;
 }
+
+const setAsideDirectionOptions = computed(() =>
+    (['set_aside', 'draw'] as SetAsideDirection[]).map((direction) => ({
+        value: direction,
+        label: setAsideDirectionLabel(direction),
+    })),
+);
 
 const toSpendPreviewMinorUnits = computed<number | null>(() => {
     if (props.monthPlan === null || props.monthPlan.state === 'none') {
@@ -338,7 +344,8 @@ function monthUrl(month: number): string {
     return monthPlanRoute({ query: { month } }).url;
 }
 
-const kindError = ref<string | null>(null);
+const kindPendingCategoryId = ref<number | null>(null);
+const kindError = ref<{ categoryId: number; message: string } | null>(null);
 
 function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     if (row.month_item_kind === kind) {
@@ -346,6 +353,7 @@ function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     }
 
     kindError.value = null;
+    kindPendingCategoryId.value = row.category_id;
 
     router.patch(
         CategoryController.updateMonthItemKind.url(row.category_id),
@@ -354,10 +362,25 @@ function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
             preserveState: true,
             preserveScroll: true,
             onError: (errors) => {
-                kindError.value = Object.values(errors)[0] ?? null;
+                const message = Object.values(errors)[0];
+
+                kindError.value = message
+                    ? { categoryId: row.category_id, message }
+                    : null;
+            },
+            onFinish: () => {
+                if (kindPendingCategoryId.value === row.category_id) {
+                    kindPendingCategoryId.value = null;
+                }
             },
         },
     );
+}
+
+function kindErrorFor(row: MonthPlanItem): string | undefined {
+    return kindError.value?.categoryId === row.category_id
+        ? kindError.value.message
+        : undefined;
 }
 
 /**
@@ -431,7 +454,14 @@ const sections = computed(() => {
             rows: expenseItems.filter((row) => !row.is_idle_one_off),
             idleRows: expenseItems.filter((row) => row.is_idle_one_off),
         },
-    ];
+    ].map((section) => ({
+        ...section,
+        showsKindScopeNote:
+            section.key === 'expense' &&
+            [...section.rows, ...section.idleRows].some(
+                (row) => row.can_change_kind,
+            ),
+    }));
 });
 
 const hasInvalidIdleAmount = computed(
@@ -481,31 +511,38 @@ watch(hasInvalidIdleAmount, (invalid) => {
         </IndexEmptyState>
 
         <template v-else-if="viewedMonth !== null">
-            <div class="flex flex-wrap items-center gap-2">
-                <h1 class="text-lg font-semibold capitalize">
-                    {{ viewedMonthLabel }}
-                </h1>
-                <Badge
-                    v-if="monthPlan.state !== 'none'"
-                    :variant="
-                        monthPlan.state === 'approved' ? 'secondary' : 'outline'
-                    "
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h1 class="text-lg font-semibold capitalize">
+                        {{ viewedMonthLabel }}
+                    </h1>
+                    <Badge
+                        v-if="monthPlan.state !== 'none'"
+                        :variant="
+                            monthPlan.state === 'approved'
+                                ? 'secondary'
+                                : 'outline'
+                        "
+                    >
+                        {{ stateLabel }}
+                    </Badge>
+                </div>
+                <Button
+                    v-if="monthPlan.can_change && !isChanging"
+                    type="button"
+                    @click="startChanging"
                 >
-                    {{ stateLabel }}
-                </Badge>
+                    {{ t.month_plan.change }}
+                </Button>
             </div>
 
-            <Card>
-                <CardContent class="grid gap-4 pt-6">
-                    <BudgetMonthPicker
-                        :budget-year="budget.year"
-                        :viewed-month="viewedMonth"
-                        :show-archived="false"
-                        :current-month="currentMonth"
-                        :month-url="monthUrl"
-                    />
-                </CardContent>
-            </Card>
+            <BudgetMonthPicker
+                :budget-year="budget.year"
+                :viewed-month="viewedMonth"
+                :show-archived="false"
+                :current-month="currentMonth"
+                :month-url="monthUrl"
+            />
 
             <IndexEmptyState
                 v-if="monthPlan.state === 'none'"
@@ -516,9 +553,7 @@ watch(hasInvalidIdleAmount, (invalid) => {
             <template v-else>
                 <Card>
                     <CardContent class="grid gap-1 pt-6">
-                        <p
-                            class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
-                        >
+                        <p class="section-label">
                             {{
                                 monthPlan.summary
                                     ? t.month_plan.to_spend_final
@@ -552,9 +587,7 @@ watch(hasInvalidIdleAmount, (invalid) => {
                             v-if="pacePreview !== null && monthPlan.month_pace"
                             class="mt-3 grid gap-2 border-t pt-4"
                         >
-                            <p
-                                class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
-                            >
+                            <p class="section-label">
                                 {{ t.month_plan.pace }}
                             </p>
                             <MonthPaceMeter
@@ -582,9 +615,7 @@ watch(hasInvalidIdleAmount, (invalid) => {
                 >
                     <Card v-if="monthPlan.summary === null">
                         <CardContent class="grid gap-3 pt-6">
-                            <p
-                                class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
-                            >
+                            <p class="section-label">
                                 {{ t.month_plan.set_aside }}
                             </p>
 
@@ -592,38 +623,28 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                 v-if="isEditable"
                                 class="flex flex-wrap items-center gap-3"
                             >
-                                <div
-                                    role="group"
-                                    :aria-label="
+                                <SegmentedControl
+                                    v-model="setAsideDirection"
+                                    :options="setAsideDirectionOptions"
+                                    :ariaLabel="
                                         t.month_plan.set_aside_direction
                                     "
-                                    class="border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1"
-                                >
-                                    <Button
-                                        v-for="direction in setAsideDirections"
-                                        :key="direction"
-                                        type="button"
-                                        size="sm"
-                                        :variant="
-                                            setAsideDirection === direction
-                                                ? 'default'
-                                                : 'ghost'
-                                        "
-                                        :aria-pressed="
-                                            setAsideDirection === direction
-                                        "
-                                        class="h-7 rounded-lg px-2 text-xs"
-                                        @click="setAsideDirection = direction"
-                                    >
-                                        {{ setAsideDirectionLabel(direction) }}
-                                    </Button>
-                                </div>
+                                />
                                 <Input
                                     v-model="setAsideInput"
                                     inputmode="decimal"
                                     autocomplete="off"
                                     :aria-label="t.month_plan.set_aside_amount"
+                                    :aria-invalid="
+                                        setAsideFlagged ? 'true' : undefined
+                                    "
+                                    :aria-describedby="
+                                        setAsideFlagged
+                                            ? 'month-plan-set-aside-error'
+                                            : undefined
+                                    "
                                     class="w-40 text-right tabular-nums"
+                                    @blur="setAsideTouched = true"
                                 />
                                 <input
                                     type="hidden"
@@ -648,6 +669,11 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                 }}
                             </p>
 
+                            <InputError
+                                v-if="setAsideFlagged"
+                                id="month-plan-set-aside-error"
+                                :message="t.month_plan.amount_invalid"
+                            />
                             <InputError
                                 :message="errors.set_aside_minor_units"
                             />
@@ -686,24 +712,42 @@ watch(hasInvalidIdleAmount, (invalid) => {
                         </template>
                     </template>
 
-                    <InputError :message="kindError ?? undefined" />
-
                     <ListSurface
                         v-for="section in sections"
                         :key="section.key"
                         :title="section.title"
+                        :description="
+                            section.showsKindScopeNote
+                                ? t.month_plan.kind_scope_note
+                                : undefined
+                        "
                     >
                         <div
-                            class="border-border/60 text-muted-foreground grid grid-cols-[1fr_5.5rem_5.5rem] gap-3 border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase sm:grid-cols-[1fr_9rem_9rem] lg:grid-cols-[1fr_9rem_9rem_9rem]"
+                            class="month-plan-grid border-border/60 border-b pb-2.5"
+                            :class="
+                                section.key === 'expense'
+                                    ? 'month-plan-grid-kind'
+                                    : ''
+                            "
                         >
-                            <span>{{ t.month_plan.category }}</span>
-                            <span class="text-right">
+                            <span class="column-header">
+                                {{ t.month_plan.category }}
+                            </span>
+                            <span
+                                v-if="section.key === 'expense'"
+                                class="column-header hidden sm:block"
+                            >
+                                {{ t.month_plan.kind_column }}
+                            </span>
+                            <span class="column-header text-right">
                                 {{ t.month_plan.plan }}
                             </span>
-                            <span class="text-right">
+                            <span class="column-header text-right">
                                 {{ t.month_plan.actual }}
                             </span>
-                            <span class="hidden text-right lg:block">
+                            <span
+                                class="column-header hidden text-right lg:block"
+                            >
                                 {{ t.month_plan.deviation }}
                             </span>
                         </div>
@@ -727,7 +771,15 @@ watch(hasInvalidIdleAmount, (invalid) => {
                             :deviation="rowReading(row).deviation"
                             :over-plan="rowReading(row).overPlan"
                             :year-stale="yearStale(row)"
+                            :kind-pending="
+                                kindPendingCategoryId === row.category_id
+                            "
+                            :kind-error="kindErrorFor(row)"
+                            :invalid="isAmountFlagged(row)"
                             @change-kind="changeKind(row, $event)"
+                            @amount-blur="
+                                touchedAmounts[row.category_id] = true
+                            "
                         />
 
                         <Collapsible
@@ -765,7 +817,16 @@ watch(hasInvalidIdleAmount, (invalid) => {
                                     :deviation="rowReading(row).deviation"
                                     :over-plan="rowReading(row).overPlan"
                                     :year-stale="yearStale(row)"
+                                    :kind-pending="
+                                        kindPendingCategoryId ===
+                                        row.category_id
+                                    "
+                                    :kind-error="kindErrorFor(row)"
+                                    :invalid="isAmountFlagged(row)"
                                     @change-kind="changeKind(row, $event)"
+                                    @amount-blur="
+                                        touchedAmounts[row.category_id] = true
+                                    "
                                 />
                             </CollapsibleContent>
                         </Collapsible>
@@ -805,49 +866,20 @@ watch(hasInvalidIdleAmount, (invalid) => {
                         </div>
                     </ListSurface>
 
-                    <div v-if="monthPlan.can_change" class="space-y-2">
-                        <InputError :message="errors.items" />
-                        <div class="flex justify-end gap-2">
-                            <Button
-                                v-if="!isChanging"
-                                type="button"
-                                @click="startChanging"
-                            >
-                                {{ t.month_plan.change }}
-                            </Button>
-                            <template v-else>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    @click="stopChanging"
-                                >
-                                    {{ t.month_plan.cancel }}
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    :disabled="
-                                        processing ||
-                                        !allAmountsValid ||
-                                        submittedAmounts.length === 0
-                                    "
-                                >
-                                    {{ t.month_plan.save_changes }}
-                                </Button>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div v-if="monthPlan.can_approve" class="space-y-2">
-                        <InputError :message="errors.items" />
-                        <div class="flex justify-end">
-                            <Button
-                                type="submit"
-                                :disabled="processing || !allAmountsValid"
-                            >
-                                {{ t.month_plan.approve }}
-                            </Button>
-                        </div>
-                    </div>
+                    <MonthPlanEditBar
+                        v-if="isEditable"
+                        :to-spend-minor-units="toSpendPreviewMinorUnits"
+                        :mode="isChanging ? 'change' : 'approve'"
+                        :processing="processing"
+                        :can-submit="
+                            isChanging
+                                ? allAmountsValid && submittedAmounts.length > 0
+                                : allAmountsValid
+                        "
+                        :invalid-count="invalidAmountCount"
+                        :error="errors.items"
+                        @cancel="stopChanging"
+                    />
                 </Form>
             </template>
         </template>

@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budgets/{budget}/start-execution', [BudgetController::class, 'startExecution'])->name('budgets.start-execution');
     Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
     Route::get('month-plan', [MonthPlanController::class, 'show'])->name('month-plan');
+    if (app()->environment('local')) {
+        Route::inertia('dev/month-plan', 'dev/MonthPlanSink');
+    }
     Route::post('budgets/{budget}/month-plans/{month}/approve', [MonthPlanController::class, 'approve'])
         ->whereNumber('month')
         ->name('month-plans.approve');
