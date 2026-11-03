@@ -59,6 +59,7 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --color-sidebar: var(--sidebar-background);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -128,6 +129,7 @@
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
     --radius: 0.75rem;
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --sidebar-background: hsl(0 0% 98%);
     --sidebar-foreground: hsl(240 5.3% 26.1%);
     --sidebar-primary: hsl(189 85% 28%);
@@ -136,7 +138,6 @@
     --sidebar-accent-foreground: hsl(189 85% 22%);
     --sidebar-border: hsl(0 0% 91%);
     --sidebar-ring: hsl(189 85% 28%);
-    --sidebar: hsl(0 0% 98%);
 }
 
 .dark {
@@ -170,6 +171,7 @@
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --sidebar-background: hsl(0 0% 7%);
     --sidebar-foreground: hsl(0 0% 95.9%);
     --sidebar-primary: hsl(189 70% 40%);
@@ -178,7 +180,6 @@
     --sidebar-accent-foreground: hsl(189 70% 70%);
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(189 70% 40%);
-    --sidebar: hsl(240 5.9% 10%);
 }
 
 @layer base {

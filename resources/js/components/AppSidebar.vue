@@ -28,6 +28,13 @@ import { index as termDeposits } from '@/routes/term-deposits';
 import { budget, dashboard, monthPlan, operations } from '@/routes';
 import type { NavItem } from '@/types';
 
+type Props = {
+    budgetYears: number[];
+    budgetYear: number | null;
+};
+
+defineProps<Props>();
+
 const t = useTranslations();
 
 const mainNavItems: NavItem[] = [
@@ -76,7 +83,10 @@ const mainNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
-            <BudgetYearSwitcher />
+            <BudgetYearSwitcher
+                :budget-years="budgetYears"
+                :budget-year="budgetYear"
+            />
         </SidebarHeader>
 
         <SidebarContent>

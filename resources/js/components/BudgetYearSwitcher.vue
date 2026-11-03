@@ -5,10 +5,16 @@ import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useShell, useTranslations } from '@/composables/useTranslations';
+import { useTranslations } from '@/composables/useTranslations';
 import { ref } from 'vue';
 
-const shell = useShell();
+type Props = {
+    budgetYears: number[];
+    budgetYear: number | null;
+};
+
+defineProps<Props>();
+
 const t = useTranslations();
 const createDialogOpen = ref(false);
 </script>
@@ -19,7 +25,7 @@ const createDialogOpen = ref(false);
             {{ t.shell.budget_year }}
         </p>
         <div
-            v-if="shell.budgetYears.length === 0"
+            v-if="budgetYears.length === 0"
             class="border-sidebar-border flex flex-col gap-2 rounded-md border border-dashed px-2 py-2"
         >
             <p class="text-muted-foreground text-xs">
@@ -54,7 +60,7 @@ const createDialogOpen = ref(false);
                     id="shell-budget-year"
                     name="year"
                     class="native-select h-8 px-2"
-                    :value="shell.budgetYear ?? ''"
+                    :value="budgetYear ?? ''"
                     :disabled="processing"
                     @change="
                         (
@@ -63,7 +69,7 @@ const createDialogOpen = ref(false);
                     "
                 >
                     <option
-                        v-for="year in shell.budgetYears"
+                        v-for="year in budgetYears"
                         :key="year"
                         :value="year"
                     >

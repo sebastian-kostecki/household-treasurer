@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { defineAsyncComponent } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
-import Dashboard from '@/pages/Dashboard.vue';
 import { dashboardScenarios } from './dashboard-fixtures';
 
+const Dashboard = defineAsyncComponent(() => import('@/pages/Dashboard.vue'));
 const t = useTranslations();
 
 const stateMatrix = [
