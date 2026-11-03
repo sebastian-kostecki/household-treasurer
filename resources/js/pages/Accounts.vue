@@ -97,7 +97,7 @@ function toggleShowArchived(checked: boolean): void {
         </div>
 
         <StatTile
-            :label="t.accounts.liquidity_total"
+            :label="t.accounts.spendable_liquidity"
             :amount-minor-units="liquidity_total_minor_units"
         />
 

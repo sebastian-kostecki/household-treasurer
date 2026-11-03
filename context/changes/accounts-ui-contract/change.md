@@ -1,7 +1,7 @@
 ---
 change_id: accounts-ui-contract
 title: Accounts UI contract pass (tokens, shared components, states)
-status: implemented
+status: impl_reviewed
 created: 2026-11-03
 updated: 2026-11-03
 archived_at: null
