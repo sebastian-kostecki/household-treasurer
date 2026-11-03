@@ -42,7 +42,7 @@ Restyle through `resources/js/components/ui/` primitives so auth, settings, and 
 - `Button` — medium radius, no resting shadow on outline/ghost.
 - `Input` — quieter border, medium radius, teal focus ring.
 - `Dialog` — centred overlay, large radius, header / body / footer; form and confirm dialogs share this chrome.
-- Native `<select>` — use the `.native-select` component class from `resources/css/app.css`; do not swap in the unused Reka Select primitive for list forms.
+- Dropdowns — native `<select>` with the `.native-select` class from `resources/css/app.css` for simple enums without icons; the Reka `Select` primitive when an option shows an icon or logo (e.g. `AccountBankSelect`). Both are `rounded-xl`.
 
 ## Typography
 
@@ -52,7 +52,7 @@ Restyle through `resources/js/components/ui/` primitives so auth, settings, and 
 
 ## Out of scope for this skill
 
-- Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout.
+- Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout. Sidebar tokens and slot rules: section "Sidebar" in `.ai/rules/js.md`.
 - Ink primary, copying Wallet Master files, new CSS frameworks.
 - Replacing native selects with Reka Select in domain forms.
 - Asserting Tailwind classes in Pest tests.

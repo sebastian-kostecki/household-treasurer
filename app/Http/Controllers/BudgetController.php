@@ -17,6 +17,7 @@ use App\Support\BudgetPlanSummary;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
+use App\Support\MonthToSpend;
 use App\Support\SelectedBudgetYear;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -52,6 +53,7 @@ class BudgetController extends Controller
                 'monthResultMinorUnits' => null,
                 'currentMonth' => null,
                 'viewedMonthTiming' => null,
+                'monthToSpend' => null,
                 'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
             ]);
         }
@@ -123,6 +125,9 @@ class BudgetController extends Controller
             'monthResultMinorUnits' => $monthResult['month_result_minor_units'],
             'currentMonth' => $monthReadings['current_month'],
             'viewedMonthTiming' => $monthReadings['viewed_month_timing'],
+            'monthToSpend' => $budget->isExecution()
+                ? MonthToSpend::forMonth($budget, $viewedMonth, $today)->summary()
+                : null,
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);
     }
@@ -170,6 +175,10 @@ class BudgetController extends Controller
         $validated = $request->validated();
 
         $request->session()->put('budget_year', $validated['year']);
+
+        if (($validated['destination'] ?? 'budget') === 'month-plan') {
+            return to_route('month-plan');
+        }
 
         return to_route('budget');
     }
@@ -244,6 +253,7 @@ class BudgetController extends Controller
             ...CategoryAppearance::fields($category),
             'type' => $category->type->value,
             'is_paced' => $category->is_paced,
+            'month_item_kind' => $category->month_item_kind->value,
             'planned_amount_minor_units' => $category->planned_amount_minor_units,
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,

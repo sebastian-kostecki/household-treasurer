@@ -21,6 +21,11 @@ import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
 import {
+    monthHasPlan,
+    type EntryToSpendInputs,
+} from '@/lib/entry-to-spend-warning';
+import { computeImportToSpendWarnings } from '@/lib/import-to-spend-warnings';
+import {
     consumedFirstLegKeys,
     showsPairCandidateBadge,
     syncPairSelection,
@@ -52,6 +57,7 @@ const {
     otherAccounts,
     termDeposits,
     monthRemainingContext,
+    entryToSpend,
 } = defineProps<{
     account: AccountPickerOption & { current_balance_minor_units: number };
     rows: ImportRow[];
@@ -60,6 +66,7 @@ const {
     otherAccounts: OtherAccountRow[];
     termDeposits: TermDepositRow[];
     monthRemainingContext: MonthRemainingContext;
+    entryToSpend: EntryToSpendInputs;
 }>();
 
 const t = useTranslations();
@@ -149,6 +156,10 @@ const monthRemainingWarnings = computed(() =>
         monthRemainingContext,
         monthNameTranslations.value,
     ),
+);
+
+const toSpendWarnings = computed(() =>
+    computeImportToSpendWarnings(rows, selections.value, entryToSpend),
 );
 
 setLayoutProps({
@@ -333,8 +344,11 @@ watch(consumedFirstLegKeysSet, () => {
                         :term-deposits="termDeposits"
                         :consumed-first-leg-keys="consumedFirstLegKeysSet"
                         :month-remaining-warnings="
-                            monthRemainingWarnings[row.index]
+                            monthHasPlan(entryToSpend, row.operation_date ?? '')
+                                ? undefined
+                                : monthRemainingWarnings[row.index]
                         "
+                        :to-spend-warning="toSpendWarnings[row.index]"
                     />
                 </div>
             </ListSurface>

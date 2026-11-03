@@ -83,15 +83,17 @@ const totalsLabel = computed(() =>
         </p>
 
         <template v-else>
-            <div
-                class="category-meter-header-row text-muted-foreground text-xs font-medium tracking-wide uppercase"
-            >
+            <div class="category-meter-header-row column-caption">
                 <span>{{ t.budget.category }}</span>
-                <span class="text-right">{{ t.dashboard.current_plan }}</span>
-                <span class="text-right">{{ t.dashboard.execution }}</span>
+                <span class="text-right max-md:hidden">
+                    {{ t.dashboard.current_plan }}
+                </span>
+                <span class="text-right max-md:hidden">
+                    {{ t.dashboard.execution }}
+                </span>
                 <span class="text-right">{{ t.dashboard.remaining }}</span>
-                <span />
-                <span class="text-right">
+                <span class="max-md:hidden" />
+                <span class="text-right max-md:hidden">
                     {{ t.dashboard.percent_complete }}
                 </span>
             </div>
@@ -137,6 +139,7 @@ const totalsLabel = computed(() =>
                     class="category-meter-cell-remaining tabular-nums"
                     :class="sectionRemainingClass"
                 >
+                    <span class="sr-only">{{ t.dashboard.remaining }}</span>
                     <span class="text-sm">
                         {{ formatMoney(totals.remaining_minor_units) }}
                     </span>

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\ReorderCategories;
 use App\Enums\CategoryType;
+use App\Enums\MonthItemKind;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryMonthItemKindRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\Category;
@@ -31,6 +33,9 @@ class CategoryController extends Controller
         $attributes['is_paced'] = $type === CategoryType::Expense
             ? $request->boolean('is_paced', true)
             : true;
+        $attributes['month_item_kind'] = $type === CategoryType::Expense
+            ? ($attributes['month_item_kind'] ?? MonthItemKind::Running->value)
+            : MonthItemKind::Running->value;
         $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
 
         $budget->categories()->create($attributes);
@@ -55,6 +60,7 @@ class CategoryController extends Controller
 
         if ($category->type === CategoryType::Expense && ! $category->isArchived()) {
             $updatableFields[] = 'is_paced';
+            $updatableFields[] = 'month_item_kind';
         }
 
         $category->update($request->safe()->only($updatableFields));
@@ -65,6 +71,13 @@ class CategoryController extends Controller
         ]);
 
         return to_route('budget');
+    }
+
+    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, Category $category): RedirectResponse
+    {
+        $category->update($request->safe()->only(['month_item_kind']));
+
+        return back();
     }
 
     public function destroy(Request $request, Category $category): RedirectResponse

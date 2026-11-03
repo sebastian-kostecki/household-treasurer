@@ -4,6 +4,7 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import { Toaster } from '@/components/ui/sonner';
+import { useShell } from '@/composables/useTranslations';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -13,11 +14,16 @@ type Props = {
 withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
+
+const shell = useShell();
 </script>
 
 <template>
     <AppShell variant="sidebar">
-        <AppSidebar />
+        <AppSidebar
+            :budget-years="shell.budgetYears"
+            :budget-year="shell.budgetYear"
+        />
         <AppContent variant="sidebar" class="min-w-0 overflow-x-clip">
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <slot />

@@ -8,7 +8,9 @@ use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
+use App\Enums\MonthItemKind;
 use App\Models\Category;
+use App\Models\MonthPlan;
 use App\Models\User;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Illuminate\Support\Carbon;
@@ -29,6 +31,7 @@ class RestoreUserData
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $this->restoreCategories($snapshot['categories'], $budgetIdMap);
+            $this->restoreMonthPlans($snapshot['month_plans'] ?? [], $budgetIdMap, $categoryIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
             $this->restoreOwnTransfers($targetUser, $snapshot['own_transfers'], $accountIdMap);
             $this->restoreCapitalMovements(
@@ -73,7 +76,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -83,12 +86,16 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('month_plans', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
         return $snapshot;
@@ -196,6 +203,7 @@ class RestoreUserData
                 'sort_order' => $categoryData['sort_order'],
                 'type' => CategoryType::from($categoryData['type']),
                 'is_paced' => $this->restoredCategoryIsPaced($categoryData),
+                'month_item_kind' => $this->restoredCategoryMonthItemKind($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $categoryData['initial_plan_minor_units'],
                 'execution_minor_units' => $categoryData['execution_minor_units'],
@@ -208,6 +216,78 @@ class RestoreUserData
         }
 
         return $categoryIdMap;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $monthPlans
+     * @param  array<int, int>  $budgetIdMap
+     * @param  array<int, int>  $categoryIdMap
+     */
+    private function restoreMonthPlans(array $monthPlans, array $budgetIdMap, array $categoryIdMap): void
+    {
+        $seenPlans = [];
+
+        foreach ($monthPlans as $monthPlanData) {
+            if (! isset($monthPlanData['budget_id'], $monthPlanData['month'], $monthPlanData['approved_at'])) {
+                throw new UserSnapshotException('Snapshot month plan is missing budget_id, month or approved_at.');
+            }
+
+            $month = $monthPlanData['month'];
+
+            if (! is_int($month) || $month < 1 || $month > 12) {
+                throw new UserSnapshotException('Snapshot month plan has an invalid month.');
+            }
+
+            $budgetId = $budgetIdMap[$monthPlanData['budget_id']] ?? null;
+
+            if ($budgetId === null) {
+                throw new UserSnapshotException("Snapshot references unknown budget id {$monthPlanData['budget_id']}.");
+            }
+
+            if (isset($seenPlans["{$budgetId}:{$month}"])) {
+                throw new UserSnapshotException('Snapshot contains a duplicated month plan.');
+            }
+
+            $seenPlans["{$budgetId}:{$month}"] = true;
+
+            $monthPlan = MonthPlan::query()->create([
+                'budget_id' => $budgetId,
+                'month' => $month,
+                'approved_at' => Carbon::parse($monthPlanData['approved_at']),
+                'approved_set_aside_minor_units' => $monthPlanData['approved_set_aside_minor_units'] ?? 0,
+                'current_set_aside_minor_units' => $monthPlanData['current_set_aside_minor_units'] ?? 0,
+            ]);
+
+            $seenCategories = [];
+
+            foreach ($monthPlanData['items'] ?? [] as $itemData) {
+                if (! isset($itemData['category_id'], $itemData['approved_amount_minor_units'], $itemData['current_amount_minor_units'])) {
+                    throw new UserSnapshotException('Snapshot month plan item is missing a required key.');
+                }
+
+                $categoryId = $categoryIdMap[$itemData['category_id']] ?? null;
+
+                if ($categoryId === null) {
+                    throw new UserSnapshotException("Snapshot references unknown category id {$itemData['category_id']}.");
+                }
+
+                if (isset($seenCategories[$categoryId])) {
+                    throw new UserSnapshotException('Snapshot month plan contains a duplicated category.');
+                }
+
+                $seenCategories[$categoryId] = true;
+
+                if (Category::query()->whereKey($categoryId)->value('budget_id') !== $budgetId) {
+                    throw new UserSnapshotException('Snapshot month plan item references a category of another budget.');
+                }
+
+                $monthPlan->items()->create([
+                    'category_id' => $categoryId,
+                    'approved_amount_minor_units' => $itemData['approved_amount_minor_units'],
+                    'current_amount_minor_units' => $itemData['current_amount_minor_units'],
+                ]);
+            }
+        }
     }
 
     /**
@@ -348,5 +428,17 @@ class RestoreUserData
         }
 
         return $categoryData['is_paced'] ?? true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $categoryData
+     */
+    private function restoredCategoryMonthItemKind(array $categoryData): MonthItemKind
+    {
+        if ($categoryData['type'] !== CategoryType::Expense->value) {
+            return MonthItemKind::Running;
+        }
+
+        return MonthItemKind::tryFrom((string) ($categoryData['month_item_kind'] ?? '')) ?? MonthItemKind::Running;
     }
 }

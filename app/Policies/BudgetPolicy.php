@@ -38,6 +38,11 @@ class BudgetPolicy
             && ($budget->isDraft() || $budget->isExecution());
     }
 
+    public function manageMonthPlan(User $user, Budget $budget): bool
+    {
+        return $this->ownsBudget($user, $budget) && $budget->isExecution();
+    }
+
     private function ownsBudget(User $user, Budget $budget): bool
     {
         return $user->id === $budget->user_id;

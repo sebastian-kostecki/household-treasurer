@@ -3,42 +3,17 @@ import { Link } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
+import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoney } from '@/lib/format';
 import { index as accountsIndex } from '@/routes/accounts';
+import type { AccountSummary, TermDepositSummary } from '@/types/dashboard';
 
 const HOLDINGS_EXPANDED_STORAGE_KEY = 'dashboard-holdings-expanded';
-
-type AccountSummary = {
-    id: number;
-    name: string;
-    type: 'bank' | 'cash';
-    bank: AccountBank | null;
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
-
-type TermDepositSummary = {
-    id: number;
-    name: string;
-    bank: AccountBank;
-    mark_url: string | null;
-    end_date: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
 
 const props = defineProps<{
     accounts: AccountSummary[];
@@ -88,30 +63,6 @@ const termDepositsTotalMinorUnits = computed(() =>
     ),
 );
 
-function amountClass(holding: AccountSummary | TermDepositSummary): string {
-    if (holding.is_negative) {
-        return 'text-destructive';
-    }
-
-    if (holding.current_balance_minor_units > 0) {
-        return 'text-success';
-    }
-
-    return '';
-}
-
-function groupTotalClass(totalMinorUnits: number): string {
-    if (totalMinorUnits < 0) {
-        return 'text-destructive';
-    }
-
-    if (totalMinorUnits > 0) {
-        return 'text-success';
-    }
-
-    return '';
-}
-
 function toggleExpanded(): void {
     isExpanded.value = !isExpanded.value;
 }
@@ -153,16 +104,18 @@ function toggleExpanded(): void {
             :class="holdingsOpenOnMobile ? '' : 'max-lg:hidden'"
         >
             <Card v-if="showEmptyState">
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.no_accounts }}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p class="text-muted-foreground text-sm">
-                        {{ t.accounts.empty }}
-                    </p>
-                </CardContent>
+                <IndexEmptyState
+                    :title="t.dashboard.no_accounts"
+                    :description="t.accounts.empty"
+                >
+                    <template #actions>
+                        <Button as-child>
+                            <Link :href="accountsIndex()">
+                                {{ t.dashboard.open_accounts }}
+                            </Link>
+                        </Button>
+                    </template>
+                </IndexEmptyState>
             </Card>
 
             <template v-else>
@@ -176,7 +129,7 @@ function toggleExpanded(): void {
 
                     <template v-else>
                         <div
-                            class="text-muted-foreground flex items-center justify-between gap-3 pb-2 text-xs font-medium tracking-wide uppercase"
+                            class="column-caption flex items-center justify-between gap-3 pb-2"
                         >
                             <span>{{ t.accounts.name }}</span>
                             <span>{{ t.accounts.current_balance }}</span>
@@ -186,7 +139,7 @@ function toggleExpanded(): void {
                             <div
                                 v-for="account in accounts"
                                 :key="account.id"
-                                class="hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors"
+                                class="dashboard-holdings-row"
                             >
                                 <AccountIdentityBlock
                                     class="min-w-0 flex-1"
@@ -201,7 +154,11 @@ function toggleExpanded(): void {
                                 </AccountIdentityBlock>
                                 <p
                                     class="shrink-0 text-sm font-semibold tabular-nums"
-                                    :class="amountClass(account)"
+                                    :class="
+                                        amountToneClass(
+                                            account.current_balance_minor_units,
+                                        )
+                                    "
                                 >
                                     {{
                                         formatMoney(
@@ -219,7 +176,7 @@ function toggleExpanded(): void {
                             <span
                                 class="tabular-nums"
                                 :class="
-                                    groupTotalClass(accountsTotalMinorUnits)
+                                    amountToneClass(accountsTotalMinorUnits)
                                 "
                             >
                                 {{ formatMoney(accountsTotalMinorUnits) }}
@@ -233,7 +190,7 @@ function toggleExpanded(): void {
                     :title="t.nav.term_deposits"
                 >
                     <div
-                        class="text-muted-foreground flex items-center justify-between gap-3 pb-2 text-xs font-medium tracking-wide uppercase"
+                        class="column-caption flex items-center justify-between gap-3 pb-2"
                     >
                         <span>{{ t.term_deposits.name }}</span>
                         <span>{{ t.term_deposits.current_balance }}</span>
@@ -243,7 +200,7 @@ function toggleExpanded(): void {
                         <div
                             v-for="termDeposit in termDeposits"
                             :key="termDeposit.id"
-                            class="hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors"
+                            class="dashboard-holdings-row"
                         >
                             <AccountIdentityBlock
                                 class="min-w-0 flex-1"
@@ -265,7 +222,11 @@ function toggleExpanded(): void {
                             </AccountIdentityBlock>
                             <p
                                 class="shrink-0 text-sm font-semibold tabular-nums"
-                                :class="amountClass(termDeposit)"
+                                :class="
+                                    amountToneClass(
+                                        termDeposit.current_balance_minor_units,
+                                    )
+                                "
                             >
                                 {{
                                     formatMoney(
@@ -283,7 +244,7 @@ function toggleExpanded(): void {
                         <span
                             class="tabular-nums"
                             :class="
-                                groupTotalClass(termDepositsTotalMinorUnits)
+                                amountToneClass(termDepositsTotalMinorUnits)
                             "
                         >
                             {{ formatMoney(termDepositsTotalMinorUnits) }}

@@ -42,6 +42,7 @@ class CreateBudget
                 'color' => $sourceCategory->color,
                 'sort_order' => $sourceCategory->sort_order,
                 'is_paced' => $sourceCategory->is_paced,
+                'month_item_kind' => $sourceCategory->month_item_kind,
                 'planned_amount_minor_units' => $sourceCategory->planned_amount_minor_units,
                 'initial_plan_minor_units' => 0,
                 'execution_minor_units' => 0,

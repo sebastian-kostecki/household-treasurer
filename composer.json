@@ -20,6 +20,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
+        "heyosseus/sloppy": "^1.8",
         "larastan/larastan": "^3.9",
         "laravel/boost": "^2.7",
         "laravel/pail": "^1.2.5",
@@ -66,6 +67,7 @@
         "ci:check": [
             "Composer\\Config::disableProcessTimeout",
             "npm run check",
+            "npm run check:ui",
             "npm run types:check",
             "npm test",
             "@test"

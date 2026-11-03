@@ -188,7 +188,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-TRX-05**: Dochód albo wydatek można zapisać tylko dla roku z budżetem w fazie wykonania.
 - **FR-TRX-06**: Zwykły dochód i zwykły wydatek mają kwotę dodatnią.
 - **FR-TRX-07**: Zwrot wydatku jest ujemnym wydatkiem przypisanym do kategorii wydatkowej; może też zawierać opcjonalnego nadawcę / odbiorcę (Counterparty).
-- **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny Available Limit i przewidywany limit po operacji. Dla Paced Category pokazuje także Month Remaining przed operacją i po niej.
+- **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny Available Limit i przewidywany limit po operacji. Dla Paced Category w miesiącu bez planu miesiąca pokazuje także Month Remaining przed operacją i po niej. Gdy miesiąc daty operacji ma plan miesiąca (także propozycję), dochód, wydatek albo zwrot, po którym To Spend tego miesiąca jest ujemne i niższe niż przed operacją, daje ostrzeżenie z kwotą To Spend po operacji; to samo dotyczy wiersza podglądu Importu.
 - **FR-TRX-09**: Przekroczenie limitu nie blokuje zapisu operacji.
 - **FR-TRX-10**: Użytkownik może edytować i usuwać operacje w budżecie znajdującym się w fazie wykonania, w tym opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-11**: Zmiana daty na inny rok wymaga wskazania kategorii z docelowego budżetu będącego w fazie wykonania.
@@ -293,7 +293,7 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-REP-10**: Total funds jest sumą Spendable Liquidity i bieżących sald wszystkich lokat użytkownika, w tym zarchiwizowanych. Capital Movement z konta na lokatę nie zmienia Total funds.
 - **FR-REP-11**: Pulpit pokazuje Spendable Liquidity, Total funds, karty niezarchiwizowanych kont oraz karty niezarchiwizowanych lokat.
 - **FR-REP-12**: System pokazuje Planned Balance: plan aktualny dochodów minus plan aktualny wydatków dla jednego budżetu. To nie jest saldo kont.
-- **FR-REP-13**: System pokazuje Month Remaining dla Paced Category i dla puli równomiernych w wybranym miesiącu roku budżetowego. One-off Category nie ma tego odczytu. Month Remaining nie jest Available Limit i nie jest równym podziałem planu aktualnego.
+- **FR-REP-13**: System pokazuje Month Remaining dla Paced Category i dla puli równomiernych w wybranym miesiącu roku budżetowego. One-off Category nie ma tego odczytu. Month Remaining jest odczytem tylko dla miesięcy minionych bez planu miesiąca; bieżący miesiąc, miesiące przyszłe i miesiące minione z zatwierdzonym planem pokazują „do wydania” na Pulpicie i na stronie Budżet (ADR-0033). Month Remaining nie jest Available Limit i nie jest równym podziałem planu aktualnego.
 - **FR-REP-14**: System pokazuje Month Result wybranego miesiąca: wykonanie dochodów minus wykonanie wydatków (w tym zarchiwizowane i One-off; zwroty netto w wydatkach). Own Transfer i Capital Movement nie wchodzą do tego odczytu.
 - **FR-REP-15**: Mierniki pulpitu i sumy planu (dochody, wydatki, Planned Balance) pomijają zarchiwizowane kategorie. Lista budżetu pokazuje je w osobnej sekcji i pomija w sumach planu, dopóki użytkownik nie poprosi o pokazanie zarchiwizowanych. Arytmetyka Month Remaining nadal używa wszystkich Paced Category tego budżetu, w tym zarchiwizowanych.
 
@@ -301,7 +301,7 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 
 Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu webowego MVP. Produkcyjny backup całej instancji to archiwum Spatie (PostgreSQL plus `storage/app`, por. ADR-0013 i tech stack). Poniższe komendy `user:*` eksportują i przywracają **dane domenowe jednego użytkownika** w formacie JSON.
 
-- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, lokaty, budżety, kategorie (w tym flagę Paced), operacje finansowe, transfery własne, Capital Movements oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 4 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`. Restore przyjmuje także starsze wersje 1–3 (wersja 1 bez lokat i ruchów kapitału; wersja 2 z lokatami bez ruchów kapitału; brak `is_paced` przywraca domyślne `true` dla kategorii wydatkowej).
+- **FR-ADM-01**: Administrator może wyeksportować snapshot danych domenowych użytkownika (`user:backup {user}`). Snapshot zawiera konta, lokaty, budżety, kategorie (w tym flagę Paced i rodzaj pozycji miesiąca), plany miesięcy (z kwotą odkładam/dobieram), operacje finansowe, transfery własne, Capital Movements oraz stan checklisty pierwszego uruchomienia. Nie zawiera hasła, 2FA, passkeys ani sesji. Plik zapisywany jest jako JSON wersji 5 w `storage/app/private/user-snapshots/` z nazwą `{user-id}-{timestamp}.json`. Restore przyjmuje wersje 1–5 (wersja 1 bez lokat i ruchów kapitału; wersja 2 z lokatami bez ruchów kapitału; brak `is_paced` przywraca domyślne `true` dla kategorii wydatkowej; brak `month_item_kind` przywraca `running`; wersje 1–4 nie zawierają planów miesięcy; brak kwoty odkładam/dobieram w planie miesiąca przywraca 0).
 - **FR-ADM-02**: Administrator może przywrócić snapshot na **istniejącego** użytkownika-cel (`user:restore {user} {path}`). Przed wgraniem system usuwa wszystkie dane domenowe użytkownika-celu (jak `user:reset-data`). Restore nadaje rekordom nowe identyfikatory i przepina powiązania, więc snapshot można przenieść między różnymi użytkownikami. Operacja wymaga potwierdzenia; opcja `--force` pomija pytanie.
 - **FR-ADM-03**: Administrator może wyczyścić dane domenowe użytkownika bez usuwania konta logowania (`user:reset-data {user}`). Komenda usuwa konta, lokaty, budżety, operacje, transfery, Capital Movements i sesje użytkownika oraz resetuje checklistę pierwszego uruchomienia.
 - **FR-ADM-04**: Restore odrzuca plik z nieobsługiwaną wersją formatu lub uszkodzonym JSON.
@@ -342,7 +342,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Próba użycia zarchiwizowanego konta, kategorii albo lokaty jest blokowana bez zmiany danych.
 - Próba zapisania operacji wcześniejszej niż data otwarcia konta albo późniejszej niż bieżący dzień jest blokowana.
 - Próba zapisania Capital Movement wcześniejszego niż data otwarcia konta albo lokaty, albo z datą w przyszłości, jest blokowana.
-- Przekroczenie limitu, zejście Month Remaining poniżej zera oraz zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
+- Przekroczenie limitu, zejście Month Remaining poniżej zera, zejście To Spend poniżej zera przy operacji oraz zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
 - Data zakończenia lokaty wcześniejsza niż data otwarcia jest odrzucana.
 - Flaga Paced na kategorii dochodowej jest odrzucana.
 - Zmiana daty operacji na inny rok nie zachowuje kategorii ze starego budżetu; użytkownik wybiera kategorię docelową.

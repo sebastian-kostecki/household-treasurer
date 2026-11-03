@@ -92,46 +92,4 @@ class ImportMonthRemainingContext
             'execution_by_category_and_month' => $executionByCategoryAndMonth,
         ];
     }
-
-    /**
-     * @param  list<array<string, mixed>>  $rows
-     * @param  array<int, array{id: int, budget_year: int}>  $expenseCategories
-     * @return list<array<string, mixed>>
-     */
-    public static function annotateRows(
-        User $user,
-        array $rows,
-        array $expenseCategories,
-        ?CarbonImmutable $today = null,
-    ): array {
-        $today ??= CarbonImmutable::today('UTC');
-        $defaultCategoryIdsByYear = [];
-
-        foreach ($expenseCategories as $category) {
-            $year = $category['budget_year'];
-
-            if (! array_key_exists($year, $defaultCategoryIdsByYear)) {
-                $defaultCategoryIdsByYear[$year] = $category['id'];
-            }
-        }
-
-        $annotatedRows = array_map(function (array $row) use ($defaultCategoryIdsByYear): array {
-            $amountMinorUnits = $row['amount_minor_units'] ?? null;
-            $operationDate = $row['operation_date'] ?? null;
-            $year = is_string($operationDate) && $operationDate !== ''
-                ? (int) substr($operationDate, 0, 4)
-                : null;
-
-            $row['default_type'] = is_int($amountMinorUnits) && $amountMinorUnits < 0
-                ? 'expense'
-                : 'income';
-            $row['default_category_id'] = $year !== null
-                ? ($defaultCategoryIdsByYear[$year] ?? null)
-                : null;
-
-            return $row;
-        }, $rows);
-
-        return (new ImportMonthRemainingWarningAnnotator($user, $today))->annotate($annotatedRows);
-    }
 }

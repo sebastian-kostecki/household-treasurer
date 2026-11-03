@@ -135,7 +135,9 @@ class TermDepositTest extends TestCase
                 ->where('termDeposits.1.mark_url', null)
                 ->where('termDeposits.1.end_date', null)
                 ->where('termDeposits.1.current_balance_minor_units', 25050)
-                ->where('term_deposits_total_minor_units', 125050),
+                ->where('term_deposits_total_minor_units', 125050)
+                ->where('archived_term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_count', 0),
             );
     }
 
@@ -260,6 +262,59 @@ class TermDepositTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $this->assertSame(50000, $account->fresh()->current_balance_minor_units);
+    }
+
+    public function test_store_update_and_destroy_redirects_keep_show_archived_filter_only_when_requested(): void
+    {
+        $user = User::factory()->create();
+        $payload = [
+            'name' => 'Filtered',
+            'bank' => Bank::Mbank->value,
+            'opening_date' => '2026-01-15',
+            'opening_balance_minor_units' => 0,
+        ];
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.store', ['show_archived' => 1]), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.store'), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('term-deposits.index'));
+
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
+        ]);
+        $updatePayload = [
+            'name' => 'Renamed',
+            'bank' => Bank::Mbank->value,
+            'opening_balance_minor_units' => 0,
+        ];
+
+        $this->actingAs($user)
+            ->patch(route('term-deposits.update', ['term_deposit' => $termDeposit, 'show_archived' => 1]), $updatePayload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->patch(route('term-deposits.update', $termDeposit), $updatePayload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('term-deposits.index'));
+
+        $other = TermDeposit::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->delete(route('term-deposits.destroy', ['term_deposit' => $termDeposit, 'show_archived' => 1]))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->delete(route('term-deposits.destroy', $other))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('term-deposits.index'));
     }
 
     public function test_user_can_delete_term_deposit_without_capital_movements(): void

@@ -94,16 +94,19 @@ Gdy użytkownik ma już dane domenowe, dodaj `--fresh` (i `--force`, żeby pomin
 ./vendor/bin/sail bin/pint --dirty --format agent
 ./vendor/bin/sail composer types:check
 ./vendor/bin/sail npm run types:check
+./vendor/bin/sail bin/sloppy ci
 ```
 
 Pełny zestaw lokalny: `./vendor/bin/sail composer ci:check`.
+
+CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bin/sloppy ci`) jako osobny krok: w PR zgłasza tylko znaleziska wprowadzone przez zmianę, na pushu skanuje cały projekt. Istniejący dług jest w `.sloppy-baseline.json`; odświeżaj go (`vendor/bin/sloppy baseline`) tylko świadomie, nie żeby uciszyć nowe znalezisko.
 
 ## Komendy administracyjne
 
 | Komenda                      | Działanie                                                    |
 | ---------------------------- | ------------------------------------------------------------ |
 | `user:create`                | Konto logowania                                              |
-| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 4)                   |
+| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 5)                   |
 | `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika           |
 | `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje     |
 | `demo:seed-household {user}` | Dane demo                                                    |

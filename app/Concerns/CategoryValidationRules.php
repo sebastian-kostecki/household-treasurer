@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Enums\CategoryType;
+use App\Enums\MonthItemKind;
 use App\Models\Category;
 use App\Support\Categories\CategoryColors;
 use App\Support\Categories\CategoryIcons;
@@ -23,6 +24,7 @@ trait CategoryValidationRules
             'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
             'is_paced' => ['sometimes', 'boolean'],
+            'month_item_kind' => ['sometimes', Rule::enum(MonthItemKind::class)],
             'planned_amount_minor_units' => ['required', 'integer', 'min:0'],
         ];
     }
@@ -52,6 +54,23 @@ trait CategoryValidationRules
 
             if ($category?->isArchived()) {
                 $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));
+            }
+        });
+    }
+
+    protected function withMonthItemKindValidation(Validator $validator, ?Category $category = null): void
+    {
+        $validator->after(function (Validator $validator) use ($category): void {
+            if (! array_key_exists('month_item_kind', $this->all())) {
+                return;
+            }
+
+            $type = $category === null
+                ? CategoryType::tryFrom((string) $this->input('type'))
+                : $category->type;
+
+            if ($type === CategoryType::Income || $category?->isArchived()) {
+                $validator->errors()->add('month_item_kind', __('validation.prohibited', ['attribute' => 'month_item_kind']));
             }
         });
     }

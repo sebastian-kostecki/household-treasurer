@@ -243,6 +243,28 @@ class BudgetTest extends TestCase
             );
     }
 
+    public function test_select_year_with_month_plan_destination_redirects_to_month_plan(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'month-plan'])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2025)
+            ->assertRedirect(route('month-plan'));
+    }
+
+    public function test_select_year_rejects_an_unknown_destination(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'elsewhere'])
+            ->assertSessionHasErrors('destination');
+    }
+
     public function test_user_cannot_change_another_users_budget_or_categories(): void
     {
         $owner = User::factory()->create();
@@ -869,6 +891,35 @@ class BudgetTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('expenseCategories', 2)
                 ->where('expenseTotals.current_plan_minor_units', 80000),
+            );
+    }
+
+    public function test_budget_page_exposes_show_archived_flag_from_query(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['show_archived' => 1]))
+            ->assertInertia(fn (Assert $page) => $page->where('show_archived', true));
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertInertia(fn (Assert $page) => $page->where('show_archived', false));
+    }
+
+    public function test_budget_page_without_budget_exposes_honest_empty_state_copy(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget', null)
+                ->where('translations.budget.no_budget', 'Nie masz jeszcze budżetu'),
             );
     }
 

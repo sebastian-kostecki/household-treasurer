@@ -25,20 +25,13 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
-
-export type AccountFormAccount = {
-    id: number;
-    name: string;
-    type: AccountTypeValue;
-    bank: AccountBank | null;
-    opening_date: string;
-    opening_balance_minor_units: number;
-};
+import type { AccountFormAccount } from '@/types/accounts';
 
 const props = defineProps<{
     open: boolean;
     mode: 'create' | 'edit';
     account?: AccountFormAccount | null;
+    showArchived?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -54,11 +47,19 @@ const openingDate = ref('');
 const openingBalanceInput = ref('0,00');
 const openingBalanceMinorUnits = ref(0);
 
-const formBinding = computed(() =>
-    props.mode === 'create'
-        ? AccountController.store.form()
-        : AccountController.update.form(props.account ?? { id: 0 }),
+const openingBalanceInvalid = computed(
+    () => parseMoneyInputToMinorUnits(openingBalanceInput.value) === null,
 );
+
+const formBinding = computed(() => {
+    const options = props.showArchived
+        ? { query: { show_archived: 1 } }
+        : undefined;
+
+    return props.mode === 'create'
+        ? AccountController.store.form(options)
+        : AccountController.update.form(props.account ?? { id: 0 }, options);
+});
 
 watch(
     () => [props.open, props.mode, props.account] as const,
@@ -97,13 +98,13 @@ watch(type, (nextType, previousType) => {
     }
 });
 
-function syncOpeningBalance(): void {
-    const parsed = parseMoneyInputToMinorUnits(openingBalanceInput.value);
+watch(openingBalanceInput, (value) => {
+    const parsed = parseMoneyInputToMinorUnits(value);
 
     if (parsed !== null) {
         openingBalanceMinorUnits.value = parsed;
     }
-}
+});
 
 function closeDialog(): void {
     emit('update:open', false);
@@ -145,6 +146,7 @@ function closeDialog(): void {
                         v-model="name"
                         required
                         autocomplete="off"
+                        :aria-invalid="errors.name ? 'true' : undefined"
                     />
                     <InputError :message="errors.name" />
                 </div>
@@ -156,6 +158,7 @@ function closeDialog(): void {
                         name="type"
                         v-model="type"
                         class="native-select"
+                        :aria-invalid="errors.type ? 'true' : undefined"
                     >
                         <option value="bank">
                             {{ t.accounts.type_bank }}
@@ -169,7 +172,10 @@ function closeDialog(): void {
 
                 <div v-if="type === 'bank'" class="grid gap-2">
                     <Label for="account-bank">{{ t.accounts.bank }}</Label>
-                    <AccountBankSelect v-model="bank" />
+                    <AccountBankSelect
+                        v-model="bank"
+                        :invalid="Boolean(errors.bank)"
+                    />
                     <InputError :message="errors.bank" />
                 </div>
 
@@ -183,6 +189,7 @@ function closeDialog(): void {
                         v-model="openingDate"
                         type="date"
                         required
+                        :aria-invalid="errors.opening_date ? 'true' : undefined"
                     />
                     <InputError :message="errors.opening_date" />
                 </div>
@@ -196,14 +203,25 @@ function closeDialog(): void {
                         v-model="openingBalanceInput"
                         inputmode="decimal"
                         autocomplete="off"
-                        @blur="syncOpeningBalance"
+                        :aria-invalid="
+                            openingBalanceInvalid ||
+                            errors.opening_balance_minor_units
+                                ? 'true'
+                                : undefined
+                        "
                     />
                     <input
                         type="hidden"
                         name="opening_balance_minor_units"
                         :value="openingBalanceMinorUnits"
                     />
-                    <InputError :message="errors.opening_balance_minor_units" />
+                    <InputError
+                        :message="
+                            openingBalanceInvalid
+                                ? t.accounts.opening_balance_invalid
+                                : errors.opening_balance_minor_units
+                        "
+                    />
                 </div>
 
                 <DialogFooter class="gap-2">
@@ -222,7 +240,10 @@ function closeDialog(): void {
                             {{ t.accounts.cancel }}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" :disabled="processing">
+                    <Button
+                        type="submit"
+                        :disabled="processing || openingBalanceInvalid"
+                    >
                         {{ t.accounts.save }}
                     </Button>
                 </DialogFooter>

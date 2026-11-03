@@ -47,5 +47,9 @@ class UpdateCategoryRequest extends FormRequest
             $validator,
             $category instanceof Category ? $category : null,
         );
+        $this->withMonthItemKindValidation(
+            $validator,
+            $category instanceof Category ? $category : null,
+        );
     }
 }

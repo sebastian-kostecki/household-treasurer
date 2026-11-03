@@ -45,6 +45,28 @@ class ArchiveTermDepositTest extends TestCase
         $this->assertNull($termDeposit->archived_at);
     }
 
+    public function test_archive_and_restore_redirects_keep_show_archived_filter_only_when_requested(): void
+    {
+        $user = User::factory()->create();
+        [, $termDeposit] = $this->createAccountAndTermDepositWithMovement($user);
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.archive', ['term_deposit' => $termDeposit, 'show_archived' => 1]))
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.restore', ['term_deposit' => $termDeposit, 'show_archived' => 1]))
+            ->assertRedirect(route('term-deposits.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.archive', $termDeposit))
+            ->assertRedirect(route('term-deposits.index'));
+
+        $this->actingAs($user)
+            ->post(route('term-deposits.restore', $termDeposit))
+            ->assertRedirect(route('term-deposits.index'));
+    }
+
     public function test_user_cannot_archive_term_deposit_without_capital_movements(): void
     {
         $user = User::factory()->create();
@@ -119,6 +141,67 @@ class ArchiveTermDepositTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('term_deposits_total_minor_units', 150000),
+            );
+    }
+
+    public function test_archived_totals_are_exposed_regardless_of_show_archived_filter(): void
+    {
+        $user = User::factory()->create();
+        TermDeposit::factory()->for($user)->create([
+            'current_balance_minor_units' => 100000,
+            'opening_balance_minor_units' => 100000,
+        ]);
+        TermDeposit::factory()->for($user)->archived()->create([
+            'current_balance_minor_units' => 50000,
+            'opening_balance_minor_units' => 50000,
+        ]);
+
+        foreach ([[], ['show_archived' => 1]] as $query) {
+            $this->actingAs($user)
+                ->get(route('term-deposits.index', $query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('term_deposits_total_minor_units', 150000)
+                    ->where('archived_term_deposits_total_minor_units', 50000)
+                    ->where('archived_term_deposits_count', 1),
+                );
+        }
+    }
+
+    public function test_archived_totals_ignore_other_users_term_deposits(): void
+    {
+        $user = User::factory()->create();
+        TermDeposit::factory()->for(User::factory()->create())->archived()->create([
+            'current_balance_minor_units' => 70000,
+            'opening_balance_minor_units' => 70000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('term-deposits.index', ['show_archived' => 1]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('termDeposits', 0)
+                ->where('term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_count', 0),
+            );
+    }
+
+    public function test_archived_term_deposit_with_zero_balance_is_counted_with_zero_amount(): void
+    {
+        $user = User::factory()->create();
+        TermDeposit::factory()->for($user)->archived()->create([
+            'current_balance_minor_units' => 0,
+            'opening_balance_minor_units' => 0,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('term-deposits.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('termDeposits', 0)
+                ->where('archived_term_deposits_total_minor_units', 0)
+                ->where('archived_term_deposits_count', 1),
             );
     }
 

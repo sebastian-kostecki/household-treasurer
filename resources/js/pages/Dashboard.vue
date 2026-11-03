@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import StatTile from '@/components/StatTile.vue';
 import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
-import DashboardNotices, {
-    type DashboardNotice,
-} from '@/components/DashboardNotices.vue';
+import DashboardNotices from '@/components/DashboardNotices.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,72 +27,36 @@ import {
     useShell,
     useTranslations,
 } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
-import type {
-    DashboardCategory,
-    DashboardTypeTotals,
-} from '@/lib/dashboard-categories';
-import { formatDate, formatMoney } from '@/lib/format';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
+import { formatDate } from '@/lib/format';
 import { dashboard } from '@/routes';
+import type { DashboardPageProps } from '@/types/dashboard';
 
 const YEAR_ELAPSED_STORAGE_KEY = 'dashboard-year-elapsed';
 
-type AccountSummary = {
-    id: number;
-    name: string;
-    type: 'bank' | 'cash';
-    bank: AccountBank | null;
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
-
-type TermDepositSummary = {
-    id: number;
-    name: string;
-    bank: AccountBank;
-    mark_url: string | null;
-    end_date: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-};
-
-type BudgetSummary = {
-    year: number;
-    phase: 'draft' | 'execution';
-};
-
-type PlanSummary = {
-    income: DashboardTypeTotals;
-    expense: DashboardTypeTotals;
-    planned_balance_minor_units: number;
-};
-
-const props = defineProps<{
-    accounts: AccountSummary[];
-    termDeposits: TermDepositSummary[];
-    spendable_liquidity_minor_units: number;
-    total_funds_minor_units: number;
-    budget_year: number;
-    budget: BudgetSummary | null;
-    incomeCategories: DashboardCategory[];
-    expenseCategories: DashboardCategory[];
-    incomeTotals: DashboardTypeTotals;
-    expenseTotals: DashboardTypeTotals;
-    year_elapsed_as_of: string | null;
-    year_elapsed_percent: number | null;
-    dashboardNotices: DashboardNotice[];
-    paced_pool_month_remaining_minor_units: number | null;
-    current_month: number | null;
-    planSummary: PlanSummary | null;
-}>();
+const props = defineProps<DashboardPageProps>();
 
 const t = useTranslations();
 const shell = useShell();
 const checklist = useFirstRunChecklist();
 const createBudgetDialogOpen = ref(false);
+
+const yearSelectionPending = ref(false);
+
+function onYearSelectionFailed(): void {
+    notifyBudgetYearSelectionFailed(t.dashboard.select_year_failed);
+}
+
+const stopListeningForYearSelectionFailure =
+    listenForBudgetYearSelectionFailure(
+        () => yearSelectionPending.value,
+        t.dashboard.select_year_failed,
+    );
+
+onUnmounted(stopListeningForYearSelectionFailure);
 const showYearElapsed = ref(false);
 
 onMounted(() => {
@@ -116,15 +80,13 @@ const checklistComplete = computed(() =>
     checklist.value.every((item) => item.done),
 );
 
-const showMonthRemainingTile = computed(
-    () => props.paced_pool_month_remaining_minor_units !== null,
-);
+const showMonthToSpendTile = computed(() => props.month_to_spend !== null);
 
 const headlineTilesClass = computed(() =>
-    showMonthRemainingTile.value ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+    showMonthToSpendTile.value ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
 );
 
-const monthRemainingLabel = computed(() => {
+const monthToSpendLabel = computed(() => {
     if (props.current_month === null) {
         return '';
     }
@@ -134,29 +96,8 @@ const monthRemainingLabel = computed(() => {
             `month_name_${props.current_month}` as keyof typeof t.budget
         ] ?? '';
 
-    return t.dashboard.paced_pool_month_remaining.replace(':month', monthName);
+    return t.dashboard.month_to_spend.replace(':month', monthName);
 });
-
-const monthRemainingClass = computed(() => {
-    if (
-        props.paced_pool_month_remaining_minor_units === null ||
-        props.paced_pool_month_remaining_minor_units >= 0
-    ) {
-        return 'text-success';
-    }
-
-    return 'text-destructive';
-});
-
-const spendableLiquidityClass = computed(() =>
-    props.spendable_liquidity_minor_units < 0
-        ? 'text-destructive'
-        : 'text-success',
-);
-
-const totalFundsClass = computed(() =>
-    props.total_funds_minor_units < 0 ? 'text-destructive' : 'text-success',
-);
 
 const budgetYearLabel = computed(() =>
     t.dashboard.budget_year_label.replace(':year', String(props.budget_year)),
@@ -248,49 +189,55 @@ setLayoutProps({
         </Card>
 
         <div class="grid gap-3" :class="headlineTilesClass">
-            <Card v-if="showMonthRemainingTile">
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ monthRemainingLabel }}
-                    </CardDescription>
-                    <CardTitle
-                        class="text-3xl tabular-nums"
-                        :class="monthRemainingClass"
+            <StatTile
+                v-if="month_to_spend !== null"
+                :label="monthToSpendLabel"
+                :amount-minor-units="month_to_spend.to_spend_minor_units"
+            >
+                <template
+                    v-if="month_to_spend.state === 'proposal'"
+                    #label-extra
+                >
+                    <Badge variant="outline">
+                        {{ t.month_plan.state_proposal }}
+                    </Badge>
+                </template>
+                <template #footer>
+                    <Form
+                        v-bind="BudgetController.selectYear.form()"
+                        @start="yearSelectionPending = true"
+                        @finish="yearSelectionPending = false"
+                        v-slot="{ processing }"
+                        @error="onYearSelectionFailed"
                     >
-                        {{
-                            formatMoney(paced_pool_month_remaining_minor_units!)
-                        }}
-                    </CardTitle>
-                </CardHeader>
-            </Card>
+                        <input type="hidden" name="year" :value="budget_year" />
+                        <input
+                            type="hidden"
+                            name="destination"
+                            value="month-plan"
+                        />
+                        <Button
+                            type="submit"
+                            variant="link"
+                            size="sm"
+                            class="h-auto p-0"
+                            :disabled="processing"
+                        >
+                            {{ t.nav.month_plan }}
+                        </Button>
+                    </Form>
+                </template>
+            </StatTile>
 
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.spendable_liquidity }}
-                    </CardDescription>
-                    <CardTitle
-                        class="text-3xl tabular-nums"
-                        :class="spendableLiquidityClass"
-                    >
-                        {{ formatMoney(spendable_liquidity_minor_units) }}
-                    </CardTitle>
-                </CardHeader>
-            </Card>
+            <StatTile
+                :label="t.dashboard.spendable_liquidity"
+                :amount-minor-units="spendable_liquidity_minor_units"
+            />
 
-            <Card>
-                <CardHeader class="pb-2">
-                    <CardDescription>
-                        {{ t.dashboard.total_funds }}
-                    </CardDescription>
-                    <CardTitle
-                        class="text-3xl tabular-nums"
-                        :class="totalFundsClass"
-                    >
-                        {{ formatMoney(total_funds_minor_units) }}
-                    </CardTitle>
-                </CardHeader>
-            </Card>
+            <StatTile
+                :label="t.dashboard.total_funds"
+                :amount-minor-units="total_funds_minor_units"
+            />
         </div>
 
         <DashboardNotices
@@ -338,7 +285,10 @@ setLayoutProps({
                         <Form
                             v-if="canSelectCurrentYearInShell"
                             v-bind="BudgetController.selectYear.form()"
+                            @start="yearSelectionPending = true"
+                            @finish="yearSelectionPending = false"
                             v-slot="{ processing }"
+                            @error="onYearSelectionFailed"
                         >
                             <input
                                 type="hidden"
@@ -370,24 +320,21 @@ setLayoutProps({
                 </div>
 
                 <Card v-if="budget === null">
-                    <CardHeader class="pb-2">
-                        <CardDescription>
-                            {{ noBudgetMessage }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <CreateBudgetDialog
-                            v-model:open="createBudgetDialogOpen"
-                            year-input-id="dashboard-create-budget-year"
-                            :suggested-year="budget_year"
-                        >
-                            <template #trigger>
-                                <Button>
-                                    {{ t.budget.create_budget }}
-                                </Button>
-                            </template>
-                        </CreateBudgetDialog>
-                    </CardContent>
+                    <IndexEmptyState :title="noBudgetMessage">
+                        <template #actions>
+                            <CreateBudgetDialog
+                                v-model:open="createBudgetDialogOpen"
+                                year-input-id="dashboard-create-budget-year"
+                                :suggested-year="budget_year"
+                            >
+                                <template #trigger>
+                                    <Button>
+                                        {{ t.budget.create_budget }}
+                                    </Button>
+                                </template>
+                            </CreateBudgetDialog>
+                        </template>
+                    </IndexEmptyState>
                 </Card>
 
                 <template v-else>
@@ -399,6 +346,15 @@ setLayoutProps({
                             planSummary.planned_balance_minor_units
                         "
                     />
+
+                    <Card v-if="budget.phase === 'draft'">
+                        <IndexEmptyState
+                            :title="t.dashboard.draft_categories_title"
+                            :description="
+                                t.dashboard.draft_categories_description
+                            "
+                        />
+                    </Card>
 
                     <div v-if="showBudgetCategories" class="space-y-3">
                         <DashboardCategorySection

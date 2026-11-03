@@ -1,53 +1,26 @@
 <script setup lang="ts">
-import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
-import AccountFormDialog, {
-    type AccountFormAccount,
-} from '@/components/AccountFormDialog.vue';
+import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import StatTile from '@/components/StatTile.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
+import { amountToneClass } from '@/lib/amount-tone';
 import { formatMoney } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
+import type { AccountRow, AccountsPageProps } from '@/types/accounts';
 
-type AccountRow = AccountFormAccount & {
-    mark_url: string | null;
-    current_balance_minor_units: number;
-    is_negative: boolean;
-    is_archived: boolean;
-    can_delete: boolean;
-    can_archive: boolean;
-    can_restore: boolean;
-};
-
-const props = defineProps<{
-    accounts: AccountRow[];
-    liquidity_total_minor_units: number;
-    show_archived: boolean;
-}>();
+const props = defineProps<AccountsPageProps>();
 
 const t = useTranslations();
 
@@ -55,8 +28,24 @@ const createDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingAccount = ref<AccountRow | null>(null);
 
-const liquidityClass = computed(() =>
-    props.liquidity_total_minor_units < 0 ? 'text-destructive' : 'text-success',
+const showArchived = ref(props.show_archived);
+const isTogglingArchived = ref(false);
+
+watch(
+    () => props.show_archived,
+    (value) => {
+        showArchived.value = value;
+    },
+);
+
+watch(showArchived, (value) => {
+    if (value !== props.show_archived) {
+        toggleShowArchived(value);
+    }
+});
+
+const filterQuery = computed(() =>
+    props.show_archived ? { query: { show_archived: 1 } } : undefined,
 );
 
 setLayoutProps({
@@ -72,18 +61,6 @@ function accountTypeLabel(type: AccountRow['type']): string {
     return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
 }
 
-function balanceClass(account: AccountRow): string {
-    if (account.is_negative) {
-        return 'text-destructive';
-    }
-
-    if (account.current_balance_minor_units > 0) {
-        return 'text-success';
-    }
-
-    return '';
-}
-
 function openEditDialog(account: AccountRow): void {
     editingAccount.value = account;
     editDialogOpen.value = true;
@@ -93,7 +70,17 @@ function toggleShowArchived(checked: boolean): void {
     router.get(
         accountsRoute({ query: { show_archived: checked ? 1 : undefined } }),
         {},
-        { preserveState: true, preserveScroll: true },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            onStart: () => {
+                isTogglingArchived.value = true;
+            },
+            onFinish: () => {
+                isTogglingArchived.value = false;
+                showArchived.value = props.show_archived;
+            },
+        },
     );
 }
 </script>
@@ -109,22 +96,19 @@ function toggleShowArchived(checked: boolean): void {
             </Button>
         </div>
 
-        <Card>
-            <CardHeader class="pb-2">
-                <CardDescription>
-                    {{ t.accounts.liquidity_total }}
-                </CardDescription>
-                <CardTitle class="text-2xl" :class="liquidityClass">
-                    {{ formatMoney(liquidity_total_minor_units) }}
-                </CardTitle>
-            </CardHeader>
-        </Card>
+        <StatTile
+            :label="t.accounts.spendable_liquidity"
+            :amount-minor-units="liquidity_total_minor_units"
+        />
 
-        <div class="flex items-center gap-2">
+        <div
+            v-if="archived_accounts_count > 0 || show_archived"
+            class="flex items-center gap-2"
+        >
             <Checkbox
                 id="show-archived-accounts"
-                :checked="show_archived"
-                @update:checked="toggleShowArchived"
+                v-model="showArchived"
+                :disabled="isTogglingArchived"
             />
             <Label
                 for="show-archived-accounts"
@@ -135,7 +119,25 @@ function toggleShowArchived(checked: boolean): void {
         </div>
 
         <IndexEmptyState
-            v-if="accounts.length === 0"
+            v-if="accounts.length === 0 && archived_accounts_count > 0"
+            :title="t.accounts.all_archived_title"
+            :description="t.accounts.all_archived_description"
+        >
+            <template #actions>
+                <Button
+                    :disabled="isTogglingArchived"
+                    @click="showArchived = true"
+                >
+                    {{ t.accounts.show_archived }}
+                </Button>
+                <Button variant="secondary" @click="createDialogOpen = true">
+                    {{ t.accounts.add }}
+                </Button>
+            </template>
+        </IndexEmptyState>
+
+        <IndexEmptyState
+            v-else-if="accounts.length === 0"
             :title="t.accounts.empty_title"
             :description="t.accounts.empty_description"
         >
@@ -146,15 +148,11 @@ function toggleShowArchived(checked: boolean): void {
             </template>
         </IndexEmptyState>
 
-        <ListSurface
-            v-else
-            :title="t.accounts.title"
-            :description="t.accounts.list_description"
-        >
+        <ListSurface v-else :description="t.accounts.list_description">
             <div
                 v-for="account in accounts"
                 :key="account.id"
-                class="border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0"
+                class="holdings-list-row"
                 :class="account.is_archived ? 'opacity-60' : ''"
             >
                 <AccountIdentityBlock
@@ -177,7 +175,9 @@ function toggleShowArchived(checked: boolean): void {
 
                 <p
                     class="shrink-0 font-medium tabular-nums"
-                    :class="balanceClass(account)"
+                    :class="
+                        amountToneClass(account.current_balance_minor_units)
+                    "
                 >
                     {{ formatMoney(account.current_balance_minor_units) }}
                 </p>
@@ -191,132 +191,77 @@ function toggleShowArchived(checked: boolean): void {
                         :label="t.accounts.edit"
                         @click="openEditDialog(account)"
                     />
-                    <Dialog v-if="account.can_delete">
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="Trash2"
-                            :label="t.accounts.delete"
-                            destructive
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="AccountController.destroy.form(account)"
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{ t.accounts.delete_confirm_title }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{ t.accounts.delete_confirm_body }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.accounts.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        variant="destructive"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.accounts.delete }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
-                    <Dialog v-if="account.can_archive">
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="Archive"
-                            :label="t.accounts.archive"
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="AccountController.archive.form(account)"
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{ t.accounts.archive_confirm_title }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{ t.accounts.archive_confirm_body }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.accounts.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.accounts.archive }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
-                    <Dialog v-if="account.can_restore">
-                        <IconAction
-                            as-dialog-trigger
-                            :icon="ArchiveRestore"
-                            :label="t.accounts.restore"
-                        />
-                        <DialogContent>
-                            <Form
-                                v-bind="AccountController.restore.form(account)"
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{ t.accounts.restore_confirm_title }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{ t.accounts.restore_confirm_body }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.accounts.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.accounts.restore }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                    <ConfirmActionDialog
+                        v-if="account.can_delete"
+                        :form="
+                            AccountController.destroy.form(account, filterQuery)
+                        "
+                        :title="t.accounts.delete_confirm_title"
+                        :description="t.accounts.delete_confirm_body"
+                        :confirm-label="t.accounts.delete"
+                        :cancel-label="t.accounts.cancel"
+                        destructive
+                    >
+                        <template #trigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="Trash2"
+                                :label="t.accounts.delete"
+                                destructive
+                            />
+                        </template>
+                    </ConfirmActionDialog>
+                    <ConfirmActionDialog
+                        v-if="account.can_archive"
+                        :form="
+                            AccountController.archive.form(account, filterQuery)
+                        "
+                        :title="t.accounts.archive_confirm_title"
+                        :description="t.accounts.archive_confirm_body"
+                        :confirm-label="t.accounts.archive"
+                        :cancel-label="t.accounts.cancel"
+                    >
+                        <template #trigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="Archive"
+                                :label="t.accounts.archive"
+                            />
+                        </template>
+                    </ConfirmActionDialog>
+                    <ConfirmActionDialog
+                        v-if="account.can_restore"
+                        :form="
+                            AccountController.restore.form(account, filterQuery)
+                        "
+                        :title="t.accounts.restore_confirm_title"
+                        :description="t.accounts.restore_confirm_body"
+                        :confirm-label="t.accounts.restore"
+                        :cancel-label="t.accounts.cancel"
+                    >
+                        <template #trigger>
+                            <IconAction
+                                as-dialog-trigger
+                                :icon="ArchiveRestore"
+                                :label="t.accounts.restore"
+                            />
+                        </template>
+                    </ConfirmActionDialog>
                 </div>
             </div>
         </ListSurface>
     </div>
 
-    <AccountFormDialog v-model:open="createDialogOpen" mode="create" />
+    <AccountFormDialog
+        v-model:open="createDialogOpen"
+        mode="create"
+        :show-archived="show_archived"
+    />
 
     <AccountFormDialog
         v-model:open="editDialogOpen"
         mode="edit"
         :account="editingAccount"
+        :show-archived="show_archived"
     />
 </template>

@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
+use App\Models\MonthPlan;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 4;
+    public const SNAPSHOT_VERSION = 5;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -65,6 +66,13 @@ class BackupUserData
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($movement): array => $this->serializeCapitalMovement($movement))
+                ->all(),
+            'month_plans' => MonthPlan::query()
+                ->whereIn('budget_id', $budgetIds)
+                ->with(['items' => fn ($query) => $query->orderBy('id')])
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($monthPlan): array => $this->serializeMonthPlan($monthPlan))
                 ->all(),
         ];
 
@@ -146,12 +154,35 @@ class BackupUserData
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
             'is_paced' => $category->is_paced,
+            'month_item_kind' => $category->month_item_kind->value,
             'planned_amount_minor_units' => $category->planned_amount_minor_units,
             'initial_plan_minor_units' => $category->initial_plan_minor_units,
             'execution_minor_units' => $category->execution_minor_units,
             'archived_at' => $category->archived_at?->toIso8601String(),
             'created_at' => $category->created_at?->toIso8601String(),
             'updated_at' => $category->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeMonthPlan(MonthPlan $monthPlan): array
+    {
+        return [
+            'id' => $monthPlan->id,
+            'budget_id' => $monthPlan->budget_id,
+            'month' => $monthPlan->month,
+            'approved_at' => $monthPlan->approved_at->toIso8601String(),
+            'approved_set_aside_minor_units' => $monthPlan->approved_set_aside_minor_units,
+            'current_set_aside_minor_units' => $monthPlan->current_set_aside_minor_units,
+            'items' => $monthPlan->items
+                ->map(fn ($item): array => [
+                    'category_id' => $item->category_id,
+                    'approved_amount_minor_units' => $item->approved_amount_minor_units,
+                    'current_amount_minor_units' => $item->current_amount_minor_units,
+                ])
+                ->all(),
         ];
     }
 

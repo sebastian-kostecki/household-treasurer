@@ -314,6 +314,119 @@ class AccountTest extends TestCase
         $this->assertSame(99999, $account->current_balance_minor_units);
     }
 
+    public function test_store_redirect_keeps_show_archived_filter_only_when_requested(): void
+    {
+        $user = User::factory()->create();
+        $payload = [
+            'name' => 'Filtered',
+            'type' => AccountType::Cash->value,
+            'opening_date' => '2026-01-15',
+            'opening_balance_minor_units' => 0,
+        ];
+
+        $this->actingAs($user)
+            ->post(route('accounts.store', ['show_archived' => 1]), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->post(route('accounts.store'), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index'));
+    }
+
+    public function test_update_redirect_keeps_show_archived_filter_only_when_requested(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'type' => AccountType::Cash,
+            'bank' => null,
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
+        ]);
+        $payload = [
+            'name' => 'Renamed',
+            'type' => AccountType::Cash->value,
+            'opening_balance_minor_units' => 0,
+        ];
+
+        $this->actingAs($user)
+            ->patch(route('accounts.update', ['account' => $account, 'show_archived' => 1]), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->patch(route('accounts.update', $account), $payload)
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index'));
+    }
+
+    public function test_destroy_redirect_keeps_show_archived_filter_only_when_requested(): void
+    {
+        $user = User::factory()->create();
+        $first = Account::factory()->for($user)->create();
+        $second = Account::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->delete(route('accounts.destroy', ['account' => $first, 'show_archived' => 1]))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index', ['show_archived' => 1]));
+
+        $this->actingAs($user)
+            ->delete(route('accounts.destroy', $second))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('accounts.index'));
+    }
+
+    public function test_liquidity_total_does_not_change_when_an_account_is_archived(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'opening_balance_minor_units' => 100000,
+            'current_balance_minor_units' => 100000,
+        ]);
+        $account = Account::factory()->for($user)->create([
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('liquidity_total_minor_units', 150000));
+
+        $account->update(['archived_at' => now()]);
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('accounts', 1)
+                ->where('liquidity_total_minor_units', 150000));
+    }
+
+    public function test_accounts_page_counts_archived_accounts_regardless_of_the_filter(): void
+    {
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('archived_accounts_count', 0));
+
+        Account::factory()->for($user)->count(2)->create(['archived_at' => now()]);
+
+        $this->actingAs($user)
+            ->get(route('accounts.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('accounts', 1)
+                ->where('archived_accounts_count', 2));
+
+        $this->actingAs($user)
+            ->get(route('accounts.index', ['show_archived' => 1]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('accounts', 3)
+                ->where('archived_accounts_count', 2));
+    }
+
     public function test_user_can_delete_account_without_financial_history(): void
     {
         $user = User::factory()->create();

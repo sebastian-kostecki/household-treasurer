@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { AlertTriangle, OctagonX } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
+import { computed, onUnmounted, ref } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
 import { formatMoney } from '@/lib/format';
+import { monthElapsedPercent } from '@/lib/month-pace-calculator';
+import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { operations as operationsRoute } from '@/routes';
 import { index as termDepositsIndex } from '@/routes/term-deposits';
 
@@ -34,13 +41,29 @@ export type DashboardNotice = {
           amount_minor_units: number;
       }
     | {
-          kind: 'paced_month_remaining';
+          kind: 'month_to_spend_negative';
+          month: number;
+          amount_minor_units: number;
+      }
+    | {
+          kind: 'month_item_over_plan';
           id: number;
           name: string;
           icon: string;
           color: string;
           category_name: string;
           amount_minor_units: number;
+      }
+    | {
+          kind: 'month_plan_not_approved';
+          month: number;
+      }
+    | {
+          kind: 'month_pace_ahead';
+          month: number;
+          percent: number;
+          elapsed_day: number;
+          days_in_month: number;
       }
     | {
           kind: 'one_off_over_limit';
@@ -68,6 +91,20 @@ const headingId = 'dashboard-notices-heading';
 
 const hiddenNoticeCount = computed(() =>
     Math.max(props.notices.length - VISIBLE_NOTICE_LIMIT, 0),
+);
+
+const monthPlanRequestPending = ref(false);
+
+function onMonthPlanRequestFailed(): void {
+    notifyBudgetYearSelectionFailed(t.dashboard.select_year_failed);
+}
+
+// <Link> exposes no HTTP/network error callbacks, only validation `error`.
+onUnmounted(
+    listenForBudgetYearSelectionFailure(
+        () => monthPlanRequestPending.value,
+        t.dashboard.select_year_failed,
+    ),
 );
 
 const visibleNotices = computed(() => {
@@ -102,23 +139,64 @@ function severityCardClass(severity: DashboardNoticeSeverity): string {
         : 'border-warning/30 bg-warning/5 hover:bg-warning/10';
 }
 
-function noticeKindLabel(notice: DashboardNotice): string | null {
-    if (
-        notice.kind === 'negative_account' ||
-        notice.kind === 'negative_term_deposit'
-    ) {
-        return t.dashboard.notice_negative_balance;
+function noticeKindLabel(notice: DashboardNotice): string {
+    switch (notice.kind) {
+        case 'negative_account':
+        case 'negative_term_deposit':
+            return t.dashboard.notice_negative_balance;
+        case 'month_to_spend_negative':
+            return t.dashboard.notice_month_to_spend_negative;
+        case 'month_item_over_plan':
+            return t.dashboard.notice_month_item_over_plan;
+        case 'month_plan_not_approved':
+            return t.dashboard.notice_month_plan_not_approved;
+        case 'month_pace_ahead':
+            return t.dashboard.notice_month_pace_ahead;
+        case 'one_off_over_limit':
+            return t.dashboard.notice_one_off_over_limit;
+    }
+}
+
+function isMonthNotice(notice: DashboardNotice): notice is Extract<
+    DashboardNotice,
+    {
+        kind:
+            | 'month_to_spend_negative'
+            | 'month_plan_not_approved'
+            | 'month_pace_ahead';
+    }
+> {
+    return (
+        notice.kind === 'month_to_spend_negative' ||
+        notice.kind === 'month_plan_not_approved' ||
+        notice.kind === 'month_pace_ahead'
+    );
+}
+
+function monthName(month: number): string {
+    return t.budget[`month_name_${month}`] ?? '';
+}
+
+function noticeValue(notice: DashboardNotice): string | null {
+    if (notice.kind === 'month_plan_not_approved') {
+        return null;
     }
 
-    if (notice.kind === 'paced_month_remaining') {
-        return t.dashboard.notice_paced_month_remaining;
+    if (notice.kind === 'month_pace_ahead') {
+        return t.dashboard.notice_month_pace_value
+            .replace(':pace', String(notice.percent))
+            .replace(
+                ':elapsed',
+                String(
+                    monthElapsedPercent(
+                        notice.elapsed_day,
+                        notice.days_in_month,
+                    ),
+                ),
+            );
     }
 
-    if (notice.kind === 'one_off_over_limit') {
-        return t.dashboard.notice_one_off_over_limit;
-    }
-
-    return null;
+    return formatMoney(notice.amount_minor_units);
 }
 
 const showCollapse = computed(
@@ -145,6 +223,10 @@ function monthDateRange(
 }
 
 function noticeHref(notice: DashboardNotice) {
+    if (isMonthNotice(notice)) {
+        return BudgetController.selectYear();
+    }
+
     if (notice.kind === 'negative_account') {
         return operationsRoute({
             query: {
@@ -157,7 +239,7 @@ function noticeHref(notice: DashboardNotice) {
         return termDepositsIndex();
     }
 
-    if (notice.kind === 'paced_month_remaining') {
+    if (notice.kind === 'month_item_over_plan') {
         const month = props.currentMonth;
 
         if (month === null) {
@@ -176,18 +258,26 @@ function noticeHref(notice: DashboardNotice) {
         });
     }
 
-    return operationsRoute({
-        query: {
-            category_name: notice.category_name,
-            category_type: 'expense',
-            date_from: `${props.budgetYear}-01-01`,
-            date_to: `${props.budgetYear}-12-31`,
-        },
-    });
+    if (notice.kind === 'one_off_over_limit') {
+        return operationsRoute({
+            query: {
+                category_name: notice.category_name,
+                category_type: 'expense',
+                date_from: `${props.budgetYear}-01-01`,
+                date_to: `${props.budgetYear}-12-31`,
+            },
+        });
+    }
+
+    return notice satisfies never;
 }
 
 function noticeKey(notice: DashboardNotice): string {
-    return `${notice.kind}-${notice.id}`;
+    if ('id' in notice) {
+        return `${notice.kind}-${notice.id}`;
+    }
+
+    return `${notice.kind}-${notice.month}`;
 }
 </script>
 
@@ -198,17 +288,19 @@ function noticeKey(notice: DashboardNotice): string {
                 {{ t.dashboard.attention_zone_title }}
             </h2>
             <div class="flex flex-wrap items-center gap-2">
-                <span
+                <Badge
                     v-if="exceededCount > 0"
-                    class="bg-destructive/10 text-destructive inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                    variant="destructive-soft"
+                    class="gap-1.5 tabular-nums"
                 >
                     <OctagonX class="size-3.5 shrink-0" aria-hidden="true" />
                     {{ t.dashboard.notices_exceeded_group }} ·
                     {{ exceededCount }}
-                </span>
-                <span
+                </Badge>
+                <Badge
                     v-if="warningCount > 0"
-                    class="bg-warning/10 text-warning inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                    variant="warning"
+                    class="gap-1.5 tabular-nums"
                 >
                     <AlertTriangle
                         class="size-3.5 shrink-0"
@@ -216,7 +308,7 @@ function noticeKey(notice: DashboardNotice): string {
                     />
                     {{ t.dashboard.notices_warning_group }} ·
                     {{ warningCount }}
-                </span>
+                </Badge>
             </div>
         </div>
 
@@ -225,11 +317,26 @@ function noticeKey(notice: DashboardNotice): string {
                 v-for="notice in visibleNotices"
                 :key="noticeKey(notice)"
                 :href="noticeHref(notice)"
-                class="flex flex-col gap-2 rounded-2xl border p-4 transition-colors"
+                :data="
+                    isMonthNotice(notice)
+                        ? { year: budgetYear, destination: 'month-plan' }
+                        : undefined
+                "
+                :as="isMonthNotice(notice) ? 'button' : 'a'"
+                :disabled="
+                    isMonthNotice(notice) && monthPlanRequestPending
+                        ? true
+                        : undefined
+                "
+                class="focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:opacity-60"
                 :class="severityCardClass(notice.severity)"
+                @start="monthPlanRequestPending = isMonthNotice(notice)"
+                @error="
+                    isMonthNotice(notice) ? onMonthPlanRequestFailed() : null
+                "
+                @finish="monthPlanRequestPending = false"
             >
                 <span
-                    v-if="noticeKindLabel(notice)"
                     class="inline-flex items-center gap-1.5 text-xs font-medium"
                     :class="severityTextClass(notice.severity)"
                 >
@@ -265,6 +372,13 @@ function noticeKey(notice: DashboardNotice): string {
                         :bank="notice.bank"
                         :mark_url="notice.mark_url"
                     />
+                    <span
+                        v-else-if="isMonthNotice(notice)"
+                        class="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-lg"
+                        aria-hidden="true"
+                    >
+                        <CalendarDays class="size-4" />
+                    </span>
                     <CategoryChip
                         v-else
                         class="shrink-0"
@@ -278,14 +392,19 @@ function noticeKey(notice: DashboardNotice): string {
                     <span
                         class="min-w-0 flex-1 truncate text-base font-semibold"
                     >
-                        {{ notice.name }}
+                        {{
+                            isMonthNotice(notice)
+                                ? monthName(notice.month)
+                                : notice.name
+                        }}
                     </span>
 
                     <span
+                        v-if="noticeValue(notice) !== null"
                         class="shrink-0 text-base font-semibold tabular-nums"
                         :class="severityTextClass(notice.severity)"
                     >
-                        {{ formatMoney(notice.amount_minor_units) }}
+                        {{ noticeValue(notice) }}
                     </span>
                 </div>
             </Link>

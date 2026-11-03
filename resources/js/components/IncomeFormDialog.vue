@@ -25,6 +25,11 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
+import {
+    handEntryToSpendChanges,
+    previewToSpendWarnings,
+} from '@/lib/entry-to-spend-warning';
+import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
 
@@ -64,6 +69,7 @@ const props = defineProps<{
     accounts: IncomeFormAccount[];
     incomeCategories: IncomeFormCategory[];
     expenseCategories?: IncomeFormExpenseCategory[];
+    entryToSpend: EntryToSpendInputs;
 }>();
 
 const emit = defineEmits<{
@@ -136,6 +142,36 @@ const warningPreview = computed(() => {
 const showNegativeBalanceWarning = computed(
     () => warningPreview.value.showNegativeBalanceWarning,
 );
+
+const toSpendWarnings = computed(() =>
+    previewToSpendWarnings(
+        props.entryToSpend,
+        handEntryToSpendChanges({
+            kind: isExpenseRefund.value ? 'refund' : 'income',
+            operationDate: operationDate.value,
+            categoryId: categoryId.value === '' ? null : categoryId.value,
+            amountMinorUnits: amountMinorUnits.value,
+            original:
+                props.mode === 'edit' &&
+                props.operation !== null &&
+                props.operation !== undefined &&
+                originalCategoryId.value !== null
+                    ? {
+                          operationDate: props.operation.operation_date,
+                          categoryId: originalCategoryId.value,
+                          amountMinorUnits: originalAmountMinorUnits.value,
+                      }
+                    : null,
+        }),
+    ),
+);
+
+function monthYearLabel(year: number, month: number): string {
+    const monthName =
+        t.budget[`month_name_${month}` as keyof typeof t.budget] ?? '';
+
+    return `${monthName} ${year}`;
+}
 
 const availableCategories = computed(() => {
     if (!operationDate.value) {
@@ -443,7 +479,11 @@ function closeDialog(): void {
                 </div>
 
                 <Alert
-                    v-if="showNegativeBalanceWarning || showOverLimitWarning"
+                    v-if="
+                        showNegativeBalanceWarning ||
+                        showOverLimitWarning ||
+                        toSpendWarnings.length > 0
+                    "
                     variant="warning"
                 >
                     <AlertTriangle class="size-4" />
@@ -457,6 +497,27 @@ function closeDialog(): void {
                             </li>
                             <li v-if="showNegativeBalanceWarning">
                                 {{ t.operations.negative_balance_warning }}
+                            </li>
+                            <li
+                                v-for="warning in toSpendWarnings"
+                                :key="`${warning.year}-${warning.month}`"
+                            >
+                                {{
+                                    t.operations.to_spend_negative_warning
+                                        .replace(
+                                            ':amount',
+                                            formatMoney(
+                                                warning.toSpendAfterMinorUnits,
+                                            ),
+                                        )
+                                        .replace(
+                                            ':month_year',
+                                            monthYearLabel(
+                                                warning.year,
+                                                warning.month,
+                                            ),
+                                        )
+                                }}
                             </li>
                         </ul>
                     </AlertDescription>

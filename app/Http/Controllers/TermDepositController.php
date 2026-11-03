@@ -32,9 +32,14 @@ class TermDepositController extends Controller
             ->values()
             ->map(fn (TermDeposit $termDeposit): array => $this->termDepositPayload($termDeposit));
 
+        $archivedTermDeposits = $allTermDeposits
+            ->filter(fn (TermDeposit $termDeposit): bool => $termDeposit->isArchived());
+
         return Inertia::render('TermDeposits', [
             'termDeposits' => $termDeposits,
             'term_deposits_total_minor_units' => (int) $allTermDeposits->sum('current_balance_minor_units'),
+            'archived_term_deposits_total_minor_units' => (int) $archivedTermDeposits->sum('current_balance_minor_units'),
+            'archived_term_deposits_count' => $archivedTermDeposits->count(),
             'show_archived' => $showArchived,
         ]);
     }
@@ -57,7 +62,7 @@ class TermDepositController extends Controller
             'message' => __('Term deposit created.'),
         ]);
 
-        return to_route('term-deposits.index');
+        return $this->redirectToIndex($request);
     }
 
     public function update(UpdateTermDepositRequest $request, TermDeposit $termDeposit): RedirectResponse
@@ -79,7 +84,7 @@ class TermDepositController extends Controller
             'message' => __('Term deposit updated.'),
         ]);
 
-        return to_route('term-deposits.index');
+        return $this->redirectToIndex($request);
     }
 
     public function destroy(Request $request, TermDeposit $termDeposit): RedirectResponse
@@ -99,7 +104,7 @@ class TermDepositController extends Controller
             'message' => __('Term deposit deleted.'),
         ]);
 
-        return to_route('term-deposits.index');
+        return $this->redirectToIndex($request);
     }
 
     public function archive(Request $request, TermDeposit $termDeposit): RedirectResponse
@@ -113,7 +118,7 @@ class TermDepositController extends Controller
             'message' => __('Term deposit archived.'),
         ]);
 
-        return to_route('term-deposits.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return $this->redirectToIndex($request);
     }
 
     public function restore(Request $request, TermDeposit $termDeposit): RedirectResponse
@@ -127,6 +132,11 @@ class TermDepositController extends Controller
             'message' => __('Term deposit restored.'),
         ]);
 
+        return $this->redirectToIndex($request);
+    }
+
+    private function redirectToIndex(Request $request): RedirectResponse
+    {
         return to_route('term-deposits.index', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 

@@ -1,0 +1,217 @@
+{
+    "schema": 1,
+    "tool": "sloppy",
+    "generated_at": "2026-11-02T11:04:42+00:00",
+    "score": 86,
+    "total": 26,
+    "entries": [
+        {
+            "id": "f5078d95d640409a",
+            "rule": "SL101",
+            "file": "app/Actions/ImportFinancialOperations.php",
+            "fingerprint": "ImportFinancialOperations::handle",
+            "count": 1,
+            "message": "ImportFinancialOperations::handle() spans 226 lines with 63 statements, cyclomatic complexity 21, nesting depth 4 and 31 calls to 15 distinct collaborators."
+        },
+        {
+            "id": "6c6881086e59a1ab",
+            "rule": "SL101",
+            "file": "app/Http/Controllers/BudgetController.php",
+            "fingerprint": "BudgetController::show",
+            "count": 1,
+            "message": "BudgetController::show() spans 97 lines with 15 statements, cyclomatic complexity 5, nesting depth 1 and 39 calls to 24 distinct collaborators."
+        },
+        {
+            "id": "e751351943e5adc7",
+            "rule": "SL101",
+            "file": "app/Http/Controllers/CsvImportController.php",
+            "fingerprint": "CsvImportController::store",
+            "count": 1,
+            "message": "CsvImportController::store() spans 206 lines with 59 statements, cyclomatic complexity 30, nesting depth 4 and 57 calls to 10 distinct collaborators."
+        },
+        {
+            "id": "2195ca7e27f7cf16",
+            "rule": "SL101",
+            "file": "app/Http/Controllers/DashboardController.php",
+            "fingerprint": "DashboardController::show",
+            "count": 1,
+            "message": "DashboardController::show() spans 117 lines with 41 statements, cyclomatic complexity 5, nesting depth 3 and 52 calls to 37 distinct collaborators."
+        },
+        {
+            "id": "9af33202d1d91a4d",
+            "rule": "SL101",
+            "file": "app/Http/Controllers/OperationsController.php",
+            "fingerprint": "OperationsController::index",
+            "count": 1,
+            "message": "OperationsController::index() spans 166 lines with 22 statements, cyclomatic complexity 5, nesting depth 1 and 89 calls to 57 distinct collaborators."
+        },
+        {
+            "id": "8a6a69a7026d6555",
+            "rule": "SL101",
+            "file": "app/Support/CsvImport/FinancialOperationImportValidator.php",
+            "fingerprint": "FinancialOperationImportValidator::validate",
+            "count": 1,
+            "message": "FinancialOperationImportValidator::validate() spans 82 lines with 28 statements, cyclomatic complexity 18, nesting depth 1 and 38 calls to 12 distinct collaborators."
+        },
+        {
+            "id": "cfd9a4f56504d483",
+            "rule": "SL101",
+            "file": "app/Support/DashboardNotices.php",
+            "fingerprint": "DashboardNotices::forDashboard",
+            "count": 1,
+            "message": "DashboardNotices::forDashboard() spans 115 lines with 29 statements, cyclomatic complexity 17, nesting depth 3 and 17 calls to 12 distinct collaborators."
+        },
+        {
+            "id": "5749d04824bc28a6",
+            "rule": "SL102",
+            "file": "app/Actions/RestoreUserData.php",
+            "fingerprint": "RestoreUserData",
+            "count": 1,
+            "message": "RestoreUserData spans 424 lines with 13 methods (3 public), 114 statements, 1 injected dependencies and talks to 27 distinct collaborators."
+        },
+        {
+            "id": "5270fce116068850",
+            "rule": "SL102",
+            "file": "app/Concerns/OperationRebuildValidationRules.php",
+            "fingerprint": "OperationRebuildValidationRules",
+            "count": 1,
+            "message": "OperationRebuildValidationRules spans 552 lines with 15 methods (4 public), 109 statements and talks to 33 distinct collaborators."
+        },
+        {
+            "id": "7e0422a942974c9a",
+            "rule": "SL102",
+            "file": "app/Http/Controllers/CsvImportController.php",
+            "fingerprint": "CsvImportController",
+            "count": 1,
+            "message": "CsvImportController spans 538 lines with 13 methods (4 public), 128 statements and talks to 69 distinct collaborators."
+        },
+        {
+            "id": "59ee0f2b2b277cee",
+            "rule": "SL102",
+            "file": "app/Support/CsvImport/ImportPairCandidateDetector.php",
+            "fingerprint": "ImportPairCandidateDetector",
+            "count": 1,
+            "message": "ImportPairCandidateDetector spans 429 lines with 11 methods (5 public), 68 statements and talks to 32 distinct collaborators."
+        },
+        {
+            "id": "9f91caf50c08ebe5",
+            "rule": "SL104",
+            "file": "app/Concerns/CapitalMovementValidationRules.php",
+            "fingerprint": "CapitalMovementValidationRules::capitalMovementAfterValidators",
+            "count": 1,
+            "message": "CapitalMovementValidationRules::capitalMovementAfterValidators() is structurally identical to OwnTransferValidationRules::ownTransferAfterValidators() at app/Concerns/OwnTransferValidationRules.php:38."
+        },
+        {
+            "id": "cfb63ff9b1f38b4b",
+            "rule": "SL104",
+            "file": "app/Concerns/ExpenseValidationRules.php",
+            "fingerprint": "ExpenseValidationRules::withExpenseValidation",
+            "count": 1,
+            "message": "ExpenseValidationRules::withExpenseValidation() is structurally identical to IncomeValidationRules::withIncomeValidation() at app/Concerns/IncomeValidationRules.php:99."
+        },
+        {
+            "id": "fe13154efaeed236",
+            "rule": "SL104",
+            "file": "app/Concerns/IncomeValidationRules.php",
+            "fingerprint": "IncomeValidationRules::withIncomeValidation",
+            "count": 1,
+            "message": "IncomeValidationRules::withIncomeValidation() is structurally identical to ExpenseValidationRules::withExpenseValidation() at app/Concerns/ExpenseValidationRules.php:99."
+        },
+        {
+            "id": "c1af7815f2fdcc08",
+            "rule": "SL104",
+            "file": "app/Concerns/OwnTransferValidationRules.php",
+            "fingerprint": "OwnTransferValidationRules::ownTransferAfterValidators",
+            "count": 1,
+            "message": "OwnTransferValidationRules::ownTransferAfterValidators() is structurally identical to CapitalMovementValidationRules::capitalMovementAfterValidators() at app/Concerns/CapitalMovementValidationRules.php:40."
+        },
+        {
+            "id": "bf4e6c079905b765",
+            "rule": "SL111",
+            "file": "app/Console/Commands/DeleteAccountCommand.php",
+            "fingerprint": "DeleteAccountCommand::handle~ArchiveAccountCommand::handle",
+            "count": 1,
+            "message": "DeleteAccountCommand::handle() differs from ArchiveAccountCommand::handle() at app/Console/Commands/ArchiveAccountCommand.php:17 by 22 token(s) out of 428 -- 5.1% of the body."
+        },
+        {
+            "id": "358ffb2535be0463",
+            "rule": "SL111",
+            "file": "app/Support/CsvImport/BnpParibasXlsxParser.php",
+            "fingerprint": "BnpParibasXlsxParser::parseMoney~CsvImportParser::parseMoney",
+            "count": 1,
+            "message": "BnpParibasXlsxParser::parseMoney() differs from CsvImportParser::parseMoney() at app/Support/CsvImport/CsvImportParser.php:240 by 24 token(s) out of 390 -- 6.2% of the body."
+        },
+        {
+            "id": "4b8c46304a8e82c9",
+            "rule": "SL114",
+            "file": "app/Http/Requests/IndexOperationsRequest.php",
+            "fingerprint": "IndexOperationsRequest::prepareForValidation:is_string($q) ? trim($q) === '' ? null : trim($q) : null",
+            "count": 1,
+            "message": "IndexOperationsRequest::prepareForValidation() nests a ternary in the true branch of another ternary."
+        },
+        {
+            "id": "8457b643710308c5",
+            "rule": "SL203",
+            "file": "app/Support/DashboardNotices.php",
+            "fingerprint": "DashboardNotices::forDashboard:$termDeposit->bank",
+            "count": 1,
+            "message": "DashboardNotices::forDashboard() reads $termDeposit->bank inside a loop over a collection with no visible eager loading."
+        },
+        {
+            "id": "2803bf7c3e808fc7",
+            "rule": "SL204",
+            "file": "app/Actions/ApproveMonthPlan.php",
+            "fingerprint": "ApproveMonthPlan::handle:MonthPlanItem.query.create",
+            "count": 1,
+            "message": "ApproveMonthPlan::handle() writes to MonthPlanItem inside a loop (query()->create())."
+        },
+        {
+            "id": "b7c87d3cc962b41f",
+            "rule": "SL204",
+            "file": "app/Actions/ReorderCategories.php",
+            "fingerprint": "ReorderCategories::handle:Category.query.whereKey.update",
+            "count": 1,
+            "message": "ReorderCategories::handle() writes to Category inside a loop (query()->whereKey()->update())."
+        },
+        {
+            "id": "3823bd9e54493526",
+            "rule": "SL204",
+            "file": "app/Actions/RestoreUserData.php",
+            "fingerprint": "RestoreUserData::restoreCategories:Category.query.create",
+            "count": 1,
+            "message": "RestoreUserData::restoreCategories() writes to Category inside a loop (query()->create())."
+        },
+        {
+            "id": "d1beda0a24f4de04",
+            "rule": "SL204",
+            "file": "app/Actions/RestoreUserData.php",
+            "fingerprint": "RestoreUserData::restoreMonthPlans:Category.query.whereKey.value",
+            "count": 1,
+            "message": "RestoreUserData::restoreMonthPlans() queries Category inside a loop (query()->whereKey()->value())."
+        },
+        {
+            "id": "7c19778e5296e67c",
+            "rule": "SL204",
+            "file": "app/Actions/RestoreUserData.php",
+            "fingerprint": "RestoreUserData::restoreMonthPlans:MonthPlan.query.create",
+            "count": 1,
+            "message": "RestoreUserData::restoreMonthPlans() writes to MonthPlan inside a loop (query()->create())."
+        },
+        {
+            "id": "dce5354d604a2f6e",
+            "rule": "SL207",
+            "file": "app/Actions/ImportFinancialOperations.php",
+            "fingerprint": "ImportFinancialOperations",
+            "count": 1,
+            "message": "ImportFinancialOperations injects 13 dependencies, past the limit of 7 for a service class."
+        },
+        {
+            "id": "c7e35f3a4a3fd5a5",
+            "rule": "SL217",
+            "file": "database/migrations/0001_01_01_000000_create_users_table.php",
+            "fingerprint": "user_id",
+            "count": 1,
+            "message": "user_id is created with foreignId() but never constrained to the table it refers to."
+        }
+    ]
+}

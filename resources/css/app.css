@@ -59,6 +59,7 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --color-sidebar: var(--sidebar-background);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -128,6 +129,7 @@
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
     --radius: 0.75rem;
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --sidebar-background: hsl(0 0% 98%);
     --sidebar-foreground: hsl(240 5.3% 26.1%);
     --sidebar-primary: hsl(189 85% 28%);
@@ -136,7 +138,6 @@
     --sidebar-accent-foreground: hsl(189 85% 22%);
     --sidebar-border: hsl(0 0% 91%);
     --sidebar-ring: hsl(189 85% 28%);
-    --sidebar: hsl(0 0% 98%);
 }
 
 .dark {
@@ -170,6 +171,7 @@
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --sidebar-background: hsl(0 0% 7%);
     --sidebar-foreground: hsl(0 0% 95.9%);
     --sidebar-primary: hsl(189 70% 40%);
@@ -178,7 +180,6 @@
     --sidebar-accent-foreground: hsl(189 70% 70%);
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(189 70% 40%);
-    --sidebar: hsl(240 5.9% 10%);
 }
 
 @layer base {
@@ -190,9 +191,69 @@
     }
 }
 
+/**
+ * Column caption: header cells and mobile captions above values.
+ * Contract in `.docs/design-system.md` ("Listy i tabele"). Registered as a
+ * utility (not a component class) so `@apply column-caption` works.
+ */
+@utility column-caption {
+    @apply text-muted-foreground text-[11px] font-medium tracking-wider uppercase;
+}
+
 @layer components {
     .native-select {
-        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
+        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .month-plan-grid {
+        @apply grid gap-x-3;
+        grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;
+    }
+
+    @variant sm {
+        .month-plan-grid {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem;
+        }
+
+        .month-plan-grid-kind {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
+        }
+    }
+
+    @variant lg {
+        .month-plan-grid {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
+        }
+
+        .month-plan-grid-kind {
+            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem 9rem;
+        }
+    }
+
+    .column-header {
+        @apply column-caption;
+    }
+
+    .section-label {
+        @apply text-muted-foreground text-xs font-medium tracking-wider uppercase;
+    }
+
+    .segmented-control {
+        @apply border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1;
+    }
+
+    .segmented-control-item {
+        @apply text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50;
+    }
+
+    .segmented-control[data-tone='primary']
+        .segmented-control-item[data-state='on'] {
+        @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground;
+    }
+
+    .segmented-control[data-tone='neutral']
+        .segmented-control-item[data-state='on'] {
+        @apply bg-card text-foreground border-border hover:bg-card;
     }
 
     .list-surface-table {
@@ -204,7 +265,7 @@
     }
 
     .list-surface-table thead th {
-        @apply text-muted-foreground pb-2.5 text-left text-[11px] font-medium tracking-wider uppercase;
+        @apply column-caption pb-2.5 text-left;
     }
 
     .list-surface-table tbody tr {
@@ -261,37 +322,135 @@
         );
     }
 
-    .list-surface-table-scroll {
-        @apply max-h-[min(32rem,70vh)] overflow-auto overscroll-contain;
+    /**
+     * Budget category list: one markup on every width. Below `md` a row is
+     * three lines (name + actions, then two amount pairs); from `md` it is one
+     * line of columns. The drag handle spans the whole row height.
+     */
+    .budget-category-grid {
+        @apply grid w-full gap-x-4;
+        grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+        grid-template-areas:
+            'handle category category actions'
+            'handle opening current .'
+            'handle execution remaining .';
+    }
+
+    .budget-category-grid-no-handle {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        grid-template-areas:
+            'category category actions'
+            'opening current .'
+            'execution remaining .';
+    }
+
+    @variant md {
+        .budget-category-grid {
+            @apply items-center;
+            grid-template-columns: 2.5rem minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
+            grid-template-areas: 'handle category opening current execution remaining actions';
+        }
+
+        .budget-category-grid-no-handle {
+            grid-template-columns: minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
+            grid-template-areas: 'category opening current execution remaining actions';
+        }
+    }
+
+    .budget-category-grid-draft {
+        @apply items-center;
+        grid-template-columns: 2.5rem minmax(0, 1fr) 8rem 4.5rem;
+        grid-template-areas: 'handle category plan actions';
+    }
+
+    .budget-category-grid-draft.budget-category-grid-no-handle {
+        grid-template-columns: minmax(0, 1fr) 8rem 4.5rem;
+        grid-template-areas: 'category plan actions';
+    }
+
+    .budget-category-row {
+        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+    }
+
+    .budget-category-header-row {
+        @apply column-caption border-border/60 hidden border-b pb-2.5;
+    }
+
+    @variant md {
+        .budget-category-header-row {
+            @apply grid;
+        }
+    }
+
+    .budget-category-totals-row {
+        @apply border-border/60 bg-foreground/[0.02] border-t py-3 text-sm;
+    }
+
+    .budget-category-cell-handle {
+        grid-area: handle;
+    }
+
+    .budget-category-cell-category {
+        grid-area: category;
+        @apply min-w-0;
+    }
+
+    .budget-category-cell-plan {
+        grid-area: plan;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-initial {
+        grid-area: opening;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-current {
+        grid-area: current;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-execution {
+        grid-area: execution;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-remaining {
+        grid-area: remaining;
+        @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-actions {
+        grid-area: actions;
+        @apply text-right;
     }
 
     /**
-     * Sticky heads and totals keep their hairline via inset shadows, because a
-     * border on the non-sticky `tr` scrolls away with the rows.
+     * Scrolls only from `md`; on a phone the list flows with the page. Sticky
+     * head and totals keep their hairline via inset shadows, because a border
+     * on a sticky element scrolls away with the rows.
      */
-    .list-surface-table-scroll .list-surface-table thead th {
-        @apply bg-card sticky top-0 z-10;
-        box-shadow: inset 0 -1px 0
-            color-mix(in srgb, var(--border) 60%, transparent);
-    }
+    @variant md {
+        .budget-category-scroll {
+            @apply max-h-[min(32rem,70vh)] overflow-auto overscroll-contain;
+        }
 
-    .list-surface-table tfoot tr {
-        @apply border-border/60 bg-foreground/[0.02] border-t;
-    }
+        .budget-category-scroll .budget-category-header-row {
+            @apply bg-card sticky top-0 z-10;
+            box-shadow: inset 0 -1px 0
+                color-mix(in srgb, var(--border) 60%, transparent);
+        }
 
-    .list-surface-table tfoot td {
-        @apply py-3;
-    }
-
-    .list-surface-table-scroll .list-surface-table tfoot td {
-        @apply sticky bottom-0 z-10;
-        background-color: var(--card);
-        background-image: linear-gradient(
-            color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
-            color-mix(in srgb, var(--foreground) 2%, transparent) 100%
-        );
-        box-shadow: inset 0 1px 0
-            color-mix(in srgb, var(--border) 60%, transparent);
+        .budget-category-scroll .budget-category-totals-row {
+            @apply sticky bottom-0 z-10;
+            background-color: var(--card);
+            background-image: linear-gradient(
+                color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
+                color-mix(in srgb, var(--foreground) 2%, transparent) 100%
+            );
+            box-shadow: inset 0 1px 0
+                color-mix(in srgb, var(--border) 60%, transparent);
+        }
     }
 
     .operations-grid {
@@ -326,6 +485,55 @@
             grid-template-columns: 6.5rem minmax(0, 1fr) 18rem 7rem 4.5rem;
             grid-template-areas: 'date description account amount actions';
         }
+    }
+
+    /* Wiersz posiadań na Dashboardzie (konta i lokaty). */
+    .dashboard-holdings-row {
+        @apply hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+    }
+
+    /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
+    .holdings-list-row {
+        @apply border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0;
+    }
+
+    /**
+     * Nagłówek kolumn i wiersz listy Operacji. Muszą stać PO `.operations-grid`
+     * (oba ustawiają `display`), a `display: grid` nagłówka wraca dopiero od `md`.
+     */
+    .operations-header-row {
+        @apply column-caption border-border/60 hidden border-b pb-2.5;
+    }
+
+    .operations-row {
+        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
+    }
+
+    @variant md {
+        .operations-header-row {
+            @apply grid;
+        }
+
+        .operations-row {
+            @apply gap-y-0;
+        }
+    }
+
+    /* Stany listy Operacji: link paginacji, wyzwalacz dymka, lista w trakcie ładowania. */
+    .pagination-link {
+        @apply focus-visible:ring-ring/50 inline-flex min-w-8 items-center justify-center rounded-lg px-2.5 py-1 text-xs transition-colors outline-none focus-visible:ring-[3px];
+    }
+
+    .operations-raw-trigger {
+        @apply focus-visible:ring-ring/50 rounded-lg outline-none focus-visible:ring-[3px];
+    }
+
+    .operations-list {
+        @apply transition-opacity;
+    }
+
+    .operations-list[aria-busy='true'] {
+        @apply opacity-60 delay-200;
     }
 
     .operations-cell-date {
@@ -445,12 +653,12 @@
     }
 
     .category-meter-header-row {
-        display: none;
+        @apply grid items-center gap-x-3 pb-2;
+        grid-template-columns: minmax(0, 1fr) auto;
     }
 
     @variant md {
         .category-meter-header-row {
-            @apply grid items-center gap-x-3 pb-2;
             grid-template-columns:
                 minmax(0, 1.4fr)
                 5.75rem
