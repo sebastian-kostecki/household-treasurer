@@ -556,16 +556,16 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 #### Automated
 
-- [x] 2.1 `npm run check` i `npm run types:check` przechodzą (po `npm run build`)
-- [x] 2.2 `npm test` przechodzi
-- [x] 2.3 Skan wartości zakodowanych na sztywno z `/10x-ui` na `SegmentedControl.vue` daje 0 trafień
+- [x] 2.1 `npm run check` i `npm run types:check` przechodzą (po `npm run build`) — a5cf11c
+- [x] 2.2 `npm test` przechodzi — a5cf11c
+- [x] 2.3 Skan wartości zakodowanych na sztywno z `/10x-ui` na `SegmentedControl.vue` daje 0 trafień — a5cf11c
 
 #### Manual
 
-- [x] 2.4 W kitchen sink `SegmentedControl` ma jeden przystanek Tab, strzałki zmieniają fokus, Spacja/Enter wybiera, kliknięcie aktywnej opcji jej nie odznacza
-- [x] 2.5 Pierścień fokusu ma 3 px `ring/50` w obu tonach i obu motywach
-- [x] 2.6 `.month-plan-grid`: długa nazwa kategorii zawija się bez rozpychania kolumn kwot przy 390 i 1280
-- [x] 2.7 Zrzuty fazy 2 zapisane w `screenshots/`
+- [x] 2.4 W kitchen sink `SegmentedControl` ma jeden przystanek Tab, strzałki zmieniają fokus, Spacja/Enter wybiera, kliknięcie aktywnej opcji jej nie odznacza — a5cf11c
+- [x] 2.5 Pierścień fokusu ma 3 px `ring/50` w obu tonach i obu motywach — a5cf11c
+- [x] 2.6 `.month-plan-grid`: długa nazwa kategorii zawija się bez rozpychania kolumn kwot przy 390 i 1280 — a5cf11c
+- [x] 2.7 Zrzuty fazy 2 zapisane w `screenshots/` — a5cf11c
 
 ### Phase 3: Widok (C1, C2, C4)
 
