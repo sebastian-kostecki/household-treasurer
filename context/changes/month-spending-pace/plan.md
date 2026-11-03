@@ -302,28 +302,28 @@ Brak migracji, zapisu tempa i zmian snapshotu. S-07 (month-plan-notices) użyje 
 
 #### Automated
 
-- [x] 1.1 `tests/Unit/MonthElapsedTest.php` i `tests/Unit/MonthPaceCalculatorTest.php` przechodzą
-- [x] 1.2 `tests/Feature/MonthPaceTest.php`, `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthToSpendTest.php` przechodzą na PostgreSQL (obraz Sail na worktree, `AGENTS.md` „Test database”)
-- [x] 1.3 `npm test` przechodzi, w tym `resources/js/lib/month-pace-calculator.test.ts`
-- [x] 1.4 `vendor/bin/pint --dirty --format agent` przechodzi
-- [x] 1.5 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
-- [x] 1.6 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk
+- [x] 1.1 `tests/Unit/MonthElapsedTest.php` i `tests/Unit/MonthPaceCalculatorTest.php` przechodzą — 88c5ff1
+- [x] 1.2 `tests/Feature/MonthPaceTest.php`, `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthToSpendTest.php` przechodzą na PostgreSQL (obraz Sail na worktree, `AGENTS.md` „Test database”) — 88c5ff1
+- [x] 1.3 `npm test` przechodzi, w tym `resources/js/lib/month-pace-calculator.test.ts` — 88c5ff1
+- [x] 1.4 `vendor/bin/pint --dirty --format agent` przechodzi — 88c5ff1
+- [x] 1.5 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą — 88c5ff1
+- [x] 1.6 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk — 88c5ff1
 
 ### Phase 2: Tempo na stronie „Plan miesiąca”
 
 #### Automated
 
-- [ ] 2.1 `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthPaceTest.php` przechodzą na PostgreSQL
-- [ ] 2.2 `npm test` przechodzi
-- [ ] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
-- [ ] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi
-- [ ] 2.5 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk
+- [x] 2.1 `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/MonthPaceTest.php` przechodzą na PostgreSQL
+- [x] 2.2 `npm test` przechodzi
+- [x] 2.3 `npm run build`, potem `npm run types:check` i `npm run check` przechodzą
+- [x] 2.4 Pełna bramka CI (`composer ci:check` w obrazie Sail na worktree) przechodzi
+- [x] 2.5 `vendor/bin/sloppy ci` na hoście nie zgłasza nowych znalezisk
 
 #### Manual
 
-- [ ] 2.6 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”) bieżący miesiąc pokazuje pod „do wydania” pasek tempa ze znacznikiem dni i tekst „Tempo X% · upływ dni d z n (Y%)”
-- [ ] 2.7 W propozycji (albo w trybie „Zmień plan”) zmiana kwoty pozycji bieżącej przesuwa tempo na żywo; zmiana kwoty rachunku, jednorazowej albo dochodu go nie zmienia
-- [ ] 2.8 Przy tempie wyprzedzającym upływ dni o ≥ 10 pp pasek i procent są bursztynowe i widać podpis ostrzeżenia; po podniesieniu planu bieżących poniżej progu kolor i podpis znikają
-- [ ] 2.9 Wyzerowanie planów wszystkich pozycji bieżących pokazuje komunikat „Pozycje bieżące nie mają planu…” zamiast paska
-- [ ] 2.10 Miniony zatwierdzony miesiąc pokazuje tempo z upływem „n z n”, a przyszły miesiąc nie pokazuje tempa
-- [ ] 2.11 Na szerokości telefonu karta „do wydania” z tempem nie przewija się poziomo, a tempo > 100% nie wychodzi poza tor
+- [x] 2.6 W podglądzie worktree (`AGENTS.md` „Preview from a worktree”) bieżący miesiąc pokazuje pod „do wydania” pasek tempa ze znacznikiem dni i tekst „Tempo X% · upływ dni d z n (Y%)”
+- [x] 2.7 W propozycji (albo w trybie „Zmień plan”) zmiana kwoty pozycji bieżącej przesuwa tempo na żywo; zmiana kwoty rachunku, jednorazowej albo dochodu go nie zmienia
+- [x] 2.8 Przy tempie wyprzedzającym upływ dni o ≥ 10 pp pasek i procent są bursztynowe i widać podpis ostrzeżenia; po podniesieniu planu bieżących poniżej progu kolor i podpis znikają
+- [x] 2.9 Wyzerowanie planów wszystkich pozycji bieżących pokazuje komunikat „Pozycje bieżące nie mają planu…” zamiast paska
+- [x] 2.10 Miniony zatwierdzony miesiąc pokazuje tempo z upływem „n z n”, a przyszły miesiąc nie pokazuje tempa
+- [x] 2.11 Na szerokości telefonu karta „do wydania” z tempem nie przewija się poziomo, a tempo > 100% nie wychodzi poza tor

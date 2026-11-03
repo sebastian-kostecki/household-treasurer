@@ -89,7 +89,7 @@ A percentage: the sum of actual amounts (Execution alone in the month, not the g
 _Avoid_: Year Elapsed, Year Pace, Month Remaining
 
 **Month Elapsed**:
-The day of the month of the as-of date over the number of days in that month. The as-of date is today for the current month, the last day for a past month, and the first day for a future month (as Year Elapsed). Not an amount.
+The day of the month of the as-of date over the number of days in that month. The as-of date is today for the current month, the last day for a past month, and the first day for a future month (as Year Elapsed). Not an amount. Polish UI copy: „upływ dni”.
 _Avoid_: Year Elapsed, Month Pace
 
 **Month Summary**:
