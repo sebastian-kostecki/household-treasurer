@@ -423,15 +423,15 @@ Bez migracji danych.
 
 #### Automated
 
-- [x] 1.1 Lint i format przechodzą: `npm run check`
-- [x] 1.2 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check`
-- [x] 1.3 Test Feature kitchen sinka przechodzi: `php artisan test --compact tests/Feature/TermDepositsKitchenSinkTest.php`
-- [x] 1.4 Istniejące testy lokat przechodzą bez zmian: `php artisan test --compact tests/Feature/TermDepositTest.php tests/Feature/ArchiveTermDepositTest.php`
+- [x] 1.1 Lint i format przechodzą: `npm run check` — 7fad7eb
+- [x] 1.2 Typy przechodzą po przebudowie Wayfindera: `npm run build && npm run types:check` — 7fad7eb
+- [x] 1.3 Test Feature kitchen sinka przechodzi: `php artisan test --compact tests/Feature/TermDepositsKitchenSinkTest.php` — 7fad7eb
+- [x] 1.4 Istniejące testy lokat przechodzą bez zmian: `php artisan test --compact tests/Feature/TermDepositTest.php tests/Feature/ArchiveTermDepositTest.php` — 7fad7eb
 
 #### Manual
 
-- [x] 1.5 `/dev/ui/term-deposits` lokalnie pokazuje 6 scenariuszy z nagłówkami, a `/term-deposits` wygląda tak samo jak przed fazą
-- [x] 1.6 Zrzuty „przed” (2 widoki + dialog, 1280 i 390 px, jasny i ciemny) są w `screenshots/before/`
+- [x] 1.5 `/dev/ui/term-deposits` lokalnie pokazuje 6 scenariuszy z nagłówkami, a `/term-deposits` wygląda tak samo jak przed fazą — 7fad7eb
+- [x] 1.6 Zrzuty „przed” (2 widoki + dialog, 1280 i 390 px, jasny i ciemny) są w `screenshots/before/` — 7fad7eb
 
 ### Phase 2: Jeden widok (C1, C3, C4, C5)
 
