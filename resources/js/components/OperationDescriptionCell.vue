@@ -42,7 +42,9 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
         <Tooltip>
             <TooltipTrigger as-child>
                 <div
-                    class="flex min-w-0 items-stretch gap-2.5"
+                    class="operations-raw-trigger flex min-w-0 items-stretch gap-2.5"
+                    tabindex="0"
+                    role="group"
                     :aria-label="`${primaryLine}. ${t.operations.raw_statement_description}: ${tooltipLabel}`"
                 >
                     <OperationTypeTile :variant="variant" />

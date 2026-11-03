@@ -13,6 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 
 type MovementRow = {
@@ -74,6 +75,10 @@ const t = useTranslations();
                             variant="destructive"
                             :disabled="processing"
                         >
+                            <Spinner
+                                v-if="processing"
+                                :aria-label="t.common.loading"
+                            />
                             {{ t.accounts.delete }}
                         </Button>
                     </DialogFooter>

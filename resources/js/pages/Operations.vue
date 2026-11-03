@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { Plus, Upload } from '@lucide/vue';
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
@@ -37,6 +37,7 @@ import OwnTransferRow, {
 import { type PaginatedCollection } from '@/components/PaginationLinks.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { listenForOperationsListVisits } from '@/lib/operations-list-visit';
 import { operations as operationsRoute } from '@/routes';
 
 type AccountRow = ExpenseFormAccount & {
@@ -96,6 +97,21 @@ const editingIncome = ref<FinancialOperationRowData | null>(null);
 const editingExpense = ref<FinancialOperationRowData | null>(null);
 const editingTransfer = ref<OwnTransferRowData | null>(null);
 const editingCapitalMovement = ref<CapitalMovementRowData | null>(null);
+const listBusy = ref(false);
+let stopListeningForListVisits: (() => void) | null = null;
+
+onMounted(() => {
+    stopListeningForListVisits = listenForOperationsListVisits(
+        operationsRoute().url,
+        (busy) => {
+            listBusy.value = busy;
+        },
+    );
+});
+
+onUnmounted(() => {
+    stopListeningForListVisits?.();
+});
 
 setLayoutProps({
     breadcrumbs: [
@@ -193,6 +209,8 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
 
         <ListSurface
             v-if="operations.total > 0"
+            class="operations-list"
+            :aria-busy="listBusy"
             :description="t.operations.list_description"
             :paginator="operations"
         >
@@ -231,6 +249,8 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
 
         <ListSurface
             v-if="ownTransfers.total > 0"
+            class="operations-list"
+            :aria-busy="listBusy"
             :title="t.operations.own_transfers"
             :paginator="ownTransfers"
         >
@@ -264,6 +284,8 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
 
         <ListSurface
             v-if="capitalMovements.total > 0"
+            class="operations-list"
+            :aria-busy="listBusy"
             :title="t.operations.capital_movements"
             :paginator="capitalMovements"
         >

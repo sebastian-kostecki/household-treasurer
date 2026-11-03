@@ -18,6 +18,7 @@ test('operations page reports no records for a user without any entries', functi
         ->assertInertia(fn (Assert $page) => $page
             ->component('Operations')
             ->where('hasAnyRecords', false)
+            ->where('translations.common.loading', 'Ładowanie')
             ->missing('hasFinancialOperations'),
         );
 });

@@ -12,6 +12,7 @@ import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferRow from '@/components/OwnTransferRow.vue';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     financialOperationAmountClass,
@@ -37,6 +38,7 @@ const actionStates = [
     { label: '0 kont, 0 lokat', accountsCount: 0, termDepositsCount: 0 },
 ];
 
+const disabledPagination = paginate(financialOperationFixtures.slice(0, 1));
 const operations = paginate(financialOperationFixtures);
 const ownTransfers = paginate(ownTransferFixtures);
 const capitalMovements = paginate(capitalMovementFixtures);
@@ -405,6 +407,92 @@ const capitalMovements = paginate(capitalMovementFixtures);
                     </template>
                 </IndexEmptyState>
             </ListSurface>
+        </section>
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Stany z macierzy</h2>
+            <p class="text-muted-foreground text-xs">
+                Default (trzy listy z fixture) i empty (oba stany puste) są
+                wyżej. Poniżej: hover, focus-visible, disabled, error, loading.
+            </p>
+
+            <h3 class="text-sm font-semibold">Hover</h3>
+            <p class="text-muted-foreground text-xs">
+                Rytm, nie afordancja: tło wiersza zmienia się tylko po to, żeby
+                prowadzić oko wzdłuż linii. Wiersz nie jest klikalny.
+            </p>
+            <ListSurface :description="t.operations.list_description">
+                <FinancialOperationRow
+                    v-for="operation in financialOperationFixtures.slice(0, 3)"
+                    :key="operation.id"
+                    :operation="operation"
+                />
+            </ListSurface>
+
+            <h3 class="text-sm font-semibold">Focus-visible</h3>
+            <p class="text-muted-foreground text-xs">
+                Przejdź Tabem: linki paginacji, akcje wiersza i wiersz z opisem
+                z banku (otwiera dymek) dostają pierścień 3 px.
+            </p>
+            <ListSurface
+                :description="t.operations.list_description"
+                :paginator="operations"
+            >
+                <FinancialOperationRow
+                    v-for="operation in financialOperationFixtures.slice(2, 4)"
+                    :key="operation.id"
+                    :operation="operation"
+                />
+            </ListSurface>
+
+            <h3 class="text-sm font-semibold">Disabled</h3>
+            <p class="text-muted-foreground text-xs">
+                Powody blokady akcji tworzenia (1 konto, 0 lokat) oraz wyłączony
+                link paginacji na pierwszej stronie (span z aria-disabled, poza
+                Tabem).
+            </p>
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <h4 class="text-lg font-semibold">{{ t.operations.title }}</h4>
+                <OperationsPageActions
+                    :accounts-count="1"
+                    :term-deposits-count="0"
+                />
+            </div>
+            <ListSurface :paginator="disabledPagination">
+                <FinancialOperationRow
+                    v-for="operation in financialOperationFixtures.slice(0, 1)"
+                    :key="operation.id"
+                    :operation="operation"
+                />
+            </ListSurface>
+
+            <h3 class="text-sm font-semibold">Error</h3>
+            <p class="text-muted-foreground text-xs">
+                N/A: usunięcie nie ma walidacji; błąd serwera pokazuje modal
+                Inertia (D11).
+            </p>
+
+            <h3 class="text-sm font-semibold">Loading</h3>
+            <p class="text-muted-foreground text-xs">
+                Lista w czasie wizyty (aria-busy="true", wyciszona) oraz
+                przycisk usunięcia ze spinnerem.
+            </p>
+            <ListSurface
+                class="operations-list"
+                aria-busy="true"
+                :description="t.operations.list_description"
+            >
+                <FinancialOperationRow
+                    v-for="operation in financialOperationFixtures.slice(0, 3)"
+                    :key="operation.id"
+                    :operation="operation"
+                />
+            </ListSurface>
+            <div>
+                <Button variant="destructive" disabled>
+                    <Spinner :aria-label="t.common.loading" />
+                    {{ t.accounts.delete }}
+                </Button>
+            </div>
         </section>
     </div>
 </template>

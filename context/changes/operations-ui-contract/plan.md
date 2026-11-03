@@ -518,34 +518,34 @@ Brak migracji danych. Zmiana nazwy propsa dotyczy tylko `Operations.vue`; przy s
 
 #### Automated
 
-- [x] 3.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsFilterTest.php tests/Feature/OperationsEmptyStateTest.php tests/Feature/CapitalMovementTest.php tests/Feature/OwnTransferTest.php` obrazem Sail
-- [x] 3.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check`
-- [x] 3.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/Operations.vue resources/js/components/FinancialOperationRow.vue resources/js/components/OwnTransferRow.vue resources/js/components/CapitalMovementRow.vue resources/js/components/OperationsPageActions.vue`
-- [x] 3.4 Brak `title=` na przyciskach w `Operations.vue` i `OperationsPageActions.vue`: `grep -n 'title=' …` zwraca tylko `Head` / tytuły kart
-- [x] 3.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 3.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsFilterTest.php tests/Feature/OperationsEmptyStateTest.php tests/Feature/CapitalMovementTest.php tests/Feature/OwnTransferTest.php` obrazem Sail — 2433666
+- [x] 3.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check` — 2433666
+- [x] 3.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/Operations.vue resources/js/components/FinancialOperationRow.vue resources/js/components/OwnTransferRow.vue resources/js/components/CapitalMovementRow.vue resources/js/components/OperationsPageActions.vue` — 2433666
+- [x] 3.4 Brak `title=` na przyciskach w `Operations.vue` i `OperationsPageActions.vue`: `grep -n 'title=' …` zwraca tylko `Head` / tytuły kart — 2433666
+- [x] 3.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent` — 2433666
 
 #### Manual
 
-- [x] 3.6 `/operations` dla `test@example.com`: jeden przycisk turkusowy (Import), cztery `outline`, każdy z ikoną; przy 390 px przyciski nie tworzą ściany turkusu
-- [x] 3.7 Użytkownik z jednym kontem: pod przyciskami widać „Potrzebujesz co najmniej dwóch kont…”, czytnik ekranu (lub inspektor dostępności) podaje go jako opis przycisku
-- [x] 3.8 Użytkownik z samymi transferami własnymi: brak „Brak operacji finansowych”, filtry widoczne, lista transferów pod nimi
-- [x] 3.9 Zrzuty `phase-3-*` zapisane
+- [x] 3.6 `/operations` dla `test@example.com`: jeden przycisk turkusowy (Import), cztery `outline`, każdy z ikoną; przy 390 px przyciski nie tworzą ściany turkusu — 2433666
+- [x] 3.7 Użytkownik z jednym kontem: pod przyciskami widać „Potrzebujesz co najmniej dwóch kont…”, czytnik ekranu (lub inspektor dostępności) podaje go jako opis przycisku — 2433666
+- [x] 3.8 Użytkownik z samymi transferami własnymi: brak „Brak operacji finansowych”, filtry widoczne, lista transferów pod nimi — 2433666
+- [x] 3.9 Zrzuty `phase-3-*` zapisane — 2433666
 
 ### Phase 4: Stany z macierzy
 
 #### Automated
 
-- [ ] 4.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsEmptyStateTest.php tests/Feature/OperationsPaginationTest.php tests/Feature/FinancialOperationEditDeleteTest.php` obrazem Sail
-- [ ] 4.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build`
-- [ ] 4.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/PaginationLinks.vue resources/js/components/OperationDescriptionCell.vue resources/js/components/FinancialOperationActions.vue resources/js/components/OwnTransferActions.vue resources/js/components/CapitalMovementActions.vue resources/js/pages/dev/OperationsSink.vue`
+- [x] 4.1 Testy Operacji przechodzą na PostgreSQL: `tests/Feature/OperationsEmptyStateTest.php tests/Feature/OperationsPaginationTest.php tests/Feature/FinancialOperationEditDeleteTest.php` obrazem Sail
+- [x] 4.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build`
+- [x] 4.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/PaginationLinks.vue resources/js/components/OperationDescriptionCell.vue resources/js/components/FinancialOperationActions.vue resources/js/components/OwnTransferActions.vue resources/js/components/CapitalMovementActions.vue resources/js/pages/dev/OperationsSink.vue`
 
 #### Manual
 
-- [ ] 4.4 Tab po `/operations`: linki paginacji mają pierścień 3 px, wyłączona „poprzednia” jest pomijana; wiersz z opisem z banku dostaje fokus i otwiera dymek
-- [ ] 4.5 Przejście na stronę 2 przy dławieniu sieci (DevTools „Slow 4G”): sekcja się wycisza; szybka odpowiedź nie mruga
-- [ ] 4.6 Usunięcie operacji: przycisk pokazuje spinner, w DOM `aria-label="Ładowanie"`
-- [ ] 4.7 Fokus paginacji w `/accounts` i `/budget` wygląda tak samo jak w Operacjach (zamierzona zmiana wspólnego komponentu)
-- [ ] 4.8 Zrzuty `phase-4-*` zapisane
+- [x] 4.4 Tab po `/operations`: linki paginacji mają pierścień 3 px, wyłączona „poprzednia” jest pomijana; wiersz z opisem z banku dostaje fokus i otwiera dymek
+- [x] 4.5 Przejście na stronę 2 przy dławieniu sieci (DevTools „Slow 4G”): sekcja się wycisza; szybka odpowiedź nie mruga
+- [x] 4.6 Usunięcie operacji: przycisk pokazuje spinner, w DOM `aria-label="Ładowanie"`
+- [x] 4.7 Fokus paginacji w `/accounts` i `/budget` wygląda tak samo jak w Operacjach (zamierzona zmiana wspólnego komponentu)
+- [x] 4.8 Zrzuty `phase-4-*` zapisane
 
 ### Phase 5: Utrwalenie
 

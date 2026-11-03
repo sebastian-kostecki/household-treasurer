@@ -617,6 +617,7 @@ return [
         'import_interest_category' => 'Kategoria dochodu (odsetki)',
     ],
     'common' => [
+        'loading' => 'Ładowanie',
         'not_applicable' => 'nie dotyczy',
         'coming_soon' => 'Wkrótce',
     ],
