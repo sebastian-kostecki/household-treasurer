@@ -477,38 +477,38 @@ Brak migracji danych i zmian propsów Inertia. Trasa `dev/ui/dashboard` zwraca 4
 
 #### Automated
 
-- [x] 3.1 Lint i format przechodzą: `npm run check`
-- [x] 3.2 Typy przechodzą: `npm run types:check`
-- [x] 3.3 Testy frontendu przechodzą: `npm test`
-- [x] 3.4 Testy Dashboardu przechodzą
-- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku
-- [x] 3.6 W widoku nie ma już helperów tonu poza `amountToneClass`
+- [x] 3.1 Lint i format przechodzą: `npm run check` — 33ab475
+- [x] 3.2 Typy przechodzą: `npm run types:check` — 33ab475
+- [x] 3.3 Testy frontendu przechodzą: `npm test` — 33ab475
+- [x] 3.4 Testy Dashboardu przechodzą — 33ab475
+- [x] 3.5 Skan wartości zakodowanych na sztywno daje 0 trafień w plikach widoku — 33ab475
+- [x] 3.6 W widoku nie ma już helperów tonu poza `amountToneClass` — 33ab475
 
 #### Manual
 
-- [x] 3.7 W scenariuszu `zero-amounts` żadna kwota 0,00 zł nie jest zielona; `default` i `negative` mają zielone dodatnie i czerwone ujemne
-- [x] 3.8 Przy 390 px listy kategorii mają nagłówek „Kategoria · Pozostało”, także nad wierszem sumy
-- [x] 3.9 Czytnik ekranu czyta „Pozostało” przy kwocie w wierszu kategorii i w sumie
-- [x] 3.10 Pigułki wagi wyglądają jak w zrzucie „przed” (dopuszczalna różnica ikony i paddingu `Badge`)
-- [x] 3.11 Fokus klawiatury na karcie powiadomienia wygląda jak na przycisku „Otwórz budżet”
-- [x] 3.12 Puste stany `empty-new-user`, `no-budget` i `draft` pokazują tytuł, opis i akcję; przy 390 px link „Otwórz konta” jest widoczny
-- [x] 3.13 Strona Budżet: pasek planu ma podpisy 11 px i neutralne saldo 0, poza tym bez zmian
+- [x] 3.7 W scenariuszu `zero-amounts` żadna kwota 0,00 zł nie jest zielona; `default` i `negative` mają zielone dodatnie i czerwone ujemne — 33ab475
+- [x] 3.8 Przy 390 px listy kategorii mają nagłówek „Kategoria · Pozostało”, także nad wierszem sumy — 33ab475
+- [x] 3.9 Czytnik ekranu czyta „Pozostało” przy kwocie w wierszu kategorii i w sumie — 33ab475
+- [x] 3.10 Pigułki wagi wyglądają jak w zrzucie „przed” (dopuszczalna różnica ikony i paddingu `Badge`) — 33ab475
+- [x] 3.11 Fokus klawiatury na karcie powiadomienia wygląda jak na przycisku „Otwórz budżet” — 33ab475
+- [x] 3.12 Puste stany `empty-new-user`, `no-budget` i `draft` pokazują tytuł, opis i akcję; przy 390 px link „Otwórz konta” jest widoczny — 33ab475
+- [x] 3.13 Strona Budżet: pasek planu ma podpisy 11 px i neutralne saldo 0, poza tym bez zmian — 33ab475
 - [ ] 3.14 Zrzuty `after-phase-3` porównane z `before`; każda różnica zamierzona i opisana w commicie
 
 ### Phase 4: Stany
 
 #### Automated
 
-- [ ] 4.1 Lint i format przechodzą: `npm run check`
-- [ ] 4.2 Typy przechodzą: `npm run types:check`
-- [ ] 4.3 Testy frontendu przechodzą: `npm test`
-- [ ] 4.4 Testy Dashboardu i kitchen sinka przechodzą
-- [ ] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku i w kitchen sinku
+- [x] 4.1 Lint i format przechodzą: `npm run check`
+- [x] 4.2 Typy przechodzą: `npm run types:check`
+- [x] 4.3 Testy frontendu przechodzą: `npm test`
+- [x] 4.4 Testy Dashboardu i kitchen sinka przechodzą
+- [x] 4.5 Skan wartości zakodowanych na sztywno nadal daje 0 trafień w plikach widoku i w kitchen sinku
 
 #### Manual
 
-- [ ] 4.6 Nieudany POST wyboru roku pokazuje toast, a udany działa jak dotąd
-- [ ] 4.7 Karty powiadomień miesięcznych podczas POST są wyłączone i czytelne w obu motywach
+- [x] 4.6 Nieudany POST wyboru roku pokazuje toast, a udany działa jak dotąd
+- [x] 4.7 Karty powiadomień miesięcznych podczas POST są wyłączone i czytelne w obu motywach
 - [ ] 4.8 `states.md` ma wszystkie 7 wierszy, każdy ze zrzutem albo z N/A i powodem
 - [ ] 4.9 Zrzuty `after-phase-4` są dla desktopu i 390 px, w jasnym i ciemnym motywie
 

@@ -1,7 +1,47 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/composables/useTranslations';
+import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 import Dashboard from '@/pages/Dashboard.vue';
 import { dashboardScenarios } from './dashboard-fixtures';
+
+const t = useTranslations();
+
+const stateMatrix = [
+    {
+        state: 'default',
+        where: 'Scenariusze default, zero-amounts i negative poniżej.',
+    },
+    {
+        state: 'empty',
+        where: 'Scenariusze empty-new-user, no-budget, draft i no-categories poniżej.',
+    },
+    {
+        state: 'loading',
+        where: 'N/A: strona nie ma deferred props, a skeletony wyklucza dashboard-hierarchy.md:78. Jedyny „loading” to processing, pokazany jako disabled.',
+    },
+    {
+        state: 'error',
+        where: 'Przycisk „Pokaż błąd wyboru roku” poniżej (toast); InputError w CreateBudgetDialog w zrzutach z działającej aplikacji.',
+    },
+    {
+        state: 'disabled',
+        where: 'Zrzuty z działającej aplikacji przy spowolnionej sieci (processing na formularzach, karty powiadomień podczas POST).',
+    },
+    {
+        state: 'hover',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+    },
+];
+
+function showYearSelectionError(): void {
+    notifyBudgetYearSelectionFailed(t.dashboard.select_year_failed);
+}
 </script>
 
 <template>
@@ -18,6 +58,42 @@ import { dashboardScenarios } from './dashboard-fixtures';
                 w CreateBudgetDialog są tu dopuszczalne.
             </p>
         </header>
+
+        <section class="space-y-3" data-section="state-matrix">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                Macierz stanów
+            </h2>
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr>
+                        <th class="column-caption pb-2.5 text-left">Stan</th>
+                        <th class="column-caption pb-2.5 text-left">
+                            Gdzie widoczny
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="row in stateMatrix"
+                        :key="row.state"
+                        class="border-t align-top"
+                    >
+                        <td class="py-2 pr-4 font-mono">{{ row.state }}</td>
+                        <td class="py-2">{{ row.where }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                @click="showYearSelectionError"
+            >
+                Pokaż błąd wyboru roku
+            </Button>
+        </section>
 
         <section
             v-for="scenario in dashboardScenarios"

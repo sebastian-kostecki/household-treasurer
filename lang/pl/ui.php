@@ -133,6 +133,7 @@ return [
         'draft_categories_title' => 'Budżet jest w szkicu',
         'draft_categories_description' => 'Kategorie i ich wykonanie pojawią się tutaj po rozpoczęciu realizacji budżetu.',
         'open_budget' => 'Otwórz budżet',
+        'select_year_failed' => 'Nie udało się otworzyć wybranego roku. Odśwież stronę i spróbuj ponownie.',
         'month_to_spend' => ':month — do wydania',
         'holdings_title' => 'Posiadane środki',
         'open_accounts' => 'Otwórz konta',

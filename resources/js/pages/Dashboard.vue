@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
@@ -27,6 +27,10 @@ import {
     useShell,
     useTranslations,
 } from '@/composables/useTranslations';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
 import { formatDate } from '@/lib/format';
 import { dashboard } from '@/routes';
 import type { DashboardPageProps } from '@/types/dashboard';
@@ -39,6 +43,20 @@ const t = useTranslations();
 const shell = useShell();
 const checklist = useFirstRunChecklist();
 const createBudgetDialogOpen = ref(false);
+
+const yearSelectionPending = ref(false);
+
+function onYearSelectionFailed(): void {
+    notifyBudgetYearSelectionFailed(t.dashboard.select_year_failed);
+}
+
+const stopListeningForYearSelectionFailure =
+    listenForBudgetYearSelectionFailure(
+        () => yearSelectionPending.value,
+        t.dashboard.select_year_failed,
+    );
+
+onUnmounted(stopListeningForYearSelectionFailure);
 const showYearElapsed = ref(false);
 
 onMounted(() => {
@@ -187,7 +205,10 @@ setLayoutProps({
                 <template #footer>
                     <Form
                         v-bind="BudgetController.selectYear.form()"
+                        @start="yearSelectionPending = true"
+                        @finish="yearSelectionPending = false"
                         v-slot="{ processing }"
+                        @error="onYearSelectionFailed"
                     >
                         <input type="hidden" name="year" :value="budget_year" />
                         <input
@@ -264,7 +285,10 @@ setLayoutProps({
                         <Form
                             v-if="canSelectCurrentYearInShell"
                             v-bind="BudgetController.selectYear.form()"
+                            @start="yearSelectionPending = true"
+                            @finish="yearSelectionPending = false"
                             v-slot="{ processing }"
+                            @error="onYearSelectionFailed"
                         >
                             <input
                                 type="hidden"

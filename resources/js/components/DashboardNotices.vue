@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
 import { formatMoney } from '@/lib/format';
 import { monthElapsedPercent } from '@/lib/month-pace-calculator';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
@@ -90,6 +94,18 @@ const hiddenNoticeCount = computed(() =>
 );
 
 const monthPlanRequestPending = ref(false);
+
+function onMonthPlanRequestFailed(): void {
+    notifyBudgetYearSelectionFailed(t.dashboard.select_year_failed);
+}
+
+// <Link> exposes no HTTP/network error callbacks, only validation `error`.
+onUnmounted(
+    listenForBudgetYearSelectionFailure(
+        () => monthPlanRequestPending.value,
+        t.dashboard.select_year_failed,
+    ),
+);
 
 const visibleNotices = computed(() => {
     if (isExpanded.value || props.notices.length <= VISIBLE_NOTICE_LIMIT) {
@@ -315,6 +331,9 @@ function noticeKey(notice: DashboardNotice): string {
                 class="focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:opacity-60"
                 :class="severityCardClass(notice.severity)"
                 @start="monthPlanRequestPending = true"
+                @error="
+                    isMonthNotice(notice) ? onMonthPlanRequestFailed() : null
+                "
                 @finish="monthPlanRequestPending = false"
             >
                 <span
