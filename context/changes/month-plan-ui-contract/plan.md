@@ -540,16 +540,16 @@ Brak migracji danych. Trasa kitchen sink nie istnieje poza `local`. Zmiana treś
 
 #### Automated
 
-- [x] 1.1 Test trasy przechodzi na PostgreSQL (obraz Sail): `php artisan test --compact tests/Feature/DevMonthPlanSinkTest.php`
-- [x] 1.2 Testy strony bez regresji: `php artisan test --compact tests/Feature/MonthPlanPageTest.php`
-- [x] 1.3 `npm run build` i `npm run types:check` przechodzą
-- [x] 1.4 `npm run check` przechodzi bez ostrzeżeń
-- [x] 1.5 Pint: `vendor/bin/pint --dirty --format agent`
+- [x] 1.1 Test trasy przechodzi na PostgreSQL (obraz Sail): `php artisan test --compact tests/Feature/DevMonthPlanSinkTest.php` — efee0b6
+- [x] 1.2 Testy strony bez regresji: `php artisan test --compact tests/Feature/MonthPlanPageTest.php` — efee0b6
+- [x] 1.3 `npm run build` i `npm run types:check` przechodzą — efee0b6
+- [x] 1.4 `npm run check` przechodzi bez ostrzeżeń — efee0b6
+- [x] 1.5 Pint: `vendor/bin/pint --dirty --format agent` — efee0b6
 
 #### Manual
 
-- [x] 1.6 `/dev/month-plan` w podglądzie z worktree renderuje wszystkie sekcje z danych testowych w trybie jasnym i ciemnym
-- [x] 1.7 Zrzuty odniesienia desktop 1280 i mobile 390 zapisane w `screenshots/`
+- [x] 1.6 `/dev/month-plan` w podglądzie z worktree renderuje wszystkie sekcje z danych testowych w trybie jasnym i ciemnym — efee0b6
+- [x] 1.7 Zrzuty odniesienia desktop 1280 i mobile 390 zapisane w `screenshots/` — efee0b6
 
 ### Phase 2: Elementy kontraktu
 
