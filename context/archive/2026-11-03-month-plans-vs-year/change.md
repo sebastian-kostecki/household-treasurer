@@ -1,10 +1,10 @@
 ---
 change_id: month-plans-vs-year
 title: Month plans vs year
-status: impl_reviewed
+status: archived
 created: 2026-11-03
 updated: 2026-11-03
-archived_at: null
+archived_at: 2026-11-03T07:31:51Z
 ---
 
 ## Notes
