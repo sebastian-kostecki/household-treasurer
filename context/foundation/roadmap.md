@@ -50,7 +50,7 @@ Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odcz
 | S-06 | to-spend-replaces-remaining | użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu | S-01                | FR-011, FR-013                                             | done |
 | S-07 | month-plan-notices          | użytkownik może zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca                | F-01, S-04, S-05    | FR-012                                                     | proposed |
 | S-08 | plan-based-entry-warnings   | użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu        | S-01                | FR-014, FR-017                                             | done |
-| S-09 | month-summary               | użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne             | S-02, S-03, S-04    | US-01, FR-009, FR-013                                      | proposed |
+| S-09 | month-summary               | użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne             | S-02, S-03, S-04    | US-01, FR-009, FR-013                                      | done |
 | S-10 | month-plans-vs-year         | użytkownik może porównać plany miesięcy z budżetem rocznym                                       | S-01                | FR-010                                                     | proposed |
 
 ## Streams
@@ -202,7 +202,7 @@ Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Zamyka US-01 i rozstrzyga odczyt minionego miesiąca z planem, więc musi czekać na odkładanie oraz plan zatwierdzony i końcowy.
-- **Status:** proposed
+- **Status:** done
 
 ### S-10: Plany miesięcy a budżet roczny
 
@@ -266,3 +266,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-04: użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe** — Archived 2026-11-02 → `context/archive/2026-11-02-month-items-plan-vs-actual/`. Lesson: —.
 - **S-06: użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu** — Archived 2026-11-02 → `context/archive/2026-11-02-to-spend-replaces-remaining/`. Lesson: —.
 - **S-08: użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu** — Archived 2026-11-03 → `context/archive/2026-11-02-plan-based-entry-warnings/`. Lesson: —.
+- **S-09: użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne** — Archived 2026-11-03 → `context/archive/2026-11-03-month-summary/`. Lesson: —.

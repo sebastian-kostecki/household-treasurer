@@ -166,7 +166,8 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.state', 'none')
                 ->where('monthPlan.approved_at', null)
                 ->where('monthPlan.can_approve', false)
-                ->where('monthPlan.to_spend_minor_units', null),
+                ->where('monthPlan.to_spend_minor_units', null)
+                ->where('monthPlan.summary', null),
             );
     }
 
@@ -202,7 +203,34 @@ class MonthPlanPageTest extends TestCase
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 1)
                 ->where('monthPlan.expense_items.0.can_change_kind', false)
-                ->where('monthPlan.expense_items.0.is_join_candidate', false),
+                ->where('monthPlan.expense_items.0.is_join_candidate', false)
+                ->where('monthPlan.summary.income.final_minor_units', 500_000)
+                ->where('monthPlan.summary.expense.actual_minor_units', 0)
+                ->where('monthPlan.summary.set_aside.real_minor_units', 0)
+                ->where('monthPlan.summary.year_draw_minor_units', 0),
+            );
+    }
+
+    public function test_current_approved_month_has_no_summary(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'category_id' => $categories['salary']->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 6]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'current')
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.summary', null),
             );
     }
 

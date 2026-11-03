@@ -12,6 +12,7 @@ import ListSurface from '@/components/ListSurface.vue';
 import ColumnHeaderHint from '@/components/ColumnHeaderHint.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
+import MonthSummaryCard from '@/components/MonthSummaryCard.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ import type {
     MonthItemKind,
     MonthPlanItem,
     MonthYearComparison,
+    MonthSummary,
 } from '@/types/month-plan';
 
 type MonthPlanReading = {
@@ -55,6 +57,7 @@ type MonthPlanReading = {
         income: MonthYearComparison;
         expense: MonthYearComparison;
     } | null;
+    summary: MonthSummary | null;
 };
 
 const props = defineProps<{
@@ -482,7 +485,11 @@ watch(hasInvalidIdleAmount, (invalid) => {
                         <p
                             class="text-muted-foreground text-xs font-medium tracking-wider uppercase"
                         >
-                            {{ t.month_plan.to_spend }}
+                            {{
+                                monthPlan.summary
+                                    ? t.month_plan.to_spend_final
+                                    : t.month_plan.to_spend
+                            }}
                         </p>
                         <p
                             class="text-3xl font-semibold tabular-nums"
@@ -510,13 +517,18 @@ watch(hasInvalidIdleAmount, (invalid) => {
                     </CardContent>
                 </Card>
 
+                <MonthSummaryCard
+                    v-if="monthPlan.summary"
+                    :summary="monthPlan.summary"
+                />
+
                 <Form
                     v-bind="formBinding"
                     v-slot="{ errors, processing }"
                     class="space-y-4"
                     @success="stopChanging"
                 >
-                    <Card>
+                    <Card v-if="monthPlan.summary === null">
                         <CardContent class="grid gap-3 pt-6">
                             <p
                                 class="text-muted-foreground text-xs font-medium tracking-wider uppercase"

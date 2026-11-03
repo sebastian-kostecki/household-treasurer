@@ -97,7 +97,7 @@ The day of the month of the as-of date over the number of days in that month. Th
 _Avoid_: Year Elapsed, Month Pace
 
 **Month Summary**:
-A reading of a month from its Month Plan: Approved and Current (final) Month Plan, Execution, deviations, intended Set-aside and the real set-aside (Month Result), drawn amounts (Draw) also over the year. Settling is only a summary: no carry-over and no closing. Polish UI copy: „podsumowanie miesiąca”.
+A reading of a month from its Month Plan: Approved and Current (final) Month Plan, Execution, deviations, intended Set-aside and the real set-aside (Month Result), drawn amounts (Draw) also over the year. Settling is only a summary: no carry-over and no closing. Read live, only for past months with an Approved Month Plan. Deviation of totals = Execution − Current Month Plan, taken from plain sums (an unpaid Bill counts as minus its plan). Set-aside difference = Month Result − Current Set-aside. Draw over the year = sum of |Current Set-aside| of the negative ones across Approved Month Plans from January through the summarised month. Polish UI copy: „podsumowanie miesiąca”, „dobrane od początku roku”.
 _Avoid_: Month close, Year Close, carry-over
 
 **Planned Balance**:

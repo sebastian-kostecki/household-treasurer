@@ -14,6 +14,7 @@ use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\MonthItemDeviation;
+use App\Support\MonthSummary;
 use App\Support\MonthToSpend;
 use App\Support\MonthYearComparison;
 use App\Support\SelectedBudgetYear;
@@ -140,6 +141,12 @@ class MonthPlanController extends Controller
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
      *     year_totals: array{income: array<string, int|bool>, expense: array<string, int|bool>}|null,
+     *     summary: array{
+     *         income: array{approved_minor_units: int, final_minor_units: int, actual_minor_units: int, deviation_minor_units: int},
+     *         expense: array{approved_minor_units: int, final_minor_units: int, actual_minor_units: int, deviation_minor_units: int},
+     *         set_aside: array{approved_minor_units: int, final_minor_units: int, real_minor_units: int, difference_minor_units: int},
+     *         year_draw_minor_units: int,
+     *     }|null,
      * }
      */
     private function monthPlanPayload(User $user, Budget $budget, int $month, string $timing, CarbonImmutable $today): array
@@ -204,6 +211,7 @@ class MonthPlanController extends Controller
             'year_totals' => $timing === 'current'
                 ? $this->yearTotals($incomeItems, $expenseItems)
                 : null,
+            'summary' => $timing === 'past' ? MonthSummary::forMonth($toSpend, $budget, $month)?->toArray() : null,
         ];
     }
 
