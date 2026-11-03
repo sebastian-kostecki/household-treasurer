@@ -18,3 +18,4 @@ Zmiana wizualna przez `/10x-ui` — jeden widok, kontrakt istniejącego systemu 
 - **Audyt wstępny (2026-11-03):** skan wartości zakodowanych na sztywno na 10 plikach widoku: 1 trafienie (`text-[11px]`, `MonthPlan.vue:697`) + 7 arbitralnych szablonów siatki w 2 plikach; 0 hex / 0 klas palety. Pięć zarzutów do weryfikacji w `research.md` pod `## Charges`.
 
 - **Decyzja użytkownika (2026-11-03, po fazie 1):** przełącznik rodzaju (Rachunek / Bieżąca) ma stać w osobnej kolumnie tabeli, a nie pod nazwą kategorii. Wpływa to na `.month-plan-grid` (fazy 2) i układ wiersza `MonthPlanItemRow` (faza 3): nowa kolumna „Rodzaj" (tylko listy wydatków), nagłówek `.column-header`, a przy 390 px wraca pod nazwę. Kitchen sink i zrzuty z fazy 2/3 mają to uwzględnić. Plan.md zaktualizowany (fazy 2 i 3, klucz `month_plan.kind_column`).
+- **Decyzja użytkownika (2026-11-03):** odznaki statusu (np. „Zapłacone") stoją w jednej linii z nazwą kategorii, nie pod nią. Wpisane do fazy 3 w plan.md.

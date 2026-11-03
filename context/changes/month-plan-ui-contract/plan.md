@@ -240,7 +240,7 @@ Widok przechodzi na klasy i komponent z fazy 2 i dostaje nowy układ: akcja w wi
 
 **File**: `resources/js/pages/MonthPlan.vue`, `resources/js/components/MonthPlanItemRow.vue`
 
-**Intent**: zastąpić oba ręczne przełączniki komponentem `SegmentedControl`. Odkładam / dobieram dostaje ton `primary`. Rodzaj w tej fazie też zostaje na tonie `primary`, a zmianę tonu robi faza 4. Przełącznik rodzaju przenieść z pod nazwy kategorii do osobnej kolumny „Rodzaj" (`.month-plan-grid-kind`, od `sm`; poniżej `sm` zostaje pod nazwą). Wiersz dochodu nie ma tej kolumny. Nagłówek listy wydatków dostaje komórkę „Rodzaj" (`.column-header`, ukrytą poniżej `sm`), a tekst rodzaju bez `can_change_kind` trafia do tej samej komórki. Arbitralne siatki zastąpić `.month-plan-grid`, `text-[11px]…` klasą `.column-header`, a trzy etykiety sekcji (`MonthPlan.vue:520,556,586`) klasą `.section-label`.
+**Intent**: zastąpić oba ręczne przełączniki komponentem `SegmentedControl`. Odkładam / dobieram dostaje ton `primary`. Rodzaj w tej fazie też zostaje na tonie `primary`, a zmianę tonu robi faza 4. Przełącznik rodzaju przenieść z pod nazwy kategorii do osobnej kolumny „Rodzaj" (`.month-plan-grid-kind`, od `sm`; poniżej `sm` zostaje pod nazwą). Wiersz dochodu nie ma tej kolumny. Odznaki statusu (`Zapłacone`, `Wpłynęło`, `Jednorazowa`, `Zarchiwizowane`, `Poza planem`) stoją w jednej linii z nazwą kategorii (`CategoryChip` + odznaki w `flex flex-wrap items-center gap-x-2 gap-y-1`), a nie pod nią; przy wąskim ekranie zawijają się pod nazwę. Linie pomocnicze (rok, limit) zostają pod spodem. Nagłówek listy wydatków dostaje komórkę „Rodzaj" (`.column-header`, ukrytą poniżej `sm`), a tekst rodzaju bez `can_change_kind` trafia do tej samej komórki. Arbitralne siatki zastąpić `.month-plan-grid`, `text-[11px]…` klasą `.column-header`, a trzy etykiety sekcji (`MonthPlan.vue:520,556,586`) klasą `.section-label`.
 
 **Contract**: zdarzenie `change-kind` w `MonthPlanItemRow` bez zmian. Nowy klucz `month_plan.kind_column` (np. „Rodzaj") w `ui.php`, `UiTranslations` i asercji (patrz pkt 4). Wiersz decyduje o kolumnie rodzaju po `row.type === 'expense'`. W plikach widoku zero `grid-cols-[` i `text-[`.
 
@@ -301,6 +301,7 @@ Widok przechodzi na klasy i komponent z fazy 2 i dostaje nowy układ: akcja w wi
 
 - Telefon (390), propozycja z kilkunastoma pozycjami: „Do wydania” i „Zatwierdź” widoczne u dołu ekranu przy przewijaniu list; pasek nie zasłania ostatniego wiersza
 - Plan zatwierdzony bieżącego miesiąca: „Zmień plan” w wierszu tytułu; po kliknięciu pasek z „Anuluj / Zapisz zmiany”; „Anuluj” przywraca kwoty
+- Odznaki statusu (np. „Zapłacone”) stoją w jednej linii z nazwą kategorii, a przy 390 zawijają się pod nią bez rozpychania kolumn
 - Nagłówki „Rodzaj / Plan / Faktycznie / Odchylenie” stoją nad swoimi kolumnami przy 390, 640 i 1280; przełącznik rodzaju jest w kolumnie od 640, a przy 390 pod nazwą
 - Tab przez stronę: każdy przełącznik to jeden przystanek
 - Zrzuty fazy 3 (strona i kitchen sink) zapisane w `screenshots/`
