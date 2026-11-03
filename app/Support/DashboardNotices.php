@@ -33,7 +33,7 @@ class DashboardNotices
      *     mark_url: string|null,
      *     amount_minor_units: int,
      * }|array{
-     *     kind: 'paced_month_remaining'|'one_off_over_limit',
+     *     kind: 'month_item_over_plan'|'one_off_over_limit',
      *     severity: 'exceeded'|'warning',
      *     id: int,
      *     name: string,
@@ -41,12 +41,32 @@ class DashboardNotices
      *     color: string,
      *     category_name: string,
      *     amount_minor_units: int,
+     * }|array{
+     *     kind: 'month_to_spend_negative',
+     *     severity: 'exceeded',
+     *     month: int,
+     *     amount_minor_units: int,
+     * }|array{
+     *     kind: 'month_plan_not_approved',
+     *     severity: 'warning',
+     *     month: int,
+     * }|array{
+     *     kind: 'month_pace_ahead',
+     *     severity: 'warning',
+     *     month: int,
+     *     percent: int,
+     *     elapsed_day: int,
+     *     days_in_month: int,
      * }>
+     *
+     * The order of appending is the contract of the list: every exceeded notice
+     * comes before every warning one, and kinds follow the order below.
      */
     public static function forDashboard(
         ?Budget $budget,
         Collection $accounts,
         Collection $termDeposits,
+        ?MonthToSpend $monthToSpend,
         CarbonImmutable $today,
     ): array {
         $notices = [];
@@ -80,28 +100,70 @@ class DashboardNotices
             ];
         }
 
-        if ($budget !== null && $budget->isExecution() && $today->year === $budget->year) {
-            $expenseCategories = $budget->categories()
-                ->where('type', CategoryType::Expense)
-                ->ordered()
-                ->get();
+        $monthReading = $monthToSpend !== null && $monthToSpend->reading->state !== 'none'
+            ? $monthToSpend
+            : null;
 
-            foreach (DashboardPacedCategoryMonthAlerts::forBudget(
-                $budget,
-                $expenseCategories,
-                $today,
-            ) as $alert) {
+        if ($monthReading !== null) {
+            $toSpendMinorUnits = $monthReading->toSpendMinorUnits();
+
+            if ($toSpendMinorUnits !== null && $toSpendMinorUnits < 0) {
                 $notices[] = [
-                    'kind' => 'paced_month_remaining',
+                    'kind' => 'month_to_spend_negative',
+                    'severity' => DashboardNoticeSeverity::Exceeded->value,
+                    'month' => $today->month,
+                    'amount_minor_units' => $toSpendMinorUnits,
+                ];
+            }
+
+            $overPlanAlerts = [];
+
+            foreach ($monthReading->categories->values() as $budgetOrder => $category) {
+                if ($category->isArchived()) {
+                    continue;
+                }
+
+                $amounts = $monthReading->rowAmounts($category);
+
+                if (! MonthItemDeviation::isOverPlan(
+                    $category->type,
+                    $amounts['plan_minor_units'],
+                    $amounts['actual_minor_units'],
+                )) {
+                    continue;
+                }
+
+                $overPlanAlerts[] = [
+                    'budget_order' => $budgetOrder,
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    ...CategoryAppearance::fields($category),
+                    'category_name' => $category->name,
+                    'amount_minor_units' => $amounts['plan_minor_units'] - $amounts['actual_minor_units'],
+                ];
+            }
+
+            $overPlanAlerts = self::sortByMostOverThenBudgetOrder($overPlanAlerts);
+
+            foreach ($overPlanAlerts as $alert) {
+                $notices[] = [
+                    'kind' => 'month_item_over_plan',
                     'severity' => DashboardNoticeSeverity::Exceeded->value,
                     'id' => $alert['id'],
                     'name' => $alert['name'],
                     'icon' => $alert['icon'],
                     'color' => $alert['color'],
-                    'category_name' => $alert['name'],
-                    'amount_minor_units' => $alert['month_remaining_minor_units'],
+                    'category_name' => $alert['category_name'],
+                    'amount_minor_units' => $alert['amount_minor_units'],
                 ];
             }
+        }
+
+        if ($budget !== null && $budget->isExecution() && $today->year === $budget->year) {
+            $expenseCategories = $budget->categories()
+                ->where('type', CategoryType::Expense)
+                ->ordered()
+                ->get();
 
             $oneOffAlerts = [];
 
@@ -129,18 +191,7 @@ class DashboardNotices
                 ];
             }
 
-            usort(
-                $oneOffAlerts,
-                function (array $left, array $right): int {
-                    $byRemaining = $left['amount_minor_units'] <=> $right['amount_minor_units'];
-
-                    if ($byRemaining !== 0) {
-                        return $byRemaining;
-                    }
-
-                    return $left['budget_order'] <=> $right['budget_order'];
-                },
-            );
+            $oneOffAlerts = self::sortByMostOverThenBudgetOrder($oneOffAlerts);
 
             foreach ($oneOffAlerts as $alert) {
                 $notices[] = [
@@ -156,6 +207,55 @@ class DashboardNotices
             }
         }
 
+        if ($monthReading !== null && $budget !== null) {
+            if ($monthReading->reading->state === 'proposal' && $today->day >= 3) {
+                $notices[] = [
+                    'kind' => 'month_plan_not_approved',
+                    'severity' => DashboardNoticeSeverity::Warning->value,
+                    'month' => $today->month,
+                ];
+            }
+
+            $pace = MonthPace::forMonth($monthReading, $budget->year, $today->month, $today);
+
+            if ($pace !== null && $pace['is_ahead'] && $pace['percent'] !== null) {
+                $notices[] = [
+                    'kind' => 'month_pace_ahead',
+                    'severity' => DashboardNoticeSeverity::Warning->value,
+                    'month' => $today->month,
+                    'percent' => $pace['percent'],
+                    'elapsed_day' => $pace['elapsed_day'],
+                    'days_in_month' => $pace['days_in_month'],
+                ];
+            }
+        }
+
         return $notices;
+    }
+
+    /**
+     * Most negative amount first; a tie keeps the budget order.
+     *
+     * @template T of array{budget_order: int, amount_minor_units: int}
+     *
+     * @param  list<T>  $alerts
+     * @return list<T>
+     */
+    private static function sortByMostOverThenBudgetOrder(array $alerts): array
+    {
+        usort(
+            $alerts,
+            function (array $left, array $right): int {
+                $byAmount = $left['amount_minor_units'] <=> $right['amount_minor_units'];
+
+                if ($byAmount !== 0) {
+                    return $byAmount;
+                }
+
+                return $left['budget_order'] <=> $right['budget_order'];
+            },
+        );
+
+        return $alerts;
     }
 }

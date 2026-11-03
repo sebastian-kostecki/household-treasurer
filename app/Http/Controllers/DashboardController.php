@@ -59,6 +59,7 @@ class DashboardController extends Controller
         $expenseCategories = [];
         $dashboardNotices = [];
         $monthToSpend = null;
+        $monthToSpendReading = null;
         $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
@@ -97,7 +98,8 @@ class DashboardController extends Controller
                     ->all();
 
                 $currentMonth = $today->month;
-                $summary = MonthToSpend::forMonth($budget, $currentMonth, $today)->summary();
+                $monthToSpendReading = MonthToSpend::forMonth($budget, $currentMonth, $today);
+                $summary = $monthToSpendReading->summary();
 
                 if ($summary['state'] !== 'none') {
                     $monthToSpend = [
@@ -112,6 +114,7 @@ class DashboardController extends Controller
             $budget,
             $allAccounts,
             $allTermDeposits,
+            $monthToSpendReading,
             $today,
         );
 
