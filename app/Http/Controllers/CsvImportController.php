@@ -22,6 +22,7 @@ use App\Support\CsvImport\CsvImportSession;
 use App\Support\CsvImport\ImportDuplicateDetector;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportPairCandidateDetector;
+use App\Support\EntryToSpendInputs;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -136,16 +137,13 @@ class CsvImportController extends Controller
                 ...AccountIdentity::payload($account),
                 'current_balance_minor_units' => $account->current_balance_minor_units,
             ],
-            'rows' => ImportMonthRemainingContext::annotateRows(
-                $request->user(),
-                $import['rows'],
-                $expenseCategories,
-            ),
+            'rows' => $import['rows'],
             'incomeCategories' => $this->incomeCategories($request),
             'expenseCategories' => $expenseCategories,
             'otherAccounts' => $this->otherAccounts($request, $account, $import['rows']),
             'termDeposits' => $this->termDeposits($request),
             'monthRemainingContext' => ImportMonthRemainingContext::forUser($request->user()),
+            'entryToSpend' => EntryToSpendInputs::forUser($request->user()),
         ]);
     }
 

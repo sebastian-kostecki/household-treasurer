@@ -66,7 +66,10 @@ CSV;
                 ->where('rows.0.valid', true)
                 ->where('rows.0.amount_minor_units', 250000)
                 ->where('rows.1.valid', true)
-                ->where('rows.1.amount_minor_units', -4550),
+                ->where('rows.1.amount_minor_units', -4550)
+                ->has('monthRemainingContext.budgets', 1)
+                ->has('entryToSpend.budgets', 1)
+                ->where('entryToSpend.budgets.0.year', 2026),
             );
     }
 

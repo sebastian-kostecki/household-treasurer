@@ -61,3 +61,26 @@ test('set-aside lowers the amount to spend', function () {
 test('a draw raises the amount to spend', function () {
     expect(ToSpendCalculator::toSpendMinorUnits(setAsideExampleItems(), -30_000))->toBe(250_000);
 });
+
+dataset('item amount cases', [
+    'running plan above actual' => [CategoryType::Expense, MonthItemKind::Running, 150_000, 60_000, true, 150_000],
+    'running actual above plan' => [CategoryType::Expense, MonthItemKind::Running, 40_000, 52_000, true, 52_000],
+    'running with a refund' => [CategoryType::Expense, MonthItemKind::Running, 0, -5_000, false, 0],
+    'bill before payment' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, 0, false, 200_000],
+    'bill paid less than plan' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, 195_000, true, 195_000],
+    'bill paid more than plan' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, 210_000, true, 210_000],
+    'bill with only a refund' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, -10_000, false, 200_000],
+    'income before inflow' => [CategoryType::Income, null, 800_000, 0, false, 800_000],
+    'income after inflow' => [CategoryType::Income, null, 800_000, 780_000, true, 780_000],
+]);
+
+test('item amount follows the To Spend rule', function (
+    CategoryType $type,
+    ?MonthItemKind $kind,
+    int $plan,
+    int $actual,
+    bool $hasPositiveAmount,
+    int $expected,
+) {
+    expect(ToSpendCalculator::itemMinorUnits($type, $kind, $plan, $actual, $hasPositiveAmount))->toBe($expected);
+})->with('item amount cases');

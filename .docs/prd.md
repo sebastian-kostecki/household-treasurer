@@ -188,7 +188,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-TRX-05**: Dochód albo wydatek można zapisać tylko dla roku z budżetem w fazie wykonania.
 - **FR-TRX-06**: Zwykły dochód i zwykły wydatek mają kwotę dodatnią.
 - **FR-TRX-07**: Zwrot wydatku jest ujemnym wydatkiem przypisanym do kategorii wydatkowej; może też zawierać opcjonalnego nadawcę / odbiorcę (Counterparty).
-- **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny Available Limit i przewidywany limit po operacji. Dla Paced Category pokazuje także Month Remaining przed operacją i po niej.
+- **FR-TRX-08**: Przed zapisaniem wydatku system pokazuje aktualny Available Limit i przewidywany limit po operacji. Dla Paced Category w miesiącu bez planu miesiąca pokazuje także Month Remaining przed operacją i po niej. Gdy miesiąc daty operacji ma plan miesiąca (także propozycję), dochód, wydatek albo zwrot, po którym To Spend tego miesiąca jest ujemne i niższe niż przed operacją, daje ostrzeżenie z kwotą To Spend po operacji; to samo dotyczy wiersza podglądu Importu.
 - **FR-TRX-09**: Przekroczenie limitu nie blokuje zapisu operacji.
 - **FR-TRX-10**: Użytkownik może edytować i usuwać operacje w budżecie znajdującym się w fazie wykonania, w tym opcjonalnego nadawcę / odbiorcę (Counterparty).
 - **FR-TRX-11**: Zmiana daty na inny rok wymaga wskazania kategorii z docelowego budżetu będącego w fazie wykonania.
@@ -342,7 +342,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - Próba użycia zarchiwizowanego konta, kategorii albo lokaty jest blokowana bez zmiany danych.
 - Próba zapisania operacji wcześniejszej niż data otwarcia konta albo późniejszej niż bieżący dzień jest blokowana.
 - Próba zapisania Capital Movement wcześniejszego niż data otwarcia konta albo lokaty, albo z datą w przyszłości, jest blokowana.
-- Przekroczenie limitu, zejście Month Remaining poniżej zera oraz zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
+- Przekroczenie limitu, zejście Month Remaining poniżej zera, zejście To Spend poniżej zera przy operacji oraz zejście salda konta albo lokaty poniżej zera są pokazywane jako ostrzeżenia, ale nie blokują zapisu.
 - Data zakończenia lokaty wcześniejsza niż data otwarcia jest odrzucana.
 - Flaga Paced na kategorii dochodowej jest odrzucana.
 - Zmiana daty operacji na inny rok nie zachowuje kategorii ze starego budżetu; użytkownik wybiera kategorię docelową.

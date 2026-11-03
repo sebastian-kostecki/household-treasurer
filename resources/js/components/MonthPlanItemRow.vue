@@ -2,6 +2,7 @@
 import { Check } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +10,16 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, formatSignedMoney } from '@/lib/format';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
 
-const props = defineProps<{
-    row: MonthPlanItem;
-    editable: boolean;
-    deviation: number | null;
-    overPlan: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        row: MonthPlanItem;
+        editable: boolean;
+        deviation: number | null;
+        overPlan: boolean;
+        yearStale?: boolean;
+    }>(),
+    { yearStale: false },
+);
 
 const emit = defineEmits<{
     'change-kind': [kind: MonthItemKind];
@@ -98,7 +103,26 @@ const deviationClass = computed(() => {
             </div>
 
             <p
-                v-if="row.available_limit_minor_units !== null"
+                v-if="row.year_comparison !== null && !row.is_idle_one_off"
+                class="text-muted-foreground text-xs"
+                :class="yearStale ? 'opacity-60' : ''"
+                :title="yearStale ? t.month_plan.year_stale_hint : undefined"
+            >
+                {{ t.month_plan.year_line }}:
+                <MonthYearSummary
+                    :comparison="row.year_comparison"
+                    :type="row.type"
+                />
+                <span v-if="yearStale" class="sr-only">
+                    ({{ t.month_plan.year_stale_hint }})
+                </span>
+            </p>
+
+            <p
+                v-if="
+                    row.available_limit_minor_units !== null &&
+                    (row.year_comparison === null || row.is_idle_one_off)
+                "
                 class="text-muted-foreground text-xs"
             >
                 {{ t.month_plan.available_limit }}:

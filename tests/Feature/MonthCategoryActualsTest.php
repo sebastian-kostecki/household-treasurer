@@ -13,6 +13,7 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\MonthCategoryActuals;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MonthCategoryActualsTest extends TestCase
@@ -45,6 +46,64 @@ class MonthCategoryActualsTest extends TestCase
 
         $this->assertSame(-10_000, $actuals->actual($rent->id));
         $this->assertFalse($actuals->hasPositiveAmount($rent->id));
+    }
+
+    public function test_positive_count_counts_positive_amounts_and_skips_refunds(): void
+    {
+        [$user, $budget, $account] = $this->setUpBudget();
+        $food = Category::factory()->for($budget)->expense()->create();
+
+        $this->operation($user, $budget, $account, $food, '2026-11-05', 10_000);
+        $this->operation($user, $budget, $account, $food, '2026-11-06', 3_000);
+        $this->operation($user, $budget, $account, $food, '2026-11-20', -2_500);
+
+        $actuals = MonthCategoryActuals::forMonth($budget, 11);
+
+        $this->assertSame(2, $actuals->positiveCount($food->id));
+        $this->assertSame(0, $actuals->positiveCount(999));
+    }
+
+    public function test_for_months_matches_for_month_with_a_single_query(): void
+    {
+        [$user, $budget, $account] = $this->setUpBudget();
+        $food = Category::factory()->for($budget)->expense()->create();
+        $salary = Category::factory()->for($budget)->income()->create();
+        $otherBudget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        $otherCategory = Category::factory()->for($otherBudget)->expense()->create();
+
+        $this->operation($user, $budget, $account, $food, '2026-02-28', 1_000);
+        $this->operation($user, $budget, $account, $food, '2026-03-01', 2_000);
+        $this->operation($user, $budget, $account, $food, '2026-03-31', -500);
+        $this->operation($user, $budget, $account, $salary, '2026-03-31', 9_000, FinancialOperationType::Income);
+        $this->operation($user, $budget, $account, $food, '2026-05-10', 4_000);
+        $this->operation($user, $budget, $account, $food, '2026-06-01', 8_000);
+        $this->operation($user, $otherBudget, $account, $otherCategory, '2026-03-10', 5_000);
+
+        $queries = 0;
+        DB::listen(function () use (&$queries): void {
+            $queries++;
+        });
+
+        $byMonth = MonthCategoryActuals::forMonths($budget, [3, 4, 5]);
+
+        $this->assertSame(1, $queries);
+        $this->assertSame([3, 4, 5], array_keys($byMonth));
+        $this->assertSame([], $byMonth[4]->categoryIds());
+
+        foreach ([3, 4, 5] as $month) {
+            $single = MonthCategoryActuals::forMonth($budget, $month);
+
+            $this->assertEqualsCanonicalizing($single->categoryIds(), $byMonth[$month]->categoryIds());
+
+            foreach ($single->categoryIds() as $categoryId) {
+                $this->assertSame($single->actual($categoryId), $byMonth[$month]->actual($categoryId));
+                $this->assertSame($single->positiveCount($categoryId), $byMonth[$month]->positiveCount($categoryId));
+            }
+        }
+
+        $this->assertSame(1_500, $byMonth[3]->actual($food->id));
+        $this->assertSame(9_000, $byMonth[3]->actual($salary->id));
+        $this->assertSame([], MonthCategoryActuals::forMonths($budget, []));
     }
 
     public function test_unknown_category_defaults_to_zero(): void

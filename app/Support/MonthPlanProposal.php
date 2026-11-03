@@ -101,7 +101,7 @@ class MonthPlanProposal
                 $approvedAmounts[$item->category_id] = $item->approved_amount_minor_units;
             }
 
-            return new MonthPlanReading('approved', $plan->approved_at, $amounts, $plan->current_set_aside_minor_units, $approvedAmounts);
+            return new MonthPlanReading('approved', $plan->approved_at, $amounts, $plan->current_set_aside_minor_units, $approvedAmounts, $plan->approved_set_aside_minor_units);
         }
 
         if ($this->isPast($budget->year, $month)) {
