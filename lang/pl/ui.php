@@ -185,7 +185,7 @@ return [
         'drag_handle' => 'Przeciągnij, aby zmienić kolejność',
         'empty' => 'Brak kategorii w budżecie',
         'show_archived' => 'Pokaż zarchiwizowane',
-        'no_budget' => 'Brak budżetu na wybrany rok',
+        'no_budget' => 'Nie masz jeszcze budżetu',
         'no_budget_description' => 'Utwórz budżet, aby planować dochody i wydatki.',
         'create_budget' => 'Utwórz budżet',
         'create_budget_title' => 'Nowy budżet',

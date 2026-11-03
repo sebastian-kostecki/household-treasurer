@@ -550,16 +550,16 @@ Brak zmian w danych i schemacie. Kitchen sink nie istnieje poza `local`. Usunię
 
 #### Automated
 
-- [ ] 3.1 Testy Budżetu przechodzą: `php artisan test --compact tests/Feature/BudgetTest.php` (obraz Sail na worktree)
-- [ ] 3.2 `npm run build && npm run types:check && npm run check` przechodzą
-- [ ] 3.3 Skan literałów na plikach widoku daje 0 trafień
-- [ ] 3.4 `grep -n ":checked=\|@update:checked" resources/js/pages/Budget.vue` nic nie zwraca
+- [x] 3.1 Testy Budżetu przechodzą: `php artisan test --compact tests/Feature/BudgetTest.php` (obraz Sail na worktree)
+- [x] 3.2 `npm run build && npm run types:check && npm run check` przechodzą
+- [x] 3.3 Skan literałów na plikach widoku daje 0 trafień
+- [x] 3.4 `grep -n ":checked=\|@update:checked" resources/js/pages/Budget.vue` nic nie zwraca
 
 #### Manual
 
-- [ ] 3.5 W podglądzie klik „Pokaż zarchiwizowane” pokazuje i ukrywa zarchiwizowane kategorie; wejście z `?show_archived=1` pokazuje zaznaczone pole, które da się odznaczyć; przełączenie miesiąca zachowuje stan pola
-- [ ] 3.6 Konto bez budżetu: wyśrodkowany pusty stan z `<h1>` „Budżet”, tekst „Nie masz jeszcze budżetu”, dialog tworzenia działa
-- [ ] 3.7 Zrzuty desktop + 390 px (`p3-*.png`)
+- [x] 3.5 W podglądzie klik „Pokaż zarchiwizowane” pokazuje i ukrywa zarchiwizowane kategorie; wejście z `?show_archived=1` pokazuje zaznaczone pole, które da się odznaczyć; przełączenie miesiąca zachowuje stan pola
+- [x] 3.6 Konto bez budżetu: wyśrodkowany pusty stan z `<h1>` „Budżet”, tekst „Nie masz jeszcze budżetu”, dialog tworzenia działa
+- [x] 3.7 Zrzuty desktop + 390 px (`p3-*.png`)
 
 ### Phase 4: Widok — jedna lista (C2, C5)
 

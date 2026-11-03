@@ -894,6 +894,35 @@ class BudgetTest extends TestCase
             );
     }
 
+    public function test_budget_page_exposes_show_archived_flag_from_query(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['show_archived' => 1]))
+            ->assertInertia(fn (Assert $page) => $page->where('show_archived', true));
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertInertia(fn (Assert $page) => $page->where('show_archived', false));
+    }
+
+    public function test_budget_page_without_budget_exposes_honest_empty_state_copy(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget', null)
+                ->where('translations.budget.no_budget', 'Nie masz jeszcze budżetu'),
+            );
+    }
+
     public function test_user_sees_only_their_own_budget_plan_summary(): void
     {
         $user = User::factory()->create();

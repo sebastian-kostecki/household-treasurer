@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
+import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
 import BudgetMonthStrip from '@/components/BudgetMonthStrip.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -189,6 +190,7 @@ const emptyTotals = totalsOf([], true);
 
 const showArchivedChecked = ref(true);
 const showArchivedUnchecked = ref(false);
+const createBudgetOpen = ref(false);
 
 const noop = (): void => undefined;
 </script>
@@ -428,6 +430,13 @@ const noop = (): void => undefined;
                     {{ t.budget.show_archived }} (odznaczony)
                 </Label>
             </div>
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-no-budget">
+            <h2 id="ks-no-budget" class="text-base font-semibold">
+                Brak budżetu
+            </h2>
+            <BudgetEmptyState v-model:open="createBudgetOpen" />
         </section>
     </div>
 </template>
