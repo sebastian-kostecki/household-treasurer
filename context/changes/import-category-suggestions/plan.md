@@ -459,26 +459,26 @@ Bez migracji schematu i bez backfillu. Podgląd zapisany w sesji przed wdrożeni
 
 #### Automated
 
-- [x] 3.1 Testy TS przechodzą: `npm test`
-- [x] 3.2 Kontrole, literały UI, typy i build przechodzą: `npm run check`, `npm run check:ui`, `npm run types:check`, `npm run build`
-- [x] 3.3 Test kitchen sinka przechodzi: `artisan test --compact tests/Feature/DevImportPreviewSinkTest.php`
+- [x] 3.1 Testy TS przechodzą: `npm test` — b2e6563
+- [x] 3.2 Kontrole, literały UI, typy i build przechodzą: `npm run check`, `npm run check:ui`, `npm run types:check`, `npm run build` — b2e6563
+- [x] 3.3 Test kitchen sinka przechodzi: `artisan test --compact tests/Feature/DevImportPreviewSinkTest.php` — b2e6563
 
 #### Manual
 
-- [x] 3.4 Podgląd prawdziwego pliku: wiersze ze znanym sklepem mają wybraną kategorię i „✦ podpowiedź”, a wiersze z nowym sklepem lub BLIK-iem „Payment for order ID …” mają puste pole
-- [x] 3.5 Ręczna zmiana kategorii ukrywa znacznik, a powrót do podpowiedzianej przywraca go
-- [x] 3.6 Przełączenie `expense` na `refund` zostawia podpowiedź, `income` na `refund` (wiersz +) wstawia podpowiedź wydatkową albo puste pole, a przełączenie na transfer własny czyści pole
-- [x] 3.7 Zaznaczenie wiersza z podpowiedzią i zatwierdzenie zapisuje operację z tą kategorią
-- [x] 3.8 Kitchen sink `/dev/import-preview` pokazuje stan z podpowiedzią w motywie jasnym i ciemnym; czytnik ekranu ogłasza „podpowiedź” przy polu kategorii
+- [x] 3.4 Podgląd prawdziwego pliku: wiersze ze znanym sklepem mają wybraną kategorię i „✦ podpowiedź”, a wiersze z nowym sklepem lub BLIK-iem „Payment for order ID …” mają puste pole — b2e6563
+- [x] 3.5 Ręczna zmiana kategorii ukrywa znacznik, a powrót do podpowiedzianej przywraca go — b2e6563
+- [x] 3.6 Przełączenie `expense` na `refund` zostawia podpowiedź, `income` na `refund` (wiersz +) wstawia podpowiedź wydatkową albo puste pole, a przełączenie na transfer własny czyści pole — b2e6563
+- [x] 3.7 Zaznaczenie wiersza z podpowiedzią i zatwierdzenie zapisuje operację z tą kategorią — b2e6563
+- [x] 3.8 Kitchen sink `/dev/import-preview` pokazuje stan z podpowiedzią w motywie jasnym i ciemnym; czytnik ekranu ogłasza „podpowiedź” przy polu kategorii — b2e6563
 
 ### Phase 4: Wydajność i pomiar jakości
 
 #### Automated
 
-- [ ] 4.1 Test NFR przechodzi: `./vendor/bin/sail artisan test --group=nfr --configuration=phpunit.nfr.xml`
-- [ ] 4.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
-- [ ] 4.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 4.1 Test NFR przechodzi: `./vendor/bin/sail artisan test --group=nfr --configuration=phpunit.nfr.xml`
+- [x] 4.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
+- [x] 4.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
 
 #### Manual
 
-- [ ] 4.4 Pomiar `eval_service.php` na lokalnych danych: od stycznia ≥ 78% wierszy z podpowiedzią i ≥ 92% trafnych; sierpień–listopad ≥ 79% i ≥ 95%. Gdy próg nie jest spełniony, zatrzymaj się i zgłoś wyniki zamiast stroić stałe
+- [x] 4.4 Pomiar `eval_service.php` na lokalnych danych: od stycznia ≥ 78% wierszy z podpowiedzią i ≥ 92% trafnych; sierpień–listopad ≥ 79% i ≥ 95%. Gdy próg nie jest spełniony, zatrzymaj się i zgłoś wyniki zamiast stroić stałe

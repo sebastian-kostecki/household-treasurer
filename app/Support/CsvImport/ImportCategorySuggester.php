@@ -7,21 +7,8 @@ use App\Models\User;
 class ImportCategorySuggester
 {
     /**
-     * @param  list<array{
-     *     operation_date: string,
-     *     description: ?string,
-     *     counterparty: ?string,
-     *     valid: bool,
-     *     ...
-     * }>  $rows
-     * @return list<array{
-     *     operation_date: string,
-     *     description: ?string,
-     *     counterparty: ?string,
-     *     valid: bool,
-     *     category_suggestion: array{income: ?int, expense: ?int},
-     *     ...
-     * }>
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array<string, mixed>>
      */
     public function annotateRows(User $user, array $rows): array
     {
@@ -39,7 +26,10 @@ class ImportCategorySuggester
                 return $this->withSuggestion($row, null, null);
             }
 
-            $text = $this->textOf($row['description'], $row['counterparty'] ?? null);
+            $text = $this->textOf(
+                is_string($row['description'] ?? null) ? $row['description'] : null,
+                is_string($row['counterparty'] ?? null) ? $row['counterparty'] : null,
+            );
             $incomeName = $model->suggest('income', $text);
             $expenseName = $model->suggest('expense', $text);
 
@@ -48,7 +38,7 @@ class ImportCategorySuggester
             }
 
             $categoryIds ??= $this->categoryIdsByYearTypeAndName($user);
-            $year = (int) substr($row['operation_date'], 0, 4);
+            $year = (int) substr((string) $row['operation_date'], 0, 4);
 
             return $this->withSuggestion(
                 $row,
@@ -59,12 +49,12 @@ class ImportCategorySuggester
     }
 
     /**
-     * @param  array{valid: bool, description: ?string, ...}  $row
+     * @param  array<string, mixed>  $row
      */
     private function isEligibleRow(array $row): bool
     {
-        return $row['valid'] === true
-            && $row['description'] !== ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
+        return ($row['valid'] ?? false) === true
+            && ($row['description'] ?? null) !== ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
     }
 
     private function textOf(?string $description, ?string $counterparty): string
