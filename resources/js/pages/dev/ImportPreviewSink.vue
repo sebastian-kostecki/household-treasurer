@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { ArrowLeft } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import ImportPreviewRow from '@/components/ImportPreviewRow.vue';
 import ImportPreviewSubmitBar from '@/components/ImportPreviewSubmitBar.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     expenseCategories,
@@ -11,12 +15,14 @@ import {
     importPreviewRows,
     importPreviewSelections,
     incomeCategories,
+    noTermDeposits,
     otherAccounts,
     sampleMonthRemainingWarning,
     sampleToSpendWarning,
     termDeposits,
 } from '@/lib/import-preview-fixtures';
 import { consumedFirstLegKeys } from '@/lib/import-pair-selection';
+import { firstRowsError } from '@/lib/import-preview-errors';
 import type { RowSelection } from '@/lib/import-preview-rows';
 
 const t = useTranslations();
@@ -53,7 +59,69 @@ const submitBarStates = computed(() => [
     },
 ]);
 
-const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
+const matrixSections = [
+    {
+        key: 'default',
+        title: 'Default',
+        note: 'Dochód, wydatek, duplikat, para, wiersz niepoprawny, wiersz bez kwoty, ruch kapitału z odsetkami i transfer własny. Ostrzeżenia to-spend i month-remaining (wiersz 2) oraz ujemne saldo (transfer własny, wiersz 4).',
+        indexes: [0, 1, 2, 3, 4, 5, 6],
+        withWarnings: true,
+        termDeposits,
+    },
+    {
+        key: 'hover',
+        title: 'Hover',
+        note: 'Najechanie podświetla wiersz tłem foreground/3%. To rytm listy, nie afordancja: wiersz nie jest klikalny.',
+        indexes: [0, 1, 2],
+        withWarnings: false,
+        termDeposits,
+    },
+    {
+        key: 'focus',
+        title: 'Focus-visible',
+        note: 'Przejdź Tabem: checkbox, select typu, CategorySelect, AccountSelect, select lokaty i Input odsetek pokazują pierścień 3 px, a przycisk poniżej własny pierścień.',
+        indexes: [1, 3, 6],
+        withWarnings: false,
+        termDeposits,
+    },
+    {
+        key: 'disabled',
+        title: 'Disabled',
+        note: 'Wiersz niepoprawny ma wyłączony checkbox i widoczny powód. Ruch kapitału bez lokat ma wyłączony select lokaty.',
+        indexes: [4, 6],
+        withWarnings: false,
+        termDeposits: noTermDeposits,
+    },
+];
+
+const matrixSelections = ref<Record<string, Record<number, RowSelection>>>(
+    Object.fromEntries(
+        matrixSections.map((section) => {
+            const sectionSelections = importPreviewSelections();
+
+            if (section.key === 'disabled') {
+                sectionSelections[6] = {
+                    ...sectionSelections[6],
+                    term_deposit_id: '',
+                };
+            }
+
+            return [section.key, sectionSelections];
+        }),
+    ),
+);
+
+const sectionRows = (indexes: number[]) =>
+    importPreviewRows.filter((row) => indexes.includes(row.index));
+
+const sampleErrors = {
+    rows: { rows: 'Zaznacz co najmniej jeden wiersz do importu.' },
+    rowType: { 'rows.2.type': 'Wybierz typ zaznaczonego wiersza.' },
+    duplicate: {
+        duplicate_warning_acknowledged:
+            'Potwierdź import zaznaczonych duplikatów.',
+    },
+};
 </script>
 
 <template>
@@ -62,8 +130,13 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
     <div class="flex flex-1 flex-col gap-6 p-4 md:gap-8">
         <h1 class="text-xl font-semibold">Kitchen sink: Podgląd importu</h1>
 
-        <section class="flex flex-col gap-3">
-            <h2 class="text-base font-semibold">Default</h2>
+        <section
+            v-for="section in matrixSections"
+            :key="section.key"
+            class="flex flex-col gap-3"
+        >
+            <h2 class="text-base font-semibold">{{ section.title }}</h2>
+            <p class="text-muted-foreground text-xs">{{ section.note }}</p>
 
             <ListSurface>
                 <div class="overflow-x-auto">
@@ -92,10 +165,12 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
                     </div>
 
                     <ImportPreviewRow
-                        v-for="row in importPreviewRows"
+                        v-for="row in sectionRows(section.indexes)"
                         :key="row.index"
                         :row="row"
-                        v-model:selection="selections[row.index]"
+                        v-model:selection="
+                            matrixSelections[section.key][row.index]
+                        "
                         :account-balance-minor-units="
                             row.index === 3
                                 ? 50_000
@@ -104,42 +179,92 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
                         :income-categories="incomeCategories"
                         :expense-categories="expenseCategories"
                         :other-accounts="otherAccounts"
-                        :term-deposits="termDeposits"
+                        :term-deposits="section.termDeposits"
                         :consumed-first-leg-keys="
-                            consumedFirstLegKeys(selections)
+                            consumedFirstLegKeys(matrixSelections[section.key])
                         "
                         :month-remaining-warnings="
-                            row.index === 1
+                            section.withWarnings && row.index === 1
                                 ? sampleMonthRemainingWarning
                                 : undefined
                         "
                         :to-spend-warning="
-                            row.index === 1 ? sampleToSpendWarning : null
+                            section.withWarnings && row.index === 1
+                                ? sampleToSpendWarning
+                                : null
                         "
                     />
                 </div>
             </ListSurface>
+
+            <template v-if="section.key === 'focus'">
+                <div class="flex justify-end">
+                    <Button type="button">{{
+                        t.operations.import_confirm
+                    }}</Button>
+                </div>
+            </template>
+
+            <template v-if="section.key === 'disabled'">
+                <div
+                    v-for="state in submitBarStates.slice(1)"
+                    :key="state.key"
+                    class="flex flex-col gap-1"
+                >
+                    <h3 class="text-sm font-medium">
+                        Pasek: {{ state.label }}
+                    </h3>
+                    <ImportPreviewSubmitBar
+                        :reason="state.reason"
+                        :processing="false"
+                    />
+                </div>
+            </template>
         </section>
 
         <section class="flex flex-col gap-3">
-            <h2 class="text-base font-semibold">Pasek zatwierdzenia</h2>
+            <h2 class="text-base font-semibold">Error</h2>
             <p class="text-muted-foreground text-xs">
-                Bez powodu i dla każdego powodu blokady. Wiersze powyżej
-                pokazują ostrzeżenia to-spend (wiersz 2), month-remaining
-                (wiersz 2) i ujemne saldo (przelew własny, wiersz 4).
+                Błędy serwera pod listą: `rows`, `rows.N.type` (przez
+                `firstRowsError`) i `duplicate_warning_acknowledged`. Wiersz
+                niepoprawny z powodem jest w sekcji Disabled i Default.
             </p>
+            <InputError :message="firstRowsError(sampleErrors.rows)" />
+            <InputError :message="firstRowsError(sampleErrors.rowType)" />
+            <InputError
+                :message="sampleErrors.duplicate.duplicate_warning_acknowledged"
+            />
+        </section>
 
-            <div
-                v-for="state in submitBarStates"
-                :key="state.key"
-                class="flex flex-col gap-1"
-            >
-                <h3 class="text-sm font-medium">{{ state.label }}</h3>
-                <ImportPreviewSubmitBar
-                    :reason="state.reason"
-                    :processing="false"
-                />
-            </div>
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Empty</h2>
+            <p class="text-muted-foreground text-xs">
+                Podgląd bez wierszy, tak jak w widoku.
+            </p>
+            <ListSurface>
+                <IndexEmptyState
+                    :title="t.operations.import_preview_empty"
+                    :description="t.operations.import_preview_empty_description"
+                >
+                    <template #actions>
+                        <Button variant="outline" as-child>
+                            <span>
+                                <ArrowLeft class="size-4" />
+                                {{ t.operations.import_back }}
+                            </span>
+                        </Button>
+                    </template>
+                </IndexEmptyState>
+            </ListSurface>
+        </section>
+
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Loading</h2>
+            <p class="text-muted-foreground text-xs">
+                Pasek w trakcie zatwierdzania: spinner w przycisku, przycisk
+                wyłączony.
+            </p>
+            <ImportPreviewSubmitBar :reason="null" :processing="true" />
         </section>
 
         <section class="flex flex-col gap-3">

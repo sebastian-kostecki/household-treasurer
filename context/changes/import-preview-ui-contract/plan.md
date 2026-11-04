@@ -625,34 +625,34 @@ Brak migracji danych. Prop `ariaLabel` jest opcjonalny, więc dialogi z `Categor
 
 #### Automated
 
-- [x] 4.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/AccountPickerTest.php` obrazem Sail
-- [x] 4.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check`
-- [x] 4.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/components/CategorySelect.vue resources/js/components/AccountSelect.vue`
-- [x] 4.4 `rowAmountClass` i `native-input` zniknęły: `grep -rn "rowAmountClass\|native-input" resources/js` nic nie zwraca
+- [x] 4.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/AccountPickerTest.php` obrazem Sail — b7b2dc2
+- [x] 4.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check` — b7b2dc2
+- [x] 4.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/components/CategorySelect.vue resources/js/components/AccountSelect.vue` — b7b2dc2
+- [x] 4.4 `rowAmountClass` i `native-input` zniknęły: `grep -rn "rowAmountClass\|native-input" resources/js` nic nie zwraca — b7b2dc2
 
 #### Manual
 
-- [x] 4.5 `/operations/import/preview` po wgraniu CSV: przed zaznaczeniem pod przyciskiem widać „Zaznacz co najmniej jeden wiersz do importu.”; po zaznaczeniu wydatku bez kategorii — „Uzupełnij klasyfikację w zaznaczonych wierszach (1).”; po wyborze kategorii przycisk aktywny, powód znika
-- [x] 4.6 Przy imporcie bez duplikatów nie ma alertu „Możliwe duplikaty”, a notka o granicach wykrywania jest w karcie podsumowania
-- [x] 4.7 Wiersz z wydatkiem w miesiącu z planem, który zrobi ujemne „Do wydania”, pokazuje bursztynowy alert z kwotą i miesiącem
-- [x] 4.8 Inspektor dostępności: checkbox, select typu, `CategorySelect` / `AccountSelect` mają nazwy z kolumną i datą/opisem wiersza; przycisk ma opis z powodem
-- [x] 4.9 Zrzuty `phase-4-*` zapisane
+- [x] 4.5 `/operations/import/preview` po wgraniu CSV: przed zaznaczeniem pod przyciskiem widać „Zaznacz co najmniej jeden wiersz do importu.”; po zaznaczeniu wydatku bez kategorii — „Uzupełnij klasyfikację w zaznaczonych wierszach (1).”; po wyborze kategorii przycisk aktywny, powód znika — b7b2dc2
+- [x] 4.6 Przy imporcie bez duplikatów nie ma alertu „Możliwe duplikaty”, a notka o granicach wykrywania jest w karcie podsumowania — b7b2dc2
+- [x] 4.7 Wiersz z wydatkiem w miesiącu z planem, który zrobi ujemne „Do wydania”, pokazuje bursztynowy alert z kwotą i miesiącem — b7b2dc2
+- [x] 4.8 Inspektor dostępności: checkbox, select typu, `CategorySelect` / `AccountSelect` mają nazwy z kolumną i datą/opisem wiersza; przycisk ma opis z powodem — b7b2dc2
+- [x] 4.9 Zrzuty `phase-4-*` zapisane — b7b2dc2
 
 ### Phase 5: Stany z macierzy
 
 #### Automated
 
-- [ ] 5.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/DevImportPreviewSinkTest.php` obrazem Sail
-- [ ] 5.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build`
-- [ ] 5.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/pages/dev/ImportPreviewSink.vue`
+- [x] 5.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/DevImportPreviewSinkTest.php` obrazem Sail
+- [x] 5.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build`
+- [x] 5.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/pages/dev/ImportPreviewSink.vue`
 
 #### Manual
 
-- [ ] 5.4 Wgranie CSV z samym nagłówkiem: pusty stan z przyciskiem powrotu, bez karty podsumowania, alertów i przycisku „Zatwierdź import”
-- [ ] 5.5 Zatwierdzenie importu przy dławieniu sieci (DevTools „Slow 4G”): spinner w przycisku, w DOM `aria-label="Ładowanie"`
-- [ ] 5.6 Tab po wierszu w `/dev/import-preview` i w widoku: każda kontrolka ma pierścień 3 px; wyłączony checkbox jest pomijany
-- [ ] 5.7 `/dev/import-preview` pokazuje wszystkie 7 sekcji macierzy w obu motywach
-- [ ] 5.8 Zrzuty `phase-5-*` zapisane
+- [x] 5.4 Wgranie CSV z samym nagłówkiem: pusty stan z przyciskiem powrotu, bez karty podsumowania, alertów i przycisku „Zatwierdź import”
+- [x] 5.5 Zatwierdzenie importu przy dławieniu sieci (DevTools „Slow 4G”): spinner w przycisku, w DOM `aria-label="Ładowanie"`
+- [x] 5.6 Tab po wierszu w `/dev/import-preview` i w widoku: każda kontrolka ma pierścień 3 px; wyłączony checkbox jest pomijany
+- [x] 5.7 `/dev/import-preview` pokazuje wszystkie 7 sekcji macierzy w obu motywach
+- [x] 5.8 Zrzuty `phase-5-*` zapisane
 
 ### Phase 6: Utrwalenie
 

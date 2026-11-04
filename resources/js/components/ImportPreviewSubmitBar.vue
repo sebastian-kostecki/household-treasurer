@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useId } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 
 const { reason, processing } = defineProps<{
@@ -19,6 +20,7 @@ const reasonId = `${useId()}-reason`;
             :disabled="processing || reason !== null"
             :aria-describedby="reason === null ? undefined : reasonId"
         >
+            <Spinner v-if="processing" :aria-label="t.common.loading" />
             {{ t.operations.import_confirm }}
         </Button>
         <p

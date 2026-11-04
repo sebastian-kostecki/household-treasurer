@@ -144,6 +144,36 @@ CSV;
             );
     }
 
+    public function test_header_only_file_gives_empty_preview_without_error(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = "date,description,amount\n";
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('OperationsImportPreview')
+                ->has('rows', 0),
+            );
+    }
+
     public function test_amounts_with_pln_and_zl_suffixes_parse_to_minor_units(): void
     {
         $this->travelTo('2026-06-01');
