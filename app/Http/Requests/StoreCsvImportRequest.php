@@ -111,7 +111,7 @@ class StoreCsvImportRequest extends FormRequest
 
             return [
                 'index' => (int) $row['index'],
-                'selected' => (bool) ($row['selected'] ?? false),
+                'selected' => (bool) $row['selected'],
                 'type' => $type,
                 'category_id' => isset($row['category_id']) ? (int) $row['category_id'] : null,
                 'other_account_id' => isset($row['other_account_id']) ? (int) $row['other_account_id'] : null,

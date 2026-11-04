@@ -49,6 +49,12 @@ const FILES = [
     'resources/js/components/CapitalMovementActions.vue',
     'resources/js/components/PaginationLinks.vue',
     'resources/js/pages/dev/OperationsSink.vue',
+    'resources/js/pages/OperationsImportPreview.vue',
+    'resources/js/components/ImportPreviewRow.vue',
+    'resources/js/components/ImportPreviewSubmitBar.vue',
+    'resources/js/components/CategorySelect.vue',
+    'resources/js/components/AccountSelect.vue',
+    'resources/js/pages/dev/ImportPreviewSink.vue',
 ];
 
 const PALETTE =

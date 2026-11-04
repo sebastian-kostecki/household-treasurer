@@ -642,27 +642,27 @@ Brak migracji danych. Prop `ariaLabel` jest opcjonalny, więc dialogi z `Categor
 
 #### Automated
 
-- [x] 5.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/DevImportPreviewSinkTest.php` obrazem Sail
-- [x] 5.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build`
-- [x] 5.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/pages/dev/ImportPreviewSink.vue`
+- [x] 5.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/DevImportPreviewSinkTest.php` obrazem Sail — f420b3e
+- [x] 5.2 Testy TS, kontrole, typy i build przechodzą: `npm test`, `npm run check`, `npm run types:check`, `npm run build` — f420b3e
+- [x] 5.3 Brak literałów w zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/pages/dev/ImportPreviewSink.vue` — f420b3e
 
 #### Manual
 
-- [x] 5.4 Wgranie CSV z samym nagłówkiem: pusty stan z przyciskiem powrotu, bez karty podsumowania, alertów i przycisku „Zatwierdź import”
-- [x] 5.5 Zatwierdzenie importu przy dławieniu sieci (DevTools „Slow 4G”): spinner w przycisku, w DOM `aria-label="Ładowanie"`
-- [x] 5.6 Tab po wierszu w `/dev/import-preview` i w widoku: każda kontrolka ma pierścień 3 px; wyłączony checkbox jest pomijany
-- [x] 5.7 `/dev/import-preview` pokazuje wszystkie 7 sekcji macierzy w obu motywach
-- [x] 5.8 Zrzuty `phase-5-*` zapisane
+- [x] 5.4 Wgranie CSV z samym nagłówkiem: pusty stan z przyciskiem powrotu, bez karty podsumowania, alertów i przycisku „Zatwierdź import” — f420b3e
+- [x] 5.5 Zatwierdzenie importu przy dławieniu sieci (DevTools „Slow 4G”): spinner w przycisku, w DOM `aria-label="Ładowanie"` — f420b3e
+- [x] 5.6 Tab po wierszu w `/dev/import-preview` i w widoku: każda kontrolka ma pierścień 3 px; wyłączony checkbox jest pomijany — f420b3e
+- [x] 5.7 `/dev/import-preview` pokazuje wszystkie 7 sekcji macierzy w obu motywach — f420b3e
+- [x] 5.8 Zrzuty `phase-5-*` zapisane — f420b3e
 
 ### Phase 6: Utrwalenie
 
 #### Automated
 
-- [ ] 6.1 Strażnik przechodzi na pełnej liście: `npm run check:ui`
-- [ ] 6.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
-- [ ] 6.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 6.1 Strażnik przechodzi na pełnej liście: `npm run check:ui`
+- [x] 6.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
+- [x] 6.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
 
 #### Manual
 
-- [ ] 6.4 Dialogi z `CategorySelect` / `AccountSelect` (dodaj wydatek, dodaj transfer) bez widocznej zmiany i z nazwą z `<Label for>`
-- [ ] 6.5 Zrzuty `phase-6-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice
+- [x] 6.4 Dialogi z `CategorySelect` / `AccountSelect` (dodaj wydatek, dodaj transfer) bez widocznej zmiany i z nazwą z `<Label for>`
+- [x] 6.5 Zrzuty `phase-6-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice
