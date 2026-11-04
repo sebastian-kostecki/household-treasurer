@@ -24,6 +24,7 @@ import {
     monthHasPlan,
     type EntryToSpendInputs,
 } from '@/lib/entry-to-spend-warning';
+import { firstRowsError } from '@/lib/import-preview-errors';
 import { computeImportToSpendWarnings } from '@/lib/import-to-spend-warnings';
 import {
     consumedFirstLegKeys,
@@ -368,7 +369,7 @@ watch(consumedFirstLegKeysSet, () => {
                 </Label>
             </div>
             <InputError :message="errors.duplicate_warning_acknowledged" />
-            <InputError :message="errors.rows" />
+            <InputError :message="firstRowsError(errors)" />
 
             <div class="flex justify-end gap-2">
                 <Button type="submit" :disabled="processing || !canSubmit">

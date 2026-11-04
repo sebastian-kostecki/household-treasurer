@@ -297,6 +297,59 @@ CSV;
         ]);
     }
 
+    public function test_user_can_import_when_preview_contains_unselected_invalid_row_without_type(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-07-01,Future row,10.00
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    ['index' => 0, 'selected' => false],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 1);
+    }
+
+    public function test_selected_row_without_type_fails_validation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-07-01,Future row,10.00
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    ['index' => 0, 'selected' => false],
+                    ['index' => 1, 'selected' => true],
+                ],
+            ])
+            ->assertSessionHasErrors('rows.1.type');
+
+        $this->assertDatabaseCount('financial_operations', 0);
+    }
+
     public function test_user_can_import_selected_valid_rows_atomically(): void
     {
         $this->travelTo('2026-06-01');

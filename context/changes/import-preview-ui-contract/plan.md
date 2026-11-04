@@ -583,28 +583,28 @@ Brak migracji danych. Prop `ariaLabel` jest opcjonalny, więc dialogi z `Categor
 
 #### Automated
 
-- [x] 1.1 Test trasy przechodzi na PostgreSQL: `tests/Feature/DevImportPreviewSinkTest.php` obrazem Sail (AGENTS.md „Test database”)
-- [x] 1.2 Typy przechodzą: `npm run types:check`
-- [x] 1.3 Statyczne kontrole przechodzą: `npm run check`
+- [x] 1.1 Test trasy przechodzi na PostgreSQL: `tests/Feature/DevImportPreviewSinkTest.php` obrazem Sail (AGENTS.md „Test database”) — 4e07353
+- [x] 1.2 Typy przechodzą: `npm run types:check` — 4e07353
+- [x] 1.3 Statyczne kontrole przechodzą: `npm run check` — 4e07353
 
 #### Manual
 
-- [x] 1.4 `/dev/import-preview` w podglądzie z worktree renderuje wszystkie wiersze z fixture (w tym duplikat, parę, wiersz niepoprawny, ruch kapitału z odsetkami) przy 1280 i 390 px
-- [x] 1.5 Zrzuty `phase-1-*` (4 pliki) leżą w `context/changes/import-preview-ui-contract/screenshots/`
+- [x] 1.4 `/dev/import-preview` w podglądzie z worktree renderuje wszystkie wiersze z fixture (w tym duplikat, parę, wiersz niepoprawny, ruch kapitału z odsetkami) przy 1280 i 390 px — 4e07353
+- [x] 1.5 Zrzuty `phase-1-*` (4 pliki) leżą w `context/changes/import-preview-ui-contract/screenshots/` — 4e07353
 
 ### Phase 2: Błąd zatwierdzenia z wierszami niepoprawnymi (C6)
 
 #### Automated
 
-- [ ] 2.1 Nowy test C6 oblewa na HEAD z błędem `rows.N.type` przed poprawką (wynik zapisany w raporcie fazy)
-- [ ] 2.2 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail
-- [ ] 2.3 Testy TS przechodzą: `npm test`
-- [ ] 2.4 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check`
-- [ ] 2.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 Nowy test C6 oblewa na HEAD z błędem `rows.N.type` przed poprawką (wynik zapisany w raporcie fazy)
+- [x] 2.2 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail
+- [x] 2.3 Testy TS przechodzą: `npm test`
+- [x] 2.4 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check`
+- [x] 2.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
 
 #### Manual
 
-- [ ] 2.6 W podglądzie z worktree: wgranie CSV z wierszem z datą w przyszłości i wierszem poprawnym, zaznaczenie poprawnego z kategorią, „Zatwierdź import” → przekierowanie do Operacji i jedna nowa operacja
+- [x] 2.6 W podglądzie z worktree: wgranie CSV z wierszem z datą w przyszłości i wierszem poprawnym, zaznaczenie poprawnego z kategorią, „Zatwierdź import” → przekierowanie do Operacji i jedna nowa operacja
 
 ### Phase 3: Elementy kontraktu
 
