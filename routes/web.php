@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     if (app()->environment('local')) {
         Route::inertia('dev/month-plan', 'dev/MonthPlanSink');
         Route::inertia('dev/operations', 'dev/OperationsSink');
+        Route::inertia('dev/import-preview', 'dev/ImportPreviewSink');
     }
     Route::post('budgets/{budget}/month-plans/{month}/approve', [MonthPlanController::class, 'approve'])
         ->whereNumber('month')
