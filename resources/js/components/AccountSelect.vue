@@ -20,6 +20,7 @@ const props = withDefaults(
         required?: boolean;
         disabled?: boolean;
         class?: string;
+        ariaLabel?: string;
     }>(),
     {
         required: false,
@@ -46,7 +47,11 @@ const selectedAccount = computed(() =>
 <template>
     <div>
         <Select v-model="selectedAccountId" :disabled="disabled">
-            <SelectTrigger :id="id" :class="['w-full', props.class]">
+            <SelectTrigger
+                :id="id"
+                :aria-label="ariaLabel"
+                :class="['w-full', props.class]"
+            >
                 <SelectValue :placeholder="placeholder">
                     <span
                         v-if="selectedAccount"

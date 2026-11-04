@@ -596,30 +596,30 @@ Brak migracji danych. Prop `ariaLabel` jest opcjonalny, więc dialogi z `Categor
 
 #### Automated
 
-- [x] 2.1 Nowy test C6 oblewa na HEAD z błędem `rows.N.type` przed poprawką (wynik zapisany w raporcie fazy)
-- [x] 2.2 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail
-- [x] 2.3 Testy TS przechodzą: `npm test`
-- [x] 2.4 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check`
-- [x] 2.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 Nowy test C6 oblewa na HEAD z błędem `rows.N.type` przed poprawką (wynik zapisany w raporcie fazy) — 298c432
+- [x] 2.2 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail — 298c432
+- [x] 2.3 Testy TS przechodzą: `npm test` — 298c432
+- [x] 2.4 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check` — 298c432
+- [x] 2.5 Formatowanie PHP: `vendor/bin/pint --dirty --format agent` — 298c432
 
 #### Manual
 
-- [x] 2.6 W podglądzie z worktree: wgranie CSV z wierszem z datą w przyszłości i wierszem poprawnym, zaznaczenie poprawnego z kategorią, „Zatwierdź import” → przekierowanie do Operacji i jedna nowa operacja
+- [x] 2.6 W podglądzie z worktree: wgranie CSV z wierszem z datą w przyszłości i wierszem poprawnym, zaznaczenie poprawnego z kategorią, „Zatwierdź import” → przekierowanie do Operacji i jedna nowa operacja — 298c432
 
 ### Phase 3: Elementy kontraktu
 
 #### Automated
 
-- [ ] 3.1 Testy TS przechodzą: `npm test`
-- [ ] 3.2 Statyczne kontrole i typy przechodzą: `npm run check`, `npm run types:check`
-- [ ] 3.3 Build przechodzi: `npm run build`
-- [ ] 3.4 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail
+- [x] 3.1 Testy TS przechodzą: `npm test`
+- [x] 3.2 Statyczne kontrole i typy przechodzą: `npm run check`, `npm run types:check`
+- [x] 3.3 Build przechodzi: `npm run build`
+- [x] 3.4 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail
 
 #### Manual
 
-- [ ] 3.5 W `/dev/import-preview` nagłówek i wiersze na nowych klasach wyglądają jak dzisiejsze (1280 i 390 px); nagłówek kolumn ukryty poniżej `xl`
-- [ ] 3.6 Tint pary w trybie jasnym odpowiada dzisiejszemu `sky-500/10`; w trybie ciemnym jest widoczny i odróżnia się od tintu duplikatu
-- [ ] 3.7 Zrzuty `phase-3-*` zapisane
+- [x] 3.5 W `/dev/import-preview` nagłówek i wiersze na nowych klasach wyglądają jak dzisiejsze (1280 i 390 px); nagłówek kolumn ukryty poniżej `xl`
+- [x] 3.6 Tint pary w trybie jasnym odpowiada dzisiejszemu `sky-500/10`; w trybie ciemnym jest widoczny i odróżnia się od tintu duplikatu
+- [x] 3.7 Zrzuty `phase-3-*` zapisane
 
 ### Phase 4: Widok (C1–C5)
 

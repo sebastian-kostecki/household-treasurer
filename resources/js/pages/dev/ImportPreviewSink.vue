@@ -20,6 +20,16 @@ import type { RowSelection } from '@/lib/import-preview-rows';
 
 const t = useTranslations();
 
+const contractRows = [
+    { key: 'plain', label: 'Zwykły', rowClass: '' },
+    {
+        key: 'duplicate',
+        label: 'Duplikat',
+        rowClass: 'import-preview-row-duplicate',
+    },
+    { key: 'pair', label: 'Para', rowClass: 'import-preview-row-pair' },
+];
+
 const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
 </script>
 
@@ -84,6 +94,93 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
                             row.index === 1 ? sampleToSpendWarning : null
                         "
                     />
+                </div>
+            </ListSurface>
+        </section>
+
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Kontrakt</h2>
+            <p class="text-muted-foreground text-xs">
+                Statyczne wiersze na klasach `import-preview-header-row`,
+                `import-preview-row`, `-duplicate` i `-pair`. Nagłówek jest
+                ukryty poniżej `xl`.
+            </p>
+
+            <ListSurface>
+                <div class="overflow-x-auto">
+                    <div class="import-preview-grid import-preview-header-row">
+                        <span class="import-preview-cell-select">
+                            {{ t.operations.import_select }}
+                        </span>
+                        <span class="import-preview-cell-date">
+                            {{ t.operations.date }}
+                        </span>
+                        <span class="import-preview-cell-description">
+                            {{ t.operations.description }}
+                        </span>
+                        <span class="import-preview-cell-amount">
+                            {{ t.operations.amount }}
+                        </span>
+                        <span class="import-preview-cell-type">
+                            {{ t.operations.type }}
+                        </span>
+                        <span class="import-preview-cell-classification">
+                            {{ t.operations.import_classification }}
+                        </span>
+                        <span class="import-preview-cell-status">
+                            {{ t.operations.import_status }}
+                        </span>
+                    </div>
+
+                    <div
+                        v-for="contractRow in contractRows"
+                        :key="contractRow.key"
+                        class="import-preview-row"
+                        :class="contractRow.rowClass"
+                    >
+                        <div class="import-preview-grid">
+                            <div class="import-preview-cell-select">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.import_select }}
+                                </span>
+                            </div>
+                            <div class="import-preview-cell-date">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.date }}
+                                </span>
+                                <p class="text-sm font-medium">2026-10-12</p>
+                            </div>
+                            <div class="import-preview-cell-description">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.description }}
+                                </span>
+                                <p class="text-sm font-medium">
+                                    {{ contractRow.label }}
+                                </p>
+                            </div>
+                            <div class="import-preview-cell-amount">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.amount }}
+                                </span>
+                                <p class="text-sm">-125,00</p>
+                            </div>
+                            <div class="import-preview-cell-type">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.type }}
+                                </span>
+                            </div>
+                            <div class="import-preview-cell-classification">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.import_classification }}
+                                </span>
+                            </div>
+                            <div class="import-preview-cell-status">
+                                <span class="column-caption xl:sr-only">
+                                    {{ t.operations.import_status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </ListSurface>
         </section>

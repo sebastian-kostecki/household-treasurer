@@ -599,7 +599,8 @@ CSV;
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('rows.0.valid', true)
-                ->has('rows', 1),
+                ->has('rows', 1)
+                ->where('translations.operations.import_block_no_selection', 'Zaznacz co najmniej jeden wiersz do importu.'),
             );
     }
 

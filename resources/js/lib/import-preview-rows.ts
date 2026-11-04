@@ -250,3 +250,21 @@ export function rowSelectionValid(
 
     return selection.category_id !== '';
 }
+
+export type ImportRowNoteKind =
+    | 'invalidReason'
+    | 'pairReason'
+    | 'negativeBalance'
+    | 'toSpend'
+    | 'categoryMonthRemaining'
+    | 'poolMonthRemaining';
+
+/**
+ * Whether the row renders its notes block. The record type forces every note
+ * kind to be listed, so a new alert cannot silently stay outside the block.
+ */
+export function importRowHasNotes(
+    flags: Record<ImportRowNoteKind, boolean>,
+): boolean {
+    return Object.values(flags).some(Boolean);
+}
