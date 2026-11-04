@@ -1,10 +1,10 @@
 ---
 change_id: import-preview-ui-contract
 title: Import preview UI contract pass (tokens, shared components, states)
-status: impl_reviewed
+status: archived
 created: 2026-11-04
 updated: 2026-11-04
-archived_at: null
+archived_at: 2026-11-04T08:04:46Z
 ---
 
 ## Notes
