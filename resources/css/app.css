@@ -48,6 +48,7 @@
 
     --color-refund: var(--refund);
     --color-transfer: var(--transfer);
+    --color-pair: var(--pair);
 
     --color-border: var(--border);
     --color-input: var(--input);
@@ -120,6 +121,7 @@
     --warning-foreground: hsl(0 0% 98%);
     --refund: hsl(26 90.5% 37.1%);
     --transfer: hsl(224 76.3% 48%);
+    --pair: hsl(199 89% 48%);
     --border: hsl(0 0% 90%);
     --input: hsl(0 0% 91%);
     --ring: hsl(189 85% 28%);
@@ -163,6 +165,7 @@
     --warning-foreground: hsl(0 0% 3.9%);
     --refund: hsl(43 96% 56%);
     --transfer: hsl(213 94% 68%);
+    --pair: hsl(199 89% 60%);
     --border: hsl(0 0% 14.9%);
     --input: hsl(0 0% 14.9%);
     --ring: hsl(189 70% 40%);
@@ -628,6 +631,34 @@
     .import-preview-cell-status {
         grid-area: status;
         @apply min-w-0;
+    }
+
+    /**
+     * Nagłówek kolumn i wiersz listy importu. Nagłówek musi stać PO
+     * `.import-preview-grid` i jego wariantach (wszystkie ustawiają `display`
+     * albo kolumny), a `display: grid` wraca dopiero od `xl`. Modyfikatory
+     * tintu stoją po `.import-preview-row`.
+     */
+    .import-preview-header-row {
+        @apply column-caption border-border/60 hidden border-b pb-2.5;
+    }
+
+    @variant xl {
+        .import-preview-header-row {
+            display: grid;
+        }
+    }
+
+    .import-preview-row {
+        @apply border-border/60 hover:bg-foreground/[0.03] border-b py-3 transition-colors last:border-b-0;
+    }
+
+    .import-preview-row-duplicate {
+        @apply bg-warning/10;
+    }
+
+    .import-preview-row-pair {
+        @apply bg-pair/10;
     }
 
     .category-meter-row {

@@ -13,6 +13,7 @@ use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\CsvImport\ImportRowFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -144,6 +145,36 @@ CSV;
             );
     }
 
+    public function test_header_only_file_gives_empty_preview_without_error(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = "date,description,amount\n";
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('OperationsImportPreview')
+                ->has('rows', 0),
+            );
+    }
+
     public function test_amounts_with_pln_and_zl_suffixes_parse_to_minor_units(): void
     {
         $this->travelTo('2026-06-01');
@@ -253,6 +284,43 @@ CSV;
             );
     }
 
+    public function test_row_with_empty_description_gets_generic_description_and_stays_valid(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,,-12.50
+2026-03-16,   ,-7.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.description', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
+                ->where('rows.0.raw_statement_description', null)
+                ->where('rows.0.valid', true)
+                ->where('rows.1.description', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
+                ->where('rows.1.valid', true),
+            );
+    }
+
     public function test_user_can_import_only_selected_valid_rows_when_file_contains_invalid_rows(): void
     {
         $this->travelTo('2026-06-01');
@@ -295,6 +363,59 @@ CSV;
             'description' => 'Salary',
             'amount_minor_units' => 250000,
         ]);
+    }
+
+    public function test_user_can_import_when_preview_contains_unselected_invalid_row_without_type(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-07-01,Future row,10.00
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    ['index' => 0, 'selected' => false],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 1);
+    }
+
+    public function test_selected_row_without_type_fails_validation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-07-01,Future row,10.00
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    ['index' => 0, 'selected' => false],
+                    ['index' => 1, 'selected' => true],
+                ],
+            ])
+            ->assertSessionHasErrors('rows.1.type');
+
+        $this->assertDatabaseCount('financial_operations', 0);
     }
 
     public function test_user_can_import_selected_valid_rows_atomically(): void
@@ -546,7 +667,8 @@ CSV;
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('rows.0.valid', true)
-                ->has('rows', 1),
+                ->has('rows', 1)
+                ->where('translations.operations.import_block_no_selection', 'Zaznacz co najmniej jeden wiersz do importu.'),
             );
     }
 

@@ -209,14 +209,6 @@ export function wouldMakeAccountNegative(
     return accountBalanceMinorUnits + signedAmount < 0;
 }
 
-export function rowAmountClass(row: ImportRow): string {
-    if ((row.amount_minor_units ?? 0) < 0) {
-        return 'text-destructive';
-    }
-
-    return 'text-success';
-}
-
 export function descriptionVariant(
     type: RowSelection['type'],
 ): 'income' | 'expense' | 'refund' | 'transfer' {
@@ -249,4 +241,22 @@ export function rowSelectionValid(
     }
 
     return selection.category_id !== '';
+}
+
+export type ImportRowNoteKind =
+    | 'invalidReason'
+    | 'pairReason'
+    | 'negativeBalance'
+    | 'toSpend'
+    | 'categoryMonthRemaining'
+    | 'poolMonthRemaining';
+
+/**
+ * Whether the row renders its notes block. The record type forces every note
+ * kind to be listed, so a new alert cannot silently stay outside the block.
+ */
+export function importRowHasNotes(
+    flags: Record<ImportRowNoteKind, boolean>,
+): boolean {
+    return Object.values(flags).some(Boolean);
 }

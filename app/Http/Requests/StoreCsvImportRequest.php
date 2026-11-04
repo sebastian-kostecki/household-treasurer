@@ -22,7 +22,7 @@ class StoreCsvImportRequest extends FormRequest
             'rows' => ['required', 'array', 'min:1'],
             'rows.*.index' => ['required', 'integer', 'min:0'],
             'rows.*.selected' => ['required', 'boolean'],
-            'rows.*.type' => ['required', Rule::in(['income', 'expense', 'refund', 'own_transfer', 'capital_movement'])],
+            'rows.*.type' => ['required_if:rows.*.selected,true', 'nullable', Rule::in(['income', 'expense', 'refund', 'own_transfer', 'capital_movement'])],
             'rows.*.category_id' => ['nullable', 'integer'],
             'rows.*.other_account_id' => ['nullable', 'integer'],
             'rows.*.term_deposit_id' => ['nullable', 'integer'],
@@ -36,11 +36,11 @@ class StoreCsvImportRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        /** @var array<int, array<string, mixed>> $rows */
         $rows = $this->input('rows', []);
 
         $this->merge([
-            'rows' => collect($rows)
+            'rows' => collect(is_array($rows) ? $rows : [])
+                ->map(fn (mixed $row): array => is_array($row) ? $row : [])
                 ->map(fn (array $row): array => [
                     'index' => $row['index'] ?? null,
                     'selected' => filter_var($row['selected'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -90,6 +90,11 @@ class StoreCsvImportRequest extends FormRequest
         /** @var array<int, array<string, mixed>> $rows */
         $rows = $this->input('rows', []);
 
+        $selectedRows = array_filter(
+            $rows,
+            fn (array $row): bool => ($row['selected'] ?? false) === true,
+        );
+
         return array_values(array_map(function (array $row): array {
             $type = $row['type'] ?? null;
             $type = match ($type) {
@@ -106,7 +111,7 @@ class StoreCsvImportRequest extends FormRequest
 
             return [
                 'index' => (int) $row['index'],
-                'selected' => (bool) ($row['selected'] ?? false),
+                'selected' => (bool) $row['selected'],
                 'type' => $type,
                 'category_id' => isset($row['category_id']) ? (int) $row['category_id'] : null,
                 'other_account_id' => isset($row['other_account_id']) ? (int) $row['other_account_id'] : null,
@@ -120,6 +125,6 @@ class StoreCsvImportRequest extends FormRequest
                 'pair_first_leg_kind' => $pairFirstLegKind,
                 'pair_first_leg_id' => isset($row['pair_first_leg_id']) ? (int) $row['pair_first_leg_id'] : null,
             ];
-        }, $rows));
+        }, $selectedRows));
     }
 }

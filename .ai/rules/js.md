@@ -40,7 +40,7 @@ Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid
 Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
 Signed amount colour goes through amountToneClass, column labels through the column-caption class (the only caption recipe; `.column-header` is an alias kept for the month plan), severity pills through Badge (variants warning / destructive-soft).
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
-No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits and /dev/operations.
+No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits, /dev/operations and /dev/import-preview.
 Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are `rounded-xl`.
 
 ## Sidebar
@@ -60,3 +60,10 @@ The month plan view is checked by tests/Unit/MonthPlanHardcodedUiTest.php (part 
 
 The Operations view uses `.operations-grid`, `.operations-header-row` (hidden below md, caption through `column-caption`) and `.operations-row` (hover `foreground/3%`); do not rebuild them from utilities. The kitchen sink at `/dev/operations` (`local` only) renders the view's 7-state matrix from `resources/js/lib/operations-fixtures.ts`; add new states there. `npm run check:ui` also catches opacity literals in the form `/[0.03]`.
 The reason a create action is disabled is visible text referenced by `aria-describedby`, never `title` on a disabled `Button` (`pointer-events-none` hides it and it is not a description). A domain page title row has at most one primary `Button`; the other actions are `outline`, all with an icon.
+
+## Import preview: named classes, the `pair` tint, no lost row alert
+
+The import preview uses `.import-preview-grid`, `.import-preview-header-row` (hidden below `xl`, caption through `column-caption`) and `.import-preview-row` with the modifiers `-duplicate` (warning tint) and `-pair` (own transfer pair candidate); do not rebuild them from utilities. The `pair` token is only the tint of a pair candidate row, never text, amounts or the operation type (that is `transfer`).
+A new alert inside a row needs a new kind in `importRowHasNotes` (resources/js/lib/import-preview-rows.ts); otherwise the notes block does not render and the alert is silently lost.
+`CategorySelect` and `AccountSelect` used without a `<Label for>` get an `ariaLabel`; the reka `Select` trigger has no other accessible name.
+The kitchen sink at `/dev/import-preview` (`local` only) renders the 7-state matrix from `resources/js/lib/import-preview-fixtures.ts`; add new states there.
