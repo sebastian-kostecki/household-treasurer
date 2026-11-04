@@ -117,6 +117,16 @@ describe('suggestedCategoryId', () => {
         expect(suggest(row, 'expense')).toBe('');
     });
 
+    it('is empty for a row from an older session without the suggestion key', () => {
+        const row: ImportRow = {
+            ...suggestionRow(),
+            category_suggestion: undefined,
+        };
+
+        expect(suggest(row, 'income')).toBe('');
+        expect(suggest(row, 'expense')).toBe('');
+    });
+
     it('is empty for a row without a date', () => {
         expect(
             suggest(suggestionRow({ operation_date: null }), 'expense'),

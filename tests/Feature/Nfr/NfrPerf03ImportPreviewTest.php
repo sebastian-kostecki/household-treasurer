@@ -51,6 +51,20 @@ class NfrPerf03ImportPreviewTest extends TestCase
 
     public function test_nfr_perf_03_import_preview_with_large_history_completes_within_two_seconds(): void
     {
+        $this->assertPreviewWithinLimit(dominantShop: false);
+    }
+
+    public function test_nfr_perf_03_import_preview_with_one_dominant_shop_completes_within_two_seconds(): void
+    {
+        $this->assertPreviewWithinLimit(dominantShop: true);
+    }
+
+    /**
+     * With $dominantShop, a third of the history and of the CSV rows name one
+     * shop, so every such row has thousands of neighbour candidates.
+     */
+    private function assertPreviewWithinLimit(bool $dominantShop): void
+    {
         $this->travelTo('2026-06-01');
 
         $user = User::factory()->create();
@@ -80,9 +94,9 @@ class NfrPerf03ImportPreviewTest extends TestCase
             }
         }
 
-        $this->insertHistory($user, $account, $budgetIdsByYear, $categoryIdsByYear);
+        $this->insertHistory($user, $account, $budgetIdsByYear, $categoryIdsByYear, $dominantShop);
 
-        $csv = $this->buildCsv();
+        $csv = $this->buildCsv($dominantShop);
 
         $startedAt = microtime(true);
 
@@ -125,13 +139,13 @@ class NfrPerf03ImportPreviewTest extends TestCase
      * @param  array<int, int>  $budgetIdsByYear
      * @param  array<int, array<int, int>>  $categoryIdsByYear
      */
-    private function insertHistory(User $user, Account $account, array $budgetIdsByYear, array $categoryIdsByYear): void
+    private function insertHistory(User $user, Account $account, array $budgetIdsByYear, array $categoryIdsByYear, bool $dominantShop): void
     {
         $now = now();
         $rows = [];
 
         for ($index = 0; $index < self::HISTORY_COUNT; $index++) {
-            $shop = $index % self::SHOPS_COUNT;
+            $shop = $dominantShop && $index % 3 === 0 ? 0 : $index % self::SHOPS_COUNT;
             $year = $index % 2 === 0 ? 2025 : 2026;
             $month = 1 + ($index % 12);
             $day = 1 + ($index % 28);
@@ -162,16 +176,18 @@ class NfrPerf03ImportPreviewTest extends TestCase
         }
     }
 
-    private function buildCsv(): string
+    private function buildCsv(bool $dominantShop): string
     {
         $lines = ['date,description,amount'];
 
         for ($index = 0; $index < self::CSV_ROWS_COUNT; $index++) {
             $day = 1 + ($index % 28);
             // Every fifth row names a shop absent from the history.
-            $name = $index % 5 === 0
-                ? 'NOWYSKLEP'.chr(65 + ($index % 26))
-                : $this->shopName(($index * 7) % self::SHOPS_COUNT);
+            $name = match (true) {
+                $index % 5 === 0 => 'NOWYSKLEP'.chr(65 + ($index % 26)),
+                $dominantShop && $index % 3 === 0 => $this->shopName(0),
+                default => $this->shopName(($index * 7) % self::SHOPS_COUNT),
+            };
             $amount = number_format(-(10 + ($index % 90)) - 0.5, 2, '.', '');
 
             $lines[] = sprintf('2026-03-%02d,PLATNOSC KARTA %s JAN KOWALSKI WARSZAWA POL PLN %d,%s', $day, $name, $index, $amount);

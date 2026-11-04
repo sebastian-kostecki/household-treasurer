@@ -142,13 +142,15 @@ const incomeCategoriesEmpty = computed(() =>
     rowCategoriesEmpty(row, 'income', incomeCategories, expenseCategories),
 );
 
-const showsSuggestion = computed(() =>
-    showsCategorySuggestion(
-        row,
-        selection.value,
-        incomeCategories,
-        expenseCategories,
-    ),
+const showsSuggestion = computed(
+    () =>
+        row.valid &&
+        showsCategorySuggestion(
+            row,
+            selection.value,
+            incomeCategories,
+            expenseCategories,
+        ),
 );
 
 const suggestionId = computed(() => `row-category-suggestion-${row.index}`);
@@ -229,7 +231,6 @@ function pairCandidateOptionLabel(candidate: PairCandidate): string {
 }
 
 function onTypeChange(): void {
-    selection.value.category_id = '';
     selection.value.term_deposit_id = '';
     selection.value.interest_amount_input = '';
     selection.value.interest_category_id = '';
@@ -564,7 +565,7 @@ function onPairCandidateChange(value: string): void {
                     :required="selection.selected"
                 />
                 <p
-                    v-if="row.valid && showsSuggestion"
+                    v-if="showsSuggestion"
                     :id="suggestionId"
                     class="text-muted-foreground text-xs"
                 >

@@ -81,12 +81,14 @@ class ImportCategorySuggestionModel
 
         $index = [];
 
-        foreach ($stored as $position => $entry) {
+        foreach ($stored as $position => &$entry) {
             foreach (array_keys($entry['tokens']) as $token) {
                 $index[$entry['type']][$token][] = $position;
-                $stored[$position]['denominator'] += max($weights[$token], self::WEIGHT_FLOOR);
+                $entry['denominator'] += max($weights[$token], self::WEIGHT_FLOOR);
             }
         }
+
+        unset($entry);
 
         return new self($weights, $index, $stored);
     }
@@ -189,26 +191,48 @@ class ImportCategorySuggestionModel
             $rowDenominator += max($this->weights[$token] ?? 0.0, self::WEIGHT_FLOOR);
         }
 
-        $scored = [];
+        // Keep only the best NEIGHBOURS candidates instead of sorting all of them:
+        // a shop with thousands of history entries would otherwise be sorted per row.
+        $best = [];
 
         foreach (array_keys($candidates) as $position) {
             $entry = $this->entries[$position];
             $similarity = $this->similarity($rowTokens, $rowDenominator, $entry);
 
-            if ($similarity > 0) {
-                $scored[] = [
-                    'similarity' => $similarity,
-                    'operation_date' => $entry['operation_date'],
-                    'id' => $entry['id'],
-                    'category_name' => $entry['category_name'],
-                ];
+            if ($similarity <= 0) {
+                continue;
             }
+
+            $neighbour = [
+                'similarity' => $similarity,
+                'operation_date' => $entry['operation_date'],
+                'id' => $entry['id'],
+                'category_name' => $entry['category_name'],
+            ];
+
+            if (count($best) === self::NEIGHBOURS && self::compareNeighbours($neighbour, $best[self::NEIGHBOURS - 1]) >= 0) {
+                continue;
+            }
+
+            $best[] = $neighbour;
+            usort($best, self::compareNeighbours(...));
+            $best = array_slice($best, 0, self::NEIGHBOURS);
         }
 
-        usort($scored, fn (array $a, array $b): int => [$b['similarity'], $b['operation_date'], $b['id']]
-            <=> [$a['similarity'], $a['operation_date'], $a['id']]);
+        return $best;
+    }
 
-        return array_slice($scored, 0, self::NEIGHBOURS);
+    /**
+     * Orders neighbours by similarity, then operation date, then id, all descending.
+     *
+     * @param  array{similarity: float, operation_date: string, id: int, category_name: string}  $a
+     * @param  array{similarity: float, operation_date: string, id: int, category_name: string}  $b
+     */
+    private static function compareNeighbours(array $a, array $b): int
+    {
+        // Rounded so that float noise (1 ulp) between equal similarities does not skip the date and id keys.
+        return [round($b['similarity'], 9), $b['operation_date'], $b['id']]
+            <=> [round($a['similarity'], 9), $a['operation_date'], $a['id']];
     }
 
     /**

@@ -54,6 +54,7 @@ class ImportCategorySuggester
     private function isEligibleRow(array $row): bool
     {
         return ($row['valid'] ?? false) === true
+            && is_string($row['operation_date'] ?? null)
             && ($row['description'] ?? null) !== ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
     }
 
