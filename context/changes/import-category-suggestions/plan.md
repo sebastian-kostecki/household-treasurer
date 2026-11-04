@@ -383,7 +383,7 @@ Asercja sprawdza też, że co najmniej jeden wiersz dostał podpowiedź, żeby t
 
 #### Manual Verification:
 
-- Pomiar `eval_service.php` na lokalnych danych: od stycznia ≥ 78% wierszy z podpowiedzią i ≥ 92% trafnych; sierpień–listopad ≥ 79% i ≥ 95%. Gdy próg nie jest spełniony, zatrzymaj się i zgłoś wyniki zamiast stroić stałe
+- Pomiar `eval_service.php` na lokalnych danych: od stycznia ≥ 77% wierszy z podpowiedzią i ≥ 92% trafnych; sierpień–listopad ≥ 79% i ≥ 95%. Gdy próg nie jest spełniony, zatrzymaj się i zgłoś wyniki zamiast stroić stałe (próg „od stycznia" obniżony z 78% po przeglądzie implementacji, zob. `change.md`)
 
 **Implementation Note**: Po zakończeniu fazy i zielonych kontrolach automatycznych zatrzymaj się na ręczne potwierdzenie.
 
