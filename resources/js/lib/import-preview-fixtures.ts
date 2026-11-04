@@ -34,6 +34,7 @@ function row(index: number, overrides: Partial<ImportRow>): ImportRow {
         import_duplicate: false,
         import_pair_candidate: false,
         pair_candidates: [],
+        category_suggestion: { income: null, expense: null },
         ...overrides,
     };
 }

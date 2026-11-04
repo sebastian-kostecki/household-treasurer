@@ -436,24 +436,24 @@ Bez migracji schematu i bez backfillu. Podgląd zapisany w sesji przed wdrożeni
 
 #### Automated
 
-- [x] 1.1 Hasło, ADR i wpisy PRD istnieją: `grep -c "Import category suggestion" CONTEXT.md`, `ls .docs/adr/0034-*`, `grep -c "FR-IMP-28\|NFR-PERF-03" .docs/prd.md` (każde ≥ 1)
+- [x] 1.1 Hasło, ADR i wpisy PRD istnieją: `grep -c "Import category suggestion" CONTEXT.md`, `ls .docs/adr/0034-*`, `grep -c "FR-IMP-28\|NFR-PERF-03" .docs/prd.md` (każde ≥ 1) — 09cc6c7
 
 #### Manual
 
-- [x] 1.2 Treść hasła, ADR-0034 i FR-IMP-28 zgadza się z decyzjami w `plan-brief.md` (źródło historii, per rodzina, cel w roku daty wiersza, bez zmiany typu i zaznaczenia)
+- [x] 1.2 Treść hasła, ADR-0034 i FR-IMP-28 zgadza się z decyzjami w `plan-brief.md` (źródło historii, per rodzina, cel w roku daty wiersza, bez zmiany typu i zaznaczenia) — 09cc6c7
 
 ### Phase 2: Podpowiedź w backendzie i kontrakt propsów
 
 #### Automated
 
-- [ ] 2.1 Testy modelu, serwisu i podglądu przechodzą na PostgreSQL: `artisan test --compact tests/Unit/ImportCategorySuggestionModelTest.php tests/Feature/ImportCategorySuggesterTest.php tests/Feature/CsvImportTest.php` obrazem Sail (AGENTS.md „Test database”)
-- [ ] 2.2 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [ ] 2.3 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check`
-- [ ] 2.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 2.1 Testy modelu, serwisu i podglądu przechodzą na PostgreSQL: `artisan test --compact tests/Unit/ImportCategorySuggestionModelTest.php tests/Feature/ImportCategorySuggesterTest.php tests/Feature/CsvImportTest.php` obrazem Sail (AGENTS.md „Test database”)
+- [x] 2.2 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 2.3 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check`
+- [x] 2.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
 
 #### Manual
 
-- [ ] 2.5 Na lokalnych danych podgląd prawdziwego pliku ma w propsie `rows[i].category_suggestion` z id z roku daty wiersza (Vue devtools albo `dd` w `showPreview` wycofane przed commitem)
+- [x] 2.5 Na lokalnych danych podgląd prawdziwego pliku ma w propsie `rows[i].category_suggestion` z id z roku daty wiersza (Vue devtools albo `dd` w `showPreview` wycofane przed commitem)
 
 ### Phase 3: Wstępny wybór i znacznik w podglądzie
 

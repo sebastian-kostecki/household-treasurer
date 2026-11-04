@@ -18,6 +18,7 @@ export type ImportRow = {
     import_duplicate: boolean;
     import_pair_candidate: boolean;
     pair_candidates: PairCandidate[];
+    category_suggestion?: { income: number | null; expense: number | null };
 };
 
 export type CategoryRow = {

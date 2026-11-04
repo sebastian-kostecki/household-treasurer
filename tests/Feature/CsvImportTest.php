@@ -145,6 +145,40 @@ CSV;
             );
     }
 
+    public function test_preview_rows_carry_category_suggestions_from_import_history(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        $expenseCategory->update(['name' => 'Zakupy']);
+        FinancialOperation::factory()->for($user)->for($account)->create([
+            'type' => FinancialOperationType::Expense,
+            'category_id' => $expenseCategory->id,
+            'budget_id' => $expenseCategory->budget_id,
+            'operation_date' => '2026-02-10',
+            'amount_minor_units' => 1000,
+            'description' => 'BIEDRONKA WARSZAWA',
+            'raw_statement_description' => 'PLATNOSC KARTA BIEDRONKA WARSZAWA',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Biedronka 4521,-45.50
+2026-03-16,Nowy sklep,-12.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.category_suggestion.expense', $expenseCategory->id)
+                ->where('rows.0.category_suggestion.income', null)
+                ->where('rows.1.category_suggestion.expense', null)
+                ->where('rows.1.category_suggestion.income', null),
+            );
+    }
+
     public function test_header_only_file_gives_empty_preview_without_error(): void
     {
         $this->travelTo('2026-06-01');
