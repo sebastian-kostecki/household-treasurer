@@ -1,10 +1,10 @@
 ---
 change_id: import-category-suggestions
 title: Import category suggestions
-status: impl_reviewed
+status: archived
 created: 2026-11-04
 updated: 2026-11-04
-archived_at: null
+archived_at: 2026-11-04T10:27:38Z
 ---
 
 ## Notes
