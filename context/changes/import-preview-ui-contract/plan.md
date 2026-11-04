@@ -658,11 +658,11 @@ Brak migracji danych. Prop `ariaLabel` jest opcjonalny, więc dialogi z `Categor
 
 #### Automated
 
-- [x] 6.1 Strażnik przechodzi na pełnej liście: `npm run check:ui`
-- [x] 6.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
-- [x] 6.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 6.1 Strażnik przechodzi na pełnej liście: `npm run check:ui` — 7da06b0
+- [x] 6.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”) — 7da06b0
+- [x] 6.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście — 7da06b0
 
 #### Manual
 
-- [x] 6.4 Dialogi z `CategorySelect` / `AccountSelect` (dodaj wydatek, dodaj transfer) bez widocznej zmiany i z nazwą z `<Label for>`
-- [x] 6.5 Zrzuty `phase-6-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice
+- [x] 6.4 Dialogi z `CategorySelect` / `AccountSelect` (dodaj wydatek, dodaj transfer) bez widocznej zmiany i z nazwą z `<Label for>` — 7da06b0
+- [x] 6.5 Zrzuty `phase-6-*` zapisane; porównanie z `phase-1-*` pokazuje tylko zamierzone różnice — 7da06b0
