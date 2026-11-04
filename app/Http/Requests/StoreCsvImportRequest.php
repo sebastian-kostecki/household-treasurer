@@ -40,7 +40,8 @@ class StoreCsvImportRequest extends FormRequest
         $rows = $this->input('rows', []);
 
         $this->merge([
-            'rows' => collect($rows)
+            'rows' => collect(is_array($rows) ? $rows : [])
+                ->map(fn (mixed $row): array => is_array($row) ? $row : [])
                 ->map(fn (array $row): array => [
                     'index' => $row['index'] ?? null,
                     'selected' => filter_var($row['selected'] ?? false, FILTER_VALIDATE_BOOLEAN),

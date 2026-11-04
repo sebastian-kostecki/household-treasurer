@@ -116,6 +116,11 @@ const selectedImportDuplicateCount = computed(
 const requiresDuplicateAcknowledgement = computed(
     () => selectedImportDuplicateCount.value > 0,
 );
+watch(requiresDuplicateAcknowledgement, (required) => {
+    if (!required) {
+        duplicateWarningAcknowledged.value = false;
+    }
+});
 const blockReason = computed(() => {
     const reason = importSubmitBlockReason(
         rows,

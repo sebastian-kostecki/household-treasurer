@@ -402,7 +402,7 @@ function onPairCandidateChange(value: string): void {
                         :accounts="otherAccounts"
                         :placeholder="t.operations.import_other_account"
                         :aria-label="
-                            controlLabel(t.operations.import_classification)
+                            controlLabel(t.operations.import_other_account)
                         "
                         class="w-full"
                         @update:model-value="onOtherAccountChange"
@@ -412,7 +412,9 @@ function onPairCandidateChange(value: string): void {
                         :id="`row-pair-candidate-${row.index}`"
                         class="native-select w-full"
                         :aria-label="
-                            controlLabel(t.operations.import_classification)
+                            controlLabel(
+                                t.operations.import_pair_select_first_leg,
+                            )
                         "
                         :value="selectedPairCandidateKey(selection)"
                         @change="
@@ -457,10 +459,10 @@ function onPairCandidateChange(value: string): void {
                         :name="`rows[${row.index}][term_deposit_id]`"
                         class="native-select w-full"
                         :aria-label="
-                            controlLabel(t.operations.import_classification)
+                            controlLabel(t.operations.import_term_deposit)
                         "
                         :disabled="rowEligibleTermDeposits.length === 0"
-                        required
+                        :required="selection.selected"
                     >
                         <option value="">
                             {{ emptyTermDepositLabel() }}
@@ -511,7 +513,9 @@ function onPairCandidateChange(value: string): void {
                                     : t.operations.import_interest_category
                             "
                             :aria-label="
-                                controlLabel(t.operations.import_classification)
+                                controlLabel(
+                                    t.operations.import_interest_category,
+                                )
                             "
                             class="w-full"
                             :disabled="incomeCategoriesEmpty"
@@ -534,7 +538,7 @@ function onPairCandidateChange(value: string): void {
                     "
                     class="w-full"
                     :disabled="classificationCategoriesEmpty"
-                    required
+                    :required="selection.selected"
                 />
             </div>
 
