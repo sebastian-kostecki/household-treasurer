@@ -22,6 +22,7 @@ use App\Support\CsvImport\CsvImportSession;
 use App\Support\CsvImport\ImportDuplicateDetector;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportPairCandidateDetector;
+use App\Support\CsvImport\ImportRowFields;
 use App\Support\EntryToSpendInputs;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -86,6 +87,7 @@ class CsvImportController extends Controller
             }
 
             $row['index'] = count($operationRows);
+            $row['description'] ??= ImportRowFields::EMPTY_DESCRIPTION_FALLBACK;
             $operationRows[] = $row;
         }
 

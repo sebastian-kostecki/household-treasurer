@@ -13,6 +13,7 @@ use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\CsvImport\ImportRowFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -280,6 +281,43 @@ CSV;
                 ->where('rows.0.invalid_reason', __('The operation date cannot be in the future.'))
                 ->where('rows.1.valid', false)
                 ->where('rows.2.valid', false),
+            );
+    }
+
+    public function test_row_with_empty_description_gets_generic_description_and_stays_valid(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,,-12.50
+2026-03-16,   ,-7.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.description', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
+                ->where('rows.0.raw_statement_description', null)
+                ->where('rows.0.valid', true)
+                ->where('rows.1.description', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
+                ->where('rows.1.valid', true),
             );
     }
 
