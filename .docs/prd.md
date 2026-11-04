@@ -255,7 +255,7 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-IMP-08**: Po nagłówku formatu (albo po starcie wynikającym z mapowania) wiersze, w których zmapowana data nie jest datą albo zmapowana kwota nie jest kwotą, są pomijane i nie pojawiają się w podglądzie jako błędy.
 - **FR-IMP-09**: Wiersz, który wygląda jak operacja, ale łamie reguły biznesowe, jest oznaczony jako niepoprawny wraz z przyczyną i nie może zostać wybrany do Importu.
 - **FR-IMP-10**: Z komórki kwoty zdejmowane są suffiksy `PLN` i `zł`. Inny kod waluty w tej komórce czyni wiersz niepoprawnym. Osobna kolumna waluty nie wchodzi do mapowania.
-- **FR-IMP-11**: Kolumny kategorii banku nie są mapowane na Category. Kategorię Household Treasurer użytkownik wskazuje w podglądzie.
+- **FR-IMP-11**: Kolumny kategorii banku nie są mapowane na Category. Kategorię Household Treasurer użytkownik wskazuje w podglądzie. Wstępny wybór z FR-IMP-28 nie jest mapowaniem kategorii banku.
 - **FR-IMP-12**: System pokazuje podgląd sparsowanych wierszy przed utworzeniem operacji.
 - **FR-IMP-13**: Użytkownik wybiera poprawne wiersze przeznaczone do Importu.
 - **FR-IMP-14**: Każdy wybrany wiersz musi otrzymać typ operacji oraz dane wymagane dla tego typu.
@@ -272,6 +272,7 @@ Podgląd oznacza dwa rodzaje już znanych środków jako osobne, poprawne nakła
 - **FR-IMP-25**: Domyślny typ w podglądzie nadal wynika ze znaku kwoty (uznanie = dochód, obciążenie = wydatek). Użytkownik musi świadomie przełączyć typ na Capital Movement i wskazać istniejącą lokatę. Kierunek wynika ze znaku na koncie: obciążenie to konto → lokata, uznanie to lokata → konto. System nie zgaduje lokaty z układu pliku banku.
 - **FR-IMP-26**: Na wierszu uznania sklasyfikowanym jako Capital Movement użytkownik może podać kwotę odsetek i kategorię dochodową. Zatwierdzenie tworzy dwa niezależne rekordy: Capital Movement (lokata → konto) na resztę kapitału oraz operację finansową (dochód) na wpisane odsetki. Nie są one trwałą parą. Kwota odsetek musi być dodatnia i mniejsza od kwoty z pliku, tak aby kapitał pozostał dodatni. Ręczne dodanie nigdy nie tworzy obu rekordów w jednym zapisie.
 - **FR-IMP-27**: Gdy jeden wiersz zatwierdza Capital Movement i dochód z odsetek, oba rekordy otrzymują tę samą tożsamość wiersza pliku (nie dwa odciski rozdzielonych kwot). Capital Movement ma jeden odcisk, na koncie płynnym.
+- **FR-IMP-28**: Podgląd wstępnie wybiera kategorię poprawnego wiersza z datą dla bieżącego typu (Income albo Expense, zwrot używa Expense) na podstawie słów opisu i nadawcy / odbiorcy we wcześniejszych operacjach użytkownika z Importu. Cel to jedyna aktywna Category o tej nazwie i typie w Budgecie w execution z roku daty wiersza. Bez wspólnego słowa o dużej wadze, przy niejednoznacznej nazwie albo przy remisie podpowiedzi nie ma. Podpowiedź jest oznaczona, nie zmienia typu ani zaznaczenia, a użytkownik może ją zmienić.
 
 ### 7.10. Lista operacji
 
@@ -370,6 +371,7 @@ Komendy CLI dla administratora i pracy lokalnej. Nie są częścią interfejsu w
 - **NFR-DAT-03**: Wszystkie operacje zmieniające dane zachowują spójność sald kont, sald lokat oraz wykonania kategorii.
 - **NFR-PERF-01**: Przy 10 000 operacji finansowych użytkownika otwarcie listy kont, otwarcie podsumowania budżetu, otwarcie pierwszej strony listy operacji i zapis pojedynczej ręcznej operacji kończą się w ciągu 2 sekund w środowisku testów akceptacyjnych.
 - **NFR-PERF-02**: Import obsługuje plik zawierający do 5 000 wierszy.
+- **NFR-PERF-03**: Przy 10 000 operacji z Importu w historii użytkownika przygotowanie podglądu pliku 300 wierszy kończy się w ciągu 2 sekund w środowisku testów akceptacyjnych.
 - **NFR-ACC-01**: Kluczowe przepływy logowania, budżetu, kont, lokat, operacji i importu spełniają WCAG 2.2 na poziomie AA.
 - **NFR-ACC-02**: Kluczowe przepływy są w pełni obsługiwalne za pomocą klawiatury.
 - **NFR-UX-01**: Interfejs dostosowuje się do ekranów komputerów i urządzeń mobilnych.
@@ -449,6 +451,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 16. Wiersz sklasyfikowany jako Capital Movement wymaga istniejącej lokaty. Kierunek wynika ze znaku kwoty na koncie.
 17. Wiersz uznania z podaną kwotą odsetek i kategorią dochodową tworzy Capital Movement na resztę oraz dochód na odsetki; oba rekordy mają tę samą tożsamość wiersza pliku.
 18. Capital Movement nie jest oznaczany jako Import pair candidate.
+19. Wiersz, którego sklep występował w historii przy jednej kategorii, startuje z tą kategorią i znacznikiem. Wiersz z samym szumem albo z nowym sklepem startuje z pustym polem. Zmiana typu wstawia podpowiedź nowego typu albo puste pole.
 
 ### 11.7. Raportowanie
 

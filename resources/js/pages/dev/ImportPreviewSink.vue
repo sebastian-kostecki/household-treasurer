@@ -63,8 +63,8 @@ const matrixSections = [
     {
         key: 'default',
         title: 'Default',
-        note: 'Dochód, wydatek, duplikat, para, wiersz niepoprawny, wiersz bez kwoty, ruch kapitału z odsetkami i transfer własny. Ostrzeżenia to-spend i month-remaining (wiersz 2) oraz ujemne saldo (transfer własny, wiersz 4).',
-        indexes: [0, 1, 2, 3, 4, 5, 6],
+        note: 'Dochód, wydatek, duplikat, para, wiersz niepoprawny, wiersz bez kwoty, ruch kapitału z odsetkami, transfer własny i wydatek z podpowiedzią kategorii (wiersz 7). Ostrzeżenia to-spend i month-remaining (wiersz 2) oraz ujemne saldo (transfer własny, wiersz 4).',
+        indexes: [0, 1, 2, 3, 4, 5, 6, 7],
         withWarnings: true,
         termDeposits,
     },

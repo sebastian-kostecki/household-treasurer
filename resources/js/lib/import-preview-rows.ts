@@ -18,6 +18,7 @@ export type ImportRow = {
     import_duplicate: boolean;
     import_pair_candidate: boolean;
     pair_candidates: PairCandidate[];
+    category_suggestion?: { income: number | null; expense: number | null };
 };
 
 export type CategoryRow = {
@@ -66,7 +67,65 @@ export function emptySelection(row: ImportRow): RowSelection {
     };
 }
 
-export function initialSelection(row: ImportRow): RowSelection {
+export function suggestedCategoryId(
+    row: ImportRow,
+    type: RowSelection['type'],
+    incomeCategories: CategoryRow[],
+    expenseCategories: CategoryRow[],
+): number | '' {
+    const suggestion = row.category_suggestion;
+
+    if (suggestion === undefined) {
+        return '';
+    }
+
+    let suggestedId: number | null;
+
+    if (type === 'income') {
+        suggestedId = suggestion.income;
+    } else if (type === 'expense' || type === 'refund') {
+        suggestedId = suggestion.expense;
+    } else {
+        return '';
+    }
+
+    if (suggestedId === null) {
+        return '';
+    }
+
+    const isAvailable = categoriesForRow(
+        row,
+        type,
+        incomeCategories,
+        expenseCategories,
+    ).some((category) => category.id === suggestedId);
+
+    return isAvailable ? suggestedId : '';
+}
+
+export function showsCategorySuggestion(
+    row: ImportRow,
+    selection: RowSelection,
+    incomeCategories: CategoryRow[],
+    expenseCategories: CategoryRow[],
+): boolean {
+    return (
+        selection.category_id !== '' &&
+        selection.category_id ===
+            suggestedCategoryId(
+                row,
+                selection.type,
+                incomeCategories,
+                expenseCategories,
+            )
+    );
+}
+
+export function initialSelection(
+    row: ImportRow,
+    incomeCategories: CategoryRow[],
+    expenseCategories: CategoryRow[],
+): RowSelection {
     const uniqueCandidate = uniquePairCandidate(row.pair_candidates);
 
     if (uniqueCandidate !== null) {
@@ -83,11 +142,19 @@ export function initialSelection(row: ImportRow): RowSelection {
         };
     }
 
+    const type = locksTypeToOwnTransfer(row.pair_candidates)
+        ? 'own_transfer'
+        : defaultRowType(row);
+
     return {
         ...emptySelection(row),
-        type: locksTypeToOwnTransfer(row.pair_candidates)
-            ? 'own_transfer'
-            : defaultRowType(row),
+        type,
+        category_id: suggestedCategoryId(
+            row,
+            type,
+            incomeCategories,
+            expenseCategories,
+        ),
     };
 }
 

@@ -3,22 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ImportFinancialOperations;
-use App\Enums\BudgetPhase;
-use App\Enums\CategoryType;
 use App\Enums\ImportFormat;
 use App\Http\Requests\PreviewCsvImportRequest;
 use App\Http\Requests\StoreCsvImportRequest;
 use App\Models\Account;
-use App\Models\Budget;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\TermDeposit;
 use App\Support\AccountIdentity;
-use App\Support\CategoryAppearance;
 use App\Support\CsvImport\BnpParibasXlsxParser;
 use App\Support\CsvImport\CsvImportParser;
 use App\Support\CsvImport\CsvImportPreviewValidator;
 use App\Support\CsvImport\CsvImportSession;
+use App\Support\CsvImport\ImportCategoryOptions;
+use App\Support\CsvImport\ImportCategorySuggester;
 use App\Support\CsvImport\ImportDuplicateDetector;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportPairCandidateDetector;
@@ -52,6 +49,7 @@ class CsvImportController extends Controller
         CsvImportPreviewValidator $previewValidator,
         ImportDuplicateDetector $importDuplicateDetector,
         ImportPairCandidateDetector $importPairCandidateDetector,
+        ImportCategorySuggester $importCategorySuggester,
     ): RedirectResponse {
         $this->authorize('create', FinancialOperation::class);
 
@@ -108,6 +106,7 @@ class CsvImportController extends Controller
 
         $rows = $importDuplicateDetector->annotateRows($request->user(), $account->id, $rows);
         $rows = $importPairCandidateDetector->annotateRows($request->user(), $account->id, $rows);
+        $rows = $importCategorySuggester->annotateRows($request->user(), $rows);
 
         CsvImportSession::put($request->user(), [
             'account_id' => $account->id,
@@ -132,16 +131,14 @@ class CsvImportController extends Controller
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
-        $expenseCategories = $this->expenseCategories($request);
-
         return Inertia::render('OperationsImportPreview', [
             'account' => [
                 ...AccountIdentity::payload($account),
                 'current_balance_minor_units' => $account->current_balance_minor_units,
             ],
             'rows' => $import['rows'],
-            'incomeCategories' => $this->incomeCategories($request),
-            'expenseCategories' => $expenseCategories,
+            'incomeCategories' => ImportCategoryOptions::income($request->user()),
+            'expenseCategories' => ImportCategoryOptions::expense($request->user()),
             'otherAccounts' => $this->otherAccounts($request, $account, $import['rows']),
             'termDeposits' => $this->termDeposits($request),
             'monthRemainingContext' => ImportMonthRemainingContext::forUser($request->user()),
@@ -513,57 +510,6 @@ class CsvImportController extends Controller
                 ...AccountIdentity::payload($account),
                 'opening_date' => $account->opening_date->toDateString(),
             ])
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array<int, array{id: int, name: string, budget_year: int}>
-     */
-    private function incomeCategories(Request $request): array
-    {
-        return $request->user()
-            ->budgets()
-            ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
-                ->where('type', CategoryType::Income)
-                ->whereNull('archived_at')
-                ->ordered(),
-            ])
-            ->orderBy('year')
-            ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
-                'id' => $category->id,
-                'name' => $category->name,
-                ...CategoryAppearance::fields($category),
-                'budget_year' => $budget->year,
-            ]))
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array<int, array{id: int, name: string, budget_year: int}>
-     */
-    private function expenseCategories(Request $request): array
-    {
-        return $request->user()
-            ->budgets()
-            ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
-                ->where('type', CategoryType::Expense)
-                ->whereNull('archived_at')
-                ->ordered(),
-            ])
-            ->orderBy('year')
-            ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
-                'id' => $category->id,
-                'name' => $category->name,
-                ...CategoryAppearance::fields($category),
-                'budget_year' => $budget->year,
-                'is_paced' => $category->is_paced,
-            ]))
             ->values()
             ->all();
     }

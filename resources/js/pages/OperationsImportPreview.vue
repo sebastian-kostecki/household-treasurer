@@ -75,7 +75,12 @@ const {
 const t = useTranslations();
 const duplicateWarningAcknowledged = ref(false);
 const selections = ref<Record<number, RowSelection>>(
-    Object.fromEntries(rows.map((row) => [row.index, initialSelection(row)])),
+    Object.fromEntries(
+        rows.map((row) => [
+            row.index,
+            initialSelection(row, incomeCategories, expenseCategories),
+        ]),
+    ),
 );
 
 const validRowCount = computed(() => rows.filter((row) => row.valid).length);
