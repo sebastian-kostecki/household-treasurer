@@ -21,6 +21,7 @@ const props = withDefaults(
         disabled?: boolean;
         class?: string;
         ariaLabel?: string;
+        ariaDescribedby?: string;
     }>(),
     {
         required: false,
@@ -50,6 +51,7 @@ const selectedCategory = computed(() =>
             <SelectTrigger
                 :id="id"
                 :aria-label="ariaLabel"
+                :aria-describedby="ariaDescribedby"
                 :class="['w-full', props.class]"
             >
                 <SelectValue :placeholder="placeholder">

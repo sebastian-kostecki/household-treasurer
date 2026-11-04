@@ -446,30 +446,30 @@ Bez migracji schematu i bez backfillu. Podgląd zapisany w sesji przed wdrożeni
 
 #### Automated
 
-- [x] 2.1 Testy modelu, serwisu i podglądu przechodzą na PostgreSQL: `artisan test --compact tests/Unit/ImportCategorySuggestionModelTest.php tests/Feature/ImportCategorySuggesterTest.php tests/Feature/CsvImportTest.php` obrazem Sail (AGENTS.md „Test database”)
-- [x] 2.2 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [x] 2.3 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check`
-- [x] 2.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 2.1 Testy modelu, serwisu i podglądu przechodzą na PostgreSQL: `artisan test --compact tests/Unit/ImportCategorySuggestionModelTest.php tests/Feature/ImportCategorySuggesterTest.php tests/Feature/CsvImportTest.php` obrazem Sail (AGENTS.md „Test database”) — 5884223
+- [x] 2.2 Formatowanie PHP: `vendor/bin/pint --dirty --format agent` — 5884223
+- [x] 2.3 Typy i statyczne kontrole przechodzą: `npm run types:check`, `npm run check` — 5884223
+- [x] 2.4 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście — 5884223
 
 #### Manual
 
-- [x] 2.5 Na lokalnych danych podgląd prawdziwego pliku ma w propsie `rows[i].category_suggestion` z id z roku daty wiersza (Vue devtools albo `dd` w `showPreview` wycofane przed commitem)
+- [x] 2.5 Na lokalnych danych podgląd prawdziwego pliku ma w propsie `rows[i].category_suggestion` z id z roku daty wiersza (Vue devtools albo `dd` w `showPreview` wycofane przed commitem) — 5884223
 
 ### Phase 3: Wstępny wybór i znacznik w podglądzie
 
 #### Automated
 
-- [ ] 3.1 Testy TS przechodzą: `npm test`
-- [ ] 3.2 Kontrole, literały UI, typy i build przechodzą: `npm run check`, `npm run check:ui`, `npm run types:check`, `npm run build`
-- [ ] 3.3 Test kitchen sinka przechodzi: `artisan test --compact tests/Feature/DevImportPreviewSinkTest.php`
+- [x] 3.1 Testy TS przechodzą: `npm test`
+- [x] 3.2 Kontrole, literały UI, typy i build przechodzą: `npm run check`, `npm run check:ui`, `npm run types:check`, `npm run build`
+- [x] 3.3 Test kitchen sinka przechodzi: `artisan test --compact tests/Feature/DevImportPreviewSinkTest.php`
 
 #### Manual
 
-- [ ] 3.4 Podgląd prawdziwego pliku: wiersze ze znanym sklepem mają wybraną kategorię i „✦ podpowiedź”, a wiersze z nowym sklepem lub BLIK-iem „Payment for order ID …” mają puste pole
-- [ ] 3.5 Ręczna zmiana kategorii ukrywa znacznik, a powrót do podpowiedzianej przywraca go
-- [ ] 3.6 Przełączenie `expense` na `refund` zostawia podpowiedź, `income` na `refund` (wiersz +) wstawia podpowiedź wydatkową albo puste pole, a przełączenie na transfer własny czyści pole
-- [ ] 3.7 Zaznaczenie wiersza z podpowiedzią i zatwierdzenie zapisuje operację z tą kategorią
-- [ ] 3.8 Kitchen sink `/dev/import-preview` pokazuje stan z podpowiedzią w motywie jasnym i ciemnym; czytnik ekranu ogłasza „podpowiedź” przy polu kategorii
+- [x] 3.4 Podgląd prawdziwego pliku: wiersze ze znanym sklepem mają wybraną kategorię i „✦ podpowiedź”, a wiersze z nowym sklepem lub BLIK-iem „Payment for order ID …” mają puste pole
+- [x] 3.5 Ręczna zmiana kategorii ukrywa znacznik, a powrót do podpowiedzianej przywraca go
+- [x] 3.6 Przełączenie `expense` na `refund` zostawia podpowiedź, `income` na `refund` (wiersz +) wstawia podpowiedź wydatkową albo puste pole, a przełączenie na transfer własny czyści pole
+- [x] 3.7 Zaznaczenie wiersza z podpowiedzią i zatwierdzenie zapisuje operację z tą kategorią
+- [x] 3.8 Kitchen sink `/dev/import-preview` pokazuje stan z podpowiedzią w motywie jasnym i ciemnym; czytnik ekranu ogłasza „podpowiedź” przy polu kategorii
 
 ### Phase 4: Wydajność i pomiar jakości
 

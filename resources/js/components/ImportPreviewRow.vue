@@ -36,6 +36,8 @@ import {
     isCreditRow,
     parsedInterestAmountMinorUnits,
     rowCategoriesEmpty,
+    showsCategorySuggestion,
+    suggestedCategoryId,
     wouldMakeAccountNegative,
     type CategoryRow,
     type ImportRow,
@@ -140,6 +142,17 @@ const incomeCategoriesEmpty = computed(() =>
     rowCategoriesEmpty(row, 'income', incomeCategories, expenseCategories),
 );
 
+const showsSuggestion = computed(() =>
+    showsCategorySuggestion(
+        row,
+        selection.value,
+        incomeCategories,
+        expenseCategories,
+    ),
+);
+
+const suggestionId = computed(() => `row-category-suggestion-${row.index}`);
+
 const makesAccountNegative = computed(() =>
     wouldMakeAccountNegative(row, selection.value, accountBalanceMinorUnits),
 );
@@ -224,6 +237,13 @@ function onTypeChange(): void {
     if (typeLockedToOwnTransfer.value) {
         selection.value.type = 'own_transfer';
     }
+
+    selection.value.category_id = suggestedCategoryId(
+        row,
+        selection.value.type,
+        incomeCategories,
+        expenseCategories,
+    );
 
     if (selection.value.type === 'capital_movement') {
         selection.value.other_account_id = '';
@@ -537,9 +557,20 @@ function onPairCandidateChange(value: string): void {
                         controlLabel(t.operations.import_classification)
                     "
                     class="w-full"
+                    :aria-describedby="
+                        showsSuggestion ? suggestionId : undefined
+                    "
                     :disabled="classificationCategoriesEmpty"
                     :required="selection.selected"
                 />
+                <p
+                    v-if="row.valid && showsSuggestion"
+                    :id="suggestionId"
+                    class="text-muted-foreground text-xs"
+                >
+                    <span aria-hidden="true">✦</span>
+                    {{ t.operations.import_category_suggestion }}
+                </p>
             </div>
 
             <div class="import-preview-cell-status">

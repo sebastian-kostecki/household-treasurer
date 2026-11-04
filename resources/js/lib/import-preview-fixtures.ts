@@ -87,6 +87,14 @@ export const capitalMovementRow = row(6, {
     amount_minor_units: 1_012_345,
 });
 
+export const suggestedCategoryRow = row(7, {
+    operation_date: '2026-10-14',
+    description: 'Zakupy spożywcze',
+    counterparty: 'Żabka',
+    amount_minor_units: -3_290,
+    category_suggestion: { income: null, expense: 11 },
+});
+
 export const importPreviewRows: ImportRow[] = [
     incomeRow,
     expenseRow,
@@ -95,6 +103,7 @@ export const importPreviewRows: ImportRow[] = [
     invalidRow,
     nullAmountRow,
     capitalMovementRow,
+    suggestedCategoryRow,
 ];
 
 export const incomeCategories: CategoryRow[] = [
@@ -206,6 +215,11 @@ export function importPreviewSelections(): Record<number, RowSelection> {
         other_account_id: 2,
         pair_first_leg_kind: pairCandidate.kind,
         pair_first_leg_id: pairCandidate.id,
+    };
+    selections[7] = {
+        ...selections[7],
+        type: 'expense',
+        category_id: 11,
     };
     selections[6] = {
         ...selections[6],

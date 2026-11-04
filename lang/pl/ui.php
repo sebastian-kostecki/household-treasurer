@@ -552,6 +552,7 @@ return [
         'import_pair_rows' => 'Kandydaci do pary: :count',
         'import_select' => 'Importuj',
         'import_category' => 'Kategoria',
+        'import_category_suggestion' => 'podpowiedź',
         'import_classification' => 'Kategoria / konto',
         'import_other_account' => 'Drugie konto',
         'import_term_deposit' => 'Lokata',
