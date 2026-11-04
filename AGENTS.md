@@ -45,6 +45,22 @@ Props are PHP arrays in controllers and hand-written TypeScript types in `define
 
 `app/Support/MonthPaceCalculator.php` and `resources/js/lib/month-pace-calculator.ts` are a fourth pair, covered by `tests/Unit/MonthPaceCalculatorTest.php` and `resources/js/lib/month-pace-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page, for the same two reasons as the To Spend pair.
 
+## Charts and reports
+
+- There is no chart library yet. Do not add one (Chart.js, ApexCharts, ECharts or another) without a decision recorded in the change plan and an ADR. If shadcn-vue Chart is chosen, add it with the shadcn-vue CLI into `resources/js/components/ui` and follow `components.json`.
+- Every chart has a table with the same numbers next to it, so the data is readable without the chart.
+- Chart colours come from tokens in `resources/css/app.css` and category colours from `resources/js/lib/category-appearance.ts`. Amounts go through `formatMoney` from `@/lib/format`; see `.ai/rules/js.md`.
+- Compute report amounts on the server in `app/Support` and pass them as props in minor units. Reuse the existing readings (`BudgetMonthResult`, `CategoryExecutionMetrics`, `MonthCategoryActuals`) or prove equality with them in a test: a month's report result must equal Month Result, and a year's category total must equal the annual execution, to the grosz. Refunds count net; own transfers and capital movements are excluded.
+- A year report must load within 2 seconds at 10,000 operations. Add a test next to `tests/Feature/Nfr/NfrPerf01Test.php` and avoid per-month or per-category queries in loops (Sloppy flags them).
+
+## Snapshot format
+
+`BackupUserData::SNAPSHOT_VERSION` is the version written by `user:backup`. `RestoreUserData` lists accepted versions explicitly and uses the constant for the newest one. When you bump the constant, add the previous number to every version list in `RestoreUserData`, give new fields defaults for older snapshots, and add a restore test for each older version, so existing backups still load.
+
+## Domain changes come before code
+
+A change to a rule in `CONTEXT.md` (for example To Spend) or to a term marked _Avoid_ needs the `CONTEXT.md` entry and a new ADR in `.docs/adr` before the code. Take the next free number after the highest existing ADR.
+
 ## Wayfinder
 
 Wayfinder is in beta. Copy the pattern from an existing page and read `vendor/laravel/wayfinder/resources/boost/skills/wayfinder-development/SKILL.blade.php` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
