@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import ImportPreviewRow from '@/components/ImportPreviewRow.vue';
+import ImportPreviewSubmitBar from '@/components/ImportPreviewSubmitBar.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -30,6 +31,28 @@ const contractRows = [
     { key: 'pair', label: 'Para', rowClass: 'import-preview-row-pair' },
 ];
 
+const submitBarStates = computed(() => [
+    { key: 'ready', label: 'Bez powodu', reason: null },
+    {
+        key: 'no-selection',
+        label: 'Brak zaznaczenia',
+        reason: t.operations.import_block_no_selection,
+    },
+    {
+        key: 'incomplete',
+        label: 'Niekompletne wiersze',
+        reason: t.operations.import_block_incomplete_rows.replace(
+            ':count',
+            '2',
+        ),
+    },
+    {
+        key: 'duplicates',
+        label: 'Niepotwierdzone duplikaty',
+        reason: t.operations.import_block_duplicates_unacknowledged,
+    },
+]);
+
 const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
 </script>
 
@@ -44,9 +67,7 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
 
             <ListSurface>
                 <div class="overflow-x-auto">
-                    <div
-                        class="import-preview-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase xl:grid"
-                    >
+                    <div class="import-preview-grid import-preview-header-row">
                         <span class="import-preview-cell-select">
                             {{ t.operations.import_select }}
                         </span>
@@ -76,7 +97,9 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
                         :row="row"
                         v-model:selection="selections[row.index]"
                         :account-balance-minor-units="
-                            importAccount.current_balance_minor_units
+                            row.index === 3
+                                ? 50_000
+                                : importAccount.current_balance_minor_units
                         "
                         :income-categories="incomeCategories"
                         :expense-categories="expenseCategories"
@@ -96,6 +119,27 @@ const selections = ref<Record<number, RowSelection>>(importPreviewSelections());
                     />
                 </div>
             </ListSurface>
+        </section>
+
+        <section class="flex flex-col gap-3">
+            <h2 class="text-base font-semibold">Pasek zatwierdzenia</h2>
+            <p class="text-muted-foreground text-xs">
+                Bez powodu i dla każdego powodu blokady. Wiersze powyżej
+                pokazują ostrzeżenia to-spend (wiersz 2), month-remaining
+                (wiersz 2) i ujemne saldo (przelew własny, wiersz 4).
+            </p>
+
+            <div
+                v-for="state in submitBarStates"
+                :key="state.key"
+                class="flex flex-col gap-1"
+            >
+                <h3 class="text-sm font-medium">{{ state.label }}</h3>
+                <ImportPreviewSubmitBar
+                    :reason="state.reason"
+                    :processing="false"
+                />
+            </div>
         </section>
 
         <section class="flex flex-col gap-3">

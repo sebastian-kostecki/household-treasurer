@@ -4,6 +4,7 @@ import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import ImportPreviewRow from '@/components/ImportPreviewRow.vue';
+import ImportPreviewSubmitBar from '@/components/ImportPreviewSubmitBar.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -25,6 +26,7 @@ import {
     type EntryToSpendInputs,
 } from '@/lib/entry-to-spend-warning';
 import { firstRowsError } from '@/lib/import-preview-errors';
+import { importSubmitBlockReason } from '@/lib/import-submit-block';
 import { computeImportToSpendWarnings } from '@/lib/import-to-spend-warnings';
 import {
     consumedFirstLegKeys,
@@ -38,7 +40,6 @@ import {
 import {
     emptySelection,
     initialSelection,
-    rowSelectionValid,
     type CategoryRow,
     type ImportRow,
     type RowSelection,
@@ -114,27 +115,24 @@ const selectedImportDuplicateCount = computed(
 const requiresDuplicateAcknowledgement = computed(
     () => selectedImportDuplicateCount.value > 0,
 );
-const canSubmit = computed(
-    () =>
-        (!requiresDuplicateAcknowledgement.value ||
-            duplicateWarningAcknowledged.value) &&
-        selectedRowCount.value > 0 &&
-        Object.entries(selections.value).every(([index, selection]) => {
-            if (!selection.selected) {
-                return true;
-            }
+const blockReason = computed(() => {
+    const reason = importSubmitBlockReason(
+        rows,
+        selections.value,
+        termDeposits,
+        duplicateWarningAcknowledged.value,
+    );
 
-            const row = rows.find(
-                (candidate) => candidate.index === Number(index),
-            );
+    if (reason === null) {
+        return null;
+    }
 
-            if (row === undefined) {
-                return false;
-            }
+    const text = t.operations[reason.key];
 
-            return rowSelectionValid(row, selection, termDeposits);
-        }),
-);
+    return reason.key === 'import_block_incomplete_rows'
+        ? text.replace(':count', String(reason.count))
+        : text;
+});
 
 const monthNameTranslations = computed(() =>
     Object.fromEntries(
@@ -268,20 +266,28 @@ watch(consumedFirstLegKeysSet, () => {
                         )
                     }}
                 </Badge>
+                <p class="text-muted-foreground w-full text-xs">
+                    {{ t.operations.import_duplicate_warning_body }}
+                </p>
             </CardContent>
         </Card>
 
-        <Alert>
+        <Alert v-if="duplicateRowCount > 0" variant="warning">
             <AlertTriangle class="size-4" />
             <AlertTitle>{{
                 t.operations.import_duplicate_warning_title
             }}</AlertTitle>
             <AlertDescription>
-                {{ t.operations.import_duplicate_warning_body }}
+                {{
+                    t.operations.import_duplicate_warning_found.replace(
+                        ':count',
+                        String(duplicateRowCount),
+                    )
+                }}
             </AlertDescription>
         </Alert>
 
-        <Alert v-if="pairRowCount > 0">
+        <Alert v-if="pairRowCount > 0" variant="warning">
             <AlertTriangle class="size-4" />
             <AlertTitle>{{
                 t.operations.import_pair_warning_title
@@ -298,9 +304,7 @@ watch(consumedFirstLegKeysSet, () => {
         >
             <ListSurface>
                 <div class="overflow-x-auto">
-                    <div
-                        class="import-preview-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase xl:grid"
-                    >
+                    <div class="import-preview-grid import-preview-header-row">
                         <span class="import-preview-cell-select">
                             {{ t.operations.import_select }}
                         </span>
@@ -371,11 +375,10 @@ watch(consumedFirstLegKeysSet, () => {
             <InputError :message="errors.duplicate_warning_acknowledged" />
             <InputError :message="firstRowsError(errors)" />
 
-            <div class="flex justify-end gap-2">
-                <Button type="submit" :disabled="processing || !canSubmit">
-                    {{ t.operations.import_confirm }}
-                </Button>
-            </div>
+            <ImportPreviewSubmitBar
+                :reason="blockReason"
+                :processing="processing"
+            />
         </Form>
     </div>
 </template>

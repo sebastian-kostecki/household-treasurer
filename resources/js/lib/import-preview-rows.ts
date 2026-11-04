@@ -209,14 +209,6 @@ export function wouldMakeAccountNegative(
     return accountBalanceMinorUnits + signedAmount < 0;
 }
 
-export function rowAmountClass(row: ImportRow): string {
-    if ((row.amount_minor_units ?? 0) < 0) {
-        return 'text-destructive';
-    }
-
-    return 'text-success';
-}
-
 export function descriptionVariant(
     type: RowSelection['type'],
 ): 'income' | 'expense' | 'refund' | 'transfer' {

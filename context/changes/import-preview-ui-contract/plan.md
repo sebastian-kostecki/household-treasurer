@@ -610,33 +610,33 @@ Brak migracji danych. Prop `ariaLabel` jest opcjonalny, więc dialogi z `Categor
 
 #### Automated
 
-- [x] 3.1 Testy TS przechodzą: `npm test`
-- [x] 3.2 Statyczne kontrole i typy przechodzą: `npm run check`, `npm run types:check`
-- [x] 3.3 Build przechodzi: `npm run build`
-- [x] 3.4 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail
+- [x] 3.1 Testy TS przechodzą: `npm test` — 49ac516
+- [x] 3.2 Statyczne kontrole i typy przechodzą: `npm run check`, `npm run types:check` — 49ac516
+- [x] 3.3 Build przechodzi: `npm run build` — 49ac516
+- [x] 3.4 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php` obrazem Sail — 49ac516
 
 #### Manual
 
-- [x] 3.5 W `/dev/import-preview` nagłówek i wiersze na nowych klasach wyglądają jak dzisiejsze (1280 i 390 px); nagłówek kolumn ukryty poniżej `xl`
-- [x] 3.6 Tint pary w trybie jasnym odpowiada dzisiejszemu `sky-500/10`; w trybie ciemnym jest widoczny i odróżnia się od tintu duplikatu
-- [x] 3.7 Zrzuty `phase-3-*` zapisane
+- [x] 3.5 W `/dev/import-preview` nagłówek i wiersze na nowych klasach wyglądają jak dzisiejsze (1280 i 390 px); nagłówek kolumn ukryty poniżej `xl` — 49ac516
+- [x] 3.6 Tint pary w trybie jasnym odpowiada dzisiejszemu `sky-500/10`; w trybie ciemnym jest widoczny i odróżnia się od tintu duplikatu — 49ac516
+- [x] 3.7 Zrzuty `phase-3-*` zapisane — 49ac516
 
 ### Phase 4: Widok (C1–C5)
 
 #### Automated
 
-- [ ] 4.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/AccountPickerTest.php` obrazem Sail
-- [ ] 4.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check`
-- [ ] 4.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/components/CategorySelect.vue resources/js/components/AccountSelect.vue`
-- [ ] 4.4 `rowAmountClass` i `native-input` zniknęły: `grep -rn "rowAmountClass\|native-input" resources/js` nic nie zwraca
+- [x] 4.1 Testy importu przechodzą na PostgreSQL: `tests/Feature/CsvImportTest.php tests/Feature/AccountPickerTest.php` obrazem Sail
+- [x] 4.2 Testy TS, kontrole i typy przechodzą: `npm test`, `npm run check`, `npm run types:check`
+- [x] 4.3 Brak literałów w plikach widoku: `node scripts/check-ui-literals.mjs resources/js/pages/OperationsImportPreview.vue resources/js/components/ImportPreviewRow.vue resources/js/components/ImportPreviewSubmitBar.vue resources/js/components/CategorySelect.vue resources/js/components/AccountSelect.vue`
+- [x] 4.4 `rowAmountClass` i `native-input` zniknęły: `grep -rn "rowAmountClass\|native-input" resources/js` nic nie zwraca
 
 #### Manual
 
-- [ ] 4.5 `/operations/import/preview` po wgraniu CSV: przed zaznaczeniem pod przyciskiem widać „Zaznacz co najmniej jeden wiersz do importu.”; po zaznaczeniu wydatku bez kategorii — „Uzupełnij klasyfikację w zaznaczonych wierszach (1).”; po wyborze kategorii przycisk aktywny, powód znika
-- [ ] 4.6 Przy imporcie bez duplikatów nie ma alertu „Możliwe duplikaty”, a notka o granicach wykrywania jest w karcie podsumowania
-- [ ] 4.7 Wiersz z wydatkiem w miesiącu z planem, który zrobi ujemne „Do wydania”, pokazuje bursztynowy alert z kwotą i miesiącem
-- [ ] 4.8 Inspektor dostępności: checkbox, select typu, `CategorySelect` / `AccountSelect` mają nazwy z kolumną i datą/opisem wiersza; przycisk ma opis z powodem
-- [ ] 4.9 Zrzuty `phase-4-*` zapisane
+- [x] 4.5 `/operations/import/preview` po wgraniu CSV: przed zaznaczeniem pod przyciskiem widać „Zaznacz co najmniej jeden wiersz do importu.”; po zaznaczeniu wydatku bez kategorii — „Uzupełnij klasyfikację w zaznaczonych wierszach (1).”; po wyborze kategorii przycisk aktywny, powód znika
+- [x] 4.6 Przy imporcie bez duplikatów nie ma alertu „Możliwe duplikaty”, a notka o granicach wykrywania jest w karcie podsumowania
+- [x] 4.7 Wiersz z wydatkiem w miesiącu z planem, który zrobi ujemne „Do wydania”, pokazuje bursztynowy alert z kwotą i miesiącem
+- [x] 4.8 Inspektor dostępności: checkbox, select typu, `CategorySelect` / `AccountSelect` mają nazwy z kolumną i datą/opisem wiersza; przycisk ma opis z powodem
+- [x] 4.9 Zrzuty `phase-4-*` zapisane
 
 ### Phase 5: Stany z macierzy
 

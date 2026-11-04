@@ -7,9 +7,11 @@ import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
+import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoney } from '@/lib/format';
 import {
     applyPairCandidateSelection,
@@ -30,9 +32,9 @@ import {
     categoriesForRow,
     descriptionVariant,
     eligibleTermDeposits,
+    importRowHasNotes,
     isCreditRow,
     parsedInterestAmountMinorUnits,
-    rowAmountClass,
     rowCategoriesEmpty,
     wouldMakeAccountNegative,
     type CategoryRow,
@@ -154,13 +156,34 @@ const monthRemainingPeriodLabel = computed(
     () => monthRemainingWarnings?.periodLabel ?? null,
 );
 
-const hasNotes = computed(
-    () =>
-        (!row.valid && row.invalid_reason !== null) ||
-        (showsPairBadge.value && matchingCandidate.value !== null) ||
-        makesAccountNegative.value ||
-        showCategoryMonthRemainingWarning.value ||
-        showPoolMonthRemainingWarning.value,
+const hasNotes = computed(() =>
+    importRowHasNotes({
+        invalidReason: !row.valid && row.invalid_reason !== null,
+        pairReason: showsPairBadge.value && matchingCandidate.value !== null,
+        negativeBalance: makesAccountNegative.value,
+        toSpend: toSpendWarning != null,
+        categoryMonthRemaining: showCategoryMonthRemainingWarning.value,
+        poolMonthRemaining: showPoolMonthRemainingWarning.value,
+    }),
+);
+
+const rowDate = computed(() =>
+    row.operation_date ? formatDate(row.operation_date) : '—',
+);
+
+const rowDescription = computed(() => row.description ?? '—');
+
+function controlLabel(column: string): string {
+    return t.operations.import_row_control_label
+        .replace(':column', column)
+        .replace(':date', rowDate.value)
+        .replace(':description', rowDescription.value);
+}
+
+const selectRowLabel = computed(() =>
+    t.operations.import_select_row
+        .replace(':date', rowDate.value)
+        .replace(':description', rowDescription.value),
 );
 
 function emptyCategoryLabel(type: RowSelection['type']): string {
@@ -263,10 +286,10 @@ function onPairCandidateChange(value: string): void {
 
 <template>
     <div
-        class="border-border/60 hover:bg-foreground/[0.03] border-b py-3 transition-colors last:border-b-0"
+        class="import-preview-row"
         :class="{
-            'bg-warning/10': row.valid && row.import_duplicate,
-            'bg-sky-500/10':
+            'import-preview-row-duplicate': row.valid && row.import_duplicate,
+            'import-preview-row-pair':
                 row.valid && showsPairBadge && !row.import_duplicate,
         }"
     >
@@ -276,6 +299,7 @@ function onPairCandidateChange(value: string): void {
                     :id="`row-selected-${row.index}`"
                     v-model="selection.selected"
                     :disabled="!row.valid"
+                    :aria-label="selectRowLabel"
                     class="size-6 rounded-md"
                 >
                     <Check class="size-4" />
@@ -293,25 +317,21 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-date">
-                <span class="text-muted-foreground text-[11px] xl:hidden">
+                <span class="column-caption xl:sr-only">
                     {{ t.operations.date }}
                 </span>
                 <p class="text-sm font-medium">
-                    {{
-                        row.operation_date
-                            ? formatDate(row.operation_date)
-                            : '—'
-                    }}
+                    {{ rowDate }}
                 </p>
             </div>
 
             <div class="import-preview-cell-description">
-                <span class="text-muted-foreground text-[11px] xl:hidden">
+                <span class="column-caption xl:sr-only">
                     {{ t.operations.description }}
                 </span>
                 <OperationDescriptionCell
                     :variant="descriptionVariant(selection.type)"
-                    :description="row.description ?? '—'"
+                    :description="rowDescription"
                     :counterparty="row.counterparty"
                     :raw-statement-description="row.raw_statement_description"
                 />
@@ -319,9 +339,9 @@ function onPairCandidateChange(value: string): void {
 
             <div
                 class="import-preview-cell-amount"
-                :class="rowAmountClass(row)"
+                :class="amountToneClass(row.amount_minor_units ?? 0)"
             >
-                <span class="text-muted-foreground text-[11px] xl:hidden">
+                <span class="column-caption xl:sr-only">
                     {{ t.operations.amount }}
                 </span>
                 <p>
@@ -334,7 +354,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-type">
-                <span class="text-muted-foreground text-[11px] xl:hidden">
+                <span class="column-caption xl:sr-only">
                     {{ t.operations.type }}
                 </span>
                 <select
@@ -342,6 +362,7 @@ function onPairCandidateChange(value: string): void {
                     :id="`row-type-${row.index}`"
                     v-model="selection.type"
                     :name="`rows[${row.index}][type]`"
+                    :aria-label="controlLabel(t.operations.type)"
                     class="native-select w-full"
                     @change="onTypeChange"
                 >
@@ -367,7 +388,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-classification">
-                <span class="text-muted-foreground text-[11px] xl:hidden">
+                <span class="column-caption xl:sr-only">
                     {{ t.operations.import_classification }}
                 </span>
                 <div
@@ -380,6 +401,9 @@ function onPairCandidateChange(value: string): void {
                         v-model="selection.other_account_id"
                         :accounts="otherAccounts"
                         :placeholder="t.operations.import_other_account"
+                        :aria-label="
+                            controlLabel(t.operations.import_classification)
+                        "
                         class="w-full"
                         @update:model-value="onOtherAccountChange"
                     />
@@ -387,6 +411,9 @@ function onPairCandidateChange(value: string): void {
                         v-if="pairPickerCandidates.length > 0"
                         :id="`row-pair-candidate-${row.index}`"
                         class="native-select w-full"
+                        :aria-label="
+                            controlLabel(t.operations.import_classification)
+                        "
                         :value="selectedPairCandidateKey(selection)"
                         @change="
                             onPairCandidateChange(
@@ -429,6 +456,9 @@ function onPairCandidateChange(value: string): void {
                         v-model="selection.term_deposit_id"
                         :name="`rows[${row.index}][term_deposit_id]`"
                         class="native-select w-full"
+                        :aria-label="
+                            controlLabel(t.operations.import_classification)
+                        "
                         :disabled="rowEligibleTermDeposits.length === 0"
                         required
                     >
@@ -453,12 +483,10 @@ function onPairCandidateChange(value: string): void {
                         >
                             {{ t.operations.import_interest_amount }}
                         </Label>
-                        <input
+                        <Input
                             :id="`row-interest-amount-${row.index}`"
                             v-model="selection.interest_amount_input"
-                            type="text"
                             inputmode="decimal"
-                            class="native-input w-full"
                             :placeholder="t.operations.import_interest_amount"
                         />
                         <input
@@ -482,6 +510,9 @@ function onPairCandidateChange(value: string): void {
                                     ? t.operations.no_income_category_for_year
                                     : t.operations.import_interest_category
                             "
+                            :aria-label="
+                                controlLabel(t.operations.import_classification)
+                            "
                             class="w-full"
                             :disabled="incomeCategoriesEmpty"
                         />
@@ -498,6 +529,9 @@ function onPairCandidateChange(value: string): void {
                             ? emptyCategoryLabel(selection.type)
                             : t.operations.select_category
                     "
+                    :aria-label="
+                        controlLabel(t.operations.import_classification)
+                    "
                     class="w-full"
                     :disabled="classificationCategoriesEmpty"
                     required
@@ -505,7 +539,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-status">
-                <span class="text-muted-foreground text-[11px] xl:hidden">
+                <span class="column-caption xl:sr-only">
                     {{ t.operations.import_status }}
                 </span>
                 <div v-if="row.valid" class="flex flex-wrap gap-1">
