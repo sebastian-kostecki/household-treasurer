@@ -475,10 +475,10 @@ Bez migracji schematu i bez backfillu. Podgląd zapisany w sesji przed wdrożeni
 
 #### Automated
 
-- [x] 4.1 Test NFR przechodzi: `./vendor/bin/sail artisan test --group=nfr --configuration=phpunit.nfr.xml`
-- [x] 4.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”)
-- [x] 4.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście
+- [x] 4.1 Test NFR przechodzi: `./vendor/bin/sail artisan test --group=nfr --configuration=phpunit.nfr.xml` — 110e89e
+- [x] 4.2 Pełna bramka CI na PostgreSQL: `composer ci:check` obrazem Sail (AGENTS.md „Test database”) — 110e89e
+- [x] 4.3 Sloppy bez nowych znalezisk: `vendor/bin/sloppy ci` na hoście — 110e89e
 
 #### Manual
 
-- [x] 4.4 Pomiar `eval_service.php` na lokalnych danych: od stycznia ≥ 78% wierszy z podpowiedzią i ≥ 92% trafnych; sierpień–listopad ≥ 79% i ≥ 95%. Gdy próg nie jest spełniony, zatrzymaj się i zgłoś wyniki zamiast stroić stałe
+- [x] 4.4 Pomiar `eval_service.php` na lokalnych danych: od stycznia ≥ 78% wierszy z podpowiedzią i ≥ 92% trafnych; sierpień–listopad ≥ 79% i ≥ 95%. Gdy próg nie jest spełniony, zatrzymaj się i zgłoś wyniki zamiast stroić stałe — 110e89e
