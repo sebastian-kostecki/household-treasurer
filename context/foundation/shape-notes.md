@@ -1,15 +1,15 @@
 ---
 project: "Household Treasurer"
 context_type: brownfield
-created: 2026-11-01
-updated: 2026-11-01
+created: 2026-11-04
+updated: 2026-11-04
 product_type: web-app
 target_scale:
   users: small
   qps: low
   data_volume: small
 timeline_budget:
-  delivery_weeks: 6
+  delivery_weeks: 8
   hard_deadline: null
   after_hours_only: true
 checkpoint:
@@ -18,65 +18,125 @@ checkpoint:
   gray_areas_resolved:
     - topic: "kontekst"
       decision: "brownfield, potwierdzone przez użytkownika"
+    - topic: "rodzaj zmiany"
+      decision: "raporty okresowe + porządek kategorii"
     - topic: "główna persona"
-      decision: "jedna osoba prowadzi budżet całego domu"
+      decision: "jedna osoba prowadzi budżet całego domu, bez zmian"
+    - topic: "dane dev"
+      decision: "kategorie z września–października to dane testowe"
     - topic: "kontrola dostępu"
       decision: "bez zmian"
-    - topic: "model planu miesiąca"
-      decision: "Plan miesiąca obok rocznego: zatwierdzany na początku miesiąca, budżet roczny bez zmian; wymaga zastąpienia ADR-0024"
-    - topic: "pozycja planu"
-      decision: "kategoria budżetu"
-    - topic: "oszczędności"
-      decision: "pole odkładam / dobieram, bez przelewów"
+    - topic: "pierwszy raport"
+      decision: "okres + kategorie z kwotą i udziałem, klik do operacji"
+    - topic: "trend"
+      decision: "miesiąc do miesiąca i rok do roku"
+    - topic: "porządek kategorii"
+      decision: "ta sama kategoria przez lata (nowy ADR)"
     - topic: "wydatki nieregularne"
-      decision: "sekcja z resztą rocznego limitu; obniża do wydania, gdy planowane albo zaksięgowane"
-    - topic: "rozliczenie miesiąca"
-      decision: "tylko podsumowanie, bez przenoszenia i bez zamykania"
+      decision: "w tej zmianie, w planie miesiąca"
     - topic: "zakres vs czas"
-      decision: "cały zakres, 6 tygodni, świadomie"
-  frs_drafted: 19
+      decision: "cały zakres, 8 tygodni, świadomie"
+    - topic: "dane rok do roku"
+      decision: "dev ma 2026; dla 2025 przygotować dane mock na devie"
+    - topic: "wykresy"
+      decision: "wykres i tabela"
+    - topic: "priorytety"
+      decision: "FR-004, FR-006, FR-007, FR-008, FR-009 nice-to-have; okres tylko miesiąc albo rok"
+    - topic: "czas po zmniejszeniu zakresu"
+      decision: "8 tygodni zostaje, zapas na nice-to-have"
+    - topic: "kwota nieregularnego"
+      decision: "plan roczny / 12 co miesiąc"
+    - topic: "płatność nieregularnego"
+      decision: "zebrane pokrywa, nadwyżka obniża do wydania"
+    - topic: "widoczność zebranego"
+      decision: "plan miesiąca i Podsumowanie miesiąca; salda bez zmian"
+    - topic: "koniec roku"
+      decision: "niewydane zebrane obniża plan roczny i przechodzi do wyniku roku"
+    - topic: "zakres nieregularnego"
+      decision: "kilka razy i raz w roku"
+    - topic: "start zbierania"
+      decision: "od miesiąca oznaczenia, zebrane od 0"
+    - topic: "non-goals"
+      decision: "bez grup i domyślnej listy, bez oznaczania wyjazdów, bez własnego zakresu i eksportu"
+  frs_drafted: 14
   quality_check_status: accepted
 ---
 
-# Shape notes: Household Treasurer
+# Shape notes: Household Treasurer — kategorie i raporty okresowe
+
+Poprzednia sesja (plan miesiąca, M-1): `context/foundation/archive/shape-notes-2026-11-04-1211.md`.
 
 ## Seed idea (verbatim)
 
-> chcę rozwijać dalej aplikacje - mam teraz wiele elementow, ktore chcialem: kontrolowanei budżetu rocznego, dodawanie operacji, zarządzanie kontami i lokatami; brakuje mi tylko jednego - aby wlasciciwie pilnować budzetu w ciagu miesiaca, bo na rocznym budzecie ciezko sie zorientowac czy moge jeszce cos lub nie; brakuje mi czegos w ciagu miesiaca - tak aby zasadniczo nie wydawac wiecej niz sie zarobilo - choc to nie powinna byc zasada bez odstepstw bo czasami trzeba cos odlozyc, albow wydac wiecej w ciagu miesiaca. Do tej pory uzywam czegos takiego storage/app/private/budget_szablon.xlsx
+> kategorie
+> - przychody - ok
+> - wydatki
+>     - kredyt (raz na miesiac)
+>     - czynsz (raz na miesiac)
+>     - subskrypcje AI (raz na miesiac, ale moga byc 2, zwykle 1)
+>     - telefon + internet (mozna rozbic, wtedy raz na miesiac)
+>     - prad (4-5 razy na rok - jak pokazac na planie miesiecznym, do tej pory odkladalem stala kwote na inne konto, aby odjac, ale moze tez zostac na koncie glownym; jak to pokazac na planie miesiecznym)
+>     - ubezpieczenia na życie (2 razy (2 osoby) raz na miesiac)
+>     - przedszkole (2 razy (w synow) raz na miesiac, czasem inne dodatki na wydarzenia; mozna rozbic na 2 kategorie)
+>     - artykuły spozywcze (wydatki codzienne) (stala kwota na caly miesiac - bardzo wiele transakcji)
+>     - apteka (jak artykuly spozywcze)
+>     - leczenie prywatne (kilka wydatkow w ciagu roku)
+>     - bilety i parking (wiele wydatkow w ciagu miesiaca, jak artykuly spozywcze)
+>     - paliwo (stala kwota przeznaczona na miesiac; czasem przekraczam czasem mniej)
+>     - serwis samochodu (raz albo razy do roku)
+>     - rozrywka (jakies rzeczy dla zycia, wyjscia, co kupic na wyjsciu - stala kwota na miesiac, moze byc wiele wydatkow)
+>     - restauracje (podobnie jak rozrywka, ale jedzenie na miescie)
+>     - ??? coś innego jeszcze; jakies podobne kategorie ??
+>     - ubrania (wiele wydatkow w ciagu roku, razej brak stalej kwoty na miesiac)
+>     - rzeczy osobiste, edukacja, prezenty, usługi, dzieci, darowizny, ksiazki, elektronika, utrzymanie domu, wyposażenie domu (moze inaczej eksploatacja domu) - tak samo jak ubrania
+>     - prowizje i oplaty to tez rozne kwoty w ciagu roku
+>     - pozostale -
+>     - ubezpieczenie samochodu (raz na rok)
+>     - rekolekcje (raz na rok)
+>     - wakacje (raz na rok, ale wiele wydatkow)
+> PYTANIE: jakie jeszcze inne kategorie z moich wydatkow? Jakie typy tych kategorii? Czy nie trzeba miec stalej listy kategorii? A co wykresami w ciagu miesiaca, lat? Chcialbym wiedzic ile i na co wydaje/zarabaim w jakims okresie
 
 ## Current System
 
-Household Treasurer to responsywna aplikacja webowa do planowania rocznego budżetu domowego, rejestrowania jego wykonania i kontroli środków na kontach oraz lokatach. Szczegóły: `.docs/prd.md`, słownik: `CONTEXT.md`.
+Household Treasurer to responsywna aplikacja webowa do budżetu domowego. Słownik: `CONTEXT.md`, poprzedni PRD (plan miesiąca): `context/foundation/prd.md`.
 
-- **Architektura:** monolit Laravel z frontendem Inertia + Vue.
-- **Użytkownicy:** konta tworzone przez administratora, dane każdego użytkownika są odizolowane. Faktycznie korzysta jedna osoba.
-- **Funkcje dziś:** budżet roczny (plan początkowy, plan aktualny, wykonanie, kategorie Paced i One-off), operacje ręczne i Import CSV/XLSX, konta, transfery własne, lokaty i ruchy kapitału, Dashboard.
-- **Odczyty miesięczne dziś:** `Wynik` (Month Result: dochody minus wydatki zaksięgowane w miesiącu) i `Pozostało w miesiącu` (Month Remaining: bieżąca część rocznego planu kategorii równomiernych).
-- **Wyszukane w repo:** Agenda i Cash Expectation są opisane w `CONTEXT.md` i `.docs/specs/agenda-cash-expectations.md`, ale kod jest tylko na niezmergowanych gałęziach (ostatni commit 2026-09-14). Reserve i Year Close są opisane w dokumentach, bez implementacji. Dokumentację należy traktować ostrożnie: opisuje więcej niż kod.
+- **Architektura:** monolit Laravel z frontendem Inertia + Vue, baza PostgreSQL.
+- **Użytkownicy:** konta tworzy administrator, dane każdego użytkownika są odizolowane. Faktycznie korzysta jedna osoba.
+- **Funkcje dziś:** budżet roczny (plan początkowy, plan aktualny, wykonanie), plan miesiąca i „do wydania”, tempo, powiadomienia, Podsumowanie miesiąca, porównanie planów miesięcy z rokiem, operacje ręczne i Import CSV/XLSX z podpowiedziami kategorii, konta, transfery własne, lokaty, Dashboard.
+- **Kategorie dziś:** należą do jednego budżetu (roku). Typ: przychód albo wydatek. Wydatek ma dwie flagi: równomierna / jednorazowa (Paced / One-off) oraz rachunek / bieżąca (Month Item Kind). Kategoria ma nazwę, ikonę, kolor i kolejność; można ją zarchiwizować. Nowy budżet kopiuje aktywne kategorie z poprzedniego roku razem z flagami. Nie ma jednej tożsamości kategorii przez lata: lata łączy zapytanie po nazwie i typie (`CONTEXT.md`, Category: _Avoid_ „a Category identity that spans years”). Nie ma grup kategorii.
+- **Raporty dziś:** brak widoku raportów i wykresów. Najbliżej: Podsumowanie miesiąca, porównanie planów miesięcy z rokiem, kolumny wykonania w budżecie rocznym.
+
+### Stan danych na devie (2026-11-04)
+
+Jeden budżet 2026 w wykonaniu, około 1000 operacji z Importu styczeń–wrzesień. Kategorie z września i października (Żywność, Mieszkanie, Transport, Zdrowie, Inne, Pensja, druga Rozrywka, drugie Odsetki) to dane testowe (potwierdził użytkownik). Obecna lista kategorii to propozycja użytkownika.
+
+Obserwacje z operacji (do rozstrzygnięcia przez użytkownika, nie decyzje):
+- Wszystkie wydatki mają rodzaj „bieżąca”, także Kredyt (2 raty miesięcznie), Czynsz, Ubezpieczenia (2 polisy), Telefon + Internet, Przedszkole.
+- Streamingi (Prime Video, Disney+, Netflix) są w Rozrywce, Google One w Usługach.
+- Podatek od odsetek jest w „Prowizje i opłaty bankowe”, opłata w Urzędzie Miasta w „Serwis samochodu”.
+- Myjnie są w „Serwis samochodu”.
+- Optyk jest w „Rzeczy osobiste”, okulary dziecka w „Dzieci”; Decathlon w „Rzeczy osobiste”.
+- Prąd: 4 płatności w roku (marzec, maj, lipiec, sierpień).
+- Literówki: „Restaruacje”, „Subkrypcje AI”.
 
 ## Vision & Problem Statement
 
-Zmiana: dodać kontrolę budżetu w skali miesiąca, bo budżet roczny nie pozwala w pełni kontrolować wydatków w codzienności. Użytkownik chce wiedzieć, ile jest jeszcze do wydania w danym miesiącu, tak aby zasadniczo nie wydawać więcej, niż zarobiono. Nie jest to zasada bez odstępstw: czasem trzeba coś odłożyć albo wydać więcej w miesiącu.
+Zmiana: uporządkować listę kategorii i dodać odczyt „ile i na co wydaję / zarabiam” w wybranym okresie, z porównaniem w czasie (miesiąc do miesiąca, rok do roku).
 
-Użytkownik ocenia, że obecne odczyty `Wynik` i `Pozostało w miesiącu` są bardzo nieścisłe, opierają się tylko na założeniach i nie informują wyraźnie, ile jest do wydania.
+Ból (wskazany przez użytkownika):
+- brak odczytu sum przychodów i wydatków według kategorii za wybrany okres,
+- brak porównania w czasie (trend),
+- nieuporządkowana lista kategorii: nie wiadomo, jakie kategorie mieć, jak je grupować i jakie typy im nadać,
+- wydatki nieregularne (prąd 4–5 razy w roku, ubezpieczenie auta, wakacje) nie mają jasnego miejsca w planie miesiąca; dotąd użytkownik odkładał stałą kwotę na inne konto.
 
-Obecne obejście: osobny arkusz `budget_szablon.xlsx`, z zakładką na każdy miesiąc. Budżet miesięczny w arkuszu ułatwia użytkownikowi tę kontrolę. Struktura arkusza (bez kwot):
-
-- pozycje rozchodów z kolumnami plan i faktycznie, ze znacznikiem realizacji; po wpisaniu kwoty faktycznej zwykle zastępuje ona plan,
-- przychody ze źródeł, plan i faktycznie,
-- wynik `Pozostałe` = przychody minus wszystkie rozchody miesiąca,
-- domyślne kwoty pozycji w zakładce `Ustawienia`,
-- tempo codziennych wydatków względem upływu dni miesiąca,
-- oszczędności jako procent zarobków oraz kwoty do wpłaty na konta oszczędnościowe,
-- wydatki nieregularne i ich fundusz.
-
-Do potwierdzenia w Kroku 3: które z tych elementów są potrzebne w aplikacji.
+Wgląd (dlaczego dotąd tego nie było):
+- kategorie należą do roku, więc porównanie lat wymaga łączenia ich po nazwie, a nazwy się zmieniają,
+- priorytetem była kontrola miesiąca („do wydania”), analiza wstecz jest kolejnym krokiem,
+- raporty na nieuporządkowanej liście kategorii byłyby mylące, więc porządek kategorii idzie razem z raportami.
 
 ## User & Persona
 
-Jedna osoba prowadzi budżet całego domu: loguje się i wpisuje wszystko, także dochody i wydatki drugiej osoby w gospodarstwie.
-
-Momenty korzystania z kontroli miesiąca: na początku miesiąca, przegląd co kilka dni, na koniec miesiąca. Moment tuż przed zakupem nie został wskazany.
+Jedna osoba prowadzi budżet całego domu: loguje się i wpisuje wszystko, także dochody i wydatki drugiej osoby. Raporty czyta ta sama osoba.
 
 ## Access Control
 
@@ -84,160 +144,160 @@ Obecny model: konta tworzy administrator (`user:create`), samodzielna rejestracj
 
 No changes planned — current model preserved.
 
-## Constraints & Preserved Behavior
-
-Nie mogą się zepsuć (wskazane przez użytkownika):
-
-- budżet roczny: plan początkowy, plan aktualny, wykonanie, roczne limity,
-- salda kont i lokat: Spendable Liquidity, Total funds, transfery, ruchy kapitału,
-- wprowadzanie operacji: Import i ręczne dodawanie nie stają się trudniejsze ani dłuższe,
-- dane historyczne: istniejące budżety i operacje działają bez ręcznej migracji, także miesiące bez planu.
-
-Ograniczenia wynikające z repozytorium:
-
-- ADR-0024 odrzucił „drugi budżet miesięczny”. Wybrany model tego wymaga, więc ADR trzeba zastąpić nowym.
-- Snapshot `user:backup` / `user:restore` musi obejmować plany miesięcy, a przywracanie starszych wersji (1 do 4) ma działać dalej.
-- Istniejące dane nie wymagają ręcznej migracji: kategorie otrzymują domyślny rodzaj „bieżąca”, minione miesiące nie mają planu.
-
-## Decisions
-
-- **Model planu miesiąca: Plan miesiąca obok rocznego.** Na początku miesiąca użytkownik zatwierdza plan z proponowanymi kwotami. Zatwierdzone kwoty są zapisane dla tego miesiąca i nie zmieniają się po zmianie planu rocznego. Budżet roczny działa bez zmian. Suma planów miesięcy może różnić się od roku i ta różnica ma być widoczna.
-- **Odrzucone:** roczny z korektami (domyślne kwoty byłyby średnią z roku, czyli założeniem) oraz pełny plan miesięczny (wymagałby przebudowy budżetu rocznego i migracji danych, które mają pozostać nienaruszone).
-- **Pozycja planu miesiąca:** kategoria budżetu. Faktyczna kwota wynika z operacji.
-- **Zakres pierwszej wersji:** zatwierdzany plan, plan i faktyczna kwota na pozycji, liczba „do wydania”, tempo codziennych wydatków, rozliczenie końca miesiąca.
-- **Główne kryterium sukcesu:** przez pełny miesiąc kontrola miesiąca prowadzona wyłącznie w aplikacji, bez zakładek miesięcznych arkusza.
-- **Założenie reguły:** każda pensja ma własną kategorię, a rachunki są płacone jednorazowo. Podzielone kategorie użytkownik przekształca samodzielnie, więc reguła nie obsługuje płatności w częściach.
-- **Wydatki nieregularne: sekcja + planowane, gdy znane.** Bez funduszu i przelewów. Kategoria jednorazowa jest pozycją planu z domyślną kwotą 0, a sekcja pokazuje resztę rocznego limitu. Obniża „do wydania”, gdy zostanie wpisana do planu albo gdy wydatek zostanie zaksięgowany. Odrzucone: tylko po zaksięgowaniu (ostrzeżenie po fakcie), średnia co miesiąc (fundusz oparty na założeniu).
-- **Oszczędności: pole „odkładam / dobieram” w planie miesiąca.** Jedna kwota, nie kategoria i nie przelew. Odkładam obniża „do wydania”, dobieram je podnosi. Użytkownik nie chce niepotrzebnych przelewów na oszczędności.
-- **Rozliczenie końca miesiąca: tylko podsumowanie.** Plan, wykonanie, odchylenia, odkładane zamierzone i realne. Kolejny miesiąc startuje od zera, pieniądze zostają na kontach, a późna operacja po prostu zmienia podsumowanie. Odrzucone: przenoszenie (łańcuch miesięcy, podwójne liczenie z „dobieram”) i zamykanie (można dołożyć później).
-
-- **Propozycja kwot: plan poprzedniego miesiąca.** Dla pierwszego miesiąca średnia z rocznego, jednorazowe od 0. Odrzucone: osobna domyślna kwota kategorii, zawsze średnia z rocznego.
-- **`Wynik` zostaje.** To fakt (zarobione minus wydane) i na koniec miesiąca jest miarą realnego odkładania.
-
 ## Success Criteria
 
 ### Primary
-
-- Przez pełny miesiąc kontrola miesiąca jest prowadzona wyłącznie w aplikacji, bez korzystania z zakładek miesięcznych arkusza `budget_szablon.xlsx`. Zakładki `Media` i `Oszczędności` mogą pozostać w arkuszu.
+- Użytkownik przechodzi przepływ zmiany w aplikacji:
+  1. otwiera widok „Raporty”,
+  2. wybiera okres: miesiąc albo rok,
+  3. widzi przychody, wydatki, wynik i kategorie z kwotą i udziałem %,
+  4. przełącza na trend: kategorie w kolejnych miesiącach roku,
+  5. w planie miesiąca wydatek nieregularny (np. prąd płacony 4–5 razy w roku) ma miesięczną kwotę.
 
 ### Secondary
-
-- Mniej niespodzianek: rzadziej dowiaduję się pod koniec miesiąca, że jest gorzej, niż się wydawało.
-- Widzę realne odkładanie: miesiąc do miesiąca widać, ile faktycznie zostaje względem zamierzeń.
+- Przejście z kategorii do jej operacji; porównanie z tym samym okresem rok wcześniej; kategoria rozpoznawana między latami, także po zmianie nazwy (przesunięte z Primary po rundzie Socratic).
+- Użytkownik nie potrzebuje `budget_szablon.xlsx` także do analizy wstecz.
+- Po raporcie użytkownik wskazuje kategorię, na której wydaje więcej, niż sądził.
+- Prąd i inne nieregularne wydatki nie wymagają odkładania stałej kwoty na osobne konto, żeby plan miesiąca był właściwy.
 
 ### Guardrails
+- Suma kategorii w raporcie za rok jest równa wykonaniu tych kategorii w budżecie rocznym (zwroty netto, bez transferów własnych i ruchów kapitału).
+- Podpowiedzi kategorii w Imporcie trafiają co najmniej tak dobrze jak przed zmianą.
+- Istniejące operacje, budżety i kategorie przechodzą bez ręcznej migracji i bez zmiany kwot.
+- `user:backup` i `user:restore` obejmują nowe dane.
+- Budżet roczny (plan początkowy, plan aktualny, wykonanie) działa jak dotąd.
 
-- Budżet roczny (plan początkowy, plan aktualny, wykonanie, roczne limity) działa jak dotąd.
-- Salda kont i lokat oraz Spendable Liquidity i Total funds nie zmieniają się przez nowe funkcje.
-- Import i ręczne dodawanie operacji nie stają się trudniejsze ani dłuższe.
-- Istniejące budżety i operacje działają bez ręcznej migracji, także miesiące bez planu.
+Najszybszy sygnał awarii (wskazany przez użytkownika): sumy raportu różne od budżetu; gorsze podpowiedzi Importu.
+
+Plan miesiąca i „do wydania” nie są na liście rzeczy do zachowania bez zmian: zmiana świadomie dotyka reguły „do wydania” dla wydatków nieregularnych.
 
 ## Timeline acknowledgment
 
-Acknowledged on 2026-11-01: 6-week delivery requires sustained dedication; user accepted.
-
-## User Stories
-
-### US-01: Kontrola miesiąca od planu do podsumowania
-
-- **Given** budżet roku jest w fazie wykonania, a miesiąc nie ma jeszcze zatwierdzonego planu
-- **When** użytkownik na początku miesiąca poprawia proponowane kwoty, wpisuje „odkładam / dobieram” i zatwierdza plan
-- **Then** widzi jedną liczbę „do wydania”, która zmienia się wraz z operacjami, a na koniec miesiąca podsumowanie planu, wykonania i odkładania
-
-Przedtem: ta kontrola istniała tylko w arkuszu, a aplikacja pokazywała odczyty wyliczane z planu rocznego.
-
-#### Acceptance Criteria
-
-- Od pierwszego dnia miesiąca propozycja planu daje liczbę „do wydania” z oznaczeniem „niezatwierdzony”.
-- Liczba jest zgodna z regułą z sekcji Business Logic i aktualna po każdej operacji oraz po Imporcie.
-- Podsumowanie pokazuje plan zatwierdzony i końcowy, wykonanie, odkładanie zamierzone i realne oraz dobrane kwoty.
-- Budżet roczny po tej ścieżce nie zmienia się.
+Acknowledged on 2026-11-04: 8-week change requires sustained dedication; user accepted. Zakres obejmuje cztery niezależne części: raport okresu, trend (miesiąc do miesiąca i rok do roku), kategorię przez lata (zmiana zasady ze słownika, nowy ADR), wydatki nieregularne w planie miesiąca (zmiana reguły „do wydania”). Użytkownik odrzucił zmniejszenie zakresu. Po rundzie Socratic rok do roku, kategoria przez lata i przejście do operacji stały się nice-to-have; użytkownik zostawił 8 tygodni jako zapas.
 
 ## Functional Requirements
 
-### Plan miesiąca
+Raport pokazuje każdy odczyt jako wykres i tabelę (decyzja użytkownika; forma do ustalenia przy projekcie widoku).
 
-- FR-001: User can zobaczyć propozycję planu miesiąca z kwotami dla kategorii dochodów i wydatków, opartą na planie poprzedniego miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: kategorie są osobne dla każdego roku, więc styczeń nie ma poprzedniego miesiąca w tym samym budżecie. Rozstrzygnięcie: styczeń bierze kwoty z grudnia dla kategorii o tej samej nazwie i typie, reszta to średnia z rocznego.
-- FR-002: User can poprawić kwoty i zatwierdzić plan miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: jeśli liczba pojawia się dopiero po zatwierdzeniu, zapomnienie oznacza brak kontroli przez wiele dni. Rozstrzygnięcie: propozycja od pierwszego dnia daje „do wydania” z oznaczeniem „niezatwierdzony”; zatwierdzenie utrwala kwoty.
-- FR-003: User can zmienić zatwierdzony plan w trakcie miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: swobodna edycja pozwala podnosić plan tak, by liczba zawsze wychodziła na plus. Rozstrzygnięcie: zmiany są dozwolone, a podsumowanie pokazuje plan zatwierdzony i końcowy, jak plan początkowy i aktualny w roku.
-- FR-004: User can wpisać w planie miesiąca kwotę „odkładam / dobieram”. Priority: must-have. Change: new
-  > Socratic: Kontrargumenty: dobieranie bez pokrycia oraz ukrywanie przekroczeń. Rozstrzygnięcie: ostrzeżenie bez blokady, gdy dobierane przekracza Spendable Liquidity; podsumowanie pokazuje dobrane kwoty, także w skali roku.
+### Raport okresu
 
-### Kontrola w trakcie miesiąca
+- FR-001: User can wybrać okres raportu: miesiąc albo rok. Priority: must-have. Change: new
+  > Socratic: Kontrargument: własny zakres dat jest zbędny i kosztuje. Rozstrzygnięcie: tylko miesiąc i rok; własny zakres usunięty z FR.
+- FR-002: User can zobaczyć przychody, wydatki i wynik wybranego okresu. Priority: must-have. Change: new
+  > Socratic: Kontrargument: dla jednego miesiąca to ta sama liczba co „Wynik” w Podsumowaniu miesiąca. Rozstrzygnięcie: raport liczy wynik tak samo jak Wynik miesiąca (Month Result), więc dla miesiąca obie liczby są równe.
+- FR-003: User can zobaczyć kategorie przychodów i wydatków z kwotą i udziałem % w wybranym okresie. Priority: must-have. Change: new
+  > Socratic: Rozważono: 37 kategorii na jednym wykresie, zwroty obniżające kwotę, brak grup. Rozstrzygnięcie: bez kontrargumentu, zostaje jak zapisano.
+- FR-004: User can przejść z kategorii w raporcie do jej operacji w wybranym okresie. Priority: nice-to-have. Change: new
+  > Socratic: Kontrargument: lista operacji już istnieje. Rozstrzygnięcie: raport prowadzi do strony Operacje z filtrem kategorii i okresu, bez nowej listy.
 
-- FR-005: User can zobaczyć jedną liczbę „do wydania” dla miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: na początku miesiąca pensji jeszcze nie ma. Rozstrzygnięcie: jak w arkuszu liczony jest planowany przychód, a po wpływie zastępuje go kwota faktyczna.
-- FR-006: User can zobaczyć plan i faktyczną kwotę każdej pozycji miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: oszczędność na rachunku powinna wrócić do puli, ale niewydane codzienne wydatki nie są wolne. Rozstrzygnięcie: na kategorii jeden rodzaj pozycji: „rachunek” (po wpłacie faktyczna zastępuje plan) albo „bieżąca” (plan obowiązuje cały miesiąc).
-- FR-007: User can zobaczyć tempo wydatków względem upływu dni miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: czynsz płacony wcześnie i zakupy raz w tygodniu dają fałszywe ostrzeżenia. Rozstrzygnięcie: tempo tylko dla pozycji „bieżących”, ostrzeżenie przy wyprzedzeniu dni o co najmniej 10 punktów procentowych.
-- FR-008: User can zobaczyć kategorie jednorazowe z resztą rocznego limitu w widoku miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: długa lista kategorii z zerowym planem zaciemnia widok. Rozstrzygnięcie: jednorazowe z planem albo wydatkiem w miesiącu są w planie, reszta w zwiniętej sekcji z saldem rocznego limitu.
+### Trend
 
-### Koniec miesiąca i rok
+- FR-005: User can zobaczyć kwoty kategorii i sumy w kolejnych miesiącach wybranego roku. Priority: must-have. Change: new
+  > Socratic: Rozważono: niepełny bieżący miesiąc, skoki przy wydatkach nieregularnych, brak planu obok wykonania. Rozstrzygnięcie: bez kontrargumentu, zostaje jak zapisano.
+- FR-006: User can porównać okres z tym samym okresem rok wcześniej. Priority: nice-to-have. Change: new
+  > Socratic: Kontrargument: skoro rok do roku jest poza v1, łączenie kategorii między latami też może poczekać. Rozstrzygnięcie: FR-007, FR-008 i FR-009 przesunięte do nice-to-have.
 
-- FR-009: User can zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne. Priority: must-have. Change: new
-  > Socratic: Kontrargument: operacja należy do miesiąca według daty, więc pensja z końca poprzedniego miesiąca zawyża go i zaniża kolejny. Rozstrzygnięcie: u użytkownika pensja bywa wcześniej; nadwyżka wchodzi do kolejnego miesiąca przez „dobieram”, bez nowego pola przy operacjach.
-- FR-010: User can porównać plany miesięcy z budżetem rocznym. Priority: must-have. Change: new
-  > Socratic: Kontrargument: suma planów miesięcy jest pełna dopiero w grudniu. Rozstrzygnięcie: dla każdej kategorii pokazywane jest wydane w roku plus plan bieżącego miesiąca względem planu rocznego.
-- FR-011: User can pracować z miesiącem bez planu: jest on wyraźnie oznaczony, a aplikacja działa dalej. Priority: must-have. Change: new
-  > Socratic: Kontrargument: minione miesiące nigdy nie miały planu, a plan wstecz nic nie da. Rozstrzygnięcie: plan dostępny dla bieżącego i przyszłych miesięcy; minione zostają bez planu.
+### Kategoria przez lata
 
-### Powiadomienia i istniejące odczyty
+- FR-007: User can utworzyć nowy budżet, który kopiuje kategorie razem z ich powiązaniem z kategoriami poprzedniego roku. Priority: nice-to-have. Change: modified
+  > Socratic: Kontrargument: istniejące budżety (2026 i mock 2025) powstały bez powiązań. Rozstrzygnięcie: powiązanie startowe po nazwie i typie, potem ręczna korekta.
+- FR-008: User can zmienić nazwę kategorii bez zerwania porównania z innymi latami. Priority: nice-to-have. Change: modified
+  > Socratic: Kontrargument: którą nazwę pokazuje raport, gdy nazwy w latach się różnią. Rozstrzygnięcie: raport pokazuje nazwę z najnowszego roku w okresie.
+- FR-009: User can ręcznie powiązać kategorię z kategorią z innego roku. Priority: nice-to-have. Change: new
+  > Socratic: Kontrargument: podział i scalenie (np. „Telefon + Internet” rozbity na dwie kategorie). Rozstrzygnięcie: powiązanie tylko 1:1; podział zrywa porównanie.
 
-- FR-012: User can zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca: do wydania poniżej zera, pozycja ponad plan, tempo za szybkie, brak planu miesiąca. Priority: must-have. Change: new
-  > Socratic: Kontrargument: powiadomienia o drobiazgach uczą ignorowania strefy uwagi. Rozstrzygnięcie: „brak planu” od 3. dnia miesiąca; „pozycja ponad plan” przy każdym przekroczeniu, bo to już fakt.
-- FR-019: User can ustawić na kategorii rodzaj pozycji: „rachunek” albo „bieżąca”. Priority: must-have. Change: new
-  > Socratic: Kontrargument rozstrzygnięty przy FR-006, FR-007 i FR-018: bez rodzaju pozycji liczba i tempo byłyby nieścisłe. Domyślnie „bieżąca”, kopiowane na nowy rok jak flaga równomierna.
-- FR-013: User can zobaczyć na Dashboardzie i stronie Budżet „do wydania” zamiast `Pozostało w miesiącu` w bieżącym i przyszłych miesiącach; minione miesiące zachowują stary odczyt. Priority: must-have. Change: modified
-  > Socratic: Kontrargument: szkic liczy od razu, więc stary odczyt zostaje tylko dla minionych miesięcy. Rozstrzygnięcie: zostaje dla minionych, historia wygląda jak dziś, kosztem utrzymania starego kodu.
-- FR-014: User can zobaczyć przy ręcznej operacji i w podglądzie Importu ostrzeżenia liczone z planu miesiąca, gdy miesiąc ma plan; bez planu zostają obecne. Priority: must-have. Change: modified
-  > Socratic: Kontrargument: Import może mieć wiersze z kilku miesięcy. Rozstrzygnięcie: każdy wiersz sprawdzany jest według miesiąca swojej daty.
+### Wydatki nieregularne
+
+- FR-010: User can oznaczyć wydatek jako nieregularny: płacony kilka razy albo raz w roku. Priority: must-have. Change: new
+  > Socratic: Kontrargument: może wystarczy flaga „jednorazowa”, ale w Propozycji planu startuje ona od 0, więc prąd znika z miesięcy bez płatności. Rozstrzygnięcie: potrzebny trzeci rodzaj albo nowa flaga; obecne flagi nie wystarczają.
+- FR-011: User can zobaczyć miesięczną kwotę takiego wydatku w planie miesiąca i w „do wydania”. Priority: must-have. Change: modified
+  > Socratic: Kontrargument: odjęcie miesięcznej kwoty, gdy nic nie płacisz, zostawia pieniądze na koncie, a „do wydania” mówi „nie wydawaj”. Rozstrzygnięcie: zebrane pieniądze muszą być widoczne jako „zebrane na …”; szczegóły w regule biznesowej.
 
 ### Zachowane
 
-- FR-015: User can korzystać z budżetu rocznego (plan początkowy, plan aktualny, wykonanie, roczne limity) jak dotąd. Priority: must-have. Change: preserved
-  > Socratic: Kontrargument: w trakcie roku kategorie dochodzą i są archiwizowane, a plan miesiąca ma zapisane kwoty. Rozstrzygnięcie: nowa kategoria dołącza z kwotą 0; zarchiwizowana zostaje w miesiącu, w którym ma plan albo wydatek, i znika z kolejnych propozycji.
-- FR-016: User can odczytywać salda kont i lokat oraz Spendable Liquidity i Total funds jak dotąd. Priority: must-have. Change: preserved
-  > Socratic: Kontrargument: „do wydania” może przekraczać środki na kontach. Rozstrzygnięcie: oba światy pozostają osobne; „do wydania” to budżet, Spendable Liquidity to środki, a transfery i ruchy kapitału nie zmieniają tej liczby.
-- FR-017: User can dodawać operacje ręcznie i przez Import bez dodatkowych kroków. Priority: must-have. Change: preserved
-  > Socratic: Kontrargument: drobne przekroczenie rachunku dawałoby ostrzeżenie przy wierszu Importu. Rozstrzygnięcie: przy operacji ostrzeżenie tylko, gdy „do wydania” zejdzie poniżej zera; pozycję ponad plan widać na Dashboardzie.
-- FR-018: User can korzystać z istniejących budżetów i operacji bez ręcznej migracji. Priority: must-have. Change: preserved
-  > Socratic: Kontrargument: istniejące kategorie nie mają rodzaju pozycji. Rozstrzygnięcie: domyślnie „bieżąca”, rachunki użytkownik oznacza raz przy pierwszym planie, a rodzaj kopiuje się na nowy rok jak flaga równomierna.
+- FR-012: User can korzystać z budżetu rocznego (plan początkowy, plan aktualny, wykonanie) jak dotąd. Priority: must-have. Change: preserved
+  > Socratic: Kontrargument: nowe oznaczenie może zmienić „Pozostało w miesiącu” i pulę równomiernych w minionych miesiącach. Rozstrzygnięcie: budżet roczny i minione miesiące bez zmian; oznaczenie działa tylko na plan miesiąca.
+- FR-013: User can importować operacje z podpowiedziami kategorii jak dotąd. Priority: must-have. Change: preserved
+  > Socratic: Kontrargument: porządkowanie danych (np. Prime Video do Subskrypcji) zmieni podpowiedzi zamierzenie. Rozstrzygnięcie: trafność porównywać na tych samych danych przed i po zmianie kodu.
+- FR-014: User can korzystać z istniejących budżetów, kategorii i operacji bez ręcznej migracji, a backup i restore obejmują nowe dane. Priority: must-have. Change: preserved
+  > Socratic: Kontrargument: snapshot sprzed zmiany nie ma nowych pól. Rozstrzygnięcie: restore starego formatu działa i ustawia wartości domyślne (wydatek nie jest nieregularny).
+
+## User Stories
+
+### US-01: Odczyt roku według kategorii
+
+- **Given** budżet 2026 w wykonaniu z operacjami
+- **When** użytkownik otwiera „Raporty” i wybiera rok 2026
+- **Then** widzi przychody, wydatki i wynik oraz kategorie z kwotą i udziałem % (wykres i tabela)
+
+#### Acceptance Criteria
+- Suma wydatków w raporcie równa się wykonaniu kategorii wydatków w budżecie rocznym 2026.
+
+## Lista kategorii (dane użytkownika, nie funkcja aplikacji)
+
+Lista kategorii należy do użytkownika; aplikacja jej nie narzuca. Decyzje użytkownika z tej sesji:
+- Dodać: Subskrypcje (streaming, chmura: Prime Video, Disney+, Netflix, Google One), Eksploatacja auta (myjnie, drobne rzeczy; „Serwis samochodu” dla napraw i przeglądów), Sport (np. Decathlon), optyk i okulary do zdrowia.
+- Nie dodawać: Podatki i urzędy, Kawa i słodycze na mieście.
+- Wakacje: odkładać na hotel, zakwaterowanie, atrakcje — „to jednak koszt wakacji” (słowa użytkownika).
+- Do poprawienia przez użytkownika w danych: rodzaj „rachunek” dla stałych opłat (dziś wszystkie „bieżąca”), literówki „Restaruacje”, „Subkrypcje AI”, błędnie przypisane operacje (Sinsay i Allegro w Artykułach spożywczych, Żabka w Przedszkolu), wypłata gotówki zaksięgowana jako wydatek (Rekolekcje, Planet Cash).
 
 ## Business Logic
 
-Aplikacja pokazuje, ile można jeszcze wydać w miesiącu: przychody miesiąca minus zobowiązania miesiąca, z kwotami faktycznymi tam, gdzie już są, a odstępstwo od zasady „nie więcej, niż zarobiono” jest jawną decyzją, a nie błędem.
+Wydatek nieregularny obniża „do wydania” co miesiąc o 1/12 swojego planu rocznego, a jego płatności pokrywa kwota zebrana do tej pory; „do wydania” w miesiącu płatności obniża tylko nadwyżka ponad zebrane.
 
-Obecnie system liczy `Wynik` (zaksięgowane dochody minus wydatki) oraz `Pozostało w miesiącu` (bieżąca część rocznego planu). Ta zmiana dodaje nową regułę dla bieżącego i przyszłych miesięcy; minione miesiące działają jak dotąd.
+Obecnie system liczy „do wydania” jako: przychody (plan, a po wpływie kwota faktyczna) − pozycje „rachunek” (plan, a po wpłacie kwota faktyczna) − pozycje „bieżąca” (większa z: plan, kwota faktyczna) − odkładam + dobieram (`CONTEXT.md`, To Spend). Wydatek płacony kilka razy w roku nie pasuje: jako „jednorazowa” startuje w Propozycji planu od 0, a jako równomierny rachunek obniża „do wydania” skokiem w miesiącu płatności. Ta zmiana modyfikuje regułę: wydatek nieregularny (płacony kilka razy albo raz w roku, np. prąd, ubezpieczenie auta, wakacje, rekolekcje) wchodzi do „do wydania” kwotą 1/12 planu rocznego w każdym miesiącu. Ta kwota zwiększa „zebrane” tej pozycji. Płatność najpierw zmniejsza „zebrane”; część płatności ponad „zebrane” obniża „do wydania” w miesiącu płatności, a „zebrane” spada do 0. Przykład: prąd, plan roczny 1800 zł → 150 zł co miesiąc; rachunek 430 zł przy zebranych 300 zł → 130 zł obniża „do wydania”.
 
-`do wydania` = przychody (plan, a po wpływie kwota faktyczna) − pozycje „rachunek” (plan, a po wpłacie kwota faktyczna) − pozycje „bieżąca” (większa z: plan, kwota faktyczna) − odkładam + dobieram.
+„Zebrane” widać przy pozycji w planie miesiąca i w Podsumowaniu miesiąca. Nie zmienia sald kont ani Spendable Liquidity, tak jak „odkładam”. Zbieranie zaczyna się od miesiąca, w którym użytkownik oznaczył wydatek jako nieregularny (zebrane startuje od 0); minione miesiące się nie zmieniają. Na koniec roku niewydane „zebrane” obniża plan roczny tej kategorii i przechodzi do wyniku roku.
 
-Liczba może być ujemna i niczego nie blokuje, tak jak dziś przekroczenie limitu. Odstępstwo od zasady wyraża się przez kwotę „dobieram”, a podsumowanie pokazuje dobrane kwoty, także w skali roku. Transfery własne i ruchy kapitału nie zmieniają tej liczby.
+Raport okresu (nowy odczyt, bez nowej reguły domenowej): kwoty kategorii w okresie to wykonanie z operacji datowanych w tym okresie, zwroty netto, bez transferów własnych i ruchów kapitału. Wynik miesiąca w raporcie jest równy Wynikowi miesiąca (Month Result). Suma roku jest równa wykonaniu w budżecie rocznym.
 
 ## Non-Functional Requirements
 
-- Po zapisaniu operacji albo Importu kolejny odczyt pokazuje aktualną i poprawną liczbę „do wydania”.
-- Istniejące wymagania aplikacji obowiązują także nowe widoki: czas odpowiedzi do 2 sekund przy 10 000 operacji, dostępność, responsywność, izolacja danych, kwoty bez obliczeń zmiennoprzecinkowych (`.docs/prd.md`, sekcja 10).
+- Raport roku otwiera się w czasie do 2 sekund przy 10 000 operacji (obecne wymaganie aplikacji, `.docs/prd.md` sekcja 10).
+- Kwoty w raporcie są co do grosza równe wykonaniu kategorii w budżecie rocznym i Wynikowi miesiąca dla tego samego okresu.
+- Istniejące wymagania aplikacji obowiązują nowe widoki: izolacja danych użytkownika, kwoty bez obliczeń zmiennoprzecinkowych.
+
+## Constraints & Preserved Behavior
+
+Nie mogą się zepsuć:
+- Budżet roczny: plan początkowy, plan aktualny, wykonanie, „Pozostało w miesiącu” i pula równomiernych w minionych miesiącach. Oznaczenie „nieregularny” działa tylko na plan miesiąca (wyjątek: koniec roku obniża plan roczny o niewydane „zebrane”).
+- Historia operacji i Import, w tym trafność podpowiedzi kategorii (porównywana na tych samych danych przed i po zmianie kodu).
+- Istniejące budżety, kategorie i operacje bez ręcznej migracji i bez zmiany kwot. Domyślnie żaden wydatek nie jest nieregularny.
+- `user:backup` i `user:restore`: format dostaje nową wersję i obejmuje nowe dane; snapshot w starym formacie nadal się wczytuje z wartościami domyślnymi.
+- Salda kont, lokat, Spendable Liquidity i Total funds bez zmian.
+
+Wymogi istniejącego systemu (wskazane przez użytkownika):
+- Zmiana reguły „do wydania” wymaga nowego ADR i wpisów w `CONTEXT.md` przed kodem.
+- Dane 2025 tylko na devie (mock), do sprawdzenia trendu i późniejszego porównania rok do roku.
+
+Plan miesiąca i „do wydania” zmieniają się świadomie w zakresie wydatków nieregularnych; reszta reguły „do wydania” zostaje.
+
+## Product framing
+
+- Typ produktu: No change — existing web-app.
+- Skala: No change — jedna osoba (small).
+- Termin: brak twardego terminu; cel 8 tygodni, praca po godzinach.
 
 ## Non-Goals
 
-- **Agenda i terminy płatności.** Rachunek nie ma daty płatności, a niezmergowane gałęzie Agendy zostają poza tą zmianą.
-- **Współdzielenie z domownikami.** Bez drugiego logowania do tego samego budżetu; jedna osoba prowadzi cały dom.
-- **Import arkusza.** Bez przenoszenia danych z `budget_szablon.xlsx` do aplikacji.
-- **Zmiany budżetu rocznego i sald.** Patrz Constraints & Preserved Behavior.
+- **Grupy kategorii i domyślna lista kategorii.** Lista kategorii jest danymi użytkownika; aplikacja jej nie narzuca i nie grupuje.
+- **Oznaczanie wyjazdów.** Bez tagów ani oznaczeń operacji ponad kategorię (np. „Wakacje 2026”); koszt wakacji to kategoria Wakacje (hotel, zakwaterowanie, atrakcje).
+- **Własny zakres dat i eksport raportu.** Okres to miesiąc albo rok; bez eksportu CSV ani PDF.
 
 ## Open Questions
 
-1. **Czy „odkładam” ma obsługiwać procent od zarobków?** Arkusz liczy oszczędności jako procent przychodów; użytkownik nie wykluczył tego w Non-Goals, a pierwsza wersja zakłada kwotę. Właściciel: użytkownik.
+1. **Jak zmienia się miesięczna kwota wydatku nieregularnego, gdy w trakcie roku zmienia się jego plan roczny?** Reguła mówi „1/12 planu rocznego”; nie ustalono, czy po zmianie planu kwota liczy się od nowego planu od tego miesiąca. Właściciel: użytkownik.
+2. **Jak „nieregularny” łączy się z obecnymi flagami (równomierna / jednorazowa, rachunek / bieżąca)?** FR-010 rozstrzyga tylko, że obecne flagi nie wystarczają (trzeci rodzaj albo nowa flaga). Właściciel: użytkownik, przy nowym ADR.
 
 ## Forward: technical-roadmap
 
-- `user:backup` i `user:restore` mają format wersjonowany (obecnie 4). Plany miesięcy muszą w nim być, bo inaczej snapshot je utraci.
-- Nowy ADR musi zastąpić ADR-0024 w części o „drugim budżecie miesięcznym”.
-- `CONTEXT.md` zawiera terminy bez implementacji (Agenda, Cash Expectation, Reserve, Year Close). Nowe pojęcia dopisać do słownika.
-- `.ai/rules/support.md` i ADR-0032: każde nowe powiadomienie Dashboardu o wadze `warning` wymaga terminu i progów w `CONTEXT.md` przed kodem.
-- `Pozostało w miesiącu` działa w pięciu miejscach: kafelek Dashboardu, powiadomienia Dashboardu, strona Budżet, ostrzeżenie przy ręcznej operacji, podgląd Importu.
+- Nowy ADR i wpisy w `CONTEXT.md` (nowe pojęcia: wydatek nieregularny, „zebrane”) przed kodem; zmiana dotyka To Spend, Month Plan, Proposal, Month Summary i Year Close / Align na koniec roku.
+- Mock budżetu 2025 z operacjami tylko na devie (seeder), do sprawdzenia trendu i późniejszego porównania rok do roku.
+- `user:backup` / `user:restore`: nowa wersja formatu; stary format wczytuje się z wartościami domyślnymi.
+- Łączenie kategorii po nazwie i typie jest dziś używane w kilku miejscach (kopiowanie budżetu, podpowiedzi Importu, porównanie planów miesięcy z rokiem, Earmark). FR-007…FR-009 (nice-to-have) muszą je uwzględnić.
+- Trafność podpowiedzi Importu: pomiar przed i po zmianie kodu na tych samych danych (istnieje próg pomiaru z `import-category-suggestions`).
+- Raport: istniejąca strona Operacje może przyjąć filtr kategorii i okresu (FR-004).
+
+## Quality cross-check
+
+Run 2026-11-04: Access Control, Business Logic, Project artifacts, Timeline-cost acknowledgment, Non-Goals, Preserved behavior — all present. Status: accepted.
