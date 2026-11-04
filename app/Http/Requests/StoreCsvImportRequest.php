@@ -36,7 +36,6 @@ class StoreCsvImportRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        /** @var array<int, array<string, mixed>> $rows */
         $rows = $this->input('rows', []);
 
         $this->merge([
