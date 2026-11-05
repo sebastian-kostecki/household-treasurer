@@ -8,7 +8,7 @@ paths:
 ## Colours come from tokens; only money and alerts carry meaning
 
 Use token utilities (bg-primary, text-destructive, text-warning, text-success, text-muted-foreground), never hex values or Tailwind palette colours (red-500, amber-700).
-primary = action (ink); brand = identity and navigation, never status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions, never an expense amount (in Operations an expense amount is `foreground`, ADR-0038; only the expense type tile is `destructive-soft`, ADR-0039); warning = within bounds but close to breaking.
+primary = action (ink); brand = identity, navigation, document state and the one approving action (ADR-0042), never money status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions, never an expense amount (in Operations an expense amount is `foreground`, ADR-0038; only the expense type tile is `destructive-soft`, ADR-0039); warning = within bounds but close to breaking.
 Category colour is identity only (CategoryChip tile at 15%), never status. Full table: .docs/design-system.md.
 
 ## Amounts go through formatMoney with tabular-nums
@@ -19,9 +19,9 @@ Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,
 
 Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountIdentityBlock and SegmentedControl first. Also StatPanel and ExecutionMeter. Surfaces follow ADR-0037: grey floor, panels are `card` with a full `border` and `rounded-lg`, no resting shadows. Do not edit components/ui/* for a single screen.
 
-## Non-blocking warnings use the warning Alert variant
+## Non-blocking warnings use the warning Alert variant; a reading note uses `note`
 
-Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. Exception: in form dialogs of operations the warning is `text-warning` text inside the before → after preview block, under the reading it concerns, not an Alert (ADR-0041). variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0039: expense `destructive-soft` + `destructive`, income `success/10` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`; the tile marks the type, the expense amount stays `foreground`.
+A one-sentence note about a reading shown on the same page, under the metrics panel or under a table (month plan pace, drawing past available liquidity), uses `<Alert variant="note">` (ADR-0042). Other warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. Exception: in form dialogs of operations the warning is `text-warning` text inside the before → after preview block, under the reading it concerns, not an Alert (ADR-0041). variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0039: expense `destructive-soft` + `destructive`, income `success/10` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`; the tile marks the type, the expense amount stays `foreground`.
 
 ## Bind the reka-ui Checkbox with v-model, never :checked
 
@@ -39,7 +39,7 @@ Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
 Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
-Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; `.column-header` applies it in the month plan; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft / ok / brand / neutral), the elapsed-year mark in ExecutionMeter in `brand-text`.
+Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; `.column-header` applies it in the month plan; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft / ok / brand / neutral; `brand` also marks document state, such as an approved month plan, ADR-0042), the elapsed-year mark in ExecutionMeter in `brand-text`.
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
 No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits, /dev/operations and /dev/import-preview.
 Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are 32px (`--control-height`) and `rounded-md`.
@@ -53,9 +53,9 @@ No `dark:` variants and no literals in sidebar files: `npm run check:ui` guards 
 
 ## Views take values from app.css, not from literals
 
-Tokens live in resources/css/app.css. Named classes in `@layer components` cover repeated layout: `.month-plan-grid`, `.column-header`, `.section-label`, `.segmented-control*`. When a view needs a new grid, size or label style, add a named class there instead of an arbitrary value (`text-[11px]`, `grid-cols-[1fr_auto]`) in the template.
+Tokens live in resources/css/app.css. Named classes in `@layer components` cover repeated layout: `.month-plan-grid`, `.column-header`, `.cell-input`, `.month-plan-editbar`, `.month-strip-dot*`, `.month-plan-summary-grid`, `.segmented-control*`. When a view needs a new grid, size or label style, add a named class there instead of an arbitrary value (`text-[11px]`, `grid-cols-[1fr_auto]`) in the template.
 A value switch (one option selected, as in put aside / take) is `SegmentedControl` (tone `primary` for a form choice, `neutral` for a setting saved immediately), not a `Button` with `aria-pressed`.
-The month plan view is checked by tests/Unit/MonthPlanHardcodedUiTest.php (part of `composer ci:check`); it lists the view files and fails with file:line. Add a new month plan component to its file list. The kitchen sink at /dev/month-plan (`APP_ENV=local` only) renders every state of the view from resources/js/lib/month-plan-fixtures.ts; extend it when you add a state.
+The month plan view is checked by tests/Unit/MonthPlanHardcodedUiTest.php (part of `composer ci:check`); it lists the view files and fails with file:line. Add a new month plan component to its file list. The month plan is one table with a Status column (ADR-0042); the plan cell in edit mode is the `.cell-input` class on a native input, not `ui/Input` (a component class loses to the `ui/Input` utilities). The kitchen sink at /dev/month-plan (`APP_ENV=local` only) renders every state of the view from resources/js/lib/month-plan-fixtures.ts; extend it when you add a state.
 
 ## Operations list: named classes, one primary action, visible reason for a disabled action
 
