@@ -444,14 +444,14 @@ Bez migracji. Stare linki bez `section` otwierają domyślną zakładkę.
 
 #### Automated
 
-- [x] 4.1 Testy query i grupowania zielone
-- [x] 4.2 npm run check, check:ui, types:check, npm test zielone
-- [x] 4.3 Skan literałów z /10x-ui na plikach widoku daje 0 trafień
-- [x] 4.4 composer ci:check w obrazie Sail i sloppy ci na hoście zielone
+- [x] 4.1 Testy query i grupowania zielone — 08791cc
+- [x] 4.2 npm run check, check:ui, types:check, npm test zielone — 08791cc
+- [x] 4.3 Skan literałów z /10x-ui na plikach widoku daje 0 trafień — 08791cc
+- [x] 4.4 composer ci:check w obrazie Sail i sloppy ci na hoście zielone — 08791cc
 
 #### Manual
 
-- [x] 4.5 Zrzuty /dev/operations i /operations w obu motywach przy 1280 i 390 px zgodne z mockupem
-- [x] 4.6 Zakładka przetrwa paginację, filtry, Wyczyść filtry i odświeżenie; wyciszona pokazuje 0 i notkę
-- [x] 4.7 Menu Dodaj operację działa z klawiatury; wyłączona pozycja pokazuje powód
-- [x] 4.8 Link z filtrem kategorii otwiera Operacje z filtrem
+- [x] 4.5 Zrzuty /dev/operations i /operations w obu motywach przy 1280 i 390 px zgodne z mockupem — 08791cc
+- [x] 4.6 Zakładka przetrwa paginację, filtry, Wyczyść filtry i odświeżenie; wyciszona pokazuje 0 i notkę — 08791cc
+- [x] 4.7 Menu Dodaj operację działa z klawiatury; wyłączona pozycja pokazuje powód — 08791cc
+- [x] 4.8 Link z filtrem kategorii otwiera Operacje z filtrem — 08791cc
