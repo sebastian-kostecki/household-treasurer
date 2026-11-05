@@ -53,6 +53,16 @@ final class MonthToSpend
      */
     public function toSpendMinorUnits(): ?int
     {
+        return $this->toSpendBreakdown()['to_spend_minor_units'] ?? null;
+    }
+
+    /**
+     * The income and expense behind the number. Null when the month has no plan.
+     *
+     * @return array{income_minor_units: int, expense_minor_units: int, to_spend_minor_units: int}|null
+     */
+    public function toSpendBreakdown(): ?array
+    {
         if ($this->reading->state === 'none') {
             return null;
         }
@@ -71,7 +81,32 @@ final class MonthToSpend
             ];
         }
 
-        return ToSpendCalculator::toSpendMinorUnits($items, $this->reading->setAsideMinorUnits);
+        return ToSpendCalculator::breakdown($items, $this->reading->setAsideMinorUnits);
+    }
+
+    /**
+     * The state of each month for the month strip, January first. An approved
+     * month before today is a summary.
+     *
+     * @return list<'summary'|'approved'|'proposal'|null>
+     */
+    public function monthStates(int $year, CarbonImmutable $today): array
+    {
+        $states = [];
+
+        for ($month = 1; $month <= 12; $month++) {
+            $state = $this->proposal->reading($month)->state;
+            $isPast = [$year, $month] < [$today->year, $today->month];
+
+            $states[] = match (true) {
+                $state === 'approved' && $isPast => 'summary',
+                $state === 'approved' => 'approved',
+                $state === 'proposal' => 'proposal',
+                default => null,
+            };
+        }
+
+        return $states;
     }
 
     /**

@@ -552,24 +552,24 @@ Bez migracji danych. Propsy tylko przybywają; formularze zatwierdzenia i zmiany
 
 #### Automated
 
-- [x] 2.1 build, types:check, check i check:ui przechodzą
-- [x] 2.2 npm test przechodzi
-- [x] 2.3 composer ci:check przechodzi w obrazie Sail
+- [x] 2.1 build, types:check, check i check:ui przechodzą — cbd513e
+- [x] 2.2 npm test przechodzi — cbd513e
+- [x] 2.3 composer ci:check przechodzi w obrazie Sail — cbd513e
 
 ### Phase 3: Logika i kontrakt propsów
 
 #### Automated
 
-- [ ] 3.1 Testy pary i strony przechodzą na PostgreSQL w obrazie Sail
-- [ ] 3.2 npm test przechodzi z testami pary i ostrzeżeń
-- [ ] 3.3 build, types:check i check przechodzą
-- [ ] 3.4 composer ci:check przechodzi w obrazie Sail
-- [ ] 3.5 sloppy ci bez nowych znalezisk
-- [ ] 3.6 pint --dirty bez zmian do zrobienia
+- [x] 3.1 Testy pary i strony przechodzą na PostgreSQL w obrazie Sail
+- [x] 3.2 npm test przechodzi z testami pary i ostrzeżeń
+- [x] 3.3 build, types:check i check przechodzą
+- [x] 3.4 composer ci:check przechodzi w obrazie Sail
+- [x] 3.5 sloppy ci bez nowych znalezisk
+- [x] 3.6 pint --dirty bez zmian do zrobienia
 
 #### Manual
 
-- [ ] 3.7 /month-plan renderuje się jak przed zmianą
+- [x] 3.7 /month-plan renderuje się jak przed zmianą
 
 ### Phase 4: Widok Planu miesiąca
 

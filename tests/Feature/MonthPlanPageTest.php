@@ -170,6 +170,85 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_current_month_proposal_exposes_the_to_spend_breakdown(): void
+    {
+        [$user] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.to_spend_income_minor_units', 800_000)
+                ->where('monthPlan.to_spend_expense_minor_units', 427_000)
+                ->where('monthPlan.set_aside_minor_units', 0)
+                ->where('monthPlan.to_spend_minor_units', 373_000),
+            );
+    }
+
+    public function test_to_spend_breakdown_and_set_aside_add_up_to_the_number(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 50_000,
+                'items' => $this->planItems($categories),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(function (Assert $page): void {
+                $page->where('monthPlan.set_aside_minor_units', 50_000);
+
+                $props = $page->toArray()['props']['monthPlan'];
+
+                $this->assertSame(
+                    $props['to_spend_income_minor_units'] - $props['to_spend_expense_minor_units'] - $props['set_aside_minor_units'],
+                    $props['to_spend_minor_units'],
+                );
+            });
+    }
+
+    public function test_month_states_mark_summary_approved_proposal_and_missing_plans(): void
+    {
+        [$user, $budget] = $this->canonicalBudget();
+
+        MonthPlan::factory()->for($budget)->create(['month' => 5]);
+        MonthPlan::factory()->for($budget)->create(['month' => 6]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.month_states', [
+                    null, null, null, null,
+                    'summary',
+                    'approved',
+                    'proposal', 'proposal', 'proposal', 'proposal', 'proposal', 'proposal',
+                ]),
+            );
+    }
+
+    public function test_month_without_a_plan_has_no_to_spend_breakdown(): void
+    {
+        [$user] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'none')
+                ->where('monthPlan.to_spend_income_minor_units', null)
+                ->where('monthPlan.to_spend_expense_minor_units', null),
+            );
+    }
+
     public function test_past_approved_month_is_read_only(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
