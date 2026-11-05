@@ -85,31 +85,6 @@ final class MonthToSpend
     }
 
     /**
-     * The state of each month for the month strip, January first. An approved
-     * month before today is a summary.
-     *
-     * @return list<'summary'|'approved'|'proposal'|null>
-     */
-    public function monthStates(int $year, CarbonImmutable $today): array
-    {
-        $states = [];
-
-        for ($month = 1; $month <= 12; $month++) {
-            $state = $this->proposal->reading($month)->state;
-            $isPast = [$year, $month] < [$today->year, $today->month];
-
-            $states[] = match (true) {
-                $state === 'approved' && $isPast => 'summary',
-                $state === 'approved' => 'approved',
-                $state === 'proposal' => 'proposal',
-                default => null,
-            };
-        }
-
-        return $states;
-    }
-
-    /**
      * The amounts of one category row, shared by the number and the rows shown
      * beside it so the two cannot drift apart.
      *

@@ -46,7 +46,6 @@ class MonthPlanController extends Controller
                 'budget' => null,
                 'viewedMonth' => null,
                 'viewedMonthTiming' => null,
-                'currentMonth' => null,
                 'monthPlan' => null,
             ]);
         }
@@ -69,7 +68,6 @@ class MonthPlanController extends Controller
             ],
             'viewedMonth' => $viewedMonth,
             'viewedMonthTiming' => $timing,
-            'currentMonth' => $today->year === $budget->year ? $today->month : null,
             'monthPlan' => $budget->isExecution()
                 ? $this->monthPlanPayload($request->user(), $budget, $viewedMonth, $timing, $today)
                 : null,
@@ -213,7 +211,7 @@ class MonthPlanController extends Controller
             'to_spend_minor_units' => $breakdown['to_spend_minor_units'] ?? null,
             'to_spend_income_minor_units' => $breakdown['income_minor_units'] ?? null,
             'to_spend_expense_minor_units' => $breakdown['expense_minor_units'] ?? null,
-            'month_states' => $toSpend->monthStates($budget->year, $today),
+            'month_states' => $toSpend->proposal->monthStates(),
             'set_aside_minor_units' => $reading->setAsideMinorUnits,
             'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
                 ? SpendableLiquidity::forUser($user)

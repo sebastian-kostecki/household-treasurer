@@ -7,6 +7,7 @@ import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
 import MonthPlanStatPanel from '@/components/MonthPlanStatPanel.vue';
 import MonthPlanTable from '@/components/MonthPlanTable.vue';
+import MonthPlanTitleRow from '@/components/MonthPlanTitleRow.vue';
 import type {
     MonthPlanRowState,
     SetAsideDirection,
@@ -18,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { minorUnitsToMoneyInput } from '@/lib/format';
+import { monthItemStatus } from '@/lib/month-plan-status';
 import {
     allMonthStates,
     approvedAheadReading,
@@ -199,6 +201,11 @@ function stateOf(
     return (row) => ({
         deviation: row.deviation_minor_units,
         overPlan: row.is_over_plan,
+        status: monthItemStatus(row, {
+            overPlan: row.is_over_plan,
+            planMinorUnits: row.plan_minor_units,
+            isClosed: !config.showSetAside,
+        }),
         yearStale: config.yearStale,
         invalid: config.invalidIds.includes(row.category_id),
         kindError:
@@ -331,8 +338,9 @@ const stripMonth = ref(11);
         <section class="flex flex-col gap-3" aria-labelledby="mp-title">
             <h2 id="mp-title" class="section-title">Wiersz tytułu</h2>
             <p class="meta text-muted-foreground">
-                Trzy odznaki stanu i akcje „Zatwierdź” oraz „Zmień plan”.
-                Miesiąc bez planu ma tytuł bez odznaki.
+                `MonthPlanTitleRow` w czterech stanach: propozycja z
+                „Zatwierdź”, zatwierdzony z „Zmień plan”, miniony „Końcowy” i
+                miesiąc bez planu (tytuł bez odznaki).
             </p>
             <div class="flex flex-wrap items-center gap-3">
                 <Badge variant="brand">{{ t.month_plan.state_approved }}</Badge>
@@ -341,82 +349,78 @@ const stripMonth = ref(11);
                 </Badge>
                 <Badge variant="outline">{{ t.month_plan.state_final }}</Badge>
             </div>
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <h3 class="page-title">
-                            {{
-                                t.month_plan.title_with_month.replace(
-                                    ':month',
-                                    'listopad 2026',
-                                )
-                            }}
-                        </h3>
-                        <Badge variant="warning">
-                            {{ t.month_plan.state_proposal }}
-                        </Badge>
-                    </div>
-                    <p class="meta text-muted-foreground">
-                        {{ t.month_plan.proposal_hint }}
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center justify-end gap-3">
+            <MonthPlanTitleRow
+                heading-level="h3"
+                :title="
+                    t.month_plan.title_with_month.replace(
+                        ':month',
+                        'listopad 2026',
+                    )
+                "
+                :badge="{
+                    variant: 'warning',
+                    label: t.month_plan.state_proposal,
+                }"
+                :hint="t.month_plan.proposal_hint"
+            >
+                <template #actions>
                     <Button type="button" variant="brand">
                         <Check aria-hidden="true" />
                         {{ t.month_plan.approve }}
                     </Button>
-                </div>
-            </div>
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <h3 class="page-title">
-                            {{
-                                t.month_plan.title_with_month.replace(
-                                    ':month',
-                                    'listopad 2026',
-                                )
-                            }}
-                        </h3>
-                        <Badge variant="brand">
-                            {{ t.month_plan.state_approved }}
-                        </Badge>
-                    </div>
-                    <p class="meta text-muted-foreground">
-                        {{ t.month_plan.approved_hint }}
-                    </p>
-                </div>
-                <Button type="button" variant="outline">
-                    <Pencil aria-hidden="true" />
-                    {{ t.month_plan.change }}
-                </Button>
-            </div>
-            <div class="space-y-1">
-                <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="page-title">
-                        {{
-                            t.month_plan.title_with_month.replace(
-                                ':month',
-                                'wrzesień 2026',
-                            )
-                        }}
-                    </h3>
-                    <Badge variant="outline">
-                        {{ t.month_plan.state_final }}
-                    </Badge>
-                </div>
-                <p class="meta text-muted-foreground">
-                    {{ t.month_plan.approved_past_hint }}
-                </p>
-            </div>
+                </template>
+            </MonthPlanTitleRow>
+            <MonthPlanTitleRow
+                heading-level="h3"
+                :title="
+                    t.month_plan.title_with_month.replace(
+                        ':month',
+                        'listopad 2026',
+                    )
+                "
+                :badge="{
+                    variant: 'brand',
+                    label: t.month_plan.state_approved,
+                }"
+                :hint="t.month_plan.approved_hint"
+            >
+                <template #actions>
+                    <Button type="button" variant="outline">
+                        <Pencil aria-hidden="true" />
+                        {{ t.month_plan.change }}
+                    </Button>
+                </template>
+            </MonthPlanTitleRow>
+            <MonthPlanTitleRow
+                heading-level="h3"
+                :title="
+                    t.month_plan.title_with_month.replace(
+                        ':month',
+                        'wrzesień 2026',
+                    )
+                "
+                :badge="{ variant: 'outline', label: t.month_plan.state_final }"
+                :hint="t.month_plan.approved_past_hint"
+            />
+            <MonthPlanTitleRow
+                heading-level="h3"
+                :title="
+                    t.month_plan.title_with_month.replace(
+                        ':month',
+                        'czerwiec 2026',
+                    )
+                "
+                :badge="null"
+                :hint="null"
+            />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="mp-strip">
             <h2 id="mp-strip" class="section-title">Pasek miesięcy</h2>
             <p class="meta text-muted-foreground">
-                Kropki: styczeń i luty podsumowanie, marzec zatwierdzony,
-                kwiecień i maj propozycja, czerwiec bez planu. Kliknięcie
-                miesiąca wykonuje prawdziwy GET i przeładowuje sink.
+                Kropki: styczeń bez planu, luty i marzec podsumowanie, kwiecień
+                zatwierdzony, od maja propozycja. Kliknięcie miesiąca wykonuje
+                prawdziwy GET i przeładowuje sink.
             </p>
             <BudgetMonthPicker
                 :budget-year="2026"

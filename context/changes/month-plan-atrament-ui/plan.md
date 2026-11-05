@@ -408,7 +408,7 @@ Przebudowa `/month-plan` na nowych wariantach, klasach i propsach: wiersz tytuł
 
 - `npm run build`, potem `npm run types:check`, `npm run check`, `npm run check:ui` (z nowymi plikami) i `npm test` (w tym `month-plan-status.test.ts`) przechodzą
 - `composer ci:check` przechodzi w obrazie Sail (w tym rozszerzony `MonthPlanHardcodedUiTest`), a `tests/Feature/MonthPlanPageTest.php` i `tests/Feature/ApproveMonthPlanTest.php` przechodzą na PostgreSQL
-- `grep -rn "section-label\|MonthPaceMeter" resources/ tests/` nic nie zwraca
+- `grep -rn --exclude=MonthPlanHardcodedUiTest.php "section-label\|MonthPaceMeter" resources/ tests/` nic nie zwraca (strażnik w `MonthPlanHardcodedUiTest.php` zawiera sam zakaz)
 - `vendor/bin/sloppy ci` na hoście bez nowych znalezisk
 - `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
 
@@ -531,6 +531,24 @@ Bez migracji danych. Propsy tylko przybywają; formularze zatwierdzenia i zmiany
 - Para To Spend: `app/Support/ToSpendCalculator.php`, `resources/js/lib/to-spend-calculator.ts`, `app/Support/MonthToSpend.php:55-75`
 - Stan miesiąca: `app/Support/MonthPlanProposal.php:40-109`, `app/Http/Controllers/MonthPlanController.php:157-224,314-324`
 - Reguła To Spend: `CONTEXT.md:80`; ADR-0035, ADR-0037, ADR-0039
+
+## Odstępstwa od planu
+
+Zapisane w przeglądzie implementacji (`reviews/impl-review.md`, 2026-11-05).
+
+Z implementacji (fazy 4–5):
+
+1. Tabela przechodzi na 6 kolumn od `xl`, nie od `lg` (`.month-plan-grid`, etykiety wierszy `xl:sr-only`). Powodu nie zapisano w commicie p4; przy `lg` (1024 px) z otwartym paskiem bocznym (256 px) obszar treści ma ok. 740 px.
+2. Błąd serwera na pasie edycji to `<p role="alert">` w kolorze pasa, a nie `InputError`: `text-destructive` jest nieczytelny na `primary`. Intencja „czytelny na primary” zostaje.
+3. Miara Tempo ma ton `text-warning`, gdy tempo wyprzedza upływ dni (plan nie określał tonu).
+4. Dodano `formatSignedMoneyAmount` (`resources/js/lib/format.ts`, z testem): plan wymagał odchylenia ze znakiem bez jednostki, a `formatSignedMoney` zawsze dopisuje „zł”.
+
+Z triage przeglądu:
+
+5. „Anuluj” na pasie edycji używa nowego wariantu Button `ghost-inverse` zamiast klasy w `@layer components`, która przegrywała z hoverem `ghost` (warstwa utilities). Reguła `.month-plan-editbar [data-slot='button']…` usunięta.
+6. Status pozycji: plan 0 bez rozliczenia nie ma plakietki, a w zamkniętym miesiącu (`summary !== null`) nierozliczony rachunek i dochód mają „niezapłacone” i „nie wpłynęło” (`status_unpaid`, `status_not_received`). Status liczy `rowState` strony i przekazuje go do `MonthPlanItemRow` propsem `status`.
+7. Siatka „Podsumowanie miesiąca” poniżej `sm` układa każdy wiersz jako etykietę i 2×2 podpisanych kwot (`.month-plan-summary-label` / `-head` / `-cell`); etykieta „Odkładanie” stoi w wierszu kwot.
+8. `month_states` liczy `MonthPlanProposal::monthStates()` (z `isPast` i memo), a nie `MonthToSpend` ani kontroler.
 
 ## Progress
 

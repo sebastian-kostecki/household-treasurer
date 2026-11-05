@@ -73,6 +73,7 @@ const FILES = [
     'resources/js/components/MonthPlanItemRow.vue',
     'resources/js/components/MonthPlanKindCell.vue',
     'resources/js/components/MonthPlanTable.vue',
+    'resources/js/components/MonthPlanTitleRow.vue',
     'resources/js/components/MonthPlanStatPanel.vue',
     'resources/js/components/MonthPlanEditBar.vue',
     'resources/js/components/MonthSummaryCard.vue',

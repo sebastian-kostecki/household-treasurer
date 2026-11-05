@@ -11,7 +11,7 @@ import {
     formatMoneyAmount,
     formatSignedMoneyAmount,
 } from '@/lib/format';
-import { monthItemStatus } from '@/lib/month-plan-status';
+import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
 
 const props = withDefaults(
@@ -20,6 +20,7 @@ const props = withDefaults(
         editable: boolean;
         deviation: number | null;
         overPlan: boolean;
+        status: MonthItemStatus | null;
         yearStale?: boolean;
         kindPending?: boolean;
         kindError?: string;
@@ -46,8 +47,6 @@ const hasKindColumn = computed(() => props.row.type === 'expense');
 const hasAmountField = computed(
     () => props.editable && (props.row.in_plan || !props.row.is_archived),
 );
-
-const status = computed(() => monthItemStatus(props.row, props.overPlan));
 
 const deviationText = computed(() =>
     props.deviation === null ? '—' : formatSignedMoneyAmount(props.deviation),

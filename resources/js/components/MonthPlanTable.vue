@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/collapsible';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
+import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type {
     MonthItemKind,
     MonthPlanItem,
@@ -25,6 +26,7 @@ import type {
 export type MonthPlanRowState = {
     deviation: number | null;
     overPlan: boolean;
+    status: MonthItemStatus | null;
     yearStale: boolean;
     invalid: boolean;
     kindError?: string;
@@ -162,6 +164,7 @@ const expenseRowsEmpty = computed(
             :editable="editable"
             :deviation="rowState(row).deviation"
             :over-plan="rowState(row).overPlan"
+            :status="rowState(row).status"
             :year-stale="rowState(row).yearStale"
             :kind-pending="kindPendingCategoryId === row.category_id"
             :kind-error="rowState(row).kindError"
@@ -213,6 +216,7 @@ const expenseRowsEmpty = computed(
             :editable="editable"
             :deviation="rowState(row).deviation"
             :over-plan="rowState(row).overPlan"
+            :status="rowState(row).status"
             :year-stale="rowState(row).yearStale"
             :kind-pending="kindPendingCategoryId === row.category_id"
             :kind-error="rowState(row).kindError"
@@ -255,6 +259,7 @@ const expenseRowsEmpty = computed(
                     :editable="editable"
                     :deviation="rowState(row).deviation"
                     :over-plan="rowState(row).overPlan"
+                    :status="rowState(row).status"
                     :year-stale="rowState(row).yearStale"
                     :kind-pending="kindPendingCategoryId === row.category_id"
                     :kind-error="rowState(row).kindError"

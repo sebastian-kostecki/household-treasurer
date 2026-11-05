@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -14,16 +15,69 @@ const props = defineProps<{
 
 const t = useTranslations();
 
-const totalsRows = [
-    { key: 'income', label: t.month_plan.summary_income },
-    { key: 'expense', label: t.month_plan.summary_expense },
-] as const;
+type SummaryKey = 'income' | 'expense' | 'set_aside';
+
+type SummaryRow = {
+    key: SummaryKey;
+    label: string;
+    /** Approved, final, actual, deviation: amount and its column caption. */
+    cells: { caption: string; minorUnits: number }[];
+    deviationMinorUnits: number;
+};
+
+const totalsCaptions = computed(() => [
+    t.month_plan.summary_approved,
+    t.month_plan.summary_final,
+    t.month_plan.summary_actual,
+    t.month_plan.summary_deviation,
+]);
+
+const setAsideCaptions = computed(() => [
+    t.month_plan.summary_set_aside_approved,
+    t.month_plan.summary_set_aside_final,
+    t.month_plan.summary_set_aside_real,
+    t.month_plan.summary_set_aside_difference,
+]);
+
+function totalsRow(key: 'income' | 'expense', label: string): SummaryRow {
+    const totals = props.summary[key];
+    const captions = totalsCaptions.value;
+
+    return {
+        key,
+        label,
+        cells: [
+            { caption: captions[0], minorUnits: totals.approved_minor_units },
+            { caption: captions[1], minorUnits: totals.final_minor_units },
+            { caption: captions[2], minorUnits: totals.actual_minor_units },
+        ],
+        deviationMinorUnits: totals.deviation_minor_units,
+    };
+}
+
+const totalsRows = computed<SummaryRow[]>(() => [
+    totalsRow('income', t.month_plan.summary_income),
+    totalsRow('expense', t.month_plan.summary_expense),
+]);
+
+const setAsideRow = computed<SummaryRow>(() => {
+    const setAside = props.summary.set_aside;
+    const captions = setAsideCaptions.value;
+
+    return {
+        key: 'set_aside',
+        label: t.month_plan.summary_set_aside,
+        cells: [
+            { caption: captions[0], minorUnits: setAside.approved_minor_units },
+            { caption: captions[1], minorUnits: setAside.final_minor_units },
+            { caption: captions[2], minorUnits: setAside.real_minor_units },
+        ],
+        deviationMinorUnits: setAside.difference_minor_units,
+    };
+});
 
 /** Worse than planned is destructive: less income or set aside, more expense. */
-function deviationClass(
-    key: 'income' | 'expense' | 'set_aside',
-    minorUnits: number,
-): string {
+function deviationClass(key: SummaryKey, minorUnits: number): string {
     const isWorse = key === 'expense' ? minorUnits > 0 : minorUnits < 0;
 
     return isWorse ? 'text-destructive' : '';
@@ -34,125 +88,71 @@ function deviationClass(
     <ListSurface>
         <template #header>
             <div class="space-y-1">
-                <h3 class="section-title">
+                <h2 class="section-title">
                     {{ t.month_plan.summary_title }}
-                </h3>
+                </h2>
                 <p class="meta text-muted-foreground">
                     {{ t.month_plan.summary_hint }}
                 </p>
             </div>
         </template>
 
-        <div class="month-plan-summary-grid border-border-soft border-b pb-2">
-            <span class="table-header">
-                <span class="sr-only">{{ t.month_plan.summary_title }}</span>
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_approved }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_final }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_actual }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_deviation }}
-            </span>
-        </div>
-
-        <div
-            v-for="row in totalsRows"
-            :key="row.key"
-            class="month-plan-summary-grid border-border-soft border-b py-2"
+        <template
+            v-for="group in [
+                { captions: totalsCaptions, rows: totalsRows },
+                { captions: setAsideCaptions, rows: [setAsideRow] },
+            ]"
+            :key="group.rows[0].key"
         >
-            <span class="text-sm font-medium">{{ row.label }}</span>
-            <span class="amount text-right">
-                {{
-                    formatMoneyAmount(
-                        props.summary[row.key].approved_minor_units,
-                    )
-                }}
-            </span>
-            <span class="amount text-right">
-                {{
-                    formatMoneyAmount(props.summary[row.key].final_minor_units)
-                }}
-            </span>
-            <span class="amount text-right">
-                {{
-                    formatMoneyAmount(props.summary[row.key].actual_minor_units)
-                }}
-            </span>
-            <span
-                class="amount text-right"
-                :class="
-                    deviationClass(
-                        row.key,
-                        props.summary[row.key].deviation_minor_units,
-                    )
-                "
+            <div
+                class="month-plan-summary-grid month-plan-summary-head border-border-soft border-b py-2"
+                aria-hidden="true"
             >
-                {{
-                    formatSignedMoneyAmount(
-                        props.summary[row.key].deviation_minor_units,
-                    )
-                }}
-            </span>
-        </div>
+                <span></span>
+                <span
+                    v-for="caption in group.captions"
+                    :key="caption"
+                    class="table-header text-right"
+                >
+                    {{ caption }}
+                </span>
+            </div>
 
-        <div class="month-plan-summary-grid border-border-soft border-b py-2">
-            <span class="table-header">
-                {{ t.month_plan.summary_set_aside }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_set_aside_approved }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_set_aside_final }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_set_aside_real }}
-            </span>
-            <span class="table-header text-right">
-                {{ t.month_plan.summary_set_aside_difference }}
-            </span>
-        </div>
-        <div class="month-plan-summary-grid border-border-soft border-b py-2">
-            <span></span>
-            <span class="amount text-right">
-                {{
-                    formatMoneyAmount(
-                        props.summary.set_aside.approved_minor_units,
-                    )
-                }}
-            </span>
-            <span class="amount text-right">
-                {{
-                    formatMoneyAmount(props.summary.set_aside.final_minor_units)
-                }}
-            </span>
-            <span class="amount text-right">
-                {{
-                    formatMoneyAmount(props.summary.set_aside.real_minor_units)
-                }}
-            </span>
-            <span
-                class="amount text-right"
-                :class="
-                    deviationClass(
-                        'set_aside',
-                        props.summary.set_aside.difference_minor_units,
-                    )
-                "
+            <div
+                v-for="row in group.rows"
+                :key="row.key"
+                class="month-plan-summary-grid border-border-soft border-b py-2"
             >
-                {{
-                    formatSignedMoneyAmount(
-                        props.summary.set_aside.difference_minor_units,
-                    )
-                }}
-            </span>
-        </div>
+                <span class="month-plan-summary-label text-sm font-medium">
+                    {{ row.label }}
+                </span>
+                <span
+                    v-for="cell in row.cells"
+                    :key="cell.caption"
+                    class="month-plan-summary-cell"
+                >
+                    <span class="meta text-muted-foreground block sm:sr-only">
+                        {{ cell.caption }}
+                    </span>
+                    <span class="amount whitespace-nowrap">
+                        {{ formatMoneyAmount(cell.minorUnits) }}
+                    </span>
+                </span>
+                <span class="month-plan-summary-cell">
+                    <span class="meta text-muted-foreground block sm:sr-only">
+                        {{ group.captions[3] }}
+                    </span>
+                    <span
+                        class="amount whitespace-nowrap"
+                        :class="
+                            deviationClass(row.key, row.deviationMinorUnits)
+                        "
+                    >
+                        {{ formatSignedMoneyAmount(row.deviationMinorUnits) }}
+                    </span>
+                </span>
+            </div>
+        </template>
 
         <p class="meta text-muted-foreground pt-3">
             {{ t.month_plan.summary_year_draw }}:

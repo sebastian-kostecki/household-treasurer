@@ -45,7 +45,7 @@ class MonthPlanPageTest extends TestCase
                 ->where('budget.phase', 'execution')
                 ->where('viewedMonth', 6)
                 ->where('viewedMonthTiming', 'current')
-                ->where('currentMonth', 6)
+                ->missing('currentMonth')
                 ->where('translations.month_plan.kind_column', 'Rodzaj')
                 ->where('translations.month_plan.edit_bar_label', 'Edycja planu')
                 ->where('translations.month_plan.changing_hint', 'Zmieniasz plan. Rodzaj pozycji zapisuje się od razu i „Anuluj” go nie cofa.')
@@ -234,6 +234,27 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_month_states_of_a_past_year_budget_are_summaries_or_missing(): void
+    {
+        [$user, $budget] = $this->canonicalBudget();
+
+        MonthPlan::factory()->for($budget)->create(['month' => 3]);
+        MonthPlan::factory()->for($budget)->create(['month' => 11]);
+
+        $this->travelTo('2027-02-10');
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.month_states', [
+                    null, null, 'summary', null, null, null,
+                    null, null, null, null, 'summary', null,
+                ]),
+            );
+    }
+
     public function test_month_without_a_plan_has_no_to_spend_breakdown(): void
     {
         [$user] = $this->canonicalBudget();
@@ -372,7 +393,6 @@ class MonthPlanPageTest extends TestCase
                 ->where('budget', null)
                 ->where('viewedMonth', null)
                 ->where('viewedMonthTiming', null)
-                ->where('currentMonth', null)
                 ->where('monthPlan', null),
             );
     }

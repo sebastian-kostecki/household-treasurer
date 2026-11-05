@@ -238,13 +238,14 @@ export const pastSummary: MonthSummary = {
     year_draw_minor_units: 0,
 };
 
+/** As the server sends it in April: a past month without a plan, two summaries, the approved current month, proposals ahead. */
 export const allMonthStates: MonthPlanReading['month_states'] = [
+    null,
     'summary',
     'summary',
     'approved',
     'proposal',
     'proposal',
-    null,
     'proposal',
     'proposal',
     'proposal',

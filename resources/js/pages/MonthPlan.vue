@@ -9,13 +9,13 @@ import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import InputError from '@/components/InputError.vue';
 import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
 import MonthPlanStatPanel from '@/components/MonthPlanStatPanel.vue';
+import MonthPlanTitleRow from '@/components/MonthPlanTitleRow.vue';
 import MonthPlanTable, {
     type MonthPlanRowState,
     type SetAsideDirection,
 } from '@/components/MonthPlanTable.vue';
 import MonthSummaryCard from '@/components/MonthSummaryCard.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
@@ -27,6 +27,7 @@ import {
     monthItemDeviationMinorUnits,
 } from '@/lib/month-item-deviation';
 import { monthPacePreview } from '@/lib/month-pace-preview';
+import { monthItemStatus } from '@/lib/month-plan-status';
 import { toSpendBreakdown } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
 import type {
@@ -43,7 +44,6 @@ const props = defineProps<{
     } | null;
     viewedMonth: number | null;
     viewedMonthTiming: 'past' | 'current' | 'future' | null;
-    currentMonth: number | null;
     monthPlan: MonthPlanReading | null;
 }>();
 
@@ -448,8 +448,17 @@ function yearStale(row: MonthPlanItem): boolean {
 }
 
 function rowState(row: MonthPlanItem): MonthPlanRowState {
+    const reading = rowReading(row);
+
     return {
-        ...rowReading(row),
+        ...reading,
+        status: monthItemStatus(row, {
+            overPlan: reading.overPlan,
+            planMinorUnits: isEditable.value
+                ? parsedAmount(row)
+                : row.plan_minor_units,
+            isClosed: props.monthPlan?.summary != null,
+        }),
         yearStale: yearStale(row),
         invalid: isAmountFlagged(row),
         kindError: kindErrorFor(row),
@@ -546,29 +555,17 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
             class="flex flex-col gap-4 md:gap-5"
             @success="stopChanging"
         >
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <h1 class="page-title">
-                            {{
-                                t.month_plan.title_with_month.replace(
-                                    ':month',
-                                    viewedMonthLabel,
-                                )
-                            }}
-                        </h1>
-                        <Badge v-if="stateBadge" :variant="stateBadge.variant">
-                            {{ stateBadge.label }}
-                        </Badge>
-                    </div>
-                    <p
-                        v-if="monthPlan.state !== 'none'"
-                        class="meta text-muted-foreground"
-                    >
-                        {{ stateHint }}
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center justify-end gap-3">
+            <MonthPlanTitleRow
+                :title="
+                    t.month_plan.title_with_month.replace(
+                        ':month',
+                        viewedMonthLabel,
+                    )
+                "
+                :badge="stateBadge"
+                :hint="monthPlan.state !== 'none' ? stateHint : null"
+            >
+                <template #actions>
                     <template
                         v-if="
                             monthPlan.state === 'proposal' &&
@@ -611,8 +608,8 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                         <Pencil aria-hidden="true" />
                         {{ t.month_plan.change }}
                     </Button>
-                </div>
-            </div>
+                </template>
+            </MonthPlanTitleRow>
             <InputError
                 v-if="monthPlan.state === 'proposal'"
                 :message="errors.items"

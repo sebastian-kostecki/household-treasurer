@@ -380,10 +380,6 @@
         @apply bg-primary text-primary-foreground sticky bottom-0 z-10 flex flex-wrap items-center gap-3 rounded-lg px-4 py-2;
     }
 
-    .month-plan-editbar [data-slot='button'][class*='hover:bg-accent'] {
-        @apply text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground;
-    }
-
     /* Kropka stanu miesiąca pod etykietą w pasku miesięcy. */
     .month-strip-dot {
         @apply size-1 rounded-full;
@@ -401,10 +397,30 @@
         @apply bg-warning;
     }
 
-    /* Panel podsumowania minionego miesiąca: etykieta + 4 kolumny kwot, bez poziomego przewijania strony. */
+    /**
+     * Panel podsumowania minionego miesiąca, jeden markup na każdej szerokości.
+     * Poniżej `sm` wiersz to etykieta na całą szerokość i siatka 2×2 kwot z
+     * podpisami; od `sm` etykieta i 4 kolumny kwot pod wierszem nagłówków.
+     */
     .month-plan-summary-grid {
         @apply grid items-baseline gap-x-3 gap-y-2;
-        grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @variant sm {
+            grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    .month-plan-summary-label {
+        @apply col-span-2 sm:col-span-1;
+    }
+
+    .month-plan-summary-head {
+        @apply hidden sm:grid;
+    }
+
+    .month-plan-summary-cell {
+        @apply text-left sm:text-right;
     }
 
     /**
@@ -494,10 +510,6 @@
 
     .month-plan-footer {
         @apply px-4 py-3;
-    }
-
-    .column-header {
-        @apply table-header;
     }
 
     .segmented-control {

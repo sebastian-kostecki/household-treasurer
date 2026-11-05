@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useId } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
@@ -18,6 +19,8 @@ const emit = defineEmits<{
 }>();
 
 const t = useTranslations();
+
+const invalidCountId = useId();
 </script>
 
 <template>
@@ -30,7 +33,11 @@ const t = useTranslations();
             {{ t.month_plan.edit_bar_label }}
         </span>
         <span class="meta">{{ t.month_plan.edit_bar_effect }}</span>
-        <span v-if="invalidCount > 0" class="text-sm font-medium">
+        <span
+            v-if="invalidCount > 0"
+            :id="invalidCountId"
+            class="text-sm font-medium"
+        >
             {{
                 t.month_plan.invalid_amounts.replace(
                     ':count',
@@ -42,13 +49,20 @@ const t = useTranslations();
             {{ error }}
         </p>
         <div class="ml-auto flex items-center gap-2">
-            <Button type="button" variant="ghost" @click="emit('cancel')">
+            <Button
+                type="button"
+                variant="ghost-inverse"
+                @click="emit('cancel')"
+            >
                 {{ t.month_plan.cancel }}
             </Button>
             <Button
                 type="submit"
                 variant="brand"
                 :disabled="processing || !canSubmit"
+                :aria-describedby="
+                    invalidCount > 0 ? invalidCountId : undefined
+                "
             >
                 <Spinner v-if="processing" />
                 {{ t.month_plan.save_changes }}
