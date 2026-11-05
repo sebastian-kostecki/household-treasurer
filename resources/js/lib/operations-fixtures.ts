@@ -9,6 +9,7 @@ import type {
     OperationsListFilters,
 } from '@/components/OperationsFilters.vue';
 import type { PaginatedCollection } from '@/components/PaginationLinks.vue';
+import { EMPTY_OPERATIONS_FILTERS } from '@/lib/operations-list-query';
 
 const mainAccount = {
     account_name: 'Konto osobiste',
@@ -185,19 +186,8 @@ export function paginate<T>(
 
 export const emptyPaginator = paginate<never>([], 1, 1);
 
-export const noFiltersFixture: OperationsListFilters = {
-    q: null,
-    year: null,
-    category_name: null,
-    category_type: null,
-    account_id: null,
-    term_deposit_id: null,
-    date_from: null,
-    date_to: null,
-};
-
 export const searchFiltersFixture: OperationsListFilters = {
-    ...noFiltersFixture,
+    ...EMPTY_OPERATIONS_FILTERS,
     q: 'zakupy',
 };
 

@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Account;
+use App\Models\Budget;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -32,6 +34,13 @@ test('section defaults to financial operations', function () {
 test('section is echoed, kept in pagination links and does not activate filters', function () {
     $user = User::factory()->create();
     sectionTestTransfers($user, 51);
+    $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+    FinancialOperation::factory()->count(51)->create([
+        'user_id' => $user->id,
+        'account_id' => Account::factory()->for($user)->create(['opening_date' => '2025-01-01'])->id,
+        'category_id' => Category::factory()->for($budget)->income()->create()->id,
+        'budget_id' => $budget->id,
+    ]);
 
     $this->actingAs($user)
         ->get(route('operations', ['section' => 'own_transfers']))
@@ -40,7 +49,7 @@ test('section is echoed, kept in pagination links and does not activate filters'
             ->where('section', 'own_transfers')
             ->where('filtersActive', false)
             ->where('ownTransfers.next_page_url', fn (string $url) => str_contains($url, 'section=own_transfers'))
-            ->where('operations.links.0.url', null),
+            ->where('operations.next_page_url', fn (string $url) => str_contains($url, 'section=own_transfers')),
         );
 });
 

@@ -25,7 +25,8 @@ defineProps<{
     destructive?: boolean;
 }>();
 
-const open = ref(false);
+// Without v-model:open the dialog keeps its own state and opens from the trigger slot.
+const open = defineModel<boolean>('open', { default: false });
 const busy = ref(false);
 
 function onOpenChange(next: boolean): void {

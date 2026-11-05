@@ -35,7 +35,9 @@ const emit = defineEmits<{
 
 const t = useTranslations();
 const idPrefix = useId();
+const transferLabelId = `${idPrefix}-transfer-label`;
 const transferReasonId = `${idPrefix}-transfer-reason`;
+const capitalMovementLabelId = `${idPrefix}-capital-movement-label`;
 const capitalMovementReasonId = `${idPrefix}-capital-movement-reason`;
 
 const availability = computed(() =>
@@ -53,6 +55,31 @@ const capitalMovementReason = computed(() => {
 
     return key === null ? null : t.operations[key];
 });
+
+/**
+ * Unavailable items stay focusable (`aria-disabled`, not `disabled`), because
+ * reka skips disabled items during keyboard navigation and the reason would
+ * never be announced. Selecting one keeps the menu open and opens no dialog.
+ */
+function selectTransfer(event: Event): void {
+    if (!availability.value.transfer.enabled) {
+        event.preventDefault();
+
+        return;
+    }
+
+    emit('add-transfer');
+}
+
+function selectCapitalMovement(event: Event): void {
+    if (!availability.value.capitalMovement.enabled) {
+        event.preventDefault();
+
+        return;
+    }
+
+    emit('add-capital-movement');
+}
 </script>
 
 <template>
@@ -82,62 +109,85 @@ const capitalMovementReason = computed(() => {
                     {{ t.operations.menu_expense }}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    class="items-start data-[disabled]:opacity-100"
-                    :disabled="!availability.transfer.enabled"
-                    :aria-describedby="
-                        transferReason === null ? undefined : transferReasonId
-                    "
-                    @select="emit('add-transfer')"
+                    as-child
+                    class="items-start"
+                    @select="selectTransfer"
                 >
-                    <ArrowLeftRight class="mt-0.5 size-4" aria-hidden="true" />
-                    <span class="flex min-w-0 flex-col">
-                        <span
-                            :class="
-                                availability.transfer.enabled
-                                    ? ''
-                                    : 'text-muted-foreground'
-                            "
-                        >
-                            {{ t.operations.menu_own_transfer }}
+                    <div
+                        :aria-disabled="
+                            availability.transfer.enabled ? undefined : 'true'
+                        "
+                        :aria-labelledby="transferLabelId"
+                        :aria-describedby="
+                            transferReason === null
+                                ? undefined
+                                : transferReasonId
+                        "
+                    >
+                        <ArrowLeftRight
+                            class="mt-0.5 size-4"
+                            aria-hidden="true"
+                        />
+                        <span class="flex min-w-0 flex-col">
+                            <span
+                                :id="transferLabelId"
+                                :class="
+                                    availability.transfer.enabled
+                                        ? ''
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ t.operations.menu_own_transfer }}
+                            </span>
+                            <span
+                                v-if="transferReason !== null"
+                                :id="transferReasonId"
+                                class="meta text-muted-foreground"
+                            >
+                                {{ transferReason }}
+                            </span>
                         </span>
-                        <span
-                            v-if="transferReason !== null"
-                            :id="transferReasonId"
-                            class="meta text-muted-foreground"
-                        >
-                            {{ transferReason }}
-                        </span>
-                    </span>
+                    </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    class="items-start data-[disabled]:opacity-100"
-                    :disabled="!availability.capitalMovement.enabled"
-                    :aria-describedby="
-                        capitalMovementReason === null
-                            ? undefined
-                            : capitalMovementReasonId
-                    "
-                    @select="emit('add-capital-movement')"
+                    as-child
+                    class="items-start"
+                    @select="selectCapitalMovement"
                 >
-                    <Landmark class="mt-0.5 size-4" aria-hidden="true" />
-                    <span class="flex min-w-0 flex-col">
-                        <span
-                            :class="
-                                availability.capitalMovement.enabled
-                                    ? ''
-                                    : 'text-muted-foreground'
-                            "
-                        >
-                            {{ t.operations.menu_capital_movement }}
+                    <div
+                        :aria-disabled="
+                            availability.capitalMovement.enabled
+                                ? undefined
+                                : 'true'
+                        "
+                        :aria-labelledby="capitalMovementLabelId"
+                        :aria-describedby="
+                            capitalMovementReason === null
+                                ? undefined
+                                : capitalMovementReasonId
+                        "
+                    >
+                        <Landmark class="mt-0.5 size-4" aria-hidden="true" />
+                        <span class="flex min-w-0 flex-col">
+                            <span
+                                :id="capitalMovementLabelId"
+                                :class="
+                                    availability.capitalMovement.enabled
+                                        ? ''
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ t.operations.menu_capital_movement }}
+                            </span>
+                            <span
+                                v-if="capitalMovementReason !== null"
+                                :id="capitalMovementReasonId"
+                                class="meta text-muted-foreground"
+                            >
+                                {{ capitalMovementReason }}
+                            </span>
                         </span>
-                        <span
-                            v-if="capitalMovementReason !== null"
-                            :id="capitalMovementReasonId"
-                            class="meta text-muted-foreground"
-                        >
-                            {{ capitalMovementReason }}
-                        </span>
-                    </span>
+                    </div>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

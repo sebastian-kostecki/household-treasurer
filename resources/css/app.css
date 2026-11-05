@@ -287,6 +287,10 @@
     height: var(--control-height-sm);
 }
 
+@utility min-w-control-sm {
+    min-width: var(--control-height-sm);
+}
+
 @utility min-h-row {
     min-height: var(--row-height);
 }
@@ -335,6 +339,11 @@
 
     .segmented-control-item {
         @apply text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50;
+    }
+
+    /* Zakładki sekcji na szarej podłodze: bez obwódki i tła kontenera, aktywna zakładka to karta. */
+    .segmented-control-tabs {
+        @apply gap-0.5 border-0 bg-transparent p-0;
     }
 
     /* Licznik przy zakładce (README Tabs); w aktywnej zakładce w kolorze tekstu. */
@@ -570,22 +579,20 @@
 
     .operations-grid-transfer {
         grid-template-areas:
-            'date amount'
-            'description description'
-            'account account'
-            'actions actions';
+            'description amount'
+            'account actions';
     }
 
     @variant md {
         .operations-grid {
             align-items: center;
-            grid-template-columns: minmax(0, 1fr) 11.25rem 6.5rem 8rem 4.5rem;
-            grid-template-areas: 'description category date amount actions';
+            grid-template-columns: minmax(0, 1fr) 14rem 9rem 2rem;
+            grid-template-areas: 'description category amount actions';
         }
 
         .operations-grid-transfer {
-            grid-template-columns: 6.5rem minmax(0, 1fr) 18rem 7rem 4.5rem;
-            grid-template-areas: 'date description account amount actions';
+            grid-template-columns: minmax(0, 1fr) 18rem 9rem 2rem;
+            grid-template-areas: 'description account amount actions';
         }
     }
 
@@ -600,15 +607,11 @@
     }
 
     /**
-     * Nagłówek kolumn i wiersz listy Operacji. Muszą stać PO `.operations-grid`
-     * (oba ustawiają `display`), a `display: grid` nagłówka wraca dopiero od `md`.
+     * Wiersz listy Operacji (bez nagłówka kolumn). Panel jest `flush`, więc wiersz
+     * sięga krawędzi karty i sam niesie poziomy odstęp. Stoi PO `.operations-grid`.
      */
-    .operations-header-row {
-        @apply table-header border-border/60 hidden border-b pb-2.5;
-    }
-
     .operations-row {
-        @apply border-border/60 hover:bg-secondary gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary gap-y-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0;
     }
 
     /**
@@ -616,7 +619,7 @@
      * przed kwotą, suma dnia w kolumnie kwoty. Stoi PO `.operations-grid`.
      */
     .operations-day-row {
-        @apply bg-muted text-muted-foreground min-h-row border-b py-1.5 text-xs;
+        @apply bg-muted text-muted-foreground min-h-row border-b px-4 py-1.5 text-xs;
         grid-template-areas: 'label amount';
     }
 
@@ -626,23 +629,33 @@
     }
 
     @variant md {
-        .operations-header-row {
-            @apply grid;
-        }
-
         .operations-row {
             @apply gap-y-0;
         }
 
         .operations-day-row {
-            grid-template-areas: 'label label label amount actions';
+            grid-template-areas: 'label label amount actions';
         }
     }
 
-    /* Stany listy Operacji: link paginacji, wyzwalacz dymka, lista w trakcie ładowania. */
+    /* Paginacja list: strzałki i numery stron w wysokości `control-sm`; aktywna strona jak aktywna zakładka. */
     .pagination-link {
-        @apply focus-visible:ring-ring/50 inline-flex min-w-8 items-center justify-center rounded-lg px-2.5 py-1 text-xs transition-colors outline-none focus-visible:ring-[3px];
+        @apply focus-visible:ring-ring/50 h-control-sm min-w-control-sm text-muted-foreground inline-flex items-center justify-center rounded-md border border-transparent px-2 font-mono text-xs tabular-nums transition-colors outline-none focus-visible:ring-[3px];
     }
+
+    a.pagination-link:hover {
+        @apply bg-secondary text-foreground;
+    }
+
+    .pagination-link[aria-current='page'] {
+        @apply bg-card text-foreground border-border font-medium;
+    }
+
+    .pagination-link[aria-disabled='true'] {
+        @apply text-muted-foreground/50 pointer-events-none;
+    }
+
+    /* Wyzwalacz dymka, lista w trakcie ładowania. */
 
     .operations-raw-trigger {
         @apply focus-visible:ring-ring/50 rounded-lg outline-none focus-visible:ring-[3px];
@@ -654,21 +667,6 @@
 
     .operations-list[aria-busy='true'] {
         @apply opacity-60 delay-200;
-    }
-
-    /* Data w wierszu niesie wiersz dnia, więc na telefonie jest ukryta (poza przelewami). */
-    .operations-cell-date {
-        grid-area: date;
-    }
-
-    .operations-grid:not(.operations-grid-transfer) .operations-cell-date {
-        @apply hidden;
-    }
-
-    @variant md {
-        .operations-grid:not(.operations-grid-transfer) .operations-cell-date {
-            @apply block;
-        }
     }
 
     .operations-cell-description {
@@ -693,11 +691,6 @@
 
     .operations-cell-actions {
         grid-area: actions;
-    }
-
-    /* Nagłówek kolumny kwoty ma krój nagłówka, nie kwoty. */
-    .operations-header-row .operations-cell-amount {
-        @apply table-header font-sans;
     }
 
     .import-preview-grid {

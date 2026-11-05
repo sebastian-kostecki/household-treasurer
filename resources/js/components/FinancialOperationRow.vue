@@ -4,7 +4,6 @@ import type { ExpenseFormOperation } from '@/components/ExpenseFormDialog.vue';
 import FinancialOperationActions from '@/components/FinancialOperationActions.vue';
 import type { IncomeFormOperation } from '@/components/IncomeFormDialog.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
-import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
 import {
@@ -70,10 +69,6 @@ const detail = computed(() =>
                 :icon="operation.category_icon"
                 :color="operation.category_color"
             />
-        </div>
-
-        <div class="operations-cell-date">
-            <OperationsDateCell :date="operation.operation_date" />
         </div>
 
         <p

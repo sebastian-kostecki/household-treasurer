@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { groupOperationsByDay } from './operations-day-groups';
+import { groupOperationsByDay, groupRowsByDay } from './operations-day-groups';
 
 describe('groupOperationsByDay', () => {
     it('groups consecutive rows by date and takes sums from the map', () => {
@@ -35,5 +35,34 @@ describe('groupOperationsByDay', () => {
 
     it('returns no groups for an empty list', () => {
         expect(groupOperationsByDay([], { '2026-11-04': 1 })).toEqual([]);
+    });
+});
+
+describe('groupRowsByDay', () => {
+    it('groups consecutive rows by the date the callback returns', () => {
+        const rows = [
+            { id: 1, transfer_date: '2026-10-28' },
+            { id: 2, transfer_date: '2026-10-28' },
+            { id: 3, transfer_date: '2026-09-28' },
+        ];
+
+        expect(groupRowsByDay(rows, (row) => row.transfer_date)).toEqual([
+            { date: '2026-10-28', rows: [rows[0], rows[1]] },
+            { date: '2026-09-28', rows: [rows[2]] },
+        ]);
+    });
+
+    it('starts a new group when a date comes back after another day', () => {
+        const rows = [
+            { movement_date: '2026-10-27' },
+            { movement_date: '2026-10-26' },
+            { movement_date: '2026-10-27' },
+        ];
+
+        expect(
+            groupRowsByDay(rows, (row) => row.movement_date).map(
+                (group) => group.date,
+            ),
+        ).toEqual(['2026-10-27', '2026-10-26', '2026-10-27']);
     });
 });

@@ -11,13 +11,13 @@ import {
     filterCategoriesFixture,
     filterTermDepositsFixture,
     financialOperationFixtures,
-    noFiltersFixture,
     operationDaySumsFixture,
     ownTransferFixtures,
     paginate,
     searchFiltersFixture,
     sectionTotalsFixture,
 } from '@/lib/operations-fixtures';
+import { EMPTY_OPERATIONS_FILTERS } from '@/lib/operations-list-query';
 
 const t = useTranslations();
 
@@ -38,7 +38,7 @@ const base = {
     capitalMovements: paginate(capitalMovementFixtures),
     operationDaySums: operationDaySumsFixture,
     sectionTotals: sectionTotalsFixture,
-    filters: noFiltersFixture,
+    filters: EMPTY_OPERATIONS_FILTERS,
     filtersActive: false,
     suppressedSections: noSuppressedSections,
     filterYears: [2026, 2025],

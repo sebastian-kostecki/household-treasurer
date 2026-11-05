@@ -23,8 +23,8 @@ class OperationsDaySums
         $query = $filters->apply($user->financialOperations());
 
         $rows = $query
-            ->whereDate('operation_date', '>=', min($dates))
-            ->whereDate('operation_date', '<=', max($dates))
+            ->where('operation_date', '>=', min($dates))
+            ->where('operation_date', '<', CarbonImmutable::parse(max($dates))->addDay()->toDateString())
             ->selectRaw(
                 'operation_date, SUM(CASE WHEN type = ? THEN amount_minor_units ELSE -amount_minor_units END) AS day_sum',
                 [FinancialOperationType::Income->value],

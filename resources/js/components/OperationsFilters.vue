@@ -58,8 +58,6 @@ const props = defineProps<{
     termDeposits: OperationsFilterTermDeposit[];
     suppressedSections: OperationsListSection[];
     section: OperationsListSection;
-    resultCount: number;
-    sectionTotal: number;
 }>();
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -155,12 +153,6 @@ const filtersToggleAria = computed(() => {
 });
 
 const showChips = computed(() => props.filtersActive);
-
-const resultCountLabel = computed(() =>
-    t.operations.result_count
-        .replace(':shown', String(props.resultCount))
-        .replace(':total', String(props.sectionTotal)),
-);
 
 watch(
     () => props.filters.q,
@@ -385,7 +377,7 @@ function accountLabel(account: OperationsFilterAccount): string {
 <template>
     <Collapsible
         v-model:open="panelOpen"
-        class="flex flex-col gap-3 border-b pb-3"
+        class="flex flex-col gap-3"
         :aria-busy="visiting"
     >
         <div
@@ -393,7 +385,7 @@ function accountLabel(account: OperationsFilterAccount): string {
             role="search"
             :aria-label="t.operations.filter_search"
         >
-            <div class="relative min-w-56 flex-1 md:w-64 md:flex-none">
+            <div class="relative min-w-56 flex-1">
                 <Search
                     class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
                     aria-hidden="true"
@@ -412,60 +404,56 @@ function accountLabel(account: OperationsFilterAccount): string {
                 />
             </div>
 
-            <Button
-                type="button"
-                size="sm"
-                :variant="thisMonthActive ? 'secondary' : 'outline'"
-                @click="applyMonthPreset(0)"
-            >
-                {{ t.operations.filter_this_month }}
-            </Button>
-            <Button
-                type="button"
-                size="sm"
-                :variant="lastMonthActive ? 'secondary' : 'outline'"
-                @click="applyMonthPreset(-1)"
-            >
-                {{ t.operations.filter_last_month }}
-            </Button>
-
-            <CollapsibleTrigger as-child>
+            <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <Button
                     type="button"
                     size="sm"
-                    variant="outline"
-                    :aria-label="filtersToggleAria"
+                    :variant="thisMonthActive ? 'secondary' : 'outline'"
+                    @click="applyMonthPreset(0)"
                 >
-                    <SlidersHorizontal class="size-4" aria-hidden="true" />
-                    {{ t.operations.filters_toggle }}
-                    <Badge v-if="panelFilterCount > 0" variant="secondary">
-                        {{ panelFilterCount }}
-                    </Badge>
-                    <ChevronDown
-                        class="size-4 transition-transform"
-                        :class="panelOpen ? 'rotate-180' : ''"
-                        aria-hidden="true"
-                    />
+                    {{ t.operations.filter_this_month }}
                 </Button>
-            </CollapsibleTrigger>
-            <OperationsActiveFilterChips
-                v-if="showChips"
-                :filters="filters"
-                :categories="categories"
-                :accounts="accounts"
-                :term-deposits="termDeposits"
-                :suppressed-sections="suppressedSections"
-                @remove="removeFilter"
-                @clear="clearFilters"
-            />
+                <Button
+                    type="button"
+                    size="sm"
+                    :variant="lastMonthActive ? 'secondary' : 'outline'"
+                    @click="applyMonthPreset(-1)"
+                >
+                    {{ t.operations.filter_last_month }}
+                </Button>
 
-            <span
-                class="meta text-muted-foreground ml-auto font-mono tabular-nums"
-                aria-live="polite"
-            >
-                {{ resultCountLabel }}
-            </span>
+                <CollapsibleTrigger as-child>
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        :aria-label="filtersToggleAria"
+                    >
+                        <SlidersHorizontal class="size-4" aria-hidden="true" />
+                        {{ t.operations.filters_toggle }}
+                        <Badge v-if="panelFilterCount > 0" variant="secondary">
+                            {{ panelFilterCount }}
+                        </Badge>
+                        <ChevronDown
+                            class="size-4 transition-transform"
+                            :class="panelOpen ? 'rotate-180' : ''"
+                            aria-hidden="true"
+                        />
+                    </Button>
+                </CollapsibleTrigger>
+            </div>
         </div>
+
+        <OperationsActiveFilterChips
+            v-if="showChips"
+            :filters="filters"
+            :categories="categories"
+            :accounts="accounts"
+            :term-deposits="termDeposits"
+            :suppressed-sections="suppressedSections"
+            @remove="removeFilter"
+            @clear="clearFilters"
+        />
 
         <CollapsibleContent
             class="data-[state=open]:border-t data-[state=open]:pt-3"

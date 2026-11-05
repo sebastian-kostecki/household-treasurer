@@ -344,6 +344,14 @@ Przebudowa `/operations` na elementach z Faz 2–3, kitchen sink z macierzą 7 s
 
 **Contract**: `/dev/operations` i `/operations` (dane demo `DemoHouseholdSeeder`) w obu motywach przy 1280 i 390 px, w tym zakładki transferów i ruchów kapitału, otwarte menu „Dodaj operację” i stan z filtrem.
 
+#### Addendum (po implementacji, z `/10x-impl-review`)
+
+Zakładki, panel, puste stany i ciała sekcji z §4–5 trafiły do nowego `resources/js/components/OperationsListPanel.vue`, żeby sink renderował prawdziwy panel w każdym stanie; `Operations.vue` trzyma wiersz tytułu, `router.get` zakładek i dialogi. `ListSurface.vue` dostał opcjonalny slot `footer` pod paginacją na stopkę panelu.
+
+#### Addendum 2 (poprawki po przeglądzie z `preview.html`, 2026-11-05)
+
+Lista poszła bliżej klikalnego mockupu (ADR-0039): zakładki bez obwódki (`segmented-control-tabs`), szukajka na całą szerokość, presety i „Filtry” po prawej, bez licznika „X z Y”; `ListSurface` `flush` (wiersze dnia i wiersze do krawędzi karty z `px-4`); bez nagłówków kolumn i bez kolumny daty we wszystkich sekcjach (transfery i ruchy kapitału też mają wiersze dnia, bez sumy; `groupRowsByDay`; `OperationsDateCell` usunięty); akcje wiersza w menu „⋯” (`OperationRowMenu`, `ConfirmActionDialog` z `v-model:open`); nowa paginacja ze strzałkami; „zł” w kwotach i bez stopki „Kwoty w zł”; kafelek wydatku czerwony, dochodu zielony, zwrotu pomarańczowy (kwoty bez zmian). Zrzuty w `screenshots/` odświeżone, doszły `row-menu-*`.
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -455,3 +463,5 @@ Bez migracji. Stare linki bez `section` otwierają domyślną zakładkę.
 - [x] 4.6 Zakładka przetrwa paginację, filtry, Wyczyść filtry i odświeżenie; wyciszona pokazuje 0 i notkę — 08791cc
 - [x] 4.7 Menu Dodaj operację działa z klawiatury; wyłączona pozycja pokazuje powód — 08791cc
 - [x] 4.8 Link z filtrem kategorii otwiera Operacje z filtrem — 08791cc
+
+> 2026-11-05 (`/10x-impl-review`): 4.7 sprawdzone ponownie w Playwright po F1 (niedostępna pozycja dostaje fokus strzałkami, ma `aria-disabled`, Enter nie otwiera dialogu; dostępne pozycje otwierają dialog). 4.8 sprawdzone w Playwright: URL z `DashboardNotices.vue:262-268` (`category_name=Rozrywka`, `category_type=expense`, zakres roku) daje `filtersActive`, pigułkę kategorii, „2 z 14” i wyciszone zakładki z licznikiem 0.

@@ -21,13 +21,13 @@ const config = computed(() => {
             return {
                 icon: ArrowDownLeft,
                 label: t.operations.type_income,
-                className: 'bg-accent text-success',
+                className: 'bg-success/10 text-success',
             };
         case 'expense':
             return {
                 icon: ArrowUpRight,
                 label: t.operations.type_expense,
-                className: 'bg-muted text-muted-foreground',
+                className: 'bg-destructive-soft text-destructive',
             };
         case 'refund':
             return {

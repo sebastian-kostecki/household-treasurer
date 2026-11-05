@@ -26,8 +26,14 @@ import type { PaginatedCollection } from '@/components/PaginationLinks.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { groupOperationsByDay } from '@/lib/operations-day-groups';
-import { operationsListQuery } from '@/lib/operations-list-query';
+import {
+    groupOperationsByDay,
+    groupRowsByDay,
+} from '@/lib/operations-day-groups';
+import {
+    EMPTY_OPERATIONS_FILTERS,
+    operationsListQuery,
+} from '@/lib/operations-list-query';
 import { operations as operationsRoute } from '@/routes';
 
 const {
@@ -156,25 +162,25 @@ const suppressedNote = computed(() =>
     ),
 );
 
-const noFilters: OperationsListFilters = {
-    q: null,
-    year: null,
-    category_name: null,
-    category_type: null,
-    account_id: null,
-    term_deposit_id: null,
-    date_from: null,
-    date_to: null,
-};
-
 const clearFiltersHref = computed(() =>
     operationsRoute({
-        query: operationsListQuery(noFilters, activeSection.value),
+        query: operationsListQuery(
+            EMPTY_OPERATIONS_FILTERS,
+            activeSection.value,
+        ),
     }),
 );
 
 const operationGroups = computed(() =>
     groupOperationsByDay(operations.data, operationDaySums),
+);
+
+const transferGroups = computed(() =>
+    groupRowsByDay(ownTransfers.data, (transfer) => transfer.transfer_date),
+);
+
+const capitalMovementGroups = computed(() =>
+    groupRowsByDay(capitalMovements.data, (movement) => movement.movement_date),
 );
 </script>
 
@@ -184,13 +190,15 @@ const operationGroups = computed(() =>
             <SegmentedControl
                 v-model="sectionModel"
                 tone="neutral"
+                class="segmented-control-tabs"
                 :ariaLabel="t.operations.sections_aria"
                 :options="sectionOptions"
             />
         </div>
 
         <ListSurface
-            class="operations-list gap-0"
+            class="operations-list"
+            flush
             :aria-busy="busy"
             :paginator="
                 state === 'list' ? paginators[activeSection] : undefined
@@ -206,8 +214,6 @@ const operationGroups = computed(() =>
                     :term-deposits="filterTermDeposits"
                     :suppressed-sections="suppressedSections"
                     :section="activeSection"
-                    :result-count="paginators[activeSection].total"
-                    :section-total="sectionTotals[activeSection]"
                 />
             </template>
 
@@ -264,24 +270,6 @@ const operationGroups = computed(() =>
             </IndexEmptyState>
 
             <template v-else-if="activeSection === 'financial_operations'">
-                <div class="operations-grid operations-header-row">
-                    <span class="operations-cell-description">
-                        {{ t.operations.description }}
-                    </span>
-                    <span class="operations-cell-category">
-                        {{ t.operations.category }}
-                    </span>
-                    <span class="operations-cell-date">
-                        {{ t.operations.date }}
-                    </span>
-                    <span class="operations-cell-amount">
-                        {{ t.operations.amount }}
-                    </span>
-                    <span class="operations-cell-actions text-right">
-                        {{ t.operations.actions }}
-                    </span>
-                </div>
-
                 <template v-for="group in operationGroups" :key="group.date">
                     <OperationsDayRow
                         :date="group.date"
@@ -301,78 +289,44 @@ const operationGroups = computed(() =>
             </template>
 
             <template v-else-if="activeSection === 'own_transfers'">
-                <div
-                    class="operations-grid operations-grid-transfer operations-header-row"
-                >
-                    <span class="operations-cell-date">
-                        {{ t.operations.date }}
-                    </span>
-                    <span class="operations-cell-description">
-                        {{ t.operations.description }}
-                    </span>
-                    <span class="operations-cell-account">
-                        {{ t.operations.accounts }}
-                    </span>
-                    <span class="operations-cell-amount">
-                        {{ t.operations.amount }}
-                    </span>
-                    <span class="operations-cell-actions text-right">
-                        {{ t.operations.actions }}
-                    </span>
-                </div>
-
-                <OwnTransferRow
-                    v-for="transfer in ownTransfers.data"
-                    :key="transfer.id"
-                    :transfer="transfer"
-                    @edit="emit('edit-transfer', transfer)"
-                />
+                <template v-for="group in transferGroups" :key="group.date">
+                    <OperationsDayRow :date="group.date" />
+                    <OwnTransferRow
+                        v-for="transfer in group.rows"
+                        :key="transfer.id"
+                        :transfer="transfer"
+                        @edit="emit('edit-transfer', transfer)"
+                    />
+                </template>
             </template>
 
             <template v-else>
-                <div
-                    class="operations-grid operations-grid-transfer operations-header-row"
+                <template
+                    v-for="group in capitalMovementGroups"
+                    :key="group.date"
                 >
-                    <span class="operations-cell-date">
-                        {{ t.operations.date }}
-                    </span>
-                    <span class="operations-cell-description">
-                        {{ t.operations.description }}
-                    </span>
-                    <span class="operations-cell-account">
-                        {{ t.operations.accounts }}
-                    </span>
-                    <span class="operations-cell-amount">
-                        {{ t.operations.amount }}
-                    </span>
-                    <span class="operations-cell-actions text-right">
-                        {{ t.operations.actions }}
-                    </span>
-                </div>
-
-                <CapitalMovementRow
-                    v-for="movement in capitalMovements.data"
-                    :key="movement.id"
-                    :movement="movement"
-                    @edit="emit('edit-capital-movement', movement)"
-                />
+                    <OperationsDayRow :date="group.date" />
+                    <CapitalMovementRow
+                        v-for="movement in group.rows"
+                        :key="movement.id"
+                        :movement="movement"
+                        @edit="emit('edit-capital-movement', movement)"
+                    />
+                </template>
             </template>
 
-            <template v-if="state === 'list'" #footer>
-                <p
-                    v-if="activeSection === 'own_transfers'"
-                    class="meta text-muted-foreground pt-3"
-                >
-                    {{ t.operations.own_transfers_footer }}
-                </p>
-                <p
-                    v-else-if="activeSection === 'capital_movements'"
-                    class="meta text-muted-foreground pt-3"
-                >
-                    {{ t.operations.capital_movements_footer }}
-                </p>
-                <p class="meta text-muted-foreground pt-3">
-                    {{ t.budget.amounts_in_zl }}
+            <template
+                v-if="
+                    state === 'list' && activeSection !== 'financial_operations'
+                "
+                #footer
+            >
+                <p class="meta text-muted-foreground">
+                    {{
+                        activeSection === 'own_transfers'
+                            ? t.operations.own_transfers_footer
+                            : t.operations.capital_movements_footer
+                    }}
                 </p>
             </template>
         </ListSurface>

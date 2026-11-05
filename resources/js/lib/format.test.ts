@@ -72,18 +72,22 @@ describe('formatMoney', () => {
 });
 
 describe('formatFinancialOperationAmount', () => {
-    it('shows an expense with a minus and no unit', () => {
+    it('shows an expense with a minus and the unit', () => {
         expect(formatFinancialOperationAmount('expense', 123456)).toBe(
-            '−1 234,56',
+            '−1 234,56 zł',
         );
     });
 
-    it('shows an income with a plus and no unit', () => {
-        expect(formatFinancialOperationAmount('income', 5000)).toBe('+50,00');
+    it('shows an income with a plus and the unit', () => {
+        expect(formatFinancialOperationAmount('income', 5000)).toBe(
+            '+50,00 zł',
+        );
     });
 
     it('shows a refund (negative expense) with a plus', () => {
-        expect(formatFinancialOperationAmount('expense', -5000)).toBe('+50,00');
+        expect(formatFinancialOperationAmount('expense', -5000)).toBe(
+            '+50,00 zł',
+        );
     });
 });
 
@@ -106,15 +110,15 @@ describe('financialOperationAmountClass', () => {
 
 describe('formatOperationDaySum', () => {
     it('prefixes a positive sum with a plus', () => {
-        expect(formatOperationDaySum(123456)).toBe('+1 234,56');
+        expect(formatOperationDaySum(123456)).toBe('+1 234,56 zł');
     });
 
     it('prefixes a negative sum with U+2212', () => {
-        expect(formatOperationDaySum(-123456)).toBe('−1 234,56');
+        expect(formatOperationDaySum(-123456)).toBe('−1 234,56 zł');
     });
 
     it('shows zero without a sign', () => {
-        expect(formatOperationDaySum(0)).toBe('0,00');
+        expect(formatOperationDaySum(0)).toBe('0,00 zł');
     });
 });
 

@@ -646,7 +646,6 @@ return [
         'menu_own_transfer' => 'Transfer własny',
         'menu_capital_movement' => 'Ruch kapitału',
         'sections_aria' => 'Sekcje listy operacji',
-        'result_count' => ':shown z :total',
         'section_suppressed_title' => 'Ta sekcja nie jest objęta filtrami',
         'empty_financial_operations' => 'Brak operacji finansowych',
         'empty_own_transfers' => 'Brak transferów własnych',
@@ -660,6 +659,9 @@ return [
         'loading' => 'Ładowanie',
         'not_applicable' => 'nie dotyczy',
         'coming_soon' => 'Wkrótce',
+        'pagination' => 'Paginacja',
+        'pagination_previous' => 'Poprzednia strona',
+        'pagination_next' => 'Następna strona',
     ],
     'landing' => [
         'meta_description' => 'Household Treasurer — budżet roczny, płynność kont i lokat oraz operacje w jednej aplikacji dla gospodarstwa domowego.',

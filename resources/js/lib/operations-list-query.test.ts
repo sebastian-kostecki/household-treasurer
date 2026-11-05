@@ -1,21 +1,13 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { operationsListQuery } from './operations-list-query';
-
-const emptyFilters = {
-    q: null,
-    year: null,
-    category_name: null,
-    category_type: null,
-    account_id: null,
-    term_deposit_id: null,
-    date_from: null,
-    date_to: null,
-};
+import {
+    EMPTY_OPERATIONS_FILTERS,
+    operationsListQuery,
+} from './operations-list-query';
 
 describe('operationsListQuery', () => {
     it('omits null filters', () => {
         const query = operationsListQuery(
-            { ...emptyFilters, q: 'czynsz', account_id: 3 },
+            { ...EMPTY_OPERATIONS_FILTERS, q: 'czynsz', account_id: 3 },
             'financial_operations',
         );
 
@@ -27,22 +19,30 @@ describe('operationsListQuery', () => {
     });
 
     it('keeps a non-default section', () => {
-        expect(operationsListQuery(emptyFilters, 'own_transfers').section).toBe(
-            'own_transfers',
-        );
         expect(
-            operationsListQuery(emptyFilters, 'capital_movements').section,
+            operationsListQuery(EMPTY_OPERATIONS_FILTERS, 'own_transfers')
+                .section,
+        ).toBe('own_transfers');
+        expect(
+            operationsListQuery(EMPTY_OPERATIONS_FILTERS, 'capital_movements')
+                .section,
         ).toBe('capital_movements');
     });
 
     it('leaves the default section out of the URL', () => {
         expect(
-            operationsListQuery(emptyFilters, 'financial_operations').section,
+            operationsListQuery(
+                EMPTY_OPERATIONS_FILTERS,
+                'financial_operations',
+            ).section,
         ).toBeUndefined();
     });
 
     it('never carries a page number', () => {
-        const query = operationsListQuery(emptyFilters, 'own_transfers');
+        const query = operationsListQuery(
+            EMPTY_OPERATIONS_FILTERS,
+            'own_transfers',
+        );
 
         expect(Object.keys(query)).not.toContain('page');
     });

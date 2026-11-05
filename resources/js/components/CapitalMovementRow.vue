@@ -3,9 +3,8 @@ import CapitalMovementActions from '@/components/CapitalMovementActions.vue';
 import type { CapitalMovementFormMovement } from '@/components/CapitalMovementFormDialog.vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
-import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
-import { formatMoneyAmount } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 
 export type CapitalMovementRowData = CapitalMovementFormMovement &
     PrefixedAccountIdentityFields<'account'> & {
@@ -23,10 +22,6 @@ const emit = defineEmits<{
 
 <template>
     <div class="operations-grid operations-grid-transfer operations-row">
-        <div class="operations-cell-date">
-            <OperationsDateCell :date="movement.movement_date" />
-        </div>
-
         <div class="operations-cell-description">
             <OperationDescriptionCell
                 variant="transfer"
@@ -66,7 +61,7 @@ const emit = defineEmits<{
         </div>
 
         <p class="operations-cell-amount">
-            {{ formatMoneyAmount(movement.amount_minor_units) }}
+            {{ formatMoney(movement.amount_minor_units) }}
         </p>
 
         <CapitalMovementActions

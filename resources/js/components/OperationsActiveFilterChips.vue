@@ -248,7 +248,7 @@ const suppressedNote = computed(() => {
 </script>
 
 <template>
-    <template v-if="chips.length > 0">
+    <div v-if="chips.length > 0" class="flex flex-wrap items-center gap-2">
         <span
             v-for="chip in chips"
             :key="chip.key"
@@ -261,7 +261,9 @@ const suppressedNote = computed(() => {
                 :color="chip.category.color"
                 size="sm"
             />
-            <span v-else class="truncate">{{ chip.label }}</span>
+            <span v-else class="truncate text-xs font-medium">{{
+                chip.label
+            }}</span>
             <Button
                 type="button"
                 variant="ghost"
@@ -285,5 +287,5 @@ const suppressedNote = computed(() => {
         >
             {{ suppressedNote }}
         </p>
-    </template>
+    </div>
 </template>

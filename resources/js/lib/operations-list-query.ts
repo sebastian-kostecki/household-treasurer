@@ -4,6 +4,18 @@ import type { OperationsListFilters } from '@/components/OperationsFilters.vue';
 export const DEFAULT_OPERATIONS_SECTION: OperationsListSection =
     'financial_operations';
 
+export const EMPTY_OPERATIONS_FILTERS: Readonly<OperationsListFilters> =
+    Object.freeze({
+        q: null,
+        year: null,
+        category_name: null,
+        category_type: null,
+        account_id: null,
+        term_deposit_id: null,
+        date_from: null,
+        date_to: null,
+    });
+
 /**
  * Jedyne miejsce budowania query `/operations`: filtry (null pomijany) i
  * sekcja (domyślna pomijana, żeby URL był krótki). Bez numerów stron.

@@ -199,7 +199,7 @@ class OperationsController extends Controller
             ),
             'hasAnyRecords' => array_sum($sectionTotals) > 0,
             'section' => $request->section()->value,
-            'operationDaySums' => $operationDaySums,
+            'operationDaySums' => (object) $operationDaySums,
             'sectionTotals' => $sectionTotals,
             'filterYears' => OperationsFilterOptions::years($user),
             'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),

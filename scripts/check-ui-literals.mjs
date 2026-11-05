@@ -47,6 +47,7 @@ const FILES = [
     'resources/js/components/OperationsActiveFilterChips.vue',
     'resources/js/components/OperationDescriptionCell.vue',
     'resources/js/components/FinancialOperationActions.vue',
+    'resources/js/components/OperationRowMenu.vue',
     'resources/js/components/OwnTransferActions.vue',
     'resources/js/components/CapitalMovementActions.vue',
     'resources/js/components/PaginationLinks.vue',
@@ -70,7 +71,6 @@ const FILES = [
     'resources/js/components/StatPanel.vue',
     'resources/js/components/ExecutionMeter.vue',
     'resources/js/components/OperationTypeTile.vue',
-    'resources/js/components/OperationsDateCell.vue',
     'resources/js/components/CompactAccountIdentity.vue',
     'resources/js/components/SegmentedControl.vue',
 ];
