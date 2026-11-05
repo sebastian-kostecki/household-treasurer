@@ -20,7 +20,9 @@ const props = defineProps<{
             :class="
                 props.labelHidden
                     ? 'sr-only'
-                    : 'text-muted-foreground block text-xs md:sr-only'
+                    : props.area === 'plan'
+                      ? 'text-muted-foreground block text-xs md:sr-only'
+                      : 'text-muted-foreground block text-xs xl:sr-only'
             "
         >
             {{ props.label }}
@@ -34,8 +36,8 @@ const props = defineProps<{
                 )
             "
         >
-            {{ formatMoneyAmount(props.amount) }}
             <slot />
+            {{ formatMoneyAmount(props.amount) }}
         </span>
     </div>
 </template>

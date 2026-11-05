@@ -437,18 +437,18 @@
             'meter meter meter';
     }
 
-    @variant md {
+    @variant xl {
         .budget-category-grid {
-            @apply items-center;
+            @apply items-center gap-x-3;
             grid-template-columns:
-                2.5rem minmax(0, 1fr) repeat(4, 7rem) minmax(8rem, 10rem)
+                2.5rem minmax(0, 1fr) repeat(4, 6.5rem) minmax(6rem, 8rem)
                 4.5rem;
             grid-template-areas: 'handle category opening current execution remaining meter actions';
         }
 
         .budget-category-grid-no-handle {
             grid-template-columns:
-                minmax(0, 1fr) repeat(4, 7rem) minmax(8rem, 10rem)
+                minmax(0, 1fr) repeat(4, 6.5rem) minmax(6rem, 8rem)
                 4.5rem;
             grid-template-areas: 'category opening current execution remaining meter actions';
         }
@@ -487,6 +487,12 @@
     }
 
     @variant md {
+        .budget-category-header-row.budget-category-grid-draft {
+            @apply grid;
+        }
+    }
+
+    @variant xl {
         .budget-category-header-row {
             @apply grid;
         }
@@ -543,30 +549,6 @@
     .budget-category-cell-actions {
         grid-area: actions;
         @apply text-right;
-    }
-
-    /**
-     * Scrolls only from `md`; on a phone the list flows with the page. Sticky
-     * head and totals keep their hairline via inset shadows, because a border
-     * on a sticky element scrolls away with the rows.
-     */
-    @variant md {
-        .budget-category-scroll {
-            @apply max-h-[min(32rem,70vh)] overflow-auto overscroll-contain;
-        }
-
-        .budget-category-scroll .budget-category-header-row {
-            @apply bg-card sticky top-0 z-10;
-            box-shadow: inset 0 -1px 0
-                color-mix(in srgb, var(--border) 60%, transparent);
-        }
-
-        .budget-category-scroll .budget-category-totals-row {
-            @apply sticky bottom-0 z-10;
-            background-color: var(--muted);
-            box-shadow: inset 0 1px 0
-                color-mix(in srgb, var(--border) 60%, transparent);
-        }
     }
 
     .operations-grid {

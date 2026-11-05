@@ -223,7 +223,7 @@ async function onDragEnd(): Promise<void> {
             </div>
         </template>
 
-        <div class="budget-category-scroll quiet-scrollbar">
+        <div>
             <BudgetCategoryHeaderRow
                 :category-type="categoryType"
                 :phase="phase"
