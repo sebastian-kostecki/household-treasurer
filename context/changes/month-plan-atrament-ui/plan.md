@@ -593,12 +593,12 @@ Bez migracji danych. Propsy tylko przybywają; formularze zatwierdzenia i zmiany
 
 #### Automated
 
-- [x] 5.1 build, types:check, check, check:ui z sinkiem i npm test przechodzą
-- [x] 5.2 composer ci:check przechodzi w obrazie Sail
-- [x] 5.3 sloppy ci bez nowych znalezisk
+- [x] 5.1 build, types:check, check, check:ui z sinkiem i npm test przechodzą — 1c1d5cb
+- [x] 5.2 composer ci:check przechodzi w obrazie Sail — 1c1d5cb
+- [x] 5.3 sloppy ci bez nowych znalezisk — 1c1d5cb
 
 #### Manual
 
-- [x] 5.4 Macierz 7 stanów w sinku kompletna, zrzuty w obu motywach przy 1280 i 390 px
-- [x] 5.5 Focus-visible i kontrast na brand i pasie w obu motywach
-- [x] 5.6 Użytkownik akceptuje widok względem mockupu
+- [x] 5.4 Macierz 7 stanów w sinku kompletna, zrzuty w obu motywach przy 1280 i 390 px — 1c1d5cb
+- [x] 5.5 Focus-visible i kontrast na brand i pasie w obu motywach — 1c1d5cb
+- [x] 5.6 Użytkownik akceptuje widok względem mockupu — 1c1d5cb
