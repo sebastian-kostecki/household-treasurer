@@ -610,20 +610,20 @@ Brak migracji danych i zmian payloadu. Usunięte klucze `lang` nie mają innych 
 
 #### Automated
 
-- [x] 2.1 Testy bibliotek: `npm test -- resources/js/lib/entry-to-spend-warning.test.ts resources/js/lib/import-to-spend-warnings.test.ts resources/js/lib/hand-entry-warning-preview.test.ts`
-- [x] 2.2 Typy i statyka: `npm run types:check && npm run check`
+- [x] 2.1 Testy bibliotek: `npm test -- resources/js/lib/entry-to-spend-warning.test.ts resources/js/lib/import-to-spend-warnings.test.ts resources/js/lib/hand-entry-warning-preview.test.ts` — 5e3dd5c
+- [x] 2.2 Typy i statyka: `npm run types:check && npm run check` — 5e3dd5c
 
 ### Phase 3: Wspólne elementy dialogów operacji
 
 #### Automated
 
-- [ ] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormPreview.vue resources/js/components/AccountSelect.vue resources/js/components/CategorySelect.vue`
-- [ ] 3.2 Testy frontu: `npm test`
-- [ ] 3.3 Typy i statyka: `npm run types:check && npm run check`
+- [x] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormPreview.vue resources/js/components/AccountSelect.vue resources/js/components/CategorySelect.vue`
+- [x] 3.2 Testy frontu: `npm test`
+- [x] 3.3 Typy i statyka: `npm run types:check && npm run check`
 
 #### Manual
 
-- [ ] 3.4 Podgląd Importu: `AccountSelect` i `CategorySelect` w wierszach działają i wyglądają jak przed zmianą (`/dev/import-preview`)
+- [x] 3.4 Podgląd Importu: `AccountSelect` i `CategorySelect` w wierszach działają i wyglądają jak przed zmianą (`/dev/import-preview`)
 
 ### Phase 4: Dialogi wydatku i dochodu
 
