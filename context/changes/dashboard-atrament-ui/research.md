@@ -159,7 +159,7 @@ Nazwane style istnieją w `app.css:245-283` (`page-title`, `section-title`, `tab
 - **Kontrakt propsów** (AGENTS.md, w jednym commicie):
   - `DashboardController` i `DashboardPageProps` (`types/dashboard.ts:41-61`)
   - `assertInertia` w `tests/Feature/DashboardTest.php`, na wzór `MonthPlanPageTest.php:60-66`
-  - każdy fixture w `pages/dev/dashboard-fixtures.ts`, bo inaczej `types:check` padnie
+  - każdy fixture w `pages/dev/dashboard-fixtures.ts` (typowany jako `DashboardPageProps`), bo przy polu wymaganym w typie `types:check` padnie
 
 ### D3. ADR-0043 i dokumenty przed kodem (rozstrzygnięte: potrzebny)
 
