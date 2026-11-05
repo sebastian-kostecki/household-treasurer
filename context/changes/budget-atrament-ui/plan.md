@@ -379,7 +379,7 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Manual
 
-- [ ] 1.4 Użytkownik akceptuje treść ADR-0037 i poprawkę FR-REP-13/14
+- [x] 1.4 Użytkownik akceptuje treść ADR-0037 i poprawkę FR-REP-13/14
 
 ### Phase 2: Warstwa globalna
 
@@ -393,9 +393,9 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Manual
 
-- [ ] 2.6 Zrzuty Dashboardu, Operacji, Planu miesiąca, importu i dialogu w obu motywach przy 1280 i 390 px
-- [ ] 2.7 Hover secondary widoczny na jasnym card albo zapisany w ADR-0037
-- [ ] 2.8 Pasek Dashboardu bez zmian poza kreską brand-text i torem track
+- [x] 2.6 Zrzuty Dashboardu, Operacji, Planu miesiąca, importu i dialogu w obu motywach przy 1280 i 390 px
+- [x] 2.7 Hover secondary widoczny na jasnym card albo zapisany w ADR-0037
+- [x] 2.8 Pasek Dashboardu bez zmian poza kreską brand-text i torem track
 
 ### Phase 3: Kontrakt propsów Budżetu
 
@@ -409,7 +409,7 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Manual
 
-- [ ] 3.6 /budget bez paska miesiąca, przełącznik archiwum działa, Plan miesiąca przełącza miesiące
+- [x] 3.6 /budget bez paska miesiąca, przełącznik archiwum działa, Plan miesiąca przełącza miesiące
 
 ### Phase 4: Widok Budżetu w Atramencie
 
@@ -422,6 +422,6 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Manual
 
-- [ ] 4.5 Zrzuty kitchen sinka i /budget w obu motywach przy 1280 i 390 px zgodne z mockupem
-- [ ] 4.6 Jeden przycisk Dodaj kategorię tworzy dochód i wydatek; Switch działa klawiaturą i myszą
-- [ ] 4.7 Na 390 px brak poziomego przewijania strony
+- [x] 4.5 Zrzuty kitchen sinka i /budget w obu motywach przy 1280 i 390 px zgodne z mockupem
+- [x] 4.6 Jeden przycisk Dodaj kategorię tworzy dochód i wydatek; Switch działa klawiaturą i myszą
+- [x] 4.7 Na 390 px brak poziomego przewijania strony
