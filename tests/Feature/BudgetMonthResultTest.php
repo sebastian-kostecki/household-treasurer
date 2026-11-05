@@ -7,18 +7,16 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\FinancialOperation;
-use App\Models\MonthPlan;
-use App\Models\MonthPlanItem;
 use App\Models\User;
+use App\Support\BudgetMonthResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class BudgetMonthResultTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_budget_page_exposes_month_execution_and_month_result_for_viewed_month(): void
+    public function test_month_result_sums_execution_of_the_viewed_month(): void
     {
         $this->travelTo('2026-06-15');
 
@@ -66,18 +64,17 @@ class BudgetMonthResultTest extends TestCase
             'amount_minor_units' => 25_000,
         ]);
 
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['month' => 3]))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('monthIncomeExecutionMinorUnits', 50_000)
-                ->where('monthExpenseExecutionMinorUnits', 18_000)
-                ->where('monthResultMinorUnits', 32_000),
-            );
+        $this->assertSame(
+            [
+                'income_execution_minor_units' => 50_000,
+                'expense_execution_minor_units' => 18_000,
+                'month_result_minor_units' => 32_000,
+            ],
+            BudgetMonthResult::forViewedMonth($budget, 3),
+        );
     }
 
-    public function test_month_result_includes_archived_categories_when_archived_are_hidden(): void
+    public function test_month_result_includes_archived_categories(): void
     {
         $this->travelTo('2026-06-15');
 
@@ -108,16 +105,14 @@ class BudgetMonthResultTest extends TestCase
             'amount_minor_units' => 6_000,
         ]);
 
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['month' => 1]))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('show_archived', false)
-                ->where('monthIncomeExecutionMinorUnits', 0)
-                ->where('monthExpenseExecutionMinorUnits', 10_000)
-                ->where('monthResultMinorUnits', -10_000),
-            );
+        $this->assertSame(
+            [
+                'income_execution_minor_units' => 0,
+                'expense_execution_minor_units' => 10_000,
+                'month_result_minor_units' => -10_000,
+            ],
+            BudgetMonthResult::forViewedMonth($budget, 1),
+        );
     }
 
     public function test_expense_refund_nets_into_month_expense_and_month_result(): void
@@ -159,111 +154,13 @@ class BudgetMonthResultTest extends TestCase
             'amount_minor_units' => -2_000,
         ]);
 
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['month' => 3]))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('monthIncomeExecutionMinorUnits', 20_000)
-                ->where('monthExpenseExecutionMinorUnits', 8_000)
-                ->where('monthResultMinorUnits', 12_000),
-            );
-    }
-
-    public function test_budget_page_sends_a_proposal_to_spend_for_a_future_month(): void
-    {
-        $this->travelTo('2026-06-15');
-
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 1_200_000]);
-
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['month' => 9]))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('monthToSpend.state', 'proposal')
-                ->where('monthToSpend.to_spend_minor_units', 100_000),
-            );
-    }
-
-    public function test_budget_page_sends_approved_to_spend_for_a_past_month_computed_live(): void
-    {
-        $this->travelTo('2026-06-15');
-
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create();
-        $food = Category::factory()->for($budget)->expense()->create();
-        $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
-
-        foreach ([[$salary, 500_000], [$food, 200_000]] as [$category, $amount]) {
-            MonthPlanItem::query()->create([
-                'month_plan_id' => $plan->id,
-                'category_id' => $category->id,
-                'approved_amount_minor_units' => $amount,
-                'current_amount_minor_units' => $amount,
-            ]);
-        }
-
-        $request = fn () => $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['month' => 3]));
-
-        $request()->assertInertia(fn (Assert $page) => $page
-            ->where('monthToSpend.state', 'approved')
-            ->where('monthToSpend.to_spend_minor_units', 300_000),
+        $this->assertSame(
+            [
+                'income_execution_minor_units' => 20_000,
+                'expense_execution_minor_units' => 8_000,
+                'month_result_minor_units' => 12_000,
+            ],
+            BudgetMonthResult::forViewedMonth($budget, 3),
         );
-
-        FinancialOperation::factory()->for($user)->create([
-            'type' => FinancialOperationType::Expense,
-            'category_id' => $food->id,
-            'budget_id' => $budget->id,
-            'operation_date' => '2026-03-10',
-            'amount_minor_units' => 250_000,
-        ]);
-
-        $request()->assertInertia(fn (Assert $page) => $page
-            ->where('monthToSpend.state', 'approved')
-            ->where('monthToSpend.to_spend_minor_units', 250_000),
-        );
-    }
-
-    public function test_budget_page_marks_a_past_month_without_a_plan_as_none(): void
-    {
-        $this->travelTo('2026-06-15');
-
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 1_200_000]);
-
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget', ['month' => 3]))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('monthToSpend.state', 'none')
-                ->where('monthToSpend.to_spend_minor_units', null),
-            );
-    }
-
-    public function test_budget_page_has_no_month_to_spend_for_a_draft_or_without_a_budget(): void
-    {
-        $this->travelTo('2026-06-15');
-
-        $user = User::factory()->create();
-        Budget::factory()->for($user)->create(['year' => 2026]);
-
-        $this->actingAs($user)
-            ->withSession(['budget_year' => 2026])
-            ->get(route('budget'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('monthToSpend', null));
-
-        $this->actingAs(User::factory()->create())
-            ->get(route('budget'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('monthToSpend', null));
     }
 }

@@ -3,14 +3,12 @@ import { router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { budget as budgetRoute } from '@/routes';
 
 const props = defineProps<{
     budgetYear: number;
     viewedMonth: number;
-    showArchived: boolean;
     currentMonth: number | null;
-    monthUrl?: (month: number) => string;
+    monthUrl: (month: number) => string;
 }>();
 
 const t = useTranslations();
@@ -30,13 +28,7 @@ function monthAccessibleName(month: number): string {
 
 function selectMonth(month: number): void {
     router.get(
-        props.monthUrl?.(month) ??
-            budgetRoute({
-                query: {
-                    month,
-                    show_archived: props.showArchived ? 1 : undefined,
-                },
-            }),
+        props.monthUrl(month),
         {},
         {
             preserveState: true,

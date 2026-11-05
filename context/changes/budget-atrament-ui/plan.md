@@ -385,11 +385,11 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Automated
 
-- [x] 2.1 npm test przechodzi, w tym formatMoneyAmount
-- [x] 2.2 npm run check, check:ui i types:check przechodzą po build
-- [x] 2.3 grep column-caption w resources/ nic nie zwraca
-- [x] 2.4 composer ci:check przechodzi w obrazie Sail
-- [x] 2.5 git status po CLI shadcn-vue bez pnpm-workspace.yaml i nieoczekiwanych zależności
+- [x] 2.1 npm test przechodzi, w tym formatMoneyAmount — b4a7b9d
+- [x] 2.2 npm run check, check:ui i types:check przechodzą po build — b4a7b9d
+- [x] 2.3 grep column-caption w resources/ nic nie zwraca — b4a7b9d
+- [x] 2.4 composer ci:check przechodzi w obrazie Sail — b4a7b9d
+- [x] 2.5 git status po CLI shadcn-vue bez pnpm-workspace.yaml i nieoczekiwanych zależności — b4a7b9d
 
 #### Manual
 
@@ -401,11 +401,11 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Automated
 
-- [ ] 3.1 Testy Budżetu przechodzą na PostgreSQL w obrazie Sail
-- [ ] 3.2 composer ci:check przechodzi w obrazie Sail
-- [ ] 3.3 sloppy ci bez nowych znalezisk
-- [ ] 3.4 build, types:check, check, check:ui i npm test przechodzą
-- [ ] 3.5 grep usuniętych nazw nie zwraca nic poza własnymi propsami MonthPlan/Dashboard
+- [x] 3.1 Testy Budżetu przechodzą na PostgreSQL w obrazie Sail
+- [x] 3.2 composer ci:check przechodzi w obrazie Sail
+- [x] 3.3 sloppy ci bez nowych znalezisk
+- [x] 3.4 build, types:check, check, check:ui i npm test przechodzą
+- [x] 3.5 grep usuniętych nazw nie zwraca nic poza własnymi propsami MonthPlan/Dashboard
 
 #### Manual
 

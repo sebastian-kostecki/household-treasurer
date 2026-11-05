@@ -5,7 +5,6 @@ import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
-import BudgetMonthStrip from '@/components/BudgetMonthStrip.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -403,60 +402,20 @@ const stateMatrix: { state: string; where: string }[] = [
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-strips">
             <h2 id="ks-strips" class="text-base font-semibold">
-                Paski podsumowania i miesiąca
+                Pasek podsumowania
             </h2>
             <BudgetPlanSummaryStrip
                 :income-totals="totalsOf(executionIncome, false)"
                 :expense-totals="totalsOf(executionExpense, false)"
                 :planned-balance-minor-units="125000"
             />
-            <BudgetMonthStrip
-                :budget-year="BUDGET_YEAR"
-                :viewed-month="3"
-                :show-archived="false"
-                :current-month="3"
-                viewed-month-timing="current"
-                :month-income-execution-minor-units="650000"
-                :month-expense-execution-minor-units="310000"
-                :month-result-minor-units="340000"
-                :month-to-spend="{ state: 'none', to_spend_minor_units: null }"
-            />
-            <BudgetMonthStrip
-                :budget-year="BUDGET_YEAR"
-                :viewed-month="4"
-                :show-archived="false"
-                :current-month="3"
-                viewed-month-timing="future"
-                :month-income-execution-minor-units="0"
-                :month-expense-execution-minor-units="0"
-                :month-result-minor-units="0"
-                :month-to-spend="{
-                    state: 'proposal',
-                    to_spend_minor_units: 180000,
-                }"
-            />
-            <BudgetMonthStrip
-                :budget-year="BUDGET_YEAR"
-                :viewed-month="2"
-                :show-archived="false"
-                :current-month="3"
-                viewed-month-timing="past"
-                :month-income-execution-minor-units="650000"
-                :month-expense-execution-minor-units="700000"
-                :month-result-minor-units="-50000"
-                :month-to-spend="{
-                    state: 'approved',
-                    to_spend_minor_units: -25000,
-                }"
-            />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-focus">
             <h2 id="ks-focus" class="text-base font-semibold">Fokus</h2>
             <p class="text-muted-foreground text-sm">
-                Przejdź Tab-em przez listy powyżej, paski miesiąca i
-                przełączniki poniżej: każda kontrolka ma pierścień ring i
-                dostępną nazwę.
+                Przejdź Tab-em przez listy powyżej i przełączniki poniżej: każda
+                kontrolka ma pierścień ring i dostępną nazwę.
             </p>
         </section>
 

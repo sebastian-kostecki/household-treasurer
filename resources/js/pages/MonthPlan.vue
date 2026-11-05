@@ -539,7 +539,6 @@ watch(hasInvalidIdleAmount, (invalid) => {
             <BudgetMonthPicker
                 :budget-year="budget.year"
                 :viewed-month="viewedMonth"
-                :show-archived="false"
                 :current-month="currentMonth"
                 :month-url="monthUrl"
             />

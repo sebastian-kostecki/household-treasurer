@@ -1198,4 +1198,79 @@ class BudgetTest extends TestCase
         $this->assertDatabaseCount('budgets', 2);
         $this->assertDatabaseCount('categories', 1);
     }
+
+    public function test_budget_page_does_not_send_month_readings(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->missing('viewedMonth')
+                ->missing('pacedPoolMonthRemainingMinorUnits')
+                ->missing('monthIncomeExecutionMinorUnits')
+                ->missing('monthExpenseExecutionMinorUnits')
+                ->missing('monthResultMinorUnits')
+                ->missing('currentMonth')
+                ->missing('viewedMonthTiming')
+                ->missing('monthToSpend')
+                ->missing('expenseCategories.0.month_remaining_minor_units')
+                ->missing('expenseCategories.0.month_execution_minor_units'),
+            );
+    }
+
+    public function test_year_elapsed_percent_follows_the_budget_year_in_execution(): void
+    {
+        $this->travelTo('2026-07-02');
+
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+
+        $expected = [
+            2025 => 100.0,
+            2026 => 100 * 183 / 365,
+            2027 => 100 / 365,
+        ];
+
+        foreach ($expected as $year => $percent) {
+            $this->actingAs($user)
+                ->withSession(['budget_year' => $year])
+                ->get(route('budget'))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('year_elapsed_percent', fn ($value): bool => abs($value - $percent) < 0.0001),
+                );
+        }
+    }
+
+    public function test_year_elapsed_percent_is_null_for_a_draft_and_without_a_budget(): void
+    {
+        $this->travelTo('2026-07-02');
+
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('year_elapsed_percent', null));
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budget', null)
+                ->where('year_elapsed_percent', null)
+                ->missing('viewedMonth'),
+            );
+    }
 }

@@ -8,7 +8,6 @@ import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
-import BudgetMonthStrip from '@/components/BudgetMonthStrip.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,11 +44,6 @@ type BudgetSummary = {
     can_reorder: boolean;
 };
 
-type MonthToSpend = {
-    state: 'proposal' | 'approved' | 'none';
-    to_spend_minor_units: number | null;
-};
-
 type DeficitWarning = {
     planned_deficit_minor_units: number;
     liquidity_at_year_start_minor_units: number;
@@ -71,14 +65,7 @@ const props = defineProps<{
     expenseTotals: DashboardTypeTotals;
     deficitWarning: DeficitWarning | null;
     show_archived: boolean;
-    viewedMonth: number | null;
-    pacedPoolMonthRemainingMinorUnits: number | null;
-    monthIncomeExecutionMinorUnits: number | null;
-    monthExpenseExecutionMinorUnits: number | null;
-    monthResultMinorUnits: number | null;
-    currentMonth: number | null;
-    viewedMonthTiming: 'past' | 'current' | 'future' | null;
-    monthToSpend: MonthToSpend | null;
+    year_elapsed_percent: number | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
@@ -152,7 +139,6 @@ function toggleShowArchived(checked: boolean): void {
         budgetRoute({
             query: {
                 show_archived: checked ? 1 : undefined,
-                month: viewedMonthQuery(),
             },
         }),
         {},
@@ -164,10 +150,6 @@ function toggleShowArchived(checked: boolean): void {
             },
         },
     );
-}
-
-function viewedMonthQuery(): number | undefined {
-    return props.viewedMonth ?? undefined;
 }
 
 function openDeleteBudgetDialog(): void {
@@ -271,29 +253,6 @@ function openDeleteBudgetDialog(): void {
                 :planned-balance-minor-units="
                     planSummary.planned_balance_minor_units
                 "
-            />
-
-            <BudgetMonthStrip
-                v-if="
-                    viewedMonth !== null &&
-                    monthIncomeExecutionMinorUnits !== null &&
-                    monthExpenseExecutionMinorUnits !== null &&
-                    monthResultMinorUnits !== null &&
-                    viewedMonthTiming !== null
-                "
-                :budget-year="budget.year"
-                :viewed-month="viewedMonth"
-                :show-archived="show_archived"
-                :current-month="currentMonth"
-                :viewed-month-timing="viewedMonthTiming"
-                :month-income-execution-minor-units="
-                    monthIncomeExecutionMinorUnits
-                "
-                :month-expense-execution-minor-units="
-                    monthExpenseExecutionMinorUnits
-                "
-                :month-result-minor-units="monthResultMinorUnits"
-                :month-to-spend="monthToSpend"
             />
 
             <div class="flex items-center gap-2">
