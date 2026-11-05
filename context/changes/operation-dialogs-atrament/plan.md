@@ -617,32 +617,32 @@ Brak migracji danych i zmian payloadu. Usunięte klucze `lang` nie mają innych 
 
 #### Automated
 
-- [x] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormPreview.vue resources/js/components/AccountSelect.vue resources/js/components/CategorySelect.vue`
-- [x] 3.2 Testy frontu: `npm test`
-- [x] 3.3 Typy i statyka: `npm run types:check && npm run check`
+- [x] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormPreview.vue resources/js/components/AccountSelect.vue resources/js/components/CategorySelect.vue` — 5feadaa
+- [x] 3.2 Testy frontu: `npm test` — 5feadaa
+- [x] 3.3 Typy i statyka: `npm run types:check && npm run check` — 5feadaa
 
 #### Manual
 
-- [x] 3.4 Podgląd Importu: `AccountSelect` i `CategorySelect` w wierszach działają i wyglądają jak przed zmianą (`/dev/import-preview`)
+- [x] 3.4 Podgląd Importu: `AccountSelect` i `CategorySelect` w wierszach działają i wyglądają jak przed zmianą (`/dev/import-preview`) — 5feadaa
 
 ### Phase 4: Dialogi wydatku i dochodu
 
 #### Automated
 
-- [ ] 4.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/ExpenseTest.php tests/Feature/IncomeTest.php tests/Feature/FinancialOperationReclassifyTest.php tests/Feature/FinancialOperationEditDeleteTest.php`
-- [ ] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/ExpenseFormDialog.vue resources/js/components/IncomeFormDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue`
-- [ ] 4.3 Brak martwego pola: `grep -rn availableLimitNowMinorUnits resources/js` nic nie zwraca
-- [ ] 4.4 Typy i statyka: `npm run build && npm run types:check && npm run check`
-- [ ] 4.5 Testy frontu: `npm test`
+- [x] 4.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/ExpenseTest.php tests/Feature/IncomeTest.php tests/Feature/FinancialOperationReclassifyTest.php tests/Feature/FinancialOperationEditDeleteTest.php`
+- [x] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/ExpenseFormDialog.vue resources/js/components/IncomeFormDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue`
+- [x] 4.3 Brak martwego pola: `grep -rn availableLimitNowMinorUnits resources/js` nic nie zwraca
+- [x] 4.4 Typy i statyka: `npm run build && npm run types:check && npm run check`
+- [x] 4.5 Testy frontu: `npm test`
 
 #### Manual
 
-- [ ] 4.6 W podglądzie z worktree (AGENTS.md „Preview from a worktree”): dodanie wydatku, zwrotu i dochodu, edycja zwrotu na dochód i dochodu na zwrot zapisują dane jak wcześniej
-- [ ] 4.7 Edycja bez zmian pokazuje równe wartości „przed → po” we wszystkich wierszach. Przeniesienie daty do poprzedniego miesiąca z planem daje dwa wiersze Do wydania z etykietami w miejscowniku i z rokiem
-- [ ] 4.8 „abc”, „12,345” i „-5” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”. „0,00” daje błąd serwera
-- [ ] 4.9 W trakcie zapisu (`expense-errors`, `income-errors`): spinner, X ukryty, `Esc`, nakładka i „Anuluj” nie zamykają
-- [ ] 4.10 Stany sinka w obu motywach przy 1280 i 390 px: rząd „Kwota | Data” w dwóch kolumnach przy 390 px, ostrzeżenia w bloku pod swoim wierszem, wartość ujemna w `destructive`
-- [ ] 4.11 Klawiatura: fokus po otwarciu na pierwszym polu (wybór typu albo kwota), wybór typu strzałkami, czytnik ekranu ogłasza błąd kwoty
+- [x] 4.6 W podglądzie z worktree (AGENTS.md „Preview from a worktree”): dodanie wydatku, zwrotu i dochodu, edycja zwrotu na dochód i dochodu na zwrot zapisują dane jak wcześniej
+- [x] 4.7 Edycja bez zmian pokazuje równe wartości „przed → po” we wszystkich wierszach. Przeniesienie daty do poprzedniego miesiąca z planem daje dwa wiersze Do wydania z etykietami w miejscowniku i z rokiem
+- [x] 4.8 „abc”, „12,345” i „-5” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”. „0,00” daje błąd serwera
+- [x] 4.9 W trakcie zapisu (`expense-errors`, `income-errors`): spinner, X ukryty, `Esc`, nakładka i „Anuluj” nie zamykają
+- [x] 4.10 Stany sinka w obu motywach przy 1280 i 390 px: rząd „Kwota | Data” w dwóch kolumnach przy 390 px, ostrzeżenia w bloku pod swoim wierszem, wartość ujemna w `destructive`
+- [x] 4.11 Klawiatura: fokus po otwarciu na pierwszym polu (wybór typu albo kwota), wybór typu strzałkami, czytnik ekranu ogłasza błąd kwoty
 
 ### Phase 5: Transfer i ruch kapitału, straże i zrzuty
 

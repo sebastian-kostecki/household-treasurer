@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
     buildOperationPreview,
+    monthNamesLocativeFrom,
     toSpendRowLabel,
 } from './operation-dialog-preview';
 
@@ -141,5 +142,18 @@ describe('buildOperationPreview', () => {
         });
 
         expect(preview.rows).toEqual([]);
+    });
+});
+
+describe('monthNamesLocativeFrom', () => {
+    it('reads the twelve locative names in calendar order', () => {
+        const names = monthNamesLocativeFrom({
+            month_name_locative_1: 'styczniu',
+            month_name_locative_12: 'grudniu',
+        });
+
+        expect(names).toHaveLength(12);
+        expect(names[0]).toBe('styczniu');
+        expect(names[11]).toBe('grudniu');
     });
 });

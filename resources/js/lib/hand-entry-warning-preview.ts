@@ -57,7 +57,6 @@ export type HandEntryPreviewResult = {
     availableLimitBeforeMinorUnits: number | null;
     showNegativeBalanceWarning: boolean;
     showTermDepositNegativeBalanceWarning: boolean;
-    availableLimitNowMinorUnits: number | null;
     availableLimitAfterMinorUnits: number | null;
     showOverLimitWarning: boolean;
 };
@@ -302,7 +301,6 @@ export function previewHandEntryWarnings(
             showTermDepositNegativeBalanceWarning:
                 predictedTermDepositBalance !== null &&
                 predictedTermDepositBalance < 0,
-            availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
@@ -341,7 +339,6 @@ export function previewHandEntryWarnings(
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
             showTermDepositNegativeBalanceWarning: false,
-            availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
@@ -364,7 +361,6 @@ export function previewHandEntryWarnings(
                 availableLimitBeforeMinorUnits: null,
                 showNegativeBalanceWarning: false,
                 showTermDepositNegativeBalanceWarning: false,
-                availableLimitNowMinorUnits: null,
                 availableLimitAfterMinorUnits: null,
                 showOverLimitWarning: false,
             };
@@ -402,7 +398,6 @@ export function previewHandEntryWarnings(
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
             showTermDepositNegativeBalanceWarning: false,
-            availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
@@ -436,16 +431,16 @@ export function previewHandEntryWarnings(
                   'expense',
                   signedAmount,
               );
-    const availableLimitNowMinorUnits =
+    const limitWithoutEditedRecordMinorUnits =
         category === undefined
             ? null
             : category.planned_amount_minor_units -
               category.execution_minor_units +
               executionAdjustment;
     const availableLimitAfterMinorUnits =
-        availableLimitNowMinorUnits === null
+        limitWithoutEditedRecordMinorUnits === null
             ? null
-            : availableLimitNowMinorUnits - signedAmount;
+            : limitWithoutEditedRecordMinorUnits - signedAmount;
 
     return {
         accountBalanceBeforeMinorUnits:
@@ -461,7 +456,6 @@ export function previewHandEntryWarnings(
         showNegativeBalanceWarning:
             predictedBalance !== null && predictedBalance < 0,
         showTermDepositNegativeBalanceWarning: false,
-        availableLimitNowMinorUnits,
         availableLimitAfterMinorUnits,
         showOverLimitWarning:
             proposal.kind === 'expense' &&

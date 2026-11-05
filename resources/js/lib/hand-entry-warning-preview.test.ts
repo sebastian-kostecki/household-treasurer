@@ -47,7 +47,6 @@ test('create expense: balance and limit before and after, no flags', () => {
         termDepositBalanceBeforeMinorUnits: null,
         termDepositBalanceAfterMinorUnits: null,
         availableLimitBeforeMinorUnits: 70_000,
-        availableLimitNowMinorUnits: 70_000,
         availableLimitAfterMinorUnits: 50_000,
         showNegativeBalanceWarning: false,
         showOverLimitWarning: false,

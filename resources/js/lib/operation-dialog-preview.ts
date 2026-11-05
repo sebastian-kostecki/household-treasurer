@@ -118,3 +118,14 @@ export function buildOperationPreview(
 
     return { rows, warnings: [...(input.monthRemainingWarnings ?? [])] };
 }
+
+/** The twelve locative month names (budget.month_name_locative_1 … _12), January first. */
+export function monthNamesLocativeFrom(
+    budgetTranslations: Record<string, string>,
+): string[] {
+    return Array.from(
+        { length: 12 },
+        (_, index) =>
+            budgetTranslations[`month_name_locative_${index + 1}`] ?? '',
+    );
+}
