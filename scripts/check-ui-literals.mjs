@@ -55,6 +55,18 @@ const FILES = [
     'resources/js/components/CategorySelect.vue',
     'resources/js/components/AccountSelect.vue',
     'resources/js/pages/dev/ImportPreviewSink.vue',
+    'resources/js/pages/Budget.vue',
+    'resources/js/pages/dev/BudgetKitchenSink.vue',
+    'resources/js/components/BudgetCategoryList.vue',
+    'resources/js/components/BudgetCategoryHeaderRow.vue',
+    'resources/js/components/BudgetCategoryRow.vue',
+    'resources/js/components/BudgetAmountCell.vue',
+    'resources/js/components/BudgetEmptyState.vue',
+    'resources/js/components/BudgetCategoryRowActions.vue',
+    'resources/js/components/BudgetCategoryAlignPlanAction.vue',
+    'resources/js/components/BudgetMonthPicker.vue',
+    'resources/js/components/StatPanel.vue',
+    'resources/js/components/ExecutionMeter.vue',
 ];
 
 const PALETTE =

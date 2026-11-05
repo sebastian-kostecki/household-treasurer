@@ -6,15 +6,15 @@ import BudgetCategoryList, {
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { DEFAULT_CATEGORY_COLOR } from '@/lib/category-appearance';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 
 const t = useTranslations();
 
-const BUDGET_YEAR = 2026;
+const YEAR_ELAPSED_PERCENT = 45;
 
 type RowOverrides = Partial<BudgetCategoryRow> &
     Pick<BudgetCategoryRow, 'id' | 'name' | 'type'>;
@@ -49,6 +49,7 @@ function draftRow(
     type: 'income' | 'expense',
     plan: number,
     icon = 'tag',
+    overrides: Partial<BudgetCategoryRow> = {},
 ): BudgetCategoryRow {
     return row({
         id,
@@ -59,6 +60,7 @@ function draftRow(
         initial_plan_minor_units: plan,
         current_plan_minor_units: plan,
         remaining_minor_units: plan,
+        ...overrides,
     });
 }
 
@@ -70,6 +72,7 @@ function executionRow(
     current: number,
     executed: number,
     icon = 'tag',
+    overrides: Partial<BudgetCategoryRow> = {},
 ): BudgetCategoryRow {
     const remaining = current - executed;
 
@@ -87,6 +90,7 @@ function executionRow(
             current === 0 ? null : Math.round((executed / current) * 100),
         is_over_limit: type === 'expense' && remaining < 0,
         can_align_current_plan: initial !== current,
+        ...overrides,
     });
 }
 
@@ -125,7 +129,9 @@ const draftIncome = [
     draftRow(102, 'Premia', 'income', 120000, 'coins'),
 ];
 const draftExpense = [
-    draftRow(111, 'Czynsz', 'expense', 250000, 'building'),
+    draftRow(111, 'Czynsz', 'expense', 250000, 'building', {
+        month_item_kind: 'bill',
+    }),
     draftRow(112, 'Jedzenie', 'expense', 180000, 'apple'),
     draftRow(113, 'Transport', 'expense', 45000, 'bus'),
 ];
@@ -133,12 +139,25 @@ const draftExpense = [
 const executionIncome = [
     executionRow(201, 'Wynagrodzenie', 'income', 650000, 650000, 650000),
     executionRow(202, 'Premia', 'income', 120000, 120000, 135000),
+    executionRow(203, 'Zwrot podatku', 'income', 80000, 80000, 20000),
 ];
 const executionExpense = [
     executionRow(211, 'Czynsz', 'expense', 250000, 250000, 250000, 'building'),
     executionRow(212, 'Jedzenie', 'expense', 180000, 200000, 215000, 'apple'),
     executionRow(213, 'Transport', 'expense', 45000, 45000, 12000, 'bus'),
     executionRow(214, 'Rozrywka', 'expense', 30000, 30000, 0),
+    executionRow(
+        215,
+        'Remont łazienki',
+        'expense',
+        900000,
+        900000,
+        310000,
+        'tag',
+        {
+            is_paced: false,
+        },
+    ),
 ];
 
 const withArchived = [
@@ -187,8 +206,8 @@ const manyCategories = Array.from({ length: 14 }, (_, index) =>
 
 const emptyTotals = totalsOf([], true);
 
-const showArchivedChecked = ref(true);
-const showArchivedUnchecked = ref(false);
+const showArchivedOn = ref(true);
+const showArchivedOff = ref(false);
 const createBudgetOpen = ref(false);
 
 const noop = (): void => undefined;
@@ -196,15 +215,15 @@ const noop = (): void => undefined;
 const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
-        where: 'Wszystkie sekcje poniżej (szkic, realizacja, archiwum, paski).',
+        where: 'Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa (bez kreski roku) i równomierna (z kreską). Szkic: kolumna „Typ”.',
     },
     {
         state: 'hover',
-        where: 'Najedź na wiersz akcji, przyciski, miesiące i uchwyt przeciągania w sekcjach list.',
+        where: 'Najedź na wiersz (tło secondary), przyciski akcji i uchwyt przeciągania w sekcjach list.',
     },
     {
         state: 'focus-visible',
-        where: 'Sekcja „Fokus”: przejdź Tab-em przez filtr, przycisk dodawania, wyzwalacz archiwum, menu akcji, checkbox i miesiące. Uchwyt przeciągania: N/A, bo jest tylko dla wskaźnika (tabindex -1), a przestawianie z klawiatury jest odroczone.',
+        where: 'Sekcja „Fokus”: przejdź Tab-em przez filtr, wyzwalacz archiwum, menu akcji i oba przełączniki. Uchwyt przeciągania: N/A, bo jest tylko dla wskaźnika (tabindex -1), a przestawianie z klawiatury jest odroczone.',
     },
     {
         state: 'disabled',
@@ -216,11 +235,11 @@ const stateMatrix: { state: string; where: string }[] = [
     },
     {
         state: 'empty',
-        where: 'Sekcje „Pusta lista”, „Brak budżetu” oraz „14 kategorii” z frazą bez trafień.',
+        where: 'Sekcje „Pusta lista” (brak kategorii), „Brak budżetu” oraz „14 kategorii” z frazą bez trafień.',
     },
     {
         state: 'loading',
-        where: 'N/A dla listy: dane przychodzą z serwera razem ze stroną. Wizyta miesiąca (aria-busy, natychmiastowe zaznaczenie) jest sprawdzana ręcznie na /budget z „Slow 3G”.',
+        where: 'N/A dla listy: dane przychodzą z serwera razem ze stroną.',
     },
 ];
 </script>
@@ -230,18 +249,17 @@ const stateMatrix: { state: string; where: string }[] = [
 
     <div class="flex flex-1 flex-col gap-8 p-4 md:gap-10">
         <header class="flex flex-col gap-1">
-            <h1 class="text-lg font-semibold">Kitchen sink: Budżet</h1>
+            <h1 class="page-title">Kitchen sink: Budżet</h1>
             <p class="text-muted-foreground text-sm">
                 Tylko środowisko lokalne. Prawdziwe komponenty widoku /budget z
-                fiksurami. Akcje wierszy nie działają, bo identyfikatory fiksur
-                nie istnieją w bazie.
+                fiksurami (postęp roku {{ YEAR_ELAPSED_PERCENT }}%). Akcje
+                wierszy nie działają, bo identyfikatory fiksur nie istnieją w
+                bazie.
             </p>
         </header>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-matrix">
-            <h2 id="ks-matrix" class="text-base font-semibold">
-                Macierz stanów
-            </h2>
+            <h2 id="ks-matrix" class="section-title">Macierz stanów</h2>
             <ul class="flex flex-col gap-2 text-sm">
                 <li v-for="entry in stateMatrix" :key="entry.state">
                     <span class="font-medium">{{ entry.state }}:</span>
@@ -253,8 +271,8 @@ const stateMatrix: { state: string; where: string }[] = [
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-draft">
-            <h2 id="ks-draft" class="text-base font-semibold">
-                Lista w szkicu
+            <h2 id="ks-draft" class="section-title">
+                Lista w szkicu (kolumna „Typ”)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.income_table"
@@ -265,8 +283,7 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(draftIncome, true)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_income"
-                @add="noop"
+                :year-elapsed-percent="null"
                 @edit="noop"
             />
             <BudgetCategoryList
@@ -278,15 +295,14 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(draftExpense, true)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_expense"
-                @add="noop"
+                :year-elapsed-percent="null"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-income">
-            <h2 id="ks-income" class="text-base font-semibold">
-                Realizacja przychodów (w tym przychód ponad plan)
+            <h2 id="ks-income" class="section-title">
+                Realizacja dochodów (w tym dochód ponad plan, kreska roku)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.income_table"
@@ -297,15 +313,15 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(executionIncome, false)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_income"
-                @add="noop"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-expense">
-            <h2 id="ks-expense" class="text-base font-semibold">
-                Realizacja wydatków (kategoria ponad limit, zmieniony plan)
+            <h2 id="ks-expense" class="section-title">
+                Realizacja wydatków (przekroczenie, zmieniony plan, równomierna
+                z kreską, jednorazowa „Remont łazienki” bez kreski)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"
@@ -316,14 +332,13 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(executionExpense, false)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_expense"
-                @add="noop"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-archived">
-            <h2 id="ks-archived" class="text-base font-semibold">
+            <h2 id="ks-archived" class="section-title">
                 Kategorie zarchiwizowane (rozwinięte archiwum po kliknięciu)
             </h2>
             <BudgetCategoryList
@@ -335,14 +350,15 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(withArchived, false)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_expense"
-                @add="noop"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-empty">
-            <h2 id="ks-empty" class="text-base font-semibold">Pusta lista</h2>
+            <h2 id="ks-empty" class="section-title">
+                Pusta lista (brak kategorii)
+            </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="[]"
@@ -352,14 +368,13 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="emptyTotals"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_expense"
-                @add="noop"
+                :year-elapsed-percent="null"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-many">
-            <h2 id="ks-many" class="text-base font-semibold">
+            <h2 id="ks-many" class="section-title">
                 14 kategorii (widoczny filtr nazw)
             </h2>
             <p class="text-muted-foreground text-sm">
@@ -375,14 +390,13 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(manyCategories, true)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_expense"
-                @add="noop"
+                :year-elapsed-percent="null"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-noreorder">
-            <h2 id="ks-noreorder" class="text-base font-semibold">
+            <h2 id="ks-noreorder" class="section-title">
                 Bez zmiany kolejności (canReorder = false)
             </h2>
             <BudgetCategoryList
@@ -394,25 +408,35 @@ const stateMatrix: { state: string; where: string }[] = [
                 :totals="totalsOf(draftExpense, true)"
                 :can-reorder="false"
                 :empty-description="t.budget.empty"
-                :add-label="t.budget.add_expense"
-                @add="noop"
+                :year-elapsed-percent="null"
                 @edit="noop"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-strips">
-            <h2 id="ks-strips" class="text-base font-semibold">
-                Pasek podsumowania
+            <h2 id="ks-strips" class="section-title">
+                Panel miar (4 miary w realizacji, 3 w szkicu)
             </h2>
             <BudgetPlanSummaryStrip
                 :income-totals="totalsOf(executionIncome, false)"
                 :expense-totals="totalsOf(executionExpense, false)"
                 :planned-balance-minor-units="125000"
+                :expense-percent-complete="
+                    totalsOf(executionExpense, false).percent_complete
+                "
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+            />
+            <BudgetPlanSummaryStrip
+                :income-totals="totalsOf(draftIncome, true)"
+                :expense-totals="totalsOf(draftExpense, true)"
+                :planned-balance-minor-units="-35000"
+                :expense-percent-complete="null"
+                :year-elapsed-percent="null"
             />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-focus">
-            <h2 id="ks-focus" class="text-base font-semibold">Fokus</h2>
+            <h2 id="ks-focus" class="section-title">Fokus</h2>
             <p class="text-muted-foreground text-sm">
                 Przejdź Tab-em przez listy powyżej i przełączniki poniżej: każda
                 kontrolka ma pierścień ring i dostępną nazwę.
@@ -420,39 +444,31 @@ const stateMatrix: { state: string; where: string }[] = [
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-toggle">
-            <h2 id="ks-toggle" class="text-base font-semibold">
-                Przełącznik „Pokaż zarchiwizowane”
+            <h2 id="ks-toggle" class="section-title">
+                Przełącznik „Pokaż zarchiwizowane” (wł. i wył.)
             </h2>
             <div class="flex items-center gap-2">
-                <Checkbox
-                    id="ks-show-archived-on"
-                    v-model="showArchivedChecked"
-                />
+                <Switch id="ks-show-archived-on" v-model="showArchivedOn" />
                 <Label
                     for="ks-show-archived-on"
                     class="text-muted-foreground text-sm"
                 >
-                    {{ t.budget.show_archived }} (zaznaczony)
+                    {{ t.budget.show_archived }} (włączony)
                 </Label>
             </div>
             <div class="flex items-center gap-2">
-                <Checkbox
-                    id="ks-show-archived-off"
-                    v-model="showArchivedUnchecked"
-                />
+                <Switch id="ks-show-archived-off" v-model="showArchivedOff" />
                 <Label
                     for="ks-show-archived-off"
                     class="text-muted-foreground text-sm"
                 >
-                    {{ t.budget.show_archived }} (odznaczony)
+                    {{ t.budget.show_archived }} (wyłączony)
                 </Label>
             </div>
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-no-budget">
-            <h2 id="ks-no-budget" class="text-base font-semibold">
-                Brak budżetu
-            </h2>
+            <h2 id="ks-no-budget" class="section-title">Brak budżetu</h2>
             <BudgetEmptyState v-model:open="createBudgetOpen" />
         </section>
     </div>

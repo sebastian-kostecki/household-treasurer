@@ -8,6 +8,7 @@ import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
 import BudgetAmountCell from '@/components/BudgetAmountCell.vue';
 import BudgetCategoryHeaderRow from '@/components/BudgetCategoryHeaderRow.vue';
 import BudgetCategoryRowComponent from '@/components/BudgetCategoryRow.vue';
+import ExecutionMeter from '@/components/ExecutionMeter.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
@@ -21,10 +22,10 @@ import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     executionClass,
-    percentClass,
     totalsRemainingClass,
 } from '@/lib/budget-category-cells';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
+import { formatMoney } from '@/lib/format';
 
 export type BudgetCategoryRow = {
     id: number;
@@ -61,11 +62,10 @@ const props = defineProps<{
     totals: DashboardTypeTotals;
     canReorder: boolean;
     emptyDescription: string;
-    addLabel: string;
+    yearElapsedPercent: number | null;
 }>();
 
 const emit = defineEmits<{
-    add: [];
     edit: [category: BudgetCategoryRow];
 }>();
 
@@ -144,6 +144,20 @@ const hasNoFilterResults = computed(
         filteredArchivedCategories.value.length === 0,
 );
 
+const panelMeta = computed(() =>
+    isDraft.value
+        ? formatMoney(props.totals.current_plan_minor_units)
+        : t.budget.panel_execution_of_plan
+              .replace(
+                  ':execution',
+                  formatMoney(props.totals.execution_minor_units),
+              )
+              .replace(
+                  ':plan',
+                  formatMoney(props.totals.current_plan_minor_units),
+              ),
+);
+
 const totalsAreOverLimit = computed(
     () =>
         props.categoryType === 'expense' &&
@@ -178,37 +192,26 @@ async function onDragEnd(): Promise<void> {
         v-if="categories.length === 0"
         :title="title"
         :description="emptyDescription"
-    >
-        <template #actions>
-            <Button variant="outline" @click="emit('add')">
-                {{ addLabel }}
-            </Button>
-        </template>
-    </IndexEmptyState>
+    />
 
     <ListSurface v-else>
         <template #header>
             <div class="space-y-3">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="space-y-1">
-                        <h3 class="text-base font-semibold">
+                        <h3 class="section-title">
                             {{ title }}
                         </h3>
                         <p
                             v-if="isExecution"
-                            class="text-muted-foreground text-xs"
+                            class="meta text-muted-foreground"
                         >
                             {{ formulaLabel }}
                         </p>
                     </div>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        @click="emit('add')"
-                    >
-                        {{ addLabel }}
-                    </Button>
+                    <p class="amount text-muted-foreground">
+                        {{ panelMeta }}
+                    </p>
                 </div>
                 <Input
                     v-if="showNameFilter"
@@ -244,6 +247,7 @@ async function onDragEnd(): Promise<void> {
                         :category-type="categoryType"
                         :phase="phase"
                         :show-handle="canDrag"
+                        :year-elapsed-percent="yearElapsedPercent"
                         @edit="emit('edit', category)"
                     />
                 </template>
@@ -271,45 +275,34 @@ async function onDragEnd(): Promise<void> {
                     :label="t.budget.plan"
                     :amount="totals.current_plan_minor_units"
                     label-hidden
+                    total
                 />
                 <template v-else>
                     <BudgetAmountCell
                         area="initial"
                         :label="t.budget.initial_plan"
                         :amount="totals.initial_plan_minor_units"
+                        total
                         value-class="text-muted-foreground"
                     />
                     <BudgetAmountCell
                         area="current"
                         :label="t.budget.current_plan"
                         :amount="totals.current_plan_minor_units"
+                        total
                     />
                     <BudgetAmountCell
                         area="execution"
                         :label="t.budget.execution"
                         :amount="totals.execution_minor_units"
+                        total
                         :value-class="executionClass(categoryType, false)"
-                    >
-                        <span
-                            v-if="totals.percent_complete !== null"
-                            class="text-xs font-medium tabular-nums"
-                            :class="
-                                percentClass(
-                                    categoryType,
-                                    totals.percent_complete,
-                                    totalsAreOverLimit,
-                                    false,
-                                )
-                            "
-                            :title="t.budget.progress_hint"
-                        >
-                            {{ totals.percent_complete }}%
-                        </span>
-                    </BudgetAmountCell>
+                    />
                     <BudgetAmountCell
                         area="remaining"
                         :label="remainingLabel"
                         :amount="totals.remaining_minor_units"
+                        total
                         :value-class="
                             totalsRemainingClass(
                                 categoryType,
@@ -317,6 +310,17 @@ async function onDragEnd(): Promise<void> {
                             )
                         "
                     />
+                    <div
+                        class="budget-category-cell-meter"
+                        :title="t.budget.progress_hint"
+                    >
+                        <ExecutionMeter
+                            :percent-complete="totals.percent_complete"
+                            :category-type="categoryType"
+                            :is-over-limit="totalsAreOverLimit"
+                            :year-elapsed-percent="null"
+                        />
+                    </div>
                 </template>
             </div>
         </div>
@@ -333,10 +337,10 @@ async function onDragEnd(): Promise<void> {
                     size="sm"
                     class="-ml-3 gap-2"
                 >
-                    <span class="text-sm font-medium">
+                    <span class="table-header">
                         {{ t.budget.archived_section }}
                     </span>
-                    <Badge variant="secondary">
+                    <Badge variant="neutral">
                         {{ filteredArchivedCategories.length }}
                     </Badge>
                     <ChevronDown
@@ -359,9 +363,14 @@ async function onDragEnd(): Promise<void> {
                     :category-type="categoryType"
                     :phase="phase"
                     :show-handle="false"
+                    :year-elapsed-percent="yearElapsedPercent"
                     @edit="emit('edit', category)"
                 />
             </CollapsibleContent>
         </Collapsible>
+
+        <p class="meta text-muted-foreground pt-3">
+            {{ t.budget.amounts_in_zl }}
+        </p>
     </ListSurface>
 </template>

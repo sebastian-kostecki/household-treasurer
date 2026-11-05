@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
-import { formatMoney } from '@/lib/format';
+import { formatMoneyAmount } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const props = defineProps<{
@@ -9,6 +9,8 @@ const props = defineProps<{
     amount: number;
     valueClass?: HTMLAttributes['class'];
     labelHidden?: boolean;
+    /** Totals row: the heavier `amount-sum` style. */
+    total?: boolean;
 }>();
 </script>
 
@@ -27,11 +29,12 @@ const props = defineProps<{
             :class="
                 cn(
                     'inline-flex items-baseline justify-end gap-1.5',
+                    props.total ? 'amount-sum' : 'amount',
                     props.valueClass,
                 )
             "
         >
-            {{ formatMoney(props.amount) }}
+            {{ formatMoneyAmount(props.amount) }}
             <slot />
         </span>
     </div>

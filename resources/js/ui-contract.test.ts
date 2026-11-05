@@ -21,6 +21,8 @@ const BUDGET_VIEW_FILES = [
     'components/BudgetCategoryRowActions.vue',
     'components/BudgetMonthPicker.vue',
     'components/BudgetPlanSummaryStrip.vue',
+    'components/StatPanel.vue',
+    'components/ExecutionMeter.vue',
     'components/BudgetCategoryAlignPlanAction.vue',
     'components/BudgetYearSwitcher.vue',
     'components/CreateBudgetDialog.vue',

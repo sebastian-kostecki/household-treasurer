@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
-import { MoreHorizontal } from '@lucide/vue';
+import { MoreHorizontal, Plus } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
@@ -11,7 +11,6 @@ import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -29,6 +28,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
@@ -72,8 +72,7 @@ const props = defineProps<{
 const t = useTranslations();
 
 const createBudgetDialogOpen = ref(false);
-const createIncomeDialogOpen = ref(false);
-const createExpenseDialogOpen = ref(false);
+const createCategoryDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingCategory = ref<BudgetCategoryRow | null>(null);
 const deleteBudgetDialogOpen = ref(false);
@@ -96,6 +95,16 @@ const phaseLabel = computed(() =>
     props.budget?.phase === 'execution'
         ? t.budget.phase_execution
         : t.budget.phase_draft,
+);
+
+const phaseBadgeVariant = computed(() =>
+    props.budget?.phase === 'execution' ? 'brand' : 'warning',
+);
+
+const phaseDescription = computed(() =>
+    props.budget?.phase === 'execution'
+        ? t.budget.description_execution
+        : t.budget.description_draft,
 );
 
 const deficitWarningMessage = computed(() => {
@@ -168,13 +177,28 @@ function openDeleteBudgetDialog(): void {
 
         <template v-else>
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-2">
-                    <h1 class="text-lg font-semibold">
-                        {{ t.budget.title }} {{ budget.year }}
-                    </h1>
-                    <Badge variant="secondary">{{ phaseLabel }}</Badge>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h1 class="page-title">
+                            {{ t.budget.title }} {{ budget.year }}
+                        </h1>
+                        <Badge :variant="phaseBadgeVariant">
+                            {{ phaseLabel }}
+                        </Badge>
+                    </div>
+                    <p class="text-muted-foreground text-sm">
+                        {{ phaseDescription }}
+                    </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="createCategoryDialogOpen = true"
+                    >
+                        <Plus class="size-4" aria-hidden="true" />
+                        {{ t.budget.add_category }}
+                    </Button>
                     <Dialog v-if="budget.can_start_execution">
                         <DialogTrigger as-child>
                             <Button>
@@ -253,10 +277,12 @@ function openDeleteBudgetDialog(): void {
                 :planned-balance-minor-units="
                     planSummary.planned_balance_minor_units
                 "
+                :expense-percent-complete="expenseTotals.percent_complete"
+                :year-elapsed-percent="year_elapsed_percent"
             />
 
             <div class="flex items-center gap-2">
-                <Checkbox id="show-archived-budget" v-model="showArchived" />
+                <Switch id="show-archived-budget" v-model="showArchived" />
                 <Label
                     for="show-archived-budget"
                     class="text-muted-foreground text-sm"
@@ -275,8 +301,7 @@ function openDeleteBudgetDialog(): void {
                     :totals="incomeTotals"
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
-                    :add-label="t.budget.add_income"
-                    @add="createIncomeDialogOpen = true"
+                    :year-elapsed-percent="year_elapsed_percent"
                     @edit="openEditDialog"
                 />
 
@@ -289,8 +314,7 @@ function openDeleteBudgetDialog(): void {
                     :totals="expenseTotals"
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
-                    :add-label="t.budget.add_expense"
-                    @add="createExpenseDialogOpen = true"
+                    :year-elapsed-percent="year_elapsed_percent"
                     @edit="openEditDialog"
                 />
             </div>
@@ -331,16 +355,7 @@ function openDeleteBudgetDialog(): void {
 
     <CategoryFormDialog
         v-if="budget"
-        v-model:open="createIncomeDialogOpen"
-        mode="create"
-        :budget-id="budget.id"
-        default-type="income"
-        :category-appearance-options="categoryAppearanceOptions"
-    />
-
-    <CategoryFormDialog
-        v-if="budget"
-        v-model:open="createExpenseDialogOpen"
+        v-model:open="createCategoryDialogOpen"
         mode="create"
         :budget-id="budget.id"
         default-type="expense"

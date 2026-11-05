@@ -424,7 +424,8 @@
         grid-template-areas:
             'handle category category actions'
             'handle opening current .'
-            'handle execution remaining .';
+            'handle execution remaining .'
+            'handle meter meter meter';
     }
 
     .budget-category-grid-no-handle {
@@ -432,22 +433,28 @@
         grid-template-areas:
             'category category actions'
             'opening current .'
-            'execution remaining .';
+            'execution remaining .'
+            'meter meter meter';
     }
 
     @variant md {
         .budget-category-grid {
             @apply items-center;
-            grid-template-columns: 2.5rem minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
-            grid-template-areas: 'handle category opening current execution remaining actions';
+            grid-template-columns:
+                2.5rem minmax(0, 1fr) repeat(4, 7rem) minmax(8rem, 10rem)
+                4.5rem;
+            grid-template-areas: 'handle category opening current execution remaining meter actions';
         }
 
         .budget-category-grid-no-handle {
-            grid-template-columns: minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
-            grid-template-areas: 'category opening current execution remaining actions';
+            grid-template-columns:
+                minmax(0, 1fr) repeat(4, 7rem) minmax(8rem, 10rem)
+                4.5rem;
+            grid-template-areas: 'category opening current execution remaining meter actions';
         }
     }
 
+    /* Szkic: jedna kwota planu; kolumna typu tylko od md. */
     .budget-category-grid-draft {
         @apply items-center;
         grid-template-columns: 2.5rem minmax(0, 1fr) 8rem 4.5rem;
@@ -459,8 +466,20 @@
         grid-template-areas: 'category plan actions';
     }
 
+    @variant md {
+        .budget-category-grid-draft {
+            grid-template-columns: 2.5rem minmax(0, 1fr) 7rem 8rem 4.5rem;
+            grid-template-areas: 'handle category kind plan actions';
+        }
+
+        .budget-category-grid-draft.budget-category-grid-no-handle {
+            grid-template-columns: minmax(0, 1fr) 7rem 8rem 4.5rem;
+            grid-template-areas: 'category kind plan actions';
+        }
+    }
+
     .budget-category-row {
-        @apply border-border/60 hover:bg-secondary gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
     }
 
     .budget-category-header-row {
@@ -489,6 +508,16 @@
     .budget-category-cell-plan {
         grid-area: plan;
         @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-kind {
+        grid-area: kind;
+        @apply hidden md:block;
+    }
+
+    .budget-category-cell-meter {
+        grid-area: meter;
+        @apply min-w-0;
     }
 
     .budget-category-cell-initial {
@@ -817,6 +846,26 @@
         grid-column: bar-start / percent-end;
         grid-row: bar-start / percent-end;
         @apply min-w-0;
+    }
+
+    /* Panel miar (StatPanel): miary rozdzielone liniami, od md w jednym rzędzie. */
+    .stat-panel {
+        @apply grid;
+    }
+
+    .stat-panel-metric {
+        @apply border-border min-w-0 space-y-1 border-t px-5 py-4 first:border-t-0;
+    }
+
+    @variant md {
+        .stat-panel {
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(0, 1fr);
+        }
+
+        .stat-panel-metric {
+            @apply border-t-0 border-l first:border-l-0;
+        }
     }
 
     .execution-meter {
