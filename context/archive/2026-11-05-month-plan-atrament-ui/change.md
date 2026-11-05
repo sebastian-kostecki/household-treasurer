@@ -1,10 +1,10 @@
 ---
 change_id: month-plan-atrament-ui
 title: Month plan atrament ui
-status: impl_reviewed
+status: archived
 created: 2026-11-05
 updated: 2026-11-05
-archived_at: null
+archived_at: 2026-11-05T21:27:57Z
 ---
 
 ## Notes
