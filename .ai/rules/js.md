@@ -21,7 +21,7 @@ Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction
 
 ## Non-blocking warnings use the warning Alert variant
 
-Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0039: expense `destructive-soft` + `destructive`, income `success/10` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`; the tile marks the type, the expense amount stays `foreground`.
+Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. Exception: in form dialogs of operations the warning is `text-warning` text inside the before → after preview block, under the reading it concerns, not an Alert (ADR-0041). variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0039: expense `destructive-soft` + `destructive`, income `success/10` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`; the tile marks the type, the expense amount stays `foreground`.
 
 ## Bind the reka-ui Checkbox with v-model, never :checked
 
