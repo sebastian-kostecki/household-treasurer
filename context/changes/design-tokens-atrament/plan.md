@@ -421,8 +421,8 @@ Brak danych i migracji. Wycofanie to revert commitów fazy. Gałąź nie trafia 
 
 #### Manual
 
-- [ ] 2.7 Inter z latin-ext ładuje się, polskie znaki bez zmiany kroju
-- [ ] 2.8 W ciemnym motywie domyślny przycisk jest jasny, pierwsze malowanie nie miga
+- [x] 2.7 Inter z latin-ext ładuje się, polskie znaki bez zmiany kroju
+- [x] 2.8 W ciemnym motywie domyślny przycisk jest jasny, pierwsze malowanie nie miga
 
 ### Phase 3: Konsumenci tokenów
 
@@ -436,10 +436,10 @@ Brak danych i migracji. Wycofanie to revert commitów fazy. Gałąź nie trafia 
 
 #### Manual
 
-- [ ] 3.6 Zrzuty w obu motywach przy 1280 i 390 px w screenshots/
-- [ ] 3.7 Aktywna pozycja menu miętowa także pod kursorem; nazwa, użytkownik i rok jasne
-- [ ] 3.8 Inicjały awatara czytelne w sidebarze i w menu użytkownika
-- [ ] 3.9 Glif logo na / widoczny; kropki podglądu odróżniają się od granatu
-- [ ] 3.10 Sidebar przylega do treści; mobilny sheet bez jasnej kreski
-- [ ] 3.11 Linki na Dashboardzie są morskie
-- [ ] 3.12 Ciemny przycisk destructive czytelny w spoczynku i hover; pasek Inertii morski
+- [x] 3.6 Zrzuty w obu motywach przy 1280 i 390 px w screenshots/
+- [x] 3.7 Aktywna pozycja menu miętowa także pod kursorem; nazwa, użytkownik i rok jasne
+- [x] 3.8 Inicjały awatara czytelne w sidebarze i w menu użytkownika
+- [x] 3.9 Glif logo na / widoczny; kropki podglądu odróżniają się od granatu
+- [x] 3.10 Sidebar przylega do treści; mobilny sheet bez jasnej kreski
+- [x] 3.11 Linki na Dashboardzie są morskie
+- [x] 3.12 Ciemny przycisk destructive czytelny w spoczynku i hover; pasek Inertii morski
