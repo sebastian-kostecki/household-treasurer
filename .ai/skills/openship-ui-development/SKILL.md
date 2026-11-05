@@ -12,10 +12,10 @@ metadata:
 
 Openship dashboard language is the original north star. **Wallet Master** (same author, Laravel + Inertia Vue) is the canonical implemented recipe for that language on this stack. Reimplement the recipe here; do **not** copy Wallet Master Vue/CSS files, Openship `@repo/ui`, or Openship theme class names.
 
-## Teal exception (ADR-0001 + ADR-0003)
+## Colour roles (ADR-0035)
 
-- `--primary`, `--ring`, and sidebar primary stay **teal** (`#0b7285` family).
-- Do **not** adopt Wallet Master ink/near-black primary buttons or mint-as-primary.
+- `--primary` is ink (`#0f1b2d` light, `#e6ecf3` dark) and means action. Mint `--brand` means identity and navigation, never status; `--brand-text` (`#0b6a7b`) is for links and thin strokes in the brand colour. `--ring` and sidebar primary come from the system tokens in `resources/css/app.css`.
+- Wallet Master mint is not `--primary`; copying Wallet Master files stays out of scope.
 - `--destructive` (red) and `--success` (green) keep their money/warning meanings.
 - Light is the default appearance; dark uses the same ladder and semantics.
 
@@ -40,26 +40,27 @@ Restyle through `resources/js/components/ui/` primitives so auth, settings, and 
 
 - `Card` — lifted, no resting shadow.
 - `Button` — medium radius, no resting shadow on outline/ghost.
-- `Input` — quieter border, medium radius, teal focus ring.
+- `Input` — quieter border, medium radius, `ring` focus ring.
 - `Dialog` — centred overlay, large radius, header / body / footer; form and confirm dialogs share this chrome.
 - Dropdowns — native `<select>` with the `.native-select` class from `resources/css/app.css` for simple enums without icons; the Reka `Select` primitive when an option shows an icon or logo (e.g. `AccountBankSelect`). Both are `rounded-xl`.
 
 ## Typography
 
-- UI sans is **Geist** (Bunny Fonts), weights 400/500/600, subsets `latin` + `latin-ext`. See ADR-0023.
+- UI sans is **Inter** (Bunny Fonts), weights 400/500/600, subsets `latin` + `latin-ext`. `--font-mono` is **JetBrains Mono** for amounts, adopted view by view. See ADR-0035 (ADR-0023 for `latin-ext`).
 - Do not reintroduce Instrument Sans or drop `latin-ext` — Polish UI would fall back mid-word.
-- Amounts stay on the UI face with `tabular-nums` (`tnum`); do not add a separate mono family for money columns.
+- Until a view moves to JetBrains Mono, its amounts stay on Inter with `tabular-nums`.
 
 ## Out of scope for this skill
 
 - Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout. Sidebar tokens and slot rules: section "Sidebar" in `.ai/rules/js.md`.
-- Ink primary, copying Wallet Master files, new CSS frameworks.
+- Copying Wallet Master files, new CSS frameworks.
 - Replacing native selects with Reka Select in domain forms.
 - Asserting Tailwind classes in Pest tests.
 
 ## References
 
-- ADR-0001 — teal OpenShip on shadcn-vue, light default.
-- ADR-0003 — Wallet Master as surface recipe; teal stays.
-- ADR-0023 — Geist typeface with latin-ext subsets.
+- ADR-0001 — OpenShip on shadcn-vue, light default (teal primary superseded by ADR-0035).
+- ADR-0003 — Wallet Master as surface recipe.
+- ADR-0023 — typeface with latin-ext subsets (Geist superseded by ADR-0035).
+- ADR-0035 — Atrament i morski tokens, Inter and JetBrains Mono.
 - Parent spec — GitHub issue #21 (list and form chrome).

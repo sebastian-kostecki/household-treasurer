@@ -8,7 +8,7 @@ paths:
 ## Colours come from tokens; only money and alerts carry meaning
 
 Use token utilities (bg-primary, text-destructive, text-warning, text-success, text-muted-foreground), never hex values or Tailwind palette colours (red-500, amber-700).
-primary = action and on-track meter; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions; warning = within bounds but close to breaking.
+primary = action (ink); brand = identity and navigation, never status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions; warning = within bounds but close to breaking.
 Category colour is identity only (CategoryChip tile at 15%), never status. Full table: .docs/design-system.md.
 
 ## Amounts go through formatMoney with tabular-nums
@@ -47,7 +47,7 @@ Dropdowns: use the native `.native-select` class for simple enums without icons;
 
 Sidebar colours are `--sidebar-*` tokens from resources/css/app.css (roles in .docs/design-system.md, "Sidebar"); there is no `--sidebar` token, the background is `--sidebar-background`.
 Whatever goes into the `SidebarHeader` / `SidebarFooter` slots is built from `SidebarMenuButton` or handles `group-data-[collapsible=icon]` itself, otherwise it breaks in the 3rem collapsed strip.
-The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted.
+The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted.
 No `dark:` variants and no literals in sidebar files: `npm run check:ui` guards them (they are on the list in scripts/check-ui-literals.mjs). Check the icon mode, the empty year state and both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).
 
 ## Views take values from app.css, not from literals

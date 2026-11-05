@@ -1,6 +1,6 @@
 # Household Treasurer — Design system
 
-Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za nimi są w ADR-0001 (język wizualny OpenShip, turkus), ADR-0003 (przepis na powierzchnie), ADR-0023 (Geist) i ADR-0032 (poziomy alertów). Wizualny wzorzec: kanwa „Treasurer Design System” na claude.ai (tylko podgląd, nie źródło wartości).
+Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za nimi są w ADR-0001 (język wizualny OpenShip), ADR-0003 (przepis na powierzchnie), ADR-0023 (krój z `latin-ext`), ADR-0032 (poziomy alertów) i ADR-0035 (tokeny Atrament i morski, Inter, JetBrains Mono); ADR-0035 zastępuje część ADR-0001, 0003 i 0023. Wizualny wzorzec: artefakt „C · Atrament i morski” na claude.ai (https://claude.ai/artifact/9gJSdtfpFgUAa8oEMgR4HA, tylko podgląd, nie źródło wartości).
 
 ## Źródła prawdy
 
@@ -21,23 +21,30 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 
 ## Typografia
 
-Geist, wagi 400/500/600. Każda kwota ma `tabular-nums`. Skala: liczby w kafelkach `text-3xl`, nagłówek strony domenowej `text-lg font-semibold` (strony dev mogą mieć `text-xl`), tytuł karty `text-base font-semibold`, treść i kontrolki `text-sm`, podpisy `text-xs text-muted-foreground`.
+Inter, wagi 400/500/600, podzbiory `latin` + `latin-ext`. JetBrains Mono (`--font-mono`) jest krojem kwot, wdrażanym widok po widoku; do tego czasu kwoty zostają w Interze z `tabular-nums`. Każda kwota ma `tabular-nums`. Skala: liczby w kafelkach `text-3xl`, nagłówek strony domenowej `text-lg font-semibold` (strony dev mogą mieć `text-xl`), tytuł karty `text-base font-semibold`, treść i kontrolki `text-sm`, podpisy `text-xs text-muted-foreground`.
 
 ## Kolor znaczy coś tylko w trzech miejscach
 
-| Token                | Znaczenie                                                                                                                                                                                | Nie używaj do                                                             |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `primary` (turkus)   | akcja, zaznaczenie, pasek realizacji w normie                                                                                                                                            | dekoracji, statusu pieniędzy                                              |
-| `success`            | dochód zaksięgowany, dochód ponad plan                                                                                                                                                   | „wszystko OK” poza kwotami                                                |
-| `destructive`        | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające                                                                                                 | ostrzeżeń, które jeszcze nie są przekroczeniem                            |
-| `warning` (bursztyn) | ostrzeżenie: w granicach, ale blisko przekroczenia; ostrzeżenia w formularzach, które nie blokują zapisu                                                                                 | przekroczeń już zaksięgowanych; typu operacji „Zwrot” (ma token `refund`) |
-| `refund`, `transfer` | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`)                                                                                                                  | czegokolwiek poza typem operacji                                          |
-| `pair`               | tło wiersza podglądu importu: kandydat na parę transferu własnego (tint /10)                                                                                                             | tekstu, kwot, typu operacji (to `transfer`)                               |
-| `muted-foreground`   | podpisy, etykiety, rzeczy zarchiwizowane (cały wiersz, także kwoty i %, bez `success`/`destructive`). Wyjątek: ujemne saldo zarchiwizowanej lokaty zostaje `text-destructive` (FR-TD-08) | kwot aktywnych wierszy                                                    |
+| Token                              | Znaczenie                                                                                                                                                                                | Nie używaj do                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `primary` (atrament)               | akcja, zaznaczenie; w ciemnym motywie jasny z ciemnym tekstem                                                                                                                            | tożsamości aplikacji, dekoracji, statusu pieniędzy                        |
+| `brand`, `brand-foreground`        | tożsamość i nawigacja: kafelek logo, aktywna pozycja sidebara (miętowy `#5fd4c4`)                                                                                                        | statusu, tekstu na jasnym tle                                             |
+| `brand-text`                       | linki w treści, kreski i znaczniki w kolorze marki (morski, kontrast tekstu)                                                                                                             | wypełnień dużych powierzchni                                              |
+| `accent`                           | tło zaznaczenia i aktywnego chipa (miętowy tint) z tekstem `accent-foreground`                                                                                                           | statusu                                                                   |
+| `success`                          | dochód zaksięgowany, dochód ponad plan                                                                                                                                                   | „wszystko OK” poza kwotami                                                |
+| `destructive`                      | przekroczenie: ujemne saldo, ponad limit, ujemne „Pozostało w miesiącu”; akcje usuwające                                                                                                 | ostrzeżeń, które jeszcze nie są przekroczeniem                            |
+| `warning` (bursztyn)               | ostrzeżenie: w granicach, ale blisko przekroczenia; ostrzeżenia w formularzach, które nie blokują zapisu                                                                                 | przekroczeń już zaksięgowanych; typu operacji „Zwrot” (ma token `refund`) |
+| `refund`, `transfer`               | kafelki typów operacji „Zwrot” i „Przelew własny” (`OperationTypeTile`)                                                                                                                  | czegokolwiek poza typem operacji                                          |
+| `pair`                             | tło wiersza podglądu importu: kandydat na parę transferu własnego (tint /10)                                                                                                             | tekstu, kwot, typu operacji (to `transfer`)                               |
+| `warning-soft`, `destructive-soft` | tło pigułek i alertów odpowiedniej wagi                                                                                                                                                  | tekstu                                                                    |
+| `track`                            | tło pustego paska postępu i miernika                                                                                                                                                     | obramowań                                                                 |
+| `border-soft`                      | najlżejsza linia: separatory wierszy i wnętrz kart                                                                                                                                       | obramowań pól                                                             |
+| `scrim`                            | półprzezroczysta nakładka pod dialogiem i arkuszem                                                                                                                                       | tła kart                                                                  |
+| `muted-foreground`                 | podpisy, etykiety, rzeczy zarchiwizowane (cały wiersz, także kwoty i %, bez `success`/`destructive`). Wyjątek: ujemne saldo zarchiwizowanej lokaty zostaje `text-destructive` (FR-TD-08) | kwot aktywnych wierszy                                                    |
 
 Kolor kategorii (paleta 24 barw) to tylko tożsamość kategorii: kafelek ikony w `CategoryChip` (tło 15%). Nigdy nie oznacza statusu i nie maluje pasków ani kwot.
 
-Tekst na białym musi mieć kontrast co najmniej 4,5:1. Dlatego `destructive` w trybie jasnym to red-600, a `warning` to amber-700. Nowy kolor dodawaj jako token w obu trybach, nie jako klasę palety.
+Tekst musi mieć kontrast co najmniej 4,5:1, grafika 3:1. Pary tekstu z systemu mają zmierzone co najmniej 5,03:1 w jasnym i 6,05:1 w ciemnym motywie, `ring` 6,25 i 9,74:1 (ADR-0035). `border` i `input` na `card` mają 1,37 i 1,32:1, więc są liniami dekoracyjnymi, a nie granicą kontrolki 3:1; stan pola musi wynikać także z czegoś innego niż sama ramka. Nowy kolor dodawaj jako token w obu trybach i sprawdź kontrast w obu, nie jako klasę palety.
 
 ## Kwoty
 
@@ -73,18 +80,18 @@ Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryM
 
 ## Sidebar
 
-Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`; nie ma tokenu `--sidebar`.
+Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`; nie ma tokenu `--sidebar`. Sidebar jest granatowy w obu motywach i przylega do treści (`variant="sidebar"`, bez `inset`); treść leży na `background`.
 
-| Token (utility)                                  | Rola                                                                 |
-| ------------------------------------------------ | -------------------------------------------------------------------- |
-| `sidebar` (z `--sidebar-background`)             | tło sidebara                                                         |
-| `sidebar-foreground`                             | tekst i ikony pozycji menu                                           |
-| `sidebar-primary` / `sidebar-primary-foreground` | kafelek logo; czytają je też `Welcome.vue` i `LandingAppPreview.vue` |
-| `sidebar-accent` / `sidebar-accent-foreground`   | hover, aktywna pozycja menu, otwarte menu, kafelek przełącznika roku |
-| `sidebar-border`                                 | obramowania i separatory sidebara                                    |
-| `sidebar-ring`                                   | fokus                                                                |
+| Token (utility)                                  | Rola                                                                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `sidebar` (z `--sidebar-background`)             | tło sidebara                                                                                                    |
+| `sidebar-foreground`                             | tekst i ikony pozycji menu w spoczynku                                                                          |
+| `sidebar-strong` (`text-sidebar-strong`)         | nazwa aplikacji, użytkownik, wybrany rok i „Dodaj rok”                                                          |
+| `sidebar-primary` / `sidebar-primary-foreground` | aktywna pozycja menu (także pod kursorem), kafelek logo; czytają je też `Welcome.vue` i `LandingAppPreview.vue` |
+| `sidebar-accent` / `sidebar-accent-foreground`   | hover, otwarte menu, kafelek przełącznika roku                                                                  |
+| `sidebar-border`                                 | obramowania i separatory sidebara                                                                               |
+| `sidebar-ring`                                   | fokus                                                                                                           |
 
-- Glif na `sidebar-primary` jest jasny w obu trybach. W trybie ciemnym ma ok. 3,3:1, co wystarcza dla grafiki (WCAG 1.4.11), więc na `sidebar-primary` w trybie ciemnym nie kładziemy tekstu.
 - Wszystko w slotach `SidebarHeader` / `SidebarFooter` budujemy z `SidebarMenuButton` (albo obsługujemy `group-data-[collapsible=icon]`), żeby działało w pasie 3rem po zwinięciu.
 - Aktywna pozycja menu: `isCurrentSection` (ścieżka i jej podstrony; `resources/js/lib/nav-active.ts`).
 

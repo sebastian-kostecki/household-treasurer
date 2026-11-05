@@ -1,5 +1,7 @@
 # App shell and OpenShip-inspired visual language
 
+> Historical spec: the colours (teal `#0b7285`) and the typeface it names are superseded by ADR-0035.
+
 ## Problem Statement
 
 The product requirements describe what Household Treasurer does, but the running app is still the Laravel Vue starter: English chrome, a placeholder Dashboard, default shadcn colours, and no places for Budget, Accounts, or Operations. The User cannot tell this is a Polish household budget tool, cannot navigate the MVP information architecture, and has no agreed visual system. Implementing domain features on the starter look would lock in the wrong language, density, and screen map.
