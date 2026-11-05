@@ -7,20 +7,25 @@ import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
+import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
 import ExpenseFormDialog from '@/components/ExpenseFormDialog.vue';
 import IncomeFormDialog from '@/components/IncomeFormDialog.vue';
+import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 import {
     dialogAccounts,
+    dialogCapitalMovement,
     dialogEntryToSpend,
     dialogExpenseCategories,
     dialogExpenseOperation,
     dialogHandEntryMonthRemaining,
     dialogIncomeCategories,
     dialogIncomeOperation,
+    dialogOwnTransfer,
     dialogRefundOperation,
+    dialogTermDeposits,
 } from '@/lib/operation-dialogs-fixtures';
 
 defineProps<{
@@ -52,6 +57,14 @@ const states = [
     'income-new',
     'income-edit',
     'income-errors',
+    'transfer-new',
+    'transfer-edit',
+    'transfer-negative',
+    'transfer-errors',
+    'capital-new',
+    'capital-edit',
+    'capital-negative-deposit',
+    'capital-errors',
 ] as const;
 
 type SinkState = (typeof states)[number];
@@ -81,6 +94,14 @@ const labels: Record<SinkState, string> = {
     'income-new': 'Dochód: nowy',
     'income-edit': 'Dochód: edycja',
     'income-errors': 'Dochód: zapis i błędy (wybierz Zwrot)',
+    'transfer-new': 'Transfer: nowy',
+    'transfer-edit': 'Transfer: edycja (opis z wyciągu)',
+    'transfer-negative': 'Transfer: ujemne saldo',
+    'transfer-errors': 'Transfer: zapis i błędy',
+    'capital-new': 'Ruch kapitału: nowy',
+    'capital-edit': 'Ruch kapitału: edycja',
+    'capital-negative-deposit': 'Ruch kapitału: ujemna lokata',
+    'capital-errors': 'Ruch kapitału: zapis i błędy',
 };
 
 const category: CategoryFormCategory = {
@@ -107,6 +128,14 @@ const entryToSpendWithoutPlan = {
         ...budget,
         months: [],
     })),
+};
+
+/** Lokata -> konto ponad saldo małej lokaty (250,00 zł). */
+const negativeDepositMovement = {
+    ...dialogCapitalMovement,
+    direction: 'from_term_deposit' as const,
+    term_deposit_id: 2,
+    amount_minor_units: 20000,
 };
 
 const savingForm = DialogsKitchenSinkController.validate.form();
@@ -385,6 +414,68 @@ function setOpen(state: SinkState, value: boolean): void {
             :expense-categories="dialogExpenseCategories"
             :entry-to-spend="dialogEntryToSpend"
             @update:open="setOpen('income-errors', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-new')"
+            mode="create"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-new', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-edit')"
+            mode="edit"
+            :transfer="dialogOwnTransfer"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-edit', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-negative')"
+            mode="edit"
+            :transfer="dialogOwnTransfer"
+            initial-amount-input="5000,00"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-negative', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-errors')"
+            mode="edit"
+            :transfer="dialogOwnTransfer"
+            :form="validateForm"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-errors', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-new')"
+            mode="create"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-new', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-edit')"
+            mode="edit"
+            :movement="dialogCapitalMovement"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-edit', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-negative-deposit')"
+            mode="edit"
+            :movement="negativeDepositMovement"
+            initial-amount-input="300,00"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-negative-deposit', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-errors')"
+            mode="edit"
+            :movement="dialogCapitalMovement"
+            :form="validateForm"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-errors', $event)"
         />
         <AccountFormDialog
             :open="isOpen('account')"

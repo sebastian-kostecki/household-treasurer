@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
 import AccountSelect from '@/components/AccountSelect.vue';
-import InputError from '@/components/InputError.vue';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import FormField from '@/components/FormField.vue';
+import FormPreview from '@/components/FormPreview.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -17,14 +16,20 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
+import {
+    buildOperationPreview,
+    monthNamesLocativeFrom,
+} from '@/lib/operation-dialog-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
+
+type FormBinding = InstanceType<typeof Form>['$props'];
 
 export type OwnTransferFormTransfer = {
     id: number;
@@ -45,6 +50,10 @@ const props = defineProps<{
     mode: 'create' | 'edit';
     transfer?: OwnTransferFormTransfer | null;
     accounts: OwnTransferFormAccount[];
+    /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
+    form?: Pick<FormBinding, 'action' | 'method'>;
+    /** Pre-fills the amount input; used only by the dialogs kitchen sink. */
+    initialAmountInput?: string;
 }>();
 
 const emit = defineEmits<{
@@ -58,14 +67,30 @@ const description = ref('');
 const sourceAccountId = ref<number | ''>('');
 const destinationAccountId = ref<number | ''>('');
 const amountInput = ref('0,00');
-const amountMinorUnits = ref(0);
 const originalAmountMinorUnits = ref(0);
 const originalSourceAccountId = ref<number | null>(null);
+const busy = ref(false);
 
-const formBinding = computed(() =>
-    props.mode === 'create'
+const formBinding = computed(() => {
+    if (props.form) {
+        return props.form;
+    }
+
+    return props.mode === 'create'
         ? OwnTransferController.store.form()
-        : OwnTransferController.update.form(props.transfer ?? { id: 0 }),
+        : OwnTransferController.update.form(props.transfer ?? { id: 0 });
+});
+
+const parsedAmountMinorUnits = computed(() =>
+    parseMoneyInputToMinorUnits(amountInput.value),
+);
+const amountInvalid = computed(
+    () =>
+        parsedAmountMinorUnits.value === null ||
+        parsedAmountMinorUnits.value < 0,
+);
+const amountMinorUnits = computed(() =>
+    amountInvalid.value ? 0 : (parsedAmountMinorUnits.value ?? 0),
 );
 
 const bankAccounts = computed(() =>
@@ -74,6 +99,10 @@ const bankAccounts = computed(() =>
 
 const cashAccounts = computed(() =>
     props.accounts.filter((account) => account.type === 'cash'),
+);
+
+const rawStatementDescription = computed(() =>
+    (props.transfer?.raw_statement_descriptions ?? []).join('\n\n'),
 );
 
 const warningPreview = computed(() => {
@@ -110,8 +139,29 @@ const warningPreview = computed(() => {
     });
 });
 
-const showNegativeBalanceWarning = computed(
-    () => warningPreview.value.showNegativeBalanceWarning,
+const preview = computed(() => {
+    const result = warningPreview.value;
+
+    return buildOperationPreview({
+        toSpendReadings: [],
+        accountBalance: {
+            label: t.operations.preview_source_account_balance,
+            beforeMinorUnits: result.accountBalanceBeforeMinorUnits,
+            afterMinorUnits: result.accountBalanceAfterMinorUnits,
+            warning: result.showNegativeBalanceWarning
+                ? t.operations.negative_balance_warning
+                : null,
+        },
+        texts: {
+            toSpendLabel: t.operations.preview_to_spend,
+            toSpendWarning: t.operations.to_spend_negative_preview_warning,
+            monthNamesLocative: monthNamesLocativeFrom(t.budget),
+        },
+    });
+});
+
+const showPreview = computed(
+    () => !amountInvalid.value && amountMinorUnits.value > 0,
 );
 
 watch(
@@ -126,10 +176,9 @@ watch(
             description.value = props.transfer.description;
             sourceAccountId.value = props.transfer.source_account_id;
             destinationAccountId.value = props.transfer.destination_account_id;
-            amountMinorUnits.value = props.transfer.amount_minor_units;
-            amountInput.value = minorUnitsToMoneyInput(
-                props.transfer.amount_minor_units,
-            );
+            amountInput.value =
+                props.initialAmountInput ??
+                minorUnitsToMoneyInput(props.transfer.amount_minor_units);
             originalAmountMinorUnits.value = props.transfer.amount_minor_units;
             originalSourceAccountId.value = props.transfer.source_account_id;
 
@@ -140,22 +189,19 @@ watch(
         description.value = '';
         sourceAccountId.value = bankAccounts.value[0]?.id ?? '';
         destinationAccountId.value = cashAccounts.value[0]?.id ?? '';
-        amountMinorUnits.value = 0;
-        amountInput.value = '0,00';
+        amountInput.value = props.initialAmountInput ?? '0,00';
         originalAmountMinorUnits.value = 0;
         originalSourceAccountId.value = null;
     },
     { immediate: true },
 );
 
-function syncAmount(): void {
-    const parsed = parseMoneyInputToMinorUnits(amountInput.value);
-
-    if (parsed !== null && parsed > 0) {
-        amountMinorUnits.value = parsed;
-    } else {
-        amountMinorUnits.value = 0;
+function onOpenChange(next: boolean): void {
+    if (!next && busy.value) {
+        return;
     }
+
+    emit('update:open', next);
 }
 
 function closeDialog(): void {
@@ -164,12 +210,14 @@ function closeDialog(): void {
 </script>
 
 <template>
-    <Dialog :open="open" @update:open="emit('update:open', $event)">
-        <DialogContent>
+    <Dialog :open="open" @update:open="onOpenChange">
+        <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="formBinding"
-                class="space-y-4"
+                class="grid gap-4"
                 reset-on-success
+                @start="busy = true"
+                @finish="busy = false"
                 @success="closeDialog"
                 v-slot="{ errors, processing, reset, clearErrors }"
             >
@@ -190,116 +238,129 @@ function closeDialog(): void {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div class="grid gap-2">
-                    <Label for="transfer-date">{{ t.operations.date }}</Label>
-                    <Input
+                <div class="form-field-row">
+                    <FormField
+                        id="transfer-amount"
+                        :label="t.operations.amount"
+                        money
+                        :error="
+                            amountInvalid
+                                ? t.operations.amount_invalid
+                                : errors.amount_minor_units
+                        "
+                        v-slot="{ id, describedBy, invalid, controlClass }"
+                    >
+                        <Input
+                            :id="id"
+                            v-model="amountInput"
+                            :class="controlClass"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            :aria-describedby="describedBy"
+                            :aria-invalid="invalid"
+                        />
+                        <input
+                            type="hidden"
+                            name="amount_minor_units"
+                            :value="amountMinorUnits"
+                        />
+                    </FormField>
+
+                    <FormField
                         id="transfer-date"
-                        name="transfer_date"
-                        v-model="transferDate"
-                        type="date"
-                        required
-                    />
-                    <InputError :message="errors.transfer_date" />
+                        :label="t.operations.date"
+                        :error="errors.transfer_date"
+                        v-slot="{ id, describedBy, invalid }"
+                    >
+                        <Input
+                            :id="id"
+                            name="transfer_date"
+                            v-model="transferDate"
+                            type="date"
+                            required
+                            :aria-describedby="describedBy"
+                            :aria-invalid="invalid"
+                        />
+                    </FormField>
                 </div>
 
-                <div class="grid gap-2">
-                    <Label for="transfer-description">
-                        {{ t.operations.description }}
-                    </Label>
+                <FormField
+                    id="source-account"
+                    :label="t.operations.source_account"
+                    :error="errors.source_account_id"
+                    v-slot="{ id, describedBy, invalid }"
+                >
+                    <AccountSelect
+                        :id="id"
+                        name="source_account_id"
+                        v-model="sourceAccountId"
+                        :accounts="accounts"
+                        :placeholder="t.operations.select_account"
+                        required
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                    />
+                </FormField>
+
+                <FormField
+                    id="destination-account"
+                    :label="t.operations.destination_account"
+                    :error="errors.destination_account_id"
+                    v-slot="{ id, describedBy, invalid }"
+                >
+                    <AccountSelect
+                        :id="id"
+                        name="destination_account_id"
+                        v-model="destinationAccountId"
+                        :accounts="accounts"
+                        :placeholder="t.operations.select_account"
+                        required
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                    />
+                </FormField>
+
+                <FormField
+                    id="transfer-description"
+                    :label="t.operations.description"
+                    :error="errors.description"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <Input
-                        id="transfer-description"
+                        :id="id"
                         name="description"
                         v-model="description"
                         required
                         autocomplete="off"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <InputError :message="errors.description" />
-                </div>
+                </FormField>
 
-                <div
-                    v-if="
-                        mode === 'edit' &&
-                        (transfer?.raw_statement_descriptions?.length ?? 0) > 0
-                    "
-                    class="grid gap-2"
+                <FormField
+                    v-if="mode === 'edit' && rawStatementDescription !== ''"
+                    id="transfer-raw-statement-description"
+                    :label="t.operations.raw_statement_description"
+                    group
+                    v-slot="{ labelId }"
                 >
-                    <Label for="transfer-raw-statement-description">
-                        {{ t.operations.raw_statement_description }}
-                    </Label>
-                    <textarea
-                        id="transfer-raw-statement-description"
-                        :value="
-                            transfer?.raw_statement_descriptions?.join('\n\n')
-                        "
-                        readonly
-                        rows="3"
-                        class="border-input w-full rounded-xl border bg-transparent px-3 py-2 text-base md:text-sm"
-                    />
-                </div>
+                    <p class="form-readonly-text" :aria-labelledby="labelId">
+                        {{ rawStatementDescription }}
+                    </p>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label for="source-account">
-                        {{ t.operations.source_account }}
-                    </Label>
-                    <AccountSelect
-                        id="source-account"
-                        name="source_account_id"
-                        v-model="sourceAccountId"
-                        :accounts="accounts"
-                        required
-                    />
-                    <InputError :message="errors.source_account_id" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="destination-account">
-                        {{ t.operations.destination_account }}
-                    </Label>
-                    <AccountSelect
-                        id="destination-account"
-                        name="destination_account_id"
-                        v-model="destinationAccountId"
-                        :accounts="accounts"
-                        required
-                    />
-                    <InputError :message="errors.destination_account_id" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="transfer-amount">{{
-                        t.operations.amount
-                    }}</Label>
-                    <Input
-                        id="transfer-amount"
-                        v-model="amountInput"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        @input="syncAmount"
-                        @blur="syncAmount"
-                    />
-                    <input
-                        type="hidden"
-                        name="amount_minor_units"
-                        :value="amountMinorUnits"
-                    />
-                    <InputError :message="errors.amount_minor_units" />
-                </div>
-
-                <Alert v-if="showNegativeBalanceWarning" variant="warning">
-                    <AlertTriangle class="size-4" />
-                    <AlertTitle>{{
-                        t.operations.expense_warnings_title
-                    }}</AlertTitle>
-                    <AlertDescription>
-                        {{ t.operations.negative_balance_warning }}
-                    </AlertDescription>
-                </Alert>
+                <FormPreview
+                    v-if="showPreview"
+                    :rows="preview.rows"
+                    :warnings="preview.warnings"
+                />
 
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="outline"
+                            :disabled="processing"
                             @click="
                                 () => {
                                     clearErrors();
@@ -308,11 +369,15 @@ function closeDialog(): void {
                                 }
                             "
                         >
-                            {{ t.accounts.cancel }}
+                            {{ t.operations.cancel }}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" :disabled="processing">
-                        {{ t.accounts.save }}
+                    <Button
+                        type="submit"
+                        :disabled="processing || amountInvalid"
+                    >
+                        <Spinner v-if="processing" />
+                        {{ t.operations.save }}
                     </Button>
                 </DialogFooter>
             </Form>

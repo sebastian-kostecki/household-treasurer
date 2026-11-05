@@ -266,14 +266,14 @@ export function previewHandEntryWarnings(
             editedRecord,
             proposal.account_id,
             originalAccountId,
-            originalAccountSignedEffect,
+            -originalAccountSignedEffect,
         );
         const termDepositAdjustment = termDepositLiquidityAdjustmentMinorUnits(
             mode,
             editedRecord,
             proposal.term_deposit_id ?? -1,
             originalTermDepositId,
-            originalTermDepositSignedEffect,
+            -originalTermDepositSignedEffect,
         );
         const predictedAccountBalance =
             account === undefined

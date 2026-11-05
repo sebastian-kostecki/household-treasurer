@@ -629,33 +629,33 @@ Brak migracji danych i zmian payloadu. Usunięte klucze `lang` nie mają innych 
 
 #### Automated
 
-- [x] 4.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/ExpenseTest.php tests/Feature/IncomeTest.php tests/Feature/FinancialOperationReclassifyTest.php tests/Feature/FinancialOperationEditDeleteTest.php`
-- [x] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/ExpenseFormDialog.vue resources/js/components/IncomeFormDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue`
-- [x] 4.3 Brak martwego pola: `grep -rn availableLimitNowMinorUnits resources/js` nic nie zwraca
-- [x] 4.4 Typy i statyka: `npm run build && npm run types:check && npm run check`
-- [x] 4.5 Testy frontu: `npm test`
+- [x] 4.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/ExpenseTest.php tests/Feature/IncomeTest.php tests/Feature/FinancialOperationReclassifyTest.php tests/Feature/FinancialOperationEditDeleteTest.php` — d8f4b92
+- [x] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/ExpenseFormDialog.vue resources/js/components/IncomeFormDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue` — d8f4b92
+- [x] 4.3 Brak martwego pola: `grep -rn availableLimitNowMinorUnits resources/js` nic nie zwraca — d8f4b92
+- [x] 4.4 Typy i statyka: `npm run build && npm run types:check && npm run check` — d8f4b92
+- [x] 4.5 Testy frontu: `npm test` — d8f4b92
 
 #### Manual
 
-- [x] 4.6 W podglądzie z worktree (AGENTS.md „Preview from a worktree”): dodanie wydatku, zwrotu i dochodu, edycja zwrotu na dochód i dochodu na zwrot zapisują dane jak wcześniej
-- [x] 4.7 Edycja bez zmian pokazuje równe wartości „przed → po” we wszystkich wierszach. Przeniesienie daty do poprzedniego miesiąca z planem daje dwa wiersze Do wydania z etykietami w miejscowniku i z rokiem
-- [x] 4.8 „abc”, „12,345” i „-5” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”. „0,00” daje błąd serwera
-- [x] 4.9 W trakcie zapisu (`expense-errors`, `income-errors`): spinner, X ukryty, `Esc`, nakładka i „Anuluj” nie zamykają
-- [x] 4.10 Stany sinka w obu motywach przy 1280 i 390 px: rząd „Kwota | Data” w dwóch kolumnach przy 390 px, ostrzeżenia w bloku pod swoim wierszem, wartość ujemna w `destructive`
-- [x] 4.11 Klawiatura: fokus po otwarciu na pierwszym polu (wybór typu albo kwota), wybór typu strzałkami, czytnik ekranu ogłasza błąd kwoty
+- [x] 4.6 W podglądzie z worktree (AGENTS.md „Preview from a worktree”): dodanie wydatku, zwrotu i dochodu, edycja zwrotu na dochód i dochodu na zwrot zapisują dane jak wcześniej — d8f4b92
+- [x] 4.7 Edycja bez zmian pokazuje równe wartości „przed → po” we wszystkich wierszach. Przeniesienie daty do poprzedniego miesiąca z planem daje dwa wiersze Do wydania z etykietami w miejscowniku i z rokiem — d8f4b92
+- [x] 4.8 „abc”, „12,345” i „-5” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”. „0,00” daje błąd serwera — d8f4b92
+- [x] 4.9 W trakcie zapisu (`expense-errors`, `income-errors`): spinner, X ukryty, `Esc`, nakładka i „Anuluj” nie zamykają — d8f4b92
+- [x] 4.10 Stany sinka w obu motywach przy 1280 i 390 px: rząd „Kwota | Data” w dwóch kolumnach przy 390 px, ostrzeżenia w bloku pod swoim wierszem, wartość ujemna w `destructive` — d8f4b92
+- [x] 4.11 Klawiatura: fokus po otwarciu na pierwszym polu (wybór typu albo kwota), wybór typu strzałkami, czytnik ekranu ogłasza błąd kwoty — d8f4b92
 
 ### Phase 5: Transfer i ruch kapitału, straże i zrzuty
 
 #### Automated
 
-- [ ] 5.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/OwnTransferTest.php tests/Feature/CapitalMovementTest.php`
-- [ ] 5.2 Straż literałów: `npm run check:ui`
-- [ ] 5.3 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts`
-- [ ] 5.4 Pełna bramka CI na PostgreSQL: `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint composer sail-8.5/app ci:check`
+- [x] 5.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/OwnTransferTest.php tests/Feature/CapitalMovementTest.php`
+- [x] 5.2 Straż literałów: `npm run check:ui`
+- [x] 5.3 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts`
+- [x] 5.4 Pełna bramka CI na PostgreSQL: `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint composer sail-8.5/app ci:check`
 
 #### Manual
 
-- [ ] 5.5 W podglądzie z worktree: dodanie i edycja transferu i ruchu kapitału (oba kierunki) zapisują dane jak wcześniej. Lokata wybierana klawiaturą w `.native-select`
-- [ ] 5.6 Zapis w toku i błędy w `transfer-errors` i `capital-errors`: spinner, blokada zamykania, błąd pod kierunkiem
-- [ ] 5.7 Zrzuty obejrzane: wszystkie stany operacji w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field) i z ADR-0041
-- [ ] 5.8 Reguła w `.ai/rules/js.md` zgodna z `design-system.md`, ADR-0040 i ADR-0041
+- [x] 5.5 W podglądzie z worktree: dodanie i edycja transferu i ruchu kapitału (oba kierunki) zapisują dane jak wcześniej. Lokata wybierana klawiaturą w `.native-select`
+- [x] 5.6 Zapis w toku i błędy w `transfer-errors` i `capital-errors`: spinner, blokada zamykania, błąd pod kierunkiem
+- [x] 5.7 Zrzuty obejrzane: wszystkie stany operacji w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field) i z ADR-0041
+- [x] 5.8 Reguła w `.ai/rules/js.md` zgodna z `design-system.md`, ADR-0040 i ADR-0041

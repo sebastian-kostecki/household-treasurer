@@ -336,3 +336,85 @@ test('edit capital movement: before is the stored balance of account and deposit
     expect(result.accountBalanceBeforeMinorUnits).toBe(100_000);
     expect(result.termDepositBalanceBeforeMinorUnits).toBe(50_000);
 });
+
+test('edit capital movement to a deposit unchanged: before equals after for account and deposit', () => {
+    const result = previewHandEntryWarnings(
+        input({
+            mode: 'edit',
+            editedRecord: {
+                account_id: 1,
+                term_deposit_id: 7,
+                direction: 'to_term_deposit',
+                signed_amount_minor_units: -30_000,
+            },
+            proposal: {
+                kind: 'capital_movement',
+                account_id: 1,
+                term_deposit_id: 7,
+                direction: 'to_term_deposit',
+                amount_minor_units: 30_000,
+            },
+        }),
+    );
+
+    expect(result).toMatchObject({
+        accountBalanceBeforeMinorUnits: 100_000,
+        accountBalanceAfterMinorUnits: 100_000,
+        termDepositBalanceBeforeMinorUnits: 50_000,
+        termDepositBalanceAfterMinorUnits: 50_000,
+        showNegativeBalanceWarning: false,
+        showTermDepositNegativeBalanceWarning: false,
+    });
+});
+
+test('edit capital movement from a deposit unchanged: before equals after for account and deposit', () => {
+    const result = previewHandEntryWarnings(
+        input({
+            mode: 'edit',
+            editedRecord: {
+                account_id: 1,
+                term_deposit_id: 7,
+                direction: 'from_term_deposit',
+                signed_amount_minor_units: 30_000,
+            },
+            proposal: {
+                kind: 'capital_movement',
+                account_id: 1,
+                term_deposit_id: 7,
+                direction: 'from_term_deposit',
+                amount_minor_units: 30_000,
+            },
+        }),
+    );
+
+    expect(result).toMatchObject({
+        accountBalanceAfterMinorUnits: 100_000,
+        termDepositBalanceAfterMinorUnits: 50_000,
+    });
+});
+
+test('edit capital movement with a larger amount applies only the difference', () => {
+    const result = previewHandEntryWarnings(
+        input({
+            mode: 'edit',
+            editedRecord: {
+                account_id: 1,
+                term_deposit_id: 7,
+                direction: 'to_term_deposit',
+                signed_amount_minor_units: -30_000,
+            },
+            proposal: {
+                kind: 'capital_movement',
+                account_id: 1,
+                term_deposit_id: 7,
+                direction: 'to_term_deposit',
+                amount_minor_units: 40_000,
+            },
+        }),
+    );
+
+    expect(result).toMatchObject({
+        accountBalanceAfterMinorUnits: 90_000,
+        termDepositBalanceAfterMinorUnits: 60_000,
+    });
+});

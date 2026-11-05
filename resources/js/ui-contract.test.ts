@@ -37,6 +37,14 @@ const BUDGET_CONFIRMATION_FILES = [
     'components/BudgetCategoryRowActions.vue',
 ];
 
+// Operation dialogs follow ADR-0040 and ADR-0041.
+const OPERATION_DIALOG_FILES = [
+    'components/ExpenseFormDialog.vue',
+    'components/IncomeFormDialog.vue',
+    'components/OwnTransferFormDialog.vue',
+    'components/CapitalMovementFormDialog.vue',
+];
+
 // Dead reka-ui Checkbox bindings tracked in GitHub issue #186.
 // Fix the file, then remove it from this list (the test fails until you do).
 const DEAD_CHECKBOX_BINDING_EXCEPTIONS = ['pages/OperationsImport.vue'];
@@ -75,6 +83,31 @@ describe('ui contract', () => {
             expect(
                 /import[^;]*\bDialogContent\b/.test(source),
                 'use ConfirmActionDialog instead of Dialog + DialogContent',
+            ).toBe(false);
+        },
+    );
+
+    it.each(OPERATION_DIALOG_FILES)(
+        'has no hardcoded colours or arbitrary sizes in %s',
+        (file) => {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(source.match(HARDCODED)?.[0] ?? null).toBeNull();
+        },
+    );
+
+    it.each(OPERATION_DIALOG_FILES)(
+        'does not use an Alert or a checkbox in %s',
+        (file) => {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(
+                /@\/components\/ui\/alert/.test(source),
+                'warnings go into FormPreview (ADR-0041), not an Alert',
+            ).toBe(false);
+            expect(
+                source.includes('type="checkbox"'),
+                'a choice is a SegmentedControl (ADR-0040), not a checkbox',
             ).toBe(false);
         },
     );
