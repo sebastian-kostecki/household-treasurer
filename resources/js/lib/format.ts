@@ -33,6 +33,15 @@ export function formatSignedMoney(minorUnits: number): string {
 }
 
 /**
+ * Like formatSignedMoney, without the unit (table cells, ADR-0037).
+ */
+export function formatSignedMoneyAmount(minorUnits: number): string {
+    const formatted = formatMoneyAmount(minorUnits);
+
+    return minorUnits > 0 ? `+${formatted}` : formatted;
+}
+
+/**
  * Format minor units for editable PLN input, e.g. 123456 -> "1234,56"
  */
 export function minorUnitsToMoneyInput(minorUnits: number): string {

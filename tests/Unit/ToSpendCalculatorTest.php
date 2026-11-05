@@ -84,3 +84,46 @@ test('item amount follows the To Spend rule', function (
 ) {
     expect(ToSpendCalculator::itemMinorUnits($type, $kind, $plan, $actual, $hasPositiveAmount))->toBe($expected);
 })->with('item amount cases');
+
+test('breakdown of the canonical example gives income, expense and 3730,00', function () {
+    expect(ToSpendCalculator::breakdown(canonicalToSpendItems(), 0))->toBe([
+        'income_minor_units' => 800_000,
+        'expense_minor_units' => 427_000,
+        'to_spend_minor_units' => 373_000,
+    ]);
+});
+
+test('breakdown counts a bill with only a refund at plan as an expense', function () {
+    $breakdown = ToSpendCalculator::breakdown(canonicalToSpendItems(rentActual: -10_000, rentHasPositive: false), 0);
+
+    expect($breakdown['expense_minor_units'])->toBe(432_000)
+        ->and($breakdown['to_spend_minor_units'])->toBe(368_000);
+});
+
+test('breakdown counts a running item at the greater of plan and actual', function () {
+    $breakdown = ToSpendCalculator::breakdown([
+        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 150_000, 'actual' => 60_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 40_000, 'actual' => 52_000, 'has_positive_amount' => true],
+    ], 0);
+
+    expect($breakdown['expense_minor_units'])->toBe(202_000);
+});
+
+test('breakdown of an empty list is three zeros', function () {
+    expect(ToSpendCalculator::breakdown([], 0))->toBe([
+        'income_minor_units' => 0,
+        'expense_minor_units' => 0,
+        'to_spend_minor_units' => 0,
+    ]);
+});
+
+test('breakdown satisfies income minus expense minus set-aside for a set-aside and a draw', function (int $setAside) {
+    $breakdown = ToSpendCalculator::breakdown(setAsideExampleItems(), $setAside);
+
+    expect($breakdown['income_minor_units'])->toBe(600_000)
+        ->and($breakdown['expense_minor_units'])->toBe(380_000)
+        ->and($breakdown['income_minor_units'] - $breakdown['expense_minor_units'] - $setAside)->toBe($breakdown['to_spend_minor_units']);
+})->with([
+    'set-aside' => [50_000],
+    'draw' => [-30_000],
+]);

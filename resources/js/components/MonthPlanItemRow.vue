@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { Check } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import InputError from '@/components/InputError.vue';
 import MonthPlanKindCell from '@/components/MonthPlanKindCell.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoney, formatSignedMoney } from '@/lib/format';
+import {
+    formatMoney,
+    formatMoneyAmount,
+    formatSignedMoneyAmount,
+} from '@/lib/format';
+import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
 
 const props = withDefaults(
@@ -17,6 +20,7 @@ const props = withDefaults(
         editable: boolean;
         deviation: number | null;
         overPlan: boolean;
+        status: MonthItemStatus | null;
         yearStale?: boolean;
         kindPending?: boolean;
         kindError?: string;
@@ -40,8 +44,12 @@ const t = useTranslations();
 
 const hasKindColumn = computed(() => props.row.type === 'expense');
 
+const hasAmountField = computed(
+    () => props.editable && (props.row.in_plan || !props.row.is_archived),
+);
+
 const deviationText = computed(() =>
-    props.deviation === null ? '—' : formatSignedMoney(props.deviation),
+    props.deviation === null ? '—' : formatSignedMoneyAmount(props.deviation),
 );
 
 const deviationClass = computed(() => {
@@ -63,48 +71,32 @@ const deviationClass = computed(() => {
 
 <template>
     <div
-        class="month-plan-grid border-border/60 items-center border-b py-3 last:border-b-0"
-        :class="hasKindColumn ? 'month-plan-grid-kind' : ''"
+        class="month-plan-grid month-plan-row"
+        :class="hasKindColumn ? '' : 'month-plan-grid-no-kind'"
     >
-        <div class="flex min-w-0 flex-col gap-1">
+        <div class="month-plan-cell-category flex flex-col gap-1">
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <CategoryChip
                     :name="row.name"
                     :icon="row.icon"
                     :color="row.color"
                 />
-                <Badge v-if="row.is_one_off" variant="outline">
+                <Badge v-if="row.is_one_off" variant="neutral">
                     {{ t.month_plan.one_off_badge }}
                 </Badge>
-                <Badge v-if="row.is_archived" variant="secondary">
+                <Badge v-if="row.is_archived" variant="neutral">
                     {{ t.month_plan.archived_badge }}
                 </Badge>
-                <Badge v-if="!row.in_plan" variant="outline">
+                <Badge v-if="!row.in_plan" variant="neutral">
                     {{ t.month_plan.not_in_plan }}
-                </Badge>
-                <Badge
-                    v-if="row.is_settled && row.type === 'expense'"
-                    variant="secondary"
-                    class="gap-1"
-                >
-                    <Check class="size-3" aria-hidden="true" />
-                    {{ t.month_plan.settled_bill }}
-                </Badge>
-                <Badge
-                    v-if="row.is_settled && row.type === 'income'"
-                    variant="outline"
-                    class="text-success border-success/40 gap-1"
-                >
-                    <Check class="size-3" aria-hidden="true" />
-                    {{ t.month_plan.settled_income }}
                 </Badge>
             </div>
 
             <p
                 v-if="row.year_comparison !== null && !row.is_idle_one_off"
-                class="text-muted-foreground text-xs"
+                class="meta text-muted-foreground"
             >
-                <span :class="yearStale ? 'opacity-60' : ''">
+                <span :class="yearStale ? '' : 'text-foreground'">
                     {{ t.month_plan.year_line }}:
                     <MonthYearSummary
                         :comparison="row.year_comparison"
@@ -121,7 +113,7 @@ const deviationClass = computed(() => {
                     row.available_limit_minor_units !== null &&
                     (row.year_comparison === null || row.is_idle_one_off)
                 "
-                class="text-muted-foreground text-xs"
+                class="meta text-muted-foreground"
             >
                 {{ t.month_plan.available_limit }}:
                 <span
@@ -135,19 +127,9 @@ const deviationClass = computed(() => {
                     {{ formatMoney(row.available_limit_minor_units) }}
                 </span>
             </p>
-
-            <div v-if="row.month_item_kind !== null" class="sm:hidden">
-                <MonthPlanKindCell
-                    :kind="row.month_item_kind"
-                    :can-change="row.can_change_kind"
-                    :pending="kindPending"
-                    :error="kindError"
-                    @change="emit('change-kind', $event)"
-                />
-            </div>
         </div>
 
-        <div v-if="hasKindColumn" class="hidden sm:block">
+        <div v-if="hasKindColumn" class="month-plan-cell-kind">
             <MonthPlanKindCell
                 v-if="row.month_item_kind !== null"
                 :kind="row.month_item_kind"
@@ -158,24 +140,28 @@ const deviationClass = computed(() => {
             />
         </div>
 
-        <div class="text-right">
-            <Input
-                v-if="editable && (row.in_plan || !row.is_archived)"
+        <div class="month-plan-cell-plan">
+            <span class="meta text-muted-foreground block xl:sr-only">
+                {{ t.month_plan.plan }}
+            </span>
+            <input
+                v-if="hasAmountField"
                 v-model="amountInput"
+                class="cell-input"
                 inputmode="decimal"
                 autocomplete="off"
                 :aria-label="`${t.month_plan.plan}: ${row.name}`"
                 :aria-invalid="invalid ? 'true' : undefined"
                 :aria-describedby="invalid ? amountErrorId : undefined"
-                class="text-right tabular-nums"
                 @blur="emit('amount-blur')"
             />
-            <span v-else class="text-sm tabular-nums">
-                {{ formatMoney(row.plan_minor_units) }}
+            <span v-else class="amount">
+                {{ formatMoneyAmount(row.plan_minor_units) }}
             </span>
             <InputError
                 v-if="editable && invalid"
                 :id="amountErrorId"
+                size="xs"
                 class="text-right"
                 :message="t.month_plan.amount_invalid"
             />
@@ -184,32 +170,35 @@ const deviationClass = computed(() => {
                     row.approved_minor_units !== null &&
                     row.approved_minor_units !== row.plan_minor_units
                 "
-                class="text-muted-foreground text-xs tabular-nums"
+                class="meta text-muted-foreground"
             >
                 {{ t.month_plan.approved_amount }}:
                 {{ formatMoney(row.approved_minor_units) }}
             </p>
         </div>
 
-        <div class="flex flex-col items-end">
-            <span class="text-sm tabular-nums">
-                {{ formatMoney(row.actual_minor_units) }}
+        <div class="month-plan-cell-actual">
+            <span class="meta text-muted-foreground block xl:sr-only">
+                {{ t.month_plan.actual }}
             </span>
-            <span
-                class="text-xs tabular-nums lg:hidden"
-                :class="deviationClass"
-            >
-                <span class="sr-only">{{ t.month_plan.deviation }}: </span>
+            <span class="amount">
+                {{ formatMoneyAmount(row.actual_minor_units) }}
+            </span>
+        </div>
+
+        <div class="month-plan-cell-deviation">
+            <span class="meta text-muted-foreground block xl:sr-only">
+                {{ t.month_plan.deviation }}
+            </span>
+            <span class="amount" :class="deviationClass">
                 {{ deviationText }}
             </span>
         </div>
 
-        <span
-            class="hidden text-right text-sm tabular-nums lg:block"
-            :class="deviationClass"
-        >
-            <span class="sr-only">{{ t.month_plan.deviation }}: </span>
-            {{ deviationText }}
-        </span>
+        <div class="month-plan-cell-status">
+            <Badge v-if="status" :variant="status.variant">
+                {{ t.month_plan[status.key] }}
+            </Badge>
+        </div>
     </div>
 </template>

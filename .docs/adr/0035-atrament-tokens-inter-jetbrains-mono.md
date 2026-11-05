@@ -9,3 +9,5 @@ This supersedes in part ADR-0001 (teal `primary`), ADR-0003 (teal as brand and a
 Points 3 and 5 of the system README are settled by ADR-0037.
 
 Points 7 and 8 (expense colour in Operations, day rows) are settled by ADR-0038.
+
+Superseded in part by ADR-0042 (`brand` for document state and the approval action).

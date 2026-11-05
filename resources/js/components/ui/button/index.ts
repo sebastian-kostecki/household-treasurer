@@ -13,6 +13,8 @@ export const buttonVariants = cva(
       variant: {
         default:
           `bg-primary text-primary-foreground hover:bg-primary/90 ${disabledSolid}`,
+        brand:
+          `bg-brand text-brand-foreground hover:bg-brand/90 ${disabledSolid}`,
         destructive:
           `bg-destructive text-white hover:bg-destructive/90 dark:bg-destructive/60 ${disabledSolid}`,
         outline:
@@ -21,6 +23,8 @@ export const buttonVariants = cva(
           `bg-secondary text-secondary-foreground hover:bg-secondary/80 ${disabledSolid}`,
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 disabled:text-muted-foreground aria-disabled:text-muted-foreground",
+        "ghost-inverse":
+          "text-primary-foreground hover:bg-primary-foreground/15 disabled:text-primary-foreground/60 aria-disabled:text-primary-foreground/60",
         link: "text-brand-text underline-offset-4 hover:underline disabled:text-muted-foreground aria-disabled:text-muted-foreground",
       },
       size: {

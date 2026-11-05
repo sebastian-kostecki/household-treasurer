@@ -7,6 +7,7 @@ import {
     formatMoneyAmount,
     formatOperationDaySum,
     formatSignedMoney,
+    formatSignedMoneyAmount,
     operationDaySumClass,
     parseMoneyInputToMinorUnits,
 } from './format';
@@ -42,6 +43,14 @@ describe('formatSignedMoney', () => {
 
     it('shows zero without a sign', () => {
         expect(formatSignedMoney(0)).toBe('0,00 zł');
+    });
+});
+
+describe('formatSignedMoneyAmount', () => {
+    it('signs positive amounts and omits the unit', () => {
+        expect(formatSignedMoneyAmount(123456)).toBe('+1 234,56');
+        expect(formatSignedMoneyAmount(-5000)).toBe('-50,00');
+        expect(formatSignedMoneyAmount(0)).toBe('0,00');
     });
 });
 

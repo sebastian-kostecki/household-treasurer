@@ -370,37 +370,146 @@
         @apply bg-muted rounded-md px-3 py-2 text-sm break-words whitespace-pre-line;
     }
 
+    /* Komórka planu na zwykłym <input> (mockup Atrament → Plan miesiąca, ADR-0042). */
+    .cell-input {
+        @apply amount border-input bg-card focus-visible:outline-ring aria-invalid:border-destructive h-7 w-full rounded-sm border px-2 text-right outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
+    /* Pas edycji planu: przyklejony do dołu widoku (ADR-0042). */
+    .month-plan-editbar {
+        @apply bg-primary text-primary-foreground sticky bottom-0 z-10 flex flex-wrap items-center gap-3 rounded-lg px-4 py-2;
+    }
+
+    /* Kropka stanu miesiąca pod etykietą w pasku miesięcy. */
+    .month-strip-dot {
+        @apply size-1 rounded-full;
+    }
+
+    .month-strip-dot-summary {
+        @apply bg-muted-foreground;
+    }
+
+    .month-strip-dot-approved {
+        @apply bg-brand-text;
+    }
+
+    .month-strip-dot-proposal {
+        @apply bg-warning;
+    }
+
+    /**
+     * Panel podsumowania minionego miesiąca, jeden markup na każdej szerokości.
+     * Poniżej `sm` wiersz to etykieta na całą szerokość i siatka 2×2 kwot z
+     * podpisami; od `sm` etykieta i 4 kolumny kwot pod wierszem nagłówków.
+     */
+    .month-plan-summary-grid {
+        @apply grid items-baseline gap-x-3 gap-y-2;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @variant sm {
+            grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    .month-plan-summary-label {
+        @apply col-span-2 sm:col-span-1;
+    }
+
+    .month-plan-summary-head {
+        @apply hidden sm:grid;
+    }
+
+    .month-plan-summary-cell {
+        @apply text-left sm:text-right;
+    }
+
+    /**
+     * Month plan table: one markup on every width. Below `xl` a row is three
+     * lines (name + status, kind, then plan / actual / deviation); from `xl` it
+     * is one line of six columns (Kategoria, Rodzaj, Plan, Faktycznie,
+     * Odchylenie, Status).
+     */
     .month-plan-grid {
-        @apply grid gap-x-3;
-        grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;
+        @apply grid w-full gap-x-3;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-areas:
+            'category category status'
+            'kind kind kind'
+            'plan actual deviation';
     }
 
-    @variant sm {
-        .month-plan-grid {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem;
-        }
-
-        .month-plan-grid-kind {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
-        }
+    .month-plan-grid-no-kind {
+        grid-template-areas:
+            'category category status'
+            'plan actual deviation';
     }
 
-    @variant lg {
-        .month-plan-grid {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
-        }
-
-        .month-plan-grid-kind {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem 9rem;
+    @variant xl {
+        .month-plan-grid,
+        .month-plan-grid-no-kind {
+            grid-template-columns: minmax(0, 1fr) 9rem 8rem 7rem 7rem 8rem;
+            grid-template-areas: 'category kind plan actual deviation status';
         }
     }
 
-    .column-header {
-        @apply table-header;
+    .month-plan-cell-category {
+        grid-area: category;
+        @apply min-w-0;
     }
 
-    .section-label {
-        @apply text-muted-foreground text-xs font-medium tracking-wider uppercase;
+    .month-plan-cell-kind {
+        grid-area: kind;
+        @apply min-w-0;
+    }
+
+    .month-plan-cell-plan {
+        grid-area: plan;
+        @apply min-w-0 text-right;
+    }
+
+    .month-plan-cell-actual {
+        grid-area: actual;
+        @apply text-right;
+    }
+
+    .month-plan-cell-deviation {
+        grid-area: deviation;
+        @apply text-right;
+    }
+
+    .month-plan-cell-status {
+        grid-area: status;
+        @apply min-w-0 justify-self-end xl:justify-self-start;
+    }
+
+    .month-plan-header-row {
+        @apply table-header border-border-soft hidden items-center border-b px-4 py-2;
+    }
+
+    @variant xl {
+        .month-plan-header-row {
+            @apply grid;
+        }
+    }
+
+    .month-plan-row {
+        @apply border-border-soft hover:bg-secondary min-h-row items-center gap-y-1 border-b px-4 py-2 transition-colors;
+    }
+
+    .month-plan-group-row {
+        @apply bg-muted section-title border-border-soft border-b px-4 py-2;
+    }
+
+    .month-plan-total-row {
+        @apply meta border-border-soft flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b px-4 py-2;
+    }
+
+    .month-plan-idle-row {
+        @apply border-border-soft border-b px-4 py-1;
+    }
+
+    .month-plan-footer {
+        @apply px-4 py-3;
     }
 
     .segmented-control {

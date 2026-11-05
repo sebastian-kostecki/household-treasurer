@@ -53,6 +53,16 @@ final class MonthToSpend
      */
     public function toSpendMinorUnits(): ?int
     {
+        return $this->toSpendBreakdown()['to_spend_minor_units'] ?? null;
+    }
+
+    /**
+     * The income and expense behind the number. Null when the month has no plan.
+     *
+     * @return array{income_minor_units: int, expense_minor_units: int, to_spend_minor_units: int}|null
+     */
+    public function toSpendBreakdown(): ?array
+    {
         if ($this->reading->state === 'none') {
             return null;
         }
@@ -71,7 +81,7 @@ final class MonthToSpend
             ];
         }
 
-        return ToSpendCalculator::toSpendMinorUnits($items, $this->reading->setAsideMinorUnits);
+        return ToSpendCalculator::breakdown($items, $this->reading->setAsideMinorUnits);
     }
 
     /**

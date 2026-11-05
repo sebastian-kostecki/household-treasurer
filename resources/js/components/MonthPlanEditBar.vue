@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
+import { useId } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoney } from '@/lib/format';
 
 withDefaults(
     defineProps<{
-        toSpendMinorUnits: number | null;
-        mode: 'approve' | 'change';
         processing: boolean;
         canSubmit: boolean;
         error?: string;
@@ -22,58 +19,54 @@ const emit = defineEmits<{
 }>();
 
 const t = useTranslations();
+
+const invalidCountId = useId();
 </script>
 
 <template>
     <div
         role="region"
         :aria-label="t.month_plan.edit_bar_label"
-        class="bg-card border-border/60 sticky bottom-0 z-10 grid gap-2 border-t px-4 py-3 md:rounded-2xl md:border"
+        class="month-plan-editbar"
     >
-        <InputError :message="error" />
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <p class="flex items-baseline gap-2">
-                <span class="section-label">{{ t.month_plan.to_spend }}</span>
-                <span
-                    class="text-lg font-semibold tabular-nums"
-                    :class="
-                        (toSpendMinorUnits ?? 0) < 0 ? 'text-destructive' : ''
-                    "
-                >
-                    {{ formatMoney(toSpendMinorUnits ?? 0) }}
-                </span>
-            </p>
-            <div class="flex flex-wrap items-center gap-2">
-                <p v-if="invalidCount > 0" class="text-destructive text-sm">
-                    {{
-                        t.month_plan.invalid_amounts.replace(
-                            ':count',
-                            String(invalidCount),
-                        )
-                    }}
-                </p>
-                <template v-if="mode === 'change'">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="emit('cancel')"
-                    >
-                        {{ t.month_plan.cancel }}
-                    </Button>
-                    <Button type="submit" :disabled="processing || !canSubmit">
-                        <Spinner v-if="processing" />
-                        {{ t.month_plan.save_changes }}
-                    </Button>
-                </template>
-                <Button
-                    v-else
-                    type="submit"
-                    :disabled="processing || !canSubmit"
-                >
-                    <Spinner v-if="processing" />
-                    {{ t.month_plan.approve }}
-                </Button>
-            </div>
+        <span class="text-sm font-semibold">
+            {{ t.month_plan.edit_bar_label }}
+        </span>
+        <span class="meta">{{ t.month_plan.edit_bar_effect }}</span>
+        <span
+            v-if="invalidCount > 0"
+            :id="invalidCountId"
+            class="text-sm font-medium"
+        >
+            {{
+                t.month_plan.invalid_amounts.replace(
+                    ':count',
+                    String(invalidCount),
+                )
+            }}
+        </span>
+        <p v-if="error" role="alert" class="text-sm font-medium">
+            {{ error }}
+        </p>
+        <div class="ml-auto flex items-center gap-2">
+            <Button
+                type="button"
+                variant="ghost-inverse"
+                @click="emit('cancel')"
+            >
+                {{ t.month_plan.cancel }}
+            </Button>
+            <Button
+                type="submit"
+                variant="brand"
+                :disabled="processing || !canSubmit"
+                :aria-describedby="
+                    invalidCount > 0 ? invalidCountId : undefined
+                "
+            >
+                <Spinner v-if="processing" />
+                {{ t.month_plan.save_changes }}
+            </Button>
         </div>
     </div>
 </template>
