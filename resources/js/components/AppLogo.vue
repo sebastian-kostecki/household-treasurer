@@ -12,8 +12,9 @@ const name = usePage().props.name;
         <AppLogoIcon class="size-5" />
     </div>
     <div class="ml-1 grid flex-1 text-left text-sm">
-        <span class="mb-0.5 truncate leading-tight font-semibold">{{
-            name
-        }}</span>
+        <span
+            class="text-sidebar-strong mb-0.5 truncate leading-tight font-semibold"
+            >{{ name }}</span
+        >
     </div>
 </template>

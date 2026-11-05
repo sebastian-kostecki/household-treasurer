@@ -412,12 +412,12 @@ Brak danych i migracji. Wycofanie to revert commitów fazy. Gałąź nie trafia 
 
 #### Automated
 
-- [x] 2.1 Testy krojów i tokenów przechodzą
-- [x] 2.2 Formatowanie PHP (Pint)
-- [x] 2.3 Build generuje kroje i assety
-- [x] 2.4 Lint i typy frontendu przechodzą
-- [x] 2.5 Testy frontendu i strażnik literałów przechodzą
-- [x] 2.6 Pełny gate przechodzi (composer ci:check)
+- [x] 2.1 Testy krojów i tokenów przechodzą — 064f733
+- [x] 2.2 Formatowanie PHP (Pint) — 064f733
+- [x] 2.3 Build generuje kroje i assety — 064f733
+- [x] 2.4 Lint i typy frontendu przechodzą — 064f733
+- [x] 2.5 Testy frontendu i strażnik literałów przechodzą — 064f733
+- [x] 2.6 Pełny gate przechodzi (composer ci:check) — 064f733
 
 #### Manual
 
@@ -428,11 +428,11 @@ Brak danych i migracji. Wycofanie to revert commitów fazy. Gałąź nie trafia 
 
 #### Automated
 
-- [ ] 3.1 Strażnik literałów przechodzi na plikach sidebara
-- [ ] 3.2 Lint, typy i testy frontendu przechodzą
-- [ ] 3.3 Build przechodzi
-- [ ] 3.4 Test kitchen sinka sidebara przechodzi
-- [ ] 3.5 Pełny gate przechodzi (composer ci:check)
+- [x] 3.1 Strażnik literałów przechodzi na plikach sidebara
+- [x] 3.2 Lint, typy i testy frontendu przechodzą
+- [x] 3.3 Build przechodzi
+- [x] 3.4 Test kitchen sinka sidebara przechodzi
+- [x] 3.5 Pełny gate przechodzi (composer ci:check)
 
 #### Manual
 

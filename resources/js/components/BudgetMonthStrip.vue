@@ -105,7 +105,7 @@ const viewedMonthLabel = computed(() => {
                 </div>
                 <Link
                     :href="monthPlanRoute({ query: { month: viewedMonth } })"
-                    class="text-primary text-sm font-medium hover:underline"
+                    class="text-brand-text text-sm font-medium hover:underline"
                 >
                     {{
                         viewedMonthTiming === 'past' &&

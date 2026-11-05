@@ -96,7 +96,7 @@ function selectYear(value: unknown): void {
                     <span class="text-sidebar-foreground/80 truncate text-xs">
                         {{ t.shell.no_budget_year }}
                     </span>
-                    <span class="truncate font-semibold">
+                    <span class="text-sidebar-strong truncate font-semibold">
                         {{ t.shell.add_budget_year }}
                     </span>
                 </div>
@@ -125,7 +125,9 @@ function selectYear(value: unknown): void {
                             >
                                 {{ t.shell.budget_year }}
                             </span>
-                            <span class="truncate font-semibold tabular-nums">
+                            <span
+                                class="text-sidebar-strong truncate font-semibold tabular-nums"
+                            >
                                 {{ budgetYear }}
                             </span>
                         </div>

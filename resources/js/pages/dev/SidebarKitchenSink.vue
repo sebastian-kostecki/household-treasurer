@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { LayoutGrid } from '@lucide/vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import { Button } from '@/components/ui/button';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import {
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarProvider,
+} from '@/components/ui/sidebar';
 import { useTranslations } from '@/composables/useTranslations';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 
@@ -32,6 +38,10 @@ const stateMatrix = [
     {
         state: 'error',
         where: 'Przycisk „Pokaż błąd wyboru roku” poniżej (toast).',
+    },
+    {
+        state: 'active',
+        where: 'Ramka menu-states poniżej: pozycja w spoczynku i aktywna (miętowa także pod kursorem).',
     },
     {
         state: 'hover',
@@ -162,5 +172,29 @@ const frames: SidebarFrame[] = [
                 </div>
             </section>
         </div>
+
+        <section class="space-y-2" data-frame="menu-states">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                menu-states: Pozycja w spoczynku i aktywna
+            </h2>
+            <SidebarProvider class="bg-sidebar min-h-0 w-64 p-2">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton>
+                            <LayoutGrid />
+                            <span>W spoczynku</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton :is-active="true">
+                            <LayoutGrid />
+                            <span>Aktywna</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarProvider>
+        </section>
     </div>
 </template>

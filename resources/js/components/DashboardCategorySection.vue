@@ -189,7 +189,7 @@ const totalsLabel = computed(() =>
                 type="button"
                 variant="ghost"
                 size="sm"
-                class="text-primary hover:text-primary -ml-3"
+                class="text-brand-text hover:text-brand-text -ml-3"
                 @click="isExpanded = !isExpanded"
             >
                 {{
