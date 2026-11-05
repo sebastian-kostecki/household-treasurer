@@ -221,6 +221,7 @@ return [
         'edit_category_description_execution' => 'Zmień nazwę, znak wizualny lub plan bieżący. Typu kategorii nie można zmienić.',
         'category_icon' => 'Ikona',
         'category_color' => 'Kolor',
+        'category_color_option' => 'Kolor :number',
         'category_preview' => 'Podgląd kategorii',
         'category_preview_hint' => 'Wybierz kolor, aby zobaczyć podgląd.',
         'name' => 'Nazwa',

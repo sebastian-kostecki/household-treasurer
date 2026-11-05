@@ -6,6 +6,7 @@ defineProps<{
     icons: string[];
     modelValue: string;
     color: string;
+    ariaLabelledby?: string;
 }>();
 
 const emit = defineEmits<{
@@ -15,13 +16,15 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="border-border/50 grid max-h-48 grid-cols-8 gap-2 overflow-y-auto rounded-xl border p-3"
+        class="bg-background grid max-h-48 grid-cols-8 gap-2 overflow-y-auto rounded-md p-3"
+        role="group"
+        :aria-labelledby="ariaLabelledby"
     >
         <button
             v-for="icon in icons"
             :key="icon"
             type="button"
-            class="hover:bg-foreground/[0.04] focus-visible:outline-ring flex size-9 items-center justify-center rounded-lg border-2 transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid"
+            class="hover:bg-secondary focus-visible:outline-ring flex size-9 items-center justify-center rounded-lg border-2 transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid"
             :class="
                 modelValue === icon ? 'border-foreground' : 'border-transparent'
             "

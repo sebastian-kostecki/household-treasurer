@@ -288,6 +288,10 @@
     height: var(--control-height);
 }
 
+@utility h-control-field {
+    height: var(--control-h);
+}
+
 @utility h-control-sm {
     height: var(--control-height-sm);
 }
@@ -312,7 +316,21 @@
 
 @layer components {
     .native-select {
-        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:outline-ring focus-visible:aria-invalid:border-destructive aria-invalid:border-destructive h-control flex w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-solid disabled:cursor-not-allowed disabled:opacity-50;
+        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:outline-ring focus-visible:aria-invalid:border-destructive aria-invalid:border-destructive h-control-field flex w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-solid disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    /* Field anatomy (Atrament Field/README, ADR-0040): label, control, hint, error; sets the field height read by Input, SelectTrigger and .native-select. */
+    .form-field {
+        --control-h: var(--field-height);
+        @apply flex flex-col gap-[5px];
+    }
+
+    .form-field-label {
+        @apply text-xs/4 font-medium;
+    }
+
+    .form-field-unit {
+        @apply text-muted-foreground pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs;
     }
 
     .month-plan-grid {
@@ -350,6 +368,15 @@
 
     .segmented-control {
         @apply bg-background inline-flex gap-1 rounded-lg border p-1;
+    }
+
+    .segmented-control-block {
+        @apply flex w-full;
+        height: var(--field-height);
+    }
+
+    .segmented-control-block .segmented-control-item {
+        @apply h-full flex-1;
     }
 
     .segmented-control-item {

@@ -2,6 +2,8 @@
  * Format minor units as a Polish amount without the unit, e.g. 123456 -> "1 234,56"
  * (table cells; the unit goes in the panel footer, ADR-0037).
  */
+export const MONEY_UNIT = 'zł';
+
 export function formatMoneyAmount(minorUnits: number): string {
     const negative = minorUnits < 0;
     const absolute = Math.abs(minorUnits);
@@ -17,7 +19,7 @@ export function formatMoneyAmount(minorUnits: number): string {
  * Format minor units as Polish PLN string, e.g. 123456 -> "1 234,56 zł"
  */
 export function formatMoney(minorUnits: number): string {
-    return `${formatMoneyAmount(minorUnits)} zł`;
+    return `${formatMoneyAmount(minorUnits)} ${MONEY_UNIT}`;
 }
 
 /**

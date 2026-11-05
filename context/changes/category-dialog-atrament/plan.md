@@ -437,33 +437,33 @@ Brak migracji danych. Zmiana prymitywów obejmuje 16 konsumentów `ui/dialog`; o
 
 #### Automated
 
-- [x] 2.1 Test sinka zielony: `./vendor/bin/sail artisan test --compact tests/Feature/DialogsKitchenSinkTest.php`
-- [x] 2.2 Brak starego fokusu: `grep -rE 'ring-\[3px\]|ring-3|ring-ring/50' resources/js resources/css` nic nie zwraca
-- [x] 2.3 Typy i statyka: `npm run build && npm run types:check && npm run check`
-- [x] 2.4 Testy frontu: `npm test`
-- [x] 2.5 Sloppy bez nowych zgłoszeń: `vendor/bin/sloppy ci`
-- [x] 2.6 Pint: `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 Test sinka zielony: `./vendor/bin/sail artisan test --compact tests/Feature/DialogsKitchenSinkTest.php` — b2f7dd6
+- [x] 2.2 Brak starego fokusu: `grep -rE 'ring-\[3px\]|ring-3|ring-ring/50' resources/js resources/css` nic nie zwraca — b2f7dd6
+- [x] 2.3 Typy i statyka: `npm run build && npm run types:check && npm run check` — b2f7dd6
+- [x] 2.4 Testy frontu: `npm test` — b2f7dd6
+- [x] 2.5 Sloppy bez nowych zgłoszeń: `vendor/bin/sloppy ci` — b2f7dd6
+- [x] 2.6 Pint: `vendor/bin/pint --dirty --format agent` — b2f7dd6
 
 #### Manual
 
-- [x] 2.7 `/dev/ui/dialogs` w obu motywach: okno 460 px, `radius-xl`, cień, nakładka `scrim`, tytuł do lewej przy 390 px, stopka z ramką na całą szerokość także w `AccountFormDialog`
-- [x] 2.8 Fokus klawiaturą: przycisk ma obrys z odstępem, pole obrys bez odstępu; X dialogu ma widoczny fokus
-- [x] 2.9 „Zapis w toku” w `ConfirmActionDialog` (trasa `validate`): spinner, X ukryty, `Esc` nie zamyka
-- [x] 2.10 Przycisk `outline` na stronie Budżetu („Dodaj kategorię”) i w Operacjach wygląda poprawnie w obu motywach; wyłączony przycisk ma `muted`
-- [x] 2.11 `TwoFactorSetupModal`, `PasskeyItem` i `DeleteUser` (ustawienia) mają poprawną stopkę i szerokość
+- [x] 2.7 `/dev/ui/dialogs` w obu motywach: okno 460 px, `radius-xl`, cień, nakładka `scrim`, tytuł do lewej przy 390 px, stopka z ramką na całą szerokość także w `AccountFormDialog` — b2f7dd6
+- [x] 2.8 Fokus klawiaturą: przycisk ma obrys z odstępem, pole obrys bez odstępu; X dialogu ma widoczny fokus — b2f7dd6
+- [x] 2.9 „Zapis w toku” w `ConfirmActionDialog` (trasa `validate`): spinner, X ukryty, `Esc` nie zamyka — b2f7dd6
+- [x] 2.10 Przycisk `outline` na stronie Budżetu („Dodaj kategorię”) i w Operacjach wygląda poprawnie w obu motywach; wyłączony przycisk ma `muted` — b2f7dd6
+- [x] 2.11 `TwoFactorSetupModal`, `PasskeyItem` i `DeleteUser` (ustawienia) mają poprawną stopkę i szerokość — b2f7dd6
 
 ### Phase 3: Wspólne elementy pola
 
 #### Automated
 
-- [ ] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormField.vue resources/js/components/SegmentedControl.vue resources/js/components/CategoryColorPicker.vue resources/js/components/CategoryIconPicker.vue resources/js/components/InputError.vue`
-- [ ] 3.2 Typy i statyka: `npm run types:check && npm run check`
-- [ ] 3.3 Testy frontu: `npm test`
+- [x] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormField.vue resources/js/components/SegmentedControl.vue resources/js/components/CategoryColorPicker.vue resources/js/components/CategoryIconPicker.vue resources/js/components/InputError.vue`
+- [x] 3.2 Typy i statyka: `npm run types:check && npm run check`
+- [x] 3.3 Testy frontu: `npm test`
 
 #### Manual
 
-- [ ] 3.4 Wiersze tytułu (Budżet, Operacje) i komórki planu miesiąca mają nadal 32/28 px; pola w `AccountFormDialog` (bez `FormField`) mają 32 px
-- [ ] 3.5 `SegmentedControl` neutral (zakładki Operacji) i primary (plan miesiąca) wyglądają jak przed zmianą
+- [x] 3.4 Wiersze tytułu (Budżet, Operacje) i komórki planu miesiąca mają nadal 32/28 px; pola w `AccountFormDialog` (bez `FormField`) mają 32 px
+- [x] 3.5 `SegmentedControl` neutral (zakładki Operacji) i primary (plan miesiąca) wyglądają jak przed zmianą
 
 ### Phase 4: Dialogi Budżetu
 

@@ -4,11 +4,14 @@ import { ToggleGroupItem, ToggleGroupRoot } from 'reka-ui';
 withDefaults(
     defineProps<{
         options: { value: T; label: string; count?: number }[];
-        ariaLabel: string;
+        ariaLabel?: string;
+        ariaLabelledby?: string;
         tone?: 'primary' | 'neutral';
         disabled?: boolean;
+        block?: boolean;
+        name?: string;
     }>(),
-    { tone: 'primary', disabled: false },
+    { tone: 'primary', disabled: false, block: false },
 );
 
 const modelValue = defineModel<T>({ required: true });
@@ -28,9 +31,11 @@ function onUpdate(value: unknown): void {
         type="single"
         :model-value="modelValue"
         :aria-label="ariaLabel"
+        :aria-labelledby="ariaLabelledby"
         :disabled="disabled"
         :data-tone="tone"
         class="segmented-control"
+        :class="{ 'segmented-control-block': block }"
         @update:model-value="onUpdate"
     >
         <ToggleGroupItem
@@ -46,5 +51,6 @@ function onUpdate(value: unknown): void {
                 >{{ option.count }}</span
             >
         </ToggleGroupItem>
+        <input v-if="name" type="hidden" :name="name" :value="modelValue" />
     </ToggleGroupRoot>
 </template>
