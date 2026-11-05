@@ -69,6 +69,7 @@ const FILES = [
     'resources/js/components/BudgetCategoryAlignPlanAction.vue',
     'resources/js/components/BudgetMonthPicker.vue',
     'resources/js/pages/MonthPlan.vue',
+    'resources/js/pages/dev/MonthPlanSink.vue',
     'resources/js/components/MonthPlanItemRow.vue',
     'resources/js/components/MonthPlanKindCell.vue',
     'resources/js/components/MonthPlanTable.vue',

@@ -1,454 +1,633 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { AlertTriangle, Check, Pencil } from '@lucide/vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { reactive, ref } from 'vue';
+import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
-import InputError from '@/components/InputError.vue';
-import ListSurface from '@/components/ListSurface.vue';
 import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
-import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
-import SegmentedControl from '@/components/SegmentedControl.vue';
+import MonthPlanStatPanel from '@/components/MonthPlanStatPanel.vue';
+import MonthPlanTable from '@/components/MonthPlanTable.vue';
+import type {
+    MonthPlanRowState,
+    SetAsideDirection,
+} from '@/components/MonthPlanTable.vue';
+import MonthSummaryCard from '@/components/MonthSummaryCard.vue';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    expenseRows,
-    incomeRows,
-    overPlanExpense,
-    runningExpense,
-} from '@/lib/month-plan-fixtures';
 import { minorUnitsToMoneyInput } from '@/lib/format';
-import type { MonthPlanItem } from '@/types/month-plan';
+import {
+    allMonthStates,
+    approvedAheadReading,
+    approvedNoPaceReading,
+    approvedReading,
+    futureProposalReading,
+    lockedKindExpense,
+    negativeDrawReading,
+    paidBill,
+    pastReading,
+    pastSummary,
+    runningExpense,
+    yearTotals,
+} from '@/lib/month-plan-fixtures';
+import { budget as budgetRoute } from '@/routes';
+import type { MonthPlanItem, MonthPlanReading } from '@/types/month-plan';
 
 const t = useTranslations();
 
-const focusAmount = ref('1200,50');
-const invalidSetAside = ref('abc');
+const noop = (): void => undefined;
 
-const amounts = ref<Record<number, string>>(
-    Object.fromEntries(
-        [runningExpense, overPlanExpense].map((row) => [
-            row.category_id,
-            minorUnitsToMoneyInput(row.plan_minor_units),
-        ]),
-    ),
-);
+function monthUrl(month: number): string {
+    return `/dev/month-plan?month=${month}`;
+}
 
-function rowReading(row: MonthPlanItem): {
-    deviation: number | null;
-    overPlan: boolean;
+const stateMatrix: { state: string; where: string }[] = [
+    {
+        state: 'default',
+        where: 'Każda sekcja poniżej: wiersz tytułu z odznakami, pasek miesięcy z kropkami wszystkich stanów, panel miar (domyślny, ujemny, podgląd na żywo, końcowe, tempo w normie, wyprzedzające z notatką, bez procentu, przyszły miesiąc), tabela w odczycie i edycji, podsumowanie minionego miesiąca, pasek edycji i stany puste.',
+    },
+    {
+        state: 'hover',
+        where: 'Najedź na wiersze tabeli, miesiące w pasku, przyciski „Zatwierdź” i „Zmień plan”, przełączniki rodzaju i kierunku oraz wiersz zwijania jednorazowych.',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Sekcja „Fokus”: Tab przez pasek miesięcy, „Zmień plan”, pola `cell-input` w tabeli edycji, przełączniki i przyciski pasa edycji (na tle primary).',
+    },
+    {
+        state: 'disabled',
+        where: 'Sekcja „Wyłączone”: „Zatwierdź” z licznikiem błędnych kwot i „Zapisz zmiany” bez zmian; przełącznik rodzaju w trakcie zapisu w tabeli „Błędy”. „Zmień plan” znika przy `!can_change`, a komórka planu nie ma stanu wyłączonego: N/A.',
+    },
+    {
+        state: 'error',
+        where: 'Tabela „Błędy” (błędna kwota, błąd rodzaju, błąd klienta i serwera pola odkładania) oraz sekcja „Błędy w pasie edycji”.',
+    },
+    {
+        state: 'empty',
+        where: 'Sekcja „Stany puste” (brak budżetu, szkic, miesiąc bez planu; dwa pierwsze z akcją „Przejdź do budżetu”) i tabela „Pusta grupa”.',
+    },
+    {
+        state: 'loading',
+        where: 'Spinner na „Zatwierdź” i „Zapisz zmiany” (sekcja „Ładowanie”). Pasek miesięcy `aria-busy` wymaga nawigacji (kliknięcie miesiąca to prawdziwy GET), a strona dostaje propsy razem z nawigacją Inertia: N/A.',
+    },
+];
+
+function splitRows(reading: MonthPlanReading): {
+    incomeRows: MonthPlanItem[];
+    expenseRows: MonthPlanItem[];
+    idleRows: MonthPlanItem[];
 } {
     return {
-        deviation: row.deviation_minor_units,
-        overPlan: row.is_over_plan,
+        incomeRows: reading.income_items,
+        expenseRows: reading.expense_items.filter(
+            (row) => !row.is_idle_one_off,
+        ),
+        idleRows: reading.expense_items.filter((row) => row.is_idle_one_off),
     };
 }
 
-const contractKinds = [
-    { value: 'current', label: 'Bieżący' },
-    { value: 'bill', label: 'Rachunek' },
+type TableConfig = {
+    key: string;
+    caption: string;
+    editable: boolean;
+    incomeRows: MonthPlanItem[];
+    expenseRows: MonthPlanItem[];
+    idleRows: MonthPlanItem[];
+    amountInputs: Record<number, string>;
+    invalidIds: number[];
+    kindErrorId: number | null;
+    kindPendingId: number | null;
+    yearStale: boolean;
+    setAsideMinorUnits: number | null;
+    showSetAside: boolean;
+    flagged: boolean;
+    serverError?: string;
+    idleOpen: boolean;
+    direction: SetAsideDirection;
+    setAsideInput: string;
+};
+
+function inputsFor(reading: MonthPlanReading): Record<number, string> {
+    return Object.fromEntries(
+        [...reading.income_items, ...reading.expense_items].map((row) => [
+            row.category_id,
+            minorUnitsToMoneyInput(row.plan_minor_units),
+        ]),
+    );
+}
+
+function tableConfig(
+    key: string,
+    caption: string,
+    reading: MonthPlanReading,
+    overrides: Partial<TableConfig> = {},
+): TableConfig {
+    const setAside = reading.set_aside_minor_units;
+
+    return {
+        key,
+        caption,
+        editable: false,
+        ...splitRows(reading),
+        amountInputs: inputsFor(reading),
+        invalidIds: [],
+        kindErrorId: null,
+        kindPendingId: null,
+        yearStale: false,
+        setAsideMinorUnits: setAside,
+        showSetAside: reading.summary === null,
+        flagged: false,
+        idleOpen: false,
+        direction: setAside < 0 ? 'draw' : 'set_aside',
+        setAsideInput: minorUnitsToMoneyInput(Math.abs(setAside)),
+        ...overrides,
+    };
+}
+
+const tables = reactive<TableConfig[]>([
+    tableConfig(
+        'read',
+        'Odczyt, bieżący zatwierdzony (linia „W roku”, „Zatwierdzono: X”, jednorazowe zwinięte)',
+        approvedReading,
+    ),
+    tableConfig(
+        'read-open',
+        'Odczyt, jednorazowe rozwinięte, odkładanie w kierunku „Dobieram”',
+        negativeDrawReading,
+        { idleOpen: true },
+    ),
+    tableConfig(
+        'edit',
+        'Edycja (pola `cell-input`, linia „W roku” nieaktualna, odkładanie z przełącznikiem)',
+        approvedReading,
+        { editable: true, yearStale: true, idleOpen: true },
+    ),
+    tableConfig(
+        'edit-errors',
+        'Błędy (błędna kwota, błąd rodzaju, odkładanie nieczytelne z błędem serwera, rodzaj w zapisie)',
+        approvedReading,
+        {
+            editable: true,
+            invalidIds: [runningExpense.category_id],
+            kindErrorId: lockedKindExpense.category_id,
+            kindPendingId: paidBill.category_id,
+            flagged: true,
+            setAsideMinorUnits: null,
+            setAsideInput: 'abc',
+            serverError: 'Kwota odkładania jest niepoprawna.',
+            idleOpen: true,
+        },
+    ),
+    tableConfig(
+        'past',
+        'Miniony miesiąc z podsumowaniem (bez wiersza odkładania)',
+        pastReading,
+    ),
+    tableConfig(
+        'empty',
+        'Pusta grupa (dochody i wydatki bez pozycji)',
+        approvedReading,
+        { incomeRows: [], expenseRows: [], idleRows: [] },
+    ),
+]);
+
+function stateOf(
+    config: TableConfig,
+): (row: MonthPlanItem) => MonthPlanRowState {
+    return (row) => ({
+        deviation: row.deviation_minor_units,
+        overPlan: row.is_over_plan,
+        yearStale: config.yearStale,
+        invalid: config.invalidIds.includes(row.category_id),
+        kindError:
+            config.kindErrorId === row.category_id
+                ? 'Nie udało się zapisać rodzaju pozycji.'
+                : undefined,
+    });
+}
+
+const statPanels: {
+    key: string;
+    caption: string;
+    toSpend: number;
+    income: number;
+    expense: number;
+    label: 'live' | 'final' | 'default';
+    reading: MonthPlanReading;
+}[] = [
+    {
+        key: 'default',
+        caption: 'Domyślny, tempo w normie',
+        toSpend: 120_000,
+        income: 500_000,
+        expense: 380_000,
+        label: 'default',
+        reading: approvedReading,
+    },
+    {
+        key: 'negative',
+        caption: 'Ujemne Do wydania',
+        toSpend: -45_000,
+        income: 500_000,
+        expense: 545_000,
+        label: 'default',
+        reading: approvedReading,
+    },
+    {
+        key: 'live',
+        caption: 'Podgląd na żywo (edycja)',
+        toSpend: 95_000,
+        income: 500_000,
+        expense: 405_000,
+        label: 'live',
+        reading: approvedReading,
+    },
+    {
+        key: 'final',
+        caption: 'Końcowe (miniony miesiąc)',
+        toSpend: 130_000,
+        income: 520_000,
+        expense: 390_000,
+        label: 'final',
+        reading: pastReading,
+    },
+    {
+        key: 'ahead',
+        caption: 'Tempo wyprzedzające, z notatką',
+        toSpend: 120_000,
+        income: 500_000,
+        expense: 380_000,
+        label: 'default',
+        reading: approvedAheadReading,
+    },
+    {
+        key: 'no-pace',
+        caption: 'Bez planu bieżących (procent null)',
+        toSpend: 120_000,
+        income: 500_000,
+        expense: 380_000,
+        label: 'default',
+        reading: approvedNoPaceReading,
+    },
+    {
+        key: 'future',
+        caption: 'Przyszły miesiąc (brak tempa)',
+        toSpend: 120_000,
+        income: 500_000,
+        expense: 380_000,
+        label: 'default',
+        reading: futureProposalReading,
+    },
 ];
-const primaryValue = ref('current');
-const neutralValue = ref('bill');
-const disabledValue = ref('current');
+
+function paceOf(reading: MonthPlanReading): {
+    percent: number | null;
+    isAhead: boolean;
+    elapsedDay: number;
+    daysInMonth: number;
+} | null {
+    const pace = reading.month_pace;
+
+    return pace === null
+        ? null
+        : {
+              percent: pace.percent,
+              isAhead: pace.is_ahead,
+              elapsedDay: pace.elapsed_day,
+              daysInMonth: pace.days_in_month,
+          };
+}
+
+const stripMonth = ref(11);
 </script>
 
 <template>
     <Head title="Kitchen sink: plan miesiąca" />
 
-    <div class="flex flex-1 flex-col gap-6 p-4 md:gap-8">
-        <header class="space-y-1">
-            <h1 class="text-lg font-semibold">Kitchen sink: plan miesiąca</h1>
+    <div class="flex flex-1 flex-col gap-8 p-4 md:gap-10">
+        <header class="flex flex-col gap-1">
+            <h1 class="page-title">Kitchen sink: plan miesiąca</h1>
             <p class="text-muted-foreground text-sm">
-                Strona deweloperska (tylko APP_ENV=local). Pokazuje części
-                widoku /month-plan z danych testowych.
+                Strona deweloperska (tylko APP_ENV=local). Prawdziwe komponenty
+                widoku /month-plan z fiksur
+                (resources/js/lib/month-plan-fixtures.ts). Nic się nie zapisuje.
             </p>
         </header>
 
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">Wiersze: odczyt</h2>
-            <ListSurface :title="t.month_plan.income_table">
-                <MonthPlanItemRow
-                    v-for="row in incomeRows"
-                    :key="row.category_id"
-                    :row="row"
-                    :editable="false"
-                    :deviation="rowReading(row).deviation"
-                    :over-plan="rowReading(row).overPlan"
-                />
-            </ListSurface>
-            <ListSurface :title="t.month_plan.expense_table">
-                <div class="month-plan-grid border-border/60 border-b pb-2.5">
-                    <span class="column-header">
-                        {{ t.month_plan.category }}
+        <section class="flex flex-col gap-3" aria-labelledby="mp-matrix">
+            <h2 id="mp-matrix" class="section-title">Macierz stanów</h2>
+            <ul class="flex flex-col gap-2 text-sm">
+                <li v-for="entry in stateMatrix" :key="entry.state">
+                    <span class="font-medium">{{ entry.state }}:</span>
+                    <span class="text-muted-foreground">
+                        {{ entry.where }}
                     </span>
-                    <span class="column-header hidden sm:block">
-                        {{ t.month_plan.kind_column }}
-                    </span>
-                    <span class="column-header text-right">
-                        {{ t.month_plan.plan }}
-                    </span>
-                    <span class="column-header text-right">
-                        {{ t.month_plan.actual }}
-                    </span>
-                    <span class="column-header hidden text-right lg:block">
-                        {{ t.month_plan.deviation }}
-                    </span>
-                </div>
-                <MonthPlanItemRow
-                    v-for="row in expenseRows"
-                    :key="row.category_id"
-                    :row="row"
-                    :editable="false"
-                    :deviation="rowReading(row).deviation"
-                    :over-plan="rowReading(row).overPlan"
-                />
-            </ListSurface>
+                </li>
+            </ul>
         </section>
 
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">Wiersze: edycja</h2>
-            <ListSurface :title="t.month_plan.expense_table">
-                <MonthPlanItemRow
-                    v-for="row in [runningExpense, overPlanExpense]"
-                    :key="row.category_id"
-                    v-model="amounts[row.category_id]"
-                    :row="row"
-                    :editable="true"
-                    :deviation="rowReading(row).deviation"
-                    :over-plan="rowReading(row).overPlan"
-                />
-            </ListSurface>
-        </section>
-
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">Wiersz tytułu</h2>
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-lg font-semibold capitalize">
-                        czerwiec 2026
-                    </h3>
-                    <Badge variant="secondary">
-                        {{ t.month_plan.state_approved }}
-                    </Badge>
-                </div>
-                <Button type="button">{{ t.month_plan.change }}</Button>
+        <section class="flex flex-col gap-3" aria-labelledby="mp-title">
+            <h2 id="mp-title" class="section-title">Wiersz tytułu</h2>
+            <p class="meta text-muted-foreground">
+                Trzy odznaki stanu i akcje „Zatwierdź” oraz „Zmień plan”.
+                Miesiąc bez planu ma tytuł bez odznaki.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+                <Badge variant="brand">{{ t.month_plan.state_approved }}</Badge>
+                <Badge variant="warning">
+                    {{ t.month_plan.state_proposal }}
+                </Badge>
+                <Badge variant="outline">{{ t.month_plan.state_final }}</Badge>
             </div>
-            <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="page-title">
+                            {{
+                                t.month_plan.title_with_month.replace(
+                                    ':month',
+                                    'listopad 2026',
+                                )
+                            }}
+                        </h3>
+                        <Badge variant="warning">
+                            {{ t.month_plan.state_proposal }}
+                        </Badge>
+                    </div>
+                    <p class="meta text-muted-foreground">
+                        {{ t.month_plan.proposal_hint }}
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-3">
+                    <Button type="button" variant="brand">
+                        <Check aria-hidden="true" />
+                        {{ t.month_plan.approve }}
+                    </Button>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="page-title">
+                            {{
+                                t.month_plan.title_with_month.replace(
+                                    ':month',
+                                    'listopad 2026',
+                                )
+                            }}
+                        </h3>
+                        <Badge variant="brand">
+                            {{ t.month_plan.state_approved }}
+                        </Badge>
+                    </div>
+                    <p class="meta text-muted-foreground">
+                        {{ t.month_plan.approved_hint }}
+                    </p>
+                </div>
+                <Button type="button" variant="outline">
+                    <Pencil aria-hidden="true" />
+                    {{ t.month_plan.change }}
+                </Button>
+            </div>
+            <div class="space-y-1">
                 <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="text-lg font-semibold capitalize">
-                        lipiec 2026
+                    <h3 class="page-title">
+                        {{
+                            t.month_plan.title_with_month.replace(
+                                ':month',
+                                'wrzesień 2026',
+                            )
+                        }}
                     </h3>
                     <Badge variant="outline">
-                        {{ t.month_plan.state_proposal }}
+                        {{ t.month_plan.state_final }}
                     </Badge>
                 </div>
+                <p class="meta text-muted-foreground">
+                    {{ t.month_plan.approved_past_hint }}
+                </p>
             </div>
         </section>
 
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">Pasek edycji</h2>
-            <p class="text-muted-foreground text-sm">
-                W widoku pasek jest przyklejony do dołu ekranu.
+        <section class="flex flex-col gap-3" aria-labelledby="mp-strip">
+            <h2 id="mp-strip" class="section-title">Pasek miesięcy</h2>
+            <p class="meta text-muted-foreground">
+                Kropki: styczeń i luty podsumowanie, marzec zatwierdzony,
+                kwiecień i maj propozycja, czerwiec bez planu. Kliknięcie
+                miesiąca wykonuje prawdziwy GET i przeładowuje sink.
             </p>
-            <MonthPlanEditBar :processing="false" :can-submit="true" />
-            <MonthPlanEditBar :processing="false" :can-submit="true" />
+            <BudgetMonthPicker
+                :budget-year="2026"
+                :viewed-month="stripMonth"
+                :month-url="monthUrl"
+                :month-states="allMonthStates"
+            />
         </section>
 
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">Kontrakt: SegmentedControl</h2>
-            <p class="text-muted-foreground text-sm">
-                Tab: jeden przystanek na przełącznik. Strzałki, Home i End
-                zmieniają fokus, Spacja i Enter wybierają. Kliknięcie aktywnej
-                opcji jej nie odznacza. Najedź, by zobaczyć hover.
-            </p>
-            <div class="flex flex-wrap items-center gap-6">
-                <div class="space-y-1">
-                    <p class="table-header">primary</p>
-                    <SegmentedControl
-                        v-model="primaryValue"
-                        :options="contractKinds"
-                        ariaLabel="Ton primary"
-                        tone="primary"
-                    />
-                </div>
-                <div class="space-y-1">
-                    <p class="table-header">neutral</p>
-                    <SegmentedControl
-                        v-model="neutralValue"
-                        :options="contractKinds"
-                        ariaLabel="Ton neutral"
-                        tone="neutral"
-                    />
-                </div>
-                <div class="space-y-1">
-                    <p class="table-header">disabled</p>
-                    <SegmentedControl
-                        v-model="disabledValue"
-                        :options="contractKinds"
-                        ariaLabel="Wyłączony"
-                        disabled
-                    />
-                </div>
+        <section class="flex flex-col gap-3" aria-labelledby="mp-stats">
+            <h2 id="mp-stats" class="section-title">Panel miar</h2>
+            <div
+                v-for="panel in statPanels"
+                :key="panel.key"
+                class="flex flex-col gap-2"
+            >
+                <p class="table-header">{{ panel.caption }}</p>
+                <MonthPlanStatPanel
+                    :to-spend-minor-units="panel.toSpend"
+                    :income-minor-units="panel.income"
+                    :expense-minor-units="panel.expense"
+                    :to-spend-label="panel.label"
+                    :pace="paceOf(panel.reading)"
+                />
             </div>
-            <p class="text-muted-foreground text-xs">
-                Wartości: primary={{ primaryValue }}, neutral={{ neutralValue }}
-            </p>
         </section>
 
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">
-                Kontrakt: .month-plan-grid i .column-header
+        <section class="flex flex-col gap-3" aria-labelledby="mp-summary">
+            <h2 id="mp-summary" class="section-title">
+                Podsumowanie minionego miesiąca
             </h2>
-            <ListSurface :title="t.month_plan.expense_table">
-                <div class="month-plan-grid border-border/60 border-b pb-2.5">
-                    <span class="column-header">
-                        {{ t.month_plan.category }}
-                    </span>
-                    <span class="column-header text-right">
-                        {{ t.month_plan.plan }}
-                    </span>
-                    <span class="column-header text-right">
-                        {{ t.month_plan.actual }}
-                    </span>
-                    <span class="column-header hidden text-right lg:block">
-                        {{ t.month_plan.deviation }}
-                    </span>
-                </div>
-                <div
-                    class="month-plan-grid border-border/60 items-center border-b py-3"
-                >
-                    <span class="min-w-0 text-sm">
-                        Bardzo długa nazwa kategorii, która musi się zawinąć bez
-                        rozpychania kolumn z kwotami
-                    </span>
-                    <span class="text-right text-sm tabular-nums">
-                        1 234,56 zł
-                    </span>
-                    <span class="text-right text-sm tabular-nums">
-                        999,00 zł
-                    </span>
-                    <span
-                        class="hidden text-right text-sm tabular-nums lg:block"
-                    >
-                        235,56 zł
-                    </span>
-                </div>
-            </ListSurface>
-            <ListSurface :title="t.month_plan.expense_table">
-                <div class="month-plan-grid border-border/60 border-b pb-2.5">
-                    <span class="column-header">
-                        {{ t.month_plan.category }}
-                    </span>
-                    <span class="column-header hidden sm:block">
-                        {{ t.month_plan.kind }}
-                    </span>
-                    <span class="column-header text-right">
-                        {{ t.month_plan.plan }}
-                    </span>
-                    <span class="column-header text-right">
-                        {{ t.month_plan.actual }}
-                    </span>
-                    <span class="column-header hidden text-right lg:block">
-                        {{ t.month_plan.deviation }}
-                    </span>
-                </div>
-                <div
-                    class="month-plan-grid border-border/60 items-center border-b py-3"
-                >
-                    <span class="min-w-0 text-sm">
-                        Bardzo długa nazwa kategorii, która musi się zawinąć bez
-                        rozpychania kolumn z kwotami i rodzajem
-                    </span>
-                    <span class="hidden sm:block">
-                        <SegmentedControl
-                            v-model="primaryValue"
-                            :options="contractKinds"
-                            ariaLabel="Rodzaj"
-                            tone="neutral"
-                        />
-                    </span>
-                    <span class="text-right text-sm tabular-nums">
-                        1 234,56 zł
-                    </span>
-                    <span class="text-right text-sm tabular-nums">
-                        999,00 zł
-                    </span>
-                    <span
-                        class="hidden text-right text-sm tabular-nums lg:block"
-                    >
-                        235,56 zł
-                    </span>
-                </div>
-            </ListSurface>
+            <MonthSummaryCard :summary="pastSummary" />
         </section>
 
-        <section class="space-y-3">
-            <h2 class="text-base font-medium">Puste stany</h2>
+        <section
+            v-for="config in tables"
+            :key="config.key"
+            class="flex flex-col gap-3"
+            :aria-labelledby="`mp-table-${config.key}`"
+        >
+            <h2 :id="`mp-table-${config.key}`" class="section-title">
+                Tabela: {{ config.caption }}
+            </h2>
+            <MonthPlanTable
+                v-model:idle-open="config.idleOpen"
+                v-model:set-aside-direction="config.direction"
+                v-model:set-aside-input="config.setAsideInput"
+                :income-rows="config.incomeRows"
+                :expense-rows="config.expenseRows"
+                :idle-rows="config.idleRows"
+                :editable="config.editable"
+                :amount-inputs="config.amountInputs"
+                :row-state="stateOf(config)"
+                :kind-pending-category-id="config.kindPendingId"
+                :year-totals="yearTotals"
+                :year-totals-stale="{
+                    income: config.yearStale,
+                    expense: config.yearStale,
+                }"
+                :set-aside-minor-units="config.setAsideMinorUnits"
+                :show-set-aside="config.showSetAside"
+                :set-aside-flagged="config.flagged"
+                :set-aside-error="config.serverError"
+                @update-amount="
+                    (id: number, value: string) =>
+                        (config.amountInputs[id] = value)
+                "
+                @amount-blur="noop"
+                @change-kind="noop"
+                @set-aside-blur="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-draw">
+            <h2 id="mp-draw" class="section-title">
+                Notatka o dobieraniu ponad płynność
+            </h2>
+            <Alert variant="note">
+                <AlertTriangle aria-hidden="true" />
+                <AlertDescription>
+                    {{
+                        t.month_plan.draw_warning
+                            .replace(':draw', '6 000,00 zł')
+                            .replace(':liquidity', '5 000,00 zł')
+                    }}
+                </AlertDescription>
+            </Alert>
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-editbar">
+            <h2 id="mp-editbar" class="section-title">Pasek edycji</h2>
+            <p class="meta text-muted-foreground">
+                Pas jest przyklejony do dołu przewijanego pudełka, tak jak do
+                dołu ekranu w widoku.
+            </p>
+            <div
+                class="border-border-soft h-72 overflow-y-auto rounded-lg border p-3"
+            >
+                <div class="flex flex-col gap-3">
+                    <p
+                        v-for="n in 12"
+                        :key="n"
+                        class="text-muted-foreground text-sm"
+                    >
+                        Wiersz wypełniający {{ n }}
+                    </p>
+                    <MonthPlanEditBar
+                        :processing="false"
+                        :can-submit="true"
+                        :invalid-count="0"
+                    />
+                    <p
+                        v-for="n in 6"
+                        :key="`after-${n}`"
+                        class="text-muted-foreground text-sm"
+                    >
+                        Wiersz za paskiem {{ n }}
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-focus">
+            <h2 id="mp-focus" class="section-title">Fokus</h2>
+            <p class="meta text-muted-foreground">
+                Przejdź klawiszem Tab przez przyciski; focus-visible ma być
+                widoczny także na pasie primary.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+                <Button type="button" variant="brand">
+                    <Check aria-hidden="true" />
+                    {{ t.month_plan.approve }}
+                </Button>
+                <Button type="button" variant="outline">
+                    <Pencil aria-hidden="true" />
+                    {{ t.month_plan.change }}
+                </Button>
+            </div>
+            <MonthPlanEditBar :processing="false" :can-submit="true" />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-disabled">
+            <h2 id="mp-disabled" class="section-title">Wyłączone</h2>
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="text-destructive text-sm">
+                    {{ t.month_plan.invalid_amounts.replace(':count', '2') }}
+                </span>
+                <Button type="button" variant="brand" disabled>
+                    <Check aria-hidden="true" />
+                    {{ t.month_plan.approve }}
+                </Button>
+            </div>
+            <MonthPlanEditBar :processing="false" :can-submit="false" />
+            <MonthPlanEditBar
+                :processing="false"
+                :can-submit="false"
+                :invalid-count="2"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-errors">
+            <h2 id="mp-errors" class="section-title">Błędy w pasie edycji</h2>
+            <MonthPlanEditBar
+                :processing="false"
+                :can-submit="false"
+                :invalid-count="1"
+                error="Dodaj co najmniej jedną pozycję planu."
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-loading">
+            <h2 id="mp-loading" class="section-title">Ładowanie</h2>
+            <div class="flex flex-wrap items-center gap-3">
+                <Button type="button" variant="brand" disabled>
+                    <Spinner />
+                    {{ t.month_plan.approve }}
+                </Button>
+            </div>
+            <MonthPlanEditBar :processing="true" :can-submit="true" />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="mp-empty">
+            <h2 id="mp-empty" class="section-title">Stany puste</h2>
             <IndexEmptyState
                 :title="t.month_plan.no_budget_title"
                 :description="t.month_plan.no_budget_description"
-            />
+            >
+                <template #actions>
+                    <Button as-child>
+                        <Link :href="budgetRoute()">
+                            {{ t.month_plan.go_to_budget }}
+                        </Link>
+                    </Button>
+                </template>
+            </IndexEmptyState>
             <IndexEmptyState
                 :title="t.month_plan.draft_title"
                 :description="t.month_plan.draft_description"
-            />
+            >
+                <template #actions>
+                    <Button as-child>
+                        <Link :href="budgetRoute()">
+                            {{ t.month_plan.go_to_budget }}
+                        </Link>
+                    </Button>
+                </template>
+            </IndexEmptyState>
             <IndexEmptyState
                 :title="t.month_plan.none_title"
                 :description="t.month_plan.none_description"
             />
-            <p class="text-muted-foreground py-6 text-center text-sm">
-                {{ t.month_plan.empty_list }}
-            </p>
-        </section>
-
-        <section class="space-y-6">
-            <h2 class="text-base font-medium">Macierz stanów</h2>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">default</h3>
-                <p class="text-muted-foreground text-xs">
-                    Wiersze odczytu i edycji, pasek edycji i wiersz tytułu:
-                    sekcje powyżej.
-                </p>
-            </section>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">hover</h3>
-                <p class="text-muted-foreground text-xs">
-                    Najedź na przełącznik, przycisk i wiersz zwijania
-                    jednorazowych.
-                </p>
-                <div class="flex flex-wrap items-center gap-4">
-                    <SegmentedControl
-                        v-model="neutralValue"
-                        :options="contractKinds"
-                        ariaLabel="Hover: przełącznik"
-                        tone="neutral"
-                    />
-                    <Button type="button">{{ t.month_plan.change }}</Button>
-                    <Button type="button" variant="outline">
-                        {{ t.month_plan.cancel }}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        class="gap-2 px-0 hover:bg-transparent"
-                    >
-                        <span class="text-sm font-medium">
-                            {{ t.month_plan.idle_one_offs }}
-                        </span>
-                        <Badge variant="secondary">1</Badge>
-                    </Button>
-                </div>
-            </section>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">focus-visible</h3>
-                <p class="text-muted-foreground text-xs">
-                    Przejdź klawiszem Tab przez przełącznik, pole kwoty i
-                    przyciski paska.
-                </p>
-                <div class="flex flex-wrap items-center gap-4">
-                    <SegmentedControl
-                        v-model="neutralValue"
-                        :options="contractKinds"
-                        ariaLabel="Fokus: przełącznik"
-                        tone="neutral"
-                    />
-                    <Input
-                        v-model="focusAmount"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        aria-label="Fokus: kwota"
-                        class="w-40 text-right tabular-nums"
-                    />
-                </div>
-                <MonthPlanEditBar :processing="false" :can-submit="true" />
-            </section>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">disabled</h3>
-                <p class="text-muted-foreground text-xs">
-                    Przycisk paska przy błędnej kwocie z podpisem liczby i
-                    przełącznik rodzaju w czasie zapisu.
-                </p>
-                <MonthPlanEditBar
-                    :processing="false"
-                    :can-submit="false"
-                    :invalid-count="1"
-                />
-                <ListSurface :title="t.month_plan.expense_table">
-                    <MonthPlanItemRow
-                        :row="runningExpense"
-                        :editable="true"
-                        :deviation="runningExpense.deviation_minor_units"
-                        :over-plan="false"
-                        :kind-pending="true"
-                        model-value="2000,00"
-                    />
-                </ListSurface>
-            </section>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">error</h3>
-                <p class="text-muted-foreground text-xs">
-                    Pole kwoty z aria-invalid i komunikatem, pole odkładania,
-                    błąd rodzaju w wierszu i błąd listy w pasku.
-                </p>
-                <ListSurface :title="t.month_plan.expense_table">
-                    <MonthPlanItemRow
-                        :row="runningExpense"
-                        :editable="true"
-                        :deviation="null"
-                        :over-plan="false"
-                        :invalid="true"
-                        :kind-error="'Nie udało się zapisać rodzaju pozycji.'"
-                        model-value="12,3,4"
-                    />
-                </ListSurface>
-                <div class="grid gap-1">
-                    <Input
-                        v-model="invalidSetAside"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        :aria-label="t.month_plan.set_aside_amount"
-                        aria-invalid="true"
-                        aria-describedby="sink-set-aside-error"
-                        class="w-40 text-right tabular-nums"
-                    />
-                    <InputError
-                        id="sink-set-aside-error"
-                        :message="t.month_plan.amount_invalid"
-                    />
-                </div>
-                <MonthPlanEditBar
-                    :processing="false"
-                    :can-submit="false"
-                    :invalid-count="2"
-                    error="Dodaj co najmniej jedną pozycję planu."
-                />
-            </section>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">empty</h3>
-                <p class="text-muted-foreground text-xs">
-                    Puste stany: sekcja „Puste stany” powyżej (brak budżetu,
-                    szkic, miniony bez planu i „Brak pozycji w tym miesiącu”).
-                </p>
-            </section>
-
-            <section class="space-y-2">
-                <h3 class="text-sm font-medium">loading</h3>
-                <p class="text-muted-foreground text-xs">
-                    Przełącznik rodzaju ze Spinner (wyżej, w „disabled”) i pasek
-                    z processing. Zmiana miesiąca to nawigacja Inertia z paskiem
-                    postępu, a propsy przychodzą w całości: brak skeletonu i
-                    przeskoku układu, więc N/A.
-                </p>
-                <MonthPlanEditBar :processing="true" :can-submit="true" />
-            </section>
         </section>
     </div>
 </template>

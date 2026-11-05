@@ -575,30 +575,30 @@ Bez migracji danych. Propsy tylko przybywają; formularze zatwierdzenia i zmiany
 
 #### Automated
 
-- [x] 4.1 build, types:check, check, check:ui z nowymi plikami i npm test przechodzą
-- [x] 4.2 composer ci:check w obrazie Sail i testy Planu miesiąca na PostgreSQL przechodzą
-- [x] 4.3 grep section-label i MonthPaceMeter nic nie zwraca
-- [x] 4.4 sloppy ci bez nowych znalezisk
-- [x] 4.5 pint --dirty bez zmian do zrobienia
+- [x] 4.1 build, types:check, check, check:ui z nowymi plikami i npm test przechodzą — 351a992
+- [x] 4.2 composer ci:check w obrazie Sail i testy Planu miesiąca na PostgreSQL przechodzą — 351a992
+- [x] 4.3 grep section-label i MonthPaceMeter nic nie zwraca — 351a992
+- [x] 4.4 sloppy ci bez nowych znalezisk — 351a992
+- [x] 4.5 pint --dirty bez zmian do zrobienia — 351a992
 
 #### Manual
 
-- [x] 4.6 /month-plan w czterech stanach zgodny z mockupem w obu motywach przy 1280 i 390 px
-- [x] 4.7 Zatwierdzenie z wiersza tytułu działa myszą i klawiaturą, błędna kwota blokuje
-- [x] 4.8 Pas edycji u dołu, Zapisz i Anuluj działają, zmiana rodzaju działa
-- [x] 4.9 Notatka o dobieraniu i miary reagują na wpisywanie
-- [x] 4.10 Na 390 px brak poziomego przewijania strony
+- [x] 4.6 /month-plan w czterech stanach zgodny z mockupem w obu motywach przy 1280 i 390 px — 351a992
+- [x] 4.7 Zatwierdzenie z wiersza tytułu działa myszą i klawiaturą, błędna kwota blokuje — 351a992
+- [x] 4.8 Pas edycji u dołu, Zapisz i Anuluj działają, zmiana rodzaju działa — 351a992
+- [x] 4.9 Notatka o dobieraniu i miary reagują na wpisywanie — 351a992
+- [x] 4.10 Na 390 px brak poziomego przewijania strony — 351a992
 
 ### Phase 5: Stany i bramka wizualna
 
 #### Automated
 
-- [ ] 5.1 build, types:check, check, check:ui z sinkiem i npm test przechodzą
-- [ ] 5.2 composer ci:check przechodzi w obrazie Sail
-- [ ] 5.3 sloppy ci bez nowych znalezisk
+- [x] 5.1 build, types:check, check, check:ui z sinkiem i npm test przechodzą
+- [x] 5.2 composer ci:check przechodzi w obrazie Sail
+- [x] 5.3 sloppy ci bez nowych znalezisk
 
 #### Manual
 
-- [ ] 5.4 Macierz 7 stanów w sinku kompletna, zrzuty w obu motywach przy 1280 i 390 px
-- [ ] 5.5 Focus-visible i kontrast na brand i pasie w obu motywach
-- [ ] 5.6 Użytkownik akceptuje widok względem mockupu
+- [x] 5.4 Macierz 7 stanów w sinku kompletna, zrzuty w obu motywach przy 1280 i 390 px
+- [x] 5.5 Focus-visible i kontrast na brand i pasie w obu motywach
+- [x] 5.6 Użytkownik akceptuje widok względem mockupu
