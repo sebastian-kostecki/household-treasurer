@@ -21,7 +21,7 @@ const emit = defineEmits<{
             v-for="icon in icons"
             :key="icon"
             type="button"
-            class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex size-9 items-center justify-center rounded-lg border-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            class="hover:bg-foreground/[0.04] focus-visible:outline-ring flex size-9 items-center justify-center rounded-lg border-2 transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid"
             :class="
                 modelValue === icon ? 'border-foreground' : 'border-transparent'
             "

@@ -426,31 +426,31 @@ Brak migracji danych. Zmiana prymitywów obejmuje 16 konsumentów `ui/dialog`; o
 
 #### Automated
 
-- [x] 1.1 Test tokenów zielony: `./vendor/bin/sail artisan test --compact tests/Unit/DesignTokensTest.php`
-- [x] 1.2 Formatowanie i statyka frontu: `npm run check`
+- [x] 1.1 Test tokenów zielony: `./vendor/bin/sail artisan test --compact tests/Unit/DesignTokensTest.php` — 243caaa
+- [x] 1.2 Formatowanie i statyka frontu: `npm run check` — 243caaa
 
 #### Manual
 
-- [x] 1.3 ADR-0040 i `design-system.md` opisują wszystkie decyzje z `research.md` „Decisions” oraz odpowiedzi z planowania (hover `outline`, wyłączony przycisk, deficyt jako `warning`, usunięcie `DialogScrollContent`)
+- [x] 1.3 ADR-0040 i `design-system.md` opisują wszystkie decyzje z `research.md` „Decisions” oraz odpowiedzi z planowania (hover `outline`, wyłączony przycisk, deficyt jako `warning`, usunięcie `DialogScrollContent`) — 243caaa
 
 ### Phase 2: Prymitywy globalnie i sink dialogów
 
 #### Automated
 
-- [ ] 2.1 Test sinka zielony: `./vendor/bin/sail artisan test --compact tests/Feature/DialogsKitchenSinkTest.php`
-- [ ] 2.2 Brak starego fokusu: `grep -rE 'ring-\[3px\]|ring-3|ring-ring/50' resources/js resources/css` nic nie zwraca
-- [ ] 2.3 Typy i statyka: `npm run build && npm run types:check && npm run check`
-- [ ] 2.4 Testy frontu: `npm test`
-- [ ] 2.5 Sloppy bez nowych zgłoszeń: `vendor/bin/sloppy ci`
-- [ ] 2.6 Pint: `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 Test sinka zielony: `./vendor/bin/sail artisan test --compact tests/Feature/DialogsKitchenSinkTest.php`
+- [x] 2.2 Brak starego fokusu: `grep -rE 'ring-\[3px\]|ring-3|ring-ring/50' resources/js resources/css` nic nie zwraca
+- [x] 2.3 Typy i statyka: `npm run build && npm run types:check && npm run check`
+- [x] 2.4 Testy frontu: `npm test`
+- [x] 2.5 Sloppy bez nowych zgłoszeń: `vendor/bin/sloppy ci`
+- [x] 2.6 Pint: `vendor/bin/pint --dirty --format agent`
 
 #### Manual
 
-- [ ] 2.7 `/dev/ui/dialogs` w obu motywach: okno 460 px, `radius-xl`, cień, nakładka `scrim`, tytuł do lewej przy 390 px, stopka z ramką na całą szerokość także w `AccountFormDialog`
-- [ ] 2.8 Fokus klawiaturą: przycisk ma obrys z odstępem, pole obrys bez odstępu; X dialogu ma widoczny fokus
-- [ ] 2.9 „Zapis w toku” w `ConfirmActionDialog` (trasa `validate`): spinner, X ukryty, `Esc` nie zamyka
-- [ ] 2.10 Przycisk `outline` na stronie Budżetu („Dodaj kategorię”) i w Operacjach wygląda poprawnie w obu motywach; wyłączony przycisk ma `muted`
-- [ ] 2.11 `TwoFactorSetupModal`, `PasskeyItem` i `DeleteUser` (ustawienia) mają poprawną stopkę i szerokość
+- [x] 2.7 `/dev/ui/dialogs` w obu motywach: okno 460 px, `radius-xl`, cień, nakładka `scrim`, tytuł do lewej przy 390 px, stopka z ramką na całą szerokość także w `AccountFormDialog`
+- [x] 2.8 Fokus klawiaturą: przycisk ma obrys z odstępem, pole obrys bez odstępu; X dialogu ma widoczny fokus
+- [x] 2.9 „Zapis w toku” w `ConfirmActionDialog` (trasa `validate`): spinner, X ukryty, `Esc` nie zamyka
+- [x] 2.10 Przycisk `outline` na stronie Budżetu („Dodaj kategorię”) i w Operacjach wygląda poprawnie w obu motywach; wyłączony przycisk ma `muted`
+- [x] 2.11 `TwoFactorSetupModal`, `PasskeyItem` i `DeleteUser` (ustawienia) mają poprawną stopkę i szerokość
 
 ### Phase 3: Wspólne elementy pola
 

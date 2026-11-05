@@ -18,7 +18,7 @@ const emit = defineEmits<{
             v-for="color in colors"
             :key="color"
             type="button"
-            class="focus-visible:ring-ring size-8 rounded-lg border-2 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:outline-none"
+            class="focus-visible:outline-ring size-8 rounded-lg border-2 transition-transform outline-none hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid"
             :class="
                 modelValue === color
                     ? 'border-foreground'
