@@ -485,6 +485,7 @@ return [
         'title' => 'Operacje',
         'amount_invalid' => 'Wpisz kwotę, np. 1200,50.',
         'preview_label' => 'Skutek operacji',
+        'preview_before' => 'przed zapisem',
         'preview_after' => 'po zapisie',
         'preview_to_spend' => 'Do wydania w :month :year',
         'preview_category_limit' => 'Roczny limit kategorii',

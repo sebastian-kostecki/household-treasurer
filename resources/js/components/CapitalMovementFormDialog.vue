@@ -19,11 +19,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
 import type { AccountPickerOption } from '@/lib/account-identity';
-import {
-    minorUnitsToMoneyInput,
-    parseMoneyInputToMinorUnits,
-} from '@/lib/format';
+import { minorUnitsToMoneyInput } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import {
     buildOperationPreview,
@@ -106,17 +104,8 @@ const directionOptions = computed(() => [
     },
 ]);
 
-const parsedAmountMinorUnits = computed(() =>
-    parseMoneyInputToMinorUnits(amountInput.value),
-);
-const amountInvalid = computed(
-    () =>
-        parsedAmountMinorUnits.value === null ||
-        parsedAmountMinorUnits.value < 0,
-);
-const amountMinorUnits = computed(() =>
-    amountInvalid.value ? 0 : (parsedAmountMinorUnits.value ?? 0),
-);
+const { amountInvalid, amountMinorUnits, showPreview } =
+    useOperationAmountInput(amountInput);
 
 const warningPreview = computed(() => {
     if (accountId.value === '' || termDepositId.value === '') {
@@ -134,11 +123,6 @@ const warningPreview = computed(() => {
         });
     }
 
-    const originalSignedAccountEffect =
-        originalDirection.value === 'from_term_deposit'
-            ? originalAmountMinorUnits.value
-            : -originalAmountMinorUnits.value;
-
     return previewHandEntryWarnings({
         mode: props.mode,
         accounts: props.accounts,
@@ -150,7 +134,7 @@ const warningPreview = computed(() => {
                 ? {
                       account_id: originalAccountId.value,
                       term_deposit_id: originalTermDepositId.value,
-                      signed_amount_minor_units: originalSignedAccountEffect,
+                      signed_amount_minor_units: originalAmountMinorUnits.value,
                       direction: originalDirection.value,
                   }
                 : null,
@@ -192,10 +176,6 @@ const preview = computed(() => {
         },
     });
 });
-
-const showPreview = computed(
-    () => !amountInvalid.value && amountMinorUnits.value > 0,
-);
 
 watch(
     () => [props.open, props.mode, props.movement] as const,

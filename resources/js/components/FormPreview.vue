@@ -28,6 +28,9 @@ const visible = computed(
             <div class="flex items-baseline justify-between gap-3">
                 <span class="form-preview-label">{{ row.label }}</span>
                 <span class="form-preview-value">
+                    <span class="sr-only">{{
+                        t.operations.preview_before
+                    }}</span>
                     <span :class="amountToneClass(row.beforeMinorUnits)">{{
                         formatMoney(row.beforeMinorUnits)
                     }}</span>
@@ -44,6 +47,7 @@ const visible = computed(
             <p
                 v-for="warning in row.warnings"
                 :key="warning"
+                role="status"
                 class="form-preview-warning"
             >
                 {{ warning }}
@@ -52,6 +56,7 @@ const visible = computed(
         <p
             v-for="warning in warnings ?? []"
             :key="warning"
+            role="status"
             class="form-preview-warning"
         >
             {{ warning }}

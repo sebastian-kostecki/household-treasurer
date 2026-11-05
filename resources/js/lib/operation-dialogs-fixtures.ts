@@ -175,11 +175,11 @@ export const dialogHandEntryMonthRemaining: HandEntryMonthRemainingInputs = {
     budgets: [
         {
             year,
-            is_draft: true,
+            is_draft: false,
             categories: [
                 {
                     id: 1,
-                    is_paced: false,
+                    is_paced: true,
                     planned_amount_minor_units: 120000,
                     monthly_execution_minor_units: {},
                 },

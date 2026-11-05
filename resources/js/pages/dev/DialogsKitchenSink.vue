@@ -130,7 +130,10 @@ const entryToSpendWithoutPlan = {
     })),
 };
 
-/** Lokata -> konto ponad saldo małej lokaty (250,00 zł). */
+/**
+ * Lokata -> konto ponad saldo małej lokaty. Zapisany ruch (200,00 zł) jest już
+ * odjęty od salda 250,00 zł, więc ujemne saldo daje dopiero kwota ponad 450,00 zł.
+ */
 const negativeDepositMovement = {
     ...dialogCapitalMovement,
     direction: 'from_term_deposit' as const,
@@ -463,7 +466,7 @@ function setOpen(state: SinkState, value: boolean): void {
             :open="isOpen('capital-negative-deposit')"
             mode="edit"
             :movement="negativeDepositMovement"
-            initial-amount-input="300,00"
+            initial-amount-input="500,00"
             :accounts="dialogAccounts"
             :term-deposits="dialogTermDeposits"
             @update:open="setOpen('capital-negative-deposit', $event)"

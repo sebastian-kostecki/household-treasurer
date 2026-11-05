@@ -18,10 +18,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    minorUnitsToMoneyInput,
-    parseMoneyInputToMinorUnits,
-} from '@/lib/format';
+import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
+import { minorUnitsToMoneyInput } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import {
     buildOperationPreview,
@@ -81,17 +79,8 @@ const formBinding = computed(() => {
         : OwnTransferController.update.form(props.transfer ?? { id: 0 });
 });
 
-const parsedAmountMinorUnits = computed(() =>
-    parseMoneyInputToMinorUnits(amountInput.value),
-);
-const amountInvalid = computed(
-    () =>
-        parsedAmountMinorUnits.value === null ||
-        parsedAmountMinorUnits.value < 0,
-);
-const amountMinorUnits = computed(() =>
-    amountInvalid.value ? 0 : (parsedAmountMinorUnits.value ?? 0),
-);
+const { amountInvalid, amountMinorUnits, showPreview } =
+    useOperationAmountInput(amountInput);
 
 const bankAccounts = computed(() =>
     props.accounts.filter((account) => account.type === 'bank'),
@@ -159,10 +148,6 @@ const preview = computed(() => {
         },
     });
 });
-
-const showPreview = computed(
-    () => !amountInvalid.value && amountMinorUnits.value > 0,
-);
 
 watch(
     () => [props.open, props.mode, props.transfer] as const,
@@ -342,9 +327,8 @@ function closeDialog(): void {
                     id="transfer-raw-statement-description"
                     :label="t.operations.raw_statement_description"
                     group
-                    v-slot="{ labelId }"
                 >
-                    <p class="form-readonly-text" :aria-labelledby="labelId">
+                    <p class="form-readonly-text">
                         {{ rawStatementDescription }}
                     </p>
                 </FormField>

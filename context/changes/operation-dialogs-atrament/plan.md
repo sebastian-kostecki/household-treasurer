@@ -531,6 +531,14 @@ Zgodny z `design-system.md`.
 - Strona Operacji z otwartym dialogiem wydatku.
 - Jednorazowy Playwright z cache `~/.cache/ms-playwright`, bez dodawania zależności (przepis `context/changes/category-dialog-atrament/plan.md:364`).
 
+#### 9. Addendum po implementacji: znak korekty w edycji ruchu kapitału
+
+**File**: `resources/js/lib/hand-entry-warning-preview.ts`, `resources/js/lib/hand-entry-warning-preview.test.ts`
+
+**Intent**: Zapisać odstępstwo od zdania „flagi zachowują dzisiejsze wartości” z Fazy 2.
+
+**Contract**: Korekta edytowanego ruchu kapitału dostaje `-originalAccountSignedEffect` i `-originalTermDepositSignedEffect`. Zapisane saldo zawiera już efekt oryginalnej operacji, więc trzeba go cofnąć; poprzedni kod liczył go podwójnie i fałszował `showNegativeBalanceWarning` oraz `showTermDepositNegativeBalanceWarning` w edycji. Poprawka wylądowała w commicie 84358bf, ma testy w `hand-entry-warning-preview.test.ts` (edycja bez zmian → przed = po) i trafia do opisu PR. Stan sinka `capital-negative-deposit` wymaga przez to kwoty ponad 450,00 zł (lokata 250,00 zł plus cofnięte 200,00 zł).
+
 ### Success Criteria:
 
 #### Automated Verification:
