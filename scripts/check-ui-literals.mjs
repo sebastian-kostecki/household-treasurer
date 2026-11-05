@@ -73,6 +73,21 @@ const FILES = [
     'resources/js/components/OperationTypeTile.vue',
     'resources/js/components/CompactAccountIdentity.vue',
     'resources/js/components/SegmentedControl.vue',
+    'resources/js/components/CategoryFormDialog.vue',
+    'resources/js/components/FormField.vue',
+    'resources/js/components/CategoryColorPicker.vue',
+    'resources/js/components/CategoryIconPicker.vue',
+    'resources/js/components/InputError.vue',
+    'resources/js/pages/dev/DialogsKitchenSink.vue',
+    'resources/js/components/ui/dialog/Dialog.vue',
+    'resources/js/components/ui/dialog/DialogClose.vue',
+    'resources/js/components/ui/dialog/DialogContent.vue',
+    'resources/js/components/ui/dialog/DialogDescription.vue',
+    'resources/js/components/ui/dialog/DialogFooter.vue',
+    'resources/js/components/ui/dialog/DialogHeader.vue',
+    'resources/js/components/ui/dialog/DialogOverlay.vue',
+    'resources/js/components/ui/dialog/DialogTitle.vue',
+    'resources/js/components/ui/dialog/DialogTrigger.vue',
 ];
 
 const PALETTE =

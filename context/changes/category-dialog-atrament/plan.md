@@ -469,29 +469,29 @@ Brak migracji danych. Zmiana prymitywów obejmuje 16 konsumentów `ui/dialog`; o
 
 #### Automated
 
-- [x] 4.1 Testy kategorii i budżetu (payload): `./vendor/bin/sail artisan test --compact tests/Feature/BudgetTest.php tests/Feature/CategoryAppearanceTest.php tests/Feature/CategoryPacedFlagTest.php tests/Feature/CategoryMonthItemKindTest.php`
-- [x] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/CategoryFormDialog.vue resources/js/components/CreateBudgetDialog.vue resources/js/components/ConfirmActionDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue`
-- [x] 4.3 Typy i statyka: `npm run build && npm run types:check && npm run check`
-- [x] 4.4 Testy frontu: `npm test`
+- [x] 4.1 Testy kategorii i budżetu (payload): `./vendor/bin/sail artisan test --compact tests/Feature/BudgetTest.php tests/Feature/CategoryAppearanceTest.php tests/Feature/CategoryPacedFlagTest.php tests/Feature/CategoryMonthItemKindTest.php` — 12717cd
+- [x] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/CategoryFormDialog.vue resources/js/components/CreateBudgetDialog.vue resources/js/components/ConfirmActionDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue` — 12717cd
+- [x] 4.3 Typy i statyka: `npm run build && npm run types:check && npm run check` — 12717cd
+- [x] 4.4 Testy frontu: `npm test` — 12717cd
 
 #### Manual
 
-- [x] 4.5 Na stronie Budżetu: dodanie i edycja kategorii zapisują dane jak wcześniej, także w realizacji z zablokowanym typem
-- [x] 4.6 „12,345” i „abc” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”; poprawna kwota zapisuje się
-- [x] 4.7 Archiwizacja, przywrócenie, usunięcie kategorii, usunięcie budżetu i rozpoczęcie realizacji (z ostrzeżeniem o deficycie) działają i mają spinner oraz blokadę zamykania
-- [x] 4.8 Czytnik ekranu (lub drzewo dostępności w przeglądarce): pole kwoty ogłasza błąd, grupy Typ, Kolor, Ikona mają nazwę z etykiety, kolor to „Kolor N”
-- [x] 4.9 Fokus po otwarciu na pierwszym polu; `Esc` i „Anuluj” zamykają poza zapisem
+- [x] 4.5 Na stronie Budżetu: dodanie i edycja kategorii zapisują dane jak wcześniej, także w realizacji z zablokowanym typem — 12717cd
+- [x] 4.6 „12,345” i „abc” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”; poprawna kwota zapisuje się — 12717cd
+- [x] 4.7 Archiwizacja, przywrócenie, usunięcie kategorii, usunięcie budżetu i rozpoczęcie realizacji (z ostrzeżeniem o deficycie) działają i mają spinner oraz blokadę zamykania — 12717cd
+- [x] 4.8 Czytnik ekranu (lub drzewo dostępności w przeglądarce): pole kwoty ogłasza błąd, grupy Typ, Kolor, Ikona mają nazwę z etykiety, kolor to „Kolor N” — 12717cd
+- [x] 4.9 Fokus po otwarciu na pierwszym polu; `Esc` i „Anuluj” zamykają poza zapisem — 12717cd
 
 ### Phase 5: Straże, reguła i zrzuty
 
 #### Automated
 
-- [ ] 5.1 Straż literałów: `npm run check:ui`
-- [ ] 5.2 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts`
-- [ ] 5.3 Pełna bramka CI na PostgreSQL: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test composer ci:check`
-- [ ] 5.4 Sloppy: `vendor/bin/sloppy ci`
+- [x] 5.1 Straż literałów: `npm run check:ui`
+- [x] 5.2 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts`
+- [x] 5.3 Pełna bramka CI na PostgreSQL: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test composer ci:check`
+- [x] 5.4 Sloppy: `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 5.5 Zrzuty obejrzane: wszystkie stany sinka w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field)
-- [ ] 5.6 Reguła w `.ai/rules/js.md` zgodna z `design-system.md` i ADR-0040
+- [x] 5.5 Zrzuty obejrzane: wszystkie stany sinka w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field)
+- [x] 5.6 Reguła w `.ai/rules/js.md` zgodna z `design-system.md` i ADR-0040

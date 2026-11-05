@@ -26,6 +26,15 @@ const BUDGET_VIEW_FILES = [
     'components/BudgetCategoryAlignPlanAction.vue',
     'components/BudgetYearSwitcher.vue',
     'components/CreateBudgetDialog.vue',
+    'components/CategoryFormDialog.vue',
+    'components/CategoryColorPicker.vue',
+    'components/CategoryIconPicker.vue',
+];
+
+// Budget confirmations go through ConfirmActionDialog (ADR-0040).
+const BUDGET_CONFIRMATION_FILES = [
+    'pages/Budget.vue',
+    'components/BudgetCategoryRowActions.vue',
 ];
 
 // Dead reka-ui Checkbox bindings tracked in GitHub issue #186.
@@ -55,6 +64,18 @@ describe('ui contract', () => {
             const source = readFileSync(join(JS_ROOT, file), 'utf8');
 
             expect(source.match(HARDCODED)?.[0] ?? null).toBeNull();
+        },
+    );
+
+    it.each(BUDGET_CONFIRMATION_FILES)(
+        'does not build a hand-written confirmation dialog in %s',
+        (file) => {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(
+                /import[^;]*\bDialogContent\b/.test(source),
+                'use ConfirmActionDialog instead of Dialog + DialogContent',
+            ).toBe(false);
         },
     );
 

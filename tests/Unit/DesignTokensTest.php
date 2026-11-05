@@ -48,7 +48,6 @@ test('radius is 10px', function () {
     expect(designTokenBlocks()['root'])->toContain('--radius: 10px;');
 });
 
-
 test('the dialog shadow has a value in both themes and is published as shadow-dialog', function () {
     $blocks = designTokenBlocks();
 
