@@ -370,6 +370,43 @@
         @apply bg-muted rounded-md px-3 py-2 text-sm break-words whitespace-pre-line;
     }
 
+    /* Komórka planu na zwykłym <input> (mockup Atrament → Plan miesiąca, ADR-0042). */
+    .cell-input {
+        @apply amount border-input bg-card focus-visible:outline-ring aria-invalid:border-destructive h-7 w-full rounded-sm border px-2 text-right outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
+    /* Pas edycji planu: przyklejony do dołu widoku (ADR-0042). */
+    .month-plan-editbar {
+        @apply bg-primary text-primary-foreground sticky bottom-0 z-10 flex flex-wrap items-center gap-3 rounded-lg px-4 py-2;
+    }
+
+    .month-plan-editbar [data-slot='button'][class*='hover:bg-accent'] {
+        @apply text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground;
+    }
+
+    /* Kropka stanu miesiąca pod etykietą w pasku miesięcy. */
+    .month-strip-dot {
+        @apply size-1 rounded-full;
+    }
+
+    .month-strip-dot-summary {
+        @apply bg-muted-foreground;
+    }
+
+    .month-strip-dot-approved {
+        @apply bg-brand-text;
+    }
+
+    .month-strip-dot-proposal {
+        @apply bg-warning;
+    }
+
+    /* Panel podsumowania minionego miesiąca: etykieta + 4 kolumny kwot, bez poziomego przewijania strony. */
+    .month-plan-summary-grid {
+        @apply grid items-baseline gap-x-3 gap-y-2;
+        grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+    }
+
     .month-plan-grid {
         @apply grid gap-x-3;
         grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;

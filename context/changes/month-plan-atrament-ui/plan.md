@@ -540,21 +540,21 @@ Bez migracji danych. Propsy tylko przybywają; formularze zatwierdzenia i zmiany
 
 #### Automated
 
-- [x] 1.1 ADR-0042 istnieje, a ADR-0035 do niego odsyła
-- [x] 1.2 grep section-label w js.md i design-system.md nic nie zwraca
-- [x] 1.3 npm run check przechodzi
+- [x] 1.1 ADR-0042 istnieje, a ADR-0035 do niego odsyła — ac69acf
+- [x] 1.2 grep section-label w js.md i design-system.md nic nie zwraca — ac69acf
+- [x] 1.3 npm run check przechodzi — ac69acf
 
 #### Manual
 
-- [x] 1.4 Użytkownik akceptuje ADR-0042 i zmienione reguły brand i Alert
+- [x] 1.4 Użytkownik akceptuje ADR-0042 i zmienione reguły brand i Alert — ac69acf
 
 ### Phase 2: Warstwa wspólna
 
 #### Automated
 
-- [ ] 2.1 build, types:check, check i check:ui przechodzą
-- [ ] 2.2 npm test przechodzi
-- [ ] 2.3 composer ci:check przechodzi w obrazie Sail
+- [x] 2.1 build, types:check, check i check:ui przechodzą
+- [x] 2.2 npm test przechodzi
+- [x] 2.3 composer ci:check przechodzi w obrazie Sail
 
 ### Phase 3: Logika i kontrakt propsów
 
