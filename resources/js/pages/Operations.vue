@@ -29,6 +29,7 @@ import CapitalMovementFormDialog, {
 import CapitalMovementRow, {
     type CapitalMovementRowData,
 } from '@/components/CapitalMovementRow.vue';
+import type { OperationsListSection } from '@/components/OperationsActiveFilterChips.vue';
 import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import OwnTransferRow, {
@@ -78,6 +79,9 @@ const {
         'financial_operations' | 'own_transfers' | 'capital_movements'
     >;
     hasAnyRecords: boolean;
+    section: OperationsListSection;
+    operationDaySums: Record<string, number>;
+    sectionTotals: Record<OperationsListSection, number>;
     filterYears: number[];
     filterCategories: OperationsFilterCategory[];
     filterAccounts: OperationsFilterAccount[];

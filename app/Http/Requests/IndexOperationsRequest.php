@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\CategoryType;
+use App\Enums\OperationsListSection;
 use App\Support\OperationsListQuery;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -39,6 +40,7 @@ class IndexOperationsRequest extends FormRequest
             ],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'section' => ['nullable', Rule::enum(OperationsListSection::class)],
         ];
     }
 
@@ -56,6 +58,15 @@ class IndexOperationsRequest extends FormRequest
         ]));
     }
 
+    public function section(): OperationsListSection
+    {
+        $section = $this->validated('section');
+
+        return $section === null
+            ? OperationsListSection::FinancialOperations
+            : OperationsListSection::from($section);
+    }
+
     protected function prepareForValidation(): void
     {
         $q = $this->input('q');
@@ -69,6 +80,7 @@ class IndexOperationsRequest extends FormRequest
             'term_deposit_id' => $this->blankToNull('term_deposit_id'),
             'date_from' => $this->blankToNull('date_from'),
             'date_to' => $this->blankToNull('date_to'),
+            'section' => $this->blankToNull('section'),
         ]);
     }
 

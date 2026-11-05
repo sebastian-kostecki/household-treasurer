@@ -418,27 +418,27 @@ Bez migracji. Stare linki bez `section` otwierają domyślną zakładkę.
 
 #### Automated
 
-- [x] 2.1 Testy formaterów zielone
-- [x] 2.2 npm run check, check:ui, types:check zielone
-- [x] 2.3 npm test zielone
+- [x] 2.1 Testy formaterów zielone — 74dff9d
+- [x] 2.2 npm run check, check:ui, types:check zielone — 74dff9d
+- [x] 2.3 npm test zielone — 74dff9d
 
 #### Manual
 
-- [x] 2.4 Zrzuty podglądu importu i Planu miesiąca w obu motywach przy 1280 i 390 px bez regresji
+- [x] 2.4 Zrzuty podglądu importu i Planu miesiąca w obu motywach przy 1280 i 390 px bez regresji — 74dff9d
 
 ### Phase 3: Kontrakt serwera
 
 #### Automated
 
-- [ ] 3.1 Nowe i istniejące testy Operacji zielone na SQLite
-- [ ] 3.2 Te same testy zielone na PostgreSQL
-- [ ] 3.3 NFR na PostgreSQL zielony
-- [ ] 3.4 Pint bez zmian, sloppy ci bez nowych znalezisk
-- [ ] 3.5 npm run types:check zielone
+- [x] 3.1 Nowe i istniejące testy Operacji zielone na SQLite
+- [x] 3.2 Te same testy zielone na PostgreSQL
+- [x] 3.3 NFR na PostgreSQL zielony
+- [x] 3.4 Pint bez zmian, sloppy ci bez nowych znalezisk
+- [x] 3.5 npm run types:check zielone
 
 #### Manual
 
-- [ ] 3.6 operationDaySums odpowiada ręcznie policzonej sumie dnia ze zwrotem
+- [x] 3.6 operationDaySums odpowiada ręcznie policzonej sumie dnia ze zwrotem
 
 ### Phase 4: Widok Operacji i stany
 

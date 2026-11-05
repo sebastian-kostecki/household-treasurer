@@ -18,7 +18,9 @@ use App\Support\CategoryAppearance;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
+use App\Support\OperationsDaySums;
 use App\Support\OperationsFilterOptions;
+use App\Support\OperationsSectionTotals;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,6 +61,15 @@ class OperationsController extends Controller
                 'category_color' => $operation->category->color,
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
+
+        $operationDaySums = in_array(OperationsListSection::FinancialOperations, $suppressedSections, true)
+            ? []
+            : OperationsDaySums::forDates(
+                $user,
+                $filters,
+                array_values(array_unique(array_column($operations->items(), 'operation_date'))),
+            );
+        $sectionTotals = OperationsSectionTotals::forUser($user);
 
         $ownTransfersQuery = $user->ownTransfers()
             ->with(['sourceAccount:id,name,type,bank', 'destinationAccount:id,name,type,bank'])
@@ -186,9 +197,10 @@ class OperationsController extends Controller
                 fn (OperationsListSection $section): string => $section->value,
                 $suppressedSections,
             ),
-            'hasAnyRecords' => $user->financialOperations()->exists()
-                || $user->ownTransfers()->exists()
-                || $user->capitalMovements()->exists(),
+            'hasAnyRecords' => array_sum($sectionTotals) > 0,
+            'section' => $request->section()->value,
+            'operationDaySums' => $operationDaySums,
+            'sectionTotals' => $sectionTotals,
             'filterYears' => OperationsFilterOptions::years($user),
             'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),
             'filterAccounts' => OperationsFilterOptions::accounts($user),
