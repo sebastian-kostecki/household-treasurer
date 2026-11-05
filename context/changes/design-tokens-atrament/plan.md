@@ -400,24 +400,24 @@ Brak danych i migracji. Wycofanie to revert commitów fazy. Gałąź nie trafia 
 
 #### Automated
 
-- [x] 1.1 W context/changes/period-report-by-category/ nie ma odwołań do ADR-0035 poza notką o tokenach
-- [x] 1.2 W skillu i regułach nie ma „Geist”, „teal” ani „ink primary” jako zakazu
-- [x] 1.3 Formatowanie i lint przechodzą (npm run check)
+- [x] 1.1 W context/changes/period-report-by-category/ nie ma odwołań do ADR-0035 poza notką o tokenach — f7486c6
+- [x] 1.2 W skillu i regułach nie ma „Geist”, „teal” ani „ink primary” jako zakazu — f7486c6
+- [x] 1.3 Formatowanie i lint przechodzą (npm run check) — f7486c6
 
 #### Manual
 
-- [x] 1.4 ADR-0035 i zmieniony .docs/design-system.md opisują decyzje z tego planu
+- [x] 1.4 ADR-0035 i zmieniony .docs/design-system.md opisują decyzje z tego planu — f7486c6
 
 ### Phase 2: Warstwa tokenów i kroje
 
 #### Automated
 
-- [ ] 2.1 Testy krojów i tokenów przechodzą
-- [ ] 2.2 Formatowanie PHP (Pint)
-- [ ] 2.3 Build generuje kroje i assety
-- [ ] 2.4 Lint i typy frontendu przechodzą
-- [ ] 2.5 Testy frontendu i strażnik literałów przechodzą
-- [ ] 2.6 Pełny gate przechodzi (composer ci:check)
+- [x] 2.1 Testy krojów i tokenów przechodzą
+- [x] 2.2 Formatowanie PHP (Pint)
+- [x] 2.3 Build generuje kroje i assety
+- [x] 2.4 Lint i typy frontendu przechodzą
+- [x] 2.5 Testy frontendu i strażnik literałów przechodzą
+- [x] 2.6 Pełny gate przechodzi (composer ci:check)
 
 #### Manual
 

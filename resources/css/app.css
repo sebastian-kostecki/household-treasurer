@@ -9,8 +9,9 @@
 
 @theme inline {
     --font-sans:
-        Geist, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        Inter, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -28,6 +29,10 @@
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
 
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-brand-text: var(--brand-text);
+
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
 
@@ -39,18 +44,23 @@
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-soft: var(--destructive-soft);
 
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
 
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
+    --color-warning-soft: var(--warning-soft);
 
     --color-refund: var(--refund);
     --color-transfer: var(--transfer);
     --color-pair: var(--pair);
 
     --color-border: var(--border);
+    --color-border-soft: var(--border-soft);
+    --color-track: var(--track);
+    --color-scrim: var(--scrim);
     --color-input: var(--input);
     --color-ring: var(--ring);
 
@@ -67,6 +77,7 @@
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
     --color-sidebar-accent: var(--sidebar-accent);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-strong: var(--sidebar-strong);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 }
@@ -93,96 +104,114 @@
     body,
     html {
         --font-sans:
-            'Geist', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+            Inter, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+            'Segoe UI Symbol', 'Noto Color Emoji';
     }
 }
 
 :root {
-    --background: hsl(0 0% 96.5%);
-    --foreground: hsl(0 0% 3.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(0 0% 3.9%);
-    --primary: hsl(189 85% 28%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 96.1%);
-    --secondary-foreground: hsl(189 85% 22%);
-    --muted: hsl(0 0% 96.1%);
-    --muted-foreground: hsl(0 0% 45.1%);
-    --accent: hsl(189 30% 94%);
-    --accent-foreground: hsl(189 85% 22%);
-    --destructive: hsl(0 72.2% 50.6%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --success: hsl(142 71% 35%);
-    --success-foreground: hsl(0 0% 98%);
-    --warning: hsl(26 90.5% 37.1%);
-    --warning-foreground: hsl(0 0% 98%);
-    --refund: hsl(26 90.5% 37.1%);
-    --transfer: hsl(224 76.3% 48%);
-    --pair: hsl(199 89% 48%);
-    --border: hsl(0 0% 90%);
-    --input: hsl(0 0% 91%);
-    --ring: hsl(189 85% 28%);
+    --background: #edf0f4;
+    --foreground: #0f1b2d;
+    --card: #ffffff;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: #0f1b2d;
+    --primary-foreground: #ffffff;
+    --brand: #5fd4c4;
+    --brand-foreground: #062a26;
+    --brand-text: #0b6a7b;
+    --secondary: #f3f5f8;
+    --secondary-foreground: var(--foreground);
+    --muted: #e9edf2;
+    --muted-foreground: #4f5d71;
+    --accent: #dcf2ee;
+    --accent-foreground: var(--brand-text);
+    --destructive: #c0262d;
+    --destructive-soft: #fde8e9;
+    --destructive-foreground: #ffffff;
+    --success: #1f6b3a;
+    --success-foreground: #ffffff;
+    --warning: #a14f00;
+    --warning-soft: #fff1e0;
+    --warning-foreground: #ffffff;
+    --refund: var(--warning);
+    --transfer: #2f5fbf;
+    --pair: #3b9fd8;
+    --track: #e2e7ee;
+    --border: #d7dde6;
+    --border-soft: #e9edf2;
+    --input: var(--border);
+    --ring: #0b6a7b;
+    --scrim: rgba(15, 27, 45, 0.45);
     --chart-1: hsl(189 85% 28%);
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
-    --radius: 0.75rem;
+    --radius: 10px;
     /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(189 85% 28%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(189 30% 94%);
-    --sidebar-accent-foreground: hsl(189 85% 22%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(189 85% 28%);
+    --sidebar-background: #0f1b2d;
+    --sidebar-foreground: #9eacc0;
+    --sidebar-strong: #e8edf4;
+    --sidebar-accent: #18273d;
+    --sidebar-accent-foreground: var(--sidebar-strong);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--brand-foreground);
+    --sidebar-border: #26364f;
+    --sidebar-ring: var(--brand);
 }
 
 .dark {
-    --background: hsl(0 0% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(0 0% 7%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(0 0% 7%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(189 70% 40%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 14.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 16.08%);
-    --muted-foreground: hsl(0 0% 63.9%);
-    --accent: hsl(189 30% 15%);
-    --accent-foreground: hsl(189 70% 70%);
-    --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --success: hsl(142 60% 45%);
-    --success-foreground: hsl(0 0% 98%);
-    --warning: hsl(43 96% 56%);
-    --warning-foreground: hsl(0 0% 3.9%);
-    --refund: hsl(43 96% 56%);
-    --transfer: hsl(213 94% 68%);
-    --pair: hsl(199 89% 60%);
-    --border: hsl(0 0% 14.9%);
-    --input: hsl(0 0% 14.9%);
-    --ring: hsl(189 70% 40%);
+    --background: #0a111c;
+    --foreground: #e6ecf3;
+    --card: #111a27;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: #e6ecf3;
+    --primary-foreground: #111a27;
+    --brand: #5fd4c4;
+    --brand-foreground: #062a26;
+    --brand-text: #6fdccd;
+    --secondary: #16202f;
+    --secondary-foreground: var(--foreground);
+    --muted: #19243a;
+    --muted-foreground: #95a3b7;
+    --accent: #0f2e2a;
+    --accent-foreground: var(--brand-text);
+    --destructive: #ff7a80;
+    --destructive-soft: #2d1416;
+    --destructive-foreground: #0a111c;
+    --success: #7fd69b;
+    --success-foreground: #0a111c;
+    --warning: #ffb35c;
+    --warning-soft: #2b1f10;
+    --warning-foreground: #0a111c;
+    --refund: var(--warning);
+    --transfer: #8fb3ff;
+    --pair: #5bb6ea;
+    --track: #223047;
+    --border: #223047;
+    --border-soft: #19243a;
+    --input: var(--border);
+    --ring: #5fd4c4;
+    --scrim: rgba(0, 0, 0, 0.6);
     --chart-1: hsl(189 70% 40%);
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
     /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
-    --sidebar-background: hsl(0 0% 7%);
-    --sidebar-foreground: hsl(0 0% 95.9%);
-    --sidebar-primary: hsl(189 70% 40%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(189 20% 15%);
-    --sidebar-accent-foreground: hsl(189 70% 70%);
-    --sidebar-border: hsl(0 0% 15.9%);
-    --sidebar-ring: hsl(189 70% 40%);
+    --sidebar-background: #070c14;
+    --sidebar-foreground: #8b9ab0;
+    --sidebar-strong: #e6ecf3;
+    --sidebar-accent: #111a27;
+    --sidebar-accent-foreground: var(--sidebar-strong);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--brand-foreground);
+    --sidebar-border: #1f2c40;
+    --sidebar-ring: var(--brand);
 }
 
 @layer base {

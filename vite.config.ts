@@ -15,9 +15,14 @@ export default defineConfig({
                       input: ['resources/css/app.css', 'resources/js/app.ts'],
                       refresh: true,
                       fonts: [
-                          bunny('Geist', {
+                          bunny('Inter', {
                               weights: [400, 500, 600],
                               subsets: ['latin', 'latin-ext'],
+                          }),
+                          bunny('JetBrains Mono', {
+                              weights: [400, 500, 600],
+                              subsets: ['latin', 'latin-ext'],
+                              preload: false,
                           }),
                       ],
                   }),
