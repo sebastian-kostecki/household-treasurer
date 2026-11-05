@@ -16,6 +16,9 @@
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
+    --radius-xl: calc(var(--radius) + 2px);
+
+    --shadow-dialog: var(--dialog-shadow);
 
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -144,6 +147,7 @@
     --input: var(--border);
     --ring: #0b6a7b;
     --scrim: rgba(15, 27, 45, 0.45);
+    --dialog-shadow: 0 24px 60px rgba(15, 27, 45, 0.25);
     --chart-1: hsl(189 85% 28%);
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
@@ -153,6 +157,10 @@
     --control-height: 32px;
     --control-height-sm: 26px;
     --row-height: 34px;
+    --field-height: 34px;
+    --dialog-width: 460px;
+    /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
+    --control-h: var(--control-height);
     /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --sidebar-background: #0f1b2d;
     --sidebar-foreground: #9eacc0;
@@ -200,6 +208,7 @@
     --input: var(--border);
     --ring: #5fd4c4;
     --scrim: rgba(0, 0, 0, 0.6);
+    --dialog-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     --chart-1: hsl(189 70% 40%);
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
@@ -267,6 +276,10 @@
 
 @utility amount-sum {
     @apply font-mono text-[13px]/[18px] font-semibold tabular-nums;
+}
+
+@utility dialog-title {
+    @apply text-[15px]/5 font-semibold;
 }
 
 @utility h-control {

@@ -47,3 +47,23 @@ test('the nine Atrament roles are published and defined in both themes', functio
 test('radius is 10px', function () {
     expect(designTokenBlocks()['root'])->toContain('--radius: 10px;');
 });
+
+
+test('the dialog shadow has a value in both themes and is published as shadow-dialog', function () {
+    $blocks = designTokenBlocks();
+
+    expect($blocks['root'])->toContain('--dialog-shadow: 0 24px 60px rgba(15, 27, 45, 0.25);');
+    expect($blocks['dark'])->toContain('--dialog-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);');
+    expect($blocks['theme'])->toContain('--shadow-dialog: var(--dialog-shadow);');
+});
+
+test('dialog and field dimensions are in :root only and radius-xl follows --radius', function () {
+    $blocks = designTokenBlocks();
+
+    expect($blocks['root'])->toContain('--field-height: 34px;');
+    expect($blocks['root'])->toContain('--dialog-width: 460px;');
+    expect($blocks['root'])->toContain('--control-h: var(--control-height);');
+    expect($blocks['dark'])->not->toContain('--field-height');
+    expect($blocks['dark'])->not->toContain('--dialog-width');
+    expect($blocks['theme'])->toContain('--radius-xl: calc(var(--radius) + 2px);');
+});
