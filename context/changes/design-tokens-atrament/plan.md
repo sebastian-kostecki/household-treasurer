@@ -428,11 +428,11 @@ Brak danych i migracji. Wycofanie to revert commitów fazy. Gałąź nie trafia 
 
 #### Automated
 
-- [x] 3.1 Strażnik literałów przechodzi na plikach sidebara
-- [x] 3.2 Lint, typy i testy frontendu przechodzą
-- [x] 3.3 Build przechodzi
-- [x] 3.4 Test kitchen sinka sidebara przechodzi
-- [x] 3.5 Pełny gate przechodzi (composer ci:check)
+- [x] 3.1 Strażnik literałów przechodzi na plikach sidebara — ef8ace1
+- [x] 3.2 Lint, typy i testy frontendu przechodzą — ef8ace1
+- [x] 3.3 Build przechodzi — ef8ace1
+- [x] 3.4 Test kitchen sinka sidebara przechodzi — ef8ace1
+- [x] 3.5 Pełny gate przechodzi (composer ci:check) — ef8ace1
 
 #### Manual
 
