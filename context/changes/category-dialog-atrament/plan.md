@@ -456,31 +456,31 @@ Brak migracji danych. Zmiana prymitywów obejmuje 16 konsumentów `ui/dialog`; o
 
 #### Automated
 
-- [x] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormField.vue resources/js/components/SegmentedControl.vue resources/js/components/CategoryColorPicker.vue resources/js/components/CategoryIconPicker.vue resources/js/components/InputError.vue`
-- [x] 3.2 Typy i statyka: `npm run types:check && npm run check`
-- [x] 3.3 Testy frontu: `npm test`
+- [x] 3.1 Literały w nowych i zmienionych plikach: `node scripts/check-ui-literals.mjs resources/js/components/FormField.vue resources/js/components/SegmentedControl.vue resources/js/components/CategoryColorPicker.vue resources/js/components/CategoryIconPicker.vue resources/js/components/InputError.vue` — ba29c1f
+- [x] 3.2 Typy i statyka: `npm run types:check && npm run check` — ba29c1f
+- [x] 3.3 Testy frontu: `npm test` — ba29c1f
 
 #### Manual
 
-- [x] 3.4 Wiersze tytułu (Budżet, Operacje) i komórki planu miesiąca mają nadal 32/28 px; pola w `AccountFormDialog` (bez `FormField`) mają 32 px
-- [x] 3.5 `SegmentedControl` neutral (zakładki Operacji) i primary (plan miesiąca) wyglądają jak przed zmianą
+- [x] 3.4 Wiersze tytułu (Budżet, Operacje) i komórki planu miesiąca mają nadal 32/28 px; pola w `AccountFormDialog` (bez `FormField`) mają 32 px — ba29c1f
+- [x] 3.5 `SegmentedControl` neutral (zakładki Operacji) i primary (plan miesiąca) wyglądają jak przed zmianą — ba29c1f
 
 ### Phase 4: Dialogi Budżetu
 
 #### Automated
 
-- [ ] 4.1 Testy kategorii i budżetu (payload): `./vendor/bin/sail artisan test --compact tests/Feature/BudgetTest.php tests/Feature/CategoryAppearanceTest.php tests/Feature/CategoryPacedFlagTest.php tests/Feature/CategoryMonthItemKindTest.php`
-- [ ] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/CategoryFormDialog.vue resources/js/components/CreateBudgetDialog.vue resources/js/components/ConfirmActionDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue`
-- [ ] 4.3 Typy i statyka: `npm run build && npm run types:check && npm run check`
-- [ ] 4.4 Testy frontu: `npm test`
+- [x] 4.1 Testy kategorii i budżetu (payload): `./vendor/bin/sail artisan test --compact tests/Feature/BudgetTest.php tests/Feature/CategoryAppearanceTest.php tests/Feature/CategoryPacedFlagTest.php tests/Feature/CategoryMonthItemKindTest.php`
+- [x] 4.2 Literały: `node scripts/check-ui-literals.mjs resources/js/components/CategoryFormDialog.vue resources/js/components/CreateBudgetDialog.vue resources/js/components/ConfirmActionDialog.vue resources/js/pages/dev/DialogsKitchenSink.vue`
+- [x] 4.3 Typy i statyka: `npm run build && npm run types:check && npm run check`
+- [x] 4.4 Testy frontu: `npm test`
 
 #### Manual
 
-- [ ] 4.5 Na stronie Budżetu: dodanie i edycja kategorii zapisują dane jak wcześniej, także w realizacji z zablokowanym typem
-- [ ] 4.6 „12,345” i „abc” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”; poprawna kwota zapisuje się
-- [ ] 4.7 Archiwizacja, przywrócenie, usunięcie kategorii, usunięcie budżetu i rozpoczęcie realizacji (z ostrzeżeniem o deficycie) działają i mają spinner oraz blokadę zamykania
-- [ ] 4.8 Czytnik ekranu (lub drzewo dostępności w przeglądarce): pole kwoty ogłasza błąd, grupy Typ, Kolor, Ikona mają nazwę z etykiety, kolor to „Kolor N”
-- [ ] 4.9 Fokus po otwarciu na pierwszym polu; `Esc` i „Anuluj” zamykają poza zapisem
+- [x] 4.5 Na stronie Budżetu: dodanie i edycja kategorii zapisują dane jak wcześniej, także w realizacji z zablokowanym typem
+- [x] 4.6 „12,345” i „abc” w kwocie dają komunikat pod polem, `aria-invalid` i wyłączony „Zapisz”; poprawna kwota zapisuje się
+- [x] 4.7 Archiwizacja, przywrócenie, usunięcie kategorii, usunięcie budżetu i rozpoczęcie realizacji (z ostrzeżeniem o deficycie) działają i mają spinner oraz blokadę zamykania
+- [x] 4.8 Czytnik ekranu (lub drzewo dostępności w przeglądarce): pole kwoty ogłasza błąd, grupy Typ, Kolor, Ikona mają nazwę z etykiety, kolor to „Kolor N”
+- [x] 4.9 Fokus po otwarciu na pierwszym polu; `Esc` i „Anuluj” zamykają poza zapisem
 
 ### Phase 5: Straże, reguła i zrzuty
 

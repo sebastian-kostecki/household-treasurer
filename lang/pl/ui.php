@@ -229,6 +229,7 @@ return [
         'type_income' => 'Dochód',
         'type_expense' => 'Wydatek',
         'planned_amount' => 'Planowana kwota',
+        'planned_amount_invalid' => 'Wpisz kwotę, np. 1200,50.',
         'limit' => 'Limit',
         'edit' => 'Edytuj',
         'delete' => 'Usuń',

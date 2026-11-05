@@ -44,6 +44,7 @@ function onOpenChange(next: boolean): void {
         <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="form"
+                class="grid gap-4"
                 @start="busy = true"
                 @finish="busy = false"
                 @success="open = false"
@@ -53,6 +54,7 @@ function onOpenChange(next: boolean): void {
                     <DialogTitle>{{ title }}</DialogTitle>
                     <DialogDescription>{{ description }}</DialogDescription>
                 </DialogHeader>
+                <slot />
                 <InputError
                     v-for="(message, key) in errors"
                     :key="key"
@@ -62,7 +64,7 @@ function onOpenChange(next: boolean): void {
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="outline"
                             :disabled="processing"
                         >
                             {{ cancelLabel }}

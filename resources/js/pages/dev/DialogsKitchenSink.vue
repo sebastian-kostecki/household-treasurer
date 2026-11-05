@@ -7,6 +7,7 @@ import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 
@@ -18,10 +19,16 @@ const states = [
     'category-new',
     'category-edit',
     'category-locked',
+    'category-errors',
+    'category-saving',
+    'category-bad-amount',
+    'category-month-item-kind',
     'budget-create',
+    'budget-errors',
     'confirm-plain',
     'confirm-destructive',
     'confirm-saving',
+    'confirm-deficit',
     'account',
 ] as const;
 
@@ -31,10 +38,16 @@ const labels: Record<SinkState, string> = {
     'category-new': 'Kategoria: nowa',
     'category-edit': 'Kategoria: edycja',
     'category-locked': 'Kategoria: typ zablokowany',
+    'category-errors': 'Kategoria: błędy pól',
+    'category-saving': 'Kategoria: zapis w toku',
+    'category-bad-amount': 'Kategoria: zła kwota',
+    'category-month-item-kind': 'Kategoria: rodzaj pozycji (wydatek)',
     'budget-create': 'Utwórz budżet',
+    'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
     'confirm-saving': 'Potwierdzenie: zapis w toku',
+    'confirm-deficit': 'Potwierdzenie: ostrzeżenie o deficycie',
     account: 'Konto (powłoka)',
 };
 
@@ -50,6 +63,7 @@ const category: CategoryFormCategory = {
 };
 
 const savingForm = DialogsKitchenSinkController.validate.form();
+const validateForm = DialogsKitchenSinkController.validate.form();
 const plainForm = { action: '#', method: 'post' } as const;
 
 function initialState(): SinkState | null {
@@ -126,9 +140,52 @@ function setOpen(state: SinkState, value: boolean): void {
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-locked', $event)"
         />
+        <CategoryFormDialog
+            :open="isOpen('category-errors')"
+            mode="edit"
+            :budget-id="1"
+            default-type="expense"
+            :category="category"
+            :form="validateForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-errors', $event)"
+        />
+        <CategoryFormDialog
+            :open="isOpen('category-saving')"
+            mode="edit"
+            :budget-id="1"
+            default-type="expense"
+            :category="category"
+            :form="validateForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-saving', $event)"
+        />
+        <CategoryFormDialog
+            :open="isOpen('category-bad-amount')"
+            mode="edit"
+            :budget-id="1"
+            default-type="expense"
+            :category="category"
+            initial-planned-amount-input="12,345"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-bad-amount', $event)"
+        />
+        <CategoryFormDialog
+            :open="isOpen('category-month-item-kind')"
+            mode="create"
+            :budget-id="1"
+            default-type="expense"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-month-item-kind', $event)"
+        />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"
             @update:open="setOpen('budget-create', $event)"
+        />
+        <CreateBudgetDialog
+            :open="isOpen('budget-errors')"
+            :form="validateForm"
+            @update:open="setOpen('budget-errors', $event)"
         />
         <ConfirmActionDialog
             :open="isOpen('confirm-plain')"
@@ -158,6 +215,20 @@ function setOpen(state: SinkState, value: boolean): void {
             cancel-label="Anuluj"
             @update:open="setOpen('confirm-saving', $event)"
         />
+        <ConfirmActionDialog
+            :open="isOpen('confirm-deficit')"
+            :form="plainForm"
+            title="Rozpocząć realizację budżetu?"
+            description="Plan zostanie zamrożony, a operacje będą liczone względem planu."
+            confirm-label="Rozpocznij"
+            cancel-label="Anuluj"
+            @update:open="setOpen('confirm-deficit', $event)"
+        >
+            <Alert variant="warning">
+                Planowany deficyt wynosi 1 200,00 zł, a płynność na początek
+                roku 400,00 zł. Niepokryty deficyt: 800,00 zł.
+            </Alert>
+        </ConfirmActionDialog>
         <AccountFormDialog
             :open="isOpen('account')"
             mode="create"

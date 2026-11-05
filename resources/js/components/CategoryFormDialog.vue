@@ -5,7 +5,8 @@ import CategoryController from '@/actions/App/Http/Controllers/CategoryControlle
 import CategoryChip from '@/components/CategoryChip.vue';
 import CategoryColorPicker from '@/components/CategoryColorPicker.vue';
 import CategoryIconPicker from '@/components/CategoryIconPicker.vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -18,7 +19,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     DEFAULT_CATEGORY_COLOR,
@@ -29,6 +30,8 @@ import {
     minorUnitsToMoneyInput,
     parseMoneyInputToMinorUnits,
 } from '@/lib/format';
+
+type FormBinding = InstanceType<typeof Form>['$props'];
 
 export type CategoryFormCategory = {
     id: number;
@@ -49,6 +52,10 @@ const props = defineProps<{
     category?: CategoryFormCategory | null;
     lockType?: boolean;
     categoryAppearanceOptions: CategoryAppearanceOptions;
+    /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
+    form?: Pick<FormBinding, 'action' | 'method'>;
+    /** Pre-fills the amount input; used only by the dialogs kitchen sink. */
+    initialPlannedAmountInput?: string;
 }>();
 
 const emit = defineEmits<{
@@ -62,15 +69,36 @@ const icon = ref(DEFAULT_CATEGORY_ICON);
 const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
-const plannedAmountMinorUnits = ref(0);
 const isPaced = ref(true);
 const monthItemKind = ref<'bill' | 'running'>('running');
+const busy = ref(false);
 
-const formBinding = computed(() =>
-    props.mode === 'create'
-        ? CategoryController.store.form(props.budgetId)
-        : CategoryController.update.form(props.category ?? { id: 0 }),
+const plannedAmountMinorUnits = computed(() =>
+    parseMoneyInputToMinorUnits(plannedAmountInput.value),
 );
+const plannedAmountInvalid = computed(
+    () => plannedAmountMinorUnits.value === null,
+);
+
+const formBinding = computed(() => {
+    if (props.form) {
+        return props.form;
+    }
+
+    return props.mode === 'create'
+        ? CategoryController.store.form(props.budgetId)
+        : CategoryController.update.form(props.category ?? { id: 0 });
+});
+
+const typeOptions = computed(() => [
+    { value: 'income' as const, label: t.budget.type_income },
+    { value: 'expense' as const, label: t.budget.type_expense },
+]);
+
+const monthItemKindOptions = computed(() => [
+    { value: 'running' as const, label: t.budget.month_item_kind_running },
+    { value: 'bill' as const, label: t.budget.month_item_kind_bill },
+]);
 
 const previewName = computed(() => {
     const trimmed = name.value.trim();
@@ -98,11 +126,11 @@ watch(
             icon.value = props.category.icon;
             color.value = props.category.color;
             type.value = props.category.type;
-            plannedAmountMinorUnits.value =
-                props.category.planned_amount_minor_units;
-            plannedAmountInput.value = minorUnitsToMoneyInput(
-                props.category.planned_amount_minor_units,
-            );
+            plannedAmountInput.value =
+                props.initialPlannedAmountInput ??
+                minorUnitsToMoneyInput(
+                    props.category.planned_amount_minor_units,
+                );
             isPaced.value = props.category.is_paced;
             monthItemKind.value = props.category.month_item_kind;
 
@@ -113,20 +141,19 @@ watch(
         icon.value = DEFAULT_CATEGORY_ICON;
         color.value = DEFAULT_CATEGORY_COLOR;
         type.value = props.defaultType;
-        plannedAmountMinorUnits.value = 0;
-        plannedAmountInput.value = '0,00';
+        plannedAmountInput.value = props.initialPlannedAmountInput ?? '0,00';
         isPaced.value = true;
         monthItemKind.value = 'running';
     },
     { immediate: true },
 );
 
-function syncPlannedAmount(): void {
-    const parsed = parseMoneyInputToMinorUnits(plannedAmountInput.value);
-
-    if (parsed !== null) {
-        plannedAmountMinorUnits.value = parsed;
+function onOpenChange(next: boolean): void {
+    if (!next && busy.value) {
+        return;
     }
+
+    emit('update:open', next);
 }
 
 function closeDialog(): void {
@@ -135,12 +162,14 @@ function closeDialog(): void {
 </script>
 
 <template>
-    <Dialog :open="open" @update:open="emit('update:open', $event)">
-        <DialogContent>
+    <Dialog :open="open" @update:open="onOpenChange">
+        <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="formBinding"
-                class="space-y-4"
+                class="grid gap-4"
                 reset-on-success
+                @start="busy = true"
+                @finish="busy = false"
                 @success="closeDialog"
                 v-slot="{ errors, processing, reset, clearErrors }"
             >
@@ -164,7 +193,7 @@ function closeDialog(): void {
                 </DialogHeader>
 
                 <div
-                    class="border-border/50 flex items-center gap-4 rounded-xl border p-4"
+                    class="bg-background flex items-center gap-4 rounded-md p-4"
                 >
                     <CategoryChip
                         v-if="color"
@@ -177,135 +206,146 @@ function closeDialog(): void {
                     </p>
                 </div>
 
-                <div class="grid gap-2">
-                    <Label for="category-name">{{ t.budget.name }}</Label>
+                <FormField
+                    id="category-name"
+                    :label="t.budget.name"
+                    :error="errors.name"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <Input
-                        id="category-name"
+                        :id="id"
                         name="name"
                         v-model="name"
                         required
                         autocomplete="off"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <InputError :message="errors.name" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label for="category-type">{{ t.budget.type }}</Label>
-                    <select
-                        id="category-type"
-                        name="type"
+                <FormField
+                    id="category-type"
+                    :label="t.budget.type"
+                    group
+                    :error="errors.type"
+                    v-slot="{ labelId }"
+                >
+                    <SegmentedControl
                         v-model="type"
-                        :disabled="lockType"
-                        class="native-select"
-                    >
-                        <option value="income">
-                            {{ t.budget.type_income }}
-                        </option>
-                        <option value="expense">
-                            {{ t.budget.type_expense }}
-                        </option>
-                    </select>
-                    <input
-                        v-if="lockType"
-                        type="hidden"
+                        :options="typeOptions"
+                        :aria-labelledby="labelId"
                         name="type"
-                        :value="type"
+                        block
+                        :disabled="lockType"
                     />
-                    <InputError :message="errors.type" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label>{{ t.budget.category_color }}</Label>
+                <FormField
+                    id="category-color"
+                    :label="t.budget.category_color"
+                    group
+                    :error="errors.color"
+                    v-slot="{ labelId }"
+                >
                     <CategoryColorPicker
                         :colors="categoryAppearanceOptions.colors"
                         v-model="color"
+                        :aria-labelledby="labelId"
                     />
                     <input type="hidden" name="color" :value="color ?? ''" />
-                    <InputError :message="errors.color" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label>{{ t.budget.category_icon }}</Label>
+                <FormField
+                    id="category-icon"
+                    :label="t.budget.category_icon"
+                    group
+                    :error="errors.icon"
+                    v-slot="{ labelId }"
+                >
                     <CategoryIconPicker
                         :icons="categoryAppearanceOptions.icons"
                         v-model="icon"
                         :color="color ?? DEFAULT_CATEGORY_COLOR"
+                        :aria-labelledby="labelId"
                     />
                     <input type="hidden" name="icon" :value="icon" />
-                    <InputError :message="errors.icon" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label for="category-planned-amount">
-                        {{
-                            type === 'income'
-                                ? t.budget.planned_amount
-                                : t.budget.limit
-                        }}
-                    </Label>
+                <FormField
+                    id="category-planned-amount"
+                    :label="
+                        type === 'income'
+                            ? t.budget.planned_amount
+                            : t.budget.limit
+                    "
+                    money
+                    :error="
+                        plannedAmountInvalid
+                            ? t.budget.planned_amount_invalid
+                            : errors.planned_amount_minor_units
+                    "
+                    v-slot="{ id, describedBy, invalid, controlClass }"
+                >
                     <Input
-                        id="category-planned-amount"
+                        :id="id"
                         v-model="plannedAmountInput"
+                        :class="controlClass"
                         inputmode="decimal"
                         autocomplete="off"
-                        @blur="syncPlannedAmount"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
                     <input
                         type="hidden"
                         name="planned_amount_minor_units"
-                        :value="plannedAmountMinorUnits"
+                        :value="plannedAmountMinorUnits ?? 0"
                     />
-                    <InputError :message="errors.planned_amount_minor_units" />
-                </div>
+                </FormField>
 
-                <div v-if="type === 'expense'" class="grid gap-2">
-                    <div class="flex items-start gap-2">
-                        <Checkbox id="category-is-paced" v-model="isPaced" />
-                        <div class="grid gap-1">
-                            <Label for="category-is-paced">
-                                {{ t.budget.paced_category }}
-                            </Label>
-                            <p class="text-muted-foreground text-sm">
-                                {{ t.budget.paced_category_hint }}
-                            </p>
-                        </div>
-                    </div>
+                <FormField
+                    v-if="type === 'expense'"
+                    id="category-is-paced"
+                    :label="t.budget.paced_category"
+                    :hint="t.budget.paced_category_hint"
+                    :error="errors.is_paced"
+                    v-slot="{ id, describedBy }"
+                >
+                    <Checkbox
+                        :id="id"
+                        v-model="isPaced"
+                        :aria-describedby="describedBy"
+                    />
                     <input
                         type="hidden"
                         name="is_paced"
                         :value="isPaced ? '1' : '0'"
                     />
-                    <InputError :message="errors.is_paced" />
-                </div>
+                </FormField>
 
-                <div v-if="type === 'expense'" class="grid gap-2">
-                    <Label for="category-month-item-kind">
-                        {{ t.budget.month_item_kind }}
-                    </Label>
-                    <select
-                        id="category-month-item-kind"
-                        name="month_item_kind"
+                <FormField
+                    v-if="type === 'expense'"
+                    id="category-month-item-kind"
+                    :label="t.budget.month_item_kind"
+                    group
+                    :hint="t.budget.month_item_kind_hint"
+                    :error="errors.month_item_kind"
+                    v-slot="{ labelId }"
+                >
+                    <SegmentedControl
                         v-model="monthItemKind"
-                        class="native-select"
-                    >
-                        <option value="running">
-                            {{ t.budget.month_item_kind_running }}
-                        </option>
-                        <option value="bill">
-                            {{ t.budget.month_item_kind_bill }}
-                        </option>
-                    </select>
-                    <p class="text-muted-foreground text-sm">
-                        {{ t.budget.month_item_kind_hint }}
-                    </p>
-                    <InputError :message="errors.month_item_kind" />
-                </div>
+                        :options="monthItemKindOptions"
+                        :aria-labelledby="labelId"
+                        name="month_item_kind"
+                        block
+                    />
+                </FormField>
 
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="outline"
+                            :disabled="processing"
                             @click="
                                 () => {
                                     clearErrors();
@@ -317,7 +357,11 @@ function closeDialog(): void {
                             {{ t.budget.cancel }}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" :disabled="processing">
+                    <Button
+                        type="submit"
+                        :disabled="processing || plannedAmountInvalid"
+                    >
+                        <Spinner v-if="processing" />
                         {{ t.budget.save }}
                     </Button>
                 </DialogFooter>

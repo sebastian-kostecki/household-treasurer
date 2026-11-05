@@ -2,7 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -15,19 +15,24 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useShell, useTranslations } from '@/composables/useTranslations';
 import type { CopyableBudgetSource } from '@/types/shell';
+
+type FormBinding = InstanceType<typeof Form>['$props'];
 
 const props = withDefaults(
     defineProps<{
         open: boolean;
         yearInputId?: string;
         suggestedYear?: number;
+        /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
+        form?: Pick<FormBinding, 'action' | 'method'>;
     }>(),
     {
         yearInputId: 'create-budget-year',
         suggestedYear: undefined,
+        form: undefined,
     },
 );
 
@@ -49,6 +54,7 @@ const defaultYear = computed(() => {
 
 const targetYear = ref(defaultYear.value);
 const sourceBudgetId = ref('');
+const busy = ref(false);
 
 const availableSources = computed((): CopyableBudgetSource[] =>
     shell.copyableBudgetSources.filter(
@@ -95,21 +101,31 @@ watch(targetYear, (year) => {
     sourceBudgetId.value = resolveDefaultSourceBudgetId(year);
 });
 
+function onOpenChange(next: boolean): void {
+    if (!next && busy.value) {
+        return;
+    }
+
+    emit('update:open', next);
+}
+
 function closeDialog(): void {
     emit('update:open', false);
 }
 </script>
 
 <template>
-    <Dialog :open="open" @update:open="emit('update:open', $event)">
+    <Dialog :open="open" @update:open="onOpenChange">
         <DialogTrigger v-if="$slots.trigger" as-child>
             <slot name="trigger" />
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent :show-close-button="!busy">
             <Form
-                v-bind="BudgetController.store.form()"
-                class="space-y-4"
+                v-bind="form ?? BudgetController.store.form()"
+                class="grid gap-4"
                 reset-on-success
+                @start="busy = true"
+                @finish="busy = false"
                 @success="closeDialog"
                 v-slot="{ errors, processing }"
             >
@@ -121,30 +137,38 @@ function closeDialog(): void {
                         {{ t.budget.create_budget_description }}
                     </DialogDescription>
                 </DialogHeader>
-                <div class="grid gap-2">
-                    <Label :for="yearInputId">{{ t.budget.year }}</Label>
+                <FormField
+                    :id="yearInputId"
+                    :label="t.budget.year"
+                    :error="errors.year"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <Input
-                        :id="yearInputId"
+                        :id="id"
                         name="year"
                         type="number"
                         v-model.number="targetYear"
                         min="2000"
                         max="2100"
                         required
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <InputError :message="errors.year" />
-                </div>
-                <div v-if="showSourceSelect" class="grid gap-2">
-                    <Label for="create-budget-source">
-                        {{ t.budget.copy_source_label }}
-                    </Label>
-                    <p class="text-muted-foreground text-sm">
-                        {{ t.budget.copy_source_description }}
-                    </p>
+                </FormField>
+                <FormField
+                    v-if="showSourceSelect"
+                    id="create-budget-source"
+                    :label="t.budget.copy_source_label"
+                    :hint="t.budget.copy_source_description"
+                    :error="errors.source_budget_id"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <select
-                        id="create-budget-source"
+                        :id="id"
                         v-model="sourceBudgetId"
                         class="native-select"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid ? 'true' : undefined"
                     >
                         <option value="">
                             {{ t.budget.copy_source_none }}
@@ -163,15 +187,19 @@ function closeDialog(): void {
                         name="source_budget_id"
                         :value="sourceBudgetId"
                     />
-                    <InputError :message="errors.source_budget_id" />
-                </div>
+                </FormField>
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
-                        <Button type="button" variant="secondary">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            :disabled="processing"
+                        >
                             {{ t.budget.cancel }}
                         </Button>
                     </DialogClose>
                     <Button type="submit" :disabled="processing">
+                        <Spinner v-if="processing" />
                         {{ t.budget.create_budget }}
                     </Button>
                 </DialogFooter>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { MoreHorizontal, Plus } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
@@ -9,18 +9,11 @@ import BudgetCategoryList, {
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
+import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { DialogTrigger } from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -199,54 +192,25 @@ function openDeleteBudgetDialog(): void {
                         <Plus class="size-4" aria-hidden="true" />
                         {{ t.budget.add_category }}
                     </Button>
-                    <Dialog v-if="budget.can_start_execution">
-                        <DialogTrigger as-child>
-                            <Button>
-                                {{ t.budget.start_execution }}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <Form
-                                v-bind="
-                                    BudgetController.startExecution.form(budget)
-                                "
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{ t.budget.start_execution_title }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.budget.start_execution_description
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <p
-                                    v-if="deficitWarningMessage"
-                                    class="text-destructive text-sm"
-                                >
-                                    {{ deficitWarningMessage }}
-                                </p>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.budget.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.budget.start_execution_confirm }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                    <ConfirmActionDialog
+                        v-if="budget.can_start_execution"
+                        :form="BudgetController.startExecution.form(budget)"
+                        :title="t.budget.start_execution_title"
+                        :description="t.budget.start_execution_description"
+                        :confirm-label="t.budget.start_execution_confirm"
+                        :cancel-label="t.budget.cancel"
+                    >
+                        <template #trigger>
+                            <DialogTrigger as-child>
+                                <Button>
+                                    {{ t.budget.start_execution }}
+                                </Button>
+                            </DialogTrigger>
+                        </template>
+                        <Alert v-if="deficitWarningMessage" variant="warning">
+                            {{ deficitWarningMessage }}
+                        </Alert>
+                    </ConfirmActionDialog>
                     <DropdownMenu v-if="budget.can_delete">
                         <DropdownMenuTrigger as-child>
                             <Button
@@ -321,37 +285,16 @@ function openDeleteBudgetDialog(): void {
         </template>
     </div>
 
-    <Dialog v-if="budget" v-model:open="deleteBudgetDialogOpen">
-        <DialogContent>
-            <Form
-                v-bind="BudgetController.destroy.form(budget)"
-                v-slot="{ processing }"
-            >
-                <DialogHeader>
-                    <DialogTitle>
-                        {{ t.budget.delete_budget_confirm_title }}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {{ t.budget.delete_budget_confirm_body }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter class="gap-2">
-                    <DialogClose as-child>
-                        <Button type="button" variant="secondary">
-                            {{ t.budget.cancel }}
-                        </Button>
-                    </DialogClose>
-                    <Button
-                        type="submit"
-                        variant="destructive"
-                        :disabled="processing"
-                    >
-                        {{ t.budget.delete_budget }}
-                    </Button>
-                </DialogFooter>
-            </Form>
-        </DialogContent>
-    </Dialog>
+    <ConfirmActionDialog
+        v-if="budget"
+        v-model:open="deleteBudgetDialogOpen"
+        :form="BudgetController.destroy.form(budget)"
+        destructive
+        :title="t.budget.delete_budget_confirm_title"
+        :description="t.budget.delete_budget_confirm_body"
+        :confirm-label="t.budget.delete_budget"
+        :cancel-label="t.budget.cancel"
+    />
 
     <CategoryFormDialog
         v-if="budget"
