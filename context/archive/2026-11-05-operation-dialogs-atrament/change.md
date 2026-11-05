@@ -1,10 +1,10 @@
 ---
 change_id: operation-dialogs-atrament
 title: Operation dialogs atrament
-status: impl_reviewed
+status: archived
 created: 2026-11-05
 updated: 2026-11-05
-archived_at: null
+archived_at: 2026-11-05T18:36:01Z
 ---
 
 ## Notes
