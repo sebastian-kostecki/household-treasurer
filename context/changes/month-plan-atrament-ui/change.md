@@ -1,7 +1,7 @@
 ---
 change_id: month-plan-atrament-ui
 title: Month plan atrament ui
-status: new
+status: preparing
 created: 2026-11-05
 updated: 2026-11-05
 archived_at: null
@@ -22,6 +22,6 @@ Wstępny audyt (2026-11-05): skan literałów 0 trafień; ~50 stylów sprzed Atr
 2. Brakujący `StatPanel`: `MonthPlan.vue:554–600` (Do wydania, Dochody, Wydatki, Tempo).
 3. Warianty Badge: `MonthPlan.vue:519–527` (stan planu), `MonthPlanItemRow.vue:96` (ręczna pigułka zamiast `ok`).
 4. Architektura: tempo w karcie Do wydania (`MonthPlan.vue:578–597`) zamiast miary + notatki; kropki stanu miesięcy w `BudgetMonthPicker.vue:68–72` (może wymagać propsa z serwera); `MonthPlanEditBar` jako pas `primary`.
-5. Reguła: `.ai/rules/js.md` wskazuje `.section-label` (`app.css:402`, stary przepis 11 px wersalikami).
+5. Reguła: `.ai/rules/js.md` wskazuje `.section-label` (`app.css:402`, stary przepis 12 px wersalikami; research: usunąć).
 
 Do rozstrzygnięcia: `MonthSummaryCard.vue:32–62` (własna tabela) — szósty zarzut czy odroczenie.
