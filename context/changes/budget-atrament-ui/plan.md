@@ -373,9 +373,9 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Automated
 
-- [x] 1.1 ADR-0037 istnieje, a ADR-0003, 0033 i 0035 odsyłają do niego
-- [x] 1.2 design-system.md i js.md nie opisują rounded-2xl/border/60 ani column-caption jako obowiązującego przepisu
-- [x] 1.3 npm run check przechodzi
+- [x] 1.1 ADR-0037 istnieje, a ADR-0003, 0033 i 0035 odsyłają do niego — 2e88f25
+- [x] 1.2 design-system.md i js.md nie opisują rounded-2xl/border/60 ani column-caption jako obowiązującego przepisu — 2e88f25
+- [x] 1.3 npm run check przechodzi — 2e88f25
 
 #### Manual
 
@@ -385,11 +385,11 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Automated
 
-- [ ] 2.1 npm test przechodzi, w tym formatMoneyAmount
-- [ ] 2.2 npm run check, check:ui i types:check przechodzą po build
-- [ ] 2.3 grep column-caption w resources/ nic nie zwraca
-- [ ] 2.4 composer ci:check przechodzi w obrazie Sail
-- [ ] 2.5 git status po CLI shadcn-vue bez pnpm-workspace.yaml i nieoczekiwanych zależności
+- [x] 2.1 npm test przechodzi, w tym formatMoneyAmount
+- [x] 2.2 npm run check, check:ui i types:check przechodzą po build
+- [x] 2.3 grep column-caption w resources/ nic nie zwraca
+- [x] 2.4 composer ci:check przechodzi w obrazie Sail
+- [x] 2.5 git status po CLI shadcn-vue bez pnpm-workspace.yaml i nieoczekiwanych zależności
 
 #### Manual
 

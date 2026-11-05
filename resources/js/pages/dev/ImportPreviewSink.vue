@@ -71,7 +71,7 @@ const matrixSections = [
     {
         key: 'hover',
         title: 'Hover',
-        note: 'Najechanie podświetla wiersz tłem foreground/3%. To rytm listy, nie afordancja: wiersz nie jest klikalny.',
+        note: 'Najechanie podświetla wiersz tłem secondary. To rytm listy, nie afordancja: wiersz nie jest klikalny.',
         indexes: [0, 1, 2],
         withWarnings: false,
         termDeposits,
@@ -309,18 +309,18 @@ const sampleErrors = {
                     >
                         <div class="import-preview-grid">
                             <div class="import-preview-cell-select">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.import_select }}
                                 </span>
                             </div>
                             <div class="import-preview-cell-date">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.date }}
                                 </span>
                                 <p class="text-sm font-medium">2026-10-12</p>
                             </div>
                             <div class="import-preview-cell-description">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.description }}
                                 </span>
                                 <p class="text-sm font-medium">
@@ -328,23 +328,23 @@ const sampleErrors = {
                                 </p>
                             </div>
                             <div class="import-preview-cell-amount">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.amount }}
                                 </span>
                                 <p class="text-sm">-125,00</p>
                             </div>
                             <div class="import-preview-cell-type">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.type }}
                                 </span>
                             </div>
                             <div class="import-preview-cell-classification">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.import_classification }}
                                 </span>
                             </div>
                             <div class="import-preview-cell-status">
-                                <span class="column-caption xl:sr-only">
+                                <span class="table-header xl:sr-only">
                                     {{ t.operations.import_status }}
                                 </span>
                             </div>

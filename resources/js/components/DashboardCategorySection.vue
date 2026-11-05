@@ -83,7 +83,7 @@ const totalsLabel = computed(() =>
         </p>
 
         <template v-else>
-            <div class="category-meter-header-row column-caption">
+            <div class="category-meter-header-row table-header">
                 <span>{{ t.budget.category }}</span>
                 <span class="text-right max-md:hidden">
                     {{ t.dashboard.current_plan }}

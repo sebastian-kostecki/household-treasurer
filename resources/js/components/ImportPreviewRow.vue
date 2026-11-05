@@ -338,7 +338,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-date">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.date }}
                 </span>
                 <p class="text-sm font-medium">
@@ -347,7 +347,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-description">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.description }}
                 </span>
                 <OperationDescriptionCell
@@ -362,7 +362,7 @@ function onPairCandidateChange(value: string): void {
                 class="import-preview-cell-amount"
                 :class="amountToneClass(row.amount_minor_units ?? 0)"
             >
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.amount }}
                 </span>
                 <p>
@@ -375,7 +375,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-type">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.type }}
                 </span>
                 <select
@@ -409,7 +409,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-classification">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.import_classification }}
                 </span>
                 <div
@@ -575,7 +575,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-status">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.import_status }}
                 </span>
                 <div v-if="row.valid" class="flex flex-wrap gap-1">

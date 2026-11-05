@@ -69,8 +69,8 @@ function showYearSelectionError(): void {
             <table class="w-full text-left text-sm">
                 <thead>
                     <tr>
-                        <th class="column-caption pb-2.5 text-left">Stan</th>
-                        <th class="column-caption pb-2.5 text-left">
+                        <th class="table-header pb-2.5 text-left">Stan</th>
+                        <th class="table-header pb-2.5 text-left">
                             Gdzie widoczny
                         </th>
                     </tr>

@@ -18,7 +18,7 @@ const t = useTranslations();
     <Card>
         <CardContent class="grid gap-4 pt-6 sm:grid-cols-3">
             <div class="sm:col-span-3">
-                <p class="column-caption">
+                <p class="label-caps text-muted-foreground">
                     {{ t.budget.annual_plan }}
                 </p>
             </div>

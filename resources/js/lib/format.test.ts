@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { formatSignedMoney, parseMoneyInputToMinorUnits } from './format';
+import {
+    formatMoney,
+    formatMoneyAmount,
+    formatSignedMoney,
+    parseMoneyInputToMinorUnits,
+} from './format';
 
 describe('parseMoneyInputToMinorUnits', () => {
     it('parses plain, spaced and signed amounts', () => {
@@ -32,5 +37,31 @@ describe('formatSignedMoney', () => {
 
     it('shows zero without a sign', () => {
         expect(formatSignedMoney(0)).toBe('0,00 zł');
+    });
+});
+
+describe('formatMoneyAmount', () => {
+    it('formats a positive amount without the unit', () => {
+        expect(formatMoneyAmount(123456)).toBe('1 234,56');
+    });
+
+    it('formats zero', () => {
+        expect(formatMoneyAmount(0)).toBe('0,00');
+    });
+
+    it('keeps the minus on a negative amount', () => {
+        expect(formatMoneyAmount(-5000)).toBe('-50,00');
+    });
+
+    it('groups thousands and pads grosze', () => {
+        expect(formatMoneyAmount(123456789)).toBe('1 234 567,89');
+        expect(formatMoneyAmount(100005)).toBe('1 000,05');
+    });
+});
+
+describe('formatMoney', () => {
+    it('appends the unit to formatMoneyAmount', () => {
+        expect(formatMoney(123456)).toBe('1 234,56 zł');
+        expect(formatMoney(-5000)).toBe('-50,00 zł');
     });
 });

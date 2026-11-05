@@ -150,6 +150,9 @@
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
     --radius: 10px;
+    --control-height: 32px;
+    --control-height-sm: 26px;
+    --row-height: 34px;
     /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
     --sidebar-background: #0f1b2d;
     --sidebar-foreground: #9eacc0;
@@ -224,17 +227,73 @@
 }
 
 /**
- * Column caption: header cells and mobile captions above values.
- * Contract in `.docs/design-system.md` ("Listy i tabele"). Registered as a
- * utility (not a component class) so `@apply column-caption` works.
+ * Named typography styles and control sizes of the "Atrament" system
+ * (ADR-0037, table in `.docs/design-system.md`). Registered as utilities so
+ * `@apply table-header` works in the component classes below.
  */
-@utility column-caption {
-    @apply text-muted-foreground text-[11px] font-medium tracking-wider uppercase;
+@utility page-title {
+    @apply text-lg/6 font-semibold tracking-tight;
+    letter-spacing: -0.01em;
+}
+
+@utility section-title {
+    @apply text-[13px]/[18px] font-semibold;
+}
+
+@utility table-header {
+    @apply text-muted-foreground text-xs/4 font-semibold whitespace-nowrap;
+}
+
+@utility label-caps {
+    @apply text-[11px]/[14px] font-medium uppercase;
+    letter-spacing: 0.06em;
+}
+
+@utility meta {
+    @apply text-[11px]/[14px] font-normal;
+}
+
+@utility kpi-lg {
+    @apply font-mono text-[26px]/8 font-medium;
+}
+
+@utility kpi {
+    @apply font-mono text-[22px]/7 font-medium;
+}
+
+@utility amount {
+    @apply font-mono text-[13px]/[18px] font-medium tabular-nums;
+}
+
+@utility amount-sum {
+    @apply font-mono text-[13px]/[18px] font-semibold tabular-nums;
+}
+
+@utility h-control {
+    height: var(--control-height);
+}
+
+@utility h-control-sm {
+    height: var(--control-height-sm);
+}
+
+@utility size-control {
+    width: var(--control-height);
+    height: var(--control-height);
+}
+
+@utility size-control-sm {
+    width: var(--control-height-sm);
+    height: var(--control-height-sm);
+}
+
+@utility min-h-row {
+    min-height: var(--row-height);
 }
 
 @layer components {
     .native-select {
-        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
+        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 h-control flex w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
     }
 
     .month-plan-grid {
@@ -263,7 +322,7 @@
     }
 
     .column-header {
-        @apply column-caption;
+        @apply table-header;
     }
 
     .section-label {
@@ -297,11 +356,11 @@
     }
 
     .list-surface-table thead th {
-        @apply column-caption pb-2.5 text-left;
+        @apply table-header pb-2.5 text-left;
     }
 
     .list-surface-table tbody tr {
-        @apply border-border/60 hover:bg-foreground/[0.03] border-b transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary border-b transition-colors last:border-b-0;
     }
 
     .list-surface-table tbody td {
@@ -401,11 +460,11 @@
     }
 
     .budget-category-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
     }
 
     .budget-category-header-row {
-        @apply column-caption border-border/60 hidden border-b pb-2.5;
+        @apply table-header border-border/60 hidden border-b pb-2.5;
     }
 
     @variant md {
@@ -415,7 +474,7 @@
     }
 
     .budget-category-totals-row {
-        @apply border-border/60 bg-foreground/[0.02] border-t py-3 text-sm;
+        @apply border-border/60 bg-muted border-t py-3 text-sm;
     }
 
     .budget-category-cell-handle {
@@ -475,11 +534,7 @@
 
         .budget-category-scroll .budget-category-totals-row {
             @apply sticky bottom-0 z-10;
-            background-color: var(--card);
-            background-image: linear-gradient(
-                color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
-                color-mix(in srgb, var(--foreground) 2%, transparent) 100%
-            );
+            background-color: var(--muted);
             box-shadow: inset 0 1px 0
                 color-mix(in srgb, var(--border) 60%, transparent);
         }
@@ -521,12 +576,12 @@
 
     /* Wiersz posiadań na Dashboardzie (konta i lokaty). */
     .dashboard-holdings-row {
-        @apply hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+        @apply hover:bg-secondary flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
     }
 
     /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
     .holdings-list-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0;
     }
 
     /**
@@ -534,11 +589,11 @@
      * (oba ustawiają `display`), a `display: grid` nagłówka wraca dopiero od `md`.
      */
     .operations-header-row {
-        @apply column-caption border-border/60 hidden border-b pb-2.5;
+        @apply table-header border-border/60 hidden border-b pb-2.5;
     }
 
     .operations-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
     }
 
     @variant md {
@@ -669,7 +724,7 @@
      * tintu stoją po `.import-preview-row`.
      */
     .import-preview-header-row {
-        @apply column-caption border-border/60 hidden border-b pb-2.5;
+        @apply table-header border-border/60 hidden border-b pb-2.5;
     }
 
     @variant xl {
@@ -679,7 +734,7 @@
     }
 
     .import-preview-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] border-b py-3 transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary border-b py-3 transition-colors last:border-b-0;
     }
 
     .import-preview-row-duplicate {
@@ -755,5 +810,24 @@
 
     .category-meter-cell-percent {
         grid-area: percent;
+    }
+
+    /* Pasek realizacji i procent w jednej komórce siatki (bar + percent). */
+    .category-meter-cell-meter {
+        grid-column: bar-start / percent-end;
+        grid-row: bar-start / percent-end;
+        @apply min-w-0;
+    }
+
+    .execution-meter {
+        @apply flex w-full items-center gap-x-3;
+    }
+
+    .execution-meter-track {
+        @apply bg-track relative h-1.5 min-w-0 flex-1 overflow-visible rounded-full;
+    }
+
+    .execution-meter-percent {
+        @apply ml-auto w-13 shrink-0 text-right text-sm font-medium tabular-nums;
     }
 }

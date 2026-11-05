@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import ExecutionMeter from '@/components/ExecutionMeter.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     type DashboardCategory,
-    meterBarClass,
-    meterPercentClass,
-    progressWidth,
     remainingClass,
 } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
@@ -22,11 +20,6 @@ const props = defineProps<{
 const t = useTranslations();
 
 const displayPercentComplete = computed(() => props.category.percent_complete);
-const showMeterTrack = computed(
-    () =>
-        displayPercentComplete.value !== null ||
-        props.showYearElapsedMark === true,
-);
 </script>
 
 <template>
@@ -79,53 +72,15 @@ const showMeterTrack = computed(
             </span>
         </div>
 
-        <div class="category-meter-cell-bar">
-            <div
-                v-if="showMeterTrack"
-                class="bg-muted relative h-1.5 overflow-visible rounded-full"
-            >
-                <div
-                    v-if="displayPercentComplete !== null"
-                    class="h-full rounded-full transition-all"
-                    :class="
-                        meterBarClass(
-                            categoryType,
-                            displayPercentComplete,
-                            category.is_over_limit,
-                        )
-                    "
-                    :style="{
-                        width: progressWidth(displayPercentComplete),
-                    }"
-                />
-                <div
-                    v-if="
-                        showYearElapsedMark &&
-                        yearElapsedPercent !== null &&
-                        yearElapsedPercent !== undefined
-                    "
-                    class="bg-foreground ring-background pointer-events-none absolute top-1/2 z-10 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-1"
-                    :style="{ left: `${yearElapsedPercent}%` }"
-                    aria-hidden="true"
-                />
-            </div>
-        </div>
-
-        <div
-            class="category-meter-cell-percent text-right text-sm font-medium tabular-nums"
-            :class="
-                displayPercentComplete === null
-                    ? 'text-muted-foreground'
-                    : meterPercentClass(
-                          categoryType,
-                          displayPercentComplete,
-                          category.is_over_limit,
-                      )
-            "
-        >
-            <template v-if="displayPercentComplete !== null">
-                {{ displayPercentComplete }}%
-            </template>
+        <div class="category-meter-cell-meter">
+            <ExecutionMeter
+                :percent-complete="displayPercentComplete"
+                :category-type="categoryType"
+                :is-over-limit="category.is_over_limit"
+                :year-elapsed-percent="
+                    showYearElapsedMark ? (yearElapsedPercent ?? null) : null
+                "
+            />
         </div>
     </div>
 </template>

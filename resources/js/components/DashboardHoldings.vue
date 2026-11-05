@@ -129,7 +129,7 @@ function toggleExpanded(): void {
 
                     <template v-else>
                         <div
-                            class="column-caption flex items-center justify-between gap-3 pb-2"
+                            class="table-header flex items-center justify-between gap-3 pb-2"
                         >
                             <span>{{ t.accounts.name }}</span>
                             <span>{{ t.accounts.current_balance }}</span>
@@ -190,7 +190,7 @@ function toggleExpanded(): void {
                     :title="t.nav.term_deposits"
                 >
                     <div
-                        class="column-caption flex items-center justify-between gap-3 pb-2"
+                        class="table-header flex items-center justify-between gap-3 pb-2"
                     >
                         <span>{{ t.term_deposits.name }}</span>
                         <span>{{ t.term_deposits.current_balance }}</span>

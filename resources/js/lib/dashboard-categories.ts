@@ -95,7 +95,7 @@ export function meterBarClass(
         return 'bg-destructive';
     }
 
-    return 'bg-primary';
+    return 'bg-foreground';
 }
 
 export function meterPercentClass(

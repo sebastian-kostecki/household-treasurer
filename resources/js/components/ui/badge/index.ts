@@ -20,6 +20,12 @@ export const badgeVariants = cva(
           "border-transparent bg-warning/10 text-warning",
         "destructive-soft":
           "border-transparent bg-destructive/10 text-destructive",
+        ok:
+          "border-transparent bg-accent text-accent-foreground",
+        brand:
+          "border-transparent bg-brand text-brand-foreground",
+        neutral:
+          "border-transparent bg-muted text-muted-foreground",
       },
     },
     defaultVariants: {
