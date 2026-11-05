@@ -1,7 +1,7 @@
 ---
 change_id: category-dialog-atrament
 title: Category dialog atrament
-status: implemented
+status: impl_reviewed
 created: 2026-11-05
 updated: 2026-11-05
 archived_at: null

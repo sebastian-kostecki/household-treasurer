@@ -1,18 +1,25 @@
 <script setup lang="ts" generic="T extends string">
 import { ToggleGroupItem, ToggleGroupRoot } from 'reka-ui';
 
-withDefaults(
-    defineProps<{
-        options: { value: T; label: string; count?: number }[];
-        ariaLabel?: string;
-        ariaLabelledby?: string;
-        tone?: 'primary' | 'neutral';
-        disabled?: boolean;
-        block?: boolean;
-        name?: string;
-    }>(),
-    { tone: 'primary', disabled: false, block: false },
-);
+type SegmentedControlName =
+    | { ariaLabel: string; ariaLabelledby?: never }
+    | { ariaLabelledby: string; ariaLabel?: never };
+
+type SegmentedControlProps<T extends string> = SegmentedControlName & {
+    options: { value: T; label: string; count?: number }[];
+    ariaDescribedby?: string;
+    ariaInvalid?: 'true';
+    tone?: 'primary' | 'neutral';
+    disabled?: boolean;
+    block?: boolean;
+    name?: string;
+};
+
+withDefaults(defineProps<SegmentedControlProps<T>>(), {
+    tone: 'primary',
+    disabled: false,
+    block: false,
+});
 
 const modelValue = defineModel<T>({ required: true });
 
@@ -32,6 +39,8 @@ function onUpdate(value: unknown): void {
         :model-value="modelValue"
         :aria-label="ariaLabel"
         :aria-labelledby="ariaLabelledby"
+        :aria-describedby="ariaDescribedby"
+        :aria-invalid="ariaInvalid"
         :disabled="disabled"
         :data-tone="tone"
         class="segmented-control"

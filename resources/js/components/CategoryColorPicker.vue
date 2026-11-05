@@ -7,6 +7,8 @@ defineProps<{
     colors: string[];
     modelValue: string | null;
     ariaLabelledby?: string;
+    ariaDescribedby?: string;
+    ariaInvalid?: 'true';
 }>();
 
 const t = useTranslations();
@@ -21,6 +23,8 @@ const emit = defineEmits<{
         class="flex flex-wrap gap-2"
         role="group"
         :aria-labelledby="ariaLabelledby"
+        :aria-describedby="ariaDescribedby"
+        :aria-invalid="ariaInvalid"
     >
         <button
             v-for="(color, index) in colors"

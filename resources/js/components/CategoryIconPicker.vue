@@ -7,6 +7,8 @@ defineProps<{
     modelValue: string;
     color: string;
     ariaLabelledby?: string;
+    ariaDescribedby?: string;
+    ariaInvalid?: 'true';
 }>();
 
 const emit = defineEmits<{
@@ -19,6 +21,8 @@ const emit = defineEmits<{
         class="bg-background grid max-h-48 grid-cols-8 gap-2 overflow-y-auto rounded-md p-3"
         role="group"
         :aria-labelledby="ariaLabelledby"
+        :aria-describedby="ariaDescribedby"
+        :aria-invalid="ariaInvalid"
     >
         <button
             v-for="icon in icons"

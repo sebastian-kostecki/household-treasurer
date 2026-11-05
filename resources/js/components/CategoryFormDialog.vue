@@ -228,12 +228,14 @@ function closeDialog(): void {
                     :label="t.budget.type"
                     group
                     :error="errors.type"
-                    v-slot="{ labelId }"
+                    v-slot="{ labelId, describedBy, invalid }"
                 >
                     <SegmentedControl
                         v-model="type"
                         :options="typeOptions"
-                        :aria-labelledby="labelId"
+                        :ariaLabelledby="labelId"
+                        :ariaDescribedby="describedBy"
+                        :ariaInvalid="invalid"
                         name="type"
                         block
                         :disabled="lockType"
@@ -245,12 +247,14 @@ function closeDialog(): void {
                     :label="t.budget.category_color"
                     group
                     :error="errors.color"
-                    v-slot="{ labelId }"
+                    v-slot="{ labelId, describedBy, invalid }"
                 >
                     <CategoryColorPicker
                         :colors="categoryAppearanceOptions.colors"
                         v-model="color"
                         :aria-labelledby="labelId"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
                     <input type="hidden" name="color" :value="color ?? ''" />
                 </FormField>
@@ -260,13 +264,15 @@ function closeDialog(): void {
                     :label="t.budget.category_icon"
                     group
                     :error="errors.icon"
-                    v-slot="{ labelId }"
+                    v-slot="{ labelId, describedBy, invalid }"
                 >
                     <CategoryIconPicker
                         :icons="categoryAppearanceOptions.icons"
                         v-model="icon"
                         :color="color ?? DEFAULT_CATEGORY_COLOR"
                         :aria-labelledby="labelId"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
                     <input type="hidden" name="icon" :value="icon" />
                 </FormField>
@@ -329,12 +335,14 @@ function closeDialog(): void {
                     group
                     :hint="t.budget.month_item_kind_hint"
                     :error="errors.month_item_kind"
-                    v-slot="{ labelId }"
+                    v-slot="{ labelId, describedBy, invalid }"
                 >
                     <SegmentedControl
                         v-model="monthItemKind"
                         :options="monthItemKindOptions"
-                        :aria-labelledby="labelId"
+                        :ariaLabelledby="labelId"
+                        :ariaDescribedby="describedBy"
+                        :ariaInvalid="invalid"
                         name="month_item_kind"
                         block
                     />

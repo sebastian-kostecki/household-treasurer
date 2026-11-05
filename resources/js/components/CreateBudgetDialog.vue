@@ -127,7 +127,7 @@ function closeDialog(): void {
                 @start="busy = true"
                 @finish="busy = false"
                 @success="closeDialog"
-                v-slot="{ errors, processing }"
+                v-slot="{ errors, processing, clearErrors }"
             >
                 <DialogHeader>
                     <DialogTitle>
@@ -168,7 +168,7 @@ function closeDialog(): void {
                         v-model="sourceBudgetId"
                         class="native-select"
                         :aria-describedby="describedBy"
-                        :aria-invalid="invalid ? 'true' : undefined"
+                        :aria-invalid="invalid"
                     >
                         <option value="">
                             {{ t.budget.copy_source_none }}
@@ -194,6 +194,7 @@ function closeDialog(): void {
                             type="button"
                             variant="outline"
                             :disabled="processing"
+                            @click="clearErrors()"
                         >
                             {{ t.budget.cancel }}
                         </Button>

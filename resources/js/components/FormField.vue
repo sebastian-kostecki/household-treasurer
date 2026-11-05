@@ -27,7 +27,7 @@ const describedBy = computed(() => {
     return ids.length > 0 ? ids.join(' ') : undefined;
 });
 
-const invalid = computed(() => (props.error ? 'true' : undefined));
+const invalid = computed(() => (props.error ? ('true' as const) : undefined));
 const controlClass = computed(() =>
     props.money ? 'pr-8 text-right font-mono tabular-nums' : '',
 );

@@ -10,13 +10,13 @@ withDefaults(
 </script>
 
 <template>
-    <div v-show="message">
-        <p
-            :id="id"
-            class="text-destructive"
-            :class="size === 'xs' ? 'text-xs/4' : 'text-sm'"
-        >
-            {{ message }}
-        </p>
-    </div>
+    <p
+        v-if="message"
+        :id="id"
+        role="alert"
+        class="text-destructive"
+        :class="size === 'xs' ? 'text-xs/4' : 'text-sm'"
+    >
+        {{ message }}
+    </p>
 </template>
