@@ -598,20 +598,20 @@ Brak migracji danych i zmian payloadu. Usunięte klucze `lang` nie mają innych 
 
 #### Automated
 
-- [x] 1.1 Test tokenów nadal zielony: `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Unit/DesignTokensTest.php`
-- [x] 1.2 Formatowanie i statyka frontu: `npm run check`
+- [x] 1.1 Test tokenów nadal zielony: `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Unit/DesignTokensTest.php` — d1e2bc9
+- [x] 1.2 Formatowanie i statyka frontu: `npm run check` — d1e2bc9
 
 #### Manual
 
-- [x] 1.3 ADR-0041, `design-system.md` i `.ai/rules/js.md` opisują decyzje 1–4 z `research.md` oraz odpowiedzi z planowania („przed” = stan zapisany, miejscownik z rokiem, układ Atramentu, zła kwota nieczytelna lub ujemna) i nie przeczą sobie
-- [x] 1.4 `text-warning` na tle `background` ma kontrast co najmniej 4,5:1 w obu motywach (tokeny z `app.css`)
+- [x] 1.3 ADR-0041, `design-system.md` i `.ai/rules/js.md` opisują decyzje 1–4 z `research.md` oraz odpowiedzi z planowania („przed” = stan zapisany, miejscownik z rokiem, układ Atramentu, zła kwota nieczytelna lub ujemna) i nie przeczą sobie — d1e2bc9
+- [x] 1.4 `text-warning` na tle `background` ma kontrast co najmniej 4,5:1 w obu motywach (tokeny z `app.css`) — d1e2bc9
 
 ### Phase 2: Odczyty przed → po w bibliotekach
 
 #### Automated
 
-- [ ] 2.1 Testy bibliotek: `npm test -- resources/js/lib/entry-to-spend-warning.test.ts resources/js/lib/import-to-spend-warnings.test.ts resources/js/lib/hand-entry-warning-preview.test.ts`
-- [ ] 2.2 Typy i statyka: `npm run types:check && npm run check`
+- [x] 2.1 Testy bibliotek: `npm test -- resources/js/lib/entry-to-spend-warning.test.ts resources/js/lib/import-to-spend-warnings.test.ts resources/js/lib/hand-entry-warning-preview.test.ts`
+- [x] 2.2 Typy i statyka: `npm run types:check && npm run check`
 
 ### Phase 3: Wspólne elementy dialogów operacji
 
