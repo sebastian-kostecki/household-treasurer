@@ -1,7 +1,7 @@
 ---
 change_id: dashboard-atrament-ui
 title: Dashboard atrament ui
-status: new
+status: preparing
 created: 2026-11-05
 updated: 2026-11-05
 archived_at: null
@@ -14,7 +14,7 @@ Zmiana UI przez `/10x-ui`, jeden widok: `resources/js/pages/Dashboard.vue` (oraz
 - **Wariant kontraktu:** istniejący system projektowy. Rozszerzamy go, bez drugiej palety i bez `shadcn init`.
 - **Źródło tokenów:** `resources/css/app.css` (`:root` / `.dark`, `@theme inline`, `@utility` typografii); wartości z design systemu C · Atrament i morski: https://claude.ai/artifact/9gJSdtfpFgUAa8oEMgR4HA.
 - **Wzorzec:** komponenty `StatPanel` (zamiast osobnych `StatTile`), `Notice`, `DataTable` z `Tabs`, `Meter`, `Panel`; mockup `MockupCAtrament` → Dashboard.
-- **Kitchen sink:** `/dev/ui/dashboard` (`resources/js/pages/dev/DashboardKitchenSink.vue`, `resources/js/lib/dashboard-fixtures.ts`).
+- **Kitchen sink:** `/dev/ui/dashboard` (`resources/js/pages/dev/DashboardKitchenSink.vue`, `resources/js/pages/dev/dashboard-fixtures.ts`).
 
 Wstępny audyt (2026-11-05): skan literałów 0 trafień (widoki są już w `scripts/check-ui-literals.mjs`); 11 stylów sprzed Atramentu (`text-3xl`, `text-base`, `rounded-2xl`, `border-border/60`, `divide-border/60`, `opacity-60/70`). Zarzuty do potwierdzenia w researchu:
 
