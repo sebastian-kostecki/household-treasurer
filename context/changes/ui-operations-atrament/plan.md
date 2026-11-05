@@ -407,24 +407,24 @@ Bez migracji. Stare linki bez `section` otwierają domyślną zakładkę.
 
 #### Automated
 
-- [x] 1.1 ADR-0038 istnieje, a ADR-0035 odsyła do niego
-- [x] 1.2 npm run check zielone (formatowanie Markdown)
+- [x] 1.1 ADR-0038 istnieje, a ADR-0035 odsyła do niego — 105d005
+- [x] 1.2 npm run check zielone (formatowanie Markdown) — 105d005
 
 #### Manual
 
-- [x] 1.3 ADR-0038, design-system.md i js.md mówią to samo o kolorze kwoty, sumie dnia i zakładkach
+- [x] 1.3 ADR-0038, design-system.md i js.md mówią to samo o kolorze kwoty, sumie dnia i zakładkach — 105d005
 
 ### Phase 2: Warstwa współdzielona
 
 #### Automated
 
-- [ ] 2.1 Testy formaterów zielone
-- [ ] 2.2 npm run check, check:ui, types:check zielone
-- [ ] 2.3 npm test zielone
+- [x] 2.1 Testy formaterów zielone
+- [x] 2.2 npm run check, check:ui, types:check zielone
+- [x] 2.3 npm test zielone
 
 #### Manual
 
-- [ ] 2.4 Zrzuty podglądu importu i Planu miesiąca w obu motywach przy 1280 i 390 px bez regresji
+- [x] 2.4 Zrzuty podglądu importu i Planu miesiąca w obu motywach przy 1280 i 390 px bez regresji
 
 ### Phase 3: Kontrakt serwera
 

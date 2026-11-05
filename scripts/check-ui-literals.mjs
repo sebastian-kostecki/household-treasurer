@@ -67,6 +67,10 @@ const FILES = [
     'resources/js/components/BudgetMonthPicker.vue',
     'resources/js/components/StatPanel.vue',
     'resources/js/components/ExecutionMeter.vue',
+    'resources/js/components/OperationTypeTile.vue',
+    'resources/js/components/OperationsDateCell.vue',
+    'resources/js/components/CompactAccountIdentity.vue',
+    'resources/js/components/SegmentedControl.vue',
 ];
 
 const PALETTE =

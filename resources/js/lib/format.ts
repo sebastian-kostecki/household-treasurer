@@ -126,13 +126,37 @@ export function formatRelativeDate(date: Date | string): string {
 }
 
 /**
- * Format minor units as signed Polish PLN for financial operations.
+ * Format a date as a Polish day label, e.g. "środa, 4 listopada"; the year is
+ * added when it differs from the year of `today`.
+ */
+export function formatDayLabel(
+    date: Date | string,
+    today: Date = new Date(),
+): string {
+    const value =
+        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    };
+
+    if (value.getFullYear() !== today.getFullYear()) {
+        options.year = 'numeric';
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', options).format(value);
+}
+
+/**
+ * Format minor units as a signed Polish amount for financial operations,
+ * without the unit (table cell, ADR-0037).
  */
 export function formatFinancialOperationAmount(
     type: 'income' | 'expense',
     amountMinorUnits: number,
 ): string {
-    const formatted = formatMoney(Math.abs(amountMinorUnits));
+    const formatted = formatMoneyAmount(Math.abs(amountMinorUnits));
 
     if (type === 'income' || amountMinorUnits < 0) {
         return `+${formatted}`;
@@ -152,5 +176,27 @@ export function financialOperationAmountClass(
         return 'text-success';
     }
 
-    return 'text-destructive';
+    return 'text-foreground';
+}
+
+/**
+ * Format a day sum: "+1 234,56" above zero, "−1 234,56" (U+2212) below, "0,00" at zero.
+ */
+export function formatOperationDaySum(minorUnits: number): string {
+    if (minorUnits > 0) {
+        return `+${formatMoneyAmount(minorUnits)}`;
+    }
+
+    if (minorUnits < 0) {
+        return `−${formatMoneyAmount(Math.abs(minorUnits))}`;
+    }
+
+    return formatMoneyAmount(0);
+}
+
+/**
+ * CSS class for a day sum: income in `success`, otherwise `foreground`.
+ */
+export function operationDaySumClass(minorUnits: number): string {
+    return minorUnits > 0 ? 'text-success' : 'text-foreground';
 }

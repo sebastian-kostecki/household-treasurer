@@ -330,11 +330,20 @@
     }
 
     .segmented-control {
-        @apply border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1;
+        @apply bg-background inline-flex gap-1 rounded-lg border p-1;
     }
 
     .segmented-control-item {
         @apply text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50;
+    }
+
+    /* Licznik przy zakładce (README Tabs); w aktywnej zakładce w kolorze tekstu. */
+    .segmented-control-count {
+        @apply text-muted-foreground font-mono tabular-nums;
+    }
+
+    .segmented-control-item[data-state='on'] .segmented-control-count {
+        @apply text-foreground;
     }
 
     .segmented-control[data-tone='primary']
@@ -555,10 +564,8 @@
         @apply grid w-full gap-x-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
-            'date amount'
-            'description description'
-            'category account'
-            'actions actions';
+            'description amount'
+            'category actions';
     }
 
     .operations-grid-transfer {
@@ -572,11 +579,8 @@
     @variant md {
         .operations-grid {
             align-items: center;
-            grid-template-columns: 6.5rem minmax(
-                    0,
-                    1fr
-                ) 13rem 9.5rem 7rem 4.5rem;
-            grid-template-areas: 'date description category account amount actions';
+            grid-template-columns: minmax(0, 1fr) 11.25rem 6.5rem 8rem 4.5rem;
+            grid-template-areas: 'description category date amount actions';
         }
 
         .operations-grid-transfer {
@@ -607,6 +611,20 @@
         @apply border-border/60 hover:bg-secondary gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
     }
 
+    /**
+     * Wiersz dnia: ta sama siatka co wiersze, etykieta na szerokość kolumn
+     * przed kwotą, suma dnia w kolumnie kwoty. Stoi PO `.operations-grid`.
+     */
+    .operations-day-row {
+        @apply bg-muted text-muted-foreground min-h-row border-b py-1.5 text-xs;
+        grid-template-areas: 'label amount';
+    }
+
+    .operations-day-label {
+        grid-area: label;
+        @apply first-letter:uppercase;
+    }
+
     @variant md {
         .operations-header-row {
             @apply grid;
@@ -614,6 +632,10 @@
 
         .operations-row {
             @apply gap-y-0;
+        }
+
+        .operations-day-row {
+            grid-template-areas: 'label label label amount actions';
         }
     }
 
@@ -634,8 +656,19 @@
         @apply opacity-60 delay-200;
     }
 
+    /* Data w wierszu niesie wiersz dnia, więc na telefonie jest ukryta (poza przelewami). */
     .operations-cell-date {
         grid-area: date;
+    }
+
+    .operations-grid:not(.operations-grid-transfer) .operations-cell-date {
+        @apply hidden;
+    }
+
+    @variant md {
+        .operations-grid:not(.operations-grid-transfer) .operations-cell-date {
+            @apply block;
+        }
     }
 
     .operations-cell-description {
@@ -655,7 +688,7 @@
 
     .operations-cell-amount {
         grid-area: amount;
-        @apply text-right font-medium tabular-nums;
+        @apply amount text-right;
     }
 
     .operations-cell-actions {

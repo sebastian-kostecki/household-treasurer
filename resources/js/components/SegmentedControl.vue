@@ -3,7 +3,7 @@ import { ToggleGroupItem, ToggleGroupRoot } from 'reka-ui';
 
 withDefaults(
     defineProps<{
-        options: { value: T; label: string }[];
+        options: { value: T; label: string; count?: number }[];
         ariaLabel: string;
         tone?: 'primary' | 'neutral';
         disabled?: boolean;
@@ -40,6 +40,11 @@ function onUpdate(value: unknown): void {
             class="segmented-control-item"
         >
             {{ option.label }}
+            <span
+                v-if="option.count !== undefined"
+                class="segmented-control-count"
+                >{{ option.count }}</span
+            >
         </ToggleGroupItem>
     </ToggleGroupRoot>
 </template>
