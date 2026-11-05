@@ -78,9 +78,7 @@ const disabledValue = ref('current');
                 />
             </ListSurface>
             <ListSurface :title="t.month_plan.expense_table">
-                <div
-                    class="month-plan-grid month-plan-grid-kind border-border/60 border-b pb-2.5"
-                >
+                <div class="month-plan-grid border-border/60 border-b pb-2.5">
                     <span class="column-header">
                         {{ t.month_plan.category }}
                     </span>
@@ -153,18 +151,8 @@ const disabledValue = ref('current');
             <p class="text-muted-foreground text-sm">
                 W widoku pasek jest przyklejony do dołu ekranu.
             </p>
-            <MonthPlanEditBar
-                :to-spend-minor-units="373000"
-                mode="approve"
-                :processing="false"
-                :can-submit="true"
-            />
-            <MonthPlanEditBar
-                :to-spend-minor-units="-12000"
-                mode="change"
-                :processing="false"
-                :can-submit="true"
-            />
+            <MonthPlanEditBar :processing="false" :can-submit="true" />
+            <MonthPlanEditBar :processing="false" :can-submit="true" />
         </section>
 
         <section class="space-y-3">
@@ -176,7 +164,7 @@ const disabledValue = ref('current');
             </p>
             <div class="flex flex-wrap items-center gap-6">
                 <div class="space-y-1">
-                    <p class="section-label">primary</p>
+                    <p class="table-header">primary</p>
                     <SegmentedControl
                         v-model="primaryValue"
                         :options="contractKinds"
@@ -185,7 +173,7 @@ const disabledValue = ref('current');
                     />
                 </div>
                 <div class="space-y-1">
-                    <p class="section-label">neutral</p>
+                    <p class="table-header">neutral</p>
                     <SegmentedControl
                         v-model="neutralValue"
                         :options="contractKinds"
@@ -194,7 +182,7 @@ const disabledValue = ref('current');
                     />
                 </div>
                 <div class="space-y-1">
-                    <p class="section-label">disabled</p>
+                    <p class="table-header">disabled</p>
                     <SegmentedControl
                         v-model="disabledValue"
                         :options="contractKinds"
@@ -248,9 +236,7 @@ const disabledValue = ref('current');
                 </div>
             </ListSurface>
             <ListSurface :title="t.month_plan.expense_table">
-                <div
-                    class="month-plan-grid month-plan-grid-kind border-border/60 border-b pb-2.5"
-                >
+                <div class="month-plan-grid border-border/60 border-b pb-2.5">
                     <span class="column-header">
                         {{ t.month_plan.category }}
                     </span>
@@ -268,7 +254,7 @@ const disabledValue = ref('current');
                     </span>
                 </div>
                 <div
-                    class="month-plan-grid month-plan-grid-kind border-border/60 items-center border-b py-3"
+                    class="month-plan-grid border-border/60 items-center border-b py-3"
                 >
                     <span class="min-w-0 text-sm">
                         Bardzo długa nazwa kategorii, która musi się zawinąć bez
@@ -379,12 +365,7 @@ const disabledValue = ref('current');
                         class="w-40 text-right tabular-nums"
                     />
                 </div>
-                <MonthPlanEditBar
-                    :to-spend-minor-units="373000"
-                    mode="change"
-                    :processing="false"
-                    :can-submit="true"
-                />
+                <MonthPlanEditBar :processing="false" :can-submit="true" />
             </section>
 
             <section class="space-y-2">
@@ -394,8 +375,6 @@ const disabledValue = ref('current');
                     przełącznik rodzaju w czasie zapisu.
                 </p>
                 <MonthPlanEditBar
-                    :to-spend-minor-units="373000"
-                    mode="approve"
                     :processing="false"
                     :can-submit="false"
                     :invalid-count="1"
@@ -445,8 +424,6 @@ const disabledValue = ref('current');
                     />
                 </div>
                 <MonthPlanEditBar
-                    :to-spend-minor-units="373000"
-                    mode="approve"
                     :processing="false"
                     :can-submit="false"
                     :invalid-count="2"
@@ -470,12 +447,7 @@ const disabledValue = ref('current');
                     postępu, a propsy przychodzą w całości: brak skeletonu i
                     przeskoku układu, więc N/A.
                 </p>
-                <MonthPlanEditBar
-                    :to-spend-minor-units="373000"
-                    mode="change"
-                    :processing="true"
-                    :can-submit="true"
-                />
+                <MonthPlanEditBar :processing="true" :can-submit="true" />
             </section>
         </section>
     </div>

@@ -560,34 +560,34 @@ Bez migracji danych. Propsy tylko przybywają; formularze zatwierdzenia i zmiany
 
 #### Automated
 
-- [x] 3.1 Testy pary i strony przechodzą na PostgreSQL w obrazie Sail
-- [x] 3.2 npm test przechodzi z testami pary i ostrzeżeń
-- [x] 3.3 build, types:check i check przechodzą
-- [x] 3.4 composer ci:check przechodzi w obrazie Sail
-- [x] 3.5 sloppy ci bez nowych znalezisk
-- [x] 3.6 pint --dirty bez zmian do zrobienia
+- [x] 3.1 Testy pary i strony przechodzą na PostgreSQL w obrazie Sail — 3a87f25
+- [x] 3.2 npm test przechodzi z testami pary i ostrzeżeń — 3a87f25
+- [x] 3.3 build, types:check i check przechodzą — 3a87f25
+- [x] 3.4 composer ci:check przechodzi w obrazie Sail — 3a87f25
+- [x] 3.5 sloppy ci bez nowych znalezisk — 3a87f25
+- [x] 3.6 pint --dirty bez zmian do zrobienia — 3a87f25
 
 #### Manual
 
-- [x] 3.7 /month-plan renderuje się jak przed zmianą
+- [x] 3.7 /month-plan renderuje się jak przed zmianą — 3a87f25
 
 ### Phase 4: Widok Planu miesiąca
 
 #### Automated
 
-- [ ] 4.1 build, types:check, check, check:ui z nowymi plikami i npm test przechodzą
-- [ ] 4.2 composer ci:check w obrazie Sail i testy Planu miesiąca na PostgreSQL przechodzą
-- [ ] 4.3 grep section-label i MonthPaceMeter nic nie zwraca
-- [ ] 4.4 sloppy ci bez nowych znalezisk
-- [ ] 4.5 pint --dirty bez zmian do zrobienia
+- [x] 4.1 build, types:check, check, check:ui z nowymi plikami i npm test przechodzą
+- [x] 4.2 composer ci:check w obrazie Sail i testy Planu miesiąca na PostgreSQL przechodzą
+- [x] 4.3 grep section-label i MonthPaceMeter nic nie zwraca
+- [x] 4.4 sloppy ci bez nowych znalezisk
+- [x] 4.5 pint --dirty bez zmian do zrobienia
 
 #### Manual
 
-- [ ] 4.6 /month-plan w czterech stanach zgodny z mockupem w obu motywach przy 1280 i 390 px
-- [ ] 4.7 Zatwierdzenie z wiersza tytułu działa myszą i klawiaturą, błędna kwota blokuje
-- [ ] 4.8 Pas edycji u dołu, Zapisz i Anuluj działają, zmiana rodzaju działa
-- [ ] 4.9 Notatka o dobieraniu i miary reagują na wpisywanie
-- [ ] 4.10 Na 390 px brak poziomego przewijania strony
+- [x] 4.6 /month-plan w czterech stanach zgodny z mockupem w obu motywach przy 1280 i 390 px
+- [x] 4.7 Zatwierdzenie z wiersza tytułu działa myszą i klawiaturą, błędna kwota blokuje
+- [x] 4.8 Pas edycji u dołu, Zapisz i Anuluj działają, zmiana rodzaju działa
+- [x] 4.9 Notatka o dobieraniu i miary reagują na wpisywanie
+- [x] 4.10 Na 390 px brak poziomego przewijania strony
 
 ### Phase 5: Stany i bramka wizualna
 
