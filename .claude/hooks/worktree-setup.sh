@@ -28,6 +28,17 @@ done
 [ -z "$worktree" ] && exit 0
 
 cd "$worktree" || exit 0
+
+# This script also runs from boost-mcp.sh when Claude Code restarts the MCP
+# server in the new worktree, possibly while this hook is still installing.
+# Serialize both callers on one lock per worktree; the second one then finds
+# everything in place and does nothing.
+if command -v flock >/dev/null 2>&1; then
+  lock="${TMPDIR:-/tmp}/worktree-setup-$(printf '%s' "$worktree" | cksum | cut -d' ' -f1).lock"
+  exec 9>"$lock"
+  flock -w 600 9
+fi
+
 log=()
 
 if [ ! -f vendor/autoload.php ]; then
@@ -53,7 +64,7 @@ fi
 if [ ${#log[@]} -eq 0 ]; then
   msg="Worktree $worktree already prepared (vendor, .env, APP_KEY)."
 else
-  msg="Worktree $worktree prepared: $(IFS=','; echo "${log[*]}"). Run /mcp to reconnect laravel-boost."
+  msg="Worktree $worktree prepared: $(IFS=','; echo "${log[*]}"). If laravel-boost is not connected, reconnect it in /mcp."
 fi
 
 jq -n --arg msg "$msg" '{systemMessage: $msg, hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $msg}}'

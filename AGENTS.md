@@ -85,7 +85,7 @@ Manual checks of a phase need a running app that serves the worktree code. The S
 
 ## When Boost tools are not available
 
-Boost MCP is configured for Claude Code, and `.ai/rules/boost` does not exist. Claude Code starts it with host PHP through `.mcp.json`, so a worktree needs `composer install` and `.env`, and the database tools need the Sail PostgreSQL container running. If the Boost tools are missing from your tool list:
+Boost MCP is configured for Claude Code, and `.ai/rules/boost` does not exist. Claude Code starts it with host PHP through `.mcp.json` and `.claude/hooks/boost-mcp.sh`, which runs `composer install`, `.env` and `key:generate` in a fresh worktree before starting the server (the `EnterWorktree` hook in `.claude/settings.json` runs the same setup). The database tools need the Sail PostgreSQL container running. If the Boost tools are missing from your tool list:
 
 - Package docs: check the installed version, then read the matching official docs: `laravel.com/docs/13.x`, `inertiajs.com/docs/v3`, `pestphp.com/docs`.
 - Skills: the project skill is `.ai/skills/openship-ui-development/SKILL.md`. Package skills are not tracked: find `<skill-name>/SKILL.blade.php` under `vendor/laravel/boost/.ai/` or `vendor/laravel/*/resources/boost/skills/`.
