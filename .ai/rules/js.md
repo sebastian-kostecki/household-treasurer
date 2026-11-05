@@ -13,11 +13,11 @@ Category colour is identity only (CategoryChip tile at 15%), never status. Full 
 
 ## Amounts go through formatMoney with tabular-nums
 
-Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,56 zł), right-aligned, tabular-nums; edit with minorUnitsToMoneyInput / parseMoneyInputToMinorUnits. Do not format money with toFixed or Intl in components.
+Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,56 zł) in metrics and dialogs, right-aligned, tabular-nums. In table cells use formatMoneyAmount (no unit) with the `amount` style (`amount-sum` in total rows) and put "Kwoty w zł" in the panel footer (ADR-0037); edit with minorUnitsToMoneyInput / parseMoneyInputToMinorUnits. Do not format money with toFixed or Intl in components.
 
 ## Reuse surface building blocks before writing new markup
 
-Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountIdentityBlock and SegmentedControl first. Surfaces follow ADR-0003: grey floor, white rounded-2xl cards with border/60, no resting shadows. Do not edit components/ui/* for a single screen.
+Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountIdentityBlock and SegmentedControl first. Also StatPanel and ExecutionMeter. Surfaces follow ADR-0037: grey floor, panels are `card` with a full `border` and `rounded-lg`, no resting shadows. Do not edit components/ui/* for a single screen.
 
 ## Non-blocking warnings use the warning Alert variant
 
@@ -26,6 +26,7 @@ Warnings that do not block saving (over limit, over Month Remaining, negative To
 ## Bind the reka-ui Checkbox with v-model, never :checked
 
 reka-ui `Checkbox` takes `modelValue` and emits `update:modelValue`; `:checked`, `@update:checked` and `v-model:checked` are radix-vue names and are silently ignored, leaving an uncontrolled box. Use `v-model` (see Dashboard.vue) or `:model-value` with `@update:model-value`. `resources/js/ui-contract.test.ts` fails on the old names; its exception list (issue #186) only shrinks.
+A setting saved at once ("Pokaż zarchiwizowane") is a `Switch` from components/ui/switch, also bound with `v-model`.
 
 ## Confirmations use ConfirmActionDialog
 
@@ -33,15 +34,15 @@ Actions that need confirmation (delete, archive, restore) use `ConfirmActionDial
 
 ## Responsive lists are one markup on a grid, inside ListSurface
 
-Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid-template-areas class (`.operations-grid`, `.budget-category-grid`) inside a single `ListSurface`, with a `hidden md:grid` header row. States of the Budget page (the 7-state matrix) are shown in the kitchen sink at `/dev/kitchen-sink/budget` (`local` only); add a new Budget state there.
+Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid-template-areas class (`.operations-grid`, `.budget-category-grid`) inside a single `ListSurface`, with a `hidden md:grid` header row. States of the Budget page (the 7-state matrix, without a month strip: rows within plan, income over 100%, overrun, archived, one-off, paced, draft with a Type column, empty, no categories, Switch on/off, StatPanel with 3 and 4 metrics) are shown in the kitchen sink at `/dev/kitchen-sink/budget` (`local` only); add a new Budget state there.
 
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
 Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
-Signed amount colour goes through amountToneClass, column labels through the column-caption class (the only caption recipe; `.column-header` is an alias kept for the month plan), severity pills through Badge (variants warning / destructive-soft).
+Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; `.column-header` applies it in the month plan; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft / ok / brand / neutral), the elapsed-year mark in ExecutionMeter in `brand-text`.
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
 No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits, /dev/operations and /dev/import-preview.
-Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are `rounded-xl`.
+Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are 32px (`--control-height`) and `rounded-md`.
 
 ## Sidebar
 
@@ -58,12 +59,12 @@ The month plan view is checked by tests/Unit/MonthPlanHardcodedUiTest.php (part 
 
 ## Operations list: named classes, one primary action, visible reason for a disabled action
 
-The Operations view uses `.operations-grid`, `.operations-header-row` (hidden below md, caption through `column-caption`) and `.operations-row` (hover `foreground/3%`); do not rebuild them from utilities. The kitchen sink at `/dev/operations` (`local` only) renders the view's 7-state matrix from `resources/js/lib/operations-fixtures.ts`; add new states there. `npm run check:ui` also catches opacity literals in the form `/[0.03]`.
+The Operations view uses `.operations-grid`, `.operations-header-row` (hidden below md, caption through `table-header`) and `.operations-row` (hover `secondary`); do not rebuild them from utilities. The kitchen sink at `/dev/operations` (`local` only) renders the view's 7-state matrix from `resources/js/lib/operations-fixtures.ts`; add new states there. `npm run check:ui` also catches opacity literals in the form `/[0.03]`.
 The reason a create action is disabled is visible text referenced by `aria-describedby`, never `title` on a disabled `Button` (`pointer-events-none` hides it and it is not a description). A domain page title row has at most one primary `Button`; the other actions are `outline`, all with an icon.
 
 ## Import preview: named classes, the `pair` tint, no lost row alert
 
-The import preview uses `.import-preview-grid`, `.import-preview-header-row` (hidden below `xl`, caption through `column-caption`) and `.import-preview-row` with the modifiers `-duplicate` (warning tint) and `-pair` (own transfer pair candidate); do not rebuild them from utilities. The `pair` token is only the tint of a pair candidate row, never text, amounts or the operation type (that is `transfer`).
+The import preview uses `.import-preview-grid`, `.import-preview-header-row` (hidden below `xl`, caption through `table-header`) and `.import-preview-row` with the modifiers `-duplicate` (warning tint) and `-pair` (own transfer pair candidate); do not rebuild them from utilities. The `pair` token is only the tint of a pair candidate row, never text, amounts or the operation type (that is `transfer`).
 A new alert inside a row needs a new kind in `importRowHasNotes` (resources/js/lib/import-preview-rows.ts); otherwise the notes block does not render and the alert is silently lost.
 `CategorySelect` and `AccountSelect` used without a `<Label for>` get an `ariaLabel`; the reka `Select` trigger has no other accessible name.
 The kitchen sink at `/dev/import-preview` (`local` only) renders the 7-state matrix from `resources/js/lib/import-preview-fixtures.ts`; add new states there.

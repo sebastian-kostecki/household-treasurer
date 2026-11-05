@@ -1,6 +1,6 @@
 # Household Treasurer — Design system
 
-Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za nimi są w ADR-0001 (język wizualny OpenShip), ADR-0003 (przepis na powierzchnie), ADR-0023 (krój z `latin-ext`), ADR-0032 (poziomy alertów) i ADR-0035 (tokeny Atrament i morski, Inter, JetBrains Mono); ADR-0035 zastępuje część ADR-0001, 0003 i 0023. Wizualny wzorzec: artefakt „C · Atrament i morski” na claude.ai (https://claude.ai/artifact/9gJSdtfpFgUAa8oEMgR4HA, tylko podgląd, nie źródło wartości).
+Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za nimi są w ADR-0001 (język wizualny OpenShip), ADR-0003 (przepis na powierzchnie), ADR-0023 (krój z `latin-ext`), ADR-0032 (poziomy alertów) i ADR-0035 (tokeny Atrament i morski, Inter, JetBrains Mono) i ADR-0037 (przepis panelu, kontrolki 32 px, `table-header`, Budżet bez odczytów miesiąca); ADR-0035 zastępuje część ADR-0001, 0003 i 0023, a ADR-0037 część ADR-0003 i 0033. Wizualny wzorzec: artefakt „C · Atrament i morski” na claude.ai (https://claude.ai/artifact/9gJSdtfpFgUAa8oEMgR4HA, tylko podgląd, nie źródło wartości).
 
 ## Źródła prawdy
 
@@ -11,17 +11,27 @@ Jedna strona zasad wyglądu aplikacji, dla ludzi i agentów. Decyzje stojące za
 
 ## Powierzchnie i rytm
 
-- Szare tło strony (`background`), białe karty (`card`, `rounded-2xl`, obramowanie `border/60`). Bez cieni spoczynkowych: głębię daje kontrast tła i karty.
-- Kontrolki (przyciski, pola, selecty): wysokość 36 px (`h-9`), `rounded-xl`, fokus = pierścień 3 px `ring/50`.
-- Selecty: `.native-select` dla prostych wyliczeń bez ikon; `Select` (Reka) gdy opcja pokazuje ikonę lub logo (np. `AccountBankSelect`). Oba mają `rounded-xl`; `.native-select` stylizuje też `aria-invalid` (czerwona ramka).
+- Szare tło strony (`background`), panele to `card` z pełnym `border` i `rounded-lg` (`radius-lg`, 10 px; ADR-0037). Bez cieni spoczynkowych: głębię daje kontrast tła i karty.
+- Kontrolki: `--control-height` 32 px dla Button `default`/`icon`, Input, SelectTrigger i `.native-select`; `--control-height-sm` 26 px dla Button `sm`/`icon-sm`; promień `radius-md`; wiersz tabeli ma `--row-height` 34 px. Fokus = pierścień 3 px `ring/50`.
+- Selecty: `.native-select` dla prostych wyliczeń bez ikon; `Select` (Reka) gdy opcja pokazuje ikonę lub logo (np. `AccountBankSelect`). Oba mają 32 px i `radius-md`; `.native-select` stylizuje też `aria-invalid` (czerwona ramka).
 - Lista Budżetu używa `.budget-category-grid` (jeden markup na każdej szerokości, jak `.operations-grid` w Operacjach): na telefonie wiersz ma 2–3 linie, od `md` kolumny. Zarchiwizowane wiersze są w całości `muted-foreground`, bez kolorów statusu i bez `opacity`; reguły kolorów komórek są w `resources/js/lib/budget-category-cells.ts`. Wyjątek: ujemne saldo zarchiwizowanej lokaty zostaje `text-destructive` (FR-TD-08).
-- Listy i tabele: `ListSurface` z wierszami na siatce (`.operations-grid`, `.budget-category-grid`); wiersze oddzielone linią `border/60`, hover `foreground/3%`. Nagłówki kolumn i podpisy mobilne nad wartościami (11 px, wersaliki, `muted-foreground`) przez klasę `column-caption` z `app.css` (jedyny przepis podpisu), nigdy ręcznie złożoną z `text-xs … uppercase`. Lista Operacji ma klasy `.operations-grid`, `.operations-header-row` (nagłówek ukryty poniżej `md`) i `.operations-row`. Lista podglądu importu ma `.import-preview-grid`, `.import-preview-header-row` (nagłówek ukryty poniżej `xl`) i `.import-preview-row` z modyfikatorami `-duplicate` (tint `warning/10`) i `-pair` (tint `pair/10`, kandydat na parę przelewu własnego).
-- Siatka wiersza planu miesiąca to `.month-plan-grid`; etykieta sekcji `.section-label`, nagłówek kolumny `.column-header` (alias `column-caption`, zostaje dla Planu miesiąca), tabele `.list-surface-table`. W widokach nie ma wartości arbitralnych (`text-[11px]`, `grid-cols-[...]`), tylko nazwane klasy z `app.css`.
+- Listy i tabele: `ListSurface` z wierszami na siatce (`.operations-grid`, `.budget-category-grid`); wiersze oddzielone linią `border-soft`, hover `secondary`, wiersz sumy na `muted`. Nagłówki kolumn i podpisy mobilne nad wartościami (Inter 600, 12/16, zwykła wielkość liter, jedna linia, `muted-foreground`) przez styl `table-header` z `app.css` (jedyny przepis podpisu kolumny; wersaliki `label-caps` tylko nad miarami i w sidebarze), nigdy ręcznie składany z `text-xs … uppercase`. Lista Operacji ma klasy `.operations-grid`, `.operations-header-row` (nagłówek ukryty poniżej `md`) i `.operations-row`. Lista podglądu importu ma `.import-preview-grid`, `.import-preview-header-row` (nagłówek ukryty poniżej `xl`) i `.import-preview-row` z modyfikatorami `-duplicate` (tint `warning/10`) i `-pair` (tint `pair/10`, kandydat na parę przelewu własnego).
+- Siatka wiersza planu miesiąca to `.month-plan-grid`; etykieta sekcji `.section-label`, nagłówek kolumny `.column-header` (przepis `table-header`), tabele `.list-surface-table`. W widokach nie ma wartości arbitralnych (`text-[11px]`, `grid-cols-[...]`), tylko nazwane klasy z `app.css`.
 - Odstępy: 16 px między kartami i na krawędzi strony, 20 px od `md`, 24 px wewnątrz karty.
 
 ## Typografia
 
-Inter, wagi 400/500/600, podzbiory `latin` + `latin-ext`. JetBrains Mono (`--font-mono`) jest krojem kwot, wdrażanym widok po widoku; do tego czasu kwoty zostają w Interze z `tabular-nums`. Każda kwota ma `tabular-nums`. Skala: liczby w kafelkach `text-3xl`, nagłówek strony domenowej `text-lg font-semibold` (strony dev mogą mieć `text-xl`), tytuł karty `text-base font-semibold`, treść i kontrolki `text-sm`, podpisy `text-xs text-muted-foreground`.
+Inter, wagi 400/500/600, podzbiory `latin` + `latin-ext`. JetBrains Mono (`--font-mono`) jest krojem kwot, wdrażanym widok po widoku; Budżet jest wdrożony (ADR-0037), pozostałe widoki zostają w Interze z `tabular-nums` do swojego `/10x-ui`. Każda kwota ma `tabular-nums`. Skala w widokach wdrożonych to nazwane style z `app.css`; w pozostałych: liczby w kafelkach `text-3xl`, nagłówek strony domenowej `text-lg font-semibold`, tytuł karty `text-base font-semibold`, treść i kontrolki `text-sm`, podpisy `text-xs text-muted-foreground`.
+
+| Styl                    | Zapis                                             | Użycie                               |
+| ----------------------- | ------------------------------------------------- | ------------------------------------ |
+| `page-title`            | Inter 600, 18/24, -0,01em                         | h1 strony                            |
+| `section-title`         | Inter 600, 13/18                                  | tytuł panelu                         |
+| `table-header`          | Inter 600, 12/16, `muted-foreground`, jedna linia | nagłówek kolumny                     |
+| `label-caps`            | Inter 500, 11/14, wersaliki, +0,06em              | etykieta miary, sidebar              |
+| `meta`                  | Inter 400, 11/14                                  | podpis, stopka panelu                |
+| `kpi-lg` / `kpi`        | mono 500, 26/32 / 22/28                           | wartość miary (pierwsza / pozostałe) |
+| `amount` / `amount-sum` | mono 500 / 600, 13/18, `tabular-nums`             | kwota w komórce / w wierszu sumy     |
 
 ## Kolor znaczy coś tylko w trzech miejscach
 
@@ -48,7 +58,7 @@ Tekst musi mieć kontrast co najmniej 4,5:1, grafika 3:1. Pary tekstu z systemu 
 
 ## Kwoty
 
-Zapisywane jako całkowite Minor units. Wyświetlane przez `formatMoney`: `1 234,56 zł`, spacja tysięcy, przecinek, zawsze dwa miejsca, wyrównanie do prawej. Pola edycji: `minorUnitsToMoneyInput` / `parseMoneyInputToMinorUnits`. Znak minus przed kwotą, nie nawias.
+Zapisywane jako całkowite Minor units. Wyświetlane przez `formatMoney`: `1 234,56 zł`, spacja tysięcy, przecinek, zawsze dwa miejsca, wyrównanie do prawej. W komórkach tabel jednostka stoi w stopce panelu („Kwoty w zł”), więc komórka używa `formatMoneyAmount` (ta sama liczba bez „zł”) ze stylem `amount`; miary i dialogi zostają przy `formatMoney`. Pola edycji: `minorUnitsToMoneyInput` / `parseMoneyInputToMinorUnits`. Znak minus przed kwotą, nie nawias.
 
 Kolor kwoty ze znakiem (saldo, „do wydania”, różnica) daje wyłącznie `amountToneClass` z `resources/js/lib/amount-tone.ts`: `> 0` → `text-success`, `0` → bez koloru, `< 0` → `text-destructive`. Zero nigdy nie jest zielone. Nie pisz lokalnych helperów „znak → kolor”.
 
@@ -65,7 +75,7 @@ Ostrzeżenia w formularzach i podglądzie importu (np. „Operacja przekroczy do
 
 ## Gotowe elementy
 
-Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `StatTile` (kafelek KPI: etykieta, kwota z `amountToneClass`, sloty `label-extra` i `footer`), `SegmentedControl`, `ConfirmActionDialog` (potwierdzenie z `Form`, spinner, blokada zamykania w trakcie żądania, błędy serwera), `AccountMarkCompact` (kafelek znaku banku/gotówki). Ikony: `@lucide/vue`, 16 px w kontrolkach.
+Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryMeterRow`, `OperationTypeTile`, `IconAction` (przycisk-ikona z podpowiedzią i `aria-label`), `IndexEmptyState`, `Heading`, `AccountIdentityBlock`, `StatTile` (kafelek KPI: etykieta, kwota z `amountToneClass`, sloty `label-extra` i `footer`), `StatPanel` (jedna powierzchnia z 2–4 miarami rozdzielonymi pionowymi liniami, pierwsza w `kpi-lg`; używa go Budżet), `ExecutionMeter` (pasek realizacji: tor `track`, wypełnienie `foreground`, przy przekroczeniu `destructive`, kreska roku `brand-text`, procent; wspólny dla Dashboardu i Budżetu), `Switch` (ustawienie zapisywane od razu, `v-model`; tor `track`, włączony `primary`), `SegmentedControl`, `ConfirmActionDialog` (potwierdzenie z `Form`, spinner, blokada zamykania w trakcie żądania, błędy serwera), `AccountMarkCompact` (kafelek znaku banku/gotówki). Ikony: `@lucide/vue`, 16 px w kontrolkach.
 
 `Heading` służy sekcjom ustawień. Strony domenowe budują wiersz tytułu (`h1` + `Badge` po lewej, akcja po prawej) wg `Budget.vue`. W wierszu tytułu jest co najwyżej jedna akcja główna (`primary`), pozostałe są `outline` z ikoną; powód wyłączenia akcji to widoczny tekst pod przyciskami, powiązany `aria-describedby`.
 
@@ -75,6 +85,8 @@ Zanim napiszesz nowy markup, sprawdź: `ListSurface`, `CategoryChip`, `CategoryM
 - `neutral` – ustawienie zapisywane od razu (np. rodzaj pozycji kategorii), więc wygląda inaczej niż kontrolka formularza.
 
 ### Kitchen sink i zrzuty
+
+`/dev/kitchen-sink/budget` (tylko `local`) renderuje Budżet bez paska miesiąca w macierzy 7 stanów: realizacja (w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa bez kreski, równomierna z kreską), szkic z kolumną „Typ”, pusty budżet, brak kategorii, Switch wł./wył., panel miar z 3 i 4 miarami.
 
 `/dev/month-plan` (tylko `APP_ENV=local`) renderuje widok Plan miesiąca z danych testowych (`resources/js/lib/month-plan-fixtures.ts`) w macierzy 7 stanów (default, hover, focus-visible, disabled, error, empty, loading; komórka niemożliwa ma „N/A” z powodem). Po zmianie widoku: `npm run build`, podgląd z worktree (AGENTS.md „Preview from a worktree”), jednorazowy skrypt Playwright robi pełne zrzuty `/dev/month-plan` i `/month-plan` przy 1280 i 390 px do `context/changes/<change-id>/screenshots/`. Skrypt nie jest commitowany. Tak samo `/dev/operations` (`resources/js/lib/operations-fixtures.ts`) dla widoku Operacje, oraz `/dev/import-preview` (`resources/js/lib/import-preview-fixtures.ts`) dla podglądu importu CSV.
 
@@ -104,4 +116,4 @@ Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `
 1. Zmień token w `app.css` w obu trybach.
 2. Zaktualizuj tę stronę, a jeśli to decyzja, dopisz ADR.
 3. Zasady dla agentów żyją w `.ai/rules` (zapis przez `record-rule` z Laravel Boost); trzymaj je zgodne z tą stroną.
-4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`, `/dev/ui/accounts` i `/dev/ui/term-deposits`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` skanuje oczyszczone pliki pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.
+4. Wzorce widoków ogląda się w kitchen sink pod `/dev/ui/dashboard`, `/dev/ui/accounts` i `/dev/ui/term-deposits`, a sidebar (tryb ikon, stan pusty przełącznika roku, oba motywy) pod `/dev/ui/sidebar`. `npm run check:ui` (`scripts/check-ui-literals.mjs`) skanuje oczyszczone pliki, w tym widok Budżetu i jego komponenty, pod kątem literałów (kolory, klasy palety, px/rem w nawiasach); nowo oczyszczone widoki dopisz do listy w `scripts/check-ui-literals.mjs`.
