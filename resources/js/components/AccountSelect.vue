@@ -21,6 +21,8 @@ const props = withDefaults(
         disabled?: boolean;
         class?: string;
         ariaLabel?: string;
+        ariaDescribedby?: string;
+        ariaInvalid?: 'true';
     }>(),
     {
         required: false,
@@ -50,6 +52,8 @@ const selectedAccount = computed(() =>
             <SelectTrigger
                 :id="id"
                 :aria-label="ariaLabel"
+                :aria-describedby="ariaDescribedby"
+                :aria-invalid="ariaInvalid"
                 :class="['w-full', props.class]"
             >
                 <SelectValue :placeholder="placeholder">

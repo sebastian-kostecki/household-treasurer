@@ -333,6 +333,43 @@
         @apply text-muted-foreground pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs;
     }
 
+    /* Blok podglądu „przed → po” w dialogu formularza (ADR-0041). */
+    .form-preview {
+        @apply bg-background flex flex-col gap-1.5 rounded-md px-3 py-2.5;
+    }
+
+    .form-preview-label {
+        @apply text-muted-foreground text-xs/4;
+    }
+
+    .form-preview-value {
+        @apply font-semibold tabular-nums;
+    }
+
+    .form-preview-hint {
+        @apply text-muted-foreground text-xs/4;
+    }
+
+    .form-preview-warning {
+        @apply text-warning text-xs/4;
+    }
+
+    /* Rząd dwóch pól (np. Kwota | Data); jedna kolumna w oknie węższym niż 390 px. */
+    .form-field-row {
+        @apply grid grid-cols-2 gap-4;
+    }
+
+    @media (width < 390px) {
+        .form-field-row {
+            @apply grid-cols-1;
+        }
+    }
+
+    /* Tekst tylko do odczytu w dialogu (np. opis z wyciągu), nie textarea readonly. */
+    .form-readonly-text {
+        @apply bg-muted rounded-md px-3 py-2 text-sm break-words whitespace-pre-line;
+    }
+
     .month-plan-grid {
         @apply grid gap-x-3;
         grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;

@@ -42,6 +42,13 @@ export type ToSpendWarning = {
     toSpendAfterMinorUnits: number;
 };
 
+export type ToSpendReading = {
+    year: number;
+    month: number;
+    beforeMinorUnits: number;
+    afterMinorUnits: number;
+};
+
 type MonthState = {
     category: EntryToSpendCategory;
     plan: number;
@@ -143,16 +150,15 @@ function toSpendOf(
 }
 
 /**
- * Compares To Spend of every month with a plan touched by the changes, before
- * and after them. `pending` changes (earlier selected import rows) are part of
- * the baseline. A warning is returned when the month ends negative and lower
- * than it was.
+ * Reads To Spend of every month with a plan touched by the changes, before
+ * and after them, ascending by month. `pending` changes (earlier selected
+ * import rows) are part of the baseline.
  */
-export function previewToSpendWarnings(
+export function previewToSpendReadings(
     inputs: EntryToSpendInputs,
     changes: ToSpendEntryChange[],
     pending: ToSpendEntryChange[] = [],
-): ToSpendWarning[] {
+): ToSpendReading[] {
     const byMonth = new Map<number, ToSpendEntryChange[]>();
 
     for (const change of changes) {
@@ -166,7 +172,7 @@ export function previewToSpendWarnings(
         byMonth.set(key, [...(byMonth.get(key) ?? []), change]);
     }
 
-    const warnings: ToSpendWarning[] = [];
+    const readings: ToSpendReading[] = [];
 
     for (const key of [...byMonth.keys()].sort((a, b) => a - b)) {
         const year = Math.floor(key / 12);
@@ -213,12 +219,37 @@ export function previewToSpendWarnings(
 
         const after = toSpendOf(states, found.month.set_aside_minor_units);
 
-        if (after < 0 && after < before) {
-            warnings.push({ year, month, toSpendAfterMinorUnits: after });
-        }
+        readings.push({
+            year,
+            month,
+            beforeMinorUnits: before,
+            afterMinorUnits: after,
+        });
     }
 
-    return warnings;
+    return readings;
+}
+
+/**
+ * A warning is returned for every touched month that ends negative and lower
+ * than it was.
+ */
+export function previewToSpendWarnings(
+    inputs: EntryToSpendInputs,
+    changes: ToSpendEntryChange[],
+    pending: ToSpendEntryChange[] = [],
+): ToSpendWarning[] {
+    return previewToSpendReadings(inputs, changes, pending)
+        .filter(
+            (reading) =>
+                reading.afterMinorUnits < 0 &&
+                reading.afterMinorUnits < reading.beforeMinorUnits,
+        )
+        .map((reading) => ({
+            year: reading.year,
+            month: reading.month,
+            toSpendAfterMinorUnits: reading.afterMinorUnits,
+        }));
 }
 
 export type HandEntryToSpendState = {

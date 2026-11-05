@@ -7,9 +7,26 @@ import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
+import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
+import ExpenseFormDialog from '@/components/ExpenseFormDialog.vue';
+import IncomeFormDialog from '@/components/IncomeFormDialog.vue';
+import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
+import {
+    dialogAccounts,
+    dialogCapitalMovement,
+    dialogEntryToSpend,
+    dialogExpenseCategories,
+    dialogExpenseOperation,
+    dialogHandEntryMonthRemaining,
+    dialogIncomeCategories,
+    dialogIncomeOperation,
+    dialogOwnTransfer,
+    dialogRefundOperation,
+    dialogTermDeposits,
+} from '@/lib/operation-dialogs-fixtures';
 
 defineProps<{
     categoryAppearanceOptions: CategoryAppearanceOptions;
@@ -30,6 +47,24 @@ const states = [
     'confirm-saving',
     'confirm-deficit',
     'account',
+    'expense-new',
+    'expense-edit',
+    'expense-refund-edit',
+    'expense-warnings',
+    'expense-month-without-plan',
+    'expense-bad-amount',
+    'expense-errors',
+    'income-new',
+    'income-edit',
+    'income-errors',
+    'transfer-new',
+    'transfer-edit',
+    'transfer-negative',
+    'transfer-errors',
+    'capital-new',
+    'capital-edit',
+    'capital-negative-deposit',
+    'capital-errors',
 ] as const;
 
 type SinkState = (typeof states)[number];
@@ -49,6 +84,24 @@ const labels: Record<SinkState, string> = {
     'confirm-saving': 'Potwierdzenie: zapis w toku',
     'confirm-deficit': 'Potwierdzenie: ostrzeżenie o deficycie',
     account: 'Konto (powłoka)',
+    'expense-new': 'Wydatek: nowy',
+    'expense-edit': 'Wydatek: edycja (przed = po)',
+    'expense-refund-edit': 'Wydatek: edycja zwrotu (trzy typy)',
+    'expense-warnings': 'Wydatek: ostrzeżenia w podglądzie',
+    'expense-month-without-plan': 'Wydatek: miesiąc bez planu',
+    'expense-bad-amount': 'Wydatek: zła kwota',
+    'expense-errors': 'Wydatek: zapis i błędy (wybierz Dochód)',
+    'income-new': 'Dochód: nowy',
+    'income-edit': 'Dochód: edycja',
+    'income-errors': 'Dochód: zapis i błędy (wybierz Zwrot)',
+    'transfer-new': 'Transfer: nowy',
+    'transfer-edit': 'Transfer: edycja (opis z wyciągu)',
+    'transfer-negative': 'Transfer: ujemne saldo',
+    'transfer-errors': 'Transfer: zapis i błędy',
+    'capital-new': 'Ruch kapitału: nowy',
+    'capital-edit': 'Ruch kapitału: edycja',
+    'capital-negative-deposit': 'Ruch kapitału: ujemna lokata',
+    'capital-errors': 'Ruch kapitału: zapis i błędy',
 };
 
 const category: CategoryFormCategory = {
@@ -60,6 +113,32 @@ const category: CategoryFormCategory = {
     planned_amount_minor_units: 120000,
     is_paced: true,
     month_item_kind: 'running',
+};
+
+/** An expense in a tight category on a low account: every warning fires at 900,00 zł. */
+const warningOperation = {
+    ...dialogExpenseOperation,
+    account_id: 2,
+    category_id: 2,
+};
+
+/** The current month has no plan, so Month Remaining warnings replace To Spend. */
+const entryToSpendWithoutPlan = {
+    budgets: dialogEntryToSpend.budgets.map((budget) => ({
+        ...budget,
+        months: [],
+    })),
+};
+
+/**
+ * Lokata -> konto ponad saldo małej lokaty. Zapisany ruch (200,00 zł) jest już
+ * odjęty od salda 250,00 zł, więc ujemne saldo daje dopiero kwota ponad 450,00 zł.
+ */
+const negativeDepositMovement = {
+    ...dialogCapitalMovement,
+    direction: 'from_term_deposit' as const,
+    term_deposit_id: 2,
+    amount_minor_units: 20000,
 };
 
 const savingForm = DialogsKitchenSinkController.validate.form();
@@ -229,6 +308,178 @@ function setOpen(state: SinkState, value: boolean): void {
                 roku 400,00 zł. Niepokryty deficyt: 800,00 zł.
             </Alert>
         </ConfirmActionDialog>
+        <ExpenseFormDialog
+            :open="isOpen('expense-new')"
+            mode="create"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-new', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-edit')"
+            mode="edit"
+            :operation="dialogExpenseOperation"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-edit', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-refund-edit')"
+            mode="edit"
+            :operation="dialogRefundOperation"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-refund-edit', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-warnings')"
+            mode="edit"
+            :operation="warningOperation"
+            initial-amount-input="900,00"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-warnings', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-month-without-plan')"
+            mode="edit"
+            :operation="dialogExpenseOperation"
+            initial-amount-input="5000,00"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="entryToSpendWithoutPlan"
+            @update:open="setOpen('expense-month-without-plan', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-bad-amount')"
+            mode="edit"
+            :operation="dialogExpenseOperation"
+            initial-amount-input="abc"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-bad-amount', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-errors')"
+            mode="edit"
+            :operation="dialogRefundOperation"
+            :form="validateForm"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-errors', $event)"
+        />
+        <IncomeFormDialog
+            :open="isOpen('income-new')"
+            mode="create"
+            :accounts="dialogAccounts"
+            :income-categories="dialogIncomeCategories"
+            :expense-categories="dialogExpenseCategories"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('income-new', $event)"
+        />
+        <IncomeFormDialog
+            :open="isOpen('income-edit')"
+            mode="edit"
+            :operation="dialogIncomeOperation"
+            :accounts="dialogAccounts"
+            :income-categories="dialogIncomeCategories"
+            :expense-categories="dialogExpenseCategories"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('income-edit', $event)"
+        />
+        <IncomeFormDialog
+            :open="isOpen('income-errors')"
+            mode="edit"
+            :operation="dialogIncomeOperation"
+            :form="validateForm"
+            :accounts="dialogAccounts"
+            :income-categories="dialogIncomeCategories"
+            :expense-categories="dialogExpenseCategories"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('income-errors', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-new')"
+            mode="create"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-new', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-edit')"
+            mode="edit"
+            :transfer="dialogOwnTransfer"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-edit', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-negative')"
+            mode="edit"
+            :transfer="dialogOwnTransfer"
+            initial-amount-input="5000,00"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-negative', $event)"
+        />
+        <OwnTransferFormDialog
+            :open="isOpen('transfer-errors')"
+            mode="edit"
+            :transfer="dialogOwnTransfer"
+            :form="validateForm"
+            :accounts="dialogAccounts"
+            @update:open="setOpen('transfer-errors', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-new')"
+            mode="create"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-new', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-edit')"
+            mode="edit"
+            :movement="dialogCapitalMovement"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-edit', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-negative-deposit')"
+            mode="edit"
+            :movement="negativeDepositMovement"
+            initial-amount-input="500,00"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-negative-deposit', $event)"
+        />
+        <CapitalMovementFormDialog
+            :open="isOpen('capital-errors')"
+            mode="edit"
+            :movement="dialogCapitalMovement"
+            :form="validateForm"
+            :accounts="dialogAccounts"
+            :term-deposits="dialogTermDeposits"
+            @update:open="setOpen('capital-errors', $event)"
+        />
         <AccountFormDialog
             :open="isOpen('account')"
             mode="create"

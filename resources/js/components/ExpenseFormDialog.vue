@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { AlertTriangle } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
 import AccountSelect from '@/components/AccountSelect.vue';
 import CategorySelect from '@/components/CategorySelect.vue';
-import InputError from '@/components/InputError.vue';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import FormField from '@/components/FormField.vue';
+import FormPreview from '@/components/FormPreview.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -18,23 +18,26 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    formatMoney,
-    minorUnitsToMoneyInput,
-    parseMoneyInputToMinorUnits,
-} from '@/lib/format';
+import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
+import { minorUnitsToMoneyInput } from '@/lib/format';
 import {
     handEntryToSpendChanges,
     monthHasPlan,
-    previewToSpendWarnings,
+    previewToSpendReadings,
 } from '@/lib/entry-to-spend-warning';
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import { previewHandEntryMonthRemainingWarnings } from '@/lib/hand-entry-month-remaining-preview';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
+import {
+    buildOperationPreview,
+    monthNamesLocativeFrom,
+} from '@/lib/operation-dialog-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
+
+type FormBinding = InstanceType<typeof Form>['$props'];
 
 export type ExpenseFormAccount = AccountPickerOption & {
     opening_date: string;
@@ -79,6 +82,10 @@ const props = defineProps<{
     incomeCategories?: ExpenseFormIncomeCategory[];
     handEntryMonthRemaining: HandEntryMonthRemainingInputs;
     entryToSpend: EntryToSpendInputs;
+    /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
+    form?: Pick<FormBinding, 'action' | 'method'>;
+    /** Pre-fills the amount input; used only by the dialogs kitchen sink. */
+    initialAmountInput?: string;
 }>();
 
 const emit = defineEmits<{
@@ -87,24 +94,29 @@ const emit = defineEmits<{
 
 const t = useTranslations();
 
+type EntryType = 'expense' | 'refund' | 'income';
+
 const operationDate = ref('');
 const description = ref('');
 const counterparty = ref('');
 const accountId = ref<number | ''>('');
 const categoryId = ref<number | ''>('');
 const amountInput = ref('0,00');
-const amountMinorUnits = ref(0);
-const isRefund = ref(false);
-const isIncome = ref(false);
+const type = ref<EntryType>('expense');
 const originalAmountMinorUnits = ref(0);
 const originalAccountId = ref<number | null>(null);
 const originalCategoryId = ref<number | null>(null);
+const busy = ref(false);
 
-const formBinding = computed(() =>
-    props.mode === 'create'
+const formBinding = computed(() => {
+    if (props.form) {
+        return props.form;
+    }
+
+    return props.mode === 'create'
         ? ExpenseController.store.form()
-        : ExpenseController.update.form(props.operation ?? { id: 0 }),
-);
+        : ExpenseController.update.form(props.operation ?? { id: 0 });
+});
 
 const editingRefund = computed(
     () =>
@@ -114,6 +126,22 @@ const editingRefund = computed(
         props.operation.amount_minor_units < 0,
 );
 
+const typeOptions = computed(() => {
+    const options: { value: EntryType; label: string }[] = [
+        { value: 'expense', label: t.operations.type_expense },
+        { value: 'refund', label: t.operations.type_refund },
+    ];
+
+    if (editingRefund.value) {
+        options.push({ value: 'income', label: t.operations.type_income });
+    }
+
+    return options;
+});
+
+const { amountInvalid, amountMinorUnits, showPreview } =
+    useOperationAmountInput(amountInput);
+
 const availableCategories = computed(() => {
     if (!operationDate.value) {
         return [];
@@ -121,7 +149,7 @@ const availableCategories = computed(() => {
 
     const year = Number(operationDate.value.slice(0, 4));
 
-    if (isIncome.value) {
+    if (type.value === 'income') {
         return (props.incomeCategories ?? []).filter(
             (category) => category.budget_year === year,
         );
@@ -138,35 +166,18 @@ const selectedCategory = computed(() =>
     ),
 );
 
-const signedAmountMinorUnits = computed(() => {
-    const absoluteAmount = Math.abs(amountMinorUnits.value);
-
-    if (isIncome.value) {
-        return absoluteAmount;
-    }
-
-    return isRefund.value ? -absoluteAmount : absoluteAmount;
-});
-
-const proposalKind = computed(() => {
-    if (isIncome.value) {
-        return 'income';
-    }
-
-    return isRefund.value ? 'refund' : 'expense';
-});
+const signedAmountMinorUnits = computed(() =>
+    type.value === 'refund' ? -amountMinorUnits.value : amountMinorUnits.value,
+);
 
 const warningPreview = computed(() => {
-    if (
-        accountId.value === '' ||
-        (!isIncome.value && categoryId.value === '')
-    ) {
+    if (accountId.value === '') {
         return previewHandEntryWarnings({
             mode: props.mode,
             accounts: props.accounts,
             categories: props.expenseCategories,
             proposal: {
-                kind: proposalKind.value,
+                kind: type.value,
                 account_id: 0,
                 category_id: 0,
                 amount_minor_units: 0,
@@ -193,10 +204,10 @@ const warningPreview = computed(() => {
         categories: props.expenseCategories,
         editedRecord,
         proposal: {
-            kind: proposalKind.value,
+            kind: type.value,
             account_id: accountId.value,
             category_id:
-                isIncome.value || categoryId.value === ''
+                type.value === 'income' || categoryId.value === ''
                     ? undefined
                     : categoryId.value,
             amount_minor_units: amountMinorUnits.value,
@@ -228,9 +239,9 @@ const monthRemainingWarningPreview = computed(() =>
         handEntryMonthRemaining: props.handEntryMonthRemaining,
         editedRecord: monthRemainingEditedRecord.value,
         proposal: {
-            kind: proposalKind.value,
+            kind: type.value,
             category_id:
-                isIncome.value || categoryId.value === ''
+                type.value === 'income' || categoryId.value === ''
                     ? undefined
                     : categoryId.value,
         },
@@ -238,43 +249,55 @@ const monthRemainingWarningPreview = computed(() =>
     }),
 );
 
-const availableLimitMinorUnits = computed(
-    () => warningPreview.value.availableLimitNowMinorUnits,
-);
-
-const predictedLimitMinorUnits = computed(
-    () => warningPreview.value.availableLimitAfterMinorUnits,
-);
-
-const showOverLimitWarning = computed(
-    () => warningPreview.value.showOverLimitWarning,
-);
-
-const showNegativeBalanceWarning = computed(
-    () => warningPreview.value.showNegativeBalanceWarning,
-);
-
 const operationMonthHasPlan = computed(() =>
     monthHasPlan(props.entryToSpend, operationDate.value),
 );
 
-const showOverMonthCategoryWarning = computed(
-    () =>
-        !operationMonthHasPlan.value &&
-        monthRemainingWarningPreview.value.showOverMonthCategoryWarning,
-);
+const operationMonthYearLabel = computed(() => {
+    if (operationDate.value === '') {
+        return '';
+    }
 
-const showOverMonthPoolWarning = computed(
-    () =>
-        !operationMonthHasPlan.value &&
-        monthRemainingWarningPreview.value.showOverMonthPoolWarning,
-);
+    const month = Number(operationDate.value.slice(5, 7));
+    const year = Number(operationDate.value.slice(0, 4));
+    const monthName = t.budget[`month_name_${month}`] ?? '';
 
-const toSpendWarnings = computed(() =>
-    previewToSpendWarnings(
+    return `${monthName} ${year}`;
+});
+
+const monthRemainingWarnings = computed(() => {
+    if (operationMonthHasPlan.value) {
+        return [];
+    }
+
+    const warnings: string[] = [];
+
+    if (monthRemainingWarningPreview.value.showOverMonthCategoryWarning) {
+        warnings.push(
+            t.operations.over_month_category_warning.replace(
+                ':month_year',
+                operationMonthYearLabel.value,
+            ),
+        );
+    }
+
+    if (monthRemainingWarningPreview.value.showOverMonthPoolWarning) {
+        warnings.push(
+            t.operations.over_month_pool_warning.replace(
+                ':month_year',
+                operationMonthYearLabel.value,
+            ),
+        );
+    }
+
+    return warnings;
+});
+
+const toSpendReadings = computed(() =>
+    previewToSpendReadings(
         props.entryToSpend,
         handEntryToSpendChanges({
-            kind: proposalKind.value,
+            kind: type.value,
             operationDate: operationDate.value,
             categoryId: categoryId.value === '' ? null : categoryId.value,
             amountMinorUnits: amountMinorUnits.value,
@@ -293,34 +316,40 @@ const toSpendWarnings = computed(() =>
     ),
 );
 
-function monthYearLabel(year: number, month: number): string {
-    const monthName =
-        t.budget[`month_name_${month}` as keyof typeof t.budget] ?? '';
+const preview = computed(() => {
+    const result = warningPreview.value;
+    const showLimit =
+        type.value !== 'income' && selectedCategory.value !== undefined;
 
-    return `${monthName} ${year}`;
-}
-
-const operationMonthYearLabel = computed(() => {
-    if (operationDate.value === '') {
-        return '';
-    }
-
-    const month = Number(operationDate.value.slice(5, 7));
-    const year = Number(operationDate.value.slice(0, 4));
-    const monthName =
-        t.budget[`month_name_${month}` as keyof typeof t.budget] ?? '';
-
-    return `${monthName} ${year}`;
+    return buildOperationPreview({
+        toSpendReadings: toSpendReadings.value,
+        limit: showLimit
+            ? {
+                  label: t.operations.preview_category_limit,
+                  beforeMinorUnits: result.availableLimitBeforeMinorUnits,
+                  afterMinorUnits: result.availableLimitAfterMinorUnits,
+                  hint: t.operations.available_limit_hint,
+                  warning: result.showOverLimitWarning
+                      ? t.operations.over_limit_warning
+                      : null,
+              }
+            : null,
+        accountBalance: {
+            label: t.operations.preview_account_balance,
+            beforeMinorUnits: result.accountBalanceBeforeMinorUnits,
+            afterMinorUnits: result.accountBalanceAfterMinorUnits,
+            warning: result.showNegativeBalanceWarning
+                ? t.operations.negative_balance_warning
+                : null,
+        },
+        monthRemainingWarnings: monthRemainingWarnings.value,
+        texts: {
+            toSpendLabel: t.operations.preview_to_spend,
+            toSpendWarning: t.operations.to_spend_negative_preview_warning,
+            monthNamesLocative: monthNamesLocativeFrom(t.budget),
+        },
+    });
 });
-
-const showExpenseWarnings = computed(
-    () =>
-        showOverLimitWarning.value ||
-        showNegativeBalanceWarning.value ||
-        showOverMonthCategoryWarning.value ||
-        showOverMonthPoolWarning.value ||
-        toSpendWarnings.value.length > 0,
-);
 
 watch(
     () => [props.open, props.mode, props.operation] as const,
@@ -335,14 +364,13 @@ watch(
             counterparty.value = props.operation.counterparty ?? '';
             accountId.value = props.operation.account_id;
             categoryId.value = props.operation.category_id;
-            isRefund.value = props.operation.amount_minor_units < 0;
-            isIncome.value = false;
-            amountMinorUnits.value = Math.abs(
-                props.operation.amount_minor_units,
-            );
-            amountInput.value = minorUnitsToMoneyInput(
-                Math.abs(props.operation.amount_minor_units),
-            );
+            type.value =
+                props.operation.amount_minor_units < 0 ? 'refund' : 'expense';
+            amountInput.value =
+                props.initialAmountInput ??
+                minorUnitsToMoneyInput(
+                    Math.abs(props.operation.amount_minor_units),
+                );
             originalAmountMinorUnits.value = props.operation.amount_minor_units;
             originalAccountId.value = props.operation.account_id;
             originalCategoryId.value = props.operation.category_id;
@@ -355,10 +383,8 @@ watch(
         counterparty.value = '';
         accountId.value = props.accounts[0]?.id ?? '';
         categoryId.value = '';
-        amountMinorUnits.value = 0;
-        amountInput.value = '0,00';
-        isRefund.value = false;
-        isIncome.value = false;
+        amountInput.value = props.initialAmountInput ?? '0,00';
+        type.value = 'expense';
         originalAmountMinorUnits.value = 0;
         originalAccountId.value = null;
         originalCategoryId.value = null;
@@ -376,45 +402,20 @@ watch(availableCategories, (categories) => {
     }
 });
 
-watch(isIncome, (value) => {
-    if (value) {
-        isRefund.value = false;
+function setType(next: EntryType): void {
+    if ((next === 'income') !== (type.value === 'income')) {
         categoryId.value = '';
-
-        return;
     }
 
-    if (editingRefund.value) {
-        isRefund.value = true;
-    }
-});
-
-watch(isRefund, (value) => {
-    if (value) {
-        isIncome.value = false;
-    }
-});
-
-function syncAmount(): void {
-    const parsed = parseMoneyInputToMinorUnits(amountInput.value);
-
-    if (parsed !== null) {
-        amountMinorUnits.value = Math.abs(parsed);
-    } else {
-        amountMinorUnits.value = 0;
-    }
+    type.value = next;
 }
 
-function prepareSubmit(): void {
-    syncAmount();
-
-    if (isIncome.value) {
-        amountMinorUnits.value = Math.abs(amountMinorUnits.value);
-
+function onOpenChange(next: boolean): void {
+    if (!next && busy.value) {
         return;
     }
 
-    amountMinorUnits.value = signedAmountMinorUnits.value;
+    emit('update:open', next);
 }
 
 function closeDialog(): void {
@@ -423,26 +424,27 @@ function closeDialog(): void {
 </script>
 
 <template>
-    <Dialog :open="open" @update:open="emit('update:open', $event)">
-        <DialogContent>
+    <Dialog :open="open" @update:open="onOpenChange">
+        <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="formBinding"
-                class="space-y-4"
+                class="grid gap-4"
                 reset-on-success
+                @start="busy = true"
+                @finish="busy = false"
                 @success="closeDialog"
-                @before="prepareSubmit"
                 v-slot="{ errors, processing, reset, clearErrors }"
             >
                 <DialogHeader>
                     <DialogTitle>
                         {{
                             mode === 'create'
-                                ? isRefund
+                                ? type === 'refund'
                                     ? t.operations.add_refund_title
                                     : t.operations.add_expense_title
-                                : isIncome
+                                : type === 'income'
                                   ? t.operations.edit_income_title
-                                  : isRefund
+                                  : type === 'refund'
                                     ? t.operations.edit_refund_title
                                     : t.operations.edit_expense_title
                         }}
@@ -456,239 +458,179 @@ function closeDialog(): void {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div class="grid gap-2">
-                    <Label for="expense-operation-date">
-                        {{ t.operations.date }}
-                    </Label>
-                    <Input
-                        id="expense-operation-date"
-                        name="operation_date"
-                        v-model="operationDate"
-                        type="date"
-                        required
-                    />
-                    <InputError :message="errors.operation_date" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="expense-description">
-                        {{ t.operations.description }}
-                    </Label>
-                    <Input
-                        id="expense-description"
-                        name="description"
-                        v-model="description"
-                        required
-                        autocomplete="off"
-                    />
-                    <InputError :message="errors.description" />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="expense-counterparty">
-                        {{ t.operations.counterparty }}
-                    </Label>
-                    <Input
-                        id="expense-counterparty"
-                        name="counterparty"
-                        v-model="counterparty"
-                        autocomplete="off"
-                    />
-                    <InputError :message="errors.counterparty" />
-                </div>
-
-                <div
-                    v-if="
-                        mode === 'edit' && operation?.raw_statement_description
-                    "
-                    class="grid gap-2"
+                <FormField
+                    id="expense-type"
+                    :label="t.operations.type"
+                    group
+                    :error="errors.convert_to_income"
+                    v-slot="{ labelId }"
                 >
-                    <Label for="expense-raw-statement-description">
-                        {{ t.operations.raw_statement_description }}
-                    </Label>
-                    <textarea
-                        id="expense-raw-statement-description"
-                        :value="operation.raw_statement_description"
-                        readonly
-                        rows="3"
-                        class="border-input w-full rounded-xl border bg-transparent px-3 py-2 text-base md:text-sm"
+                    <SegmentedControl
+                        :model-value="type"
+                        :options="typeOptions"
+                        :aria-labelledby="labelId"
+                        block
+                        @update:model-value="setType"
                     />
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="expense-account">{{
-                        t.operations.account
-                    }}</Label>
-                    <AccountSelect
-                        id="expense-account"
-                        name="account_id"
-                        v-model="accountId"
-                        :accounts="accounts"
-                        :placeholder="t.operations.select_account"
-                        required
-                    />
-                    <InputError :message="errors.account_id" />
-                </div>
-
-                <div v-if="editingRefund" class="flex items-center gap-2">
                     <input
-                        id="expense-is-income"
-                        v-model="isIncome"
-                        type="checkbox"
-                        class="size-4 rounded border"
+                        v-if="mode === 'edit' && type === 'income'"
+                        type="hidden"
+                        name="convert_to_income"
+                        value="1"
                     />
-                    <Label for="expense-is-income">
-                        {{ t.operations.income_conversion_label }}
-                    </Label>
+                </FormField>
+
+                <div class="form-field-row">
+                    <FormField
+                        id="expense-amount"
+                        :label="t.operations.amount"
+                        money
+                        :error="
+                            amountInvalid
+                                ? t.operations.amount_invalid
+                                : errors.amount_minor_units
+                        "
+                        v-slot="{ id, describedBy, invalid, controlClass }"
+                    >
+                        <Input
+                            :id="id"
+                            v-model="amountInput"
+                            :class="controlClass"
+                            inputmode="decimal"
+                            autocomplete="off"
+                            :aria-describedby="describedBy"
+                            :aria-invalid="invalid"
+                        />
+                        <input
+                            type="hidden"
+                            name="amount_minor_units"
+                            :value="signedAmountMinorUnits"
+                        />
+                    </FormField>
+
+                    <FormField
+                        id="expense-operation-date"
+                        :label="t.operations.date"
+                        :error="errors.operation_date"
+                        v-slot="{ id, describedBy, invalid }"
+                    >
+                        <Input
+                            :id="id"
+                            name="operation_date"
+                            v-model="operationDate"
+                            type="date"
+                            required
+                            :aria-describedby="describedBy"
+                            :aria-invalid="invalid"
+                        />
+                    </FormField>
                 </div>
 
-                <input
-                    v-if="mode === 'edit' && isIncome"
-                    type="hidden"
-                    name="convert_to_income"
-                    value="1"
-                />
-
-                <div class="grid gap-2">
-                    <Label for="expense-category">
-                        {{
-                            isIncome
-                                ? t.operations.income_category
-                                : t.operations.expense_category
-                        }}
-                    </Label>
+                <FormField
+                    id="expense-category"
+                    :label="
+                        type === 'income'
+                            ? t.operations.income_category
+                            : t.operations.expense_category
+                    "
+                    :error="errors.category_id"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <CategorySelect
-                        id="expense-category"
+                        :id="id"
                         name="category_id"
                         v-model="categoryId"
                         :categories="availableCategories"
                         :placeholder="
                             availableCategories.length === 0
-                                ? isIncome
+                                ? type === 'income'
                                     ? t.operations.no_income_category_for_year
                                     : t.operations.no_expense_category_for_year
                                 : t.operations.select_category
                         "
                         required
                         :disabled="availableCategories.length === 0"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <InputError :message="errors.category_id" />
-                </div>
+                </FormField>
 
-                <div v-if="!isIncome" class="flex items-center gap-2">
-                    <input
-                        id="expense-is-refund"
-                        v-model="isRefund"
-                        type="checkbox"
-                        class="size-4 rounded border"
-                    />
-                    <Label for="expense-is-refund">
-                        {{ t.operations.refund_label }}
-                    </Label>
-                </div>
-
-                <div class="grid gap-2">
-                    <Label for="expense-amount">{{
-                        t.operations.amount
-                    }}</Label>
-                    <Input
-                        id="expense-amount"
-                        v-model="amountInput"
-                        inputmode="decimal"
-                        autocomplete="off"
-                        @input="syncAmount"
-                        @blur="syncAmount"
-                    />
-                    <input
-                        type="hidden"
-                        name="amount_minor_units"
-                        :value="
-                            isIncome ? amountMinorUnits : signedAmountMinorUnits
-                        "
-                    />
-                    <InputError :message="errors.amount_minor_units" />
-                </div>
-
-                <div
-                    v-if="selectedCategory && availableLimitMinorUnits !== null"
-                    class="bg-muted/40 rounded-md border p-3 text-sm"
+                <FormField
+                    id="expense-account"
+                    :label="t.operations.account"
+                    :error="errors.account_id"
+                    v-slot="{ id, describedBy, invalid }"
                 >
-                    <p>
-                        {{ t.operations.available_limit_now }}:
-                        <span class="font-medium">
-                            {{ formatMoney(availableLimitMinorUnits) }}
-                        </span>
-                    </p>
-                    <p v-if="predictedLimitMinorUnits !== null">
-                        {{ t.operations.available_limit_after }}:
-                        <span class="font-medium">
-                            {{ formatMoney(predictedLimitMinorUnits) }}
-                        </span>
-                    </p>
-                    <p class="text-muted-foreground mt-2 text-xs">
-                        {{ t.operations.available_limit_hint }}
-                    </p>
-                </div>
+                    <AccountSelect
+                        :id="id"
+                        name="account_id"
+                        v-model="accountId"
+                        :accounts="accounts"
+                        :placeholder="t.operations.select_account"
+                        required
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                    />
+                </FormField>
 
-                <Alert v-if="showExpenseWarnings" variant="warning">
-                    <AlertTriangle class="size-4" />
-                    <AlertTitle>{{
-                        t.operations.expense_warnings_title
-                    }}</AlertTitle>
-                    <AlertDescription>
-                        <ul class="list-inside list-disc text-sm">
-                            <li v-if="showOverLimitWarning">
-                                {{ t.operations.over_limit_warning }}
-                            </li>
-                            <li v-if="showNegativeBalanceWarning">
-                                {{ t.operations.negative_balance_warning }}
-                            </li>
-                            <li v-if="showOverMonthCategoryWarning">
-                                {{
-                                    t.operations.over_month_category_warning.replace(
-                                        ':month_year',
-                                        operationMonthYearLabel,
-                                    )
-                                }}
-                            </li>
-                            <li v-if="showOverMonthPoolWarning">
-                                {{
-                                    t.operations.over_month_pool_warning.replace(
-                                        ':month_year',
-                                        operationMonthYearLabel,
-                                    )
-                                }}
-                            </li>
-                            <li
-                                v-for="warning in toSpendWarnings"
-                                :key="`${warning.year}-${warning.month}`"
-                            >
-                                {{
-                                    t.operations.to_spend_negative_warning
-                                        .replace(
-                                            ':amount',
-                                            formatMoney(
-                                                warning.toSpendAfterMinorUnits,
-                                            ),
-                                        )
-                                        .replace(
-                                            ':month_year',
-                                            monthYearLabel(
-                                                warning.year,
-                                                warning.month,
-                                            ),
-                                        )
-                                }}
-                            </li>
-                        </ul>
-                    </AlertDescription>
-                </Alert>
+                <FormField
+                    id="expense-description"
+                    :label="t.operations.description"
+                    :error="errors.description"
+                    v-slot="{ id, describedBy, invalid }"
+                >
+                    <Input
+                        :id="id"
+                        name="description"
+                        v-model="description"
+                        required
+                        autocomplete="off"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                    />
+                </FormField>
+
+                <FormField
+                    id="expense-counterparty"
+                    :label="t.operations.counterparty"
+                    :error="errors.counterparty"
+                    v-slot="{ id, describedBy, invalid }"
+                >
+                    <Input
+                        :id="id"
+                        name="counterparty"
+                        v-model="counterparty"
+                        autocomplete="off"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                    />
+                </FormField>
+
+                <FormField
+                    v-if="
+                        mode === 'edit' && operation?.raw_statement_description
+                    "
+                    id="expense-raw-statement-description"
+                    :label="t.operations.raw_statement_description"
+                    group
+                >
+                    <p class="form-readonly-text">
+                        {{ operation.raw_statement_description }}
+                    </p>
+                </FormField>
+
+                <FormPreview
+                    v-if="showPreview"
+                    :rows="preview.rows"
+                    :warnings="preview.warnings"
+                />
 
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="outline"
+                            :disabled="processing"
                             @click="
                                 () => {
                                     clearErrors();
@@ -700,7 +642,11 @@ function closeDialog(): void {
                             {{ t.operations.cancel }}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" :disabled="processing">
+                    <Button
+                        type="submit"
+                        :disabled="processing || amountInvalid"
+                    >
+                        <Spinner v-if="processing" />
                         {{ t.operations.save }}
                     </Button>
                 </DialogFooter>
