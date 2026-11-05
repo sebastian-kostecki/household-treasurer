@@ -1,10 +1,10 @@
 ---
 change_id: budget-atrament-ui
 title: Widok Budżetu w systemie Atrament i morski
-status: impl_reviewed
+status: archived
 created: 2026-11-05
 updated: 2026-11-05
-archived_at: null
+archived_at: 2026-11-05T12:30:55Z
 ---
 
 ## Notes
