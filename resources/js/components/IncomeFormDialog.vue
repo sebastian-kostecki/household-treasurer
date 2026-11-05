@@ -352,12 +352,14 @@ function closeDialog(): void {
                     :label="t.operations.type"
                     group
                     :error="errors.convert_to_expense_refund"
-                    v-slot="{ labelId }"
+                    v-slot="{ labelId, describedBy, invalid }"
                 >
                     <SegmentedControl
                         :model-value="type"
                         :options="typeOptions"
-                        :aria-labelledby="labelId"
+                        :ariaLabelledby="labelId"
+                        :ariaDescribedby="describedBy"
+                        :ariaInvalid="invalid"
                         block
                         @update:model-value="setType"
                     />

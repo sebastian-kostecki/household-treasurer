@@ -263,12 +263,14 @@ function closeDialog(): void {
                     :label="t.operations.capital_movement_direction"
                     group
                     :error="errors.direction"
-                    v-slot="{ labelId }"
+                    v-slot="{ labelId, describedBy, invalid }"
                 >
                     <SegmentedControl
                         v-model="direction"
                         :options="directionOptions"
-                        :aria-labelledby="labelId"
+                        :ariaLabelledby="labelId"
+                        :ariaDescribedby="describedBy"
+                        :ariaInvalid="invalid"
                         name="direction"
                         block
                     />
