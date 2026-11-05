@@ -7,3 +7,5 @@ Measured contrast: text pairs reach at least 5.03:1 in light and 6.05:1 in dark,
 This supersedes in part ADR-0001 (teal `primary`), ADR-0003 (teal as brand and action colour, no ink primary) and ADR-0023 (Geist, no second monospace family). Points 3, 5, 7 and 8 of the system README (card radius and border recipe, 32px controls, `column-caption` replaced by `table-header`, expense colour in Operations, day rows) are out of scope and need separate ADRs. We rejected keeping the teal `primary` (white text on it is 3.27:1 in dark), Google Fonts (the project already loads faces from Bunny through `bunny()`), and Geist with `tnum` instead of a mono face for amounts.
 
 Points 3 and 5 of the system README are settled by ADR-0037.
+
+Points 7 and 8 (expense colour in Operations, day rows) are settled by ADR-0038.

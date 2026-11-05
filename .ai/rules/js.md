@@ -8,7 +8,7 @@ paths:
 ## Colours come from tokens; only money and alerts carry meaning
 
 Use token utilities (bg-primary, text-destructive, text-warning, text-success, text-muted-foreground), never hex values or Tailwind palette colours (red-500, amber-700).
-primary = action (ink); brand = identity and navigation, never status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions; warning = within bounds but close to breaking.
+primary = action (ink); brand = identity and navigation, never status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions, never an expense (in Operations an expense amount is `foreground`, ADR-0038); warning = within bounds but close to breaking.
 Category colour is identity only (CategoryChip tile at 15%), never status. Full table: .docs/design-system.md.
 
 ## Amounts go through formatMoney with tabular-nums
@@ -21,7 +21,7 @@ Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction
 
 ## Non-blocking warnings use the warning Alert variant
 
-Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles use the refund and transfer tokens.
+Warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0038: expense `muted`, income `accent` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`.
 
 ## Bind the reka-ui Checkbox with v-model, never :checked
 
@@ -59,7 +59,8 @@ The month plan view is checked by tests/Unit/MonthPlanHardcodedUiTest.php (part 
 
 ## Operations list: named classes, one primary action, visible reason for a disabled action
 
-The Operations view uses `.operations-grid`, `.operations-header-row` (hidden below md, caption through `table-header`) and `.operations-row` (hover `secondary`); do not rebuild them from utilities. The kitchen sink at `/dev/operations` (`local` only) renders the view's 7-state matrix from `resources/js/lib/operations-fixtures.ts`; add new states there. `npm run check:ui` also catches opacity literals in the form `/[0.03]`.
+The Operations view (ADR-0038) uses one grid, `.operations-grid`, for the header row (`.operations-header-row`, hidden below md, caption through `table-header`), the rows (`.operations-row`, hover `secondary`) and the day row (`.operations-day-row`); do not rebuild them from utilities. A day sum comes only from the `operationDaySums` prop (server, whole day, filters applied), never from the rows of the page. Day sum and operation amount: `+` in `success` or `−` in `foreground` (`formatOperationDaySum` / `operationDaySumClass`, `formatFinancialOperationAmount` / `financialOperationAmountClass`), not `amountToneClass`; amount cells have no "zł" and the day label comes from `formatDayLabel`.
+The sections are tabs: `SegmentedControl` neutral with `count`, the choice in `?section=`. Build every `/operations` query only with the helper from `resources/js/lib/operations-list-query.ts`, which keeps `section` (filters, "Wyczyść filtry" and tabs lose it otherwise). The add control is one primary "Dodaj operację" with a menu; a disabled item shows its reason as text in the item. The kitchen sink at `/dev/operations` (`local` only) renders the view's 7-state matrix from `resources/js/lib/operations-fixtures.ts`; add new states there (tabs, menu, empty filter result, silenced section, empty section, loading). `npm run check:ui` also catches opacity literals in the form `/[0.03]`.
 The reason a create action is disabled is visible text referenced by `aria-describedby`, never `title` on a disabled `Button` (`pointer-events-none` hides it and it is not a description). A domain page title row has at most one primary `Button`; the other actions are `outline`, all with an icon.
 
 ## Import preview: named classes, the `pair` tint, no lost row alert
