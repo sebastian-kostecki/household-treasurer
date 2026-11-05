@@ -486,12 +486,12 @@ Brak migracji danych. Zmiana prymitywów obejmuje 16 konsumentów `ui/dialog`; o
 
 #### Automated
 
-- [x] 5.1 Straż literałów: `npm run check:ui`
-- [x] 5.2 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts`
-- [x] 5.3 Pełna bramka CI na PostgreSQL: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test composer ci:check`
-- [x] 5.4 Sloppy: `vendor/bin/sloppy ci`
+- [x] 5.1 Straż literałów: `npm run check:ui` — 1db2ac9
+- [x] 5.2 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts` — 1db2ac9
+- [x] 5.3 Pełna bramka CI na PostgreSQL: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test composer ci:check` — 1db2ac9
+- [x] 5.4 Sloppy: `vendor/bin/sloppy ci` — 1db2ac9
 
 #### Manual
 
-- [x] 5.5 Zrzuty obejrzane: wszystkie stany sinka w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field)
-- [x] 5.6 Reguła w `.ai/rules/js.md` zgodna z `design-system.md` i ADR-0040
+- [x] 5.5 Zrzuty obejrzane: wszystkie stany sinka w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field) — 1db2ac9
+- [x] 5.6 Reguła w `.ai/rules/js.md` zgodna z `design-system.md` i ADR-0040 — 1db2ac9
