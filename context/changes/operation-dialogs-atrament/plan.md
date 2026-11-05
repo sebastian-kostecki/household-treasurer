@@ -648,14 +648,14 @@ Brak migracji danych i zmian payloadu. Usunięte klucze `lang` nie mają innych 
 
 #### Automated
 
-- [x] 5.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/OwnTransferTest.php tests/Feature/CapitalMovementTest.php`
-- [x] 5.2 Straż literałów: `npm run check:ui`
-- [x] 5.3 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts`
-- [x] 5.4 Pełna bramka CI na PostgreSQL: `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint composer sail-8.5/app ci:check`
+- [x] 5.1 Testy Feature (payload bez zmian): `docker run --rm -u 1000:1000 -e HOME=/tmp --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact tests/Feature/OwnTransferTest.php tests/Feature/CapitalMovementTest.php` — 84358bf
+- [x] 5.2 Straż literałów: `npm run check:ui` — 84358bf
+- [x] 5.3 Test kontraktu UI: `npm test -- resources/js/ui-contract.test.ts` — 84358bf
+- [x] 5.4 Pełna bramka CI na PostgreSQL: `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint composer sail-8.5/app ci:check` — 84358bf
 
 #### Manual
 
-- [x] 5.5 W podglądzie z worktree: dodanie i edycja transferu i ruchu kapitału (oba kierunki) zapisują dane jak wcześniej. Lokata wybierana klawiaturą w `.native-select`
-- [x] 5.6 Zapis w toku i błędy w `transfer-errors` i `capital-errors`: spinner, blokada zamykania, błąd pod kierunkiem
-- [x] 5.7 Zrzuty obejrzane: wszystkie stany operacji w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field) i z ADR-0041
-- [x] 5.8 Reguła w `.ai/rules/js.md` zgodna z `design-system.md`, ADR-0040 i ADR-0041
+- [x] 5.5 W podglądzie z worktree: dodanie i edycja transferu i ruchu kapitału (oba kierunki) zapisują dane jak wcześniej. Lokata wybierana klawiaturą w `.native-select` — 84358bf
+- [x] 5.6 Zapis w toku i błędy w `transfer-errors` i `capital-errors`: spinner, blokada zamykania, błąd pod kierunkiem — 84358bf
+- [x] 5.7 Zrzuty obejrzane: wszystkie stany operacji w obu motywach i obu szerokościach zgodne z Atramentem (Dialog, Field) i z ADR-0041 — 84358bf
+- [x] 5.8 Reguła w `.ai/rules/js.md` zgodna z `design-system.md`, ADR-0040 i ADR-0041 — 84358bf
