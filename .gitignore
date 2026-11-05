@@ -30,7 +30,11 @@ yarn-error.log
 /.zed
 /.10x-cli.json
 /.agents
-/.claude
+/.claude/*
+!/.claude/settings.json
+!/.claude/hooks/
+!/.claude/skills/
+/.claude/skills/10x-*
 /.cursor
 /CLAUDE.md
 /skills-lock.json
