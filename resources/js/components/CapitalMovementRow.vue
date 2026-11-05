@@ -5,7 +5,7 @@ import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
 import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
-import { formatMoney } from '@/lib/format';
+import { formatMoneyAmount } from '@/lib/format';
 
 export type CapitalMovementRowData = CapitalMovementFormMovement &
     PrefixedAccountIdentityFields<'account'> & {
@@ -66,7 +66,7 @@ const emit = defineEmits<{
         </div>
 
         <p class="operations-cell-amount">
-            {{ formatMoney(movement.amount_minor_units) }}
+            {{ formatMoneyAmount(movement.amount_minor_units) }}
         </p>
 
         <CapitalMovementActions

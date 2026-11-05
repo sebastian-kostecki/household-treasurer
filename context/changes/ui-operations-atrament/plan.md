@@ -430,28 +430,28 @@ Bez migracji. Stare linki bez `section` otwierają domyślną zakładkę.
 
 #### Automated
 
-- [x] 3.1 Nowe i istniejące testy Operacji zielone na SQLite
-- [x] 3.2 Te same testy zielone na PostgreSQL
-- [x] 3.3 NFR na PostgreSQL zielony
-- [x] 3.4 Pint bez zmian, sloppy ci bez nowych znalezisk
-- [x] 3.5 npm run types:check zielone
+- [x] 3.1 Nowe i istniejące testy Operacji zielone na SQLite — f062455
+- [x] 3.2 Te same testy zielone na PostgreSQL — f062455
+- [x] 3.3 NFR na PostgreSQL zielony — f062455
+- [x] 3.4 Pint bez zmian, sloppy ci bez nowych znalezisk — f062455
+- [x] 3.5 npm run types:check zielone — f062455
 
 #### Manual
 
-- [x] 3.6 operationDaySums odpowiada ręcznie policzonej sumie dnia ze zwrotem
+- [x] 3.6 operationDaySums odpowiada ręcznie policzonej sumie dnia ze zwrotem — f062455
 
 ### Phase 4: Widok Operacji i stany
 
 #### Automated
 
-- [ ] 4.1 Testy query i grupowania zielone
-- [ ] 4.2 npm run check, check:ui, types:check, npm test zielone
-- [ ] 4.3 Skan literałów z /10x-ui na plikach widoku daje 0 trafień
-- [ ] 4.4 composer ci:check w obrazie Sail i sloppy ci na hoście zielone
+- [x] 4.1 Testy query i grupowania zielone
+- [x] 4.2 npm run check, check:ui, types:check, npm test zielone
+- [x] 4.3 Skan literałów z /10x-ui na plikach widoku daje 0 trafień
+- [x] 4.4 composer ci:check w obrazie Sail i sloppy ci na hoście zielone
 
 #### Manual
 
-- [ ] 4.5 Zrzuty /dev/operations i /operations w obu motywach przy 1280 i 390 px zgodne z mockupem
-- [ ] 4.6 Zakładka przetrwa paginację, filtry, Wyczyść filtry i odświeżenie; wyciszona pokazuje 0 i notkę
-- [ ] 4.7 Menu Dodaj operację działa z klawiatury; wyłączona pozycja pokazuje powód
-- [ ] 4.8 Link z filtrem kategorii otwiera Operacje z filtrem
+- [x] 4.5 Zrzuty /dev/operations i /operations w obu motywach przy 1280 i 390 px zgodne z mockupem
+- [x] 4.6 Zakładka przetrwa paginację, filtry, Wyczyść filtry i odświeżenie; wyciszona pokazuje 0 i notkę
+- [x] 4.7 Menu Dodaj operację działa z klawiatury; wyłączona pozycja pokazuje powód
+- [x] 4.8 Link z filtrem kategorii otwiera Operacje z filtrem

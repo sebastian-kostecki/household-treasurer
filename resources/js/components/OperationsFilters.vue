@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import { operationsListQuery } from '@/lib/operations-list-query';
 import { operations as operationsRoute } from '@/routes';
 
 export type OperationsListFilters = {
@@ -56,6 +57,9 @@ const props = defineProps<{
     accounts: OperationsFilterAccount[];
     termDeposits: OperationsFilterTermDeposit[];
     suppressedSections: OperationsListSection[];
+    section: OperationsListSection;
+    resultCount: number;
+    sectionTotal: number;
 }>();
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -152,6 +156,12 @@ const filtersToggleAria = computed(() => {
 
 const showChips = computed(() => props.filtersActive);
 
+const resultCountLabel = computed(() =>
+    t.operations.result_count
+        .replace(':shown', String(props.resultCount))
+        .replace(':total', String(props.sectionTotal)),
+);
+
 watch(
     () => props.filters.q,
     (value) => {
@@ -229,18 +239,7 @@ function currentSearch(): string | null {
 
 function visit(next: OperationsListFilters): void {
     router.get(
-        operationsRoute({
-            query: {
-                q: next.q ?? undefined,
-                year: next.year ?? undefined,
-                category_name: next.category_name ?? undefined,
-                category_type: next.category_type ?? undefined,
-                account_id: next.account_id ?? undefined,
-                term_deposit_id: next.term_deposit_id ?? undefined,
-                date_from: next.date_from ?? undefined,
-                date_to: next.date_to ?? undefined,
-            },
-        }),
+        operationsRoute({ query: operationsListQuery(next, props.section) }),
         {},
         {
             preserveState: true,
@@ -386,7 +385,7 @@ function accountLabel(account: OperationsFilterAccount): string {
 <template>
     <Collapsible
         v-model:open="panelOpen"
-        class="border-border/60 bg-card flex flex-col gap-3 rounded-2xl border p-4"
+        class="flex flex-col gap-3 border-b pb-3"
         :aria-busy="visiting"
     >
         <div
@@ -394,7 +393,7 @@ function accountLabel(account: OperationsFilterAccount): string {
             role="search"
             :aria-label="t.operations.filter_search"
         >
-            <div class="relative min-w-56 flex-1">
+            <div class="relative min-w-56 flex-1 md:w-64 md:flex-none">
                 <Search
                     class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
                     aria-hidden="true"
@@ -413,52 +412,63 @@ function accountLabel(account: OperationsFilterAccount): string {
                 />
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <Button
-                    type="button"
-                    size="sm"
-                    :variant="thisMonthActive ? 'secondary' : 'outline'"
-                    @click="applyMonthPreset(0)"
-                >
-                    {{ t.operations.filter_this_month }}
-                </Button>
-                <Button
-                    type="button"
-                    size="sm"
-                    :variant="lastMonthActive ? 'secondary' : 'outline'"
-                    @click="applyMonthPreset(-1)"
-                >
-                    {{ t.operations.filter_last_month }}
-                </Button>
+            <Button
+                type="button"
+                size="sm"
+                :variant="thisMonthActive ? 'secondary' : 'outline'"
+                @click="applyMonthPreset(0)"
+            >
+                {{ t.operations.filter_this_month }}
+            </Button>
+            <Button
+                type="button"
+                size="sm"
+                :variant="lastMonthActive ? 'secondary' : 'outline'"
+                @click="applyMonthPreset(-1)"
+            >
+                {{ t.operations.filter_last_month }}
+            </Button>
 
-                <CollapsibleTrigger as-child>
-                    <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        :aria-label="filtersToggleAria"
-                    >
-                        <SlidersHorizontal class="size-4" aria-hidden="true" />
-                        {{ t.operations.filters_toggle }}
-                        <Badge
-                            v-if="panelFilterCount > 0"
-                            variant="secondary"
-                            class="rounded-xl"
-                        >
-                            {{ panelFilterCount }}
-                        </Badge>
-                        <ChevronDown
-                            class="size-4 transition-transform"
-                            :class="panelOpen ? 'rotate-180' : ''"
-                            aria-hidden="true"
-                        />
-                    </Button>
-                </CollapsibleTrigger>
-            </div>
+            <CollapsibleTrigger as-child>
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    :aria-label="filtersToggleAria"
+                >
+                    <SlidersHorizontal class="size-4" aria-hidden="true" />
+                    {{ t.operations.filters_toggle }}
+                    <Badge v-if="panelFilterCount > 0" variant="secondary">
+                        {{ panelFilterCount }}
+                    </Badge>
+                    <ChevronDown
+                        class="size-4 transition-transform"
+                        :class="panelOpen ? 'rotate-180' : ''"
+                        aria-hidden="true"
+                    />
+                </Button>
+            </CollapsibleTrigger>
+            <OperationsActiveFilterChips
+                v-if="showChips"
+                :filters="filters"
+                :categories="categories"
+                :accounts="accounts"
+                :term-deposits="termDeposits"
+                :suppressed-sections="suppressedSections"
+                @remove="removeFilter"
+                @clear="clearFilters"
+            />
+
+            <span
+                class="meta text-muted-foreground ml-auto font-mono tabular-nums"
+                aria-live="polite"
+            >
+                {{ resultCountLabel }}
+            </span>
         </div>
 
         <CollapsibleContent
-            class="border-border/60 data-[state=open]:border-t data-[state=open]:pt-3"
+            class="data-[state=open]:border-t data-[state=open]:pt-3"
         >
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div v-if="years.length > 0" class="grid gap-1">
@@ -623,17 +633,5 @@ function accountLabel(account: OperationsFilterAccount): string {
                 </div>
             </div>
         </CollapsibleContent>
-
-        <OperationsActiveFilterChips
-            v-if="showChips"
-            class="border-border/60 border-t pt-3"
-            :filters="filters"
-            :categories="categories"
-            :accounts="accounts"
-            :term-deposits="termDeposits"
-            :suppressed-sections="suppressedSections"
-            @remove="removeFilter"
-            @clear="clearFilters"
-        />
     </Collapsible>
 </template>

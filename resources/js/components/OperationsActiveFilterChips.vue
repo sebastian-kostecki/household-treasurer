@@ -248,49 +248,42 @@ const suppressedNote = computed(() => {
 </script>
 
 <template>
-    <div v-if="chips.length > 0" class="flex flex-col gap-2">
-        <div class="flex flex-wrap items-center gap-2">
-            <span
-                v-for="chip in chips"
-                :key="chip.key"
-                class="border-border/60 bg-background inline-flex max-w-full items-center gap-1.5 rounded-xl border py-1 pr-1 pl-2.5 text-sm"
-            >
-                <CategoryChip
-                    v-if="chip.category"
-                    :name="chip.category.name"
-                    :icon="chip.category.icon"
-                    :color="chip.category.color"
-                    size="sm"
-                />
-                <span v-else class="truncate">{{ chip.label }}</span>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    class="size-6 shrink-0"
-                    :aria-label="chip.removeLabel"
-                    @click="emit('remove', chip.key)"
-                >
-                    <X class="size-3.5" aria-hidden="true" />
-                </Button>
-            </span>
-
+    <template v-if="chips.length > 0">
+        <span
+            v-for="chip in chips"
+            :key="chip.key"
+            class="bg-background h-control-sm inline-flex max-w-full items-center gap-1.5 rounded-full border pr-1 pl-2.5"
+        >
+            <CategoryChip
+                v-if="chip.category"
+                :name="chip.category.name"
+                :icon="chip.category.icon"
+                :color="chip.category.color"
+                size="sm"
+            />
+            <span v-else class="truncate">{{ chip.label }}</span>
             <Button
                 type="button"
-                size="sm"
                 variant="ghost"
-                @click="emit('clear')"
+                size="icon-sm"
+                class="shrink-0 rounded-full"
+                :aria-label="chip.removeLabel"
+                @click="emit('remove', chip.key)"
             >
-                {{ t.operations.filter_clear }}
+                <X class="size-3.5" aria-hidden="true" />
             </Button>
-        </div>
+        </span>
+
+        <Button type="button" size="sm" variant="ghost" @click="emit('clear')">
+            {{ t.operations.filter_clear }}
+        </Button>
 
         <p
             v-if="suppressedNote !== null"
-            class="text-muted-foreground text-xs"
+            class="meta text-muted-foreground order-last basis-full"
             aria-live="polite"
         >
             {{ suppressedNote }}
         </p>
-    </div>
+    </template>
 </template>

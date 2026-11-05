@@ -26,7 +26,7 @@ defineProps<{
 <template>
     <nav
         v-if="paginator.last_page > 1"
-        class="border-border/60 flex flex-wrap items-center justify-center gap-0.5 border-t pt-4"
+        class="border-border flex flex-wrap items-center justify-center gap-0.5 border-t pt-4"
         aria-label="Pagination"
     >
         <template

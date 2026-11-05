@@ -5,7 +5,7 @@ import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import OwnTransferActions from '@/components/OwnTransferActions.vue';
 import type { OwnTransferFormTransfer } from '@/components/OwnTransferFormDialog.vue';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
-import { formatMoney } from '@/lib/format';
+import { formatMoneyAmount } from '@/lib/format';
 
 export type OwnTransferRowData = OwnTransferFormTransfer &
     PrefixedAccountIdentityFields<'source_account'> &
@@ -59,7 +59,7 @@ const emit = defineEmits<{
         </div>
 
         <p class="operations-cell-amount">
-            {{ formatMoney(transfer.amount_minor_units) }}
+            {{ formatMoneyAmount(transfer.amount_minor_units) }}
         </p>
 
         <OwnTransferActions

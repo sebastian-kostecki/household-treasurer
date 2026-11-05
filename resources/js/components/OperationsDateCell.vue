@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatDate, formatRelativeDate } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 
 defineProps<{
     date: string;
@@ -7,10 +7,7 @@ defineProps<{
 </script>
 
 <template>
-    <div class="min-w-0">
-        <p class="text-sm font-medium">{{ formatDate(date) }}</p>
-        <p class="text-muted-foreground text-xs">
-            {{ formatRelativeDate(date) }}
-        </p>
-    </div>
+    <p class="text-muted-foreground font-mono text-sm tabular-nums">
+        {{ formatDate(date) }}
+    </p>
 </template>

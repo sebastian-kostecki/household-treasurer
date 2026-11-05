@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
-import { Plus, Upload } from '@lucide/vue';
+import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
-import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
 } from '@/components/ExpenseFormDialog.vue';
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
-import FinancialOperationRow, {
-    type FinancialOperationRowData,
-} from '@/components/FinancialOperationRow.vue';
+import { type FinancialOperationRowData } from '@/components/FinancialOperationRow.vue';
 import IncomeFormDialog, {
     type IncomeFormCategory,
 } from '@/components/IncomeFormDialog.vue';
-import IndexEmptyState from '@/components/IndexEmptyState.vue';
-import ListSurface from '@/components/ListSurface.vue';
-import OperationsFilters, {
+import {
     type OperationsFilterAccount,
     type OperationsFilterCategory,
     type OperationsFilterTermDeposit,
@@ -26,18 +20,15 @@ import OperationsFilters, {
 import CapitalMovementFormDialog, {
     type CapitalMovementFormTermDeposit,
 } from '@/components/CapitalMovementFormDialog.vue';
-import CapitalMovementRow, {
-    type CapitalMovementRowData,
-} from '@/components/CapitalMovementRow.vue';
+import { type CapitalMovementRowData } from '@/components/CapitalMovementRow.vue';
 import type { OperationsListSection } from '@/components/OperationsActiveFilterChips.vue';
+import OperationsListPanel from '@/components/OperationsListPanel.vue';
 import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
-import OwnTransferRow, {
-    type OwnTransferRowData,
-} from '@/components/OwnTransferRow.vue';
+import { type OwnTransferRowData } from '@/components/OwnTransferRow.vue';
 import { type PaginatedCollection } from '@/components/PaginationLinks.vue';
-import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import { operationsListQuery } from '@/lib/operations-list-query';
 import { listenForOperationsListVisits } from '@/lib/operations-list-visit';
 import { operations as operationsRoute } from '@/routes';
 
@@ -59,6 +50,9 @@ const {
     filtersActive,
     suppressedSections,
     hasAnyRecords,
+    section,
+    operationDaySums,
+    sectionTotals,
     filterYears,
     filterCategories,
     filterAccounts,
@@ -126,6 +120,14 @@ setLayoutProps({
     ],
 });
 
+function changeSection(value: OperationsListSection): void {
+    router.get(
+        operationsRoute({ query: operationsListQuery(filters, value) }),
+        {},
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+}
+
 function openEditDialog(transfer: OwnTransferRowData): void {
     editingTransfer.value = transfer;
     editDialogOpen.value = true;
@@ -152,7 +154,12 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
         <div class="flex flex-wrap items-start justify-between gap-3">
-            <h1 class="text-lg font-semibold">{{ t.operations.title }}</h1>
+            <div class="space-y-1">
+                <h1 class="page-title">{{ t.operations.title }}</h1>
+                <p class="meta text-muted-foreground">
+                    {{ t.operations.list_description }}
+                </p>
+            </div>
             <OperationsPageActions
                 :accounts-count="accounts.length"
                 :term-deposits-count="termDeposits.length"
@@ -163,163 +170,29 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
             />
         </div>
 
-        <OperationsFilters
-            v-if="hasAnyRecords"
+        <OperationsListPanel
+            :section="section"
+            :has-any-records="hasAnyRecords"
+            :operations="operations"
+            :own-transfers="ownTransfers"
+            :capital-movements="capitalMovements"
+            :operation-day-sums="operationDaySums"
+            :section-totals="sectionTotals"
             :filters="filters"
             :filters-active="filtersActive"
-            :years="filterYears"
-            :categories="filterCategories"
-            :accounts="filterAccounts"
-            :term-deposits="filterTermDeposits"
             :suppressed-sections="suppressedSections"
+            :filter-years="filterYears"
+            :filter-categories="filterCategories"
+            :filter-accounts="filterAccounts"
+            :filter-term-deposits="filterTermDeposits"
+            :busy="listBusy"
+            @change-section="changeSection"
+            @add-income="incomeDialogOpen = true"
+            @edit-income="openIncomeEditDialog"
+            @edit-expense="openExpenseEditDialog"
+            @edit-transfer="openEditDialog"
+            @edit-capital-movement="openCapitalMovementEditDialog"
         />
-
-        <IndexEmptyState
-            v-if="!hasAnyRecords"
-            :title="t.operations.empty_title"
-            :description="t.operations.empty_description"
-        >
-            <template #actions>
-                <Button as-child>
-                    <Link :href="CsvImportController.create.url()">
-                        <Upload class="size-4" />
-                        {{ t.operations.import_title }}
-                    </Link>
-                </Button>
-                <Button variant="outline" @click="incomeDialogOpen = true">
-                    <Plus class="size-4" />
-                    {{ t.operations.add_income }}
-                </Button>
-            </template>
-        </IndexEmptyState>
-
-        <IndexEmptyState
-            v-else-if="
-                operations.total === 0 &&
-                ownTransfers.total === 0 &&
-                capitalMovements.total === 0
-            "
-            :title="t.operations.empty_filtered_title"
-            :description="t.operations.empty_filtered_description"
-        >
-            <template #actions>
-                <Button variant="outline" as-child>
-                    <Link :href="operationsRoute()">
-                        {{ t.operations.filter_clear }}
-                    </Link>
-                </Button>
-            </template>
-        </IndexEmptyState>
-
-        <ListSurface
-            v-if="operations.total > 0"
-            class="operations-list"
-            :aria-busy="listBusy"
-            :description="t.operations.list_description"
-            :paginator="operations"
-        >
-            <div class="operations-grid operations-header-row">
-                <span class="operations-cell-date">
-                    {{ t.operations.date }}
-                </span>
-                <span class="operations-cell-description">
-                    {{ t.operations.description }}
-                </span>
-                <span class="operations-cell-category">
-                    {{ t.operations.category }}
-                </span>
-                <span class="operations-cell-account">
-                    {{ t.operations.account }}
-                </span>
-                <span class="operations-cell-amount">
-                    {{ t.operations.amount }}
-                </span>
-                <span class="operations-cell-actions text-right">
-                    {{ t.operations.actions }}
-                </span>
-            </div>
-
-            <FinancialOperationRow
-                v-for="operation in operations.data"
-                :key="operation.id"
-                :operation="operation"
-                @edit="
-                    operation.type === 'income'
-                        ? openIncomeEditDialog(operation)
-                        : openExpenseEditDialog(operation)
-                "
-            />
-        </ListSurface>
-
-        <ListSurface
-            v-if="ownTransfers.total > 0"
-            class="operations-list"
-            :aria-busy="listBusy"
-            :title="t.operations.own_transfers"
-            :paginator="ownTransfers"
-        >
-            <div
-                class="operations-grid operations-grid-transfer operations-header-row"
-            >
-                <span class="operations-cell-date">
-                    {{ t.operations.date }}
-                </span>
-                <span class="operations-cell-description">
-                    {{ t.operations.description }}
-                </span>
-                <span class="operations-cell-account">
-                    {{ t.operations.accounts }}
-                </span>
-                <span class="operations-cell-amount">
-                    {{ t.operations.amount }}
-                </span>
-                <span class="operations-cell-actions text-right">
-                    {{ t.operations.actions }}
-                </span>
-            </div>
-
-            <OwnTransferRow
-                v-for="transfer in ownTransfers.data"
-                :key="transfer.id"
-                :transfer="transfer"
-                @edit="openEditDialog(transfer)"
-            />
-        </ListSurface>
-
-        <ListSurface
-            v-if="capitalMovements.total > 0"
-            class="operations-list"
-            :aria-busy="listBusy"
-            :title="t.operations.capital_movements"
-            :paginator="capitalMovements"
-        >
-            <div
-                class="operations-grid operations-grid-transfer operations-header-row"
-            >
-                <span class="operations-cell-date">
-                    {{ t.operations.date }}
-                </span>
-                <span class="operations-cell-description">
-                    {{ t.operations.description }}
-                </span>
-                <span class="operations-cell-account">
-                    {{ t.operations.accounts }}
-                </span>
-                <span class="operations-cell-amount">
-                    {{ t.operations.amount }}
-                </span>
-                <span class="operations-cell-actions text-right">
-                    {{ t.operations.actions }}
-                </span>
-            </div>
-
-            <CapitalMovementRow
-                v-for="movement in capitalMovements.data"
-                :key="movement.id"
-                :movement="movement"
-                @edit="openCapitalMovementEditDialog(movement)"
-            />
-        </ListSurface>
     </div>
 
     <IncomeFormDialog

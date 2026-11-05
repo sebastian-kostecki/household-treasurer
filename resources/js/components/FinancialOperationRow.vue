@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import CategoryChip from '@/components/CategoryChip.vue';
-import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import type { ExpenseFormOperation } from '@/components/ExpenseFormDialog.vue';
 import FinancialOperationActions from '@/components/FinancialOperationActions.vue';
 import type { IncomeFormOperation } from '@/components/IncomeFormDialog.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
 import OperationsDateCell from '@/components/OperationsDateCell.vue';
+import { useTranslations } from '@/composables/useTranslations';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
 import {
     financialOperationAmountClass,
@@ -31,6 +31,8 @@ const emit = defineEmits<{
     edit: [];
 }>();
 
+const t = useTranslations();
+
 const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
     if (operation.type === 'income') {
         return 'income';
@@ -42,19 +44,22 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
 
     return 'expense';
 });
+
+const detail = computed(() =>
+    typeVariant.value === 'refund'
+        ? `${t.operations.type_refund} · ${operation.account_name}`
+        : operation.account_name,
+);
 </script>
 
 <template>
     <div class="operations-grid operations-row">
-        <div class="operations-cell-date">
-            <OperationsDateCell :date="operation.operation_date" />
-        </div>
-
         <div class="operations-cell-description">
             <OperationDescriptionCell
                 :variant="typeVariant"
                 :description="operation.description"
                 :counterparty="operation.counterparty"
+                :detail="detail"
                 :raw-statement-description="operation.raw_statement_description"
             />
         </div>
@@ -67,14 +72,9 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
             />
         </div>
 
-        <CompactAccountIdentity
-            class="operations-cell-account"
-            mark-size="md"
-            :name="operation.account_name"
-            :type="operation.account_type"
-            :bank="operation.account_bank"
-            :mark_url="operation.account_mark_url"
-        />
+        <div class="operations-cell-date">
+            <OperationsDateCell :date="operation.operation_date" />
+        </div>
 
         <p
             class="operations-cell-amount"

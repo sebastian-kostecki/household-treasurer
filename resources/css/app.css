@@ -695,6 +695,11 @@
         grid-area: actions;
     }
 
+    /* Nagłówek kolumny kwoty ma krój nagłówka, nie kwoty. */
+    .operations-header-row .operations-cell-amount {
+        @apply table-header font-sans;
+    }
+
     .import-preview-grid {
         @apply grid w-full gap-x-3 gap-y-2;
         grid-template-columns: minmax(0, 1fr) auto;

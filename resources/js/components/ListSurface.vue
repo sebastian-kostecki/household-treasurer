@@ -37,6 +37,7 @@ const props = defineProps<{
         >
             <slot />
             <PaginationLinks v-if="paginator" :paginator="paginator" />
+            <slot name="footer" />
         </CardContent>
     </Card>
 </template>

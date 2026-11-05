@@ -1,6 +1,13 @@
 import type { CapitalMovementRowData } from '@/components/CapitalMovementRow.vue';
 import type { FinancialOperationRowData } from '@/components/FinancialOperationRow.vue';
 import type { OwnTransferRowData } from '@/components/OwnTransferRow.vue';
+import type { OperationsListSection } from '@/components/OperationsActiveFilterChips.vue';
+import type {
+    OperationsFilterAccount,
+    OperationsFilterCategory,
+    OperationsFilterTermDeposit,
+    OperationsListFilters,
+} from '@/components/OperationsFilters.vue';
 import type { PaginatedCollection } from '@/components/PaginationLinks.vue';
 
 const mainAccount = {
@@ -31,7 +38,7 @@ export const incomeOperation: FinancialOperationRowData = {
     ...baseOperation,
     id: 1,
     type: 'income',
-    operation_date: '2026-11-02',
+    operation_date: '2026-11-04',
     amount_minor_units: 850000,
     description: 'Wynagrodzenie',
     category_name: 'Wynagrodzenie',
@@ -39,9 +46,9 @@ export const incomeOperation: FinancialOperationRowData = {
 
 export const expenseOperation: FinancialOperationRowData = {
     ...baseOperation,
-    id: 2,
+    id: 3,
     type: 'expense',
-    operation_date: '2026-11-01',
+    operation_date: '2026-11-04',
     amount_minor_units: 12345,
     description: 'Zakupy spożywcze',
     category_name: 'Jedzenie',
@@ -49,9 +56,9 @@ export const expenseOperation: FinancialOperationRowData = {
 
 export const refundOperation: FinancialOperationRowData = {
     ...baseOperation,
-    id: 3,
+    id: 2,
     type: 'expense',
-    operation_date: '2026-10-31',
+    operation_date: '2026-11-04',
     amount_minor_units: -4500,
     description: 'Zwrot zamówienia',
     category_name: 'Zakupy',
@@ -61,7 +68,7 @@ export const bankDescriptionOperation: FinancialOperationRowData = {
     ...baseOperation,
     id: 4,
     type: 'expense',
-    operation_date: '2026-10-30',
+    operation_date: '2026-11-03',
     amount_minor_units: 6990,
     description: 'Abonament telefoniczny',
     category_name: 'Rachunki',
@@ -73,20 +80,27 @@ export const counterpartyOperation: FinancialOperationRowData = {
     ...baseOperation,
     id: 5,
     type: 'expense',
-    operation_date: '2026-10-29',
+    operation_date: '2026-11-03',
     amount_minor_units: 24999,
     description: 'Faktura październik',
     counterparty: 'Sklep Techniczny Sp. z o.o.',
     category_name: 'Dom',
 };
 
+/** Dzień z dodatnią sumą (dochód, zwrot, wydatek), potem dzień z ujemną. */
 export const financialOperationFixtures: FinancialOperationRowData[] = [
     incomeOperation,
-    expenseOperation,
     refundOperation,
+    expenseOperation,
     bankDescriptionOperation,
     counterpartyOperation,
 ];
+
+/** Sumy dnia liczy serwer; tu: 8500,00 + 45,00 − 123,45 oraz −69,90 − 249,99. */
+export const operationDaySumsFixture: Record<string, number> = {
+    '2026-11-04': 842155,
+    '2026-11-03': -31989,
+};
 
 export const ownTransferFixture: OwnTransferRowData = {
     id: 1,
@@ -168,3 +182,46 @@ export function paginate<T>(
         ],
     };
 }
+
+export const emptyPaginator = paginate<never>([], 1, 1);
+
+export const noFiltersFixture: OperationsListFilters = {
+    q: null,
+    year: null,
+    category_name: null,
+    category_type: null,
+    account_id: null,
+    term_deposit_id: null,
+    date_from: null,
+    date_to: null,
+};
+
+export const searchFiltersFixture: OperationsListFilters = {
+    ...noFiltersFixture,
+    q: 'zakupy',
+};
+
+export const filterCategoriesFixture: OperationsFilterCategory[] = [
+    {
+        name: 'Wynagrodzenie',
+        type: 'income',
+        icon: 'banknote',
+        color: '#0d9488',
+    },
+    { name: 'Jedzenie', type: 'expense', icon: 'utensils', color: '#0d9488' },
+];
+
+export const filterAccountsFixture: OperationsFilterAccount[] = [
+    { id: 1, name: mainAccount.account_name, is_archived: false },
+    { id: 2, name: savingsAccount.account_name, is_archived: false },
+];
+
+export const filterTermDepositsFixture: OperationsFilterTermDeposit[] = [
+    { id: 1, name: 'Lokata 12M' },
+];
+
+export const sectionTotalsFixture: Record<OperationsListSection, number> = {
+    financial_operations: 15,
+    own_transfers: 3,
+    capital_movements: 6,
+};

@@ -41,6 +41,8 @@ const FILES = [
     'resources/js/components/OwnTransferRow.vue',
     'resources/js/components/CapitalMovementRow.vue',
     'resources/js/components/OperationsPageActions.vue',
+    'resources/js/components/OperationsDayRow.vue',
+    'resources/js/components/OperationsListPanel.vue',
     'resources/js/components/OperationsFilters.vue',
     'resources/js/components/OperationsActiveFilterChips.vue',
     'resources/js/components/OperationDescriptionCell.vue',
