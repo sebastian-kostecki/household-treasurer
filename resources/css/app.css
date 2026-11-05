@@ -479,7 +479,7 @@
 
     .month-plan-cell-status {
         grid-area: status;
-        @apply min-w-0 justify-self-end xl:justify-self-start;
+        @apply min-w-0 justify-self-end text-right;
     }
 
     .month-plan-header-row {
