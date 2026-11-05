@@ -415,10 +415,10 @@ Bez migracji danych. URL `/budget?month=N` dalej działa (parametr jest ignorowa
 
 #### Automated
 
-- [x] 4.1 build, types:check, check, check:ui z nowymi plikami i npm test przechodzą
-- [x] 4.2 composer ci:check w obrazie Sail i testy Budżetu na PostgreSQL przechodzą
-- [x] 4.3 sloppy ci bez nowych znalezisk
-- [x] 4.4 pint --dirty bez zmian do zrobienia
+- [x] 4.1 build, types:check, check, check:ui z nowymi plikami i npm test przechodzą — 753601b
+- [x] 4.2 composer ci:check w obrazie Sail i testy Budżetu na PostgreSQL przechodzą — 753601b
+- [x] 4.3 sloppy ci bez nowych znalezisk — 753601b
+- [x] 4.4 pint --dirty bez zmian do zrobienia — 753601b
 
 #### Manual
 
