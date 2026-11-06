@@ -236,14 +236,26 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         );
     });
 
-    it.each(['components/AppLogo.vue', 'components/UserInfo.vue'])(
-        'centres the mark or avatar in the collapsed icon rail in %s',
-        (file) => {
-            expect(read(file)).toContain(
-                'group-data-[collapsible=icon]:mx-auto',
-            );
-        },
-    );
+    it('does not collapse to an icon strip on desktop', () => {
+        expect(read('components/AppSidebar.vue')).not.toContain(
+            'collapsible="icon"',
+        );
+        expect(read('components/AppShell.vue')).toContain(':open="true"');
+        expect(read('layouts/app/AppSidebarLayout.vue')).not.toContain(
+            'AppSidebarHeader',
+        );
+    });
+
+    it.each([
+        'components/AppSidebar.vue',
+        'components/NavMain.vue',
+        'components/NavUser.vue',
+        'components/AppLogo.vue',
+        'components/UserInfo.vue',
+        'components/BudgetYearSwitcher.vue',
+    ])('has no icon-mode classes in %s', (file) => {
+        expect(read(file)).not.toContain('group-data-[collapsible=icon]');
+    });
 
     it('names the budget year button with the section label and the year', () => {
         expect(read('components/BudgetYearSwitcher.vue')).toMatch(

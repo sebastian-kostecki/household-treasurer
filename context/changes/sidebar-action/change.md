@@ -1,7 +1,7 @@
 ---
 change_id: sidebar-action
 title: Funkcjonalny sidebar jak w mocku (paleta ⌘K, skróty, rok w segmentach) i powłoka bez górnej belki
-status: preparing
+status: implementing
 created: 2026-11-06
 updated: 2026-11-06
 archived_at: null

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
 import { LayoutGrid } from '@lucide/vue';
+import AppMobileBar from '@/components/AppMobileBar.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import BrandMark from '@/components/BrandMark.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
@@ -17,7 +18,6 @@ import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 type SidebarFrame = {
     key: string;
     label: string;
-    defaultOpen: boolean;
     budgetYears: number[];
     budgetYear: number | null;
 };
@@ -49,11 +49,11 @@ const brandMarkPlaces = [
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Ramki expanded-years i collapsed-years poniżej.',
+        where: 'Ramka expanded-years poniżej oraz mobile-bar (pasek z ☰ widoczny tylko na telefonie).',
     },
     {
         state: 'empty',
-        where: 'Ramki expanded-empty i collapsed-empty poniżej (brak lat budżetu, nad stanem pustym etykieta „Rok budżetu”).',
+        where: 'Ramka expanded-empty poniżej (brak lat budżetu, nad stanem pustym etykieta „Rok budżetu”).',
     },
     {
         state: 'loading',
@@ -88,29 +88,13 @@ function showYearSelectionError(): void {
 const frames: SidebarFrame[] = [
     {
         key: 'expanded-years',
-        label: 'Rozwinięty, z latami',
-        defaultOpen: true,
-        budgetYears: [2025, 2026],
-        budgetYear: 2026,
-    },
-    {
-        key: 'collapsed-years',
-        label: 'Zwinięty, z latami',
-        defaultOpen: false,
+        label: 'Z latami',
         budgetYears: [2025, 2026],
         budgetYear: 2026,
     },
     {
         key: 'expanded-empty',
-        label: 'Rozwinięty, bez lat',
-        defaultOpen: true,
-        budgetYears: [],
-        budgetYear: null,
-    },
-    {
-        key: 'collapsed-empty',
-        label: 'Zwinięty, bez lat',
-        defaultOpen: false,
+        label: 'Bez lat',
         budgetYears: [],
         budgetYear: null,
     },
@@ -125,10 +109,11 @@ const frames: SidebarFrame[] = [
             <h1 class="text-xl font-semibold">Sidebar kitchen sink</h1>
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local), tylko desktop.
-                Sidebar w czterech wariantach: rozwinięty i zwinięty, z latami
-                budżetu i bez. Macierz stanów to standardowe siedem (default,
-                empty, loading, error, hover, focus-visible, disabled) plus
-                pozycja aktywna, właściwa dla menu. Elementy zależne od zalogowanego użytkownika
+                Sidebar jest zawsze rozwinięty (bez trybu ikon); dwa warianty: z
+                latami budżetu i bez, oraz pasek mobilny z przyciskiem menu.
+                Macierz stanów to standardowe siedem (default, empty, loading,
+                error, hover, focus-visible, disabled) plus pozycja aktywna,
+                właściwa dla menu. Elementy zależne od zalogowanego użytkownika
                 (NavUser, źródła kopiowania w oknie dodawania roku) są
                 prawdziwe, nie fixture. Zduplikowane id pól roku w
                 CreateBudgetDialog są tu dopuszczalne.
@@ -186,10 +171,7 @@ const frames: SidebarFrame[] = [
                 <div
                     class="relative h-svh transform-gpu overflow-hidden border"
                 >
-                    <SidebarProvider
-                        :default-open="frame.defaultOpen"
-                        class="h-full min-h-0"
-                    >
+                    <SidebarProvider :open="true" class="h-full min-h-0">
                         <AppSidebar
                             :budget-years="frame.budgetYears"
                             :budget-year="frame.budgetYear"
@@ -198,6 +180,21 @@ const frames: SidebarFrame[] = [
                 </div>
             </section>
         </div>
+
+        <section class="space-y-2" data-frame="mobile-bar">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                mobile-bar: Pasek z przyciskiem menu (telefon)
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Na telefonie (≤ 768 px) pasek stoi nad treścią strony i otwiera
+                arkusz z sidebarem; tu rysowany bez względu na szerokość.
+            </p>
+            <SidebarProvider class="min-h-0 w-full max-w-sm border">
+                <AppMobileBar />
+            </SidebarProvider>
+        </section>
 
         <section class="space-y-2" data-frame="menu-states">
             <h2

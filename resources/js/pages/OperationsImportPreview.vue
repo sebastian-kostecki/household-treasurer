@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { AlertTriangle, ArrowLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
@@ -166,23 +166,6 @@ const monthRemainingWarnings = computed(() =>
 const toSpendWarnings = computed(() =>
     computeImportToSpendWarnings(rows, selections.value, entryToSpend),
 );
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.operations,
-            href: operationsRoute(),
-        },
-        {
-            title: t.operations.import_title,
-            href: CsvImportController.create.url(),
-        },
-        {
-            title: t.operations.import_summary_title,
-            href: CsvImportController.showPreview.url(),
-        },
-    ],
-});
 
 function refreshPairSelections(): void {
     for (const row of rows) {

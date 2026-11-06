@@ -1,9 +1,15 @@
 ---
 paths:
     - 'resources/js/components/AppSidebar*.vue'
+    - 'resources/js/components/AppMobileBar.vue'
+    - 'resources/js/components/BudgetYear*.vue'
+    - 'resources/js/components/CommandPalette*.vue'
     - 'resources/js/components/ui/sidebar/**'
     - 'resources/js/layouts/**/*.vue'
     - 'resources/js/lib/nav-active*.ts'
+    - 'resources/js/lib/global-shortcuts*.ts'
+    - 'resources/js/lib/command-palette*.ts'
+    - 'resources/js/lib/budget-year-segments*.ts'
 ---
 
 # Sidebar
@@ -12,12 +18,12 @@ paths:
 
 Sidebar colours are `--sidebar-*` tokens from resources/css/app.css (roles in context/foundation/design-system.md, "Sidebar"); there is no `--sidebar` token, the background is `--sidebar-background`. No `dark:` variants and no literals in sidebar files: `npm run check:ui` guards them (they are on the list in scripts/check-ui-literals.mjs).
 
-## Header and footer slots survive the collapsed strip
+## No collapse on desktop, the phone bar follows isMobile
 
-Whatever goes into the `SidebarHeader` / `SidebarFooter` slots is built from `SidebarMenuButton` or handles `group-data-[collapsible=icon]` itself, otherwise it breaks in the 3rem collapsed strip.
+The sidebar never collapses on desktop: `AppShell` passes `:open="true"` to `SidebarProvider` and `AppSidebar` uses `collapsible="offcanvas"`; there is no `group-data-[collapsible=icon]` and no `:tooltip` in the domain components, and the shell has no header bar or breadcrumbs (ADR-0054). On a phone the entry is `AppMobileBar`, rendered by `AppContent` when `useSidebar().isMobile` is true (not by `md:hidden`, the provider breakpoint is 768 px inclusive).
 
 ## The active item comes from isCurrentSection
 
-The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted. Check the icon mode, the empty year state and both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).
+The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted. Check the mobile bar, the empty year state and both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).
 
 The same calculation drives `is-active` and `aria-current="page"` on the link (Inertia's `Link` does not add the attribute). Section labels are `SidebarGroupLabel` (`label-caps`), never a hand-built `text-xs` caption. The width comes only from `--sidebar-panel-width` in app.css (not from `--sidebar-width`, which `SidebarProvider` overwrites inline); do not write `w-64` or `16rem` for it. The product mark is `BrandMark`, with the name of the product next to it, not a Lucide icon (ADR-0053).

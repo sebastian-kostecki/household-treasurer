@@ -54,7 +54,7 @@ function setOpen(state: DialogState, value: boolean): void {
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Sekcje poniżej: Profil, Bezpieczeństwo (bez panelu 2FA i kluczy dostępu, potem z nimi) i Wygląd, osadzone w układzie ustawień. Okruszki sinka nadpisuje ostatnia osadzona strona (setLayoutProps).',
+        where: 'Sekcje poniżej: Profil, Bezpieczeństwo (bez panelu 2FA i kluczy dostępu, potem z nimi) i Wygląd, osadzone w układzie ustawień.',
     },
     {
         state: 'hover',

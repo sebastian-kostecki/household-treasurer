@@ -43,6 +43,8 @@ class AppShellTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component($component)
+                ->missing('sidebarOpen')
+                ->where('translations.shell.open_menu', 'Otwórz menu')
                 ->where('shell.budgetYear', null)
                 ->where('shell.budgetYears', [])
                 ->where('shell.firstRun.hasAccount', false)

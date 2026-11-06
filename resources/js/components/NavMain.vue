@@ -33,7 +33,6 @@ function isActive(item: NavItem): boolean {
                     as-child
                     :is-active="isActive(item)"
                     :aria-current="isActive(item) ? 'page' : undefined"
-                    :tooltip="item.title"
                 >
                     <Link :href="item.href">
                         <component :is="item.icon" />

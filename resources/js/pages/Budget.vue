@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { MoreHorizontal, Plus } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
@@ -120,15 +120,6 @@ const deficitWarningMessage = computed(() => {
             ':uncovered',
             formatMoney(props.deficitWarning.uncovered_deficit_minor_units),
         );
-});
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.budget,
-            href: budgetRoute(),
-        },
-    ],
 });
 
 function openEditDialog(category: BudgetCategoryRow): void {

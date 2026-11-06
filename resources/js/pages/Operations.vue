@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
@@ -109,15 +109,6 @@ onMounted(() => {
 
 onUnmounted(() => {
     stopListeningForListVisits?.();
-});
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.operations,
-            href: operationsRoute(),
-        },
-    ],
 });
 
 function changeSection(value: OperationsListSection): void {

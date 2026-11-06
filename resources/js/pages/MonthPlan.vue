@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AlertTriangle, Check, Pencil } from '@lucide/vue';
-import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import MonthPlanController from '@/actions/App/Http/Controllers/MonthPlanController';
@@ -48,15 +48,6 @@ const props = defineProps<{
 }>();
 
 const t = useTranslations();
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.month_plan,
-            href: monthPlanRoute(),
-        },
-    ],
-});
 
 const isChanging = ref(false);
 
