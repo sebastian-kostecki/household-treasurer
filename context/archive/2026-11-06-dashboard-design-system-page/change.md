@@ -1,10 +1,10 @@
 ---
 change_id: dashboard-design-system-page
 title: Dashboard design system page
-status: implemented
+status: archived
 created: 2026-11-06
 updated: 2026-11-06
-archived_at: null
+archived_at: 2026-11-06T17:12:01Z
 ---
 
 ## Notes
