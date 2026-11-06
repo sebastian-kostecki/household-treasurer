@@ -26,6 +26,8 @@ const { accountsCount, termDepositsCount } = defineProps<{
     termDepositsCount: number;
 }>();
 
+const menuOpen = defineModel<boolean>('menuOpen', { default: false });
+
 const emit = defineEmits<{
     'add-income': [];
     'add-expense': [];
@@ -91,7 +93,7 @@ function selectCapitalMovement(event: Event): void {
             </Link>
         </Button>
 
-        <DropdownMenu>
+        <DropdownMenu v-model:open="menuOpen">
             <DropdownMenuTrigger as-child>
                 <Button type="button">
                     <Plus class="size-4" aria-hidden="true" />

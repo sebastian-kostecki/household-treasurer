@@ -129,6 +129,7 @@ Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`
 - Sidebar nie zwija się na desktopie (`AppShell` przekazuje `:open="true"`, `collapsible="offcanvas"`); w komponentach domenowych nie ma `group-data-[collapsible=icon]` ani `:tooltip`. Pasek mobilny zależy od `isMobile` z `useSidebar()`, nie od klasy `md:`.
 - Aktywna pozycja menu: `isCurrentSection` (ścieżka i jej podstrony; `resources/js/lib/nav-active.ts`); to samo wyliczenie ustawia `aria-current="page"` na linku. Pozycje mają `radius-md`, aktywna wagę 600.
 - Etykiety sekcji („Rok budżetu” nad przełącznikiem, „Menu” nad listą) to `SidebarGroupLabel` w stylu `label-caps` i kolorze `sidebar-foreground`; E-mail użytkownika stoi pod nazwą w `sidebar-foreground`.
+- Znacznik skrótu przy pozycji menu to `<kbd class="kbd" aria-hidden="true">` (mono 11/16, waga 500, ramka w kolorze bieżącym, `rounded-xs`, po prawej); link niesie skrót w `aria-keyshortcuts`, a jego nazwa dostępna się nie zmienia. Linijka „Skróty: 1–n widoki, N nowa operacja, / szukaj, Esc zamknij.” nad użytkownikiem to `.sidebar-hint` (11/16, `sidebar-foreground`); `n` wynika z długości listy widoków (`useAppViews`).
 - Znak produktu to `BrandMark` („HT”, `brand`, 26 px, styl `brand-mark`), zawsze z nazwą obok; stoi w sidebarze, nad kartą logowania i w `Welcome`. Bez ikon Lucide w roli znaku.
 
 ## Tryb ciemny

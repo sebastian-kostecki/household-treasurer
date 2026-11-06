@@ -34,6 +34,7 @@ export type UiTranslations = {
         add_budget_for_year: string;
         open_menu: string;
         select_year_failed: string;
+        shortcuts_hint: string;
     };
     auth: Record<string, Record<string, string>>;
     settings: Record<string, string>;

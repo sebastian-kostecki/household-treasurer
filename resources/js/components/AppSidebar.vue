@@ -1,13 +1,5 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import {
-    ArrowLeftRight,
-    CalendarDays,
-    Landmark,
-    LayoutGrid,
-    PiggyBank,
-    Wallet,
-} from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
@@ -23,12 +15,10 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { useAppViews } from '@/composables/useAppViews';
 import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
-import { index as accounts } from '@/routes/accounts';
-import { index as termDeposits } from '@/routes/term-deposits';
-import { budget, dashboard, monthPlan, operations } from '@/routes';
-import type { NavItem } from '@/types';
+import { dashboard } from '@/routes';
 
 type Props = {
     budgetYears: number[];
@@ -39,39 +29,12 @@ defineProps<Props>();
 
 const t = useTranslations();
 const createBudgetDialog = useCreateBudgetDialog();
+const views = useAppViews();
 
-const mainNavItems: NavItem[] = [
-    {
-        title: t.nav.dashboard,
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: t.nav.budget,
-        href: budget(),
-        icon: PiggyBank,
-    },
-    {
-        title: t.nav.month_plan,
-        href: monthPlan(),
-        icon: CalendarDays,
-    },
-    {
-        title: t.nav.accounts,
-        href: accounts(),
-        icon: Wallet,
-    },
-    {
-        title: t.nav.term_deposits,
-        href: termDeposits(),
-        icon: Landmark,
-    },
-    {
-        title: t.nav.operations,
-        href: operations(),
-        icon: ArrowLeftRight,
-    },
-];
+const shortcutsHint = t.shell.shortcuts_hint.replace(
+    ':last',
+    String(views.length),
+);
 </script>
 
 <template>
@@ -93,11 +56,12 @@ const mainNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" :label="t.nav.menu" />
+            <NavMain :items="views" :label="t.nav.menu" />
         </SidebarContent>
 
         <SidebarFooter>
             <SidebarSeparator />
+            <p class="sidebar-hint">{{ shortcutsHint }}</p>
             <NavUser />
         </SidebarFooter>
 

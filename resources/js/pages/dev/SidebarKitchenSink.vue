@@ -286,12 +286,14 @@ const frames: SidebarFrame[] = [
                         <SidebarMenuButton>
                             <LayoutGrid />
                             <span>W spoczynku</span>
+                            <kbd class="kbd" aria-hidden="true">1</kbd>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton :is-active="true">
                             <LayoutGrid />
                             <span>Aktywna</span>
+                            <kbd class="kbd" aria-hidden="true">2</kbd>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>

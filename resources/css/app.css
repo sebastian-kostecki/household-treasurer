@@ -336,6 +336,16 @@
         @apply grid grid-cols-3 gap-1;
     }
 
+    /* Shortcut marker: the key a view or action answers to (mono, outlined in the current colour). */
+    .kbd {
+        @apply ml-auto inline-flex min-w-5 items-center justify-center rounded-xs border border-current px-1 font-mono text-[11px]/4 font-medium;
+    }
+
+    /* Shortcut line above the user in the sidebar footer. */
+    .sidebar-hint {
+        @apply text-sidebar-foreground px-2 text-[11px]/4;
+    }
+
     .sidebar-year-segment {
         @apply h-control-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ring-sidebar-ring rounded-md px-2 text-xs/4 font-medium tabular-nums transition-colors outline-hidden focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
     }

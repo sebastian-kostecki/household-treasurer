@@ -22,6 +22,10 @@ Sidebar colours are `--sidebar-*` tokens from resources/css/app.css (roles in co
 
 The sidebar never collapses on desktop: `AppShell` passes `:open="true"` to `SidebarProvider` and `AppSidebar` uses `collapsible="offcanvas"`; there is no `group-data-[collapsible=icon]` and no `:tooltip` in the domain components, and the shell has no header bar or breadcrumbs (ADR-0054). On a phone the entry is `AppMobileBar`, rendered by `AppContent` when `useSidebar().isMobile` is true (not by `md:hidden`, the provider breakpoint is 768 px inclusive).
 
+## Views come from useAppViews; shortcuts are silent in fields and layers
+
+The menu, the global shortcuts and the palette read one list, `useAppViews` (resources/js/composables/useAppViews.ts); the shortcut number is the position in it, so the "1–n" hint and the numbers never come from literals. `AppSidebar` defines no local view array. The marker is `<kbd class="kbd" aria-hidden="true">` and the link carries `aria-keyshortcuts`, its accessible name stays the title. `resolveGlobalShortcut` (resources/js/lib/global-shortcuts.ts) keeps the shortcuts silent with Ctrl, ⌘ or Alt, during composition, on a repeated key, in a text field and under an open reka layer (dialog, menu, listbox); `/` allows Shift (Shift+7 on the Polish keyboard). Every handled shortcut calls `preventDefault`.
+
 ## The active item comes from isCurrentSection
 
 The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted. The year switcher is a `role="group"` of segments (`.sidebar-year-segments`, three per row, `aria-pressed`); the selected year segment uses `sidebar-strong`, the "+" segment opens the one shell-wide `CreateBudgetDialog` through `useCreateBudgetDialog`. Check the mobile bar, the year segments (one, many, empty, pending) and both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).

@@ -330,4 +330,18 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
     it('does not render a slot in AppSidebar', () => {
         expect(read('components/AppSidebar.vue')).not.toContain('<slot');
     });
+
+    it('marks the shortcut in NavMain for sighted users only', () => {
+        const navMain = read('components/NavMain.vue');
+
+        expect(navMain).toMatch(/<kbd[^>]*aria-hidden="true"/);
+        expect(navMain).toContain('aria-keyshortcuts');
+    });
+
+    it('takes the views from useAppViews, not from a local list', () => {
+        const sidebar = read('components/AppSidebar.vue');
+
+        expect(sidebar).toContain('useAppViews()');
+        expect(sidebar).not.toContain('NavItem[]');
+    });
 });

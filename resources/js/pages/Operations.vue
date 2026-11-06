@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
@@ -27,6 +27,7 @@ import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import { type OwnTransferRowData } from '@/components/OwnTransferRow.vue';
 import { type PaginatedCollection } from '@/components/PaginationLinks.vue';
+import { useOperationsIntent } from '@/composables/useOperationsIntent';
 import { useTranslations } from '@/composables/useTranslations';
 import { operationsListQuery } from '@/lib/operations-list-query';
 import { listenForOperationsListVisits } from '@/lib/operations-list-visit';
@@ -95,8 +96,31 @@ const editingIncome = ref<FinancialOperationRowData | null>(null);
 const editingExpense = ref<FinancialOperationRowData | null>(null);
 const editingTransfer = ref<OwnTransferRowData | null>(null);
 const editingCapitalMovement = ref<CapitalMovementRowData | null>(null);
+const addMenuOpen = ref(false);
+const { operationsIntent, clearOperationsIntent } = useOperationsIntent();
 const listBusy = ref(false);
 let stopListeningForListVisits: (() => void) | null = null;
+
+watch(
+    operationsIntent,
+    async (intent) => {
+        if (intent === null) {
+            return;
+        }
+
+        clearOperationsIntent();
+
+        if (intent === 'add-operation') {
+            addMenuOpen.value = true;
+
+            return;
+        }
+
+        await nextTick();
+        document.getElementById('operations-search')?.focus();
+    },
+    { immediate: true },
+);
 
 onMounted(() => {
     stopListeningForListVisits = listenForOperationsListVisits(
@@ -152,6 +176,7 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
                 </p>
             </div>
             <OperationsPageActions
+                v-model:menu-open="addMenuOpen"
                 :accounts-count="accounts.length"
                 :term-deposits-count="termDeposits.length"
                 @add-income="incomeDialogOpen = true"

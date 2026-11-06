@@ -391,6 +391,7 @@ function accountLabel(account: OperationsFilterAccount): string {
                     aria-hidden="true"
                 />
                 <Input
+                    id="operations-search"
                     v-model="search"
                     type="search"
                     class="pr-9 pl-9"
