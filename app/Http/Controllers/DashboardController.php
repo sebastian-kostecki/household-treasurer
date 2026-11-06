@@ -17,6 +17,7 @@ use App\Support\MonthPace;
 use App\Support\MonthToSpend;
 use App\Support\ShellState;
 use App\Support\SpendableLiquidity;
+use App\Support\TotalFunds;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -54,7 +55,6 @@ class DashboardController extends Controller
             ->all();
 
         $spendableLiquidityMinorUnits = SpendableLiquidity::forUser($user);
-        $termDepositsTotalMinorUnits = (int) $user->termDeposits()->sum('current_balance_minor_units');
 
         $incomeCategories = [];
         $expenseCategories = [];
@@ -125,7 +125,7 @@ class DashboardController extends Controller
             'accounts' => $accounts,
             'termDeposits' => $termDeposits,
             'spendable_liquidity_minor_units' => $spendableLiquidityMinorUnits,
-            'total_funds_minor_units' => $spendableLiquidityMinorUnits + $termDepositsTotalMinorUnits,
+            'total_funds_minor_units' => TotalFunds::forUser($user),
             'budget_year' => $currentYear,
             'budget' => $budget === null ? null : [
                 'year' => $budget->year,

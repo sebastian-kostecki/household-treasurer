@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Models\Account;
+use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -190,6 +191,7 @@ class AccountTest extends TestCase
             'current_balance_minor_units' => 25050,
             'opening_balance_minor_units' => 25050,
         ]);
+        TermDeposit::factory()->for($user)->create(['current_balance_minor_units' => 400000]);
 
         $this->actingAs($user)
             ->get(route('accounts.index'))
@@ -201,7 +203,8 @@ class AccountTest extends TestCase
                 ->where('accounts.0.current_balance_minor_units', 100000)
                 ->where('accounts.1.name', 'Cash B')
                 ->where('accounts.1.current_balance_minor_units', 25050)
-                ->where('liquidity_total_minor_units', 125050),
+                ->where('liquidity_total_minor_units', 125050)
+                ->where('total_funds_minor_units', 525050),
             );
     }
 
