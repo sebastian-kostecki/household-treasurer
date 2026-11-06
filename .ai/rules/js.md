@@ -17,8 +17,8 @@ Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,
 
 ## Reuse surface building blocks before writing new markup
 
-Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountIdentityBlock and SegmentedControl first. Also StatPanel and ExecutionMeter. Surfaces follow ADR-0037: grey floor, panels are `card` with a full `border` and `rounded-lg`, no resting shadows. Do not edit components/ui/* for a single screen.
-The bank or cash tile is `AccountMarkCompact`: a short text mark from `accountShortMark` in `@/lib/account-identity` in the `mark-label` style, „zł” for cash, `Building2` for Other (ADR-0047); a new Bank gets its short mark there in the same commit. `AccountIdentityBlock` shows the logo only on the Dashboard; the Term Deposits view already uses `AccountMarkCompact` (ADR-0051).
+Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountAvatar and SegmentedControl first. Also StatPanel and ExecutionMeter. Surfaces follow ADR-0037: grey floor, panels are `card` with a full `border` and `rounded-lg`, no resting shadows. Do not edit components/ui/* for a single screen.
+The Account or Term Deposit mark is `AccountAvatar` (ADR-0054): the bank logo (`mark_url`) on `muted` with `radius-sm`, `object-contain`, `aria-hidden` and `alt=""`, falling back to the short text mark from `accountShortMark` in `@/lib/account-identity` in the `mark-label` style, „zł” for cash and `Building2` for Other (ADR-0047), also after an image error. Size by role: `xs` in a text line (notices, meta line, filter chip), `sm` in pick lists (`AccountSelect`, `AccountBankSelect`, which shows only the short mark), `md` in tables and rows. Pass narrow props (`type`, `bank`, `mark_url`), never `v-bind` of the whole object. A new Bank gets its short mark in `account-identity.ts` and its logo in `Bank::markPath()` in the same commit.
 
 ## Non-blocking warnings use the warning Alert variant; a reading note uses `note`
 
