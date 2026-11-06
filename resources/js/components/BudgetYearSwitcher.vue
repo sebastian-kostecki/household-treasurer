@@ -109,6 +109,7 @@ function selectYear(value: unknown): void {
                         size="lg"
                         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         :tooltip="`${t.shell.budget_year}: ${budgetYear}`"
+                        :aria-label="`${t.shell.budget_year}: ${budgetYear}`"
                         :aria-disabled="pending"
                         :aria-busy="pending"
                     >

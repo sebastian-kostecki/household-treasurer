@@ -3,6 +3,7 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { LayoutGrid } from '@lucide/vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import BrandMark from '@/components/BrandMark.vue';
+import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import {
     SidebarMenu,
@@ -125,7 +126,9 @@ const frames: SidebarFrame[] = [
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local), tylko desktop.
                 Sidebar w czterech wariantach: rozwinięty i zwinięty, z latami
-                budżetu i bez. Elementy zależne od zalogowanego użytkownika
+                budżetu i bez. Macierz stanów to standardowe siedem (default,
+                empty, loading, error, hover, focus-visible, disabled) plus
+                pozycja aktywna, właściwa dla menu. Elementy zależne od zalogowanego użytkownika
                 (NavUser, źródła kopiowania w oknie dodawania roku) są
                 prawdziwe, nie fixture. Zduplikowane id pól roku w
                 CreateBudgetDialog są tu dopuszczalne.
@@ -181,7 +184,7 @@ const frames: SidebarFrame[] = [
                     {{ frame.key }}: {{ frame.label }}
                 </h2>
                 <div
-                    class="relative h-160 transform-gpu overflow-hidden border"
+                    class="relative h-svh transform-gpu overflow-hidden border"
                 >
                     <SidebarProvider
                         :default-open="frame.defaultOpen"
@@ -262,12 +265,11 @@ const frames: SidebarFrame[] = [
                             <span>Aktywna pozycja</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton>
-                            <span>2026</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
                 </SidebarMenu>
+                <BudgetYearSwitcher
+                    :budget-years="[2025, 2026]"
+                    :budget-year="2026"
+                />
             </SidebarProvider>
         </section>
 

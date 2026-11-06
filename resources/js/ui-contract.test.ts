@@ -227,8 +227,28 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(css).toMatch(/--sidebar-panel-width:\s*224px/);
     });
 
-    it('marks the current section with aria-current in NavMain', () => {
-        expect(read('components/NavMain.vue')).toContain('aria-current');
+    it('marks the current section with aria-current="page" from the same check as is-active', () => {
+        const navMain = read('components/NavMain.vue');
+
+        expect(navMain).toMatch(/:is-active="isActive\(item\)"/);
+        expect(navMain).toMatch(
+            /:aria-current="isActive\(item\) \? 'page' : undefined"/,
+        );
+    });
+
+    it.each(['components/AppLogo.vue', 'components/UserInfo.vue'])(
+        'centres the mark or avatar in the collapsed icon rail in %s',
+        (file) => {
+            expect(read(file)).toContain(
+                'group-data-[collapsible=icon]:mx-auto',
+            );
+        },
+    );
+
+    it('names the budget year button with the section label and the year', () => {
+        expect(read('components/BudgetYearSwitcher.vue')).toMatch(
+            /:aria-label="`\$\{t\.shell\.budget_year\}: \$\{budgetYear\}`"/,
+        );
     });
 
     it('renders section labels with label-caps', () => {
@@ -238,9 +258,13 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
     });
 
     it.each([
+        'components/AppSidebar.vue',
+        'components/AppLogo.vue',
         'components/BudgetYearSwitcher.vue',
-        'components/ui/sidebar/SidebarGroupLabel.vue',
         'components/NavMain.vue',
+        'components/NavUser.vue',
+        'components/UserInfo.vue',
+        'components/ui/sidebar/SidebarGroupLabel.vue',
     ])('does not dim text with text-sidebar-foreground/80 in %s', (file) => {
         expect(read(file)).not.toContain('text-sidebar-foreground/80');
     });

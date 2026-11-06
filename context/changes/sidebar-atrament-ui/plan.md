@@ -301,7 +301,7 @@ Jeden komponent znaku zastępuje `Vault` w sidebarze, na logowaniu i w `Welcome`
 #### Automated Verification:
 
 - Wszystkie asercje nowego `describe` przechodzą: `npm test -- resources/js/ui-contract.test.ts`
-- Brak `Vault` i `AppLogoIcon`: `grep -rn "AppLogoIcon\|Vault" resources/js` zwraca 0 trafień
+- Brak `Vault` i `AppLogoIcon`: `grep -rn "AppLogoIcon\|Vault" resources/js` zwraca 0 trafień poza `lib/category-appearance.ts` (Lucide `Vault` jako wybieralna ikona kategorii, dane użytkownika, nie znak produktu; wyjątek zapisany też w `ui-contract.test.ts`) i samym `ui-contract.test.ts` (impl-review F5)
 - Literały, w tym nowe pliki: `npm run check:ui`
 - Typy: `npm run types:check`
 - Build: `npm run build`
