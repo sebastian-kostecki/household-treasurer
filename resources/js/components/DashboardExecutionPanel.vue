@@ -26,7 +26,7 @@ const tables = computed(() => [
     {
         type: 'income' as const,
         title: t.dashboard.income,
-        sumLabel: t.budget.income_sum,
+        sumLabel: t.dashboard.income_sum,
         categories: props.incomeCategories,
         totals: props.incomeTotals,
         isOverLimit: false,
@@ -34,7 +34,7 @@ const tables = computed(() => [
     {
         type: 'expense' as const,
         title: t.dashboard.expenses,
-        sumLabel: t.budget.expense_sum,
+        sumLabel: t.dashboard.expense_sum,
         categories: props.expenseCategories,
         totals: props.expenseTotals,
         isOverLimit: props.expenseTotals.remaining_minor_units < 0,
@@ -53,7 +53,12 @@ const footerText = computed(() =>
 
 <template>
     <div class="space-y-3">
-        <ListSurface v-for="table in tables" :key="table.type" flush>
+        <ListSurface
+            v-for="table in tables"
+            :key="table.type"
+            flush
+            class="category-meter-table"
+        >
             <template #header>
                 <h3 class="section-title">{{ table.title }}</h3>
             </template>

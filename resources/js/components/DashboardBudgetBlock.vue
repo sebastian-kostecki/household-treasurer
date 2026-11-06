@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
@@ -11,8 +11,10 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
-import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
-import type { DashboardCategory } from '@/lib/dashboard-categories';
+import type {
+    DashboardCategory,
+    DashboardTypeTotals,
+} from '@/lib/dashboard-categories';
 import type { BudgetSummary, PlanSummary } from '@/types/dashboard';
 
 const props = defineProps<{
@@ -38,6 +40,7 @@ const emit = defineEmits<{
 }>();
 
 const t = useTranslations();
+const yearMarkSwitchId = useId();
 const createBudgetDialogOpen = ref(false);
 
 const title = computed(() =>
@@ -63,11 +66,11 @@ const panelYearElapsedPercent = computed(() =>
                     class="flex items-center gap-2"
                 >
                     <Switch
-                        id="dashboard-year-elapsed-mark"
+                        :id="yearMarkSwitchId"
                         v-model="showYearElapsedMark"
                     />
                     <Label
-                        for="dashboard-year-elapsed-mark"
+                        :for="yearMarkSwitchId"
                         class="text-muted-foreground text-sm"
                     >
                         {{ t.dashboard.year_elapsed }}

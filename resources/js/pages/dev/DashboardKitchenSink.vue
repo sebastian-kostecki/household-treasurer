@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
+import DashboardBudgetBlock from '@/components/DashboardBudgetBlock.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
@@ -9,10 +10,20 @@ import { dashboardScenarios } from './dashboard-fixtures';
 const Dashboard = defineAsyncComponent(() => import('@/pages/Dashboard.vue'));
 const t = useTranslations();
 
+const overrunScenario = dashboardScenarios.find(
+    (scenario) => scenario.key === 'overrun',
+);
+const overrunProps = overrunScenario?.props ?? null;
+const overrunBudget = computed(() => overrunProps?.budget ?? null);
+const switchStates = [
+    { key: 'on', caption: 'Switch wł.', model: ref(true) },
+    { key: 'off', caption: 'Switch wył.', model: ref(false) },
+];
+
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-amounts, negative, many-categories (ponad 5 kategorii w grupie), income-over-100, overrun (Status „przekroczono”, grupa wydatków ponad 100%), all-notice-kinds (7 rodzajów, „Pokaż wszystkie”), deposits-only, month-start, month-end, pace-unknown i no-month-plan (3 miary) poniżej.',
+        where: 'Scenariusze default, zero-amounts, negative, many-categories (ponad 5 kategorii w grupie), income-over-100, overrun („przekroczono” obok procentu i w sumach, grupa wydatków ponad 100%), all-notice-kinds (7 rodzajów, „Pokaż wszystkie”), deposits-only, month-start, month-end, pace-unknown i no-month-plan (3 miary) poniżej. Oba stany Switcha „Postęp roku”: sekcja year-mark-switch.',
     },
     {
         state: 'empty',
@@ -32,11 +43,11 @@ const stateMatrix = [
     },
     {
         state: 'hover',
-        where: 'Zrzuty z fazy 6 z działającej aplikacji (wiersz kategorii, karta ostrzeżenia).',
+        where: 'Zrzuty z fazy 6 z działającej aplikacji (wiersz kategorii, karta alertu).',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z fazy 6 z działającej aplikacji (zakładki, wiersz kategorii, karta ostrzeżenia, „Wszystkie”).',
+        where: 'Zrzuty z fazy 6 z działającej aplikacji, kolejność Tab: Switch „Postęp roku”, „Otwórz budżet”, wiersze kategorii, karty alertów.',
     },
 ];
 
@@ -94,6 +105,41 @@ function showYearSelectionError(): void {
             >
                 Pokaż błąd wyboru roku
             </Button>
+        </section>
+
+        <section class="space-y-3" data-section="year-mark-switch">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                year-mark-switch (blok z danych overrun, stan Switcha lokalny)
+            </h2>
+            <template v-if="overrunProps && overrunBudget">
+                <div
+                    v-for="state in switchStates"
+                    :key="state.key"
+                    :data-switch-state="state.key"
+                    class="space-y-2"
+                >
+                    <p class="text-muted-foreground font-mono text-xs">
+                        {{ state.caption }}
+                    </p>
+                    <DashboardBudgetBlock
+                        v-model:show-year-elapsed-mark="state.model.value"
+                        :budget="overrunBudget"
+                        :budget-year="overrunProps.budget_year"
+                        :plan-summary="overrunProps.planSummary"
+                        :income-categories="overrunProps.incomeCategories"
+                        :expense-categories="overrunProps.expenseCategories"
+                        :income-totals="overrunProps.incomeTotals"
+                        :expense-totals="overrunProps.expenseTotals"
+                        :year-elapsed-percent="
+                            overrunProps.year_elapsed_percent
+                        "
+                        :can-select-current-year-in-shell="true"
+                        @error="showYearSelectionError"
+                    />
+                </div>
+            </template>
         </section>
 
         <section

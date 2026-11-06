@@ -443,12 +443,12 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [x] 4.1 Testy JS i typy przechodzą: `npm run test`, `npm run types:check`
-- [x] 4.2 Skan literałów przechodzi z nowym plikiem: `npm run check:ui`
-- [x] 4.3 Straż Dashboardu przechodzi z nowym plikiem: `tests/Unit/DashboardHardcodedUiTest.php`
-- [x] 4.4 `tests/Feature/DashboardTest.php` przechodzi bez edycji asercji
-- [x] 4.5 Lint i formatowanie przechodzą: `npm run check`
-- [x] 4.6 `grep -rn "category-meter-cell-status\|category-meter-group-row\|execution_tab_all" resources` nie zwraca trafień
+- [x] 4.1 Testy JS i typy przechodzą: `npm run test`, `npm run types:check` — 547565f
+- [x] 4.2 Skan literałów przechodzi z nowym plikiem: `npm run check:ui` — 547565f
+- [x] 4.3 Straż Dashboardu przechodzi z nowym plikiem: `tests/Unit/DashboardHardcodedUiTest.php` — 547565f
+- [x] 4.4 `tests/Feature/DashboardTest.php` przechodzi bez edycji asercji — 547565f
+- [x] 4.5 Lint i formatowanie przechodzą: `npm run check` — 547565f
+- [x] 4.6 `grep -rn "category-meter-cell-status\|category-meter-group-row\|execution_tab_all" resources` nie zwraca trafień — 547565f
 
 #### Manual
 
@@ -462,10 +462,10 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [ ] 5.1 Pełna bramka przechodzi: `composer ci:check` oraz `vendor/bin/sloppy ci`
-- [ ] 5.2 Test sinka przechodzi: `tests/Feature/DashboardKitchenSinkTest.php`
-- [ ] 5.3 `dashboard-fixtures.test.ts` przechodzi bez edycji asercji
-- [ ] 5.4 Zrzuty 390/1280 × jasny/ciemny są w `screenshots/`
+- [x] 5.1 Pełna bramka przechodzi: `composer ci:check` oraz `vendor/bin/sloppy ci`
+- [x] 5.2 Test sinka przechodzi: `tests/Feature/DashboardKitchenSinkTest.php`
+- [x] 5.3 `dashboard-fixtures.test.ts` przechodzi bez edycji asercji
+- [x] 5.4 Zrzuty 390/1280 × jasny/ciemny są w `screenshots/`
 
 #### Manual
 

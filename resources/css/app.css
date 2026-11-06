@@ -728,7 +728,7 @@
 
     .accounts-cell-name {
         grid-area: name;
-        @apply flex min-w-0 items-center gap-2;
+        @apply flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1;
     }
 
     .accounts-cell-type {
@@ -1071,16 +1071,21 @@
             'meter meter';
     }
 
-    @variant md {
+    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 644 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
+    .category-meter-table {
+        container-type: inline-size;
+    }
+
+    @container (min-width: 38rem) {
         .category-meter-header-row,
         .category-meter-sum-row,
         .category-meter-row {
             grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(11rem, 1fr);
+                minmax(8rem, 1.4fr)
+                5rem
+                5rem
+                5rem
+                minmax(9rem, 1fr);
             grid-template-areas: 'category plan execution remaining meter';
         }
     }
@@ -1089,7 +1094,7 @@
         @apply table-header hidden py-2;
     }
 
-    @variant md {
+    @container (min-width: 38rem) {
         .category-meter-header-row {
             @apply grid;
         }
@@ -1102,6 +1107,11 @@
 
     .category-meter-sum-row:last-child {
         @apply border-b-0;
+    }
+
+    /* Poprzedni wiersz kategorii ma już dolną kreskę: jedna linia, nie dwie. */
+    .category-meter-row + .category-meter-sum-row {
+        @apply border-t-0;
     }
 
     .category-meter-row {
@@ -1128,7 +1138,7 @@
         @apply hidden text-right;
     }
 
-    @variant md {
+    @container (min-width: 38rem) {
         .category-meter-cell-plan,
         .category-meter-cell-execution {
             @apply block;
@@ -1142,7 +1152,7 @@
 
     .category-meter-cell-meter {
         grid-area: meter;
-        @apply flex min-w-0 items-center gap-2;
+        @apply flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1;
     }
 
     /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */
