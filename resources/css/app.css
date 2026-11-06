@@ -159,6 +159,7 @@
     --row-height: 34px;
     --field-height: 34px;
     --dialog-width: 460px;
+    --aside-width: 300px;
     --dialog-pad-x: 18px;
     --dialog-pad-y: 16px;
     /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
@@ -1014,8 +1015,68 @@
         }
     }
 
+    /*
+     * Obszar `status` istnieje tylko w wierszu, który ma komórkę statusu
+     * (:has), więc wiersz bez niej wygląda jak dotąd. Nagłówek dostaje tę
+     * samą kolumnę przez modyfikator -with-status.
+     */
+    .category-meter-row:has(.category-meter-cell-status) {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-areas:
+            'category category remaining'
+            'bar percent status';
+    }
+
+    .category-meter-header-row-with-status {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
+    @variant md {
+        .category-meter-row:has(.category-meter-cell-status) {
+            grid-template-columns:
+                minmax(0, 1.4fr)
+                5.75rem
+                5.75rem
+                5.75rem
+                minmax(3rem, 1fr)
+                3.25rem
+                6rem;
+            grid-template-areas: 'category plan execution remaining bar percent status';
+        }
+
+        .category-meter-header-row-with-status {
+            grid-template-columns:
+                minmax(0, 1.4fr)
+                5.75rem
+                5.75rem
+                5.75rem
+                minmax(3rem, 1fr)
+                3.25rem
+                6rem;
+        }
+    }
+
     .category-meter-cell-category {
         grid-area: category;
+    }
+
+    .category-meter-cell-status {
+        grid-area: status;
+        @apply justify-self-end;
+    }
+
+    /* Wiersz grupy typu (Przychody / Wydatki) nad kategoriami w panelu realizacji. */
+    .category-meter-group-row {
+        @apply bg-muted font-semibold;
+    }
+
+    .category-meter-group-row .amount {
+        @apply amount-sum;
+    }
+
+    /* Wiersz kategorii jako link: hover i fokus przez nazwaną klasę (klasa z @layer components nie nadpisze utility z wariantem). */
+    .category-meter-row-link {
+        @apply hover:bg-secondary focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-solid;
     }
 
     .category-meter-cell-plan {
@@ -1047,6 +1108,52 @@
         grid-column: bar-start / percent-end;
         grid-row: bar-start / percent-end;
         @apply min-w-0;
+    }
+
+    /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */
+    .dashboard-grid {
+        @apply grid gap-4;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    @variant lg {
+        .dashboard-grid {
+            grid-template-columns: minmax(0, 1fr) var(--aside-width);
+        }
+    }
+
+    /* Pasek dni miesiąca w miarze „Do wydania”: komórka na dzień, minione w `foreground`. */
+    .month-days {
+        @apply flex gap-px;
+    }
+
+    .month-days-day {
+        @apply bg-track h-1.5 min-w-0 flex-1 rounded-full;
+    }
+
+    .month-days-day-past {
+        @apply bg-foreground;
+    }
+
+    /* Karta ostrzeżenia Dashboardu; waga tylko w kafelku ikony. */
+    .dashboard-notice {
+        @apply bg-card text-card-foreground hover:border-muted-foreground flex items-center gap-3 rounded-md border px-3 py-2.5;
+    }
+
+    .dashboard-notice[aria-busy='true'] {
+        @apply cursor-wait;
+    }
+
+    .dashboard-notice-icon {
+        @apply flex size-6 shrink-0 items-center justify-center rounded-md;
+    }
+
+    .dashboard-notice-icon-exceeded {
+        @apply bg-destructive-soft text-destructive;
+    }
+
+    .dashboard-notice-icon-warning {
+        @apply bg-warning-soft text-warning;
     }
 
     /* Panel miar (StatPanel): miary rozdzielone liniami, od md w jednym rzędzie. */

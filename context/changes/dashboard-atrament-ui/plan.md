@@ -520,25 +520,25 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Automated
 
-- [x] 1.1 ADR-0043 istnieje i jest najwyższym numerem
-- [x] 1.2 CONTEXT.md nie wspomina już checkboxa Dashboardu
-- [x] 1.3 Formatowanie dokumentów przechodzi (npm run check)
+- [x] 1.1 ADR-0043 istnieje i jest najwyższym numerem — eb5640c
+- [x] 1.2 CONTEXT.md nie wspomina już checkboxa Dashboardu — eb5640c
+- [x] 1.3 Formatowanie dokumentów przechodzi (npm run check) — eb5640c
 
 #### Manual
 
-- [x] 1.4 ADR-0043, wpis w CONTEXT i noty w specu są zgodne z decyzjami briefu
+- [x] 1.4 ADR-0043, wpis w CONTEXT i noty w specu są zgodne z decyzjami briefu — eb5640c
 
 ### Phase 2: Warstwa wspólna i straże
 
 #### Automated
 
-- [ ] 2.1 Testy Vitest przechodzą
-- [ ] 2.2 Statyka i typy przechodzą
-- [ ] 2.3 Straże literałów przechodzą (check:ui, DashboardHardcodedUiTest, MonthPlanHardcodedUiTest)
+- [x] 2.1 Testy Vitest przechodzą
+- [x] 2.2 Statyka i typy przechodzą
+- [x] 2.3 Straże literałów przechodzą (check:ui, DashboardHardcodedUiTest, MonthPlanHardcodedUiTest)
 
 #### Manual
 
-- [ ] 2.4 Panele miar Budżetu i Planu miesiąca wyglądają jak przed zmianą
+- [x] 2.4 Panele miar Budżetu i Planu miesiąca wyglądają jak przed zmianą
 
 ### Phase 3: Kontrakt propsów i logika
 
