@@ -77,6 +77,27 @@ test('categories that load after the user has typed are still filtered and shown
     await expect(page.getByText('Brak wyników')).toBeHidden();
 });
 
+test('the search matches the label only, not the shortcut or the amount', async ({
+    page,
+}) => {
+    await page.goto('/dashboard');
+    await openPaletteWithShortcut(page);
+    await expect(page.getByRole('option', { name: /Żywność/ })).toBeVisible();
+
+    // "1" is the Dashboard shortcut and part of amounts; "zł" is in every amount.
+    await page.getByRole('combobox').fill('1');
+    await expect(page.getByText('Brak wyników')).toBeVisible();
+    await expect(page.getByRole('option')).toHaveCount(0);
+
+    await page.getByRole('combobox').fill('zł');
+    await expect(page.getByText('Brak wyników')).toBeVisible();
+    await expect(page.getByRole('option')).toHaveCount(0);
+
+    // The diacritics-free query still finds the category.
+    await page.getByRole('combobox').fill('zywnosc');
+    await expect(page.getByRole('option', { name: /Żywność/ })).toBeVisible();
+});
+
 test('"Dodaj operację" opens the type menu on Operations', async ({ page }) => {
     await page.goto('/dashboard');
     await openPaletteWithShortcut(page);

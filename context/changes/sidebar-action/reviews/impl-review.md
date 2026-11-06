@@ -98,7 +98,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
   - Tradeoff: Another edit to the vendored `ui/command`, together with F1.
   - Confidence: MEDIUM — depends on how the registry handles `value` for the filter.
   - Blind spot: Whether the hidden folded span would still be needed.
-- **Decision**: PENDING
+- **Decision**: FIXED — Fix now, differently from the proposed `value` prop (the row `value` is the item object used by `select`, not text): `CommandItem` takes an optional `searchText` that replaces the rendered text in the filter, the palette passes `paletteSearchText(label)` (label plus its diacritics-free form), the hidden copy spans are gone. Unit tests for `paletteSearchText`, e2e "the search matches the label only" (red without the change, green with it), ADR-0054 updated.
 
 ### F6 — E2E suite is timing and state sensitive (import spec, `/` shortcut spec)
 

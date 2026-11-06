@@ -92,6 +92,17 @@ export function foldDiacritics(text: string): string {
         .replace(/Ł/g, 'L');
 }
 
+/**
+ * The text a palette row is searched by: the label, followed by the same label
+ * without diacritics when that differs. Only the label counts: the shortcut
+ * marker and the amount on the row never match a query.
+ */
+export function paletteSearchText(label: string): string {
+    const folded = foldDiacritics(label);
+
+    return folded === label ? label : `${label} ${folded}`;
+}
+
 /** The hint on the sidebar button: ⌘K on macOS and iOS, Ctrl+K elsewhere. */
 export function paletteShortcutLabel(platform: string): '⌘K' | 'Ctrl+K' {
     return /^(mac|iphone|ipad|ipod)/i.test(platform) ? '⌘K' : 'Ctrl+K';

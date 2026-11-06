@@ -21,9 +21,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     buildPaletteActions,
-    foldDiacritics,
     paletteActionSearchValue,
     paletteCategorySearchValue,
+    paletteSearchText,
     type PaletteAction,
     type PaletteCategory,
     type PaletteItem,
@@ -79,12 +79,6 @@ function actionIcon(action: PaletteAction): LucideIcon | undefined {
     return actionIcons[action.item.kind];
 }
 
-// The registry filter matches the rendered text; the folded copy lets a query
-// typed without Polish diacritics find "Żywność" whatever the browser locale.
-function keywords(text: string): string {
-    return foldDiacritics(text);
-}
-
 function onOpenAutoFocus(): void {
     void nextTick(() => command.value?.highlightFirstItem());
 }
@@ -128,6 +122,11 @@ function onOpenAutoFocus(): void {
                             v-for="action in actions"
                             :key="action.key"
                             :value="action.item"
+                            :search-text="
+                                paletteSearchText(
+                                    paletteActionSearchValue(action),
+                                )
+                            "
                             class="command-palette-item"
                             @select="emit('select', action.item)"
                         >
@@ -137,9 +136,6 @@ function onOpenAutoFocus(): void {
                                 class="size-4"
                             />
                             <span>{{ paletteActionSearchValue(action) }}</span>
-                            <span hidden>{{
-                                keywords(paletteActionSearchValue(action))
-                            }}</span>
                             <kbd
                                 v-if="action.shortcut"
                                 class="kbd"
@@ -176,6 +172,11 @@ function onOpenAutoFocus(): void {
                                 v-for="category in categories.items"
                                 :key="category.id"
                                 :value="{ kind: 'category', category }"
+                                :search-text="
+                                    paletteSearchText(
+                                        paletteCategorySearchValue(category),
+                                    )
+                                "
                                 class="command-palette-item"
                                 @select="
                                     emit('select', {
@@ -193,11 +194,6 @@ function onOpenAutoFocus(): void {
                                 />
                                 <span class="truncate">{{
                                     paletteCategorySearchValue(category)
-                                }}</span>
-                                <span hidden>{{
-                                    keywords(
-                                        paletteCategorySearchValue(category),
-                                    )
                                 }}</span>
                                 <span
                                     v-if="category.type === 'income'"

@@ -7,10 +7,17 @@ import { ListboxItem, useForwardPropsEmits, useId } from "reka-ui"
 import { computed, onMounted, onUnmounted, ref } from "vue"
 import { useCommand, useCommandGroup } from "."
 
-const props = defineProps<ListboxItemProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<ListboxItemProps & {
+  class?: HTMLAttributes["class"]
+  /**
+   * Not in the shadcn-vue registry: the text the filter matches instead of the rendered text, for
+   * rows that also show a shortcut or an amount that must not match a query (ADR-0054).
+   */
+  searchText?: string
+}>()
 const emits = defineEmits<ListboxItemEmits>()
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "searchText")
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 
@@ -42,7 +49,7 @@ onMounted(() => {
     return
 
   // textValue to perform filter
-  allItems.value.set(id, currentElement.value.textContent ?? (props.value?.toString() ?? ""))
+  allItems.value.set(id, props.searchText ?? currentElement.value.textContent ?? (props.value?.toString() ?? ""))
 
   const groupId = groupContext?.id
   if (groupId) {

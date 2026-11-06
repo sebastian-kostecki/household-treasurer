@@ -4,6 +4,7 @@ import {
     foldDiacritics,
     paletteActionSearchValue,
     paletteCategorySearchValue,
+    paletteSearchText,
     paletteShortcutLabel,
 } from './command-palette-items';
 
@@ -87,6 +88,20 @@ describe('search values', () => {
     it('folds Polish diacritics', () => {
         expect(foldDiacritics('Żywność')).toBe('Zywnosc');
         expect(foldDiacritics('Łódź gęś')).toBe('Lodz ges');
+    });
+});
+
+describe('paletteSearchText', () => {
+    it('keeps a label without diacritics as it is', () => {
+        expect(paletteSearchText('Dashboard')).toBe('Dashboard');
+    });
+
+    it('adds the folded label, so a query without diacritics matches', () => {
+        expect(paletteSearchText('Żywność')).toBe('Żywność Zywnosc');
+    });
+
+    it('is built from the label only, with no shortcut or amount', () => {
+        expect(paletteSearchText('Budżet')).not.toMatch(/\d|zł/);
     });
 });
 
