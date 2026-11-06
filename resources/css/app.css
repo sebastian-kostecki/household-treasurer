@@ -785,9 +785,18 @@
         }
     }
 
-    /* Wiersz posiadań na Dashboardzie (konta i lokaty). */
+    /* Wiersz posiadań na Dashboardzie (konta i lokaty): separator `border-soft`, wiersze sięgają krawędzi panelu. */
     .dashboard-holdings-row {
-        @apply hover:bg-secondary flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+        @apply border-border-soft hover:bg-secondary flex items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-3 transition-colors;
+    }
+
+    /* Stopka panelu posiadań: etykieta i suma widocznych wierszy. */
+    .dashboard-holdings-footer {
+        @apply flex flex-col gap-1;
+    }
+
+    .dashboard-holdings-footer-total {
+        @apply flex items-center justify-between gap-x-4;
     }
 
     /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
@@ -976,117 +985,81 @@
         @apply bg-pair/10;
     }
 
+    /*
+     * Panel realizacji budżetu na Dashboardzie: jedna siatka dla nagłówka
+     * kolumn, wiersza grupy typu i wiersza kategorii. Na telefonie wiersz to
+     * dwie linie (kategoria i pozostało, potem miernik i status), od `md`
+     * jedna linia kolumn.
+     */
+    .category-meter-header-row,
+    .category-meter-group-row,
     .category-meter-row {
-        @apply grid w-full items-center gap-x-3 gap-y-1.5 py-2.5;
+        @apply border-border-soft grid items-center gap-x-3 gap-y-1.5 border-b px-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'category remaining'
-            'bar percent';
+            'meter status';
     }
 
     @variant md {
+        .category-meter-header-row,
+        .category-meter-group-row,
         .category-meter-row {
-            min-height: 2.75rem;
             grid-template-columns:
                 minmax(0, 1.4fr)
                 5.75rem
                 5.75rem
                 5.75rem
-                minmax(3rem, 1fr)
-                3.25rem;
-            grid-template-areas: 'category plan execution remaining bar percent';
+                minmax(6rem, 1fr)
+                6rem;
+            grid-template-areas: 'category plan execution remaining meter status';
         }
     }
 
     .category-meter-header-row {
-        @apply grid items-center gap-x-3 pb-2;
-        grid-template-columns: minmax(0, 1fr) auto;
+        @apply table-header hidden py-2;
     }
 
     @variant md {
         .category-meter-header-row {
-            grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(3rem, 1fr)
-                3.25rem;
+            @apply grid;
         }
     }
 
-    /*
-     * Obszar `status` istnieje tylko w wierszu, który ma komórkę statusu
-     * (:has), więc wiersz bez niej wygląda jak dotąd. Nagłówek dostaje tę
-     * samą kolumnę przez modyfikator -with-status.
-     */
-    .category-meter-row:has(.category-meter-cell-status) {
-        grid-template-columns: minmax(0, 1fr) auto auto;
-        grid-template-areas:
-            'category category remaining'
-            'bar percent status';
-    }
-
-    .category-meter-header-row-with-status {
-        grid-template-columns: minmax(0, 1fr) auto auto;
-    }
-
-    @variant md {
-        .category-meter-row:has(.category-meter-cell-status) {
-            grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(3rem, 1fr)
-                3.25rem
-                6rem;
-            grid-template-areas: 'category plan execution remaining bar percent status';
-        }
-
-        .category-meter-header-row-with-status {
-            grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(3rem, 1fr)
-                3.25rem
-                6rem;
-        }
-    }
-
-    .category-meter-cell-category {
-        grid-area: category;
-    }
-
-    .category-meter-cell-status {
-        grid-area: status;
-        @apply justify-self-end;
-    }
-
-    /* Wiersz grupy typu (Przychody / Wydatki) nad kategoriami w panelu realizacji. */
+    /* Wiersz grupy typu (Dochody / Wydatki) nad kategoriami; sumy w stylu `amount-sum`. */
     .category-meter-group-row {
-        @apply bg-muted font-semibold;
+        @apply bg-muted min-h-row py-2 text-sm font-semibold;
     }
 
-    .category-meter-group-row .amount {
-        @apply amount-sum;
+    .category-meter-row {
+        @apply min-h-row py-2.5 text-sm;
     }
 
     /* Wiersz kategorii jako link: hover i fokus przez nazwaną klasę (klasa z @layer components nie nadpisze utility z wariantem). */
     .category-meter-row-link {
-        @apply hover:bg-secondary focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-solid;
+        @apply hover:bg-secondary focus-visible:outline-ring transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid;
+    }
+
+    .category-meter-cell-category {
+        grid-area: category;
+        @apply min-w-0;
     }
 
     .category-meter-cell-plan {
         grid-area: plan;
-        @apply text-right;
+        @apply hidden text-right;
     }
 
     .category-meter-cell-execution {
         grid-area: execution;
-        @apply text-right;
+        @apply hidden text-right;
+    }
+
+    @variant md {
+        .category-meter-cell-plan,
+        .category-meter-cell-execution {
+            @apply block;
+        }
     }
 
     .category-meter-cell-remaining {
@@ -1094,20 +1067,14 @@
         @apply text-right;
     }
 
-    .category-meter-cell-bar {
-        grid-area: bar;
-        @apply min-w-0 overflow-visible;
-    }
-
-    .category-meter-cell-percent {
-        grid-area: percent;
-    }
-
-    /* Pasek realizacji i procent w jednej komórce siatki (bar + percent). */
     .category-meter-cell-meter {
-        grid-column: bar-start / percent-end;
-        grid-row: bar-start / percent-end;
+        grid-area: meter;
         @apply min-w-0;
+    }
+
+    .category-meter-cell-status {
+        grid-area: status;
+        @apply justify-self-end;
     }
 
     /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */

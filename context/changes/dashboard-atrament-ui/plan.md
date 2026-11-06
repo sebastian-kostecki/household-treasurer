@@ -554,30 +554,30 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Automated
 
-- [x] 4.1 Statyka, typy i straże przechodzą
-- [x] 4.2 DashboardHardcodedUiTest obejmuje Dashboard.vue, DashboardStatPanel.vue, DashboardNotices.vue i przechodzi
-- [x] 4.3 Testy Dashboardu przechodzą
+- [x] 4.1 Statyka, typy i straże przechodzą — 902cbdf
+- [x] 4.2 DashboardHardcodedUiTest obejmuje Dashboard.vue, DashboardStatPanel.vue, DashboardNotices.vue i przechodzi — 902cbdf
+- [x] 4.3 Testy Dashboardu przechodzą — 902cbdf
 
 #### Manual
 
-- [x] 4.4 Panel miar ma 4/3/2 miary w default/draft/no-budget, Badge propozycji tylko w zero-amounts
-- [x] 4.5 Plan miesiąca i Otwórz budżet przełączają rok, błąd daje toast
-- [x] 4.6 Karty ostrzeżeń mają neutralną ramkę w obu motywach
+- [x] 4.4 Panel miar ma 4/3/2 miary w default/draft/no-budget, Badge propozycji tylko w zero-amounts — 902cbdf
+- [x] 4.5 Plan miesiąca i Otwórz budżet przełączają rok, błąd daje toast — 902cbdf
+- [x] 4.6 Karty ostrzeżeń mają neutralną ramkę w obu motywach — 902cbdf
 
 ### Phase 5: Realizacja budżetu i Konta/Lokaty
 
 #### Automated
 
-- [ ] 5.1 Statyka, typy i straże przechodzą
-- [ ] 5.2 Vitest przechodzi
-- [ ] 5.3 Brak resztek po checkboxie, akordeonie i limicie
-- [ ] 5.4 DashboardHardcodedUiTest obejmuje cały widok, testy Dashboardu zielone
+- [x] 5.1 Statyka, typy i straże przechodzą
+- [x] 5.2 Vitest przechodzi
+- [x] 5.3 Brak resztek po checkboxie, akordeonie i limicie
+- [x] 5.4 DashboardHardcodedUiTest obejmuje cały widok, testy Dashboardu zielone
 
 #### Manual
 
-- [ ] 5.5 Panel realizacji z wierszami grup i zakładkami resetowanymi po odświeżeniu
-- [ ] 5.6 Klik w wiersz kategorii otwiera przefiltrowane Operacje
-- [ ] 5.7 Na 390 px Konta i Lokaty rozwinięte, bez przewijania w poziomie
+- [x] 5.5 Panel realizacji z wierszami grup i zakładkami resetowanymi po odświeżeniu
+- [x] 5.6 Klik w wiersz kategorii otwiera przefiltrowane Operacje
+- [x] 5.7 Na 390 px Konta i Lokaty rozwinięte, bez przewijania w poziomie
 
 ### Phase 6: Stany i bramka wizualna
 

@@ -50,7 +50,7 @@ function showYearSelectionError(): void {
 
     <div class="flex flex-1 flex-col gap-8 p-4">
         <header class="space-y-1">
-            <h1 class="text-xl font-semibold">Dashboard kitchen sink</h1>
+            <h1 class="page-title">Dashboard kitchen sink</h1>
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local). Widok Dashboard w
                 każdym scenariuszu danych. Checklista pierwszego uruchomienia i

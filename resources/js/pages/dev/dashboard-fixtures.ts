@@ -1,3 +1,4 @@
+import { DEFAULT_CATEGORY_COLOR } from '@/lib/category-appearance';
 import type { DashboardCategory } from '@/lib/dashboard-categories';
 import type { DashboardPageProps } from '@/types/dashboard';
 
@@ -42,16 +43,31 @@ function category(
 }
 
 const incomeCategories = [
-    category(1, 'Wynagrodzenie', 'wallet', '#2f9e44', 1200000, 600000),
-    category(2, 'Premia', 'coins', '#1c7ed6', 200000, 0),
+    category(
+        1,
+        'Wynagrodzenie',
+        'wallet',
+        DEFAULT_CATEGORY_COLOR,
+        1200000,
+        600000,
+    ),
+    category(2, 'Premia', 'coins', DEFAULT_CATEGORY_COLOR, 200000, 0),
 ];
 
 const expenseCategories = [
-    category(3, 'Zakupy spożywcze', 'shopping-cart', '#f08c00', 180000, 90000, {
-        is_paced: true,
-    }),
-    category(4, 'Dom', 'home', '#7048e8', 250000, 125000),
-    category(5, 'Transport', 'car', '#e03131', 60000, 25000, {
+    category(
+        3,
+        'Zakupy spożywcze',
+        'shopping-cart',
+        DEFAULT_CATEGORY_COLOR,
+        180000,
+        90000,
+        {
+            is_paced: true,
+        },
+    ),
+    category(4, 'Dom', 'home', DEFAULT_CATEGORY_COLOR, 250000, 125000),
+    category(5, 'Transport', 'car', DEFAULT_CATEGORY_COLOR, 60000, 25000, {
         is_paced: true,
     }),
 ];
@@ -183,9 +199,18 @@ const zeroAmountsProps: DashboardPageProps = {
         expense: zeroTotals,
         planned_balance_minor_units: 0,
     },
-    incomeCategories: [category(1, 'Wynagrodzenie', 'wallet', '#2f9e44', 0, 0)],
+    incomeCategories: [
+        category(1, 'Wynagrodzenie', 'wallet', DEFAULT_CATEGORY_COLOR, 0, 0),
+    ],
     expenseCategories: [
-        category(3, 'Zakupy spożywcze', 'shopping-cart', '#f08c00', 0, 0),
+        category(
+            3,
+            'Zakupy spożywcze',
+            'shopping-cart',
+            DEFAULT_CATEGORY_COLOR,
+            0,
+            0,
+        ),
     ],
     incomeTotals: zeroTotals,
     expenseTotals: zeroTotals,
@@ -218,7 +243,7 @@ const negativeProps: DashboardPageProps = {
             3,
             'Zakupy spożywcze',
             'shopping-cart',
-            '#f08c00',
+            DEFAULT_CATEGORY_COLOR,
             180000,
             230000,
             {

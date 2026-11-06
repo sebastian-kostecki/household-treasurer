@@ -9,7 +9,7 @@ import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import DashboardStatPanel from '@/components/DashboardStatPanel.vue';
 import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
-import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
+import DashboardExecutionPanel from '@/components/DashboardExecutionPanel.vue';
 import DashboardNotices from '@/components/DashboardNotices.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,10 +56,6 @@ onUnmounted(stopListeningForYearSelectionFailure);
 
 const checklistComplete = computed(() =>
     checklist.value.every((item) => item.done),
-);
-
-const budgetYearLabel = computed(() =>
-    t.dashboard.budget_year_label.replace(':year', String(props.budget_year)),
 );
 
 const budgetStateLabel = computed(() => {
@@ -246,8 +242,6 @@ setLayoutProps({
 
         <div class="dashboard-grid">
             <section class="min-w-0 space-y-3">
-                <h2 class="section-title">{{ budgetYearLabel }}</h2>
-
                 <Card v-if="budget === null">
                     <IndexEmptyState :title="noBudgetMessage">
                         <template #actions>
@@ -285,25 +279,15 @@ setLayoutProps({
                         />
                     </Card>
 
-                    <div v-if="showBudgetCategories" class="space-y-3">
-                        <DashboardCategorySection
-                            :title="t.dashboard.income"
-                            category-type="income"
-                            :categories="incomeCategories"
-                            :totals="incomeTotals"
-                            :show-year-elapsed="true"
-                            :year-elapsed-percent="year_elapsed_percent ?? 0"
-                        />
-
-                        <DashboardCategorySection
-                            :title="t.dashboard.expenses"
-                            category-type="expense"
-                            :categories="expenseCategories"
-                            :totals="expenseTotals"
-                            :show-year-elapsed="true"
-                            :year-elapsed-percent="year_elapsed_percent ?? 0"
-                        />
-                    </div>
+                    <DashboardExecutionPanel
+                        v-if="showBudgetCategories"
+                        :income-categories="incomeCategories"
+                        :expense-categories="expenseCategories"
+                        :income-totals="incomeTotals"
+                        :expense-totals="expenseTotals"
+                        :year-elapsed-percent="year_elapsed_percent"
+                        :budget-year="budget_year"
+                    />
                 </template>
             </section>
 
