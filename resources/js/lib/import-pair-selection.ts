@@ -6,7 +6,6 @@ export type PairCandidate = {
     date: string;
     description: string;
     converts_financial_operation: boolean;
-    reason: string;
 };
 
 export type PairRowSelection = {

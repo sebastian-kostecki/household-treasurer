@@ -26,6 +26,10 @@ import {
     uniquePairCandidate,
     type PairCandidate,
 } from '@/lib/import-pair-selection';
+import {
+    importInvalidReasonText,
+    importPairReasonText,
+} from '@/lib/import-row-reasons';
 import type { ToSpendWarning } from '@/lib/entry-to-spend-warning';
 import type { MonthRemainingWarningState } from '@/lib/import-month-remaining-warnings';
 import {
@@ -605,13 +609,13 @@ function onPairCandidateChange(value: string): void {
                 v-if="showsPairBadge && matchingCandidate !== null"
                 class="text-muted-foreground text-xs"
             >
-                {{ matchingCandidate.reason }}
+                {{ importPairReasonText(matchingCandidate, t.operations) }}
             </p>
             <p
                 v-if="!row.valid && row.invalid_reason"
                 class="text-muted-foreground text-xs"
             >
-                {{ row.invalid_reason }}
+                {{ importInvalidReasonText(row.invalid_reason, t.operations) }}
             </p>
             <Alert v-if="makesAccountNegative" variant="warning">
                 <AlertDescription>

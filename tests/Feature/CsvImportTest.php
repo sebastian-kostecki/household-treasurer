@@ -308,7 +308,7 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 1)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('Only PLN amounts are supported.')),
+                ->where('rows.0.invalid_reason', 'foreign_currency'),
             );
     }
 
@@ -346,7 +346,7 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 3)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('The operation date cannot be in the future.'))
+                ->where('rows.0.invalid_reason', 'future_date')
                 ->where('rows.1.valid', false)
                 ->where('rows.2.valid', false),
             );
@@ -2884,7 +2884,10 @@ CSV);
                 ->where('rows.0.import_pair_candidate', true)
                 ->has('rows.0.pair_candidates', 1)
                 ->where('rows.0.pair_candidates.0.kind', 'financial_operation')
-                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id)
+                ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.date', '2026-03-15')
+                ->missing('rows.0.pair_candidates.0.reason'),
             );
     }
 
@@ -3181,7 +3184,10 @@ CSV);
                 ->where('rows.0.import_pair_candidate', true)
                 ->has('rows.0.pair_candidates', 1)
                 ->where('rows.0.pair_candidates.0.kind', 'own_transfer')
-                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id)
+                ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.date', '2026-03-15')
+                ->missing('rows.0.pair_candidates.0.reason'),
             );
     }
 

@@ -34,7 +34,6 @@ class ImportPairCandidateDetector
      *         date: string,
      *         description: string,
      *         converts_financial_operation: bool,
-     *         reason: string,
      *     }>,
      *     ...
      * }>
@@ -115,7 +114,6 @@ class ImportPairCandidateDetector
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }>
      */
     public function matchCandidatesForRow(
@@ -175,7 +173,6 @@ class ImportPairCandidateDetector
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }
      */
     private function financialOperationToCandidate(FinancialOperation $operation): array
@@ -188,10 +185,6 @@ class ImportPairCandidateDetector
             'date' => $operation->import_identity_date->toDateString(),
             'description' => $operation->description,
             'converts_financial_operation' => true,
-            'reason' => (string) __(':account (:date): existing income or expense will become this own transfer.', [
-                'account' => $operation->account->name,
-                'date' => $operation->import_identity_date->toDateString(),
-            ]),
         ];
     }
 
@@ -204,7 +197,6 @@ class ImportPairCandidateDetector
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }
      */
     private function ownTransferToCandidate(OwnTransfer $transfer): array
@@ -227,10 +219,6 @@ class ImportPairCandidateDetector
             'date' => $identity['date'],
             'description' => $transfer->description,
             'converts_financial_operation' => false,
-            'reason' => (string) __(':account (:date): a second import identity will attach to the existing own transfer.', [
-                'account' => $account->name,
-                'date' => $identity['date'],
-            ]),
         ];
     }
 
@@ -379,7 +367,6 @@ class ImportPairCandidateDetector
      *         date: string,
      *         description: string,
      *         converts_financial_operation: bool,
-     *         reason: string,
      *     }>,
      *     ...
      * }
@@ -406,7 +393,6 @@ class ImportPairCandidateDetector
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }>  $pairCandidates
      * @return array{
      *     operation_date: string,
@@ -423,7 +409,6 @@ class ImportPairCandidateDetector
      *         date: string,
      *         description: string,
      *         converts_financial_operation: bool,
-     *         reason: string,
      *     }>,
      *     ...
      * }

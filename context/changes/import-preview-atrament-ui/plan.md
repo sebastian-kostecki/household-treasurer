@@ -530,8 +530,8 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [x] 1.1 ADR-0052 istnieje i jest jedynym plikiem `0052-*` w `context/foundation/adr/`
-- [x] 1.2 `grep -n "ADR-0052" context/foundation/design-system.md .ai/rules/js.md .ai/rules/js-import.md` zwraca trafienie w każdym z trzech plików
+- [x] 1.1 ADR-0052 istnieje i jest jedynym plikiem `0052-*` w `context/foundation/adr/` — 2f86a04
+- [x] 1.2 `grep -n "ADR-0052" context/foundation/design-system.md .ai/rules/js.md .ai/rules/js-import.md` zwraca trafienie w każdym z trzech plików — 2f86a04
 
 #### Manual
 
@@ -541,11 +541,11 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [ ] 2.1 Przed zmianą kodu nowe i zmienione testy są czerwone z powodu angielskiego tekstu albo braku kodu lub enuma
-- [ ] 2.2 Po zmianie testy PHP (`CsvImportTest`, `CsvImportPreviewValidatorTest`, `ImportRowReasonTranslationsTest`, `UiTranslationKeysTest`) przechodzą
-- [ ] 2.3 `npm test` i `npm run types:check` przechodzą
-- [ ] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian po formatowaniu
-- [ ] 2.5 PHP, typy TS, fikstury i testy są w jednym commicie `fix(import-preview-atrament-ui): …`
+- [x] 2.1 Przed zmianą kodu nowe i zmienione testy są czerwone z powodu angielskiego tekstu albo braku kodu lub enuma
+- [x] 2.2 Po zmianie testy PHP (`CsvImportTest`, `CsvImportPreviewValidatorTest`, `ImportRowReasonTranslationsTest`, `UiTranslationKeysTest`) przechodzą
+- [x] 2.3 `npm test` i `npm run types:check` przechodzą
+- [x] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian po formatowaniu
+- [x] 2.5 PHP, typy TS, fikstury i testy są w jednym commicie `fix(import-preview-atrament-ui): …`
 
 #### Manual
 

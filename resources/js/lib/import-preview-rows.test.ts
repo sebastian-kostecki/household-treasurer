@@ -165,7 +165,6 @@ describe('initialSelection', () => {
                     date: '2026-10-12',
                     description: 'Przelew',
                     converts_financial_operation: false,
-                    reason: 'Ta sama kwota',
                 },
             ],
         });

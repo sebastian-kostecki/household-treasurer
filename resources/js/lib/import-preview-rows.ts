@@ -14,6 +14,7 @@ export type ImportRow = {
     raw_statement_description: string | null;
     amount_minor_units: number | null;
     valid: boolean;
+    /** Code of `ImportRowInvalidReason`; an unknown value is shown as received. */
     invalid_reason: string | null;
     import_duplicate: boolean;
     import_pair_candidate: boolean;

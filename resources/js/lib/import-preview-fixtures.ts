@@ -18,7 +18,6 @@ const pairCandidate: PairCandidate = {
     date: '2026-10-12',
     description: 'Przelew na oszczędności',
     converts_financial_operation: false,
-    reason: 'Ta sama kwota i data w drugim koncie',
 };
 
 function row(index: number, overrides: Partial<ImportRow>): ImportRow {
@@ -73,7 +72,7 @@ export const invalidRow = row(4, {
     description: 'Operacja z przyszłości',
     amount_minor_units: -4_900,
     valid: false,
-    invalid_reason: 'Data operacji nie może być w przyszłości.',
+    invalid_reason: 'future_date',
 });
 
 export const nullAmountRow = row(5, {
