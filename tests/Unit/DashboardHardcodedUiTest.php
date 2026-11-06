@@ -10,6 +10,7 @@ const DASHBOARD_VIEW_FILES = [
     'resources/js/components/DashboardStatPanel.vue',
     'resources/js/components/DashboardNotices.vue',
     'resources/js/components/DashboardExecutionPanel.vue',
+    'resources/js/components/DashboardBudgetBlock.vue',
     'resources/js/components/CategoryMeterRow.vue',
     'resources/js/components/DashboardHoldings.vue',
     'resources/js/components/BudgetPlanSummaryStrip.vue',

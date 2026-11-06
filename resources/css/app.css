@@ -1159,33 +1159,38 @@
     }
 
     /*
-     * Panel realizacji budżetu na Dashboardzie: jedna siatka dla nagłówka
-     * kolumn, wiersza grupy typu i wiersza kategorii. Na telefonie wiersz to
-     * dwie linie (kategoria i pozostało, potem miernik i status), od `md`
-     * jedna linia kolumn.
+     * Tabele realizacji budżetu na Dashboardzie (Dochody, Wydatki): jedna
+     * siatka dla nagłówka kolumn, wiersza kategorii i wiersza sumy. Na
+     * telefonie wiersz to dwie linie (kategoria i pozostało, potem miernik
+     * z procentem i znacznikiem „przekroczono”), a od 38rem szerokości samej
+     * tabeli (kontener `.category-meter-table`, ADR-0050) jedna linia kolumn.
      */
     .category-meter-header-row,
-    .category-meter-group-row,
+    .category-meter-sum-row,
     .category-meter-row {
         @apply border-border-soft grid items-center gap-x-3 gap-y-1.5 border-b px-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'category remaining'
-            'meter status';
+            'meter meter';
     }
 
-    @variant md {
+    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 644 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
+    .category-meter-table {
+        container-type: inline-size;
+    }
+
+    @container (min-width: 38rem) {
         .category-meter-header-row,
-        .category-meter-group-row,
+        .category-meter-sum-row,
         .category-meter-row {
             grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(6rem, 1fr)
-                6rem;
-            grid-template-areas: 'category plan execution remaining meter status';
+                minmax(8rem, 1.4fr)
+                5rem
+                5rem
+                5rem
+                minmax(9rem, 1fr);
+            grid-template-areas: 'category plan execution remaining meter';
         }
     }
 
@@ -1193,15 +1198,24 @@
         @apply table-header hidden py-2;
     }
 
-    @variant md {
+    @container (min-width: 38rem) {
         .category-meter-header-row {
             @apply grid;
         }
     }
 
-    /* Wiersz grupy typu (Dochody / Wydatki) nad kategoriami; sumy w stylu `amount-sum`. */
-    .category-meter-group-row {
-        @apply bg-muted min-h-row py-2 text-sm font-semibold;
+    /* Wiersz sumy typu (Suma dochodów / Suma wydatków) na końcu tabeli; kwoty w stylu `amount-sum`. */
+    .category-meter-sum-row {
+        @apply bg-muted min-h-row border-t py-2 text-sm font-semibold;
+    }
+
+    .category-meter-sum-row:last-child {
+        @apply border-b-0;
+    }
+
+    /* Poprzedni wiersz kategorii ma już dolną kreskę: jedna linia, nie dwie. */
+    .category-meter-row + .category-meter-sum-row {
+        @apply border-t-0;
     }
 
     .category-meter-row {
@@ -1228,7 +1242,7 @@
         @apply hidden text-right;
     }
 
-    @variant md {
+    @container (min-width: 38rem) {
         .category-meter-cell-plan,
         .category-meter-cell-execution {
             @apply block;
@@ -1242,12 +1256,7 @@
 
     .category-meter-cell-meter {
         grid-area: meter;
-        @apply min-w-0;
-    }
-
-    .category-meter-cell-status {
-        grid-area: status;
-        @apply justify-self-end;
+        @apply flex min-w-0 items-center gap-2;
     }
 
     /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */
@@ -1288,17 +1297,21 @@
         @apply flex size-6 shrink-0 items-center justify-center rounded-md;
     }
 
-    /* Dwie równe linie przy lewej krawędzi: tytuł i zdanie z liczbami. */
+    /* Dwie linie przy lewej krawędzi: rodzaj i tożsamość; wartość po prawej. */
     .dashboard-notice-body {
         @apply flex min-w-0 flex-1 flex-col items-start text-left;
     }
 
-    .dashboard-notice-title {
+    .dashboard-notice-kind {
+        @apply w-full truncate;
+    }
+
+    .dashboard-notice-identity {
         @apply text-foreground w-full truncate text-sm font-medium;
     }
 
-    .dashboard-notice-text {
-        @apply text-muted-foreground w-full text-xs;
+    .dashboard-notice-value {
+        @apply shrink-0 whitespace-nowrap;
     }
 
     .dashboard-notice-icon-exceeded {
@@ -1424,7 +1437,7 @@
 
     /* W tabeli realizacji tor ma stałą szerokość, a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
     .category-meter-cell-meter .execution-meter {
-        @apply gap-x-2;
+        @apply w-auto gap-x-2;
     }
 
     .category-meter-cell-meter .execution-meter-track {

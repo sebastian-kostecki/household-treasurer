@@ -473,7 +473,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             icon: 'home',
             color: DEFAULT_CATEGORY_COLOR,
             category_name: 'Dom',
-            amount_minor_units: 15000,
+            amount_minor_units: -15000,
         },
         {
             severity: 'exceeded',
@@ -483,7 +483,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             icon: 'car',
             color: DEFAULT_CATEGORY_COLOR,
             category_name: 'Transport',
-            amount_minor_units: 80000,
+            amount_minor_units: -80000,
         },
         {
             severity: 'warning',

@@ -2,14 +2,12 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import { computed, onUnmounted, ref } from 'vue';
 import { Check, Circle } from '@lucide/vue';
-import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
-import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import DashboardBudgetBlock from '@/components/DashboardBudgetBlock.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import DashboardStatPanel from '@/components/DashboardStatPanel.vue';
 import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
-import DashboardExecutionPanel from '@/components/DashboardExecutionPanel.vue';
 import DashboardNotices from '@/components/DashboardNotices.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +18,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { useYearElapsedMark } from '@/composables/useYearElapsedMark';
 import {
     useFirstRunChecklist,
     useShell,
@@ -39,6 +38,8 @@ const t = useTranslations();
 const shell = useShell();
 const checklist = useFirstRunChecklist();
 const createBudgetDialogOpen = ref(false);
+
+const { showYearElapsedMark, setYearElapsedMark } = useYearElapsedMark();
 
 const yearSelectionPending = ref(false);
 
@@ -93,10 +94,6 @@ const canSelectCurrentYearInShell = computed(() =>
     shell.budgetYears.includes(props.budget_year),
 );
 
-const showBudgetCategories = computed(
-    () => props.budget?.phase === 'execution',
-);
-
 setLayoutProps({
     breadcrumbs: [
         {
@@ -127,32 +124,6 @@ setLayoutProps({
                 </div>
                 <p class="text-muted-foreground text-sm">{{ metaLine }}</p>
             </div>
-
-            <Form
-                v-if="budget !== null && canSelectCurrentYearInShell"
-                v-bind="BudgetController.selectYear.form()"
-                v-slot="{ processing }"
-                @start="onYearSelectionStart"
-                @finish="onYearSelectionFinish"
-                @error="onYearSelectionFailed"
-            >
-                <input type="hidden" name="year" :value="budget_year" />
-                <Button type="submit" variant="outline" :disabled="processing">
-                    {{ t.dashboard.open_budget }}
-                </Button>
-            </Form>
-            <CreateBudgetDialog
-                v-else-if="budget !== null"
-                v-model:open="createBudgetDialogOpen"
-                year-input-id="dashboard-open-budget-year"
-                :suggested-year="budget_year"
-            >
-                <template #trigger>
-                    <Button variant="outline">
-                        {{ t.dashboard.open_budget }}
-                    </Button>
-                </template>
-            </CreateBudgetDialog>
         </div>
 
         <Card v-if="shell.firstRun.showChecklist">
@@ -221,8 +192,6 @@ setLayoutProps({
             :month-pace="month_pace"
             :spendable-liquidity-minor-units="spendable_liquidity_minor_units"
             :total-funds-minor-units="total_funds_minor_units"
-            :year-elapsed-as-of="year_elapsed_as_of"
-            :year-elapsed-percent="year_elapsed_percent"
             @start="onYearSelectionStart"
             @finish="onYearSelectionFinish"
             @error="onYearSelectionFailed"
@@ -255,35 +224,25 @@ setLayoutProps({
                     </IndexEmptyState>
                 </Card>
 
-                <template v-else>
-                    <BudgetPlanSummaryStrip
-                        v-if="planSummary && budget.phase === 'draft'"
-                        :income-totals="planSummary.income"
-                        :expense-totals="planSummary.expense"
-                        :planned-balance-minor-units="
-                            planSummary.planned_balance_minor_units
-                        "
-                    />
-
-                    <Card v-if="budget.phase === 'draft'">
-                        <IndexEmptyState
-                            :title="t.dashboard.draft_categories_title"
-                            :description="
-                                t.dashboard.draft_categories_description
-                            "
-                        />
-                    </Card>
-
-                    <DashboardExecutionPanel
-                        v-if="showBudgetCategories"
-                        :income-categories="incomeCategories"
-                        :expense-categories="expenseCategories"
-                        :income-totals="incomeTotals"
-                        :expense-totals="expenseTotals"
-                        :year-elapsed-percent="year_elapsed_percent"
-                        :budget-year="budget_year"
-                    />
-                </template>
+                <DashboardBudgetBlock
+                    v-else
+                    :budget="budget"
+                    :budget-year="budget_year"
+                    :plan-summary="planSummary"
+                    :income-categories="incomeCategories"
+                    :expense-categories="expenseCategories"
+                    :income-totals="incomeTotals"
+                    :expense-totals="expenseTotals"
+                    :year-elapsed-percent="year_elapsed_percent"
+                    :can-select-current-year-in-shell="
+                        canSelectCurrentYearInShell
+                    "
+                    :show-year-elapsed-mark="showYearElapsedMark"
+                    @update:show-year-elapsed-mark="setYearElapsedMark"
+                    @start="onYearSelectionStart"
+                    @finish="onYearSelectionFinish"
+                    @error="onYearSelectionFailed"
+                />
             </section>
 
             <aside class="min-w-0">

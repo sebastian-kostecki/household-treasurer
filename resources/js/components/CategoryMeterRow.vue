@@ -79,10 +79,7 @@ const showsOverLimitBadge = computed(
                 :is-over-limit="category.is_over_limit"
                 :year-elapsed-percent="meterYearElapsedPercent"
             />
-        </div>
-
-        <div v-if="showsOverLimitBadge" class="category-meter-cell-status">
-            <Badge variant="destructive-soft">
+            <Badge v-if="showsOverLimitBadge" variant="destructive-soft">
                 {{ t.budget.over_limit_badge }}
             </Badge>
         </div>
