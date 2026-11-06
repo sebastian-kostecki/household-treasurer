@@ -19,6 +19,8 @@ export const buttonVariants = cva(
           `bg-destructive text-white hover:bg-destructive/90 dark:bg-destructive/60 ${disabledSolid}`,
         outline:
           `border bg-card text-foreground hover:bg-secondary ${disabledSolid}`,
+        "outline-destructive":
+          `border bg-card text-destructive hover:bg-secondary ${disabledSolid}`,
         secondary:
           `bg-secondary text-secondary-foreground hover:bg-secondary/80 ${disabledSolid}`,
         ghost:

@@ -3,11 +3,11 @@ import { Form, Head, setLayoutProps, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
-import Heading from '@/components/Heading.vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
+import SettingsPanel from '@/components/SettingsPanel.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/profile';
 
@@ -28,59 +28,63 @@ setLayoutProps({
 <template>
     <Head :title="t.settings.profile_title" />
 
-    <h1 class="sr-only">{{ t.settings.profile_title }}</h1>
-
-    <div class="flex flex-col space-y-6">
-        <Heading
-            variant="small"
+    <Form
+        v-bind="ProfileController.update.form()"
+        v-slot="{ errors, processing }"
+    >
+        <SettingsPanel
             :title="t.settings.profile_heading"
             :description="t.settings.profile_description"
-        />
-
-        <Form
-            v-bind="ProfileController.update.form()"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
         >
-            <div class="grid gap-2">
-                <Label for="name">{{ t.settings.name }}</Label>
+            <FormField
+                id="name"
+                :label="t.settings.name"
+                :error="errors.name"
+                v-slot="{ id, describedBy, invalid, controlClass }"
+            >
                 <Input
-                    id="name"
-                    class="mt-1 block w-full"
+                    :id="id"
+                    :class="controlClass"
+                    :aria-describedby="describedBy"
+                    :aria-invalid="invalid"
                     name="name"
                     :default-value="user.name"
                     required
                     autocomplete="name"
-                    :placeholder="t.settings.name"
                 />
-                <InputError class="mt-2" :message="errors.name" />
-            </div>
+            </FormField>
 
-            <div class="grid gap-2">
-                <Label for="email">{{ t.settings.email }}</Label>
+            <FormField
+                id="email"
+                :label="t.settings.email"
+                :error="errors.email"
+                v-slot="{ id, describedBy, invalid, controlClass }"
+            >
                 <Input
-                    id="email"
+                    :id="id"
+                    :class="controlClass"
+                    :aria-describedby="describedBy"
+                    :aria-invalid="invalid"
                     type="email"
-                    class="mt-1 block w-full"
                     name="email"
                     :default-value="user.email"
                     required
                     autocomplete="username"
-                    :placeholder="t.settings.email"
                 />
-                <InputError class="mt-2" :message="errors.email" />
-            </div>
+            </FormField>
 
-            <div class="flex items-center gap-4">
+            <template #footer>
                 <Button
+                    type="submit"
                     :disabled="processing"
                     data-test="update-profile-button"
                 >
+                    <Spinner v-if="processing" />
                     {{ t.settings.save }}
                 </Button>
-            </div>
-        </Form>
-    </div>
+            </template>
+        </SettingsPanel>
+    </Form>
 
     <DeleteUser />
 </template>

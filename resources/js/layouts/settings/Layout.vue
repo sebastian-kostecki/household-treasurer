@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import Heading from '@/components/Heading.vue';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { useTranslations } from '@/composables/useTranslations';
 import { toUrl } from '@/lib/utils';
@@ -32,42 +29,31 @@ const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>
 
 <template>
-    <div class="px-4 py-6">
-        <Heading
-            :title="t.settings.title"
-            :description="t.settings.description"
-        />
+    <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
+        <div class="space-y-1">
+            <h1 class="page-title">{{ t.settings.title }}</h1>
+            <p class="text-muted-foreground text-sm">
+                {{ t.settings.description }}
+            </p>
+        </div>
 
-        <div class="flex flex-col lg:flex-row lg:space-x-12">
-            <aside class="w-full max-w-xl lg:w-48">
-                <nav
-                    class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
+        <div class="settings-layout">
+            <nav class="settings-subnav" :aria-label="t.settings.title">
+                <Link
+                    v-for="item in sidebarNavItems"
+                    :key="toUrl(item.href)"
+                    :href="item.href"
+                    class="settings-subnav-link"
+                    :aria-current="
+                        isCurrentOrParentUrl(item.href) ? 'page' : undefined
+                    "
                 >
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="toUrl(item.href)"
-                        variant="ghost"
-                        :class="[
-                            'w-full justify-start',
-                            { 'bg-muted': isCurrentOrParentUrl(item.href) },
-                        ]"
-                        as-child
-                    >
-                        <Link :href="item.href">
-                            <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.title }}
-                        </Link>
-                    </Button>
-                </nav>
-            </aside>
+                    {{ item.title }}
+                </Link>
+            </nav>
 
-            <Separator class="my-6 lg:hidden" />
-
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
-                    <slot />
-                </section>
+            <div class="settings-content">
+                <slot />
             </div>
         </div>
     </div>

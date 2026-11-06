@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
-import Heading from '@/components/Heading.vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
+import SettingsPanel from '@/components/SettingsPanel.vue';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { edit } from '@/routes/security';
 import type { Props as ManagePasskeysProps } from '@/components/ManagePasskeys.vue';
@@ -35,77 +35,85 @@ setLayoutProps({
 <template>
     <Head :title="t.settings.security_title" />
 
-    <h1 class="sr-only">{{ t.settings.security_title }}</h1>
-
-    <div class="space-y-6">
-        <Heading
-            variant="small"
-            title="Update password"
-            description="Ensure your account is using a long, random password to stay secure"
-        />
-
-        <Form
-            v-bind="SecurityController.update.form()"
-            :options="{
-                preserveScroll: true,
-            }"
-            reset-on-success
-            :reset-on-error="[
-                'password',
-                'password_confirmation',
-                'current_password',
-            ]"
-            class="space-y-6"
-            v-slot="{ errors, processing }"
+    <Form
+        v-bind="SecurityController.update.form()"
+        :options="{
+            preserveScroll: true,
+        }"
+        reset-on-success
+        :reset-on-error="[
+            'password',
+            'password_confirmation',
+            'current_password',
+        ]"
+        v-slot="{ errors, processing }"
+    >
+        <SettingsPanel
+            :title="t.settings.password_heading"
+            :description="t.settings.password_description"
         >
-            <div class="grid gap-2">
-                <Label for="current_password">Current password</Label>
+            <FormField
+                id="current_password"
+                :label="t.settings.current_password"
+                :error="errors.current_password"
+                v-slot="{ id, describedBy, invalid, controlClass }"
+            >
                 <PasswordInput
-                    id="current_password"
+                    :id="id"
+                    :class="controlClass"
+                    :aria-describedby="describedBy"
+                    :aria-invalid="invalid"
                     name="current_password"
-                    class="mt-1 block w-full"
                     autocomplete="current-password"
-                    placeholder="Current password"
                 />
-                <InputError :message="errors.current_password" />
-            </div>
+            </FormField>
 
-            <div class="grid gap-2">
-                <Label for="password">New password</Label>
+            <FormField
+                id="password"
+                :label="t.settings.new_password"
+                :error="errors.password"
+                v-slot="{ id, describedBy, invalid, controlClass }"
+            >
                 <PasswordInput
-                    id="password"
+                    :id="id"
+                    :class="controlClass"
+                    :aria-describedby="describedBy"
+                    :aria-invalid="invalid"
                     name="password"
-                    class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="New password"
                     :passwordrules="props.passwordRules"
                 />
-                <InputError :message="errors.password" />
-            </div>
+            </FormField>
 
-            <div class="grid gap-2">
-                <Label for="password_confirmation">Confirm password</Label>
+            <FormField
+                id="password_confirmation"
+                :label="t.settings.confirm_password"
+                :error="errors.password_confirmation"
+                v-slot="{ id, describedBy, invalid, controlClass }"
+            >
                 <PasswordInput
-                    id="password_confirmation"
+                    :id="id"
+                    :class="controlClass"
+                    :aria-describedby="describedBy"
+                    :aria-invalid="invalid"
                     name="password_confirmation"
-                    class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="Confirm password"
                     :passwordrules="props.passwordRules"
                 />
-                <InputError :message="errors.password_confirmation" />
-            </div>
+            </FormField>
 
-            <div class="flex items-center gap-4">
+            <template #footer>
                 <Button
+                    type="submit"
                     :disabled="processing"
                     data-test="update-password-button"
                 >
-                    Save
+                    <Spinner v-if="processing" />
+                    {{ t.settings.save }}
                 </Button>
-            </div>
-        </Form>
-    </div>
+            </template>
+        </SettingsPanel>
+    </Form>
 
     <ManageTwoFactor
         :canManageTwoFactor="canManageTwoFactor"
