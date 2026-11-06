@@ -569,11 +569,11 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [x] 4.1 `DevImportPreviewSinkTest` i `ImportPreviewHardcodedUiTest` przechodzą
-- [x] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build`
-- [x] 4.3 Pełna bramka `ci:check` na PostgreSQL w worktree przechodzi
-- [x] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście
-- [x] 4.5 `npx playwright test` (istniejący suite) przechodzi
+- [x] 4.1 `DevImportPreviewSinkTest` i `ImportPreviewHardcodedUiTest` przechodzą — f328d11
+- [x] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build` — f328d11
+- [x] 4.3 Pełna bramka `ci:check` na PostgreSQL w worktree przechodzi — f328d11
+- [x] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście — f328d11
+- [x] 4.5 `npx playwright test` (istniejący suite) przechodzi — f328d11
 
 #### Manual
 
