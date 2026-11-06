@@ -402,9 +402,9 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [x] 1.1 ADR-0050 istnieje i jest jedynym plikiem `0050-*` w `context/foundation/adr/`
-- [x] 1.2 `php artisan boost:index-rules` kończy się bez błędu, a `git diff` pokazuje tylko zamierzone zmiany w regułach
-- [x] 1.3 `grep -rn "severity only in the icon tile" .ai/rules` nie zwraca trafień
+- [x] 1.1 ADR-0050 istnieje i jest jedynym plikiem `0050-*` w `context/foundation/adr/` — 8bd1946
+- [x] 1.2 `php artisan boost:index-rules` kończy się bez błędu, a `git diff` pokazuje tylko zamierzone zmiany w regułach — 8bd1946
+- [x] 1.3 `grep -rn "severity only in the icon tile" .ai/rules` nie zwraca trafień — 8bd1946
 
 #### Manual
 
