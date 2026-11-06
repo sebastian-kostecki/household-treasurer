@@ -64,7 +64,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
   - Tradeoff: `AppSidebar` loses the dialog it owns now, so the kitchen sink frames that rely on it need a check.
   - Confidence: HIGH — the mount point and the sheet behaviour are both in the code.
   - Blind spot: The kitchen sink renders `AppSidebar` alone and may need its own dialog instance.
-- **Decision**: PENDING
+- **Decision**: FIXED — Fix now: `CreateBudgetDialog` moved from `AppSidebar` to `AppSidebarLayout` (state still in `useCreateBudgetDialog`), contract guard in `ui-contract.test.ts`, e2e palette → add year on desktop and on a 390 px phone with the sheet closed (phone spec red on the old code, green now), kitchen sink note and `js-sidebar.md` updated.
 
 ### F3 — E2E "a digit does nothing while the expense dialog is open" cannot fail
 
@@ -100,14 +100,15 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
   - Blind spot: Whether the hidden folded span would still be needed.
 - **Decision**: PENDING
 
-### F6 — Full E2E run fails one import spec that passes alone
+### F6 — E2E suite is timing and state sensitive (import spec, `/` shortcut spec)
 
 - **Severity**: 💬 OBSERVATION
 - **Impact**: 🏃 LOW — quick decision; fix is obvious and narrowly scoped
 - **Dimension**: Success Criteria
 - **Location**: tests/e2e/import-other-format-without-header.spec.ts:54
 - **Detail**: In the full `npx playwright test` run (`fullyParallel`, shared `household_treasurer_e2e` database) the spec fails at step 2 with the account error "The selected account id is invalid". Re-run alone it passes (3.4 s). Neither the spec nor the import backend was changed by this change, and the `OperationsImport.vue` diff only removes breadcrumbs, so the cause is state shared with `account-edit-keeps-bank.spec.ts`, which edits accounts. Plan item 4.8 ("npx playwright test") was ticked as green; in this run it was not.
-- **Fix**: Have the import spec create or pick its own account, or run the account-editing spec in a serial project.
+- **Second case, found during triage**: `global-shortcuts.spec.ts:57` ("/ on the Dashboard focuses an empty search field on Operations") failed in later runs and 4 of 4 times with `--repeat-each=4`, on the committed code as well as after the F2 fix, so it is not caused by either. The helper `pressUntilUrl` (lines 10-15) repeats the key every second until the URL changes; when the visit takes longer than 1 s, the repeated `/` lands in the search field the intent has already focused, and `toHaveValue('')` sees "/". It passed in the first full run of this review, so it depends on timing. The same retry loop is used by the `N` and digit specs, where a repeated key is harmless.
+- **Fix**: Have the import spec create or pick its own account, or run the account-editing spec in a serial project. For the `/` spec, press the key once after the shortcut listener is attached (for example wait for the sidebar hint or the palette button), or stop retrying once the URL has changed.
 - **Decision**: PENDING
 
 ### F7 — Plan criterion 1.5 expects an empty grep that has three legitimate hits

@@ -4,7 +4,6 @@ import { Search } from '@lucide/vue';
 import { onMounted, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
-import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -19,7 +18,6 @@ import {
 } from '@/components/ui/sidebar';
 import { openCommandPalette } from '@/composables/useCommandPalette';
 import { useAppViews } from '@/composables/useAppViews';
-import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
 import { paletteShortcutLabel } from '@/lib/command-palette-items';
 import { dashboard } from '@/routes';
@@ -32,7 +30,6 @@ type Props = {
 defineProps<Props>();
 
 const t = useTranslations();
-const createBudgetDialog = useCreateBudgetDialog();
 const views = useAppViews();
 
 const paletteShortcut = ref<'⌘K' | 'Ctrl+K'>('Ctrl+K');
@@ -87,11 +84,5 @@ const shortcutsHint = t.shell.shortcuts_hint.replace(
             <p class="sidebar-hint">{{ shortcutsHint }}</p>
             <NavUser />
         </SidebarFooter>
-
-        <CreateBudgetDialog
-            v-model:open="createBudgetDialog.open.value"
-            :initial-year="createBudgetDialog.initialYear.value"
-            year-input-id="shell-create-budget-year"
-        />
     </Sidebar>
 </template>

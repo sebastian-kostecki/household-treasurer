@@ -226,8 +226,9 @@ const frames: SidebarFrame[] = [
                 error, hover, focus-visible, disabled) plus pozycja aktywna,
                 właściwa dla menu. Elementy zależne od zalogowanego użytkownika
                 (NavUser, źródła kopiowania w oknie dodawania roku) są
-                prawdziwe, nie fixture. Zduplikowane id pól roku w
-                CreateBudgetDialog są tu dopuszczalne.
+                prawdziwe, nie fixture. Okno nowego budżetu jest jedno, z
+                powłoki (AppSidebarLayout), więc „+” w każdej ramce otwiera to
+                samo okno.
             </p>
         </header>
 

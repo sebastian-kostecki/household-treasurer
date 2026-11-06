@@ -363,4 +363,15 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(sidebar).toContain('useAppViews()');
         expect(sidebar).not.toContain('NavItem[]');
     });
+
+    it('mounts the new budget dialog in the layout, not inside the sidebar', () => {
+        // On a phone the sidebar content lives in a sheet and is unmounted while
+        // it is closed, so a dialog inside it cannot be opened from the palette.
+        expect(read('components/AppSidebar.vue')).not.toContain(
+            'CreateBudgetDialog',
+        );
+        expect(read('layouts/app/AppSidebarLayout.vue')).toContain(
+            '<CreateBudgetDialog',
+        );
+    });
 });
