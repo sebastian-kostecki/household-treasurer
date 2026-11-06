@@ -434,31 +434,31 @@ Brak danych. Ciasteczko `sidebar_state` bez zmian. Konflikt w `AppSidebar.vue` z
 
 #### Automated
 
-- [x] 3.1 Asercje szerokości, cva i slotu przechodzą
-- [x] 3.2 Literały: `npm run check:ui`
-- [x] 3.3 Typy: `npm run types:check`
-- [x] 3.4 Build: `npm run build`
+- [x] 3.1 Asercje szerokości, cva i slotu przechodzą — 935c9a9
+- [x] 3.2 Literały: `npm run check:ui` — 935c9a9
+- [x] 3.3 Typy: `npm run types:check` — 935c9a9
+- [x] 3.4 Build: `npm run build` — 935c9a9
 
 #### Manual
 
-- [x] 3.5 Rozwinięty sidebar 224 px, zwinięty 3rem, mobilny Sheet 18rem
-- [x] 3.6 Pozycja aktywna 600, promień pozycji 8 px w obu motywach
+- [x] 3.5 Rozwinięty sidebar 224 px, zwinięty 3rem, mobilny Sheet 18rem — 935c9a9
+- [x] 3.6 Pozycja aktywna 600, promień pozycji 8 px w obu motywach — 935c9a9
 
 ### Phase 4: Sloty sidebara (C2, C3, C4)
 
 #### Automated
 
-- [ ] 4.1 Asercje etykiet i `aria-current` przechodzą
-- [ ] 4.2 Spec przechodzi
-- [ ] 4.3 Istniejące E2E nadal przechodzą
-- [ ] 4.4 Literały: `npm run check:ui`
-- [ ] 4.5 Typy: `npm run types:check`
+- [x] 4.1 Asercje etykiet i `aria-current` przechodzą
+- [x] 4.2 Spec przechodzi
+- [x] 4.3 Istniejące E2E nadal przechodzą
+- [x] 4.4 Literały: `npm run check:ui`
+- [x] 4.5 Typy: `npm run types:check`
 
 #### Manual
 
-- [ ] 4.6 Etykiety `label-caps`, tryb ikon i mobilny Sheet, stan pusty
-- [ ] 4.7 Blok użytkownika i menu użytkownika z okrągłym awatarem
-- [ ] 4.8 Czytnik ekranu ogłasza bieżącą sekcję
+- [x] 4.6 Etykiety `label-caps`, tryb ikon i mobilny Sheet, stan pusty
+- [x] 4.7 Blok użytkownika i menu użytkownika z okrągłym awatarem
+- [x] 4.8 Czytnik ekranu ogłasza bieżącą sekcję
 
 ### Phase 5: Znak „HT” (C5)
 

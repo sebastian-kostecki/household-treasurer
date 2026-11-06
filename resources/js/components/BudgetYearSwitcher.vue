@@ -93,7 +93,7 @@ function selectYear(value: unknown): void {
                     <CalendarPlus class="size-4" />
                 </div>
                 <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="text-sidebar-foreground/80 truncate text-xs">
+                    <span class="meta text-sidebar-foreground truncate">
                         {{ t.shell.no_budget_year }}
                     </span>
                     <span class="text-sidebar-strong truncate font-semibold">
@@ -120,11 +120,6 @@ function selectYear(value: unknown): void {
                         <div
                             class="grid flex-1 text-left text-sm leading-tight"
                         >
-                            <span
-                                class="text-sidebar-foreground/80 truncate text-xs"
-                            >
-                                {{ t.shell.budget_year }}
-                            </span>
                             <span
                                 class="text-sidebar-strong truncate font-semibold tabular-nums"
                             >
