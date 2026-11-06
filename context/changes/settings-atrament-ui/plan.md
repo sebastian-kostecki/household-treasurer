@@ -613,10 +613,10 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [x] 3.1 Nowe asercje w `ProfileUpdateTest` i `SecurityTest` nie przechodzą przed dodaniem `lang/pl.json` i `lang/pl/validation.php`, a po dodaniu przechodzą
-- [x] 3.2 Testy ustawień przechodzą na PostgreSQL: `docker run … artisan test --compact tests/Feature/Settings tests/Feature/AppShellTest.php` (polecenie z AGENTS.md dla worktree)
-- [x] 3.3 `npm run types:check`, `npm run test`, `npm run build` przechodzą
-- [x] 3.4 `vendor/bin/pint --dirty --format agent` bez zmian do zatwierdzenia
+- [x] 3.1 Nowe asercje w `ProfileUpdateTest` i `SecurityTest` nie przechodzą przed dodaniem `lang/pl.json` i `lang/pl/validation.php`, a po dodaniu przechodzą — d677caa
+- [x] 3.2 Testy ustawień przechodzą na PostgreSQL: `docker run … artisan test --compact tests/Feature/Settings tests/Feature/AppShellTest.php` (polecenie z AGENTS.md dla worktree) — d677caa
+- [x] 3.3 `npm run types:check`, `npm run test`, `npm run build` przechodzą — d677caa
+- [x] 3.4 `vendor/bin/pint --dirty --format agent` bez zmian do zatwierdzenia — d677caa
 
 #### Manual
 
@@ -631,9 +631,9 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [ ] 4.1 `npm run types:check`, `npm run test`, `npm run build` przechodzą
-- [ ] 4.2 `npm run check:ui -- resources/js/components/AppearanceTabs.vue` nie zgłasza literałów (dziś zgłasza `bg-neutral-*`, `dark:`)
-- [ ] 4.3 Testy ustawień przechodzą na PostgreSQL (`tests/Feature/Settings`)
+- [x] 4.1 `npm run types:check`, `npm run test`, `npm run build` przechodzą
+- [x] 4.2 `npm run check:ui -- resources/js/components/AppearanceTabs.vue` nie zgłasza literałów (dziś zgłasza `bg-neutral-*`, `dark:`)
+- [x] 4.3 Testy ustawień przechodzą na PostgreSQL (`tests/Feature/Settings`)
 
 #### Manual
 
