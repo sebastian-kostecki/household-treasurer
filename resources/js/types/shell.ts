@@ -30,9 +30,8 @@ export type UiTranslations = {
     };
     shell: {
         budget_year: string;
-        no_budget_year: string;
         add_budget_year: string;
-        select_year: string;
+        add_budget_for_year: string;
         open_menu: string;
         select_year_failed: string;
     };

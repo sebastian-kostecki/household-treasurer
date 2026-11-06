@@ -26,12 +26,15 @@ const props = withDefaults(
         open: boolean;
         yearInputId?: string;
         suggestedYear?: number;
+        /** Replaces the computed default year each time the dialog opens. */
+        initialYear?: number;
         /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
         form?: Pick<FormBinding, 'action' | 'method'>;
     }>(),
     {
         yearInputId: 'create-budget-year',
         suggestedYear: undefined,
+        initialYear: undefined,
         form: undefined,
     },
 );
@@ -45,6 +48,10 @@ const t = useTranslations();
 const currentYear = new Date().getFullYear();
 
 const defaultYear = computed(() => {
+    if (props.initialYear !== undefined) {
+        return props.initialYear;
+    }
+
     if (props.suggestedYear !== undefined) {
         return props.suggestedYear;
     }
@@ -95,6 +102,15 @@ watch(
         sourceBudgetId.value = resolveDefaultSourceBudgetId(year);
     },
     { immediate: true },
+);
+
+watch(
+    () => props.open,
+    (isOpen) => {
+        if (isOpen && props.initialYear !== undefined) {
+            targetYear.value = props.initialYear;
+        }
+    },
 );
 
 watch(targetYear, (year) => {

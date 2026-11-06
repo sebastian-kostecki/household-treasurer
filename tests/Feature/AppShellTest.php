@@ -45,6 +45,7 @@ class AppShellTest extends TestCase
                 ->component($component)
                 ->missing('sidebarOpen')
                 ->where('translations.shell.open_menu', 'Otwórz menu')
+                ->where('translations.shell.add_budget_for_year', 'Dodaj budżet na rok :year')
                 ->where('shell.budgetYear', null)
                 ->where('shell.budgetYears', [])
                 ->where('shell.firstRun.hasAccount', false)

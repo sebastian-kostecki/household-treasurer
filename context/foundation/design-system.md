@@ -120,9 +120,9 @@ Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`
 | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | `sidebar` (z `--sidebar-background`)             | tło sidebara                                                                                                    |
 | `sidebar-foreground`                             | tekst i ikony pozycji menu w spoczynku                                                                          |
-| `sidebar-strong` (`text-sidebar-strong`)         | nazwa aplikacji, użytkownik, wybrany rok i „Dodaj rok”                                                          |
+| `sidebar-strong` (`text-sidebar-strong`)         | nazwa aplikacji, użytkownik, wybrany rok (tło wybranego segmentu roku, tekst na `sidebar`)                       |
 | `sidebar-primary` / `sidebar-primary-foreground` | aktywna pozycja menu (także pod kursorem); czyta go też `LandingAppPreview.vue` (makieta) |
-| `sidebar-accent` / `sidebar-accent-foreground`   | hover, otwarte menu, kafelek przełącznika roku, awatar użytkownika (okrągły, 28 px)                              |
+| `sidebar-accent` / `sidebar-accent-foreground`   | hover, otwarte menu, segment roku w spoczynku pod kursorem, awatar użytkownika (okrągły, 28 px)                              |
 | `sidebar-border`                                 | obramowania i separatory sidebara                                                                               |
 | `sidebar-ring`                                   | fokus                                                                                                           |
 

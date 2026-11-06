@@ -397,35 +397,35 @@ Brak migracji danych. Ciasteczko `sidebar_state` w przeglądarkach użytkownikó
 
 #### Automated
 
-- [x] 1.1 Testy JS: `npm test`
-- [x] 1.2 Literały: `npm run check:ui`
-- [x] 1.3 Typy i build: `npm run build && npm run types:check`
-- [x] 1.4 Feature: `php artisan test --compact tests/Feature/AppShellTest.php tests/Feature/SidebarKitchenSinkTest.php`
-- [x] 1.5 Brak odwołań: `grep -rn "AppSidebarHeader\|Breadcrumb\|breadcrumbs\|sidebarOpen\|sidebar_state" resources/js app bootstrap tests` zwraca pusto
-- [x] 1.6 Indeks reguł aktualny: `php artisan boost:index-rules && git diff --stat .ai/rules/index.md` pokazuje tylko nowe globy `js-sidebar.md`
-- [x] 1.7 E2E: `npx playwright test tests/e2e/sidebar-current-section.spec.ts tests/e2e/shell-mobile-menu.spec.ts`
+- [x] 1.1 Testy JS: `npm test` — 41c0680
+- [x] 1.2 Literały: `npm run check:ui` — 41c0680
+- [x] 1.3 Typy i build: `npm run build && npm run types:check` — 41c0680
+- [x] 1.4 Feature: `php artisan test --compact tests/Feature/AppShellTest.php tests/Feature/SidebarKitchenSinkTest.php` — 41c0680
+- [x] 1.5 Brak odwołań: `grep -rn "AppSidebarHeader\|Breadcrumb\|breadcrumbs\|sidebarOpen\|sidebar_state" resources/js app bootstrap tests` zwraca pusto — 41c0680
+- [x] 1.6 Indeks reguł aktualny: `php artisan boost:index-rules && git diff --stat .ai/rules/index.md` pokazuje tylko nowe globy `js-sidebar.md` — 41c0680
+- [x] 1.7 E2E: `npx playwright test tests/e2e/sidebar-current-section.spec.ts tests/e2e/shell-mobile-menu.spec.ts` — 41c0680
 
 #### Manual
 
-- [x] 1.8 1280 px, oba motywy: Dashboard, Operacje, Plan miesiąca i Ustawienia zaczynają się od wiersza tytułu, bez belki; sidebar nie daje się zwinąć (⌘B nic nie zmienia)
-- [x] 1.9 390 px i dokładnie 768 px: pasek z ☰ jest widoczny, arkusz się otwiera i zamyka, nawigacja działa
-- [x] 1.10 Stare ciasteczko `sidebar_state=false` w przeglądarce nie zwija sidebara
+- [x] 1.8 1280 px, oba motywy: Dashboard, Operacje, Plan miesiąca i Ustawienia zaczynają się od wiersza tytułu, bez belki; sidebar nie daje się zwinąć (⌘B nic nie zmienia) — 41c0680
+- [x] 1.9 390 px i dokładnie 768 px: pasek z ☰ jest widoczny, arkusz się otwiera i zamyka, nawigacja działa — 41c0680
+- [x] 1.10 Stare ciasteczko `sidebar_state=false` w przeglądarce nie zwija sidebara — 41c0680
 
 ### Phase 2: Rok budżetu w segmentach
 
 #### Automated
 
-- [ ] 2.1 Testy JS: `npm test`
-- [ ] 2.2 Literały: `npm run check:ui`
-- [ ] 2.3 Typy i build: `npm run build && npm run types:check`
-- [ ] 2.4 Feature: `php artisan test --compact tests/Feature/BudgetTest.php tests/Feature/AppShellTest.php`
+- [x] 2.1 Testy JS: `npm test`
+- [x] 2.2 Literały: `npm run check:ui`
+- [x] 2.3 Typy i build: `npm run build && npm run types:check`
+- [x] 2.4 Feature: `php artisan test --compact tests/Feature/BudgetTest.php tests/Feature/AppShellTest.php`
 
 #### Manual
 
-- [ ] 2.5 `/dev/ui/sidebar`, oba motywy: segmenty w ramkach `years-*` mieszczą się w 224 px, wybrany rok czytelny, fokus klawiatury widoczny
-- [ ] 2.6 Klik innego roku przechodzi na Budżet tego roku jednym kliknięciem; podczas żądania segmenty nie przyjmują kliknięć
-- [ ] 2.7 „2027 +” otwiera dialog z rokiem 2027; po utworzeniu segment staje się zwykłym rokiem, a „+” przesuwa się na 2028
-- [ ] 2.8 Bez budżetu: jeden segment „<bieżący rok> +”
+- [x] 2.5 `/dev/ui/sidebar`, oba motywy: segmenty w ramkach `years-*` mieszczą się w 224 px, wybrany rok czytelny, fokus klawiatury widoczny
+- [x] 2.6 Klik innego roku przechodzi na Budżet tego roku jednym kliknięciem; podczas żądania segmenty nie przyjmują kliknięć
+- [x] 2.7 „2027 +” otwiera dialog z rokiem 2027; po utworzeniu segment staje się zwykłym rokiem, a „+” przesuwa się na 2028
+- [x] 2.8 Bez budżetu: jeden segment „<bieżący rok> +”
 
 ### Phase 3: Wspólna lista widoków i skróty
 

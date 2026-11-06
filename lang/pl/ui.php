@@ -12,9 +12,8 @@ return [
     ],
     'shell' => [
         'budget_year' => 'Rok budżetu',
-        'no_budget_year' => 'Brak roku budżetu',
         'add_budget_year' => 'Dodaj rok',
-        'select_year' => 'Wybierz rok',
+        'add_budget_for_year' => 'Dodaj budżet na rok :year',
         'open_menu' => 'Otwórz menu',
         'select_year_failed' => 'Nie udało się otworzyć wybranego roku. Odśwież stronę i spróbuj ponownie.',
     ],

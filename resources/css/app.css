@@ -331,6 +331,19 @@
 }
 
 @layer components {
+    /* Year switcher in the sidebar (ADR-0054): three segments per row, the selected year on sidebar-strong. */
+    .sidebar-year-segments {
+        @apply grid grid-cols-3 gap-1;
+    }
+
+    .sidebar-year-segment {
+        @apply h-control-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ring-sidebar-ring rounded-md px-2 text-xs/4 font-medium tabular-nums transition-colors outline-hidden focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
+    }
+
+    .sidebar-year-segment[aria-pressed='true'] {
+        @apply bg-sidebar-strong text-sidebar font-semibold;
+    }
+
     .native-select {
         @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:outline-ring focus-visible:aria-invalid:border-destructive aria-invalid:border-destructive h-control-field flex w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-solid disabled:cursor-not-allowed disabled:opacity-50;
     }

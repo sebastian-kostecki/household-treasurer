@@ -10,19 +10,20 @@ import {
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
+import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
 import { index as accounts } from '@/routes/accounts';
 import { index as termDeposits } from '@/routes/term-deposits';
@@ -37,6 +38,7 @@ type Props = {
 defineProps<Props>();
 
 const t = useTranslations();
+const createBudgetDialog = useCreateBudgetDialog();
 
 const mainNavItems: NavItem[] = [
     {
@@ -84,7 +86,6 @@ const mainNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
-            <SidebarGroupLabel>{{ t.shell.budget_year }}</SidebarGroupLabel>
             <BudgetYearSwitcher
                 :budget-years="budgetYears"
                 :budget-year="budgetYear"
@@ -99,5 +100,11 @@ const mainNavItems: NavItem[] = [
             <SidebarSeparator />
             <NavUser />
         </SidebarFooter>
+
+        <CreateBudgetDialog
+            v-model:open="createBudgetDialog.open.value"
+            :initial-year="createBudgetDialog.initialYear.value"
+            year-input-id="shell-create-budget-year"
+        />
     </Sidebar>
 </template>

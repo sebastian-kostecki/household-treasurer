@@ -85,6 +85,47 @@ function showYearSelectionError(): void {
     notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
 }
 
+type YearFrame = SidebarFrame & { pending: boolean };
+
+const yearFrames: YearFrame[] = [
+    {
+        key: 'years-one',
+        label: 'Jeden rok',
+        budgetYears: [2026],
+        budgetYear: 2026,
+        pending: false,
+    },
+    {
+        key: 'years-many',
+        label: 'Wiele lat',
+        budgetYears: [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        budgetYear: 2026,
+        pending: false,
+    },
+    {
+        key: 'years-empty',
+        label: 'Bez budżetu',
+        budgetYears: [],
+        budgetYear: null,
+        pending: false,
+    },
+    {
+        key: 'years-pending',
+        label: 'Oczekiwanie',
+        budgetYears: [2025, 2026],
+        budgetYear: 2026,
+        pending: true,
+    },
+];
+
+function markPending(instance: unknown): void {
+    const exposed = instance as { pending?: boolean } | null;
+
+    if (exposed !== null && exposed !== undefined) {
+        exposed.pending = true;
+    }
+}
+
 const frames: SidebarFrame[] = [
     {
         key: 'expanded-years',
@@ -180,6 +221,41 @@ const frames: SidebarFrame[] = [
                 </div>
             </section>
         </div>
+
+        <section class="space-y-2" data-frame="years">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                years-*: Rok budżetu w segmentach
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Przełącznik w panelu 224 px: jeden rok z „+”, wiele lat (trzy
+                wiersze), brak budżetu i oczekiwanie (segmenty wyłączone). „+”
+                otwiera okno nowego budżetu tylko w ramkach z pełnym sidebarem
+                (expanded-*).
+            </p>
+            <div class="grid grid-cols-4 gap-6">
+                <div
+                    v-for="frame in yearFrames"
+                    :key="frame.key"
+                    class="space-y-1"
+                    :data-frame="frame.key"
+                >
+                    <p class="text-muted-foreground font-mono text-sm">
+                        {{ frame.key }}
+                    </p>
+                    <SidebarProvider
+                        class="bg-sidebar text-sidebar-foreground min-h-0 w-(--sidebar-panel-width) p-2"
+                    >
+                        <BudgetYearSwitcher
+                            :ref="frame.pending ? markPending : undefined"
+                            :budget-years="frame.budgetYears"
+                            :budget-year="frame.budgetYear"
+                        />
+                    </SidebarProvider>
+                </div>
+            </div>
+        </section>
 
         <section class="space-y-2" data-frame="mobile-bar">
             <h2
