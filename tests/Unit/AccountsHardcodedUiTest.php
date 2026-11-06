@@ -2,7 +2,7 @@
 
 /**
  * Accounts view files take values from tokens and named classes in app.css,
- * never from literals (ADR-0044). AccountMarkCompact.vue, AccountIdentityBlock.vue,
+ * never from literals (ADR-0044). AccountIdentityBlock.vue,
  * AccountBankSelect.vue and StatTile.vue are left out because they have consumers
  * outside Accounts (Dashboard, Term Deposits); scripts/check-ui-literals.mjs still
  * guards their colour literals. app.css itself is the token source and is not scanned.
@@ -10,6 +10,7 @@
 const ACCOUNTS_VIEW_FILES = [
     'resources/js/pages/Accounts.vue',
     'resources/js/components/AccountFormDialog.vue',
+    'resources/js/components/AccountMarkCompact.vue',
     'resources/js/pages/dev/AccountsKitchenSink.vue',
     'resources/js/pages/dev/accounts-fixtures.ts',
 ];

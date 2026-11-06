@@ -266,6 +266,10 @@
     @apply text-[11px]/[14px] font-normal;
 }
 
+@utility mark-label {
+    @apply font-mono text-[9px]/none font-semibold;
+}
+
 @utility kpi-lg {
     @apply font-mono text-[26px]/8 font-medium;
 }

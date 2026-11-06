@@ -12,7 +12,6 @@ import { useTranslations } from '@/composables/useTranslations';
 import {
     type AccountBank,
     bankLabel,
-    bankMarkPath,
     bankOptions,
 } from '@/lib/account-identity';
 
@@ -54,25 +53,20 @@ function bankName(bank: AccountBank): string {
         >
             <SelectValue>
                 <span class="flex items-center gap-2">
-                    <AccountMarkCompact
-                        type="bank"
-                        :bank="selectedBank"
-                        :mark_url="bankMarkPath(selectedBank)"
-                        :name="bankName(selectedBank)"
-                    />
+                    <AccountMarkCompact type="bank" :bank="selectedBank" />
                     <span>{{ bankName(selectedBank) }}</span>
                 </span>
             </SelectValue>
         </SelectTrigger>
         <SelectContent>
-            <SelectItem v-for="bank in bankOptions" :key="bank" :value="bank">
+            <SelectItem
+                v-for="bank in bankOptions"
+                :key="bank"
+                :value="bank"
+                :text-value="bankName(bank)"
+            >
                 <span class="flex items-center gap-2">
-                    <AccountMarkCompact
-                        type="bank"
-                        :bank="bank"
-                        :mark_url="bankMarkPath(bank)"
-                        :name="bankName(bank)"
-                    />
+                    <AccountMarkCompact type="bank" :bank="bank" />
                     <span>{{ bankName(bank) }}</span>
                 </span>
             </SelectItem>

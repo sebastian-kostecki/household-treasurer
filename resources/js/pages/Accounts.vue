@@ -132,29 +132,30 @@ function toggleShowArchived(checked: boolean): void {
                     {{ t.accounts.list_description }}
                 </p>
             </div>
-            <Button @click="createDialogOpen = true">
-                {{ t.accounts.add }}
-            </Button>
+            <div class="flex flex-wrap items-center gap-3">
+                <div
+                    v-if="archived_accounts_count > 0 || show_archived"
+                    class="flex items-center gap-2"
+                >
+                    <Switch
+                        id="show-archived-accounts"
+                        v-model="showArchived"
+                        :disabled="isTogglingArchived"
+                    />
+                    <Label
+                        for="show-archived-accounts"
+                        class="text-muted-foreground text-sm"
+                    >
+                        {{ t.accounts.show_archived }}
+                    </Label>
+                </div>
+                <Button @click="createDialogOpen = true">
+                    {{ t.accounts.add }}
+                </Button>
+            </div>
         </div>
 
         <StatPanel :metrics="metrics" />
-
-        <div
-            v-if="archived_accounts_count > 0 || show_archived"
-            class="flex items-center gap-2"
-        >
-            <Switch
-                id="show-archived-accounts"
-                v-model="showArchived"
-                :disabled="isTogglingArchived"
-            />
-            <Label
-                for="show-archived-accounts"
-                class="text-muted-foreground text-sm"
-            >
-                {{ t.accounts.show_archived }}
-            </Label>
-        </div>
 
         <IndexEmptyState
             v-if="accounts.length === 0 && archived_accounts_count > 0"
@@ -206,10 +207,8 @@ function toggleShowArchived(checked: boolean): void {
                 <div class="accounts-cell-name">
                     <AccountMarkCompact
                         size="md"
-                        :name="account.name"
                         :type="account.type"
                         :bank="account.bank"
-                        :mark_url="account.mark_url"
                     />
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">

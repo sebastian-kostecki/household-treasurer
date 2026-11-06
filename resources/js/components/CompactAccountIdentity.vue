@@ -16,13 +16,7 @@ withDefaults(
 
 <template>
     <div class="flex min-w-0 items-center gap-2">
-        <AccountMarkCompact
-            :name="name"
-            :type="type"
-            :bank="bank"
-            :mark_url="mark_url"
-            :size="markSize"
-        />
+        <AccountMarkCompact :type="type" :bank="bank" :size="markSize" />
 
         <span class="truncate text-sm">{{ name }}</span>
     </div>
