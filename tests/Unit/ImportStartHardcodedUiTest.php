@@ -9,6 +9,8 @@ const IMPORT_START_VIEW_FILES = [
     'resources/js/pages/OperationsImport.vue',
     'resources/js/components/ImportRecognizedFields.vue',
     'resources/js/components/ImportColumnMapping.vue',
+    'resources/js/pages/dev/ImportStartKitchenSink.vue',
+    'resources/js/pages/dev/import-start-fixtures.ts',
 ];
 
 const IMPORT_START_FORBIDDEN_PATTERNS = [

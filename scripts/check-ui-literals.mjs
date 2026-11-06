@@ -60,6 +60,8 @@ const FILES = [
     'resources/js/pages/OperationsImport.vue',
     'resources/js/components/ImportRecognizedFields.vue',
     'resources/js/components/ImportColumnMapping.vue',
+    'resources/js/pages/dev/ImportStartKitchenSink.vue',
+    'resources/js/pages/dev/import-start-fixtures.ts',
     'resources/js/components/CategorySelect.vue',
     'resources/js/components/AccountSelect.vue',
     'resources/js/pages/dev/ImportPreviewSink.vue',

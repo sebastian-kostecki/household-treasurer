@@ -526,10 +526,10 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [x] 3.1 `npm run check:ui` przechodzi z nowymi plikami na liście
-- [x] 3.2 `php artisan test --compact tests/Unit/ImportStartHardcodedUiTest.php tests/Unit/UiTranslationKeysTest.php tests/Feature/AccountPickerTest.php` przechodzi
-- [x] 3.3 `npm test`, `npm run check` i `npm run types:check` przechodzą
-- [x] 3.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` nadal przechodzi po zmianie markupu
+- [x] 3.1 `npm run check:ui` przechodzi z nowymi plikami na liście — 46be8ea
+- [x] 3.2 `php artisan test --compact tests/Unit/ImportStartHardcodedUiTest.php tests/Unit/UiTranslationKeysTest.php tests/Feature/AccountPickerTest.php` przechodzi — 46be8ea
+- [x] 3.3 `npm test`, `npm run check` i `npm run types:check` przechodzą — 46be8ea
+- [x] 3.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` nadal przechodzi po zmianie markupu — 46be8ea
 
 #### Manual
 
@@ -541,11 +541,11 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [ ] 4.1 `php artisan test --compact tests/Feature/ImportStartKitchenSinkTest.php tests/Unit/ImportStartHardcodedUiTest.php` przechodzi
-- [ ] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build`
-- [ ] 4.3 Pełna bramka na PostgreSQL w worktree: `docker run … --entrypoint composer sail-8.5/app ci:check` (AGENTS.md, Commands) przechodzi
-- [ ] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście
-- [ ] 4.5 `npx playwright test` (cały suite, w tym seed i nowy spec) przechodzi
+- [x] 4.1 `php artisan test --compact tests/Feature/ImportStartKitchenSinkTest.php tests/Unit/ImportStartHardcodedUiTest.php` przechodzi
+- [x] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build`
+- [x] 4.3 Pełna bramka na PostgreSQL w worktree: `docker run … --entrypoint composer sail-8.5/app ci:check` (AGENTS.md, Commands) przechodzi
+- [x] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście
+- [x] 4.5 `npx playwright test` (cały suite, w tym seed i nowy spec) przechodzi
 
 #### Manual
 

@@ -386,6 +386,11 @@
         @apply m-0 flex min-w-0 flex-col gap-4 border-0 p-0;
     }
 
+    /* A rendered legend is not a flex item, so the fieldset gap does not reach it. */
+    .form-fieldset > legend {
+        @apply mb-4;
+    }
+
     /* Rząd dwóch pól (np. Kwota | Data); jedna kolumna w oknie węższym niż 390 px. */
     .form-field-row {
         @apply grid grid-cols-2 gap-4;
