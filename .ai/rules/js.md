@@ -18,6 +18,7 @@ Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,
 ## Reuse surface building blocks before writing new markup
 
 Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountIdentityBlock and SegmentedControl first. Also StatPanel and ExecutionMeter. Surfaces follow ADR-0037: grey floor, panels are `card` with a full `border` and `rounded-lg`, no resting shadows. Do not edit components/ui/* for a single screen.
+The bank or cash tile is `AccountMarkCompact`: a short text mark from `accountShortMark` in `@/lib/account-identity` in the `mark-label` style, „zł” for cash, `Building2` for Other (ADR-0047); a new Bank gets its short mark there in the same commit. `AccountIdentityBlock` still shows the logo until its own view change.
 
 ## Non-blocking warnings use the warning Alert variant; a reading note uses `note`
 
