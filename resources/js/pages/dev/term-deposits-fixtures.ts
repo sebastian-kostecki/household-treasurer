@@ -10,12 +10,6 @@ export type TermDepositsScenario = {
     props: TermDepositsPageProps;
 };
 
-const markUrls: Partial<Record<AccountBank, string>> = {
-    mbank: '/marks/mbank.jpg',
-    ing: '/marks/ing.svg',
-    pekao: '/marks/pekao.svg',
-};
-
 function termDeposit(
     id: number,
     name: string,
@@ -31,7 +25,6 @@ function termDeposit(
         end_date: '2027-01-15',
         opening_balance_minor_units: Math.abs(balance) || 100000,
         current_balance_minor_units: balance,
-        mark_url: markUrls[bank] ?? null,
         is_negative: balance < 0,
         is_archived: false,
         can_delete: false,

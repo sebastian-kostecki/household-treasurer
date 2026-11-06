@@ -494,19 +494,19 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [x] 2.1 Testy Lokat, archiwizacji, TotalFunds i sinka Lokat na PostgreSQL przechodzą
-- [x] 2.2 Typy po buildzie przechodzą
-- [x] 2.3 Formatowanie PHP (Pint)
-- [x] 2.4 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy Lokat, archiwizacji, TotalFunds i sinka Lokat na PostgreSQL przechodzą — 955f418
+- [x] 2.2 Typy po buildzie przechodzą — 955f418
+- [x] 2.3 Formatowanie PHP (Pint) — 955f418
+- [x] 2.4 Sloppy bez nowych znalezisk — 955f418
 
 ### Phase 3: Widok Lokaty
 
 #### Automated
 
-- [ ] 3.1 Statyka, typy i straże przechodzą
-- [ ] 3.2 Vitest przechodzi
-- [ ] 3.3 Straże literałów i testy Lokat w obrazie Sail przechodzą
-- [ ] 3.4 Brak StatTile, holdings-list-row, Checkbox, AccountIdentityBlock i mark_url w Lokatach
+- [x] 3.1 Statyka, typy i straże przechodzą
+- [x] 3.2 Vitest przechodzi
+- [x] 3.3 Straże literałów i testy Lokat w obrazie Sail przechodzą
+- [x] 3.4 Brak StatTile, holdings-list-row, Checkbox, AccountIdentityBlock i mark_url w Lokatach
 
 #### Manual
 

@@ -746,6 +746,74 @@
         @apply flex justify-end gap-1;
     }
 
+    /**
+     * Term deposits table: below `md` a row is two lines (name + balance, then
+     * bank + end date + actions); from `md` it is one line of columns.
+     */
+    .term-deposits-grid {
+        @apply grid items-center gap-x-4;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            'name name balance'
+            'bank end actions';
+    }
+
+    @variant md {
+        .term-deposits-grid {
+            grid-template-columns: minmax(0, 1fr) 150px 150px 150px 96px;
+            grid-template-areas: 'name bank end balance actions';
+        }
+    }
+
+    .term-deposits-header-row {
+        @apply table-header border-border-soft hidden border-b px-4 py-2;
+    }
+
+    @variant md {
+        .term-deposits-header-row {
+            @apply grid;
+        }
+    }
+
+    .term-deposits-row {
+        @apply border-border-soft hover:bg-secondary min-h-row gap-y-1 border-b px-4 py-2 text-sm transition-colors last:border-b-0;
+    }
+
+    .term-deposits-row-archived {
+        @apply text-muted-foreground;
+    }
+
+    .term-deposits-cell-name {
+        grid-area: name;
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .term-deposits-cell-bank {
+        grid-area: bank;
+        @apply min-w-0;
+    }
+
+    .term-deposits-cell-end {
+        grid-area: end;
+        @apply text-left;
+    }
+
+    @variant md {
+        .term-deposits-cell-end {
+            @apply text-right;
+        }
+    }
+
+    .term-deposits-cell-balance {
+        grid-area: balance;
+        @apply text-right;
+    }
+
+    .term-deposits-cell-actions {
+        grid-area: actions;
+        @apply flex justify-end gap-1;
+    }
+
     .budget-category-row {
         @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
     }
@@ -867,11 +935,6 @@
     /* Mały link „Wszystkie →” w nagłówku panelu posiadań. */
     .dashboard-holdings-link {
         @apply text-muted-foreground hover:text-foreground focus-visible:outline-ring inline-flex items-center gap-1 rounded-md text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
-    }
-
-    /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
-    .holdings-list-row {
-        @apply border-border/60 hover:bg-secondary flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0;
     }
 
     /**

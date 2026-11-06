@@ -7,7 +7,6 @@ use App\Models\Account;
 use App\Models\CapitalMovement;
 use App\Models\TermDeposit;
 use App\Models\User;
-use App\Support\AccountIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -131,12 +130,12 @@ class TermDepositTest extends TestCase
                 ->has('termDeposits', 2)
                 ->where('termDeposits.0.name', 'Lokata A')
                 ->where('termDeposits.0.bank', Bank::LokatyFacto->value)
-                ->where('termDeposits.0.mark_url', AccountIdentity::markUrl(Bank::LokatyFacto))
+                ->missing('termDeposits.0.mark_url')
                 ->where('termDeposits.0.end_date', '2026-12-31')
                 ->where('termDeposits.0.current_balance_minor_units', 100000)
                 ->where('termDeposits.1.name', 'Lokata B')
                 ->where('termDeposits.1.bank', Bank::Other->value)
-                ->where('termDeposits.1.mark_url', null)
+                ->missing('termDeposits.1.mark_url')
                 ->where('termDeposits.1.end_date', null)
                 ->where('termDeposits.1.current_balance_minor_units', 25050)
                 ->where('term_deposits_total_minor_units', 125050)

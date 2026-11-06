@@ -3,8 +3,7 @@
 /**
  * Dashboard view files take values from tokens and named classes in app.css,
  * never from literals (ADR-0043). Phases 4 and 5 of dashboard-atrament-ui add
- * the files they rewrite; StatTile.vue (text-3xl) is left out because Accounts
- * and Term Deposits still use it. app.css itself is the token source and is not scanned.
+ * the files they rewrite. app.css itself is the token source and is not scanned.
  */
 const DASHBOARD_VIEW_FILES = [
     'resources/js/pages/Dashboard.vue',

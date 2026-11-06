@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTermDepositRequest;
 use App\Http\Requests\UpdateTermDepositRequest;
 use App\Models\TermDeposit;
-use App\Support\AccountIdentity;
 use App\Support\TotalFunds;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -147,7 +146,6 @@ class TermDepositController extends Controller
      *     id: int,
      *     name: string,
      *     bank: string,
-     *     mark_url: string|null,
      *     opening_date: string,
      *     end_date: string|null,
      *     opening_balance_minor_units: int,
@@ -165,7 +163,6 @@ class TermDepositController extends Controller
             'id' => $termDeposit->id,
             'name' => $termDeposit->name,
             'bank' => $termDeposit->bank->value,
-            'mark_url' => AccountIdentity::markUrl($termDeposit->bank),
             'opening_date' => $termDeposit->opening_date->toDateString(),
             'end_date' => $termDeposit->end_date?->toDateString(),
             'opening_balance_minor_units' => $termDeposit->opening_balance_minor_units,
