@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
+import { bankLabel } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
 import { formatMoney } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
@@ -62,16 +62,12 @@ function accountTypeLabel(type: AccountRow['type']): string {
     return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
 }
 
-function bankLabel(bank: AccountBank): string {
-    return t.accounts[`bank_${bank}`] ?? bank;
-}
-
 function accountCaption(account: AccountRow): string | null {
     if (account.type === 'cash') {
         return t.accounts.cash_caption;
     }
 
-    return account.bank === null ? null : bankLabel(account.bank);
+    return account.bank === null ? null : bankLabel(t.accounts, account.bank);
 }
 
 function balanceToneClass(account: AccountRow): string {
@@ -79,7 +75,9 @@ function balanceToneClass(account: AccountRow): string {
         return amountToneClass(account.current_balance_minor_units);
     }
 
-    return account.current_balance_minor_units < 0 ? 'text-destructive' : '';
+    return account.current_balance_minor_units < 0
+        ? amountToneClass(account.current_balance_minor_units)
+        : '';
 }
 
 const metrics = computed(() => [

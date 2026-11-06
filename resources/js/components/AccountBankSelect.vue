@@ -11,14 +11,22 @@ import {
 import { useTranslations } from '@/composables/useTranslations';
 import {
     type AccountBank,
+    bankLabel,
     bankMarkPath,
     bankOptions,
 } from '@/lib/account-identity';
 
-const props = defineProps<{
-    modelValue: AccountBank;
-    invalid?: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        modelValue: AccountBank;
+        invalid?: boolean;
+        /** Trigger id; FormField passes its field id so the label points at it. */
+        id?: string;
+        /** Hint and error ids from FormField. */
+        ariaDescribedby?: string;
+    }>(),
+    { id: 'account-bank', ariaDescribedby: undefined },
+);
 
 const emit = defineEmits<{
     'update:modelValue': [value: AccountBank];
@@ -31,30 +39,18 @@ const selectedBank = computed({
     set: (value: AccountBank) => emit('update:modelValue', value),
 });
 
-function bankLabel(bank: AccountBank): string {
-    const labels: Record<AccountBank, string> = {
-        alior: t.accounts.bank_alior,
-        bnp_paribas: t.accounts.bank_bnp_paribas,
-        ing: t.accounts.bank_ing,
-        lokaty_facto: t.accounts.bank_lokaty_facto,
-        mbank: t.accounts.bank_mbank,
-        pekao: t.accounts.bank_pekao,
-        pko_bp: t.accounts.bank_pko_bp,
-        revolut: t.accounts.bank_revolut,
-        santander: t.accounts.bank_santander,
-        other: t.accounts.bank_other,
-    };
-
-    return labels[bank];
+function bankName(bank: AccountBank): string {
+    return bankLabel(t.accounts, bank);
 }
 </script>
 
 <template>
     <Select v-model="selectedBank">
         <SelectTrigger
-            id="account-bank"
+            :id="id"
             class="w-full"
             :aria-invalid="invalid ? 'true' : undefined"
+            :aria-describedby="ariaDescribedby"
         >
             <SelectValue>
                 <span class="flex items-center gap-2">
@@ -62,9 +58,9 @@ function bankLabel(bank: AccountBank): string {
                         type="bank"
                         :bank="selectedBank"
                         :mark_url="bankMarkPath(selectedBank)"
-                        :name="bankLabel(selectedBank)"
+                        :name="bankName(selectedBank)"
                     />
-                    <span>{{ bankLabel(selectedBank) }}</span>
+                    <span>{{ bankName(selectedBank) }}</span>
                 </span>
             </SelectValue>
         </SelectTrigger>
@@ -75,9 +71,9 @@ function bankLabel(bank: AccountBank): string {
                         type="bank"
                         :bank="bank"
                         :mark_url="bankMarkPath(bank)"
-                        :name="bankLabel(bank)"
+                        :name="bankName(bank)"
                     />
-                    <span>{{ bankLabel(bank) }}</span>
+                    <span>{{ bankName(bank) }}</span>
                 </span>
             </SelectItem>
         </SelectContent>

@@ -205,10 +205,13 @@ function closeDialog(): void {
                     id="account-bank"
                     :label="t.accounts.bank"
                     :error="errors.bank"
+                    v-slot="{ id, describedBy, invalid }"
                 >
                     <AccountBankSelect
+                        :id="id"
                         v-model="bank"
-                        :invalid="Boolean(errors.bank)"
+                        :aria-describedby="describedBy"
+                        :invalid="Boolean(invalid)"
                     />
                 </FormField>
 

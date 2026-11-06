@@ -58,3 +58,11 @@ const bankMarkPaths: Record<AccountBank, string | null> = {
 export function bankMarkPath(bank: AccountBank): string | null {
     return bankMarkPaths[bank];
 }
+
+/** Bank name from the `accounts.bank_*` translations; the enum value when a key is missing. */
+export function bankLabel(
+    accountTranslations: Record<string, string>,
+    bank: AccountBank,
+): string {
+    return accountTranslations[`bank_${bank}`] ?? bank;
+}
