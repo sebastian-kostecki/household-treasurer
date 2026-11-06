@@ -15,13 +15,15 @@ Laravel 13, PHP 8.5, PostgreSQL, Vue 3, Inertia 3, Tailwind CSS, Pest. Szczegó�
 
 ## Dokumentacja
 
-| Dokument                                     | Po co                                 |
-| -------------------------------------------- | ------------------------------------- |
-| [`CONTEXT.md`](CONTEXT.md)                   | Słownik domeny (język kodu i agentów) |
-| [`.docs/prd.md`](.docs/prd.md)               | Wymagania produktu                    |
-| [`.docs/mvp.md`](.docs/mvp.md)               | Krótki zakres MVP                     |
-| [`.docs/tech-stack.md`](.docs/tech-stack.md) | Decyzje technologiczne                |
-| [`.docs/adr/`](.docs/adr/)                   | Decyzje architektoniczne              |
+| Dokument                                           | Po co                                                           |
+| -------------------------------------------------- | --------------------------------------------------------------- |
+| [`CONTEXT.md`](CONTEXT.md)                         | Słownik domeny (język kodu i agentów)                           |
+| [`.docs/prd.md`](.docs/prd.md)                     | Wymagania produktu                                              |
+| [`.docs/mvp.md`](.docs/mvp.md)                     | Krótki zakres MVP                                               |
+| [`.docs/tech-stack.md`](.docs/tech-stack.md)       | Decyzje technologiczne                                          |
+| [`.docs/adr/`](.docs/adr/)                         | Decyzje architektoniczne                                        |
+| [`.docs/design-system.md`](.docs/design-system.md) | Design system (Atrament): tokeny, powierzchnie, typografia      |
+| [`AGENTS.md`](AGENTS.md)                           | Zasady pracy dla agentów AI; `.ai/rules/` ma reguły per ścieżka |
 
 Słownik w `CONTEXT.md` jest źródłem nazw. Unikaj synonimów, które ten plik wyklucza.
 
