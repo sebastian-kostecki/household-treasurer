@@ -84,7 +84,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
 - **Location**: resources/js/components/CommandPalette.vue:5, lang/pl/ui.php:15, resources/js/types/shell.ts:33
 - **Detail**: `Search` is imported from `@lucide/vue` and never used in `CommandPalette.vue`; `noUnusedLocals` is off, so `types:check` does not catch it. The key `shell.add_budget_year` ("Dodaj rok") has no reader since the "+" segment uses `add_budget_for_year`; the plan removed `select_year` and `no_budget_year` but missed this one. Registry parts `CommandDialog`, `CommandSeparator` and `CommandShortcut` in `ui/command` have no consumers. Separately, `palette: Record<string, string>` leaves `t.palette.*` unchecked while `shell` is typed key by key, as the plan specified.
 - **Fix**: Remove the `Search` import and the `shell.add_budget_year` key with its type line. Leave the unused registry parts, which keep the folder diffable against the registry.
-- **Decision**: PENDING
+- **Decision**: FIXED — Fix now: removed the unused `Search` import from `CommandPalette.vue` and the `shell.add_budget_year` key (PHP and `UiTranslations`); the unused registry parts of `ui/command` stay so the folder remains diffable against the registry, and `palette` stays `Record<string, string>` as the plan specified.
 
 ### F5 — Palette search matches the shortcut and the amount, not only the label
 

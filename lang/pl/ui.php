@@ -12,7 +12,6 @@ return [
     ],
     'shell' => [
         'budget_year' => 'Rok budżetu',
-        'add_budget_year' => 'Dodaj rok',
         'add_budget_for_year' => 'Dodaj budżet na rok :year',
         'open_menu' => 'Otwórz menu',
         'shortcuts_hint' => 'Skróty: 1–:last widoki, N nowa operacja, / szukaj, Esc zamknij.',

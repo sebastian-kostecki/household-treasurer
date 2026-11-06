@@ -2,7 +2,6 @@
 import {
     CalendarPlus,
     Plus,
-    Search,
     Settings,
     Upload,
     type LucideIcon,
