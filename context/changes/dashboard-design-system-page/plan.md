@@ -408,8 +408,8 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Manual
 
-- [ ] 1.4 ADR-0050 zawiera tabelę siedmiu rodzajów, regułę znaku i tożsamości, układ bloku, szkic bez Switcha, układ telefonu, regułę storage, sprzeczności artefaktu i odrzucone opcje
-- [ ] 1.5 `design-system.md` i `.ai/rules/js.md` nie przeczą ADR-0050
+- [x] 1.4 ADR-0050 zawiera tabelę siedmiu rodzajów, regułę znaku i tożsamości, układ bloku, szkic bez Switcha, układ telefonu, regułę storage, sprzeczności artefaktu i odrzucone opcje
+- [x] 1.5 `design-system.md` i `.ai/rules/js.md` nie przeczą ADR-0050
 
 ### Phase 2: Logika kliencka test-first i teksty
 
@@ -422,7 +422,7 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Manual
 
-- [ ] 2.5 Diff testów pokazuje przypadek na każdy z siedmiu rodzajów i dwa przypadki awarii storage
+- [x] 2.5 Diff testów pokazuje przypadek na każdy z siedmiu rodzajów i dwa przypadki awarii storage
 
 ### Phase 3: Trzy miary i karta alertu
 
@@ -435,9 +435,9 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Manual
 
-- [ ] 3.5 Siedem kart w `all-notice-kinds` ma etykietę, tożsamość i wartość po prawej tam, gdzie jest
-- [ ] 3.6 Panel miar ma trzy miary (dwie bez planu miesiąca), układ nie jest przechylony
-- [ ] 3.7 Wartość i ikona mają kolor wagi w obu motywach, kontrast czytelny
+- [x] 3.5 Siedem kart w `all-notice-kinds` ma etykietę, tożsamość i wartość po prawej tam, gdzie jest
+- [x] 3.6 Panel miar ma trzy miary (dwie bez planu miesiąca), układ nie jest przechylony
+- [x] 3.7 Wartość i ikona mają kolor wagi w obu motywach, kontrast czytelny
 
 ### Phase 4: Blok „Budżet <rok>”
 
@@ -452,11 +452,11 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Manual
 
-- [ ] 4.7 Nagłówek bloku: „Budżet <rok>” po lewej, Switch i „Otwórz budżet” po prawej; w szkicu bez Switcha, z miarami planu i kartą stanu pustego
-- [ ] 4.8 Dwie tabele jednocześnie z wierszem „Suma …” i „przekroczono” obok procentu
-- [ ] 4.9 Switch ukrywa i pokazuje kreskę, wybór zostaje po odświeżeniu, tryb prywatny bez błędu
-- [ ] 4.10 „Otwórz budżet” w bloku wybiera rok i przy błędzie pokazuje toast
-- [ ] 4.11 Przy 390 px: kategoria, Pozostało i miernik z procentem, bez poziomego przewijania
+- [x] 4.7 Nagłówek bloku: „Budżet <rok>” po lewej, Switch i „Otwórz budżet” po prawej; w szkicu bez Switcha, z miarami planu i kartą stanu pustego
+- [x] 4.8 Dwie tabele jednocześnie z wierszem „Suma …” i „przekroczono” obok procentu
+- [x] 4.9 Switch ukrywa i pokazuje kreskę, wybór zostaje po odświeżeniu, tryb prywatny bez błędu
+- [x] 4.10 „Otwórz budżet” w bloku wybiera rok i przy błędzie pokazuje toast
+- [x] 4.11 Przy 390 px: kategoria, Pozostało i miernik z procentem, bez poziomego przewijania
 
 ### Phase 5: Sink i bramka wizualna
 
@@ -469,6 +469,6 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Manual
 
-- [ ] 5.5 Sekcja „year-mark-switch” pokazuje blok z kreską i bez kreski
-- [ ] 5.6 Zrzuty bez ucinania tekstu i bez poziomego przewijania; tor miernika czytelny na `muted`
-- [ ] 5.7 Widok wygląda jak `PageDashboard` poza odejściami z ADR-0050
+- [x] 5.5 Sekcja „year-mark-switch” pokazuje blok z kreską i bez kreski
+- [x] 5.6 Zrzuty bez ucinania tekstu i bez poziomego przewijania; tor miernika czytelny na `muted`
+- [x] 5.7 Widok wygląda jak `PageDashboard` poza odejściami z ADR-0050
