@@ -12,6 +12,7 @@ use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use App\Support\CsvImport\ImportIdentityDigest;
 use App\Support\CsvImport\ImportRowFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -2886,6 +2887,9 @@ CSV);
                 ->where('rows.0.pair_candidates.0.kind', 'financial_operation')
                 ->where('rows.0.pair_candidates.0.account_id', $checking->id)
                 ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.account_type', $checking->type->value)
+                ->where('rows.0.pair_candidates.0.account_bank', $checking->bank?->value)
+                ->where('rows.0.pair_candidates.0.account_mark_url', AccountIdentity::markUrl($checking->bank))
                 ->where('rows.0.pair_candidates.0.date', '2026-03-15')
                 ->missing('rows.0.pair_candidates.0.reason'),
             );
@@ -3186,6 +3190,9 @@ CSV);
                 ->where('rows.0.pair_candidates.0.kind', 'own_transfer')
                 ->where('rows.0.pair_candidates.0.account_id', $checking->id)
                 ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.account_type', $checking->type->value)
+                ->where('rows.0.pair_candidates.0.account_bank', $checking->bank?->value)
+                ->where('rows.0.pair_candidates.0.account_mark_url', AccountIdentity::markUrl($checking->bank))
                 ->where('rows.0.pair_candidates.0.date', '2026-03-15')
                 ->missing('rows.0.pair_candidates.0.reason'),
             );

@@ -102,11 +102,8 @@ class OperationsIdentityTest extends TestCase
     {
         $marks = [
             [Bank::Alior, '/marks/alior.svg'],
-            [Bank::Ing, '/marks/ing.svg'],
-            [Bank::Pekao, '/marks/pekao.svg'],
             [Bank::PkoBp, '/marks/pko-bp.svg'],
             [Bank::Revolut, '/marks/revolut.svg'],
-            [Bank::Santander, '/marks/santander.svg'],
         ];
 
         foreach ($marks as [$bank, $path]) {
@@ -140,6 +137,42 @@ class OperationsIdentityTest extends TestCase
                     ->has('operations.data', 1)
                     ->where('operations.data.0.account_bank', $bank->value)
                     ->where('operations.data.0.account_mark_url', url($path)),
+                );
+        }
+    }
+
+    public function test_operations_page_exposes_null_mark_url_for_banks_without_logo(): void
+    {
+        foreach ([Bank::Ing, Bank::Pekao, Bank::Santander] as $bank) {
+            $user = User::factory()->create();
+            $account = Account::factory()->for($user)->create([
+                'name' => $bank->value,
+                'type' => AccountType::Bank,
+                'bank' => $bank,
+                'opening_date' => '2026-01-01',
+            ]);
+            $budget = Budget::factory()->for($user)->create([
+                'year' => 2026,
+                'phase' => BudgetPhase::Execution,
+            ]);
+            $category = Category::factory()->for($budget)->income()->create();
+
+            FinancialOperation::factory()->create([
+                'user_id' => $user->id,
+                'type' => FinancialOperationType::Income,
+                'account_id' => $account->id,
+                'category_id' => $category->id,
+                'budget_id' => $budget->id,
+                'description' => 'Income',
+            ]);
+
+            $this->actingAs($user)
+                ->get(route('operations'))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Operations')
+                    ->where('operations.data.0.account_bank', $bank->value)
+                    ->where('operations.data.0.account_mark_url', null),
                 );
         }
     }

@@ -21,6 +21,7 @@ function termDeposit(
         id,
         name,
         bank,
+        mark_url: bank === 'other' ? null : `/marks/${bank}.jpg`,
         opening_date: '2026-01-15',
         end_date: '2027-01-15',
         opening_balance_minor_units: Math.abs(balance) || 100000,

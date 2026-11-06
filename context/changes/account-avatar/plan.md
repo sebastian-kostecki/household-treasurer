@@ -424,21 +424,21 @@ Bez migracji danych. Usunięcie trzech plików z `public/marks` nie wpływa na d
 
 #### Automated
 
-- [x] 1.1 `grep -rn "AccountMarkCompact\|AccountIdentityBlock" .ai/rules context/foundation/design-system.md` zwraca tylko odwołania historyczne (ADR-0054 je cytuje)
+- [x] 1.1 `grep -rn "AccountMarkCompact\|AccountIdentityBlock" .ai/rules context/foundation/design-system.md` zwraca tylko odwołania historyczne (ADR-0054 je cytuje) — f434942
 - [x] 1.2 `php artisan boost:index-rules` przechodzi, a `CLAUDE.md`/`.ai/rules/index.md` są aktualne
 
 #### Manual
 
-- [x] 1.3 ADR-0054 czyta się samodzielnie: decyzja, skala, fallback, co zastępuje i co odrzucono
+- [x] 1.3 ADR-0054 czyta się samodzielnie: decyzja, skala, fallback, co zastępuje i co odrzucono — f434942
 
 ### Phase 2: Dane za awatarem
 
 #### Automated
 
-- [ ] 2.1 Testy payloadów na PostgreSQL (OperationsIdentity, TermDeposit, CsvImport, OperationsFilter, CapitalMovement, Dashboard, Account)
-- [ ] 2.2 `npm run types:check` przechodzi
-- [ ] 2.3 `vendor/bin/pint --dirty --format agent` i `vendor/bin/sloppy ci` bez nowych znalezisk
-- [ ] 2.4 Pliki `public/marks/ing.svg`, `pekao.svg`, `santander.svg` nie istnieją
+- [x] 2.1 Testy payloadów na PostgreSQL (OperationsIdentity, TermDeposit, CsvImport, OperationsFilter, CapitalMovement, Dashboard, Account)
+- [x] 2.2 `npm run types:check` przechodzi
+- [x] 2.3 `vendor/bin/pint --dirty --format agent` i `vendor/bin/sloppy ci` bez nowych znalezisk
+- [x] 2.4 Pliki `public/marks/ing.svg`, `pekao.svg`, `santander.svg` nie istnieją
 
 ### Phase 3: Komponent `AccountAvatar` i podmiana istniejących kafelków
 

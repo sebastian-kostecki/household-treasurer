@@ -3,12 +3,17 @@ import CapitalMovementActions from '@/components/CapitalMovementActions.vue';
 import type { CapitalMovementFormMovement } from '@/components/CapitalMovementFormDialog.vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
-import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
+import type {
+    AccountBank,
+    PrefixedAccountIdentityFields,
+} from '@/lib/account-identity';
 import { formatMoney } from '@/lib/format';
 
 export type CapitalMovementRowData = CapitalMovementFormMovement &
     PrefixedAccountIdentityFields<'account'> & {
         term_deposit_name: string;
+        term_deposit_bank: AccountBank;
+        term_deposit_mark_url: string | null;
     };
 
 defineProps<{

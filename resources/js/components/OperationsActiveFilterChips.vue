@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountPickerOption } from '@/lib/account-identity';
 import { formatDate } from '@/lib/format';
 
 export type OperationsFilterChipKey =
@@ -37,11 +38,7 @@ type ChipCategory = {
     color: string;
 };
 
-type ChipAccount = {
-    id: number;
-    name: string;
-    is_archived: boolean;
-};
+type ChipAccount = AccountPickerOption & { is_archived: boolean };
 
 type ChipTermDeposit = {
     id: number;

@@ -132,6 +132,8 @@ export const capitalMovementToDeposit: CapitalMovementRowData = {
     account_id: 1,
     term_deposit_id: 1,
     term_deposit_name: 'Lokata 12M',
+    term_deposit_bank: 'mbank',
+    term_deposit_mark_url: '/marks/mbank.jpg',
     ...mainAccount,
 };
 
@@ -202,8 +204,22 @@ export const filterCategoriesFixture: OperationsFilterCategory[] = [
 ];
 
 export const filterAccountsFixture: OperationsFilterAccount[] = [
-    { id: 1, name: mainAccount.account_name, is_archived: false },
-    { id: 2, name: savingsAccount.account_name, is_archived: false },
+    {
+        id: 1,
+        name: mainAccount.account_name,
+        type: mainAccount.account_type,
+        bank: mainAccount.account_bank,
+        mark_url: mainAccount.account_mark_url,
+        is_archived: false,
+    },
+    {
+        id: 2,
+        name: savingsAccount.account_name,
+        type: savingsAccount.account_type,
+        bank: savingsAccount.account_bank,
+        mark_url: savingsAccount.account_mark_url,
+        is_archived: false,
+    },
 ];
 
 export const filterTermDepositsFixture: OperationsFilterTermDeposit[] = [

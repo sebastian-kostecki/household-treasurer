@@ -99,7 +99,7 @@ class OperationsController extends Controller
             ]);
 
         $capitalMovementsQuery = $user->capitalMovements()
-            ->with(['account:id,name,type,bank', 'termDeposit:id,name'])
+            ->with(['account:id,name,type,bank', 'termDeposit:id,name,bank'])
             ->orderByDesc('movement_date')
             ->orderByDesc('id');
 
@@ -121,6 +121,8 @@ class OperationsController extends Controller
                 'account_id' => $movement->account_id,
                 'term_deposit_id' => $movement->term_deposit_id,
                 'term_deposit_name' => $movement->termDeposit->name,
+                'term_deposit_bank' => $movement->termDeposit->bank->value,
+                'term_deposit_mark_url' => AccountIdentity::markUrl($movement->termDeposit->bank),
                 ...AccountIdentity::prefixedRowFields($movement->account, 'account'),
             ]);
 

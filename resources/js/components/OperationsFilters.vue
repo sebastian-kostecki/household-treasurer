@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountPickerOption } from '@/lib/account-identity';
 import { operationsListQuery } from '@/lib/operations-list-query';
 import { operations as operationsRoute } from '@/routes';
 
@@ -38,9 +39,7 @@ export type OperationsFilterCategory = {
     color: string;
 };
 
-export type OperationsFilterAccount = {
-    id: number;
-    name: string;
+export type OperationsFilterAccount = AccountPickerOption & {
     is_archived: boolean;
 };
 

@@ -10,6 +10,7 @@ use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -392,6 +393,8 @@ class CapitalMovementTest extends TestCase
                 ->where('capitalMovements.data.0.amount_minor_units', 12000)
                 ->where('capitalMovements.data.0.account_name', $account->name)
                 ->where('capitalMovements.data.0.term_deposit_name', $termDeposit->name)
+                ->where('capitalMovements.data.0.term_deposit_bank', $termDeposit->bank->value)
+                ->where('capitalMovements.data.0.term_deposit_mark_url', AccountIdentity::markUrl($termDeposit->bank))
                 ->where('capitalMovements.data.0.direction', CapitalMovementDirection::ToTermDeposit->value),
             );
     }
