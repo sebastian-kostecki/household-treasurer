@@ -156,6 +156,7 @@
     --radius: 10px;
     --control-height: 32px;
     --control-height-sm: 26px;
+    --brand-mark-size: 26px;
     --row-height: 34px;
     --field-height: 34px;
     --dialog-width: 460px;
@@ -271,6 +272,12 @@
 
 @utility mark-label {
     @apply font-mono text-[9px]/none font-semibold;
+}
+
+@utility brand-mark {
+    @apply flex items-center justify-center font-mono text-[11px]/none font-semibold;
+    width: var(--brand-mark-size);
+    height: var(--brand-mark-size);
 }
 
 @utility kpi-lg {

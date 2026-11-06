@@ -9,7 +9,7 @@ import {
     Upload,
 } from '@lucide/vue';
 import { computed } from 'vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import BrandMark from '@/components/BrandMark.vue';
 import LandingAppPreview from '@/components/LandingAppPreview.vue';
 import LandingFeatureCard from '@/components/LandingFeatureCard.vue';
 import { Button } from '@/components/ui/button';
@@ -103,11 +103,7 @@ const heroPoints = [
                 class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6"
             >
                 <a href="#top" class="flex items-center gap-2">
-                    <div
-                        class="bg-sidebar-primary text-sidebar-primary-foreground flex size-8 items-center justify-center rounded-md"
-                    >
-                        <AppLogoIcon class="size-5" />
-                    </div>
+                    <BrandMark />
                     <span class="text-sm font-semibold">{{ name }}</span>
                 </a>
 
@@ -318,11 +314,7 @@ const heroPoints = [
                 class="text-muted-foreground mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-4 text-sm sm:flex-row sm:items-center sm:px-6"
             >
                 <div class="flex items-center gap-2">
-                    <div
-                        class="bg-sidebar-primary text-sidebar-primary-foreground flex size-7 items-center justify-center rounded-md"
-                    >
-                        <AppLogoIcon class="size-4" />
-                    </div>
+                    <BrandMark />
                     <div>
                         <p class="text-foreground font-medium">{{ name }}</p>
                         <p>{{ t.landing.footer_tagline }}</p>

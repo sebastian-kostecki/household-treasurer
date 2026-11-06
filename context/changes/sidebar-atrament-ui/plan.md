@@ -448,33 +448,33 @@ Brak danych. Ciasteczko `sidebar_state` bez zmian. Konflikt w `AppSidebar.vue` z
 
 #### Automated
 
-- [x] 4.1 Asercje etykiet i `aria-current` przechodzą
-- [x] 4.2 Spec przechodzi
-- [x] 4.3 Istniejące E2E nadal przechodzą
-- [x] 4.4 Literały: `npm run check:ui`
-- [x] 4.5 Typy: `npm run types:check`
+- [x] 4.1 Asercje etykiet i `aria-current` przechodzą — 9cde205
+- [x] 4.2 Spec przechodzi — 9cde205
+- [x] 4.3 Istniejące E2E nadal przechodzą — 9cde205
+- [x] 4.4 Literały: `npm run check:ui` — 9cde205
+- [x] 4.5 Typy: `npm run types:check` — 9cde205
 
 #### Manual
 
-- [x] 4.6 Etykiety `label-caps`, tryb ikon i mobilny Sheet, stan pusty
-- [x] 4.7 Blok użytkownika i menu użytkownika z okrągłym awatarem
-- [x] 4.8 Czytnik ekranu ogłasza bieżącą sekcję
+- [x] 4.6 Etykiety `label-caps`, tryb ikon i mobilny Sheet, stan pusty — 9cde205
+- [x] 4.7 Blok użytkownika i menu użytkownika z okrągłym awatarem — 9cde205
+- [x] 4.8 Czytnik ekranu ogłasza bieżącą sekcję — 9cde205
 
 ### Phase 5: Znak „HT” (C5)
 
 #### Automated
 
-- [ ] 5.1 Wszystkie asercje nowego `describe` przechodzą
-- [ ] 5.2 Brak `Vault` i `AppLogoIcon` w `resources/js`
-- [ ] 5.3 Literały, w tym nowe pliki: `npm run check:ui`
-- [ ] 5.4 Typy: `npm run types:check`
-- [ ] 5.5 Build: `npm run build`
-- [ ] 5.6 Logowanie w E2E działa
+- [x] 5.1 Wszystkie asercje nowego `describe` przechodzą
+- [x] 5.2 Brak `Vault` i `AppLogoIcon` w `resources/js`
+- [x] 5.3 Literały, w tym nowe pliki: `npm run check:ui`
+- [x] 5.4 Typy: `npm run types:check`
+- [x] 5.5 Build: `npm run build`
+- [x] 5.6 Logowanie w E2E działa
 
 #### Manual
 
-- [ ] 5.7 Znak „HT” w sidebarze, na logowaniu i w `Welcome`, oba motywy, JetBrains Mono
-- [ ] 5.8 Link znaku na logowaniu prowadzi na stronę główną, fokus widoczny
+- [x] 5.7 Znak „HT” w sidebarze, na logowaniu i w `Welcome`, oba motywy, JetBrains Mono
+- [x] 5.8 Link znaku na logowaniu prowadzi na stronę główną, fokus widoczny
 
 ### Phase 6: Kitchen sink i bramka wizualna
 

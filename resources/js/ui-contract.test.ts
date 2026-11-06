@@ -253,18 +253,26 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(index).toContain('data-[active=true]:font-semibold');
     });
 
-    it('imports neither AppLogoIcon nor Vault anywhere in resources/js', () => {
+    it('imports neither AppLogoIcon nor Vault as the product mark in resources/js', () => {
+        // lib/category-appearance.ts keeps the Lucide Vault icon as a
+        // user-selectable category icon (stored data), not the product mark.
+        const categoryIconCatalogue = 'lib/category-appearance.ts';
         const offenders: string[] = [];
 
         for (const path of sourceFiles(JS_ROOT)) {
-            if (path === fileURLToPath(import.meta.url)) {
+            const file = relative(JS_ROOT, path).split(sep).join('/');
+
+            if (
+                path === fileURLToPath(import.meta.url) ||
+                file === categoryIconCatalogue
+            ) {
                 continue;
             }
 
             const source = readFileSync(path, 'utf8');
 
             if (/\bAppLogoIcon\b|\bVault\b/.test(source)) {
-                offenders.push(relative(JS_ROOT, path).split(sep).join('/'));
+                offenders.push(file);
             }
         }
 
