@@ -2,17 +2,43 @@
 import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent, ref } from 'vue';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
+import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/composables/useTranslations';
+import { bankLabel, bankOptions } from '@/lib/account-identity';
 import { accountsScenarios } from './accounts-fixtures';
 
 const Accounts = defineAsyncComponent(() => import('@/pages/Accounts.vue'));
 
 const createDialogOpen = ref(false);
 
+const t = useTranslations();
+
+const bankMarkTiles = [
+    ...bankOptions.map((bank) => ({
+        key: bank,
+        label: bankLabel(t.accounts, bank),
+        type: 'bank' as const,
+        bank,
+    })),
+    {
+        key: 'cash',
+        label: t.accounts.type_cash,
+        type: 'cash' as const,
+        bank: null,
+    },
+    {
+        key: 'no-bank',
+        label: 'Bank bez znaku',
+        type: 'bank' as const,
+        bank: null,
+    },
+];
+
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default (panel z dwiema miarami), zero-total, negative-total, with-archived (Switch włączony), archived-negative (zarchiwizowane z ujemnym i dodatnim saldem) i long-names (zawijanie nazw przy 390 px) poniżej; Switch wyłączony w default i all-archived.',
+        where: 'Scenariusze default (panel z dwiema miarami), zero-total, negative-total, with-archived (Switch włączony), archived-negative (zarchiwizowane z ujemnym i dodatnim saldem) i long-names (zawijanie nazw przy 390 px) poniżej; Switch stoi w wierszu tytułu przed „Dodaj konto” i zawija się razem z nim przy 390 px; wyłączony w default i all-archived.',
     },
     {
         state: 'hover',
@@ -20,7 +46,7 @@ const stateMatrix = [
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty po Tab z działającej aplikacji: przycisk „Dodaj konto”, przełącznik (Switch), IconAction, X dialogu, wyzwalacz banku.',
+        where: 'Zrzuty po Tab z działającej aplikacji: kolejność Tab: przełącznik (Switch), potem przycisk „Dodaj konto”, dalej IconAction, X dialogu, wyzwalacz banku.',
     },
     {
         state: 'disabled',
@@ -82,6 +108,33 @@ const stateMatrix = [
                     </tr>
                 </tbody>
             </table>
+        </section>
+
+        <section class="space-y-3" data-section="bank-marks">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                Znaki banków
+            </h2>
+            <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <li
+                    v-for="tile in bankMarkTiles"
+                    :key="tile.key"
+                    class="flex items-center gap-3 text-sm"
+                >
+                    <AccountMarkCompact
+                        :type="tile.type"
+                        :bank="tile.bank"
+                        size="md"
+                    />
+                    <AccountMarkCompact
+                        :type="tile.type"
+                        :bank="tile.bank"
+                        size="sm"
+                    />
+                    <span>{{ tile.label }}</span>
+                </li>
+            </ul>
         </section>
 
         <section class="space-y-2" data-section="error-form">

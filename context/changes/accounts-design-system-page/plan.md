@@ -300,30 +300,30 @@ Brak migracji danych. `public/marks/*` i `mark_url` zostają dla `AccountIdentit
 
 #### Automated
 
-- [x] 2.1 Testy JS przechodzą, w tym nowe testy `accountShortMark`: `npm run test`
-- [x] 2.2 Typy przechodzą: `npm run types:check`
-- [x] 2.3 Skan literałów przechodzi: `npm run check:ui`
-- [x] 2.4 Straż Kont przechodzi z `AccountMarkCompact.vue` na liście
-- [x] 2.5 Nic w `resources/js` nie importuje już `bankMarkPath`
-- [x] 2.6 Lint i formatowanie przechodzą
+- [x] 2.1 Testy JS przechodzą, w tym nowe testy `accountShortMark`: `npm run test` — 6de2267
+- [x] 2.2 Typy przechodzą: `npm run types:check` — 6de2267
+- [x] 2.3 Skan literałów przechodzi: `npm run check:ui` — 6de2267
+- [x] 2.4 Straż Kont przechodzi z `AccountMarkCompact.vue` na liście — 6de2267
+- [x] 2.5 Nic w `resources/js` nie importuje już `bankMarkPath` — 6de2267
+- [x] 2.6 Lint i formatowanie przechodzą — 6de2267
 
 #### Manual
 
-- [x] 2.7 Kafelki w sinkach Kont, Operacji i dialogów pokazują skrót, „zł” albo ikonę i nie mają atrybutów `id`, `name` ani `mark_url`
-- [x] 2.8 Trzy znaki mieszczą się w kafelku 20 px bez przycięcia
+- [x] 2.7 Kafelki w sinkach Kont, Operacji i dialogów pokazują skrót, „zł” albo ikonę i nie mają atrybutów `id`, `name` ani `mark_url` — 6de2267
+- [x] 2.8 Trzy znaki mieszczą się w kafelku 20 px bez przycięcia — 6de2267
 
 ### Phase 3: Switch w wierszu tytułu i bramka wizualna
 
 #### Automated
 
-- [ ] 3.1 Pełna bramka przechodzi: `composer ci:check` oraz `vendor/bin/sloppy ci`
-- [ ] 3.2 Test sinka przechodzi: `tests/Feature/AccountsKitchenSinkTest.php`
-- [ ] 3.3 E2E edycji konta przechodzi bez zmian
-- [ ] 3.4 Zrzuty 390/1280 × jasny/ciemny są w `screenshots/`
+- [x] 3.1 Pełna bramka przechodzi: `composer ci:check` oraz `vendor/bin/sloppy ci`
+- [x] 3.2 Test sinka przechodzi: `tests/Feature/AccountsKitchenSinkTest.php`
+- [x] 3.3 E2E edycji konta przechodzi bez zmian
+- [x] 3.4 Zrzuty 390/1280 × jasny/ciemny są w `screenshots/`
 
 #### Manual
 
-- [ ] 3.5 Switch stoi w wierszu tytułu przed „Dodaj konto” i zawija się z nim jako całość przy 390 px
-- [ ] 3.6 Switch jest widoczny tylko przy zarchiwizowanych kontach albo włączonym filtrze
-- [ ] 3.7 Przełączenie Switcha pokazuje i ukrywa zarchiwizowane konta, a w trakcie wizyty Switch jest wyłączony
-- [ ] 3.8 Skróty są czytelne w obu motywach, a kafelek nie ma obwódki
+- [x] 3.5 Switch stoi w wierszu tytułu przed „Dodaj konto” i zawija się z nim jako całość przy 390 px
+- [x] 3.6 Switch jest widoczny tylko przy zarchiwizowanych kontach albo włączonym filtrze
+- [x] 3.7 Przełączenie Switcha pokazuje i ukrywa zarchiwizowane konta, a w trakcie wizyty Switch jest wyłączony
+- [x] 3.8 Skróty są czytelne w obu motywach, a kafelek nie ma obwódki
