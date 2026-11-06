@@ -188,3 +188,98 @@ describe('ui contract', () => {
         ).toEqual([]);
     });
 });
+
+const CSS_ROOT = join(JS_ROOT, '..', 'css');
+
+function read(file: string): string {
+    return readFileSync(join(JS_ROOT, file), 'utf8');
+}
+
+function sourceFiles(dir: string): string[] {
+    return readdirSync(dir).flatMap((entry) => {
+        const path = join(dir, entry);
+
+        if (entry === 'node_modules') {
+            return [];
+        }
+
+        if (statSync(path).isDirectory()) {
+            return sourceFiles(path);
+        }
+
+        return /\.(vue|ts)$/.test(path) ? [path] : [];
+    });
+}
+
+describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
+    it('takes the sidebar width from --sidebar-panel-width', () => {
+        const utils = read('components/ui/sidebar/utils.ts');
+
+        expect(utils).toMatch(
+            /SIDEBAR_WIDTH\s*=\s*['"`]var\(--sidebar-panel-width\)['"`]/,
+        );
+        expect(utils).not.toContain('16rem');
+    });
+
+    it('defines --sidebar-panel-width as 224px in app.css', () => {
+        const css = readFileSync(join(CSS_ROOT, 'app.css'), 'utf8');
+
+        expect(css).toMatch(/--sidebar-panel-width:\s*224px/);
+    });
+
+    it('marks the current section with aria-current in NavMain', () => {
+        expect(read('components/NavMain.vue')).toContain('aria-current');
+    });
+
+    it('renders section labels with label-caps', () => {
+        expect(read('components/ui/sidebar/SidebarGroupLabel.vue')).toContain(
+            'label-caps',
+        );
+    });
+
+    it.each([
+        'components/BudgetYearSwitcher.vue',
+        'components/ui/sidebar/SidebarGroupLabel.vue',
+        'components/NavMain.vue',
+    ])('does not dim text with text-sidebar-foreground/80 in %s', (file) => {
+        expect(read(file)).not.toContain('text-sidebar-foreground/80');
+    });
+
+    it('uses rounded-md and a semibold active state in the menu button cva', () => {
+        const index = read('components/ui/sidebar/index.ts');
+
+        expect(index).toContain('rounded-md');
+        expect(index).not.toContain('rounded-xl');
+        expect(index).toContain('data-[active=true]:font-semibold');
+    });
+
+    it('imports neither AppLogoIcon nor Vault anywhere in resources/js', () => {
+        const offenders: string[] = [];
+
+        for (const path of sourceFiles(JS_ROOT)) {
+            if (path === fileURLToPath(import.meta.url)) {
+                continue;
+            }
+
+            const source = readFileSync(path, 'utf8');
+
+            if (/\bAppLogoIcon\b|\bVault\b/.test(source)) {
+                offenders.push(relative(JS_ROOT, path).split(sep).join('/'));
+            }
+        }
+
+        expect(offenders, 'the product mark is BrandMark').toEqual([]);
+    });
+
+    it.each([
+        'components/AppLogo.vue',
+        'layouts/auth/AuthCardLayout.vue',
+        'pages/Welcome.vue',
+    ])('uses BrandMark in %s', (file) => {
+        expect(read(file)).toContain('BrandMark');
+    });
+
+    it('does not render a slot in AppSidebar', () => {
+        expect(read('components/AppSidebar.vue')).not.toContain('<slot');
+    });
+});

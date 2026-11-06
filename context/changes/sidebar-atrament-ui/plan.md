@@ -415,20 +415,20 @@ Brak danych. Ciasteczko `sidebar_state` bez zmian. Konflikt w `AppSidebar.vue` z
 
 #### Automated
 
-- [x] 1.1 ADR-0053 istnieje i ma etykiety akapitów z listy powyżej
-- [x] 1.2 `php artisan boost:index-rules` nie zmienia `.ai/rules/index.md`
+- [x] 1.1 ADR-0053 istnieje i ma etykiety akapitów z listy powyżej — 80c308d
+- [x] 1.2 `php artisan boost:index-rules` nie zmienia `.ai/rules/index.md` — 80c308d
 
 #### Manual
 
-- [x] 1.3 ADR-0053, `design-system.md` i reguły są spójne z decyzjami z `plan-brief.md`
+- [x] 1.3 ADR-0053, `design-system.md` i reguły są spójne z decyzjami z `plan-brief.md` — 80c308d
 
 ### Phase 2: Straż kontraktu (czerwone testy)
 
 #### Automated
 
-- [ ] 2.1 Nowe asercje nie przechodzą przed fazą 3
-- [ ] 2.2 Spec nie przechodzi przed fazą 4
-- [ ] 2.3 Typy się zgadzają
+- [x] 2.1 Nowe asercje nie przechodzą przed fazą 3
+- [x] 2.2 Spec nie przechodzi przed fazą 4
+- [x] 2.3 Typy się zgadzają
 
 ### Phase 3: Powłoka (C1, C6, C7)
 
