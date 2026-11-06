@@ -128,10 +128,10 @@ const frames: SidebarFrame[] = [
                 Sidebar w czterech wariantach: rozwinięty i zwinięty, z latami
                 budżetu i bez. Macierz stanów to standardowe siedem (default,
                 empty, loading, error, hover, focus-visible, disabled) plus
-                pozycja aktywna, właściwa dla menu. Elementy zależne od zalogowanego użytkownika
-                (NavUser, źródła kopiowania w oknie dodawania roku) są
-                prawdziwe, nie fixture. Zduplikowane id pól roku w
-                CreateBudgetDialog są tu dopuszczalne.
+                pozycja aktywna, właściwa dla menu. Elementy zależne od
+                zalogowanego użytkownika (NavUser, źródła kopiowania w oknie
+                dodawania roku) są prawdziwe, nie fixture. Zduplikowane id pól
+                roku w CreateBudgetDialog są tu dopuszczalne.
             </p>
         </header>
 

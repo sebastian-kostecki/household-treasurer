@@ -197,7 +197,8 @@ const noRecords = {
                 Chip z awatarem konta (xs) i filtr konta jako reka Select z
                 awatarami, „Wszystkie konta” i dopiskiem „(zarchiwizowane)”.
                 Wiersze: konto z logo, gotówka („zł”), bank bez logo (skrót),
-                zwrot z kontem w linii meta.
+                bank „Inny” (ikona) z długą nazwą zarchiwizowanego konta, zwrot
+                z kontem w linii meta.
             </p>
             <OperationsListPanel v-bind="accountFiltered" />
 

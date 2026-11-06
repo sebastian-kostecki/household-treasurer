@@ -46,7 +46,9 @@ const showAvatar = computed(
 
     <div
         class="grid flex-1 text-left text-sm leading-tight"
-        :class="variant === 'sidebar' && 'group-data-[collapsible=icon]:sr-only'"
+        :class="
+            variant === 'sidebar' && 'group-data-[collapsible=icon]:sr-only'
+        "
     >
         <span class="truncate font-medium">{{ user.name }}</span>
         <span

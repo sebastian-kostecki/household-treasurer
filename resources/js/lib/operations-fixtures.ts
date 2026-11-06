@@ -39,6 +39,14 @@ const bankWithoutLogoAccount = {
     account_mark_url: null,
 } as const;
 
+const otherBankArchivedAccount = {
+    account_name:
+        'Wspólne konto rodzinne na wydatki bieżące, rachunki i opłaty za przedszkole',
+    account_type: 'bank',
+    account_bank: 'other',
+    account_mark_url: null,
+} as const;
+
 const baseOperation = {
     counterparty: null,
     raw_statement_description: null,
@@ -126,6 +134,18 @@ export const bankWithoutLogoOperation: FinancialOperationRowData = {
     category_name: 'Rachunki',
 };
 
+export const otherBankArchivedOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    ...otherBankArchivedAccount,
+    id: 8,
+    account_id: 5,
+    type: 'expense',
+    operation_date: '2026-11-03',
+    amount_minor_units: 1000,
+    description: 'Opłata za przedszkole',
+    category_name: 'Rachunki',
+};
+
 /** Dzień z dodatnią sumą (dochód, zwrot, wydatek), potem dzień z ujemną. */
 export const financialOperationFixtures: FinancialOperationRowData[] = [
     incomeOperation,
@@ -135,6 +155,7 @@ export const financialOperationFixtures: FinancialOperationRowData[] = [
     counterpartyOperation,
     cashOperation,
     bankWithoutLogoOperation,
+    otherBankArchivedOperation,
 ];
 
 /** Sumy dnia liczy serwer; tu: 8500,00 + 45,00 − 123,45 oraz −69,90 − 249,99. */
@@ -274,6 +295,14 @@ export const filterAccountsFixture: OperationsFilterAccount[] = [
         type: bankWithoutLogoAccount.account_type,
         bank: bankWithoutLogoAccount.account_bank,
         mark_url: bankWithoutLogoAccount.account_mark_url,
+        is_archived: true,
+    },
+    {
+        id: 5,
+        name: otherBankArchivedAccount.account_name,
+        type: otherBankArchivedAccount.account_type,
+        bank: otherBankArchivedAccount.account_bank,
+        mark_url: otherBankArchivedAccount.account_mark_url,
         is_archived: true,
     },
 ];

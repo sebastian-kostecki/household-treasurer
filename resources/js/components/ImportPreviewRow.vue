@@ -487,8 +487,12 @@ function onPairCandidateChange(value: string): void {
                                     class="flex min-w-0 items-center gap-2"
                                 >
                                     <AccountAvatar
-                                        :type="selectedPairCandidate.account_type"
-                                        :bank="selectedPairCandidate.account_bank"
+                                        :type="
+                                            selectedPairCandidate.account_type
+                                        "
+                                        :bank="
+                                            selectedPairCandidate.account_bank
+                                        "
                                         :mark_url="
                                             selectedPairCandidate.account_mark_url
                                         "

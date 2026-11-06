@@ -458,28 +458,28 @@ Bez migracji danych. Usunięcie trzech plików z `public/marks` nie wpływa na d
 
 #### Automated
 
-- [x] 4.1 `npx vitest run resources/js/lib/dashboard-notice-presentation.test.ts resources/js/lib/account-identity.test.ts` przechodzi
-- [x] 4.2 `npm run types:check` i `npm run check:ui` przechodzą
-- [x] 4.3 `php artisan test --compact tests/Unit/DashboardHardcodedUiTest.php tests/Unit/ImportPreviewHardcodedUiTest.php` przechodzi
-- [x] 4.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts tests/e2e/account-edit-keeps-bank.spec.ts` przechodzi
+- [x] 4.1 `npx vitest run resources/js/lib/dashboard-notice-presentation.test.ts resources/js/lib/account-identity.test.ts` przechodzi — c8aec59
+- [x] 4.2 `npm run types:check` i `npm run check:ui` przechodzą — c8aec59
+- [x] 4.3 `php artisan test --compact tests/Unit/DashboardHardcodedUiTest.php tests/Unit/ImportPreviewHardcodedUiTest.php` przechodzi — c8aec59
+- [x] 4.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts tests/e2e/account-edit-keeps-bank.spec.ts` przechodzi — c8aec59
 
 #### Manual
 
-- [x] 4.5 `/dev/operations`: awatar xs w linii meta przy wydatku, dochodzie i zwrocie; długa nazwa konta obcięta
-- [x] 4.6 Filtr konta: „Wszystkie konta”, dopisek zarchiwizowanego, obsługa klawiaturą, `?section=` zachowany
-- [x] 4.7 `/dev/import-preview`: kandydat na parę z awatarem, wybór i „bez pary” wysyłają te same pola co przed zmianą
-- [x] 4.8 `/dev/ui/dashboard`: ostrzeżenie o ujemnym koncie i lokacie z awatarem
+- [x] 4.5 `/dev/operations`: awatar xs w linii meta przy wydatku, dochodzie i zwrocie; długa nazwa konta obcięta — c8aec59
+- [x] 4.6 Filtr konta: „Wszystkie konta”, dopisek zarchiwizowanego, obsługa klawiaturą, `?section=` zachowany — c8aec59
+- [x] 4.7 `/dev/import-preview`: kandydat na parę z awatarem, wybór i „bez pary” wysyłają te same pola co przed zmianą — c8aec59
+- [x] 4.8 `/dev/ui/dashboard`: ostrzeżenie o ujemnym koncie i lokacie z awatarem — c8aec59
 
 ### Phase 5: Stany i bramka
 
 #### Automated
 
-- [ ] 5.1 `composer ci:check` przechodzi (Sail, PostgreSQL)
-- [ ] 5.2 `vendor/bin/sloppy ci` na hoście przechodzi
-- [ ] 5.3 `npm run check:ui` przechodzi
+- [x] 5.1 `composer ci:check` przechodzi (Sail, PostgreSQL)
+- [x] 5.2 `vendor/bin/sloppy ci` na hoście przechodzi
+- [x] 5.3 `npm run check:ui` przechodzi
 
 #### Manual
 
-- [ ] 5.4 Siedem stanów widocznych w sinkach w jasnym i ciemnym motywie
-- [ ] 5.5 Kontrast JPEG-ów i przezroczystego Revoluta na `muted` w trybie ciemnym zaakceptowany albo zapisany w ADR-0054
-- [ ] 5.6 Rzeczywista aplikacja: ten sam znak dla tego samego konta we wszystkich widokach
+- [x] 5.4 Siedem stanów widocznych w sinkach w jasnym i ciemnym motywie
+- [x] 5.5 Kontrast JPEG-ów i przezroczystego Revoluta na `muted` w trybie ciemnym zaakceptowany albo zapisany w ADR-0054
+- [x] 5.6 Rzeczywista aplikacja: ten sam znak dla tego samego konta we wszystkich widokach

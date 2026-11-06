@@ -64,8 +64,14 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                             v-if="hasMetaLine"
                             class="meta text-muted-foreground flex min-w-0 items-center gap-1"
                         >
-                            <span v-if="secondaryLine" class="truncate">{{ secondaryLine }}</span>
-                            <span v-if="secondaryLine && account" aria-hidden="true">·</span>
+                            <span v-if="secondaryLine" class="truncate">{{
+                                secondaryLine
+                            }}</span>
+                            <span
+                                v-if="secondaryLine && account"
+                                aria-hidden="true"
+                                >·</span
+                            >
                             <CompactAccountIdentity
                                 v-if="account"
                                 class="min-w-0"
@@ -95,8 +101,12 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                 v-if="hasMetaLine"
                 class="meta text-muted-foreground flex min-w-0 items-center gap-1"
             >
-                <span v-if="secondaryLine" class="truncate">{{ secondaryLine }}</span>
-                <span v-if="secondaryLine && account" aria-hidden="true">·</span>
+                <span v-if="secondaryLine" class="truncate">{{
+                    secondaryLine
+                }}</span>
+                <span v-if="secondaryLine && account" aria-hidden="true"
+                    >·</span
+                >
                 <CompactAccountIdentity
                     v-if="account"
                     class="min-w-0"
