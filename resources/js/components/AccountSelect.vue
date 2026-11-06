@@ -74,6 +74,7 @@ const selectedAccount = computed(() =>
                     v-for="account in accounts"
                     :key="account.id"
                     :value="String(account.id)"
+                    :text-value="account.name"
                 >
                     <span class="flex items-center gap-2">
                         <AccountMarkCompact

@@ -59,7 +59,12 @@ function bankName(bank: AccountBank): string {
             </SelectValue>
         </SelectTrigger>
         <SelectContent>
-            <SelectItem v-for="bank in bankOptions" :key="bank" :value="bank">
+            <SelectItem
+                v-for="bank in bankOptions"
+                :key="bank"
+                :value="bank"
+                :text-value="bankName(bank)"
+            >
                 <span class="flex items-center gap-2">
                     <AccountMarkCompact type="bank" :bank="bank" />
                     <span>{{ bankName(bank) }}</span>
