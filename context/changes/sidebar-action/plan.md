@@ -447,19 +447,19 @@ Brak migracji danych. Ciasteczko `sidebar_state` w przeglądarkach użytkownikó
 
 #### Automated
 
-- [x] 4.1 Feature (SQLite): `php artisan test --compact tests/Feature/CommandPaletteCategoriesTest.php tests/Feature/AppShellTest.php`
-- [x] 4.2 Feature (PostgreSQL, worktree): `CommandPaletteCategoriesTest` i `tests/Feature/Nfr` przez obraz `sail-8.5/app` (polecenie „PostgreSQL tests, worktree” z `AGENTS.md`, ścieżki `tests/Feature/CommandPaletteCategoriesTest.php tests/Feature/Nfr`)
-- [x] 4.3 Zależności bez zmian: `git diff --exit-code main -- package.json package-lock.json resources/js/components/ui/dialog`
-- [x] 4.4 Testy JS: `npm test`
-- [x] 4.5 Literały: `npm run check:ui`
-- [x] 4.6 Typy i build: `npm run build && npm run types:check`
-- [x] 4.7 Bramka: `composer ci:check` (w Sail) i `vendor/bin/sloppy ci` (host); `vendor/bin/pint --dirty --format agent`
-- [x] 4.8 E2E: `npx playwright test`
+- [x] 4.1 Feature (SQLite): `php artisan test --compact tests/Feature/CommandPaletteCategoriesTest.php tests/Feature/AppShellTest.php` — 732469d
+- [x] 4.2 Feature (PostgreSQL, worktree): `CommandPaletteCategoriesTest` i `tests/Feature/Nfr` przez obraz `sail-8.5/app` (polecenie „PostgreSQL tests, worktree” z `AGENTS.md`, ścieżki `tests/Feature/CommandPaletteCategoriesTest.php tests/Feature/Nfr`) — 732469d
+- [x] 4.3 Zależności bez zmian: `git diff --exit-code main -- package.json package-lock.json resources/js/components/ui/dialog` — 732469d
+- [x] 4.4 Testy JS: `npm test` — 732469d
+- [x] 4.5 Literały: `npm run check:ui` — 732469d
+- [x] 4.6 Typy i build: `npm run build && npm run types:check` — 732469d
+- [x] 4.7 Bramka: `composer ci:check` (w Sail) i `vendor/bin/sloppy ci` (host); `vendor/bin/pint --dirty --format agent` — 732469d
+- [x] 4.8 E2E: `npx playwright test` — 732469d
 
 #### Manual
 
-- [x] 4.9 `/dev/ui/sidebar?palette=<stan>` dla sześciu stanów w obu motywach: kolory sidebara, kwoty wyrównane, szerokość 520 px na desktopie, pełna szerokość z marginesem na 390 px
-- [x] 4.10 Polskie znaki: „zywnosc” znajduje „Żywność”
-- [x] 4.11 Po zapisaniu operacji ponowne otwarcie palety pokazuje nową realizację kategorii
-- [x] 4.12 „Dodaj rok budżetu” z palety otwiera dialog z właściwym rokiem i nie zostawia dwóch warstw
-- [x] 4.13 Klawiatura: Tab nie wychodzi z palety, Esc oddaje fokus elementowi sprzed otwarcia
+- [x] 4.9 `/dev/ui/sidebar?palette=<stan>` dla sześciu stanów w obu motywach: kolory sidebara, kwoty wyrównane, szerokość 520 px na desktopie, pełna szerokość z marginesem na 390 px — 732469d
+- [x] 4.10 Polskie znaki: „zywnosc” znajduje „Żywność” — 732469d
+- [x] 4.11 Po zapisaniu operacji ponowne otwarcie palety pokazuje nową realizację kategorii — 732469d
+- [x] 4.12 „Dodaj rok budżetu” z palety otwiera dialog z właściwym rokiem i nie zostawia dwóch warstw — 732469d
+- [x] 4.13 Klawiatura: Tab nie wychodzi z palety, Esc oddaje fokus elementowi sprzed otwarcia — 732469d
