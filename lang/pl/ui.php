@@ -148,6 +148,7 @@ return [
         'execution_tabs_aria' => 'Typ kategorii',
         'execution_tab_all' => 'Wszystko',
         'execution_status' => 'Status',
+        'execution_column' => 'Realizacja',
         'execution_footer' => 'Kwoty w zł · kreska = postęp roku (:percent%) · kliknij wiersz, aby zobaczyć operacje',
         'execution_footer_no_mark' => 'Kwoty w zł · kliknij wiersz, aby zobaczyć operacje',
         'year_elapsed' => 'Postęp roku',

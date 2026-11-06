@@ -12,6 +12,7 @@ const FILES = [
     'resources/js/components/DashboardStatPanel.vue',
     'resources/js/components/DashboardNotices.vue',
     'resources/js/components/DashboardExecutionPanel.vue',
+    'resources/js/components/DashboardBudgetBlock.vue',
     'resources/js/components/IndexEmptyState.vue',
     'resources/js/components/BudgetPlanSummaryStrip.vue',
     'resources/js/components/CategoryMeterRow.vue',
