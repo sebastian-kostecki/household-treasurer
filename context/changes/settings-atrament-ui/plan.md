@@ -645,11 +645,11 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [x] 5.1 `SettingsHardcodedUiTest` i `SettingsKitchenSinkTest` przechodzą
-- [x] 5.2 `npm run check:ui` przechodzi z plikami ustawień na liście
-- [x] 5.3 `composer ci:check` przechodzi (na PostgreSQL w worktree, polecenie z AGENTS.md)
-- [x] 5.4 `vendor/bin/sloppy ci` przechodzi
-- [x] 5.5 `npm run types:check`, `npm run test`, `npm run build` przechodzą
+- [x] 5.1 `SettingsHardcodedUiTest` i `SettingsKitchenSinkTest` przechodzą — fd0ddfd
+- [x] 5.2 `npm run check:ui` przechodzi z plikami ustawień na liście — fd0ddfd
+- [x] 5.3 `composer ci:check` przechodzi (na PostgreSQL w worktree, polecenie z AGENTS.md) — fd0ddfd
+- [x] 5.4 `vendor/bin/sloppy ci` przechodzi — fd0ddfd
+- [x] 5.5 `npm run types:check`, `npm run test`, `npm run build` przechodzą — fd0ddfd
 
 #### Manual
 

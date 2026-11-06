@@ -1,7 +1,7 @@
 ---
 change_id: settings-atrament-ui
 title: Settings atrament ui
-status: implementing
+status: implemented
 created: 2026-11-06
 updated: 2026-11-06
 archived_at: null
