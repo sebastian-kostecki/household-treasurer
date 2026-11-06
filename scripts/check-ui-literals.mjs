@@ -34,6 +34,7 @@ const FILES = [
     'resources/js/components/AccountBankSelect.vue',
     'resources/js/components/AccountMarkCompact.vue',
     'resources/js/components/ConfirmActionDialog.vue',
+    'resources/js/components/SettingsPanel.vue',
     'resources/js/pages/dev/AccountsKitchenSink.vue',
     'resources/js/pages/TermDeposits.vue',
     'resources/js/components/TermDepositFormDialog.vue',

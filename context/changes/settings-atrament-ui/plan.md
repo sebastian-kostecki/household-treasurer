@@ -586,9 +586,9 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [x] 1.1 `development` jest przodkiem `HEAD` (`git merge-base --is-ancestor development HEAD`)
-- [x] 1.2 ADR-0049 istnieje i jest jedynym plikiem `0049-*` w `context/foundation/adr/`
-- [x] 1.3 `php artisan boost:index-rules` kończy się bez błędu, a `git diff` pokazuje tylko zamierzone zmiany w regułach
+- [x] 1.1 `development` jest przodkiem `HEAD` (`git merge-base --is-ancestor development HEAD`) — 21ac00a
+- [x] 1.2 ADR-0049 istnieje i jest jedynym plikiem `0049-*` w `context/foundation/adr/` — 21ac00a
+- [x] 1.3 `php artisan boost:index-rules` kończy się bez błędu, a `git diff` pokazuje tylko zamierzone zmiany w regułach — 21ac00a
 
 #### Manual
 
@@ -599,10 +599,10 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [ ] 2.1 `npm run types:check` przechodzi
-- [ ] 2.2 `npm run check:ui` przechodzi z `SettingsPanel.vue` dopisanym do `FILES` w `scripts/check-ui-literals.mjs`
-- [ ] 2.3 `npm run test` (w tym `ui-contract.test.ts`) przechodzi
-- [ ] 2.4 `npm run build` przechodzi
+- [x] 2.1 `npm run types:check` przechodzi
+- [x] 2.2 `npm run check:ui` przechodzi z `SettingsPanel.vue` dopisanym do `FILES` w `scripts/check-ui-literals.mjs`
+- [x] 2.3 `npm run test` (w tym `ui-contract.test.ts`) przechodzi
+- [x] 2.4 `npm run build` przechodzi
 
 #### Manual
 

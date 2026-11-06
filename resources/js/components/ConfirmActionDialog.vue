@@ -25,6 +25,10 @@ defineProps<{
     destructive?: boolean;
 }>();
 
+const emit = defineEmits<{
+    error: [errors: Record<string, string>];
+}>();
+
 // Without v-model:open the dialog keeps its own state and opens from the trigger slot.
 const open = defineModel<boolean>('open', { default: false });
 const busy = ref(false);
@@ -48,6 +52,7 @@ function onOpenChange(next: boolean): void {
                 @start="busy = true"
                 @finish="busy = false"
                 @success="open = false"
+                @error="(errors) => emit('error', errors)"
                 v-slot="{ processing, errors }"
             >
                 <DialogHeader>
@@ -64,7 +69,7 @@ function onOpenChange(next: boolean): void {
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             :disabled="processing"
                         >
                             {{ cancelLabel }}
