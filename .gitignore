@@ -29,10 +29,8 @@ yarn-error.log
 /.vscode
 /.zed
 /.10x-cli.json
-/.agents
 /.claude/*
 !/.claude/settings.json
 !/.claude/hooks/
 !/.claude/rules/
 /CLAUDE.local.md
-/skills-lock.json
