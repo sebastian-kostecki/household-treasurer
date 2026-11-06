@@ -161,6 +161,8 @@
     --dialog-width: 460px;
     --form-panel-width: 640px;
     --aside-width: 300px;
+    --settings-nav-width: 200px;
+    --settings-content-width: 640px;
     --dialog-pad-x: 18px;
     --dialog-pad-y: 16px;
     /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
@@ -1305,6 +1307,66 @@
 
     .dashboard-notice-icon-warning {
         @apply bg-warning-soft text-warning;
+    }
+
+    /* Panel sekcji ustawień (SettingsPanel): nagłówek, treść, stopka z akcjami. */
+    .settings-panel {
+        @apply bg-card text-card-foreground rounded-lg border;
+    }
+
+    .settings-panel-head {
+        @apply flex flex-col gap-0.5 border-b px-4 py-3;
+    }
+
+    .settings-panel-title {
+        @apply section-title;
+    }
+
+    .settings-panel-description {
+        @apply meta text-muted-foreground;
+    }
+
+    .settings-panel-body {
+        @apply flex flex-col gap-4 px-4 py-4;
+    }
+
+    .settings-panel-foot {
+        @apply flex items-center justify-end gap-2 border-t px-4 py-3;
+    }
+
+    /* Układ ustawień: od lg podmenu z lewej, treść w kolumnie o stałej szerokości. */
+    .settings-layout {
+        @apply flex flex-col gap-4;
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: var(--settings-nav-width) minmax(
+                    0,
+                    var(--settings-content-width)
+                );
+            align-items: start;
+        }
+    }
+
+    .settings-subnav {
+        @apply flex flex-wrap gap-1;
+
+        @variant lg {
+            @apply flex-col gap-0.5;
+        }
+    }
+
+    .settings-subnav-link {
+        @apply text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-ring rounded-md px-3 py-1.5 text-sm font-medium outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
+    .settings-subnav-link[aria-current='page'] {
+        @apply bg-card text-foreground;
+        box-shadow: 0 0 0 1px var(--border);
+    }
+
+    .settings-content {
+        @apply flex flex-col gap-4 md:gap-5;
     }
 
     /* Panel miar (StatPanel): miary rozdzielone liniami, od md w jednym rzędzie. */
