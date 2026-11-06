@@ -179,7 +179,9 @@ const frames: SidebarFrame[] = [
             >
                 menu-states: Pozycja w spoczynku i aktywna
             </h2>
-            <SidebarProvider class="bg-sidebar min-h-0 w-64 p-2">
+            <SidebarProvider
+                class="bg-sidebar min-h-0 w-(--sidebar-panel-width) p-2"
+            >
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton>

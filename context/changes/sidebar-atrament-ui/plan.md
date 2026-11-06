@@ -426,23 +426,23 @@ Brak danych. Ciasteczko `sidebar_state` bez zmian. Konflikt w `AppSidebar.vue` z
 
 #### Automated
 
-- [x] 2.1 Nowe asercje nie przechodzą przed fazą 3
-- [x] 2.2 Spec nie przechodzi przed fazą 4
-- [x] 2.3 Typy się zgadzają
+- [x] 2.1 Nowe asercje nie przechodzą przed fazą 3 — be3eba4
+- [x] 2.2 Spec nie przechodzi przed fazą 4 — be3eba4
+- [x] 2.3 Typy się zgadzają — be3eba4
 
 ### Phase 3: Powłoka (C1, C6, C7)
 
 #### Automated
 
-- [ ] 3.1 Asercje szerokości, cva i slotu przechodzą
-- [ ] 3.2 Literały: `npm run check:ui`
-- [ ] 3.3 Typy: `npm run types:check`
-- [ ] 3.4 Build: `npm run build`
+- [x] 3.1 Asercje szerokości, cva i slotu przechodzą
+- [x] 3.2 Literały: `npm run check:ui`
+- [x] 3.3 Typy: `npm run types:check`
+- [x] 3.4 Build: `npm run build`
 
 #### Manual
 
-- [ ] 3.5 Rozwinięty sidebar 224 px, zwinięty 3rem, mobilny Sheet 18rem
-- [ ] 3.6 Pozycja aktywna 600, promień pozycji 8 px w obu motywach
+- [x] 3.5 Rozwinięty sidebar 224 px, zwinięty 3rem, mobilny Sheet 18rem
+- [x] 3.6 Pozycja aktywna 600, promień pozycji 8 px w obu motywach
 
 ### Phase 4: Sloty sidebara (C2, C3, C4)
 

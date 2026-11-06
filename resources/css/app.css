@@ -161,6 +161,7 @@
     --dialog-width: 460px;
     --form-panel-width: 640px;
     --aside-width: 300px;
+    --sidebar-panel-width: 224px;
     --settings-nav-width: 200px;
     --settings-content-width: 640px;
     --dialog-pad-x: 18px;
@@ -1179,7 +1180,7 @@
             'meter meter';
     }
 
-    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 644 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
+    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 676 px przy sidebarze 224 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
     .category-meter-table {
         container-type: inline-size;
     }
