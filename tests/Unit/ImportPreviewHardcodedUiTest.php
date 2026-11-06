@@ -3,13 +3,16 @@
 /**
  * Import step 2 view files take values from tokens and named classes in app.css,
  * never from literals (ADR-0052). app.css itself is the token source and is not scanned.
- * Sink and fixtures join the list in phase 4. The scanner is a copy of AccountsHardcodedUiTest; a shared helper for all
+ * The sink and its fixtures are on the list too. The scanner is a copy of AccountsHardcodedUiTest; a shared helper for all
  * *HardcodedUiTest files is the open debt F6 of the change accounts-atrament-ui.
  */
 const IMPORT_PREVIEW_VIEW_FILES = [
     'resources/js/pages/OperationsImportPreview.vue',
     'resources/js/components/ImportPreviewRow.vue',
     'resources/js/components/ImportPreviewSubmitBar.vue',
+    'resources/js/components/ImportPreviewDuplicateAcknowledgement.vue',
+    'resources/js/pages/dev/ImportPreviewSink.vue',
+    'resources/js/lib/import-preview-fixtures.ts',
 ];
 
 const IMPORT_PREVIEW_FORBIDDEN_PATTERNS = [

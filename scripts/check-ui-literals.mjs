@@ -66,6 +66,7 @@ const FILES = [
     'resources/js/components/CategorySelect.vue',
     'resources/js/components/AccountSelect.vue',
     'resources/js/pages/dev/ImportPreviewSink.vue',
+    'resources/js/lib/import-preview-fixtures.ts',
     'resources/js/pages/Budget.vue',
     'resources/js/pages/dev/BudgetKitchenSink.vue',
     'resources/js/components/BudgetCategoryList.vue',

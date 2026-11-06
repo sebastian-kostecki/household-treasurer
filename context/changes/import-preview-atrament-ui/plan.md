@@ -555,9 +555,9 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [x] 3.1 Przed zmianą widoku `ImportPreviewHardcodedUiTest` i `import-row-amount.test.ts` są czerwone
-- [x] 3.2 Po zmianie testy PHP (`ImportPreviewHardcodedUiTest`, `UiTranslationKeysTest`, `CsvImportTest`) przechodzą
-- [x] 3.3 `npm test`, `npm run check:ui`, `npm run check` i `npm run types:check` przechodzą po `npm run build`
+- [x] 3.1 Przed zmianą widoku `ImportPreviewHardcodedUiTest` i `import-row-amount.test.ts` są czerwone — 7bf99e6
+- [x] 3.2 Po zmianie testy PHP (`ImportPreviewHardcodedUiTest`, `UiTranslationKeysTest`, `CsvImportTest`) przechodzą — 7bf99e6
+- [x] 3.3 `npm test`, `npm run check:ui`, `npm run check` i `npm run types:check` przechodzą po `npm run build` — 7bf99e6
 
 #### Manual
 
@@ -569,11 +569,11 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [ ] 4.1 `DevImportPreviewSinkTest` i `ImportPreviewHardcodedUiTest` przechodzą
-- [ ] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build`
-- [ ] 4.3 Pełna bramka `ci:check` na PostgreSQL w worktree przechodzi
-- [ ] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście
-- [ ] 4.5 `npx playwright test` (istniejący suite) przechodzi
+- [x] 4.1 `DevImportPreviewSinkTest` i `ImportPreviewHardcodedUiTest` przechodzą
+- [x] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build`
+- [x] 4.3 Pełna bramka `ci:check` na PostgreSQL w worktree przechodzi
+- [x] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście
+- [x] 4.5 `npx playwright test` (istniejący suite) przechodzi
 
 #### Manual
 
