@@ -583,6 +583,7 @@ return [
         'import_hint' => 'Funkcja dostępna wkrótce',
         'import_step_mapping' => 'Krok 1: wybierz format importu, wczytaj plik CSV lub XLSX i konto.',
         'import_back' => 'Wróć do operacji',
+        'import_choose_other_file' => 'Wybierz inny plik',
         'import_format' => 'Format importu',
         'import_format_title' => 'Import z mBanku',
         'import_format_mbank' => 'mBank',

@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
-import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoney } from '@/lib/format';
+import { importRowAmount } from '@/lib/import-row-amount';
 import {
     applyPairCandidateSelection,
     availablePairCandidates,
@@ -190,6 +190,12 @@ const rowDate = computed(() =>
     row.operation_date ? formatDate(row.operation_date) : '—',
 );
 
+const rowAmount = computed(() =>
+    row.amount_minor_units === null
+        ? null
+        : importRowAmount(selection.value.type, row.amount_minor_units),
+);
+
 const rowDescription = computed(() => row.description ?? '—');
 
 function controlLabel(column: string): string {
@@ -325,7 +331,7 @@ function onPairCandidateChange(value: string): void {
                     v-model="selection.selected"
                     :disabled="!row.valid"
                     :aria-label="selectRowLabel"
-                    class="size-6 rounded-md"
+                    class="import-preview-select-check"
                 >
                     <Check class="size-4" />
                 </Checkbox>
@@ -345,7 +351,7 @@ function onPairCandidateChange(value: string): void {
                 <span class="table-header xl:sr-only">
                     {{ t.operations.date }}
                 </span>
-                <p class="text-sm font-medium">
+                <p class="tabular-nums">
                     {{ rowDate }}
                 </p>
             </div>
@@ -364,17 +370,13 @@ function onPairCandidateChange(value: string): void {
 
             <div
                 class="import-preview-cell-amount"
-                :class="amountToneClass(row.amount_minor_units ?? 0)"
+                :class="rowAmount?.className"
             >
                 <span class="table-header xl:sr-only">
                     {{ t.operations.amount }}
                 </span>
                 <p>
-                    {{
-                        row.amount_minor_units !== null
-                            ? formatMoney(row.amount_minor_units)
-                            : '—'
-                    }}
+                    {{ rowAmount?.text ?? '—' }}
                 </p>
             </div>
 
@@ -500,13 +502,13 @@ function onPairCandidateChange(value: string): void {
                             {{ termDeposit.name }}
                         </option>
                     </select>
-                    <p class="text-muted-foreground text-xs">
+                    <p class="meta text-muted-foreground">
                         {{ capitalMovementDirectionLabel() }}
                     </p>
                     <template v-if="showInterestOverlay">
                         <Label
                             :for="`row-interest-amount-${row.index}`"
-                            class="text-xs"
+                            class="form-field-label"
                         >
                             {{ t.operations.import_interest_amount }}
                         </Label>
@@ -571,7 +573,7 @@ function onPairCandidateChange(value: string): void {
                 <p
                     v-if="showsSuggestion"
                     :id="suggestionId"
-                    class="text-muted-foreground text-xs"
+                    class="meta text-muted-foreground"
                 >
                     <span aria-hidden="true">✦</span>
                     {{ t.operations.import_category_suggestion }}
@@ -591,13 +593,13 @@ function onPairCandidateChange(value: string): void {
                     </Badge>
                     <Badge
                         v-if="!row.import_duplicate && !showsPairBadge"
-                        variant="secondary"
+                        variant="neutral"
                     >
                         {{ t.operations.import_row_valid }}
                     </Badge>
                 </div>
                 <div v-else>
-                    <Badge variant="destructive">
+                    <Badge variant="destructive-soft">
                         {{ t.operations.import_row_invalid }}
                     </Badge>
                 </div>
@@ -607,13 +609,13 @@ function onPairCandidateChange(value: string): void {
         <div v-if="hasNotes" class="mt-2 space-y-2 px-0.5">
             <p
                 v-if="showsPairBadge && matchingCandidate !== null"
-                class="text-muted-foreground text-xs"
+                class="meta text-muted-foreground"
             >
                 {{ importPairReasonText(matchingCandidate, t.operations) }}
             </p>
             <p
                 v-if="!row.valid && row.invalid_reason"
-                class="text-muted-foreground text-xs"
+                class="meta text-muted-foreground"
             >
                 {{ importInvalidReasonText(row.invalid_reason, t.operations) }}
             </p>

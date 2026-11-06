@@ -1034,6 +1034,10 @@
         grid-area: select;
     }
 
+    .import-preview-select-check {
+        @apply size-6 rounded-md;
+    }
+
     .import-preview-cell-date {
         grid-area: date;
     }
@@ -1045,7 +1049,7 @@
 
     .import-preview-cell-amount {
         grid-area: amount;
-        @apply text-right font-medium tabular-nums;
+        @apply amount text-right;
     }
 
     .import-preview-cell-type {
@@ -1080,7 +1084,7 @@
     }
 
     .import-preview-row {
-        @apply border-border/60 hover:bg-secondary border-b py-3 transition-colors last:border-b-0;
+        @apply border-border-soft hover:bg-secondary border-b py-3 transition-colors last:border-b-0;
     }
 
     .import-preview-row-duplicate {

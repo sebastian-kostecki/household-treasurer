@@ -57,6 +57,7 @@ const FILES = [
     'resources/js/pages/OperationsImportPreview.vue',
     'resources/js/components/ImportPreviewRow.vue',
     'resources/js/components/ImportPreviewSubmitBar.vue',
+    'resources/js/components/ImportPreviewDuplicateAcknowledgement.vue',
     'resources/js/pages/OperationsImport.vue',
     'resources/js/components/ImportRecognizedFields.vue',
     'resources/js/components/ImportColumnMapping.vue',

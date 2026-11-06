@@ -541,11 +541,11 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [x] 2.1 Przed zmianą kodu nowe i zmienione testy są czerwone z powodu angielskiego tekstu albo braku kodu lub enuma
-- [x] 2.2 Po zmianie testy PHP (`CsvImportTest`, `CsvImportPreviewValidatorTest`, `ImportRowReasonTranslationsTest`, `UiTranslationKeysTest`) przechodzą
-- [x] 2.3 `npm test` i `npm run types:check` przechodzą
-- [x] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian po formatowaniu
-- [x] 2.5 PHP, typy TS, fikstury i testy są w jednym commicie `fix(import-preview-atrament-ui): …`
+- [x] 2.1 Przed zmianą kodu nowe i zmienione testy są czerwone z powodu angielskiego tekstu albo braku kodu lub enuma — 4d80457
+- [x] 2.2 Po zmianie testy PHP (`CsvImportTest`, `CsvImportPreviewValidatorTest`, `ImportRowReasonTranslationsTest`, `UiTranslationKeysTest`) przechodzą — 4d80457
+- [x] 2.3 `npm test` i `npm run types:check` przechodzą — 4d80457
+- [x] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian po formatowaniu — 4d80457
+- [x] 2.5 PHP, typy TS, fikstury i testy są w jednym commicie `fix(import-preview-atrament-ui): …` — 4d80457
 
 #### Manual
 
@@ -555,9 +555,9 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Automated
 
-- [ ] 3.1 Przed zmianą widoku `ImportPreviewHardcodedUiTest` i `import-row-amount.test.ts` są czerwone
-- [ ] 3.2 Po zmianie testy PHP (`ImportPreviewHardcodedUiTest`, `UiTranslationKeysTest`, `CsvImportTest`) przechodzą
-- [ ] 3.3 `npm test`, `npm run check:ui`, `npm run check` i `npm run types:check` przechodzą po `npm run build`
+- [x] 3.1 Przed zmianą widoku `ImportPreviewHardcodedUiTest` i `import-row-amount.test.ts` są czerwone
+- [x] 3.2 Po zmianie testy PHP (`ImportPreviewHardcodedUiTest`, `UiTranslationKeysTest`, `CsvImportTest`) przechodzą
+- [x] 3.3 `npm test`, `npm run check:ui`, `npm run check` i `npm run types:check` przechodzą po `npm run build`
 
 #### Manual
 

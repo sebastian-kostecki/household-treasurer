@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Check } from '@lucide/vue';
 import { useId } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -21,12 +22,13 @@ const reasonId = `${useId()}-reason`;
             :aria-describedby="reason === null ? undefined : reasonId"
         >
             <Spinner v-if="processing" :aria-label="t.common.loading" />
+            <Check v-else class="size-4" aria-hidden="true" />
             {{ t.operations.import_confirm }}
         </Button>
         <p
             v-if="reason !== null"
             :id="reasonId"
-            class="text-muted-foreground text-xs"
+            class="meta text-muted-foreground"
         >
             {{ reason }}
         </p>
