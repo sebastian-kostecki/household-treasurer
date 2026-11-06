@@ -1,9 +1,9 @@
 ---
 change_id: dashboard-atrament-ui
 title: Dashboard atrament ui
-status: preparing
+status: implementing
 created: 2026-11-05
-updated: 2026-11-05
+updated: 2026-11-06
 archived_at: null
 ---
 

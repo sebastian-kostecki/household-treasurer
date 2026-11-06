@@ -25,7 +25,7 @@ A one-sentence note about a reading shown on the same page, under the metrics pa
 
 ## Bind the reka-ui Checkbox with v-model, never :checked
 
-reka-ui `Checkbox` takes `modelValue` and emits `update:modelValue`; `:checked`, `@update:checked` and `v-model:checked` are radix-vue names and are silently ignored, leaving an uncontrolled box. Use `v-model` (see Dashboard.vue) or `:model-value` with `@update:model-value`. `resources/js/ui-contract.test.ts` fails on the old names; its exception list (issue #186) only shrinks.
+reka-ui `Checkbox` takes `modelValue` and emits `update:modelValue`; `:checked`, `@update:checked` and `v-model:checked` are radix-vue names and are silently ignored, leaving an uncontrolled box. Use `v-model` (see CategoryFormDialog.vue) or `:model-value` with `@update:model-value`. `resources/js/ui-contract.test.ts` fails on the old names; its exception list (issue #186) only shrinks.
 A setting saved at once ("Pokaż zarchiwizowane") is a `Switch` from components/ui/switch, also bound with `v-model`.
 
 ## Confirmations use ConfirmActionDialog
@@ -35,6 +35,7 @@ Actions that need confirmation (delete, archive, restore) use `ConfirmActionDial
 ## Responsive lists are one markup on a grid, inside ListSurface
 
 Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid-template-areas class (`.operations-grid`, `.budget-category-grid`) inside a single `ListSurface`, with a `hidden md:grid` header row (the Operations list has no header row, ADR-0039). States of the Budget page (the 7-state matrix, without a month strip: execution rows within plan, income over 100%, overrun with the `przekroczono` Badge, archived, one-off without the year mark, paced with it; draft with a Type column; empty list; no budget; Switch on/off; StatPanel with 3 and 4 metrics) are shown in the kitchen sink at `/dev/kitchen-sink/budget` (`local` only); add a new Budget state there.
+The Dashboard (ADR-0043) follows the same rule: the execution panel is one `ListSurface` on the `.category-meter-row` grid, with the Status column and a group row above the Categories of each type, not a second mobile tree, and the Accounts and Term Deposits panels are one markup at every width (no accordion). New Dashboard states go to `/dev/ui/dashboard`.
 
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
@@ -42,6 +43,7 @@ Values live in resources/css/app.css (:root / .dark, published by @theme inline)
 Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; `.month-plan-header-row` applies it in the month plan; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft / ok / brand / neutral / outline; `brand` also marks document state, such as an approved month plan, ADR-0042; `outline` marks a closed past month, „Końcowy”), the elapsed-year mark in ExecutionMeter in `brand-text`.
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
 No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits, /dev/operations and /dev/import-preview.
+The Dashboard (ADR-0043) is guarded the same way by tests/Unit/DashboardHardcodedUiTest.php (planned in this change, part of `composer ci:check`): it lists the Dashboard files and fails on pre-Atrament typography, borders and opacity. The warning card is the `.dashboard-notice` class in `@layer components`, with severity only in the icon tile, not a utility-tinted `Card`; a new Dashboard notice kind needs no new card markup.
 Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are 32px (`--control-height`) and `rounded-md`.
 
 ## Sidebar
