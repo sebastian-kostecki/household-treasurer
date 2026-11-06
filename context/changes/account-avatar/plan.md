@@ -474,12 +474,12 @@ Bez migracji danych. Usunięcie trzech plików z `public/marks` nie wpływa na d
 
 #### Automated
 
-- [x] 5.1 `composer ci:check` przechodzi (Sail, PostgreSQL)
-- [x] 5.2 `vendor/bin/sloppy ci` na hoście przechodzi
-- [x] 5.3 `npm run check:ui` przechodzi
+- [x] 5.1 `composer ci:check` przechodzi (Sail, PostgreSQL) — 4bf5441
+- [x] 5.2 `vendor/bin/sloppy ci` na hoście przechodzi — 4bf5441
+- [x] 5.3 `npm run check:ui` przechodzi — 4bf5441
 
 #### Manual
 
-- [x] 5.4 Siedem stanów widocznych w sinkach w jasnym i ciemnym motywie
-- [x] 5.5 Kontrast JPEG-ów i przezroczystego Revoluta na `muted` w trybie ciemnym zaakceptowany albo zapisany w ADR-0054
-- [x] 5.6 Rzeczywista aplikacja: ten sam znak dla tego samego konta we wszystkich widokach
+- [x] 5.4 Siedem stanów widocznych w sinkach w jasnym i ciemnym motywie — 4bf5441
+- [x] 5.5 Kontrast JPEG-ów i przezroczystego Revoluta na `muted` w trybie ciemnym zaakceptowany albo zapisany w ADR-0054 — 4bf5441
+- [x] 5.6 Rzeczywista aplikacja: ten sam znak dla tego samego konta we wszystkich widokach — 4bf5441

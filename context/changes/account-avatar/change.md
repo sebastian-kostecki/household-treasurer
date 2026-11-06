@@ -1,9 +1,9 @@
 ---
 change_id: account-avatar
 title: Account avatar
-status: implementing
+status: implemented
 created: 2026-11-06
-updated: 2026-11-06
+updated: 2026-11-07
 archived_at: null
 ---
 
