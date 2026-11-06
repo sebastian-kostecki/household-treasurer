@@ -23,7 +23,6 @@ const BUDGET_VIEW_FILES = [
     'components/BudgetPlanSummaryStrip.vue',
     'components/StatPanel.vue',
     'components/ExecutionMeter.vue',
-    'components/BudgetCategoryAlignPlanAction.vue',
     'components/BudgetYearSwitcher.vue',
     'components/CreateBudgetDialog.vue',
     'components/CategoryFormDialog.vue',
@@ -52,11 +51,9 @@ const DEAD_CHECKBOX_BINDING_EXCEPTIONS: string[] = [];
 const DEAD_CHECKBOX_BINDING = /:checked=|@update:checked|v-model:checked/;
 
 // A Button that closes a dialog is ghost (ADR-0045). The list only shrinks:
-// PasskeyItem keeps its own variant (ADR-0049), the align confirmation is
-// converted in Phase 2 of the cancel-button-ghost change.
+// PasskeyItem keeps its own variant (ADR-0049).
 const DIALOG_CANCEL_VARIANT_EXCEPTIONS: string[] = [
     'components/PasskeyItem.vue',
-    'components/BudgetCategoryAlignPlanAction.vue',
 ];
 
 const DIALOG_CLOSE_BUTTON = /<DialogClose\b[^>]*>\s*<Button\b([^>]*)>/g;

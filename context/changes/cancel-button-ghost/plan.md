@@ -231,10 +231,10 @@ None; frontend and docs only.
 
 #### Automated
 
-- [x] 1.1 Guard fails before the swap, listing the seven form dialogs
-- [x] 1.2 After the swap the guard passes with both exceptions still offending
-- [x] 1.3 npm run check and npm run types:check pass
-- [x] 1.4 npm run check:ui passes
+- [x] 1.1 Guard fails before the swap, listing the seven form dialogs — 56ea266
+- [x] 1.2 After the swap the guard passes with both exceptions still offending — 56ea266
+- [x] 1.3 npm run check and npm run types:check pass — 56ea266
+- [x] 1.4 npm run check:ui passes — 56ea266
 
 #### Manual
 
@@ -244,10 +244,10 @@ None; frontend and docs only.
 
 #### Automated
 
-- [ ] 2.1 ui-contract.test.ts passes including the guard
-- [ ] 2.2 Frontend gate passes (check, check:ui, types:check, npm test)
-- [ ] 2.3 AlignCategoryCurrentPlanTest passes on PostgreSQL
-- [ ] 2.4 BudgetCategoryAlignPlanAction is referenced nowhere
+- [x] 2.1 ui-contract.test.ts passes including the guard
+- [x] 2.2 Frontend gate passes (check, check:ui, types:check, npm test)
+- [x] 2.3 AlignCategoryCurrentPlanTest passes on PostgreSQL
+- [x] 2.4 BudgetCategoryAlignPlanAction is referenced nowhere
 
 #### Manual
 

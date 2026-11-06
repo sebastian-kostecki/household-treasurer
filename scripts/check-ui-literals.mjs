@@ -83,7 +83,6 @@ const FILES = [
     'resources/js/components/BudgetAmountCell.vue',
     'resources/js/components/BudgetEmptyState.vue',
     'resources/js/components/BudgetCategoryRowActions.vue',
-    'resources/js/components/BudgetCategoryAlignPlanAction.vue',
     'resources/js/components/BudgetMonthPicker.vue',
     'resources/js/pages/MonthPlan.vue',
     'resources/js/pages/dev/MonthPlanSink.vue',
