@@ -508,10 +508,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Automated
 
-- [x] 4.1 Statyka, typy i straże przechodzą
-- [x] 4.2 Vitest przechodzi
-- [x] 4.3 AccountsHardcodedUiTest, testy Kont i sinka dialogów w obrazie Sail przechodzą
-- [x] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary
+- [x] 4.1 Statyka, typy i straże przechodzą — 11ce2cb
+- [x] 4.2 Vitest przechodzi — 11ce2cb
+- [x] 4.3 AccountsHardcodedUiTest, testy Kont i sinka dialogów w obrazie Sail przechodzą — 11ce2cb
+- [x] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary — 11ce2cb
 
 #### Manual
 
@@ -524,9 +524,9 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Automated
 
-- [ ] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail)
-- [ ] 5.2 Sloppy na hoście
-- [ ] 5.3 Statyka, typy, straże i Vitest
+- [x] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail)
+- [x] 5.2 Sloppy na hoście
+- [x] 5.3 Statyka, typy, straże i Vitest
 
 #### Manual
 

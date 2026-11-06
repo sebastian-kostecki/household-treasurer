@@ -12,7 +12,7 @@ const createDialogOpen = ref(false);
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-total, negative-total i with-archived poniżej.',
+        where: 'Scenariusze default (panel z dwiema miarami), zero-total, negative-total, with-archived (Switch włączony), archived-negative (zarchiwizowane z ujemnym i dodatnim saldem) i long-names (zawijanie nazw przy 390 px) poniżej; Switch wyłączony w default i all-archived.',
     },
     {
         state: 'hover',
