@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
 import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
@@ -16,64 +15,7 @@ import { monthElapsedPercent } from '@/lib/month-pace-calculator';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { operations as operationsRoute } from '@/routes';
 import { index as termDepositsIndex } from '@/routes/term-deposits';
-
-export type DashboardNoticeSeverity = 'exceeded' | 'warning';
-
-export type DashboardNotice = {
-    severity: DashboardNoticeSeverity;
-} & (
-    | {
-          kind: 'negative_account';
-          id: number;
-          name: string;
-          type: 'bank' | 'cash';
-          bank: AccountBank | null;
-          mark_url: string | null;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'negative_term_deposit';
-          id: number;
-          name: string;
-          bank: AccountBank;
-          mark_url: string | null;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'month_to_spend_negative';
-          month: number;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'month_item_over_plan';
-          id: number;
-          name: string;
-          icon: string;
-          color: string;
-          category_name: string;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'month_plan_not_approved';
-          month: number;
-      }
-    | {
-          kind: 'month_pace_ahead';
-          month: number;
-          percent: number;
-          elapsed_day: number;
-          days_in_month: number;
-      }
-    | {
-          kind: 'one_off_over_limit';
-          id: number;
-          name: string;
-          icon: string;
-          color: string;
-          category_name: string;
-          amount_minor_units: number;
-      }
-);
+import type { DashboardNotice } from '@/types/dashboard';
 
 // Two rows of the card grid's widest breakpoint (3 columns).
 const VISIBLE_NOTICE_LIMIT = 6;

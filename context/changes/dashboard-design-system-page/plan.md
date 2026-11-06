@@ -415,10 +415,10 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [ ] 2.1 Nowe testy najpierw były czerwone, teraz przechodzą: `npm run test`
-- [ ] 2.2 Typy przechodzą: `npm run types:check`
-- [ ] 2.3 Lint i formatowanie przechodzą: `npm run check`, po zmianach PHP `vendor/bin/pint --dirty --format agent`
-- [ ] 2.4 Istniejący `dashboard-fixtures.test.ts` przechodzi bez edycji
+- [x] 2.1 Nowe testy najpierw były czerwone, teraz przechodzą: `npm run test`
+- [x] 2.2 Typy przechodzą: `npm run types:check`
+- [x] 2.3 Lint i formatowanie przechodzą: `npm run check`, po zmianach PHP `vendor/bin/pint --dirty --format agent`
+- [x] 2.4 Istniejący `dashboard-fixtures.test.ts` przechodzi bez edycji
 
 #### Manual
 
