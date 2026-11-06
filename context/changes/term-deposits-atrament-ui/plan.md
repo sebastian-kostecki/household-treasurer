@@ -536,9 +536,9 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [x] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail)
-- [x] 5.2 Sloppy na hoście
-- [x] 5.3 Statyka, typy, straże i Vitest
+- [x] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail) — 928fac5
+- [x] 5.2 Sloppy na hoście — 928fac5
+- [x] 5.3 Statyka, typy, straże i Vitest — 928fac5
 
 #### Manual
 
