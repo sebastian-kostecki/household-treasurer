@@ -34,3 +34,11 @@ yarn-error.log
 !/.claude/hooks/
 !/.claude/rules/
 /CLAUDE.local.md
+
+# Playwright
+playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-cli/
