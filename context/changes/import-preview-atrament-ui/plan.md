@@ -535,7 +535,7 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Manual
 
-- [ ] 1.3 ADR-0052, `design-system.md` i reguły nie przeczą sobie ani ADR-0037/0038/0043/0048
+- [x] 1.3 ADR-0052, `design-system.md` i reguły nie przeczą sobie ani ADR-0037/0038/0043/0048
 
 ### Phase 2: Powody po polsku test-first (C1)
 
@@ -549,7 +549,7 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Manual
 
-- [ ] 2.6 Podgląd pliku z przyszłą datą i z drugą nogą transferu pokazuje polskie powody z datą `dd.mm.rrrr`
+- [x] 2.6 Podgląd pliku z przyszłą datą i z drugą nogą transferu pokazuje polskie powody z datą `dd.mm.rrrr`
 
 ### Phase 3: Widok w Atramencie (C2–C4, C6)
 
@@ -561,9 +561,9 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Manual
 
-- [ ] 3.4 Kwota zmienia znak i kolor przy zmianie typu wiersza, a transfer własny pokazuje znak z pliku
-- [ ] 3.5 Błąd potwierdzenia duplikatów jest odczytywany razem z checkboksem
-- [ ] 3.6 „Wróć do operacji” prowadzi do Operacji, a „Wybierz inny plik” w stanie pustym do kroku 1
+- [x] 3.4 Kwota zmienia znak i kolor przy zmianie typu wiersza, a transfer własny pokazuje znak z pliku
+- [x] 3.5 Błąd potwierdzenia duplikatów jest odczytywany razem z checkboksem
+- [x] 3.6 „Wróć do operacji” prowadzi do Operacji, a „Wybierz inny plik” w stanie pustym do kroku 1
 
 ### Phase 4: Sink, zrzuty i bramka (C5)
 
@@ -577,5 +577,5 @@ Brak migracji bazy. Kształt wiersza w sesji się zmienia: podgląd zapisany prz
 
 #### Manual
 
-- [ ] 4.6 Zrzuty w obu motywach i obu szerokościach są w `screenshots/` i odpowiadają karcie `PageImportPreview`
-- [ ] 4.7 Sink pokazuje wszystkie scenariusze bez błędów w konsoli i bez zdublowanych `id`
+- [x] 4.6 Zrzuty w obu motywach i obu szerokościach są w `screenshots/` i odpowiadają karcie `PageImportPreview`
+- [x] 4.7 Sink pokazuje wszystkie scenariusze bez błędów w konsoli i bez zdublowanych `id`

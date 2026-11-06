@@ -80,7 +80,7 @@ Notes: diff 1fc9820..deb008d matches the plan's file list (no EXTRA, no MISSING)
 - **Location**: plan.md Progress rows 1.3, 2.6, 3.4, 3.5, 3.6, 4.6, 4.7
 - **Detail**: Correctly unticked. 4.6 should stay open until F1/F2 are addressed and shots refreshed.
 - **Fix**: Tick after human confirmation following F1/F2.
-- **Decision**: OPEN — manual rows stay unticked until the user confirms them.
+- **Decision**: CLOSED — the user confirmed all manual checks (1.3, 2.6, 3.4–3.6, 4.6, 4.7) on the worktree preview; rows ticked.
 
 ## Observation dismissed (not a finding)
 
