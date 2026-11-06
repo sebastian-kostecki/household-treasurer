@@ -3,6 +3,7 @@ import {
     financialOperationAmountClass,
     formatDayLabel,
     formatFinancialOperationAmount,
+    formatLongDate,
     formatMoney,
     formatMoneyAmount,
     formatOperationDaySum,
@@ -136,6 +137,12 @@ describe('operationDaySumClass', () => {
         expect(operationDaySumClass(100)).toBe('text-success');
         expect(operationDaySumClass(0)).toBe('text-foreground');
         expect(operationDaySumClass(-100)).toBe('text-foreground');
+    });
+});
+
+describe('formatLongDate', () => {
+    it('writes the weekday, the day, the month name and the year in Polish', () => {
+        expect(formatLongDate('2026-11-05')).toBe('czwartek, 5 listopada 2026');
     });
 });
 

@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue';
+import { type HTMLAttributes, useId } from 'vue';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export type StatPanelMetric = {
+    /**
+     * Names the metric's `label-extra-<id>` and `footer-<id>` slots and is
+     * the `v-for` key; the label is the key when it is missing.
+     */
+    id?: string;
     label: string;
     /** Already formatted (money through `formatMoney`). */
     value: string;
@@ -17,6 +22,8 @@ defineProps<{
     /** 2 to 4 metrics; the first one is the largest. */
     metrics: StatPanelMetric[];
 }>();
+
+const panelId = useId();
 </script>
 
 <template>
@@ -24,11 +31,19 @@ defineProps<{
         <div class="stat-panel">
             <div
                 v-for="(metric, index) in metrics"
-                :key="metric.label"
+                :key="metric.id ?? metric.label"
                 class="stat-panel-metric"
+                role="group"
+                :aria-labelledby="`${panelId}-${index}`"
             >
-                <p class="label-caps text-muted-foreground">
-                    {{ metric.label }}
+                <p
+                    :id="`${panelId}-${index}`"
+                    class="stat-panel-label label-caps text-muted-foreground"
+                >
+                    <span class="stat-panel-label-text">{{
+                        metric.label
+                    }}</span>
+                    <slot v-if="metric.id" :name="`label-extra-${metric.id}`" />
                 </p>
                 <p
                     :class="
@@ -40,6 +55,7 @@ defineProps<{
                 <p v-if="metric.caption" class="meta text-muted-foreground">
                     {{ metric.caption }}
                 </p>
+                <slot v-if="metric.id" :name="`footer-${metric.id}`" />
             </div>
         </div>
     </Card>

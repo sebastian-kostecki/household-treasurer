@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
-import StatTile from '@/components/StatTile.vue';
+import DashboardStatPanel from '@/components/DashboardStatPanel.vue';
 import DashboardHoldings from '@/components/DashboardHoldings.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
-import DashboardCategorySection from '@/components/DashboardCategorySection.vue';
+import DashboardExecutionPanel from '@/components/DashboardExecutionPanel.vue';
 import DashboardNotices from '@/components/DashboardNotices.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,8 +20,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import {
     useFirstRunChecklist,
     useShell,
@@ -31,11 +29,9 @@ import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
-import { formatDate } from '@/lib/format';
+import { formatLongDate } from '@/lib/format';
 import { dashboard } from '@/routes';
 import type { DashboardPageProps } from '@/types/dashboard';
-
-const YEAR_ELAPSED_STORAGE_KEY = 'dashboard-year-elapsed';
 
 const props = defineProps<DashboardPageProps>();
 
@@ -57,51 +53,37 @@ const stopListeningForYearSelectionFailure =
     );
 
 onUnmounted(stopListeningForYearSelectionFailure);
-const showYearElapsed = ref(false);
-
-onMounted(() => {
-    showYearElapsed.value =
-        window.localStorage.getItem(YEAR_ELAPSED_STORAGE_KEY) === '1';
-});
-
-watch(showYearElapsed, (enabled) => {
-    window.localStorage.setItem(YEAR_ELAPSED_STORAGE_KEY, enabled ? '1' : '0');
-});
-
-const yearElapsedLabel = computed(() => {
-    if (props.year_elapsed_as_of === null) {
-        return t.dashboard.year_elapsed;
-    }
-
-    return `${t.dashboard.year_elapsed} ${formatDate(props.year_elapsed_as_of)}`;
-});
 
 const checklistComplete = computed(() =>
     checklist.value.every((item) => item.done),
 );
 
-const showMonthToSpendTile = computed(() => props.month_to_spend !== null);
+const budgetStateLabel = computed(() => {
+    const key =
+        props.budget === null
+            ? 'meta_no_budget'
+            : props.budget.phase === 'execution'
+              ? 'meta_budget_execution'
+              : 'meta_budget_draft';
 
-const headlineTilesClass = computed(() =>
-    showMonthToSpendTile.value ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
-);
-
-const monthToSpendLabel = computed(() => {
-    if (props.current_month === null) {
-        return '';
-    }
-
-    const monthName =
-        t.budget[
-            `month_name_${props.current_month}` as keyof typeof t.budget
-        ] ?? '';
-
-    return t.dashboard.month_to_spend.replace(':month', monthName);
+    return t.dashboard[key].replace(':year', String(props.budget_year));
 });
 
-const budgetYearLabel = computed(() =>
-    t.dashboard.budget_year_label.replace(':year', String(props.budget_year)),
-);
+const metaLine = computed(() => {
+    if (props.year_elapsed_as_of === null) {
+        return budgetStateLabel.value;
+    }
+
+    return `${formatLongDate(props.year_elapsed_as_of)} · ${budgetStateLabel.value}`;
+});
+
+function onYearSelectionStart(): void {
+    yearSelectionPending.value = true;
+}
+
+function onYearSelectionFinish(): void {
+    yearSelectionPending.value = false;
+}
 
 const noBudgetMessage = computed(() =>
     t.dashboard.no_budget_for_year.replace(':year', String(props.budget_year)),
@@ -129,6 +111,50 @@ setLayoutProps({
     <Head :title="t.dashboard.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <h1 class="page-title">{{ t.dashboard.title }}</h1>
+                    <Badge v-if="budget?.phase === 'execution'" variant="brand">
+                        {{ t.budget.phase_execution }}
+                    </Badge>
+                    <Badge
+                        v-else-if="budget?.phase === 'draft'"
+                        variant="secondary"
+                    >
+                        {{ t.dashboard.draft_badge }}
+                    </Badge>
+                </div>
+                <p class="text-muted-foreground text-sm">{{ metaLine }}</p>
+            </div>
+
+            <Form
+                v-if="budget !== null && canSelectCurrentYearInShell"
+                v-bind="BudgetController.selectYear.form()"
+                v-slot="{ processing }"
+                @start="onYearSelectionStart"
+                @finish="onYearSelectionFinish"
+                @error="onYearSelectionFailed"
+            >
+                <input type="hidden" name="year" :value="budget_year" />
+                <Button type="submit" variant="outline" :disabled="processing">
+                    {{ t.dashboard.open_budget }}
+                </Button>
+            </Form>
+            <CreateBudgetDialog
+                v-else-if="budget !== null"
+                v-model:open="createBudgetDialogOpen"
+                year-input-id="dashboard-open-budget-year"
+                :suggested-year="budget_year"
+            >
+                <template #trigger>
+                    <Button variant="outline">
+                        {{ t.dashboard.open_budget }}
+                    </Button>
+                </template>
+            </CreateBudgetDialog>
+        </div>
+
         <Card v-if="shell.firstRun.showChecklist">
             <CardHeader class="pb-3">
                 <div
@@ -136,7 +162,7 @@ setLayoutProps({
                     :class="checklistComplete ? 'items-center' : 'items-start'"
                 >
                     <div class="space-y-1">
-                        <CardTitle class="text-base">
+                        <CardTitle class="section-title">
                             {{ t.dashboard.checklist_title }}
                         </CardTitle>
                         <CardDescription v-if="!checklistComplete">
@@ -188,57 +214,19 @@ setLayoutProps({
             </CardContent>
         </Card>
 
-        <div class="grid gap-3" :class="headlineTilesClass">
-            <StatTile
-                v-if="month_to_spend !== null"
-                :label="monthToSpendLabel"
-                :amount-minor-units="month_to_spend.to_spend_minor_units"
-            >
-                <template
-                    v-if="month_to_spend.state === 'proposal'"
-                    #label-extra
-                >
-                    <Badge variant="outline">
-                        {{ t.month_plan.state_proposal }}
-                    </Badge>
-                </template>
-                <template #footer>
-                    <Form
-                        v-bind="BudgetController.selectYear.form()"
-                        @start="yearSelectionPending = true"
-                        @finish="yearSelectionPending = false"
-                        v-slot="{ processing }"
-                        @error="onYearSelectionFailed"
-                    >
-                        <input type="hidden" name="year" :value="budget_year" />
-                        <input
-                            type="hidden"
-                            name="destination"
-                            value="month-plan"
-                        />
-                        <Button
-                            type="submit"
-                            variant="link"
-                            size="sm"
-                            class="h-auto p-0"
-                            :disabled="processing"
-                        >
-                            {{ t.nav.month_plan }}
-                        </Button>
-                    </Form>
-                </template>
-            </StatTile>
-
-            <StatTile
-                :label="t.dashboard.spendable_liquidity"
-                :amount-minor-units="spendable_liquidity_minor_units"
-            />
-
-            <StatTile
-                :label="t.dashboard.total_funds"
-                :amount-minor-units="total_funds_minor_units"
-            />
-        </div>
+        <DashboardStatPanel
+            :budget-year="budget_year"
+            :current-month="current_month"
+            :month-to-spend="month_to_spend"
+            :month-pace="month_pace"
+            :spendable-liquidity-minor-units="spendable_liquidity_minor_units"
+            :total-funds-minor-units="total_funds_minor_units"
+            :year-elapsed-as-of="year_elapsed_as_of"
+            :year-elapsed-percent="year_elapsed_percent"
+            @start="onYearSelectionStart"
+            @finish="onYearSelectionFinish"
+            @error="onYearSelectionFailed"
+        />
 
         <DashboardNotices
             v-if="dashboardNotices.length > 0"
@@ -247,78 +235,8 @@ setLayoutProps({
             :current-month="current_month"
         />
 
-        <div class="grid gap-4 lg:grid-cols-3 lg:gap-5">
-            <section class="space-y-3 lg:col-span-2">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-3">
-                        <h2 class="text-sm font-semibold">
-                            {{ budgetYearLabel }}
-                        </h2>
-                        <Badge
-                            v-if="budget?.phase === 'draft'"
-                            variant="secondary"
-                        >
-                            {{ t.dashboard.draft_badge }}
-                        </Badge>
-                    </div>
-
-                    <div
-                        v-if="budget !== null"
-                        class="flex flex-wrap items-center gap-3"
-                    >
-                        <div
-                            v-if="showBudgetCategories"
-                            class="flex items-center gap-2"
-                        >
-                            <Checkbox
-                                id="dashboard-year-elapsed"
-                                v-model="showYearElapsed"
-                            />
-                            <Label
-                                for="dashboard-year-elapsed"
-                                class="text-muted-foreground cursor-pointer text-sm font-normal"
-                            >
-                                {{ yearElapsedLabel }}
-                            </Label>
-                        </div>
-
-                        <Form
-                            v-if="canSelectCurrentYearInShell"
-                            v-bind="BudgetController.selectYear.form()"
-                            @start="yearSelectionPending = true"
-                            @finish="yearSelectionPending = false"
-                            v-slot="{ processing }"
-                            @error="onYearSelectionFailed"
-                        >
-                            <input
-                                type="hidden"
-                                name="year"
-                                :value="budget_year"
-                            />
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                size="sm"
-                                :disabled="processing"
-                            >
-                                {{ t.dashboard.open_budget }}
-                            </Button>
-                        </Form>
-                        <CreateBudgetDialog
-                            v-else
-                            v-model:open="createBudgetDialogOpen"
-                            year-input-id="dashboard-open-budget-year"
-                            :suggested-year="budget_year"
-                        >
-                            <template #trigger>
-                                <Button variant="outline" size="sm">
-                                    {{ t.dashboard.open_budget }}
-                                </Button>
-                            </template>
-                        </CreateBudgetDialog>
-                    </div>
-                </div>
-
+        <div class="dashboard-grid">
+            <section class="min-w-0 space-y-3">
                 <Card v-if="budget === null">
                     <IndexEmptyState :title="noBudgetMessage">
                         <template #actions>
@@ -339,7 +257,7 @@ setLayoutProps({
 
                 <template v-else>
                     <BudgetPlanSummaryStrip
-                        v-if="planSummary"
+                        v-if="planSummary && budget.phase === 'draft'"
                         :income-totals="planSummary.income"
                         :expense-totals="planSummary.expense"
                         :planned-balance-minor-units="
@@ -356,29 +274,19 @@ setLayoutProps({
                         />
                     </Card>
 
-                    <div v-if="showBudgetCategories" class="space-y-3">
-                        <DashboardCategorySection
-                            :title="t.dashboard.income"
-                            category-type="income"
-                            :categories="incomeCategories"
-                            :totals="incomeTotals"
-                            :show-year-elapsed="showYearElapsed"
-                            :year-elapsed-percent="year_elapsed_percent ?? 0"
-                        />
-
-                        <DashboardCategorySection
-                            :title="t.dashboard.expenses"
-                            category-type="expense"
-                            :categories="expenseCategories"
-                            :totals="expenseTotals"
-                            :show-year-elapsed="showYearElapsed"
-                            :year-elapsed-percent="year_elapsed_percent ?? 0"
-                        />
-                    </div>
+                    <DashboardExecutionPanel
+                        v-if="showBudgetCategories"
+                        :income-categories="incomeCategories"
+                        :expense-categories="expenseCategories"
+                        :income-totals="incomeTotals"
+                        :expense-totals="expenseTotals"
+                        :year-elapsed-percent="year_elapsed_percent"
+                        :budget-year="budget_year"
+                    />
                 </template>
             </section>
 
-            <aside class="lg:col-span-1">
+            <aside class="min-w-0">
                 <DashboardHoldings
                     :accounts="accounts"
                     :term-deposits="termDeposits"

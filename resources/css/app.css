@@ -159,6 +159,7 @@
     --row-height: 34px;
     --field-height: 34px;
     --dialog-width: 460px;
+    --aside-width: 300px;
     --dialog-pad-x: 18px;
     --dialog-pad-y: 16px;
     /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
@@ -784,9 +785,27 @@
         }
     }
 
-    /* Wiersz posiadań na Dashboardzie (konta i lokaty). */
+    /* Wiersz posiadań na Dashboardzie (konta i lokaty): separator `border-soft`, wiersze sięgają krawędzi panelu. */
     .dashboard-holdings-row {
-        @apply hover:bg-secondary flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+        @apply border-border-soft hover:bg-secondary flex items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-3 transition-colors;
+    }
+
+    /* Stopka panelu posiadań: etykieta i suma widocznych wierszy. */
+    .dashboard-holdings-footer {
+        @apply flex flex-col gap-1;
+    }
+
+    .dashboard-holdings-footer-total {
+        @apply flex items-center justify-between gap-x-4;
+    }
+
+    .dashboard-holdings-footer-label {
+        @apply text-sm font-semibold;
+    }
+
+    /* Mały link „Wszystkie →” w nagłówku panelu posiadań. */
+    .dashboard-holdings-link {
+        @apply text-muted-foreground hover:text-foreground focus-visible:outline-ring inline-flex items-center gap-1 rounded-md text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
     }
 
     /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
@@ -975,57 +994,81 @@
         @apply bg-pair/10;
     }
 
+    /*
+     * Panel realizacji budżetu na Dashboardzie: jedna siatka dla nagłówka
+     * kolumn, wiersza grupy typu i wiersza kategorii. Na telefonie wiersz to
+     * dwie linie (kategoria i pozostało, potem miernik i status), od `md`
+     * jedna linia kolumn.
+     */
+    .category-meter-header-row,
+    .category-meter-group-row,
     .category-meter-row {
-        @apply grid w-full items-center gap-x-3 gap-y-1.5 py-2.5;
+        @apply border-border-soft grid items-center gap-x-3 gap-y-1.5 border-b px-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'category remaining'
-            'bar percent';
+            'meter status';
     }
 
     @variant md {
+        .category-meter-header-row,
+        .category-meter-group-row,
         .category-meter-row {
-            min-height: 2.75rem;
             grid-template-columns:
                 minmax(0, 1.4fr)
                 5.75rem
                 5.75rem
                 5.75rem
-                minmax(3rem, 1fr)
-                3.25rem;
-            grid-template-areas: 'category plan execution remaining bar percent';
+                minmax(6rem, 1fr)
+                6rem;
+            grid-template-areas: 'category plan execution remaining meter status';
         }
     }
 
     .category-meter-header-row {
-        @apply grid items-center gap-x-3 pb-2;
-        grid-template-columns: minmax(0, 1fr) auto;
+        @apply table-header hidden py-2;
     }
 
     @variant md {
         .category-meter-header-row {
-            grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(3rem, 1fr)
-                3.25rem;
+            @apply grid;
         }
+    }
+
+    /* Wiersz grupy typu (Dochody / Wydatki) nad kategoriami; sumy w stylu `amount-sum`. */
+    .category-meter-group-row {
+        @apply bg-muted min-h-row py-2 text-sm font-semibold;
+    }
+
+    .category-meter-row {
+        @apply min-h-row py-2.5 text-sm;
+    }
+
+    /* Wiersz kategorii jako link: hover i fokus przez nazwaną klasę (klasa z @layer components nie nadpisze utility z wariantem). */
+    .category-meter-row-link {
+        @apply hover:bg-secondary focus-visible:outline-ring transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid;
     }
 
     .category-meter-cell-category {
         grid-area: category;
+        @apply min-w-0;
     }
 
     .category-meter-cell-plan {
         grid-area: plan;
-        @apply text-right;
+        @apply hidden text-right;
     }
 
     .category-meter-cell-execution {
         grid-area: execution;
-        @apply text-right;
+        @apply hidden text-right;
+    }
+
+    @variant md {
+        .category-meter-cell-plan,
+        .category-meter-cell-execution {
+            @apply block;
+        }
     }
 
     .category-meter-cell-remaining {
@@ -1033,25 +1076,99 @@
         @apply text-right;
     }
 
-    .category-meter-cell-bar {
-        grid-area: bar;
-        @apply min-w-0 overflow-visible;
-    }
-
-    .category-meter-cell-percent {
-        grid-area: percent;
-    }
-
-    /* Pasek realizacji i procent w jednej komórce siatki (bar + percent). */
     .category-meter-cell-meter {
-        grid-column: bar-start / percent-end;
-        grid-row: bar-start / percent-end;
+        grid-area: meter;
         @apply min-w-0;
+    }
+
+    .category-meter-cell-status {
+        grid-area: status;
+        @apply justify-self-end;
+    }
+
+    /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */
+    .dashboard-grid {
+        @apply grid gap-4;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    @variant lg {
+        .dashboard-grid {
+            grid-template-columns: minmax(0, 1fr) var(--aside-width);
+        }
+    }
+
+    /* Pasek dni miesiąca w miarze „Do wydania”: komórka na dzień, minione w `foreground`. */
+    .month-days {
+        @apply flex gap-0.5;
+    }
+
+    .month-days-day {
+        @apply bg-track h-0.5 min-w-0 flex-1;
+    }
+
+    .month-days-day-past {
+        @apply bg-foreground;
+    }
+
+    /* Karta ostrzeżenia Dashboardu; waga tylko w kafelku ikony. */
+    .dashboard-notice {
+        @apply bg-card text-card-foreground hover:border-muted-foreground flex items-center gap-3 rounded-md border px-3 py-2.5 text-left;
+    }
+
+    .dashboard-notice[aria-busy='true'] {
+        @apply cursor-wait;
+    }
+
+    .dashboard-notice-icon {
+        @apply flex size-6 shrink-0 items-center justify-center rounded-md;
+    }
+
+    /* Dwie równe linie przy lewej krawędzi: tytuł i zdanie z liczbami. */
+    .dashboard-notice-body {
+        @apply flex min-w-0 flex-1 flex-col items-start text-left;
+    }
+
+    .dashboard-notice-title {
+        @apply text-foreground w-full truncate text-sm font-medium;
+    }
+
+    .dashboard-notice-text {
+        @apply text-muted-foreground w-full text-xs;
+    }
+
+    .dashboard-notice-icon-exceeded {
+        @apply bg-destructive-soft text-destructive;
+    }
+
+    .dashboard-notice-icon-warning {
+        @apply bg-warning-soft text-warning;
     }
 
     /* Panel miar (StatPanel): miary rozdzielone liniami, od md w jednym rzędzie. */
     .stat-panel {
         @apply grid;
+    }
+
+    /* Etykieta miary i znacznik obok niej w jednej linii; etykieta się zwija, znacznik nie. */
+    .stat-panel-label {
+        @apply flex min-w-0 flex-wrap items-center gap-x-2;
+    }
+
+    .stat-panel-label-text {
+        @apply min-w-0;
+    }
+
+    /* Jedna linia pod paskiem dni: podpis i link do planu miesiąca. */
+    .stat-panel-footer-line {
+        @apply flex flex-wrap items-center gap-x-1;
+    }
+
+    /* Dashboard: pierwsza miara („Do wydania”) szersza, żeby etykieta i znacznik stały w jednej linii. */
+    @variant md {
+        .dashboard-stat-panel .stat-panel {
+            grid-template-columns: minmax(0, 1.5fr);
+        }
     }
 
     .stat-panel-metric {
@@ -1079,5 +1196,18 @@
 
     .execution-meter-percent {
         @apply ml-auto w-13 shrink-0 text-right text-sm font-medium tabular-nums;
+    }
+
+    /* W tabeli realizacji tor ma stałą szerokość, a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
+    .category-meter-cell-meter .execution-meter {
+        @apply gap-x-2;
+    }
+
+    .category-meter-cell-meter .execution-meter-track {
+        @apply w-14 flex-none;
+    }
+
+    .category-meter-cell-meter .execution-meter-percent {
+        @apply ml-0 w-auto min-w-9 text-left font-mono text-xs;
     }
 }
