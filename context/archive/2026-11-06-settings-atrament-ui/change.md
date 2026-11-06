@@ -1,10 +1,10 @@
 ---
 change_id: settings-atrament-ui
 title: Settings atrament ui
-status: impl_reviewed
+status: archived
 created: 2026-11-06
 updated: 2026-11-06
-archived_at: null
+archived_at: 2026-11-06T17:08:00Z
 ---
 
 ## Notes
