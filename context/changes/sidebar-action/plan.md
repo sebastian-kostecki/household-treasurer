@@ -424,7 +424,7 @@ Brak migracji danych. Ciasteczko `sidebar_state` w przeglądarkach użytkownikó
 
 - [x] 2.5 `/dev/ui/sidebar`, oba motywy: segmenty w ramkach `years-*` mieszczą się w 224 px, wybrany rok czytelny, fokus klawiatury widoczny — d062d81
 - [x] 2.6 Klik innego roku przechodzi na Budżet tego roku jednym kliknięciem; podczas żądania segmenty nie przyjmują kliknięć — d062d81
-- [x] 2.7 „2027 +” otwiera dialog z rokiem 2027; po utworzeniu segment staje się zwykłym rokiem, a „+” przesuwa się na 2028
+- [x] 2.7 „2027 +” otwiera dialog z rokiem 2027; po utworzeniu segment staje się zwykłym rokiem, a „+” przesuwa się na 2028 — d062d81
 - [x] 2.8 Bez budżetu: jeden segment „<bieżący rok> +” — d062d81
 
 ### Phase 3: Wspólna lista widoków i skróty
