@@ -492,10 +492,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Automated
 
-- [x] 3.1 Statyka, typy i straże przechodzą
-- [x] 3.2 Vitest przechodzi
-- [x] 3.3 AccountsHardcodedUiTest i testy Kont w obrazie Sail przechodzą
-- [x] 3.4 W widoku nie ma StatTile, Checkbox, AccountIdentityBlock, holdings-list-row ani opacity-60
+- [x] 3.1 Statyka, typy i straże przechodzą — 50ff64a
+- [x] 3.2 Vitest przechodzi — 50ff64a
+- [x] 3.3 AccountsHardcodedUiTest i testy Kont w obrazie Sail przechodzą — 50ff64a
+- [x] 3.4 W widoku nie ma StatTile, Checkbox, AccountIdentityBlock, holdings-list-row ani opacity-60 — 50ff64a
 
 #### Manual
 
@@ -508,10 +508,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Automated
 
-- [ ] 4.1 Statyka, typy i straże przechodzą
-- [ ] 4.2 Vitest przechodzi
-- [ ] 4.3 AccountsHardcodedUiTest, testy Kont i sinka dialogów w obrazie Sail przechodzą
-- [ ] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary
+- [x] 4.1 Statyka, typy i straże przechodzą
+- [x] 4.2 Vitest przechodzi
+- [x] 4.3 AccountsHardcodedUiTest, testy Kont i sinka dialogów w obrazie Sail przechodzą
+- [x] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary
 
 #### Manual
 

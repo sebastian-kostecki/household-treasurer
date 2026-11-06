@@ -2,13 +2,13 @@
 
 /**
  * Accounts view files take values from tokens and named classes in app.css,
- * never from literals (ADR-0044). Phase 4 of accounts-atrament-ui adds
- * AccountFormDialog.vue. AccountMarkCompact.vue, AccountIdentityBlock.vue and
+ * never from literals (ADR-0044). AccountMarkCompact.vue, AccountIdentityBlock.vue and
  * StatTile.vue are left out because they have consumers outside Accounts
  * (Dashboard, Term Deposits). app.css itself is the token source and is not scanned.
  */
 const ACCOUNTS_VIEW_FILES = [
     'resources/js/pages/Accounts.vue',
+    'resources/js/components/AccountFormDialog.vue',
     'resources/js/pages/dev/AccountsKitchenSink.vue',
     'resources/js/pages/dev/accounts-fixtures.ts',
 ];
