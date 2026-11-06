@@ -61,13 +61,18 @@ Props are PHP arrays in controllers and hand-written TypeScript types in `define
 
 A change to a rule in `CONTEXT.md` (for example To Spend) or to a term marked _Avoid_ needs the `CONTEXT.md` entry and a new ADR in `.docs/adr` before the code. Take the next free number after the highest existing ADR.
 
+## Commits and changes
+
+- Write commit messages as `type(<change-id>): opis po polsku`, with `type` one of `feat`, `fix`, `docs` or `chore`, and add a phase suffix such as `(p2)` for plan phases.
+- A change lives in `context/changes/<change-id>/` (`change.md`, research, plan). Closing it moves the folder to `context/archive/YYYY-MM-DD-<change-id>/` in a `chore(archive): close <change-id>` commit. Work branches merge into `development`.
+
 ## Wayfinder
 
 Wayfinder is in beta. Copy the pattern from an existing page and read `vendor/laravel/wayfinder/resources/boost/skills/wayfinder-development/SKILL.blade.php` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
 
 ## Frontend toolchain
 
-Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `npm run check:fix`. Warnings fail the run. CI also runs `npm run types:check` for Vue templates. Frontend tests run through `npm test` (`vp test`): keep `*.test.ts` next to the code, import from `vite-plus/test`, and use relative imports, because Vite plugins and the `@` alias are off during tests. Stay within `vp`, because this project has no separate ESLint, Prettier or Vitest setup. `vite-plus`, the `vite` alias and `overrides.vite` in `package.json` must stay on the same version, so upgrade them together. Confirm options with `npx vp --help`, because online docs may describe a newer version than the installed one.
+Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `npm run check:fix`. Warnings fail the run. `composer ci:check` runs, in order: `npm run check`, `npm run check:ui` (no colour literals or arbitrary values in the views listed in `scripts/check-ui-literals.mjs`), `npm run types:check` (`vue-tsc` for Vue templates), `npm test`, then `composer test` (Pint `--test`, PHPStan level 7 from `phpstan.neon`, Pest). Frontend tests run through `npm test` (`vp test`): keep `*.test.ts` next to the code, import from `vite-plus/test`, and use relative imports, because Vite plugins and the `@` alias are off during tests. Stay within `vp`, because this project has no separate ESLint, Prettier or Vitest setup. `vite-plus`, the `vite` alias and `overrides.vite` in `package.json` must stay on the same version, so upgrade them together. Confirm options with `npx vp --help`, because online docs may describe a newer version than the installed one.
 
 ## Fresh checkout or worktree
 
