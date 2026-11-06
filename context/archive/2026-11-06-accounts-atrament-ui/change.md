@@ -1,10 +1,10 @@
 ---
 change_id: accounts-atrament-ui
 title: Accounts atrament ui
-status: impl_reviewed
+status: archived
 created: 2026-11-06
 updated: 2026-11-06
-archived_at: null
+archived_at: 2026-11-06T14:16:28Z
 ---
 
 ## Notes
