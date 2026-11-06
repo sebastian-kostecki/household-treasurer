@@ -83,13 +83,13 @@ describe('noticePresentation', () => {
             icon: 'plane',
             color: 'green',
             category_name: 'Podróże',
-            amount_minor_units: 7000,
+            amount_minor_units: -7000,
         };
 
         expect(noticePresentation(notice)).toEqual({
             labelKey: 'over_limit',
             identity: { type: 'name', name: 'Podróże' },
-            value: { type: 'money', minorUnits: 7000 },
+            value: { type: 'money', minorUnits: -7000 },
         });
     });
 

@@ -428,10 +428,10 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [x] 3.1 Testy JS i typy przechodzą: `npm run test`, `npm run types:check`
-- [x] 3.2 Skan literałów przechodzi: `npm run check:ui`
-- [x] 3.3 Straż Dashboardu przechodzi: `tests/Unit/DashboardHardcodedUiTest.php`
-- [x] 3.4 `grep -rn "yearElapsedCaption\|notice-title\|notice-text" resources` nie zwraca trafień
+- [x] 3.1 Testy JS i typy przechodzą: `npm run test`, `npm run types:check` — d555f82
+- [x] 3.2 Skan literałów przechodzi: `npm run check:ui` — d555f82
+- [x] 3.3 Straż Dashboardu przechodzi: `tests/Unit/DashboardHardcodedUiTest.php` — d555f82
+- [x] 3.4 `grep -rn "yearElapsedCaption\|notice-title\|notice-text" resources` nie zwraca trafień — d555f82
 
 #### Manual
 
