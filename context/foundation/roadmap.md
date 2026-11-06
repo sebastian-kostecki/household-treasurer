@@ -43,7 +43,7 @@ Aplikacja nie odpowiada dziś na pytanie, ile i na co wydaję oraz zarabiam w wy
 | ID   | Change ID                         | Outcome (user can …)                                                                                   | Prerequisites | PRD refs                                             | Status   |
 | ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- | ---------------------------------------------------- | -------- |
 | F-02 | irregular-expense-domain-decisions | (foundation) ADR i wpisy w `CONTEXT.md` opisują wydatek nieregularny, „zebrane” i regułę końca roku     | —             | Constraints & Compatibility, Business Logic Changes  | ready    |
-| S-11 | period-report-by-category         | użytkownik może zobaczyć przychody, wydatki, wynik i kategorie z udziałem % za wybrany miesiąc albo rok | —             | US-01, FR-001, FR-002, FR-003                        | ready    |
+| S-11 | period-report-by-category         | użytkownik może zobaczyć przychody, wydatki, wynik i kategorie z udziałem % za wybrany miesiąc albo rok | —             | US-01, FR-001, FR-002, FR-003                        | planning |
 | S-12 | category-trend-by-month           | użytkownik może zobaczyć kwoty kategorii i sumy w kolejnych miesiącach roku                            | S-11          | US-02, FR-005                                        | proposed |
 | S-13 | report-to-operations              | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                      | S-11          | FR-004                                               | proposed |
 | S-14 | irregular-expense-in-month-plan   | użytkownik może oznaczyć wydatek jako nieregularny i widzieć jego miesięczną kwotę oraz „zebrane”       | F-02          | US-03, US-04, FR-010, FR-011, FR-012, FR-014         | proposed |
@@ -103,7 +103,7 @@ Różnice względem dokumentów, istotne dla wycinków: Align działa dla pojedy
 - **Unknowns:**
   - Biblioteka wykresów czy wykres bez biblioteki? Decyzja wymaga ADR według AGENTS.md. — Owner: user. Block: no.
 - **Risk:** Tu powstaje widok raportów i decyzja o wykresach, z których korzysta reszta strumienia A. Sumy muszą być co do grosza równe wykonaniu w budżecie rocznym i Wynikowi miesiąca, a raport roku musi się otwierać w 2 s przy 10 000 operacji.
-- **Status:** ready
+- **Status:** planning
 
 ### S-12: Trend kategorii w miesiącach roku
 
