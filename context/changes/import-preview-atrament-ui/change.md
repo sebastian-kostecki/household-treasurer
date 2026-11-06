@@ -1,7 +1,7 @@
 ---
 change_id: import-preview-atrament-ui
 title: Import preview atrament ui
-status: implemented
+status: impl_reviewed
 created: 2026-11-06
 updated: 2026-11-06
 ---

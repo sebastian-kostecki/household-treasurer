@@ -18,7 +18,10 @@ import {
     monthHasPlan,
     type EntryToSpendInputs,
 } from '@/lib/entry-to-spend-warning';
-import { firstRowsError } from '@/lib/import-preview-errors';
+import {
+    duplicateAcknowledgementErrorText,
+    firstRowsError,
+} from '@/lib/import-preview-errors';
 import { importSubmitBlockReason } from '@/lib/import-submit-block';
 import { computeImportToSpendWarnings } from '@/lib/import-to-spend-warnings';
 import {
@@ -240,7 +243,7 @@ watch(consumedFirstLegKeysSet, () => {
         </ListSurface>
 
         <template v-else>
-            <ListSurface>
+            <ListSurface class="gap-4">
                 <template #header>
                     <div class="space-y-1">
                         <h2 class="section-title">
@@ -257,7 +260,7 @@ watch(consumedFirstLegKeysSet, () => {
                     </div>
                 </template>
 
-                <div class="flex flex-wrap gap-2 p-4">
+                <div class="flex flex-wrap gap-2">
                     <Badge variant="neutral">
                         {{
                             t.operations.import_valid_rows.replace(
@@ -329,7 +332,7 @@ watch(consumedFirstLegKeysSet, () => {
                 v-slot="{ errors, processing }"
                 class="space-y-4"
             >
-                <ListSurface>
+                <ListSurface flush>
                     <div class="overflow-x-auto">
                         <div
                             class="import-preview-grid import-preview-header-row"
@@ -386,7 +389,12 @@ watch(consumedFirstLegKeysSet, () => {
                 <ImportPreviewDuplicateAcknowledgement
                     v-if="requiresDuplicateAcknowledgement"
                     v-model="duplicateWarningAcknowledged"
-                    :error="errors.duplicate_warning_acknowledged"
+                    :error="
+                        duplicateAcknowledgementErrorText(
+                            errors.duplicate_warning_acknowledged,
+                            t.operations,
+                        )
+                    "
                 />
                 <InputError :message="firstRowsError(errors)" />
 

@@ -787,7 +787,7 @@
     }
 
     .budget-category-header-row {
-        @apply table-header border-border/60 hidden border-b pb-2.5;
+        @apply table-header border-border/60 hidden border-b px-4 py-2.5;
     }
 
     @variant md {
@@ -1022,7 +1022,7 @@
     @variant xl {
         .import-preview-grid {
             align-items: start;
-            grid-template-columns: 2rem 6rem minmax(
+            grid-template-columns: 4.5rem 6rem minmax(
                     9rem,
                     1fr
                 ) 6.5rem 9rem 13.5rem 8.5rem;
@@ -1074,7 +1074,7 @@
      * tintu stoją po `.import-preview-row`.
      */
     .import-preview-header-row {
-        @apply table-header border-border/60 hidden border-b pb-2.5;
+        @apply table-header border-border/60 hidden border-b px-4 py-2.5;
     }
 
     @variant xl {
@@ -1084,7 +1084,7 @@
     }
 
     .import-preview-row {
-        @apply border-border-soft hover:bg-secondary border-b py-3 transition-colors last:border-b-0;
+        @apply border-border-soft hover:bg-secondary border-b px-4 py-3 transition-colors last:border-b-0;
     }
 
     .import-preview-row-duplicate {

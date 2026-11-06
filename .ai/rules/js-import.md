@@ -29,6 +29,7 @@ Step 2 follows PageImportPreview (ADR-0052):
 - Pills: valid `neutral`, invalid `destructive-soft`, duplicate and pair `outline`; never the full `destructive`.
 - The amount goes through `importRowAmount` (`resources/js/lib/import-row-amount.ts`): sign and colour by the chosen type, "zł" in the cell, style `amount`; no `amountToneClass` by the sign in the file.
 - Reasons are composed in the UI by `resources/js/lib/import-row-reasons.ts` from the code and data sent by the server. A new rejection code is a case of the enum `ImportRowInvalidReason` plus a key `import_invalid_reason_<code>` in `lang/pl/ui.php`; the server never sends a sentence.
+- The duplicate-acknowledgement error (`duplicate_warning_acknowledged`) is also composed in the UI by `duplicateAcknowledgementErrorText` (`resources/js/lib/import-preview-errors.ts`) from `import_duplicate_acknowledgement_required` in `lang/pl/ui.php`; the server's English message stays as the fallback.
 - The row checkbox is 24 px through `.import-preview-select-check`; the duplicates confirmation is `.form-check-row` with its error linked by `aria-describedby`.
 - The kitchen sink at `/dev/import-preview` mounts the real page.
 - `tests/Unit/ImportPreviewHardcodedUiTest.php` guards `OperationsImportPreview.vue`, `ImportPreviewRow.vue`, `ImportPreviewSubmitBar.vue`, `ImportPreviewDuplicateAcknowledgement.vue`, `pages/dev/ImportPreviewSink.vue` and `lib/import-preview-fixtures.ts`; they are also on the `check:ui` list.

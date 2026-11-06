@@ -301,7 +301,7 @@ const sampleErrors = {
             <h2 class="section-title">{{ section.title }}</h2>
             <p class="meta text-muted-foreground">{{ section.note }}</p>
 
-            <ListSurface>
+            <ListSurface flush>
                 <div class="overflow-x-auto">
                     <div class="import-preview-grid import-preview-header-row">
                         <span class="import-preview-cell-select">
