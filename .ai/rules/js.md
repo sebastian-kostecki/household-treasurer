@@ -13,7 +13,7 @@ Category colour is identity only (CategoryChip tile at 15%), never status. Full 
 
 ## Amounts go through formatMoney with tabular-nums
 
-Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,56 zł) in metrics and dialogs, right-aligned, tabular-nums. In table cells use formatMoneyAmount (no unit) with the `amount` style (`amount-sum` in total rows) and put "Kwoty w zł" in the panel footer (ADR-0037), except the Operations list (ADR-0039), the Accounts table (ADR-0044) and the Term Deposits table (ADR-0051), whose amounts carry "zł" and which have no such footer; edit with minorUnitsToMoneyInput / parseMoneyInputToMinorUnits. Do not format money with toFixed or Intl in components.
+Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,56 zł) in metrics and dialogs, right-aligned, tabular-nums. In table cells use formatMoneyAmount (no unit) with the `amount` style (`amount-sum` in total rows) and put "Kwoty w zł" in the panel footer (ADR-0037), except the Operations list (ADR-0039), the Accounts table (ADR-0044) the Term Deposits table (ADR-0051) and the import preview (ADR-0052), whose amounts carry "zł" and which have no such footer; edit with minorUnitsToMoneyInput / parseMoneyInputToMinorUnits. Do not format money with toFixed or Intl in components.
 
 ## Reuse surface building blocks before writing new markup
 
@@ -45,7 +45,7 @@ A settings section is `SettingsPanel` with its fields in `FormField`; the `Form`
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
 Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check IndexEmptyState and the "Gotowe elementy" list in context/foundation/design-system.md.
-Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft / ok / brand / neutral / outline; `brand` also marks document state, such as an approved month plan, ADR-0042; `outline` marks a closed past month, „Końcowy”), the elapsed-year mark in ExecutionMeter in `brand-text`.
+Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft (also an invalid import row, ADR-0052) / ok / brand / neutral / outline; `brand` also marks document state, such as an approved month plan, ADR-0042; `outline` marks a closed past month, „Końcowy”), the elapsed-year mark in ExecutionMeter in `brand-text`.
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) and an account balance < 0 (FR-ACC-10, ADR-0044) — then `amountToneClass`.
 No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/settings, /dev/ui/term-deposits, /dev/ui/import, /dev/operations, /dev/import-preview and /dev/month-plan.
 The Dashboard (ADR-0043) is guarded the same way by tests/Unit/DashboardHardcodedUiTest.php (part of `composer ci:check`): it lists the Dashboard files and fails on pre-Atrament typography, borders and opacity. The warning card is the `.dashboard-notice` class in `@layer components`: an icon tile in the severity colour, the kind label, the identity and the value on the right in the severity colour (ADR-0045, ADR-0050), not a utility-tinted `Card`. A new Dashboard notice kind adds its label, identity and value to the one presentation function in `@/lib/dashboard-notice-presentation`, not new card markup.
@@ -53,6 +53,7 @@ A view setting remembered in the browser (the Dashboard Switch "Postęp roku", k
 The Accounts view (ADR-0044) is guarded the same way by tests/Unit/AccountsHardcodedUiTest.php: it lists the Accounts files and fails on pre-Atrament typography, borders and opacity (an archived row is muted, never `opacity-60`). New Accounts states go to `/dev/ui/accounts`.
 The Term Deposits view (ADR-0051) is guarded the same way by tests/Unit/TermDepositsHardcodedUiTest.php: it lists the Term Deposits files and fails on pre-Atrament typography, borders and opacity. New Term Deposits states go to `/dev/ui/term-deposits`.
 Import step 1 (ADR-0048) is guarded the same way by tests/Unit/ImportStartHardcodedUiTest.php. New step 1 states go to `/dev/ui/import`.
+Import step 2 (ADR-0052) is guarded by tests/Unit/ImportPreviewHardcodedUiTest.php. New step 2 states go to `/dev/import-preview`.
 Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or mark (e.g. AccountBankSelect). Both are 32px (`--control-height`) and `rounded-md`.
 
 ## Views take values from app.css, not from literals
