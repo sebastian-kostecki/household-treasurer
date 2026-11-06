@@ -520,10 +520,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [x] 4.1 Statyka, typy i straże przechodzą
-- [x] 4.2 Vitest przechodzi
-- [x] 4.3 Straż Lokat, testy Lokat i sinka dialogów w obrazie Sail przechodzą
-- [x] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary
+- [x] 4.1 Statyka, typy i straże przechodzą — dbbee8f
+- [x] 4.2 Vitest przechodzi — dbbee8f
+- [x] 4.3 Straż Lokat, testy Lokat i sinka dialogów w obrazie Sail przechodzą — dbbee8f
+- [x] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary — dbbee8f
 
 #### Manual
 
@@ -536,9 +536,9 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [ ] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail)
-- [ ] 5.2 Sloppy na hoście
-- [ ] 5.3 Statyka, typy, straże i Vitest
+- [x] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail)
+- [x] 5.2 Sloppy na hoście
+- [x] 5.3 Statyka, typy, straże i Vitest
 
 #### Manual
 

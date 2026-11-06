@@ -170,4 +170,30 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
             show_archived: false,
         },
     },
+    {
+        key: 'long-names',
+        title: 'long-names: długa nazwa, najdłuższa etykieta banku, brak daty zakończenia',
+        props: {
+            termDeposits: [
+                termDeposit(
+                    51,
+                    'Lokata terminowa na wakacje rodzinne i remont łazienki w mieszkaniu na Mokotowie',
+                    'lokaty_facto',
+                    1840000,
+                    { end_date: null, can_delete: true },
+                ),
+                archived(
+                    52,
+                    'Zarchiwizowana lokata promocyjna z wyjątkowo długą nazwą, która musi się zawinąć',
+                    'bnp_paribas',
+                    -45000,
+                ),
+            ],
+            total_funds_minor_units: 2055000,
+            term_deposits_total_minor_units: 1795000,
+            archived_term_deposits_total_minor_units: -45000,
+            archived_term_deposits_count: 1,
+            show_archived: true,
+        },
+    },
 ];

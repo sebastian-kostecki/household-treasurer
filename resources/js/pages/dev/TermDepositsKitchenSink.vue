@@ -14,7 +14,7 @@ const errorDialogOpen = ref(false);
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-total, negative-total, with-archived i with-archived-negative poniżej: panel miar „Suma lokat” i „Łączne środki”, stopka „W tym zarchiwizowane” (saldo ujemne na czerwono w wierszu i w stopce), tabela z nagłówkami, bank w kafelku, „—” przy braku daty zakończenia (default).',
+        where: 'Scenariusze default, zero-total, negative-total, with-archived, with-archived-negative i long-names poniżej (long-names: długa nazwa zawija się w obszarze nazwy, bank „Lokaty Facto”, brak daty): panel miar „Suma lokat” i „Łączne środki”, stopka „W tym zarchiwizowane” (saldo ujemne na czerwono w wierszu i w stopce), tabela z nagłówkami, bank w kafelku, „—” przy braku daty zakończenia (default).',
     },
     {
         state: 'hover',
@@ -34,7 +34,7 @@ const stateMatrix = [
     },
     {
         state: 'empty',
-        where: 'Scenariusze empty-new-user i all-archived poniżej.',
+        where: 'Scenariusze empty-new-user i all-archived poniżej. Przełącznik „Pokaż zarchiwizowane” wł./wył.: with-archived (włączony) i default (wyłączony, widoczny przy archived_term_deposits_count > 0 w all-archived); stany dialogu term-deposit-* w /dev/ui/dialogs.',
     },
     {
         state: 'loading',
