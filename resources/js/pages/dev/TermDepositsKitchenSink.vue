@@ -93,7 +93,7 @@ const stateMatrix = [
             >
                 error: formularz lokaty (tryb tworzenia)
             </h2>
-            <Button variant="secondary" @click="errorDialogOpen = true">
+            <Button variant="outline" @click="errorDialogOpen = true">
                 Otwórz formularz lokaty
             </Button>
             <TermDepositFormDialog

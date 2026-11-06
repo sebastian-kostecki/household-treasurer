@@ -2,12 +2,12 @@
 
 /**
  * Term Deposits view files take values from tokens and named classes in app.css,
- * never from literals (ADR-0051). TermDepositFormDialog.vue joins the list in
- * phase 4 of term-deposits-atrament-ui. app.css itself is the token source and
+ * never from literals (ADR-0051). app.css itself is the token source and
  * is not scanned.
  */
 const TERM_DEPOSITS_VIEW_FILES = [
     'resources/js/pages/TermDeposits.vue',
+    'resources/js/components/TermDepositFormDialog.vue',
     'resources/js/pages/dev/TermDepositsKitchenSink.vue',
     'resources/js/pages/dev/term-deposits-fixtures.ts',
 ];

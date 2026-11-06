@@ -11,9 +11,11 @@ import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vu
 import ExpenseFormDialog from '@/components/ExpenseFormDialog.vue';
 import IncomeFormDialog from '@/components/IncomeFormDialog.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
+import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { AccountFormAccount } from '@/types/accounts';
+import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 import {
     dialogAccounts,
@@ -52,6 +54,11 @@ const states = [
     'account-edit',
     'account-errors',
     'account-saving',
+    'term-deposit-new',
+    'term-deposit-edit',
+    'term-deposit-negative',
+    'term-deposit-errors',
+    'term-deposit-saving',
     'expense-new',
     'expense-edit',
     'expense-refund-edit',
@@ -93,6 +100,11 @@ const labels: Record<SinkState, string> = {
     'account-edit': 'Konto: edycja',
     'account-errors': 'Konto: błędy pól',
     'account-saving': 'Konto: zapis w toku',
+    'term-deposit-new': 'Lokata: nowa',
+    'term-deposit-edit': 'Lokata: edycja',
+    'term-deposit-negative': 'Lokata: ujemne saldo',
+    'term-deposit-errors': 'Lokata: błędy pól',
+    'term-deposit-saving': 'Lokata: zapis w toku',
     'expense-new': 'Wydatek: nowy',
     'expense-edit': 'Wydatek: edycja (przed = po)',
     'expense-refund-edit': 'Wydatek: edycja zwrotu (trzy typy)',
@@ -120,6 +132,22 @@ const account: AccountFormAccount = {
     bank: 'mbank',
     opening_date: '2026-01-01',
     opening_balance_minor_units: 150000,
+};
+
+const termDeposit: TermDepositFormTermDeposit = {
+    id: 1,
+    name: 'Lokata mBank 6M',
+    bank: 'mbank',
+    opening_date: '2026-01-15',
+    end_date: '2026-07-15',
+    opening_balance_minor_units: 1000000,
+    current_balance_minor_units: 1200000,
+};
+
+/** Current balance already below zero, so the negative-balance warning shows on open. */
+const negativeTermDeposit: TermDepositFormTermDeposit = {
+    ...termDeposit,
+    current_balance_minor_units: -50000,
 };
 
 const category: CategoryFormCategory = {
@@ -526,6 +554,35 @@ function setOpen(state: SinkState, value: boolean): void {
             mode="create"
             :form="savingForm"
             @update:open="setOpen('account-saving', $event)"
+        />
+        <TermDepositFormDialog
+            :open="isOpen('term-deposit-new')"
+            mode="create"
+            @update:open="setOpen('term-deposit-new', $event)"
+        />
+        <TermDepositFormDialog
+            :open="isOpen('term-deposit-edit')"
+            mode="edit"
+            :term-deposit="termDeposit"
+            @update:open="setOpen('term-deposit-edit', $event)"
+        />
+        <TermDepositFormDialog
+            :open="isOpen('term-deposit-negative')"
+            mode="edit"
+            :term-deposit="negativeTermDeposit"
+            @update:open="setOpen('term-deposit-negative', $event)"
+        />
+        <TermDepositFormDialog
+            :open="isOpen('term-deposit-errors')"
+            mode="create"
+            :form="validateForm"
+            @update:open="setOpen('term-deposit-errors', $event)"
+        />
+        <TermDepositFormDialog
+            :open="isOpen('term-deposit-saving')"
+            mode="create"
+            :form="savingForm"
+            @update:open="setOpen('term-deposit-saving', $event)"
         />
     </div>
 </template>

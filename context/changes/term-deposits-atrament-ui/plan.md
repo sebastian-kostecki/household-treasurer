@@ -503,10 +503,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [x] 3.1 Statyka, typy i straże przechodzą
-- [x] 3.2 Vitest przechodzi
-- [x] 3.3 Straże literałów i testy Lokat w obrazie Sail przechodzą
-- [x] 3.4 Brak StatTile, holdings-list-row, Checkbox, AccountIdentityBlock i mark_url w Lokatach
+- [x] 3.1 Statyka, typy i straże przechodzą — 3ce2844
+- [x] 3.2 Vitest przechodzi — 3ce2844
+- [x] 3.3 Straże literałów i testy Lokat w obrazie Sail przechodzą — 3ce2844
+- [x] 3.4 Brak StatTile, holdings-list-row, Checkbox, AccountIdentityBlock i mark_url w Lokatach — 3ce2844
 
 #### Manual
 
@@ -520,10 +520,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [ ] 4.1 Statyka, typy i straże przechodzą
-- [ ] 4.2 Vitest przechodzi
-- [ ] 4.3 Straż Lokat, testy Lokat i sinka dialogów w obrazie Sail przechodzą
-- [ ] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary
+- [x] 4.1 Statyka, typy i straże przechodzą
+- [x] 4.2 Vitest przechodzi
+- [x] 4.3 Straż Lokat, testy Lokat i sinka dialogów w obrazie Sail przechodzą
+- [x] 4.4 Dialog bez ręcznych pól i bez Anuluj secondary
 
 #### Manual
 

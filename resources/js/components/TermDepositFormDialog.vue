@@ -3,7 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import TermDepositController from '@/actions/App/Http/Controllers/TermDepositController';
 import AccountBankSelect from '@/components/AccountBankSelect.vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +16,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
@@ -26,11 +25,15 @@ import {
 } from '@/lib/format';
 import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
 
+type FormBinding = InstanceType<typeof Form>['$props'];
+
 const props = defineProps<{
     open: boolean;
     mode: 'create' | 'edit';
     termDeposit?: TermDepositFormTermDeposit | null;
     showArchived?: boolean;
+    /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
+    form?: Pick<FormBinding, 'action' | 'method'>;
 }>();
 
 const emit = defineEmits<{
@@ -52,6 +55,10 @@ const openingBalanceInvalid = computed(
 );
 
 const formBinding = computed(() => {
+    if (props.form) {
+        return props.form;
+    }
+
     const options = props.showArchived
         ? { query: { show_archived: 1 } }
         : undefined;
@@ -135,7 +142,7 @@ function onOpenChange(next: boolean): void {
         <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="formBinding"
-                class="space-y-4"
+                class="grid gap-4"
                 reset-on-success
                 @start="busy = true"
                 @finish="busy = false"
@@ -159,91 +166,98 @@ function onOpenChange(next: boolean): void {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div class="grid gap-2">
-                    <Label for="term-deposit-name">
-                        {{ t.term_deposits.name }}
-                    </Label>
+                <FormField
+                    id="term-deposit-name"
+                    :label="t.term_deposits.name"
+                    :error="errors.name"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <Input
-                        id="term-deposit-name"
+                        :id="id"
                         name="name"
                         v-model="name"
                         required
                         autocomplete="off"
-                        :aria-invalid="errors.name ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <InputError :message="errors.name" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label for="account-bank">{{ t.term_deposits.bank }}</Label>
+                <FormField
+                    id="term-deposit-bank"
+                    :label="t.term_deposits.bank"
+                    :error="errors.bank"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <AccountBankSelect
+                        :id="id"
                         v-model="bank"
-                        :invalid="Boolean(errors.bank)"
+                        :aria-describedby="describedBy"
+                        :invalid="Boolean(invalid)"
                     />
-                    <InputError :message="errors.bank" />
-                </div>
+                </FormField>
 
-                <div v-if="mode === 'create'" class="grid gap-2">
-                    <Label for="term-deposit-opening-date">
-                        {{ t.term_deposits.opening_date }}
-                    </Label>
+                <FormField
+                    v-if="mode === 'create'"
+                    id="term-deposit-opening-date"
+                    :label="t.term_deposits.opening_date"
+                    :error="errors.opening_date"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <Input
-                        id="term-deposit-opening-date"
+                        :id="id"
                         name="opening_date"
                         v-model="openingDate"
                         type="date"
                         required
-                        :aria-invalid="errors.opening_date ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <InputError :message="errors.opening_date" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label for="term-deposit-end-date">
-                        {{ t.term_deposits.end_date }}
-                    </Label>
+                <FormField
+                    id="term-deposit-end-date"
+                    :label="t.term_deposits.end_date"
+                    :hint="t.term_deposits.end_date_hint"
+                    :error="errors.end_date"
+                    v-slot="{ id, describedBy, invalid }"
+                >
                     <Input
-                        id="term-deposit-end-date"
+                        :id="id"
                         name="end_date"
                         v-model="endDate"
                         type="date"
-                        :aria-invalid="errors.end_date ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
-                    <p class="text-muted-foreground text-sm">
-                        {{ t.term_deposits.end_date_hint }}
-                    </p>
-                    <InputError :message="errors.end_date" />
-                </div>
+                </FormField>
 
-                <div class="grid gap-2">
-                    <Label for="term-deposit-opening-balance">
-                        {{ t.term_deposits.opening_balance }}
-                    </Label>
+                <FormField
+                    id="term-deposit-opening-balance"
+                    :label="t.term_deposits.opening_balance"
+                    money
+                    :error="
+                        openingBalanceInvalid
+                            ? t.term_deposits.opening_balance_invalid
+                            : errors.opening_balance_minor_units
+                    "
+                    v-slot="{ id, describedBy, invalid, controlClass }"
+                >
                     <Input
-                        id="term-deposit-opening-balance"
+                        :id="id"
                         v-model="openingBalanceInput"
+                        :class="controlClass"
                         inputmode="decimal"
                         autocomplete="off"
-                        :aria-invalid="
-                            openingBalanceInvalid ||
-                            errors.opening_balance_minor_units
-                                ? 'true'
-                                : undefined
-                        "
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
                     />
                     <input
                         type="hidden"
                         name="opening_balance_minor_units"
                         :value="openingBalanceMinorUnits ?? ''"
                     />
-                    <InputError
-                        :message="
-                            openingBalanceInvalid
-                                ? t.term_deposits.opening_balance_invalid
-                                : errors.opening_balance_minor_units
-                        "
-                    />
-                </div>
+                </FormField>
 
                 <Alert v-if="showNegativeBalanceWarning" variant="warning">
                     <AlertDescription>
@@ -255,7 +269,7 @@ function onOpenChange(next: boolean): void {
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="ghost"
                             :disabled="processing"
                             @click="
                                 () => {
