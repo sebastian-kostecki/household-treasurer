@@ -473,6 +473,11 @@ return [
         'restore_confirm_body' => 'Konto będzie ponownie dostępne przy tworzeniu nowych operacji.',
         'archived_badge' => 'Zarchiwizowane',
         'negative_balance' => 'Saldo ujemne',
+        'actions' => 'Akcje',
+        'cash_caption' => 'Portfel',
+        'liquidity_caption' => 'konta, bez lokat',
+        'total_funds' => 'Łączne środki',
+        'total_funds_caption' => 'z lokatami',
     ],
     'term_deposits' => [
         'title' => 'Lokaty',

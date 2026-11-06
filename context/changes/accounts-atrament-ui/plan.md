@@ -483,19 +483,19 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Automated
 
-- [x] 2.1 Testy TotalFunds, Kont, archiwizacji, Dashboardu i sinka Kont na PostgreSQL przechodzą
-- [x] 2.2 Typy po buildzie przechodzą
-- [x] 2.3 Formatowanie PHP (Pint)
-- [x] 2.4 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy TotalFunds, Kont, archiwizacji, Dashboardu i sinka Kont na PostgreSQL przechodzą — 9e9b7ad
+- [x] 2.2 Typy po buildzie przechodzą — 9e9b7ad
+- [x] 2.3 Formatowanie PHP (Pint) — 9e9b7ad
+- [x] 2.4 Sloppy bez nowych znalezisk — 9e9b7ad
 
 ### Phase 3: Widok Konta
 
 #### Automated
 
-- [ ] 3.1 Statyka, typy i straże przechodzą
-- [ ] 3.2 Vitest przechodzi
-- [ ] 3.3 AccountsHardcodedUiTest i testy Kont w obrazie Sail przechodzą
-- [ ] 3.4 W widoku nie ma StatTile, Checkbox, AccountIdentityBlock, holdings-list-row ani opacity-60
+- [x] 3.1 Statyka, typy i straże przechodzą
+- [x] 3.2 Vitest przechodzi
+- [x] 3.3 AccountsHardcodedUiTest i testy Kont w obrazie Sail przechodzą
+- [x] 3.4 W widoku nie ma StatTile, Checkbox, AccountIdentityBlock, holdings-list-row ani opacity-60
 
 #### Manual
 
