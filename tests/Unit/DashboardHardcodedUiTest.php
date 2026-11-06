@@ -8,6 +8,9 @@
  */
 const DASHBOARD_VIEW_FILES = [
     'resources/js/components/StatPanel.vue',
+    'resources/js/pages/Dashboard.vue',
+    'resources/js/components/DashboardStatPanel.vue',
+    'resources/js/components/DashboardNotices.vue',
 ];
 
 const DASHBOARD_FORBIDDEN_PATTERNS = [

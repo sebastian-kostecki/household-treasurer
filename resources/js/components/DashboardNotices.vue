@@ -6,6 +6,7 @@ import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountBank } from '@/lib/account-identity';
 import {
@@ -133,10 +134,8 @@ function severityTextClass(severity: DashboardNoticeSeverity): string {
     return severity === 'exceeded' ? 'text-destructive' : 'text-warning';
 }
 
-function severityCardClass(severity: DashboardNoticeSeverity): string {
-    return severity === 'exceeded'
-        ? 'border-destructive/25 bg-destructive/5 hover:bg-destructive/10'
-        : 'border-warning/30 bg-warning/5 hover:bg-warning/10';
+function isNoticePending(notice: DashboardNotice): boolean {
+    return isMonthNotice(notice) && monthPlanRequestPending.value;
 }
 
 function noticeKindLabel(notice: DashboardNotice): string {
@@ -284,7 +283,7 @@ function noticeKey(notice: DashboardNotice): string {
 <template>
     <section class="space-y-3" :aria-labelledby="headingId">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 :id="headingId" class="text-sm font-semibold">
+            <h2 :id="headingId" class="section-title">
                 {{ t.dashboard.attention_zone_title }}
             </h2>
             <div class="flex flex-wrap items-center gap-2">
@@ -323,13 +322,9 @@ function noticeKey(notice: DashboardNotice): string {
                         : undefined
                 "
                 :as="isMonthNotice(notice) ? 'button' : 'a'"
-                :disabled="
-                    isMonthNotice(notice) && monthPlanRequestPending
-                        ? true
-                        : undefined
-                "
-                class="focus-visible:outline-ring flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid disabled:opacity-60"
-                :class="severityCardClass(notice.severity)"
+                :disabled="isNoticePending(notice) ? true : undefined"
+                class="dashboard-notice"
+                :aria-busy="isNoticePending(notice) ? 'true' : undefined"
                 @start="monthPlanRequestPending = isMonthNotice(notice)"
                 @error="
                     isMonthNotice(notice) ? onMonthPlanRequestFailed() : null
@@ -337,76 +332,79 @@ function noticeKey(notice: DashboardNotice): string {
                 @finish="monthPlanRequestPending = false"
             >
                 <span
-                    class="inline-flex items-center gap-1.5 text-xs font-medium"
-                    :class="severityTextClass(notice.severity)"
+                    class="dashboard-notice-icon"
+                    :class="`dashboard-notice-icon-${notice.severity}`"
                 >
+                    <Spinner v-if="isNoticePending(notice)" class="size-3.5" />
+                    <CalendarDays
+                        v-else-if="isMonthNotice(notice)"
+                        class="size-3.5"
+                        aria-hidden="true"
+                    />
                     <OctagonX
-                        v-if="notice.severity === 'exceeded'"
-                        class="size-3.5 shrink-0"
+                        v-else-if="notice.severity === 'exceeded'"
+                        class="size-3.5"
                         aria-hidden="true"
                     />
-                    <AlertTriangle
-                        v-else
-                        class="size-3.5 shrink-0"
-                        aria-hidden="true"
-                    />
-                    {{ noticeKindLabel(notice) }}
+                    <AlertTriangle v-else class="size-3.5" aria-hidden="true" />
                 </span>
 
-                <div class="flex min-w-0 items-center gap-2">
-                    <AccountIdentityBlock
-                        v-if="notice.kind === 'negative_account'"
-                        class="shrink-0"
-                        size="sm"
-                        :name="notice.name"
-                        :type="notice.type"
-                        :bank="notice.bank"
-                        :mark_url="notice.mark_url"
-                    />
-                    <AccountIdentityBlock
-                        v-else-if="notice.kind === 'negative_term_deposit'"
-                        class="shrink-0"
-                        size="sm"
-                        type="bank"
-                        :name="notice.name"
-                        :bank="notice.bank"
-                        :mark_url="notice.mark_url"
-                    />
+                <span class="min-w-0 flex-1">
                     <span
-                        v-else-if="isMonthNotice(notice)"
-                        class="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-lg"
-                        aria-hidden="true"
-                    >
-                        <CalendarDays class="size-4" />
-                    </span>
-                    <CategoryChip
-                        v-else
-                        class="shrink-0"
-                        :name="notice.name"
-                        :icon="notice.icon"
-                        :color="notice.color"
-                        size="sm"
-                        :show-name="false"
-                    />
-
-                    <span
-                        class="min-w-0 flex-1 truncate text-base font-semibold"
-                    >
-                        {{
-                            isMonthNotice(notice)
-                                ? monthName(notice.month)
-                                : notice.name
-                        }}
-                    </span>
-
-                    <span
-                        v-if="noticeValue(notice) !== null"
-                        class="shrink-0 text-base font-semibold tabular-nums"
+                        class="label-caps block"
                         :class="severityTextClass(notice.severity)"
                     >
-                        {{ noticeValue(notice) }}
+                        {{ noticeKindLabel(notice) }}
                     </span>
-                </div>
+                    <span
+                        class="flex min-w-0 items-center gap-2 text-sm font-medium"
+                    >
+                        <template
+                            v-if="
+                                notice.kind === 'negative_account' ||
+                                notice.kind === 'negative_term_deposit'
+                            "
+                        >
+                            <AccountIdentityBlock
+                                class="shrink-0"
+                                size="sm"
+                                :name="notice.name"
+                                :type="
+                                    notice.kind === 'negative_account'
+                                        ? notice.type
+                                        : 'bank'
+                                "
+                                :bank="notice.bank"
+                                :mark_url="notice.mark_url"
+                            />
+                            <span class="min-w-0 truncate">
+                                {{ notice.name }}
+                            </span>
+                        </template>
+                        <span
+                            v-else-if="isMonthNotice(notice)"
+                            class="min-w-0 truncate"
+                        >
+                            {{ monthName(notice.month) }}
+                        </span>
+                        <CategoryChip
+                            v-else
+                            class="min-w-0 shrink"
+                            :name="notice.name"
+                            :icon="notice.icon"
+                            :color="notice.color"
+                            size="sm"
+                        />
+                    </span>
+                </span>
+
+                <span
+                    v-if="noticeValue(notice) !== null"
+                    class="amount shrink-0"
+                    :class="severityTextClass(notice.severity)"
+                >
+                    {{ noticeValue(notice) }}
+                </span>
             </Link>
         </div>
 

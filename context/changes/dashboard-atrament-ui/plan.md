@@ -544,25 +544,25 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Automated
 
-- [x] 3.1 Testy Dashboardu na PostgreSQL przechodzą
-- [x] 3.2 Vitest przechodzi
-- [x] 3.3 Typy po buildzie przechodzą
-- [x] 3.4 Formatowanie PHP (Pint)
-- [x] 3.5 Sloppy bez nowych znalezisk
+- [x] 3.1 Testy Dashboardu na PostgreSQL przechodzą — 93024f9
+- [x] 3.2 Vitest przechodzi — 93024f9
+- [x] 3.3 Typy po buildzie przechodzą — 93024f9
+- [x] 3.4 Formatowanie PHP (Pint) — 93024f9
+- [x] 3.5 Sloppy bez nowych znalezisk — 93024f9
 
 ### Phase 4: Górna część widoku
 
 #### Automated
 
-- [ ] 4.1 Statyka, typy i straże przechodzą
-- [ ] 4.2 DashboardHardcodedUiTest obejmuje Dashboard.vue, DashboardStatPanel.vue, DashboardNotices.vue i przechodzi
-- [ ] 4.3 Testy Dashboardu przechodzą
+- [x] 4.1 Statyka, typy i straże przechodzą
+- [x] 4.2 DashboardHardcodedUiTest obejmuje Dashboard.vue, DashboardStatPanel.vue, DashboardNotices.vue i przechodzi
+- [x] 4.3 Testy Dashboardu przechodzą
 
 #### Manual
 
-- [ ] 4.4 Panel miar ma 4/3/2 miary w default/draft/no-budget, Badge propozycji tylko w zero-amounts
-- [ ] 4.5 Plan miesiąca i Otwórz budżet przełączają rok, błąd daje toast
-- [ ] 4.6 Karty ostrzeżeń mają neutralną ramkę w obu motywach
+- [x] 4.4 Panel miar ma 4/3/2 miary w default/draft/no-budget, Badge propozycji tylko w zero-amounts
+- [x] 4.5 Plan miesiąca i Otwórz budżet przełączają rok, błąd daje toast
+- [x] 4.6 Karty ostrzeżeń mają neutralną ramkę w obu motywach
 
 ### Phase 5: Realizacja budżetu i Konta/Lokaty
 

@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 const FILES = [
     'resources/js/pages/Dashboard.vue',
     'resources/js/components/DashboardHoldings.vue',
+    'resources/js/components/DashboardStatPanel.vue',
     'resources/js/components/DashboardNotices.vue',
     'resources/js/components/DashboardCategorySection.vue',
     'resources/js/components/BudgetPlanSummaryStrip.vue',
