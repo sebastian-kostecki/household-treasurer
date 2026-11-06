@@ -291,13 +291,18 @@ function noticeKey(notice: DashboardNotice): string {
                         {{ noticeLabel(notice) }}
                     </span>
                     <span class="dashboard-notice-identity">
-                        <AccountAvatar
-                            v-if="noticeAvatar(notice)"
-                            size="xs"
-                            :type="noticeAvatar(notice)!.type"
-                            :bank="noticeAvatar(notice)!.bank"
-                            :mark_url="noticeAvatar(notice)!.mark_url"
-                        />
+                        <template
+                            v-for="avatar in [noticeAvatar(notice)]"
+                            :key="noticeKey(notice)"
+                        >
+                            <AccountAvatar
+                                v-if="avatar"
+                                size="xs"
+                                :type="avatar.type"
+                                :bank="avatar.bank"
+                                :mark_url="avatar.mark_url"
+                            />
+                        </template>
                         <span class="truncate">{{
                             noticeIdentity(notice)
                         }}</span>

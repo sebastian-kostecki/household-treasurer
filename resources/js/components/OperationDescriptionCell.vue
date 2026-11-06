@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationTypeTile from '@/components/OperationTypeTile.vue';
 import {
@@ -30,11 +31,15 @@ const {
 
 const t = useTranslations();
 const primaryLine = counterparty?.trim() ? counterparty : description;
-const secondaryLine =
-    [counterparty?.trim() ? description : null, detail]
-        .filter((part): part is string => !!part && part.trim() !== '')
-        .join(' · ') || null;
-const hasMetaLine = secondaryLine !== null || account !== null;
+const secondaryLine = computed(
+    () =>
+        [counterparty?.trim() ? description : null, detail]
+            .filter((part): part is string => !!part && part.trim() !== '')
+            .join(' · ') || null,
+);
+const hasMetaLine = computed(
+    () => secondaryLine.value !== null || account !== null,
+);
 const tooltipDescriptions =
     rawStatementDescriptions.length > 0
         ? rawStatementDescriptions
