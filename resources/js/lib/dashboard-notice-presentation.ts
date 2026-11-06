@@ -1,4 +1,5 @@
 import type { DashboardNotice } from '../types/dashboard';
+import type { AccountIdentityFields } from './account-identity';
 import { monthElapsedPercent } from './month-pace-calculator';
 
 export type NoticeLabelKey =
@@ -11,6 +12,11 @@ export type NoticeLabelKey =
 
 export type NoticeIdentity =
     | { type: 'name'; name: string }
+    | {
+          type: 'account';
+          name: string;
+          avatar: Pick<AccountIdentityFields, 'type' | 'bank' | 'mark_url'>;
+      }
     | { type: 'month'; month: number };
 
 export type NoticeValue =
@@ -29,10 +35,31 @@ export function noticePresentation(
 ): NoticePresentation {
     switch (notice.kind) {
         case 'negative_account':
+            return {
+                labelKey: 'negative_balance',
+                identity: {
+                    type: 'account',
+                    name: notice.name,
+                    avatar: {
+                        type: notice.type,
+                        bank: notice.bank,
+                        mark_url: notice.mark_url,
+                    },
+                },
+                value: { type: 'money', minorUnits: notice.amount_minor_units },
+            };
         case 'negative_term_deposit':
             return {
                 labelKey: 'negative_balance',
-                identity: { type: 'name', name: notice.name },
+                identity: {
+                    type: 'account',
+                    name: notice.name,
+                    avatar: {
+                        type: 'bank',
+                        bank: notice.bank,
+                        mark_url: notice.mark_url,
+                    },
+                },
                 value: { type: 'money', minorUnits: notice.amount_minor_units },
             };
         case 'month_to_spend_negative':

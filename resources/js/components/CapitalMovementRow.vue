@@ -45,14 +45,24 @@ const emit = defineEmits<{
                     :mark_url="movement.account_mark_url"
                 />
                 <span class="text-muted-foreground shrink-0">→</span>
-                <span class="min-w-0 flex-1 truncate font-medium">
-                    {{ movement.term_deposit_name }}
-                </span>
+                <CompactAccountIdentity
+                    class="min-w-0 flex-1"
+                    mark-size="md"
+                    type="bank"
+                    :bank="movement.term_deposit_bank"
+                    :mark_url="movement.term_deposit_mark_url"
+                    :name="movement.term_deposit_name"
+                />
             </template>
             <template v-else>
-                <span class="min-w-0 flex-1 truncate font-medium">
-                    {{ movement.term_deposit_name }}
-                </span>
+                <CompactAccountIdentity
+                    class="min-w-0 flex-1"
+                    mark-size="md"
+                    type="bank"
+                    :bank="movement.term_deposit_bank"
+                    :mark_url="movement.term_deposit_mark_url"
+                    :name="movement.term_deposit_name"
+                />
                 <span class="text-muted-foreground shrink-0">→</span>
                 <CompactAccountIdentity
                     class="min-w-0 flex-1"

@@ -1319,7 +1319,7 @@
     }
 
     .dashboard-notice-identity {
-        @apply text-foreground w-full truncate text-sm font-medium;
+        @apply text-foreground flex w-full min-w-0 items-center gap-1.5 text-sm font-medium;
     }
 
     .dashboard-notice-value {

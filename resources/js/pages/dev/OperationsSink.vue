@@ -5,6 +5,7 @@ import OperationsListPanel from '@/components/OperationsListPanel.vue';
 import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
+    accountFilterFixture,
     capitalMovementFixtures,
     emptyPaginator,
     filterAccountsFixture,
@@ -57,6 +58,12 @@ const filteredEmpty = {
     filters: searchFiltersFixture,
     filtersActive: true,
     operations: emptyPaginator,
+};
+
+const accountFiltered = {
+    ...base,
+    filters: accountFilterFixture,
+    filtersActive: true,
 };
 
 const suppressedSection = {
@@ -184,6 +191,15 @@ const noRecords = {
                     filtersActive: true,
                 }"
             />
+
+            <h3 class="section-title">Aktywny filtr konta</h3>
+            <p class="meta text-muted-foreground">
+                Chip z awatarem konta (xs) i filtr konta jako reka Select z
+                awatarami, „Wszystkie konta” i dopiskiem „(zarchiwizowane)”.
+                Wiersze: konto z logo, gotówka („zł”), bank bez logo (skrót),
+                zwrot z kontem w linii meta.
+            </p>
+            <OperationsListPanel v-bind="accountFiltered" />
 
             <h3 class="section-title">Disabled</h3>
             <p class="meta text-muted-foreground">

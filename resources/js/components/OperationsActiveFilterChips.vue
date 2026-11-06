@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue';
 import { computed } from 'vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
@@ -65,6 +66,7 @@ type FilterChip = {
     label: string;
     removeLabel: string;
     category?: ChipCategory;
+    account?: ChipAccount;
 };
 
 const selectedCategory = computed(() => {
@@ -185,6 +187,7 @@ const chips = computed((): FilterChip[] => {
             key: 'account',
             label,
             removeLabel: removeAriaLabel(label),
+            account: selectedAccount.value,
         });
     } else if (props.filters.account_id !== null) {
         const label = String(props.filters.account_id);
@@ -258,9 +261,18 @@ const suppressedNote = computed(() => {
                 :color="chip.category.color"
                 size="sm"
             />
-            <span v-else class="truncate text-xs font-medium">{{
-                chip.label
-            }}</span>
+            <template v-else>
+                <AccountAvatar
+                    v-if="chip.account"
+                    size="xs"
+                    :type="chip.account.type"
+                    :bank="chip.account.bank"
+                    :mark_url="chip.account.mark_url"
+                />
+                <span class="truncate text-xs font-medium">{{
+                    chip.label
+                }}</span>
+            </template>
             <Button
                 type="button"
                 variant="ghost"

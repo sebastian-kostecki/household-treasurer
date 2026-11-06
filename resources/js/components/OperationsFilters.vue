@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3';
 import { ChevronDown, Search, SlidersHorizontal } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import AccountSelect from '@/components/AccountSelect.vue';
 import OperationsActiveFilterChips, {
     type OperationsFilterChipKey,
     type OperationsListSection,
@@ -262,11 +263,6 @@ function onCategoryChange(event: Event): void {
     applyFilters(parseCategory((event.target as HTMLSelectElement).value));
 }
 
-function onAccountChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    applyFilters({ account_id: value === '' ? null : Number(value) });
-}
-
 function onTermDepositChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     applyFilters({ term_deposit_id: value === '' ? null : Number(value) });
@@ -362,14 +358,6 @@ function removeFilter(key: OperationsFilterChipKey): void {
             applyFilters({ date_from: null, date_to: null });
             break;
     }
-}
-
-function accountLabel(account: OperationsFilterAccount): string {
-    if (!account.is_archived) {
-        return account.name;
-    }
-
-    return `${account.name} (${t.accounts.archived_badge})`;
 }
 </script>
 
@@ -550,23 +538,18 @@ function accountLabel(account: OperationsFilterAccount): string {
                     >
                         {{ t.operations.filter_account }}
                     </Label>
-                    <select
+                    <AccountSelect
                         id="operations-filter-account"
-                        class="native-select"
-                        :value="filters.account_id ?? ''"
-                        @change="onAccountChange"
-                    >
-                        <option value="">
-                            {{ t.operations.filter_account_all }}
-                        </option>
-                        <option
-                            v-for="account in accounts"
-                            :key="account.id"
-                            :value="account.id"
-                        >
-                            {{ accountLabel(account) }}
-                        </option>
-                    </select>
+                        :model-value="filters.account_id ?? ''"
+                        :accounts="accounts"
+                        :all-option-label="t.operations.filter_account_all"
+                        :archived-suffix="t.accounts.archived_badge"
+                        @update:model-value="
+                            applyFilters({
+                                account_id: $event === '' ? null : $event,
+                            })
+                        "
+                    />
                 </div>
 
                 <div v-if="termDeposits.length > 0" class="grid gap-1">

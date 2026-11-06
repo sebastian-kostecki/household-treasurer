@@ -5,7 +5,10 @@ import FinancialOperationActions from '@/components/FinancialOperationActions.vu
 import type { IncomeFormOperation } from '@/components/IncomeFormDialog.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
+import type {
+    AccountIdentityFields,
+    PrefixedAccountIdentityFields,
+} from '@/lib/account-identity';
 import {
     financialOperationAmountClass,
     formatFinancialOperationAmount,
@@ -45,10 +48,15 @@ const typeVariant = computed<'income' | 'expense' | 'refund'>(() => {
 });
 
 const detail = computed(() =>
-    typeVariant.value === 'refund'
-        ? `${t.operations.type_refund} · ${operation.account_name}`
-        : operation.account_name,
+    typeVariant.value === 'refund' ? t.operations.type_refund : null,
 );
+
+const account = computed<AccountIdentityFields>(() => ({
+    name: operation.account_name,
+    type: operation.account_type,
+    bank: operation.account_bank,
+    mark_url: operation.account_mark_url,
+}));
 </script>
 
 <template>
@@ -59,6 +67,7 @@ const detail = computed(() =>
                 :description="operation.description"
                 :counterparty="operation.counterparty"
                 :detail="detail"
+                :account="account"
                 :raw-statement-description="operation.raw_statement_description"
             />
         </div>

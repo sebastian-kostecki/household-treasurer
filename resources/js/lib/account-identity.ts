@@ -27,6 +27,7 @@ export type PrefixedAccountIdentityFields<Prefix extends string> = {
 
 export type AccountPickerOption = AccountIdentityFields & {
     id: number;
+    is_archived?: boolean;
 };
 
 export const bankOptions: AccountBank[] = [

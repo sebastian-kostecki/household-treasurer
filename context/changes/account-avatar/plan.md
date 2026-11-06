@@ -444,31 +444,31 @@ Bez migracji danych. Usunięcie trzech plików z `public/marks` nie wpływa na d
 
 #### Automated
 
-- [x] 3.1 `npx vitest run resources/js/lib/account-identity.test.ts` przechodzi, z przypadkami logo, gotówka, „Inny”, bank bez logo, błąd obrazu
-- [x] 3.2 `npm run types:check`, `npm run lint` (lub skrypt lint z `package.json`) i `npm run check:ui` przechodzą
-- [x] 3.3 `grep -rn "AccountMarkCompact\|AccountIdentityBlock" resources/js scripts tests` zwraca 0 trafień
-- [x] 3.4 `php artisan test --compact tests/Unit/AccountsHardcodedUiTest.php tests/Unit/DashboardHardcodedUiTest.php tests/Unit/TermDepositsHardcodedUiTest.php` przechodzi
+- [x] 3.1 `npx vitest run resources/js/lib/account-identity.test.ts` przechodzi, z przypadkami logo, gotówka, „Inny”, bank bez logo, błąd obrazu — 2392171
+- [x] 3.2 `npm run types:check`, `npm run lint` (lub skrypt lint z `package.json`) i `npm run check:ui` przechodzą — 2392171
+- [x] 3.3 `grep -rn "AccountMarkCompact\|AccountIdentityBlock" resources/js scripts tests` zwraca 0 trafień — 2392171
+- [x] 3.4 `php artisan test --compact tests/Unit/AccountsHardcodedUiTest.php tests/Unit/DashboardHardcodedUiTest.php tests/Unit/TermDepositsHardcodedUiTest.php` przechodzi — 2392171
 
 #### Manual
 
-- [x] 3.5 `/dev/ui/accounts`: siatka znaków w xs/sm/md, logo nieprzycięte, skrót mieści się w xs, błąd obrazu pokazuje skrót
-- [x] 3.6 `/dev/ui/dashboard` i `/dev/ui/term-deposits`: logo w wierszach kont i lokat, gotówka „zł”, wiersze bez skoku wysokości
+- [x] 3.5 `/dev/ui/accounts`: siatka znaków w xs/sm/md, logo nieprzycięte, skrót mieści się w xs, błąd obrazu pokazuje skrót — 2392171
+- [x] 3.6 `/dev/ui/dashboard` i `/dev/ui/term-deposits`: logo w wierszach kont i lokat, gotówka „zł”, wiersze bez skoku wysokości — 2392171
 
 ### Phase 4: Awatar tam, gdzie była sama nazwa
 
 #### Automated
 
-- [ ] 4.1 `npx vitest run resources/js/lib/dashboard-notice-presentation.test.ts resources/js/lib/account-identity.test.ts` przechodzi
-- [ ] 4.2 `npm run types:check` i `npm run check:ui` przechodzą
-- [ ] 4.3 `php artisan test --compact tests/Unit/DashboardHardcodedUiTest.php tests/Unit/ImportPreviewHardcodedUiTest.php` przechodzi
-- [ ] 4.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts tests/e2e/account-edit-keeps-bank.spec.ts` przechodzi
+- [x] 4.1 `npx vitest run resources/js/lib/dashboard-notice-presentation.test.ts resources/js/lib/account-identity.test.ts` przechodzi
+- [x] 4.2 `npm run types:check` i `npm run check:ui` przechodzą
+- [x] 4.3 `php artisan test --compact tests/Unit/DashboardHardcodedUiTest.php tests/Unit/ImportPreviewHardcodedUiTest.php` przechodzi
+- [x] 4.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts tests/e2e/account-edit-keeps-bank.spec.ts` przechodzi
 
 #### Manual
 
-- [ ] 4.5 `/dev/operations`: awatar xs w linii meta przy wydatku, dochodzie i zwrocie; długa nazwa konta obcięta
-- [ ] 4.6 Filtr konta: „Wszystkie konta”, dopisek zarchiwizowanego, obsługa klawiaturą, `?section=` zachowany
-- [ ] 4.7 `/dev/import-preview`: kandydat na parę z awatarem, wybór i „bez pary” wysyłają te same pola co przed zmianą
-- [ ] 4.8 `/dev/ui/dashboard`: ostrzeżenie o ujemnym koncie i lokacie z awatarem
+- [x] 4.5 `/dev/operations`: awatar xs w linii meta przy wydatku, dochodzie i zwrocie; długa nazwa konta obcięta
+- [x] 4.6 Filtr konta: „Wszystkie konta”, dopisek zarchiwizowanego, obsługa klawiaturą, `?section=` zachowany
+- [x] 4.7 `/dev/import-preview`: kandydat na parę z awatarem, wybór i „bez pary” wysyłają te same pola co przed zmianą
+- [x] 4.8 `/dev/ui/dashboard`: ostrzeżenie o ujemnym koncie i lokacie z awatarem
 
 ### Phase 5: Stany i bramka
 

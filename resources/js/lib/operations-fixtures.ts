@@ -14,14 +14,28 @@ import { EMPTY_OPERATIONS_FILTERS } from '@/lib/operations-list-query';
 const mainAccount = {
     account_name: 'Konto osobiste',
     account_type: 'bank',
-    account_bank: 'ing',
-    account_mark_url: null,
+    account_bank: 'pko_bp',
+    account_mark_url: '/marks/pko-bp.svg',
 } as const;
 
 const savingsAccount = {
     account_name: 'Konto oszczędnościowe',
     account_type: 'bank',
     account_bank: 'mbank',
+    account_mark_url: '/marks/mbank.jpg',
+} as const;
+
+const cashAccount = {
+    account_name: 'Gotówka',
+    account_type: 'cash',
+    account_bank: null,
+    account_mark_url: null,
+} as const;
+
+const bankWithoutLogoAccount = {
+    account_name: 'Konto w ING',
+    account_type: 'bank',
+    account_bank: 'ing',
     account_mark_url: null,
 } as const;
 
@@ -88,6 +102,30 @@ export const counterpartyOperation: FinancialOperationRowData = {
     category_name: 'Dom',
 };
 
+export const cashOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    ...cashAccount,
+    id: 6,
+    account_id: 3,
+    type: 'expense',
+    operation_date: '2026-11-03',
+    amount_minor_units: 1850,
+    description: 'Bułki i kawa',
+    category_name: 'Jedzenie',
+};
+
+export const bankWithoutLogoOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    ...bankWithoutLogoAccount,
+    id: 7,
+    account_id: 4,
+    type: 'expense',
+    operation_date: '2026-11-03',
+    amount_minor_units: 4200,
+    description: 'Opłata za konto',
+    category_name: 'Rachunki',
+};
+
 /** Dzień z dodatnią sumą (dochód, zwrot, wydatek), potem dzień z ujemną. */
 export const financialOperationFixtures: FinancialOperationRowData[] = [
     incomeOperation,
@@ -95,6 +133,8 @@ export const financialOperationFixtures: FinancialOperationRowData[] = [
     expenseOperation,
     bankDescriptionOperation,
     counterpartyOperation,
+    cashOperation,
+    bankWithoutLogoOperation,
 ];
 
 /** Sumy dnia liczy serwer; tu: 8500,00 + 45,00 − 123,45 oraz −69,90 − 249,99. */
@@ -114,11 +154,11 @@ export const ownTransferFixture: OwnTransferRowData = {
     source_account_name: mainAccount.account_name,
     source_account_type: mainAccount.account_type,
     source_account_bank: mainAccount.account_bank,
-    source_account_mark_url: null,
+    source_account_mark_url: mainAccount.account_mark_url,
     destination_account_name: savingsAccount.account_name,
     destination_account_type: savingsAccount.account_type,
     destination_account_bank: savingsAccount.account_bank,
-    destination_account_mark_url: null,
+    destination_account_mark_url: savingsAccount.account_mark_url,
 };
 
 export const ownTransferFixtures: OwnTransferRowData[] = [ownTransferFixture];
@@ -132,8 +172,8 @@ export const capitalMovementToDeposit: CapitalMovementRowData = {
     account_id: 1,
     term_deposit_id: 1,
     term_deposit_name: 'Lokata 12M',
-    term_deposit_bank: 'mbank',
-    term_deposit_mark_url: '/marks/mbank.jpg',
+    term_deposit_bank: 'lokaty_facto',
+    term_deposit_mark_url: '/marks/lokaty-facto.svg',
     ...mainAccount,
 };
 
@@ -220,7 +260,28 @@ export const filterAccountsFixture: OperationsFilterAccount[] = [
         mark_url: savingsAccount.account_mark_url,
         is_archived: false,
     },
+    {
+        id: 3,
+        name: cashAccount.account_name,
+        type: cashAccount.account_type,
+        bank: cashAccount.account_bank,
+        mark_url: cashAccount.account_mark_url,
+        is_archived: false,
+    },
+    {
+        id: 4,
+        name: bankWithoutLogoAccount.account_name,
+        type: bankWithoutLogoAccount.account_type,
+        bank: bankWithoutLogoAccount.account_bank,
+        mark_url: bankWithoutLogoAccount.account_mark_url,
+        is_archived: true,
+    },
 ];
+
+export const accountFilterFixture: OperationsListFilters = {
+    ...EMPTY_OPERATIONS_FILTERS,
+    account_id: 1,
+};
 
 export const filterTermDepositsFixture: OperationsFilterTermDeposit[] = [
     { id: 1, name: 'Lokata 12M' },

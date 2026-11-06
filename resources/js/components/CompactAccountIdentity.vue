@@ -23,6 +23,8 @@ withDefaults(
             :size="markSize"
         />
 
-        <span class="truncate text-sm">{{ name }}</span>
+        <span class="truncate" :class="{ 'text-sm': markSize !== 'xs' }">{{
+            name
+        }}</span>
     </div>
 </template>

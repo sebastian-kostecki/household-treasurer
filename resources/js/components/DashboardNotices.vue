@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
 import { computed, onUnmounted, ref } from 'vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -101,9 +102,15 @@ function noticeLabel(notice: DashboardNotice): string {
 function noticeIdentity(notice: DashboardNotice): string {
     const identity = noticePresentation(notice).identity;
 
-    return identity.type === 'name'
-        ? identity.name
-        : capitalized(monthName(identity.month));
+    return identity.type === 'month'
+        ? capitalized(monthName(identity.month))
+        : identity.name;
+}
+
+function noticeAvatar(notice: DashboardNotice) {
+    const identity = noticePresentation(notice).identity;
+
+    return identity.type === 'account' ? identity.avatar : null;
 }
 
 function noticeValue(notice: DashboardNotice): string | null {
@@ -284,7 +291,16 @@ function noticeKey(notice: DashboardNotice): string {
                         {{ noticeLabel(notice) }}
                     </span>
                     <span class="dashboard-notice-identity">
-                        {{ noticeIdentity(notice) }}
+                        <AccountAvatar
+                            v-if="noticeAvatar(notice)"
+                            size="xs"
+                            :type="noticeAvatar(notice)!.type"
+                            :bank="noticeAvatar(notice)!.bank"
+                            :mark_url="noticeAvatar(notice)!.mark_url"
+                        />
+                        <span class="truncate">{{
+                            noticeIdentity(notice)
+                        }}</span>
                     </span>
                 </span>
 

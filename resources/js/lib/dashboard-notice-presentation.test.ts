@@ -17,7 +17,11 @@ describe('noticePresentation', () => {
 
         expect(noticePresentation(notice)).toEqual({
             labelKey: 'negative_balance',
-            identity: { type: 'name', name: 'Konto osobiste' },
+            identity: {
+                type: 'account',
+                name: 'Konto osobiste',
+                avatar: { type: 'bank', bank: 'mbank', mark_url: null },
+            },
             value: { type: 'money', minorUnits: -45000 },
         });
     });
@@ -35,7 +39,11 @@ describe('noticePresentation', () => {
 
         expect(noticePresentation(notice)).toEqual({
             labelKey: 'negative_balance',
-            identity: { type: 'name', name: 'Lokata roczna' },
+            identity: {
+                type: 'account',
+                name: 'Lokata roczna',
+                avatar: { type: 'bank', bank: 'pekao', mark_url: null },
+            },
             value: { type: 'money', minorUnits: -10000 },
         });
     });

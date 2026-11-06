@@ -125,6 +125,27 @@ export const ownTransferPairRow = row(8, {
     ],
 });
 
+export const ownTransferPairNoLogoRow = row(10, {
+    operation_date: '2026-10-16',
+    description: 'Wpłata z konta oszczędnościowego (ING)',
+    amount_minor_units: 30_000,
+    import_pair_candidate: true,
+    pair_candidates: [
+        {
+            kind: 'financial_operation',
+            id: 701,
+            account_id: 2,
+            account_name: 'Konto oszczędnościowe',
+            account_type: 'bank',
+            account_bank: 'ing',
+            account_mark_url: null,
+            date: '2026-10-16',
+            description: 'Przelew na konto',
+            converts_financial_operation: false,
+        },
+    ],
+});
+
 export const refundRow = row(9, {
     operation_date: '2026-10-15',
     description: 'Zwrot za zakupy',
@@ -142,6 +163,7 @@ export const importPreviewRows: ImportRow[] = [
     capitalMovementRow,
     suggestedCategoryRow,
     ownTransferPairRow,
+    ownTransferPairNoLogoRow,
     refundRow,
 ];
 
@@ -220,7 +242,7 @@ export const importAccount: AccountPickerOption & {
     name: 'Konto osobiste',
     type: 'bank',
     bank: 'mbank',
-    mark_url: null,
+    mark_url: '/marks/mbank.jpg',
     current_balance_minor_units: 120_000,
 };
 
