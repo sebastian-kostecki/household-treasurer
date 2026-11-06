@@ -2,8 +2,6 @@
 import { Link } from '@inertiajs/vue3';
 import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
 import { computed, onUnmounted, ref } from 'vue';
-import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
-import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -130,30 +128,8 @@ const warningCount = computed(
         props.notices.filter((notice) => notice.severity === 'warning').length,
 );
 
-function severityTextClass(severity: DashboardNoticeSeverity): string {
-    return severity === 'exceeded' ? 'text-destructive' : 'text-warning';
-}
-
 function isNoticePending(notice: DashboardNotice): boolean {
     return isMonthNotice(notice) && monthPlanRequestPending.value;
-}
-
-function noticeKindLabel(notice: DashboardNotice): string {
-    switch (notice.kind) {
-        case 'negative_account':
-        case 'negative_term_deposit':
-            return t.dashboard.notice_negative_balance;
-        case 'month_to_spend_negative':
-            return t.dashboard.notice_month_to_spend_negative;
-        case 'month_item_over_plan':
-            return t.dashboard.notice_month_item_over_plan;
-        case 'month_plan_not_approved':
-            return t.dashboard.notice_month_plan_not_approved;
-        case 'month_pace_ahead':
-            return t.dashboard.notice_month_pace_ahead;
-        case 'one_off_over_limit':
-            return t.dashboard.notice_one_off_over_limit;
-    }
 }
 
 function isMonthNotice(notice: DashboardNotice): notice is Extract<
@@ -176,26 +152,79 @@ function monthName(month: number): string {
     return t.budget[`month_name_${month}`] ?? '';
 }
 
-function noticeValue(notice: DashboardNotice): string | null {
-    if (notice.kind === 'month_plan_not_approved') {
-        return null;
-    }
-
-    if (notice.kind === 'month_pace_ahead') {
-        return t.dashboard.notice_month_pace_value
-            .replace(':pace', String(notice.percent))
-            .replace(
-                ':elapsed',
-                String(
-                    monthElapsedPercent(
-                        notice.elapsed_day,
-                        notice.days_in_month,
-                    ),
-                ),
+function noticeTitle(notice: DashboardNotice): string {
+    switch (notice.kind) {
+        case 'month_item_over_plan':
+        case 'one_off_over_limit':
+            return t.dashboard.notice_title_over_plan.replace(
+                ':name',
+                notice.name,
             );
+        case 'negative_account':
+        case 'negative_term_deposit':
+            return t.dashboard.notice_title_negative_balance.replace(
+                ':name',
+                notice.name,
+            );
+        case 'month_to_spend_negative':
+            return t.dashboard.notice_title_month_to_spend_negative.replace(
+                ':month',
+                capitalized(monthName(notice.month)),
+            );
+        case 'month_plan_not_approved':
+            return t.dashboard.notice_title_month_plan_not_approved;
+        case 'month_pace_ahead':
+            return t.dashboard.notice_title_month_pace_ahead;
     }
+}
 
-    return formatMoney(notice.amount_minor_units);
+function noticeText(notice: DashboardNotice): string {
+    switch (notice.kind) {
+        case 'month_item_over_plan':
+            return t.dashboard.notice_text_month_item_over_plan.replace(
+                ':amount',
+                formatMoney(Math.abs(notice.amount_minor_units)),
+            );
+        case 'one_off_over_limit':
+            return t.dashboard.notice_text_one_off_over_limit.replace(
+                ':amount',
+                formatMoney(Math.abs(notice.amount_minor_units)),
+            );
+        case 'negative_account':
+        case 'negative_term_deposit':
+            return t.dashboard.notice_text_negative_balance.replace(
+                ':amount',
+                formatMoney(notice.amount_minor_units),
+            );
+        case 'month_to_spend_negative':
+            return t.dashboard.notice_text_month_to_spend_negative.replace(
+                ':amount',
+                formatMoney(Math.abs(notice.amount_minor_units)),
+            );
+        case 'month_plan_not_approved':
+            return t.dashboard.notice_text_month_plan_not_approved.replace(
+                ':month',
+                monthName(notice.month),
+            );
+        case 'month_pace_ahead':
+            return t.dashboard.notice_text_month_pace_ahead
+                .replace(':percent', String(notice.percent))
+                .replace(
+                    ':days_percent',
+                    String(
+                        monthElapsedPercent(
+                            notice.elapsed_day,
+                            notice.days_in_month,
+                        ),
+                    ),
+                )
+                .replace(':elapsed', String(notice.elapsed_day))
+                .replace(':days', String(notice.days_in_month));
+    }
+}
+
+function capitalized(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 const showCollapse = computed(
@@ -349,61 +378,13 @@ function noticeKey(notice: DashboardNotice): string {
                     <AlertTriangle v-else class="size-3.5" aria-hidden="true" />
                 </span>
 
-                <span class="min-w-0 flex-1">
-                    <span
-                        class="label-caps block"
-                        :class="severityTextClass(notice.severity)"
-                    >
-                        {{ noticeKindLabel(notice) }}
+                <span class="dashboard-notice-body">
+                    <span class="dashboard-notice-title">
+                        {{ noticeTitle(notice) }}
                     </span>
-                    <span
-                        class="flex min-w-0 items-center gap-2 text-sm font-medium"
-                    >
-                        <template
-                            v-if="
-                                notice.kind === 'negative_account' ||
-                                notice.kind === 'negative_term_deposit'
-                            "
-                        >
-                            <AccountIdentityBlock
-                                class="shrink-0"
-                                size="sm"
-                                :name="notice.name"
-                                :type="
-                                    notice.kind === 'negative_account'
-                                        ? notice.type
-                                        : 'bank'
-                                "
-                                :bank="notice.bank"
-                                :mark_url="notice.mark_url"
-                            />
-                            <span class="min-w-0 truncate">
-                                {{ notice.name }}
-                            </span>
-                        </template>
-                        <span
-                            v-else-if="isMonthNotice(notice)"
-                            class="min-w-0 truncate"
-                        >
-                            {{ monthName(notice.month) }}
-                        </span>
-                        <CategoryChip
-                            v-else
-                            class="min-w-0 shrink"
-                            :name="notice.name"
-                            :icon="notice.icon"
-                            :color="notice.color"
-                            size="sm"
-                        />
+                    <span class="dashboard-notice-text">
+                        {{ noticeText(notice) }}
                     </span>
-                </span>
-
-                <span
-                    v-if="noticeValue(notice) !== null"
-                    class="amount shrink-0"
-                    :class="severityTextClass(notice.severity)"
-                >
-                    {{ noticeValue(notice) }}
                 </span>
             </Link>
         </div>

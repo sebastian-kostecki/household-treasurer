@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
+import { ArrowRight } from '@lucide/vue';
 import { computed } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import StatPanel, { type StatPanelMetric } from '@/components/StatPanel.vue';
@@ -68,29 +69,21 @@ const monthDaysCaption = computed(() => {
 });
 
 const yearElapsedCaption = computed(() => {
-    const parts: string[] = [];
-
-    if (props.yearElapsedAsOf !== null) {
-        parts.push(
-            t.dashboard.year_elapsed_as_of.replace(
-                ':date',
-                formatDate(props.yearElapsedAsOf),
-            ),
-        );
-    }
-
     if (props.monthPace !== null) {
-        parts.push(
-            props.monthPace.percent === null
-                ? t.dashboard.month_pace_none
-                : t.dashboard.month_pace_percent.replace(
-                      ':percent',
-                      String(props.monthPace.percent),
-                  ),
-        );
+        return props.monthPace.percent === null
+            ? t.dashboard.month_pace_none
+            : t.dashboard.month_pace_percent.replace(
+                  ':percent',
+                  String(Math.round(props.monthPace.percent)),
+              );
     }
 
-    return parts.length > 0 ? parts.join(' · ') : undefined;
+    return props.yearElapsedAsOf === null
+        ? undefined
+        : t.dashboard.year_elapsed_as_of.replace(
+              ':date',
+              formatDate(props.yearElapsedAsOf),
+          );
 });
 
 const metrics = computed<StatPanelMetric[]>(() => {
@@ -124,7 +117,7 @@ const metrics = computed<StatPanelMetric[]>(() => {
         list.push({
             id: 'year-elapsed',
             label: t.dashboard.year_elapsed,
-            value: `${props.yearElapsedPercent}%`,
+            value: `${Math.round(props.yearElapsedPercent)}%`,
             caption: yearElapsedCaption.value,
         });
     }
@@ -134,9 +127,13 @@ const metrics = computed<StatPanelMetric[]>(() => {
 </script>
 
 <template>
-    <StatPanel :metrics="metrics">
+    <StatPanel class="dashboard-stat-panel" :metrics="metrics">
         <template #label-extra-to-spend>
-            <Badge v-if="monthToSpend?.state === 'proposal'" variant="outline">
+            <Badge
+                v-if="monthToSpend?.state === 'proposal'"
+                variant="outline"
+                class="tracking-normal normal-case"
+            >
                 {{ t.month_plan.state_proposal }}
             </Badge>
         </template>
@@ -153,28 +150,33 @@ const metrics = computed<StatPanelMetric[]>(() => {
                     :class="{ 'month-days-day-past': day.isPast }"
                 />
             </div>
-            <p v-if="monthDaysCaption" class="meta text-muted-foreground">
-                {{ monthDaysCaption }}
-            </p>
-            <Form
-                v-bind="BudgetController.selectYear.form()"
-                v-slot="{ processing }"
-                @start="emit('start')"
-                @finish="emit('finish')"
-                @error="emit('error')"
-            >
-                <input type="hidden" name="year" :value="budgetYear" />
-                <input type="hidden" name="destination" value="month-plan" />
-                <Button
-                    type="submit"
-                    variant="link"
-                    size="sm"
-                    class="h-auto p-0"
-                    :disabled="processing"
+            <div class="stat-panel-footer-line meta text-muted-foreground">
+                <span v-if="monthDaysCaption">{{ monthDaysCaption }} ·</span>
+                <Form
+                    v-bind="BudgetController.selectYear.form()"
+                    v-slot="{ processing }"
+                    @start="emit('start')"
+                    @finish="emit('finish')"
+                    @error="emit('error')"
                 >
-                    {{ t.nav.month_plan }}
-                </Button>
-            </Form>
+                    <input type="hidden" name="year" :value="budgetYear" />
+                    <input
+                        type="hidden"
+                        name="destination"
+                        value="month-plan"
+                    />
+                    <Button
+                        type="submit"
+                        variant="link"
+                        size="sm"
+                        class="h-auto gap-1 p-0 text-xs has-[>svg]:px-0"
+                        :disabled="processing"
+                    >
+                        {{ t.nav.month_plan }}
+                        <ArrowRight class="size-3" aria-hidden="true" />
+                    </Button>
+                </Form>
+            </div>
         </template>
     </StatPanel>
 </template>

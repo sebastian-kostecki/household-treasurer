@@ -137,6 +137,22 @@ export function formatRelativeDate(date: Date | string): string {
 }
 
 /**
+ * Format a date as a full Polish date with weekday and year,
+ * e.g. "czwartek, 5 listopada 2026".
+ */
+export function formatLongDate(date: Date | string): string {
+    const value =
+        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(value);
+}
+
+/**
  * Format a date as a Polish day label, e.g. "środa, 4 listopada"; the year is
  * added when it differs from the year of `today`.
  */

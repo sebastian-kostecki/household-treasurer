@@ -472,6 +472,59 @@ W `default` kreska postępu roku stoi na dochodach i wydatkach `is_paced`, a nie
 
 ---
 
+## Faza 7: Poprawki według mocka
+
+### Overview
+
+Po fazie 6 użytkownik porównał podgląd z docelowym mockiem (zrzut przesłany w rozmowie 2026-11-06, opisany niżej, oraz komponenty `Notice`, `Panel`, `StatPanel` z artefaktu design systemu) i wskazał rozjazdy. Ta faza wyrównuje widok do mocka w granicach ADR-0043. Wybory użytkownika: układ karty ostrzeżenia i zdanie z liczbami w karcie — tak; status „w normie” / „blisko limitu” i przyciski „Importuj wyciąg” / „Dodaj operację” — nie (zostają poza zakresem). Zrzuty „przed” są w `context/changes/dashboard-atrament-ui/screenshots/before/`.
+
+### Changes Required:
+
+#### 1. Karta ostrzeżenia
+
+**File**: `resources/js/components/DashboardNotices.vue`, `resources/css/app.css`, `lang/pl/ui.php`, `context/foundation/adr/0043-dashboard-layout-follows-atrament.md`, `context/archive/2026-09-23-dashboard-hierarchy/spec.md`, `context/foundation/design-system.md`
+
+**Intent**: Karta jak w mocku: kafelek ikony wyśrodkowany pionowo, obok dwie równe linie przy lewej krawędzi — tytuł (`text-sm font-medium`, np. „Zdrowie ponad plan”, „Tempo wydatków”) i jedno zdanie z liczbami (muted, np. „Przekroczono limit o 320,00 zł.”, „Tempo 31% przy upływie dni 17% (5 z 30).”). Bez prawostronnej kwoty, bez `CategoryChip`/`AccountIdentityBlock`. Zdania z pól, które payload już ma; PHP i payload bez zmian. Karta będąca `<button>` (POST miesiąca) ma tekst wyrównany do lewej, jak link.
+
+**Contract**: limit 6 kart, „Pokaż wszystkie (n)”, linki, POST `select-year`, `aria-busy`/disabled i spinner zostają. Nota „Aktualizacja” w ADR-0043, spec i design-system opisują nową treść karty.
+
+#### 2. Panel miar
+
+**File**: `resources/js/components/DashboardStatPanel.vue`, `resources/js/components/StatPanel.vue` (jeśli trzeba), `resources/css/app.css`
+
+**Intent**: Wartości jak w mocku: Postęp roku zaokrąglony do całości („84%”), także w „tempo miesiąca N%” i w stopce panelu realizacji. Badge propozycji w jednej linii z etykietą miary (nie zawija nad wartość). Pod paskiem dni jedna linia `meta`: „upływ dni d/n · Plan miesiąca →” (link mały, `brand-text`). Pasek dni jako segmenty-kreski, nie kropki.
+
+#### 3. Tabela realizacji
+
+**File**: `resources/js/components/DashboardExecutionPanel.vue`, `resources/js/components/CategoryMeterRow.vue`, `resources/css/app.css`
+
+**Intent**: Jedna skala typografii w tabeli (`text-sm`): wiersz grupy pogrubiony, nie większy od wierszy; procent wykonania małą cyfrą tabelaryczną tuż za miernikiem, nie większą czcionką; miernik w kolumnie Wykonanie szerszy (ok. 56–64 px toru). Na 390 px procent nie odstaje od miernika.
+
+#### 4. Konta i Lokaty
+
+**File**: `resources/js/components/DashboardHoldings.vue`, `resources/css/app.css`
+
+**Intent**: Wiersz jak w mocku: mały znak banku (rozmiar `sm`), nazwa `text-sm` i pod nią podpis `meta` (bank / „Portfel” dla gotówki; dla lokaty bank i „do <data>”), kwota `amount` po prawej. „Wszystkie →” jako mały link/ghost `text-xs` w kolorze muted. Stopka: pogrubiona etykieta i suma w jednej linii, bez osobnej linii „Kwoty w zł” (zostaje w stopce panelu realizacji). Etykiety stopek bez zmian („Łączna płynność” / „Suma lokat”).
+
+#### 5. Wiersz tytułu
+
+**File**: `resources/js/pages/Dashboard.vue`
+
+**Intent**: Linia meta z pełną datą jak w mocku: „czwartek, 5 listopada 2026 · budżet 2026 w realizacji” (formatowanie daty po polsku, bez nowych propsów).
+
+### Success Criteria:
+
+#### Automated Verification:
+
+- Statyka, typy, straże i Vitest: `npm run check`, `npm run build && npm run types:check`, `npm run check:ui`, `npm test`
+- Testy Dashboardu i straże na PostgreSQL (obraz Sail): `tests/Feature/DashboardTest.php`, `tests/Unit/DashboardHardcodedUiTest.php`
+
+#### Manual Verification:
+
+- Zrzuty Playwright 1280/390 px w obu motywach zgodne z mockiem w punktach 1–5
+
+---
+
 ## Testing Strategy
 
 ### Unit Tests:
@@ -583,9 +636,9 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Automated
 
-- [x] 6.1 Pełna bramka CI (composer ci:check w obrazie Sail)
-- [x] 6.2 Sloppy na hoście
-- [x] 6.3 Statyka, typy, straże i Vitest
+- [x] 6.1 Pełna bramka CI (composer ci:check w obrazie Sail) — 635ed8c
+- [x] 6.2 Sloppy na hoście — 635ed8c
+- [x] 6.3 Statyka, typy, straże i Vitest — 635ed8c
 
 #### Manual
 
@@ -593,3 +646,14 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 - [ ] 6.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia i nieczytelnego tekstu
 - [ ] 6.6 Hover, focus-visible i disabled widoczne na zrzutach
 - [ ] 6.7 Sumy wierszy grup zgodne ze stroną Budżet
+
+### Phase 7: Poprawki według mocka
+
+#### Automated
+
+- [x] 7.1 Statyka, typy, straże i Vitest przechodzą
+- [x] 7.2 Testy Dashboardu i straże na PostgreSQL przechodzą
+
+#### Manual
+
+- [x] 7.3 Zrzuty 1280/390 px w obu motywach zgodne z mockiem

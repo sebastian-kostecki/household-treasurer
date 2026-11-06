@@ -52,6 +52,7 @@ const showsOverLimitBadge = computed(
                 :icon="category.icon"
                 :color="category.color"
                 size="sm"
+                text-size="sm"
             />
         </div>
 

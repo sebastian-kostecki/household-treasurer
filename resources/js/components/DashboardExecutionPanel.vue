@@ -68,7 +68,7 @@ const footerText = computed(() =>
         ? t.dashboard.execution_footer_no_mark
         : t.dashboard.execution_footer.replace(
               ':percent',
-              String(props.yearElapsedPercent),
+              String(Math.round(props.yearElapsedPercent)),
           ),
 );
 </script>

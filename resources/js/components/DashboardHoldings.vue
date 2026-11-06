@@ -8,6 +8,7 @@ import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountBank } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoneyAmount } from '@/lib/format';
 import { index as accountsIndex } from '@/routes/accounts';
@@ -20,6 +21,30 @@ const props = defineProps<{
 }>();
 
 const t = useTranslations();
+
+function accountCaption(account: AccountSummary): string {
+    if (account.type === 'cash') {
+        return t.dashboard.holdings_cash_caption;
+    }
+
+    return account.bank === null
+        ? t.accounts.type_bank
+        : bankLabel(account.bank);
+}
+
+function termDepositCaption(termDeposit: TermDepositSummary): string {
+    const bank = bankLabel(termDeposit.bank);
+
+    return termDeposit.end_date === null
+        ? bank
+        : t.dashboard.holdings_deposit_caption
+              .replace(':bank', bank)
+              .replace(':date', formatDate(termDeposit.end_date));
+}
+
+function bankLabel(bank: AccountBank): string {
+    return t.accounts[`bank_${bank}` as keyof typeof t.accounts] ?? bank;
+}
 
 const showEmptyState = computed(
     () => props.accounts.length === 0 && props.termDeposits.length === 0,
@@ -62,12 +87,13 @@ const termDepositsTotalMinorUnits = computed(() =>
                 <template #header>
                     <div class="flex items-center justify-between gap-2">
                         <h2 class="section-title">{{ t.nav.accounts }}</h2>
-                        <Button variant="ghost" size="sm" as-child>
-                            <Link :href="accountsIndex()">
-                                {{ t.dashboard.holdings_all }}
-                                <ArrowRight aria-hidden="true" />
-                            </Link>
-                        </Button>
+                        <Link
+                            :href="accountsIndex()"
+                            class="dashboard-holdings-link"
+                        >
+                            {{ t.dashboard.holdings_all }}
+                            <ArrowRight class="size-3" aria-hidden="true" />
+                        </Link>
                     </div>
                 </template>
 
@@ -90,9 +116,13 @@ const termDepositsTotalMinorUnits = computed(() =>
                             :type="account.type"
                             :bank="account.bank"
                             :mark_url="account.mark_url"
+                            size="sm"
                         >
                             <p class="text-sm font-medium">
                                 {{ account.name }}
+                            </p>
+                            <p class="meta text-muted-foreground">
+                                {{ accountCaption(account) }}
                             </p>
                         </AccountIdentityBlock>
                         <p
@@ -115,7 +145,7 @@ const termDepositsTotalMinorUnits = computed(() =>
                 <template v-if="accounts.length > 0" #footer>
                     <div class="dashboard-holdings-footer">
                         <div class="dashboard-holdings-footer-total">
-                            <span class="meta">
+                            <span class="dashboard-holdings-footer-label">
                                 {{ t.accounts.liquidity_total }}
                             </span>
                             <span
@@ -127,9 +157,6 @@ const termDepositsTotalMinorUnits = computed(() =>
                                 {{ formatMoneyAmount(accountsTotalMinorUnits) }}
                             </span>
                         </div>
-                        <p class="meta text-muted-foreground">
-                            {{ t.budget.amounts_in_zl }}
-                        </p>
                     </div>
                 </template>
             </ListSurface>
@@ -140,12 +167,13 @@ const termDepositsTotalMinorUnits = computed(() =>
                         <h2 class="section-title">
                             {{ t.nav.term_deposits }}
                         </h2>
-                        <Button variant="ghost" size="sm" as-child>
-                            <Link :href="termDepositsIndex()">
-                                {{ t.dashboard.holdings_all }}
-                                <ArrowRight aria-hidden="true" />
-                            </Link>
-                        </Button>
+                        <Link
+                            :href="termDepositsIndex()"
+                            class="dashboard-holdings-link"
+                        >
+                            {{ t.dashboard.holdings_all }}
+                            <ArrowRight class="size-3" aria-hidden="true" />
+                        </Link>
                     </div>
                 </template>
 
@@ -160,16 +188,13 @@ const termDepositsTotalMinorUnits = computed(() =>
                         type="bank"
                         :bank="termDeposit.bank"
                         :mark_url="termDeposit.mark_url"
+                        size="sm"
                     >
                         <p class="text-sm font-medium">
                             {{ termDeposit.name }}
                         </p>
-                        <p
-                            v-if="termDeposit.end_date"
-                            class="meta text-muted-foreground"
-                        >
-                            {{ t.term_deposits.end_date }}:
-                            {{ formatDate(termDeposit.end_date) }}
+                        <p class="meta text-muted-foreground">
+                            {{ termDepositCaption(termDeposit) }}
                         </p>
                     </AccountIdentityBlock>
                     <p
@@ -191,9 +216,9 @@ const termDepositsTotalMinorUnits = computed(() =>
                 <template #footer>
                     <div class="dashboard-holdings-footer">
                         <div class="dashboard-holdings-footer-total">
-                            <span class="meta">{{
-                                t.term_deposits.total
-                            }}</span>
+                            <span class="dashboard-holdings-footer-label">
+                                {{ t.term_deposits.total }}
+                            </span>
                             <span
                                 class="amount-sum"
                                 :class="
@@ -207,9 +232,6 @@ const termDepositsTotalMinorUnits = computed(() =>
                                 }}
                             </span>
                         </div>
-                        <p class="meta text-muted-foreground">
-                            {{ t.budget.amounts_in_zl }}
-                        </p>
                     </div>
                 </template>
             </ListSurface>

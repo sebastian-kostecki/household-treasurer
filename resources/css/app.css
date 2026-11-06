@@ -799,6 +799,15 @@
         @apply flex items-center justify-between gap-x-4;
     }
 
+    .dashboard-holdings-footer-label {
+        @apply text-sm font-semibold;
+    }
+
+    /* Mały link „Wszystkie →” w nagłówku panelu posiadań. */
+    .dashboard-holdings-link {
+        @apply text-muted-foreground hover:text-foreground focus-visible:outline-ring inline-flex items-center gap-1 rounded-md text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
     /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
     .holdings-list-row {
         @apply border-border/60 hover:bg-secondary flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0;
@@ -1091,11 +1100,11 @@
 
     /* Pasek dni miesiąca w miarze „Do wydania”: komórka na dzień, minione w `foreground`. */
     .month-days {
-        @apply flex gap-px;
+        @apply flex gap-0.5;
     }
 
     .month-days-day {
-        @apply bg-track h-1.5 min-w-0 flex-1 rounded-full;
+        @apply bg-track h-0.5 min-w-0 flex-1;
     }
 
     .month-days-day-past {
@@ -1104,7 +1113,7 @@
 
     /* Karta ostrzeżenia Dashboardu; waga tylko w kafelku ikony. */
     .dashboard-notice {
-        @apply bg-card text-card-foreground hover:border-muted-foreground flex items-center gap-3 rounded-md border px-3 py-2.5;
+        @apply bg-card text-card-foreground hover:border-muted-foreground flex items-center gap-3 rounded-md border px-3 py-2.5 text-left;
     }
 
     .dashboard-notice[aria-busy='true'] {
@@ -1113,6 +1122,19 @@
 
     .dashboard-notice-icon {
         @apply flex size-6 shrink-0 items-center justify-center rounded-md;
+    }
+
+    /* Dwie równe linie przy lewej krawędzi: tytuł i zdanie z liczbami. */
+    .dashboard-notice-body {
+        @apply flex min-w-0 flex-1 flex-col items-start text-left;
+    }
+
+    .dashboard-notice-title {
+        @apply text-foreground w-full truncate text-sm font-medium;
+    }
+
+    .dashboard-notice-text {
+        @apply text-muted-foreground w-full text-xs;
     }
 
     .dashboard-notice-icon-exceeded {
@@ -1126,6 +1148,27 @@
     /* Panel miar (StatPanel): miary rozdzielone liniami, od md w jednym rzędzie. */
     .stat-panel {
         @apply grid;
+    }
+
+    /* Etykieta miary i znacznik obok niej w jednej linii; etykieta się zwija, znacznik nie. */
+    .stat-panel-label {
+        @apply flex min-w-0 flex-wrap items-center gap-x-2;
+    }
+
+    .stat-panel-label-text {
+        @apply min-w-0;
+    }
+
+    /* Jedna linia pod paskiem dni: podpis i link do planu miesiąca. */
+    .stat-panel-footer-line {
+        @apply flex flex-wrap items-center gap-x-1;
+    }
+
+    /* Dashboard: pierwsza miara („Do wydania”) szersza, żeby etykieta i znacznik stały w jednej linii. */
+    @variant md {
+        .dashboard-stat-panel .stat-panel {
+            grid-template-columns: minmax(0, 1.5fr);
+        }
     }
 
     .stat-panel-metric {
@@ -1153,5 +1196,18 @@
 
     .execution-meter-percent {
         @apply ml-auto w-13 shrink-0 text-right text-sm font-medium tabular-nums;
+    }
+
+    /* W tabeli realizacji tor ma stałą szerokość, a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
+    .category-meter-cell-meter .execution-meter {
+        @apply gap-x-2;
+    }
+
+    .category-meter-cell-meter .execution-meter-track {
+        @apply w-14 flex-none;
+    }
+
+    .category-meter-cell-meter .execution-meter-percent {
+        @apply ml-0 w-auto min-w-9 text-left font-mono text-xs;
     }
 }

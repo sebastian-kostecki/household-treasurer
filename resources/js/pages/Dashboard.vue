@@ -29,7 +29,7 @@ import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
-import { formatDate } from '@/lib/format';
+import { formatLongDate } from '@/lib/format';
 import { dashboard } from '@/routes';
 import type { DashboardPageProps } from '@/types/dashboard';
 
@@ -74,12 +74,7 @@ const metaLine = computed(() => {
         return budgetStateLabel.value;
     }
 
-    const asOf = t.dashboard.meta_as_of.replace(
-        ':date',
-        formatDate(props.year_elapsed_as_of),
-    );
-
-    return `${asOf} · ${budgetStateLabel.value}`;
+    return `${formatLongDate(props.year_elapsed_as_of)} · ${budgetStateLabel.value}`;
 });
 
 function onYearSelectionStart(): void {

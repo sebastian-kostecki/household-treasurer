@@ -38,9 +38,11 @@ const panelId = useId();
             >
                 <p
                     :id="`${panelId}-${index}`"
-                    class="label-caps text-muted-foreground"
+                    class="stat-panel-label label-caps text-muted-foreground"
                 >
-                    {{ metric.label }}
+                    <span class="stat-panel-label-text">{{
+                        metric.label
+                    }}</span>
                     <slot v-if="metric.id" :name="`label-extra-${metric.id}`" />
                 </p>
                 <p
