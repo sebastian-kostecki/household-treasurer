@@ -206,10 +206,8 @@ function toggleShowArchived(checked: boolean): void {
                 <div class="accounts-cell-name">
                     <AccountMarkCompact
                         size="md"
-                        :name="account.name"
                         :type="account.type"
                         :bank="account.bank"
-                        :mark_url="account.mark_url"
                     />
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">

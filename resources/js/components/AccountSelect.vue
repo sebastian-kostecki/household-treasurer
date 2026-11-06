@@ -61,7 +61,10 @@ const selectedAccount = computed(() =>
                         v-if="selectedAccount"
                         class="flex items-center gap-2"
                     >
-                        <AccountMarkCompact v-bind="selectedAccount" />
+                        <AccountMarkCompact
+                            :type="selectedAccount.type"
+                            :bank="selectedAccount.bank"
+                        />
                         <span>{{ selectedAccount.name }}</span>
                     </span>
                 </SelectValue>
@@ -73,7 +76,10 @@ const selectedAccount = computed(() =>
                     :value="String(account.id)"
                 >
                     <span class="flex items-center gap-2">
-                        <AccountMarkCompact v-bind="account" />
+                        <AccountMarkCompact
+                            :type="account.type"
+                            :bank="account.bank"
+                        />
                         <span>{{ account.name }}</span>
                     </span>
                 </SelectItem>

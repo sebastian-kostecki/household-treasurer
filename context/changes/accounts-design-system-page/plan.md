@@ -288,29 +288,29 @@ Brak migracji danych. `public/marks/*` i `mark_url` zostają dla `AccountIdentit
 
 #### Automated
 
-- [x] 1.1 ADR-0047 istnieje i jest jedynym plikiem `0047-*` w `context/foundation/adr/`
-- [x] 1.2 `php artisan boost:index-rules` kończy się bez błędu, a `git diff` pokazuje tylko zamierzone zmiany w regułach
+- [x] 1.1 ADR-0047 istnieje i jest jedynym plikiem `0047-*` w `context/foundation/adr/` — c33e6d4
+- [x] 1.2 `php artisan boost:index-rules` kończy się bez błędu, a `git diff` pokazuje tylko zamierzone zmiany w regułach — c33e6d4
 
 #### Manual
 
-- [x] 1.3 ADR-0047 zawiera tabelę dziewięciu skrótów, gotówkę, `other`, regułę 3 znaków, zakres komponentu, wariant `sm`, warunek Switcha i odrzucone opcje
-- [x] 1.4 `design-system.md` i `.ai/rules/js.md` nie przeczą ADR-0047
+- [x] 1.3 ADR-0047 zawiera tabelę dziewięciu skrótów, gotówkę, `other`, regułę 3 znaków, zakres komponentu, wariant `sm`, warunek Switcha i odrzucone opcje — c33e6d4
+- [x] 1.4 `design-system.md` i `.ai/rules/js.md` nie przeczą ADR-0047 — c33e6d4
 
 ### Phase 2: Skrót banku w `AccountMarkCompact`
 
 #### Automated
 
-- [ ] 2.1 Testy JS przechodzą, w tym nowe testy `accountShortMark`: `npm run test`
-- [ ] 2.2 Typy przechodzą: `npm run types:check`
-- [ ] 2.3 Skan literałów przechodzi: `npm run check:ui`
-- [ ] 2.4 Straż Kont przechodzi z `AccountMarkCompact.vue` na liście
-- [ ] 2.5 Nic w `resources/js` nie importuje już `bankMarkPath`
-- [ ] 2.6 Lint i formatowanie przechodzą
+- [x] 2.1 Testy JS przechodzą, w tym nowe testy `accountShortMark`: `npm run test`
+- [x] 2.2 Typy przechodzą: `npm run types:check`
+- [x] 2.3 Skan literałów przechodzi: `npm run check:ui`
+- [x] 2.4 Straż Kont przechodzi z `AccountMarkCompact.vue` na liście
+- [x] 2.5 Nic w `resources/js` nie importuje już `bankMarkPath`
+- [x] 2.6 Lint i formatowanie przechodzą
 
 #### Manual
 
-- [ ] 2.7 Kafelki w sinkach Kont, Operacji i dialogów pokazują skrót, „zł” albo ikonę i nie mają atrybutów `id`, `name` ani `mark_url`
-- [ ] 2.8 Trzy znaki mieszczą się w kafelku 20 px bez przycięcia
+- [x] 2.7 Kafelki w sinkach Kont, Operacji i dialogów pokazują skrót, „zł” albo ikonę i nie mają atrybutów `id`, `name` ani `mark_url`
+- [x] 2.8 Trzy znaki mieszczą się w kafelku 20 px bez przycięcia
 
 ### Phase 3: Switch w wierszu tytułu i bramka wizualna
 
