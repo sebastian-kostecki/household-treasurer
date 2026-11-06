@@ -42,7 +42,7 @@ test('format Inny stays after choosing a csv file, the header checkbox drives th
     await expect(header).not.toBeChecked();
 
     const columns = page.getByRole('group', { name: 'Kolumny' });
-    const dateColumn = columns.locator('#import-date-column');
+    const dateColumn = columns.getByLabel('Data');
     await expect(dateColumn.locator('option')).toHaveText([
         'Kolumna 1',
         'Kolumna 2',

@@ -159,6 +159,7 @@
     --row-height: 34px;
     --field-height: 34px;
     --dialog-width: 460px;
+    --form-panel-width: 640px;
     --aside-width: 300px;
     --dialog-pad-x: 18px;
     --dialog-pad-y: 16px;
@@ -353,6 +354,36 @@
 
     .form-preview-warning {
         @apply text-warning text-xs/4;
+    }
+
+    /* Panel formularza na stronie (ADR-0048): karta z nagłówkiem, treścią i stopką z główną akcją. */
+    .form-panel {
+        @apply bg-card text-card-foreground w-full max-w-(--form-panel-width) rounded-lg border;
+    }
+
+    .form-panel-header {
+        @apply flex flex-col gap-1 px-4 pt-4;
+    }
+
+    .form-panel-body {
+        @apply flex flex-col gap-4 p-4;
+    }
+
+    .form-panel-footer {
+        @apply flex items-center justify-end gap-2 border-t px-4 py-3;
+    }
+
+    .form-preview-list {
+        @apply text-muted-foreground list-inside list-disc space-y-1 text-xs/4;
+    }
+
+    .form-check-row {
+        @apply flex items-center gap-2 text-sm;
+    }
+
+    /* Grupa pól bez własnej ramki (ADR-0048): legenda jako section-title. */
+    .form-fieldset {
+        @apply m-0 flex min-w-0 flex-col gap-4 border-0 p-0;
     }
 
     /* Rząd dwóch pól (np. Kwota | Data); jedna kolumna w oknie węższym niż 390 px. */

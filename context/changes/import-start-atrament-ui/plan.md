@@ -511,11 +511,11 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [x] 2.1 Przed poprawką: `UiTranslationKeysTest`, `import-start.test.ts`, `ui-contract.test.ts` i spec E2E są czerwone z powodu opisanego błędu
-- [x] 2.2 `php artisan test --compact tests/Unit/UiTranslationKeysTest.php tests/Feature/CsvImportTest.php` przechodzi
-- [x] 2.3 `npm test` przechodzi (w tym `import-start.test.ts` i `ui-contract.test.ts` bez wyjątków)
-- [x] 2.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` przechodzi
-- [x] 2.5 `npm run check` i `npm run types:check` przechodzą
+- [x] 2.1 Przed poprawką: `UiTranslationKeysTest`, `import-start.test.ts`, `ui-contract.test.ts` i spec E2E są czerwone z powodu opisanego błędu — d5ee1f4
+- [x] 2.2 `php artisan test --compact tests/Unit/UiTranslationKeysTest.php tests/Feature/CsvImportTest.php` przechodzi — d5ee1f4
+- [x] 2.3 `npm test` przechodzi (w tym `import-start.test.ts` i `ui-contract.test.ts` bez wyjątków) — d5ee1f4
+- [x] 2.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` przechodzi — d5ee1f4
+- [x] 2.5 `npm run check` i `npm run types:check` przechodzą — d5ee1f4
 
 #### Manual
 
@@ -526,10 +526,10 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [ ] 3.1 `npm run check:ui` przechodzi z nowymi plikami na liście
-- [ ] 3.2 `php artisan test --compact tests/Unit/ImportStartHardcodedUiTest.php tests/Unit/UiTranslationKeysTest.php tests/Feature/AccountPickerTest.php` przechodzi
-- [ ] 3.3 `npm test`, `npm run check` i `npm run types:check` przechodzą
-- [ ] 3.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` nadal przechodzi po zmianie markupu
+- [x] 3.1 `npm run check:ui` przechodzi z nowymi plikami na liście
+- [x] 3.2 `php artisan test --compact tests/Unit/ImportStartHardcodedUiTest.php tests/Unit/UiTranslationKeysTest.php tests/Feature/AccountPickerTest.php` przechodzi
+- [x] 3.3 `npm test`, `npm run check` i `npm run types:check` przechodzą
+- [x] 3.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` nadal przechodzi po zmianie markupu
 
 #### Manual
 
