@@ -258,8 +258,8 @@ None; frontend and docs only.
 
 #### Automated
 
-- [x] 3.1 composer ci:check and vendor/bin/sloppy ci pass
-- [x] 3.2 No transitional ADR-0045 note left in design-system.md
+- [x] 3.1 composer ci:check and vendor/bin/sloppy ci pass — dd0472e
+- [x] 3.2 No transitional ADR-0045 note left in design-system.md — dd0472e
 
 #### Manual
 
