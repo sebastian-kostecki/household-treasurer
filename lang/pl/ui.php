@@ -120,8 +120,6 @@ return [
         'planned' => 'Plan',
         'executed' => 'Zrealizowano',
         'initial_plan' => 'Plan początkowy',
-        'current_plan' => 'Plan bieżący',
-        'execution' => 'Realizacja',
         'remaining' => 'Pozostało',
         'percent_complete' => 'Wykonanie',
         'over_limit' => 'Przekroczenie limitu',
