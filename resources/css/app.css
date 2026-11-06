@@ -747,8 +747,10 @@
     }
 
     /**
-     * Term deposits table: below `md` a row is two lines (name + balance, then
-     * bank + end date + actions); from `md` it is one line of columns.
+     * Term deposits table: below `xl` a row is two lines (name + balance, then
+     * bank + end date + actions); from `xl` it is one line of columns. The fixed
+     * columns need ~610 px, so next to the sidebar the name column only gets
+     * room from `xl` (ADR-0051).
      */
     .term-deposits-grid {
         @apply grid items-center gap-x-4;
@@ -758,7 +760,7 @@
             'bank end actions';
     }
 
-    @variant md {
+    @variant xl {
         .term-deposits-grid {
             grid-template-columns: minmax(0, 1fr) 150px 150px 150px 96px;
             grid-template-areas: 'name bank end balance actions';
@@ -769,7 +771,7 @@
         @apply table-header border-border-soft hidden border-b px-4 py-2;
     }
 
-    @variant md {
+    @variant xl {
         .term-deposits-header-row {
             @apply grid;
         }
@@ -798,7 +800,7 @@
         @apply text-left;
     }
 
-    @variant md {
+    @variant xl {
         .term-deposits-cell-end {
             @apply text-right;
         }

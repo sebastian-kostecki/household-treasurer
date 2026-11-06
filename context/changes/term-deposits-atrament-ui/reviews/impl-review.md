@@ -40,7 +40,7 @@ Plan adherence: every "Changes Required" item matches (drift review: no MISSING,
   - Tradeoff: At 768 px with the sidebar the card is ~446 px of content, so even narrow tracks leave the name column very small; the card's 150 px widths are lost.
   - Confidence: MED — needs re-measuring; may still clip at 768 px.
   - Blind spot: Long bank labels ("Lokaty Facto", "BNP Paribas") in a narrower column.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A, adapted to `xl` — measured at `lg` (1024 px) the name column was 60 px with the tile, so the one-line layout and header row start at `xl` (1280 px, name column 316 px), as `.import-preview-grid` does. From 800 to 1279 px the two-line layout shows with nothing clipped and no page overflow. ADR-0051, `design-system.md` and `js.md` updated; shots `sink-*-900-light.png`.
 
 ### F2 — End date has no label for screen readers or on phones
 
@@ -50,7 +50,7 @@ Plan adherence: every "Changes Required" item matches (drift review: no MISSING,
 - **Location**: resources/js/pages/TermDeposits.vue:248-259
 - **Detail**: Before the change the row read "Data zakończenia: 15.01.2027". Now the cell is a bare date. The header row is plain `div`s without table roles (same as Accounts), so assistive technology cannot tie the date to its column, and below `md` the header is hidden. The missing-date case does have the sr-only "Bez daty zakończenia", so the two cases are inconsistent.
 - **Fix**: Prefix the date with `<span class="sr-only">{{ t.term_deposits.end_date }}: </span>`.
-- **Decision**: PENDING
+- **Decision**: FIXED — sr-only „Data zakończenia:” before the date; ADR-0051 and `design-system.md` mention it.
 
 ### F3 — Dialog screenshots for `errors` and `saving` show the empty create form
 
@@ -60,7 +60,7 @@ Plan adherence: every "Changes Required" item matches (drift review: no MISSING,
 - **Location**: context/changes/term-deposits-atrament-ui/screenshots/dialog-term-deposit-{errors,saving}-*.png
 - **Detail**: `dialog-term-deposit-new-1280-light.png`, `-errors-` and `-saving-` share md5 `8280a5ed…`, and the other three viewport/theme sets repeat this. `?open=term-deposit-errors` only opens the form; errors appear after a submit to `DialogsKitchenSinkController::validate`. The one-off script did not submit. The spinner is covered by `save-spinner-*`, but no screenshot shows field errors.
 - **Fix**: Re-shoot both states after clicking „Zapisz” (wait for the 422 for `errors`, shoot during the 1.5 s sleep for `saving`).
-- **Decision**: PENDING
+- **Decision**: FIXED — `dialog-term-deposit-errors-*` re-shot after a submit (5 fields `aria-invalid`, end date `aria-describedby` = hint + error), `dialog-term-deposit-saving-*` during the request (spinner, „Zapisz” disabled).
 
 ### F4 — Sink matrix says the switched-off Switch is in `default`
 

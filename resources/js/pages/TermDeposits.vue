@@ -247,6 +247,9 @@ function toggleShowArchived(checked: boolean): void {
 
                 <p class="term-deposits-cell-end font-mono tabular-nums">
                     <template v-if="termDeposit.end_date">
+                        <span class="sr-only">
+                            {{ t.term_deposits.end_date }}:
+                        </span>
                         {{ formatDate(termDeposit.end_date) }}
                     </template>
                     <template v-else>
