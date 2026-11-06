@@ -18,6 +18,7 @@ Money is integer Minor units. Display with formatMoney from @/lib/format (1 234,
 ## Reuse surface building blocks before writing new markup
 
 Check ListSurface, CategoryChip, CategoryMeterRow, OperationTypeTile, IconAction (icon button with tooltip and aria-label), IndexEmptyState, Heading, AccountIdentityBlock and SegmentedControl first. Also StatPanel and ExecutionMeter. Surfaces follow ADR-0037: grey floor, panels are `card` with a full `border` and `rounded-lg`, no resting shadows. Do not edit components/ui/* for a single screen.
+The bank or cash tile is `AccountMarkCompact`: a short text mark from `accountShortMark` in `@/lib/account-identity` in the `mark-label` style, „zł” for cash, `Building2` for Other (ADR-0047); a new Bank gets its short mark there in the same commit. `AccountIdentityBlock` still shows the logo until its own view change.
 
 ## Non-blocking warnings use the warning Alert variant; a reading note uses `note`
 
@@ -45,7 +46,7 @@ Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) and an acco
 No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits, /dev/operations, /dev/import-preview and /dev/month-plan.
 The Dashboard (ADR-0043) is guarded the same way by tests/Unit/DashboardHardcodedUiTest.php (part of `composer ci:check`): it lists the Dashboard files and fails on pre-Atrament typography, borders and opacity. The warning card is the `.dashboard-notice` class in `@layer components`, with severity only in the icon tile, not a utility-tinted `Card`; a new Dashboard notice kind needs no new card markup.
 The Accounts view (ADR-0044) is guarded the same way by tests/Unit/AccountsHardcodedUiTest.php: it lists the Accounts files and fails on pre-Atrament typography, borders and opacity (an archived row is muted, never `opacity-60`). New Accounts states go to `/dev/ui/accounts`.
-Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or logo (e.g. AccountBankSelect). Both are 32px (`--control-height`) and `rounded-md`.
+Dropdowns: use the native `.native-select` class for simple enums without icons; use the reka-ui `Select` when an option shows an icon or mark (e.g. AccountBankSelect). Both are 32px (`--control-height`) and `rounded-md`.
 
 ## Views take values from app.css, not from literals
 

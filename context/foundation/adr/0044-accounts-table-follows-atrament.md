@@ -10,4 +10,4 @@ The metrics panel is a `StatPanel` with two measures: Spendable Liquidity and To
 
 We rejected the "Kwoty w zł" footer (ADR-0037; one column of amounts does not need a unit line), the `Switch` in the title row (a second control beside the only `primary` action), a caption with the amount of Term Deposits under Total funds (a second number, and a new prop), bank abbreviations in the tile (every named bank has a logo) and a muted tone for the negative balance of an archived Account (it would hide a reading that Spendable Liquidity still counts). The change touches no rule in `context/foundation/glossary.md` and no _Avoid_ term.
 
-Superseded in part by ADR-0045: the Switch "Pokaż zarchiwizowane" stands in the title row, and the bank tile shows a short text mark instead of the logo.
+Superseded in part by ADR-0045: the Switch "Pokaż zarchiwizowane" stands in the title row, and the bank tile shows a short text mark instead of the logo. Superseded in part by ADR-0047: the short marks, the `sm` tile and the conditional Switch.
