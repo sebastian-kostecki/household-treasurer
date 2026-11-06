@@ -464,32 +464,32 @@ Brak danych. Ciasteczko `sidebar_state` bez zmian. Konflikt w `AppSidebar.vue` z
 
 #### Automated
 
-- [x] 5.1 Wszystkie asercje nowego `describe` przechodzą
-- [x] 5.2 Brak `Vault` i `AppLogoIcon` w `resources/js`
-- [x] 5.3 Literały, w tym nowe pliki: `npm run check:ui`
-- [x] 5.4 Typy: `npm run types:check`
-- [x] 5.5 Build: `npm run build`
-- [x] 5.6 Logowanie w E2E działa
+- [x] 5.1 Wszystkie asercje nowego `describe` przechodzą — 4267c71
+- [x] 5.2 Brak `Vault` i `AppLogoIcon` w `resources/js` — 4267c71
+- [x] 5.3 Literały, w tym nowe pliki: `npm run check:ui` — 4267c71
+- [x] 5.4 Typy: `npm run types:check` — 4267c71
+- [x] 5.5 Build: `npm run build` — 4267c71
+- [x] 5.6 Logowanie w E2E działa — 4267c71
 
 #### Manual
 
-- [x] 5.7 Znak „HT” w sidebarze, na logowaniu i w `Welcome`, oba motywy, JetBrains Mono
-- [x] 5.8 Link znaku na logowaniu prowadzi na stronę główną, fokus widoczny
+- [x] 5.7 Znak „HT” w sidebarze, na logowaniu i w `Welcome`, oba motywy, JetBrains Mono — 4267c71
+- [x] 5.8 Link znaku na logowaniu prowadzi na stronę główną, fokus widoczny — 4267c71
 
 ### Phase 6: Kitchen sink i bramka wizualna
 
 #### Automated
 
-- [ ] 6.1 Vitest: `npm test`
-- [ ] 6.2 Literały: `npm run check:ui`
-- [ ] 6.3 Typy: `npm run types:check`
-- [ ] 6.4 Build: `npm run build`
-- [ ] 6.5 Pest: `SidebarKitchenSinkTest` i `AppShellTest`
-- [ ] 6.6 Pełna bramka na PostgreSQL w worktree
-- [ ] 6.7 Sloppy na hoście: `vendor/bin/sloppy ci`
-- [ ] 6.8 E2E: `npx playwright test`
+- [x] 6.1 Vitest: `npm test`
+- [x] 6.2 Literały: `npm run check:ui`
+- [x] 6.3 Typy: `npm run types:check`
+- [x] 6.4 Build: `npm run build`
+- [x] 6.5 Pest: `SidebarKitchenSinkTest` i `AppShellTest`
+- [x] 6.6 Pełna bramka na PostgreSQL w worktree
+- [x] 6.7 Sloppy na hoście: `vendor/bin/sloppy ci`
+- [x] 6.8 E2E: `npx playwright test`
 
 #### Manual
 
-- [ ] 6.9 `/dev/ui/sidebar` pokazuje 7 stanów i ramkę `brand-mark`, Tab z pierścieniem
-- [ ] 6.10 Zrzuty 1280/390 px w obu motywach przejrzane, Dashboard bez regresji
+- [x] 6.9 `/dev/ui/sidebar` pokazuje 7 stanów i ramkę `brand-mark`, Tab z pierścieniem
+- [x] 6.10 Zrzuty 1280/390 px w obu motywach przejrzane, Dashboard bez regresji
