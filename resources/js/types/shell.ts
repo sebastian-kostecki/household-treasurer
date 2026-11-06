@@ -33,9 +33,11 @@ export type UiTranslations = {
         add_budget_year: string;
         add_budget_for_year: string;
         open_menu: string;
+        search_and_go: string;
         select_year_failed: string;
         shortcuts_hint: string;
     };
+    palette: Record<string, string>;
     auth: Record<string, Record<string, string>>;
     settings: Record<string, string>;
     dashboard: Record<string, string>;

@@ -32,7 +32,7 @@ export type DashboardTypeTotals = {
  * kwota w tabeli miała widoczne źródło.
  */
 export function categoryOperationsQuery(
-    category: DashboardCategory,
+    category: { name: string },
     categoryType: 'income' | 'expense',
     year: number,
 ): Record<string, string | number | undefined> {

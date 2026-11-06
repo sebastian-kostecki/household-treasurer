@@ -13,19 +13,35 @@ export type ShortcutInput = {
 export type GlobalShortcut =
     | { kind: 'view'; index: number }
     | { kind: 'add-operation' }
-    | { kind: 'focus-search' };
+    | { kind: 'focus-search' }
+    | { kind: 'palette' };
+
+function isPaletteKey(input: ShortcutInput): boolean {
+    return (
+        (input.key === 'k' || input.key === 'K') &&
+        (input.ctrlKey || input.metaKey) &&
+        !input.altKey
+    );
+}
 
 /**
  * Decides which global shortcut a key press triggers, or null when the page
  * must keep the key: with Ctrl, ⌘ or Alt held, during IME composition, on a
  * held key, in a text field and under an open layer (dialog, menu, listbox).
- * `/` keeps Shift allowed, because it is Shift+7 on the Polish keyboard; the
+ * ⌘K / Ctrl+K opens the palette, also in a text field, but never under an
+ * open layer (Esc closes the palette itself). `/` keeps Shift allowed, because it is Shift+7 on the Polish keyboard; the
  * digits and `N` do not, so `Shift+2` (an `@`) never switches the view.
  */
 export function resolveGlobalShortcut(
     input: ShortcutInput,
     viewCount: number,
 ): GlobalShortcut | null {
+    if (isPaletteKey(input)) {
+        return input.isComposing || input.repeat || input.hasOpenLayer
+            ? null
+            : { kind: 'palette' };
+    }
+
     if (
         input.ctrlKey ||
         input.metaKey ||

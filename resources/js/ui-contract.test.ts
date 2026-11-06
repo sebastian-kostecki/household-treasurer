@@ -338,6 +338,25 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(navMain).toContain('aria-keyshortcuts');
     });
 
+    it('gives the palette input the combobox role and a list to control', () => {
+        const palette = read('components/CommandPalette.vue');
+
+        expect(palette).toContain('role="combobox"');
+        expect(palette).toContain(':aria-controls="listId"');
+        expect(palette).toContain('aria-autocomplete="list"');
+    });
+
+    it('keeps ui/dialog free of the palette', () => {
+        const dialogDir = join(JS_ROOT, 'components/ui/dialog');
+
+        for (const file of readdirSync(dialogDir)) {
+            expect(
+                readFileSync(join(dialogDir, file), 'utf8'),
+                `components/ui/dialog/${file}`,
+            ).not.toMatch(/command/i);
+        }
+    });
+
     it('takes the views from useAppViews, not from a local list', () => {
         const sidebar = read('components/AppSidebar.vue');
 

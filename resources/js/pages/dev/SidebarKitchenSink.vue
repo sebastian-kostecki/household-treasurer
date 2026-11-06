@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
 import { LayoutGrid } from '@lucide/vue';
+import { nextTick, onMounted, ref } from 'vue';
 import AppMobileBar from '@/components/AppMobileBar.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
+import CommandPalette, {
+    type PaletteCategories,
+} from '@/components/CommandPalette.vue';
 import BrandMark from '@/components/BrandMark.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -12,7 +16,9 @@ import {
     SidebarMenuItem,
     SidebarProvider,
 } from '@/components/ui/sidebar';
+import { useAppViews } from '@/composables/useAppViews';
 import { useTranslations } from '@/composables/useTranslations';
+import { paletteFixtureCategories } from '@/lib/command-palette-fixtures';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 
 type SidebarFrame = {
@@ -46,6 +52,66 @@ const brandMarkPlaces = [
     },
 ];
 
+const views = useAppViews();
+
+type PaletteState =
+    | 'default'
+    | 'filtered'
+    | 'no-results'
+    | 'loading'
+    | 'error'
+    | 'no-budget-year';
+
+const paletteStates: { state: PaletteState; search: string }[] = [
+    { state: 'default', search: '' },
+    { state: 'filtered', search: 'zyw' },
+    { state: 'no-results', search: 'zzzz' },
+    { state: 'loading', search: '' },
+    { state: 'error', search: '' },
+    { state: 'no-budget-year', search: '' },
+];
+
+const requestedPalette = new URLSearchParams(
+    usePage().url.split('?')[1] ?? '',
+).get('palette');
+const activePalette =
+    paletteStates.find((entry) => entry.state === requestedPalette) ?? null;
+const paletteOpen = ref(activePalette !== null);
+
+function fixturePaletteCategories(): PaletteCategories {
+    switch (activePalette?.state) {
+        case 'loading':
+            return { status: 'loading' };
+        case 'error':
+            return { status: 'error' };
+        case 'no-budget-year':
+            return { status: 'loaded', budgetYear: null, items: [] };
+        default:
+            return paletteFixtureCategories;
+    }
+}
+
+// The query lives inside the registry `Command`, so a filtered state types it
+// into the real input and lets the component filter.
+onMounted(() => {
+    if (activePalette === null || activePalette.search === '') {
+        return;
+    }
+
+    setTimeout(() => {
+        void nextTick(() => {
+            const input = document.querySelector<HTMLInputElement>(
+                '[data-slot="command-input"]',
+            );
+
+            if (input !== null) {
+                input.value = activePalette.search;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+    }, 50);
+});
+
 const stateMatrix = [
     {
         state: 'default',
@@ -70,6 +136,10 @@ const stateMatrix = [
     {
         state: 'hover',
         where: 'Notatka przy ramce menu-states poniżej (najedź kursorem na pozycje).',
+    },
+    {
+        state: 'palette',
+        where: 'Sekcja palette-* poniżej: ?palette=default, filtered, no-results, loading, error i no-budget-year otwierają paletę z danymi stałymi.',
     },
     {
         state: 'focus-visible',
@@ -255,6 +325,34 @@ const frames: SidebarFrame[] = [
                     </SidebarProvider>
                 </div>
             </div>
+        </section>
+
+        <section class="space-y-2" data-frame="palette">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                palette-*: Szukaj i przejdź (⌘K)
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Każdy stan otwiera paletę z danymi stałymi po przeładowaniu
+                strony (parametr <code>?palette=</code>). Kategorie ładują się z
+                endpointu tylko w aplikacji, tu są fiksurami.
+            </p>
+            <ul class="flex flex-wrap gap-4 font-mono text-sm">
+                <li v-for="entry in paletteStates" :key="entry.state">
+                    <a
+                        class="underline"
+                        :href="`?palette=${entry.state}`"
+                        :data-palette-state="entry.state"
+                        >{{ entry.state }}</a
+                    >
+                </li>
+            </ul>
+            <CommandPalette
+                v-model:open="paletteOpen"
+                :views="views"
+                :categories="fixturePaletteCategories()"
+            />
         </section>
 
         <section class="space-y-2" data-frame="mobile-bar">

@@ -106,9 +106,8 @@ function activate(segment: BudgetYearSegment): void {
                 :aria-disabled="pending"
                 @click="activate(segment)"
             >
-                {{ segment.year }}<template v-if="segment.kind === 'create'">
-                    +</template
-                >
+                {{ segment.year
+                }}<template v-if="segment.kind === 'create'"> +</template>
             </button>
         </div>
     </div>

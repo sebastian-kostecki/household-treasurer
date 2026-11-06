@@ -29,6 +29,7 @@ const FILES = [
     'resources/js/layouts/auth/AuthCardLayout.vue',
     'resources/js/pages/Welcome.vue',
     'resources/js/components/AppMobileBar.vue',
+    'resources/js/components/CommandPalette.vue',
     'resources/js/layouts/app/AppSidebarLayout.vue',
     'resources/js/pages/dev/SidebarKitchenSink.vue',
     'resources/js/pages/Accounts.vue',

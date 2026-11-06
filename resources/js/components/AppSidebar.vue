@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { Search } from '@lucide/vue';
+import { onMounted, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
@@ -15,9 +17,11 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { openCommandPalette } from '@/composables/useCommandPalette';
 import { useAppViews } from '@/composables/useAppViews';
 import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
+import { paletteShortcutLabel } from '@/lib/command-palette-items';
 import { dashboard } from '@/routes';
 
 type Props = {
@@ -30,6 +34,12 @@ defineProps<Props>();
 const t = useTranslations();
 const createBudgetDialog = useCreateBudgetDialog();
 const views = useAppViews();
+
+const paletteShortcut = ref<'⌘K' | 'Ctrl+K'>('Ctrl+K');
+
+onMounted(() => {
+    paletteShortcut.value = paletteShortcutLabel(navigator.platform);
+});
 
 const shortcutsHint = t.shell.shortcuts_hint.replace(
     ':last',
@@ -46,6 +56,19 @@ const shortcutsHint = t.shell.shortcuts_hint.replace(
                         <Link :href="dashboard()">
                             <AppLogo />
                         </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton
+                        class="sidebar-search"
+                        aria-keyshortcuts="Control+K Meta+K"
+                        @click="openCommandPalette"
+                    >
+                        <Search />
+                        <span>{{ t.shell.search_and_go }}</span>
+                        <kbd class="kbd" aria-hidden="true">{{
+                            paletteShortcut
+                        }}</kbd>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

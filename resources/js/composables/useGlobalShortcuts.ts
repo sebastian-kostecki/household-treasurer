@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/vue3';
 import { onMounted, onUnmounted } from 'vue';
+import { openCommandPalette } from '@/composables/useCommandPalette';
 import { useAppViews } from '@/composables/useAppViews';
 import { requestOperationsIntent } from '@/composables/useOperationsIntent';
 import { resolveGlobalShortcut } from '@/lib/global-shortcuts';
@@ -52,6 +53,12 @@ export function useGlobalShortcuts(): void {
 
         if (shortcut.kind === 'view') {
             router.visit(views[shortcut.index].href);
+
+            return;
+        }
+
+        if (shortcut.kind === 'palette') {
+            openCommandPalette();
 
             return;
         }

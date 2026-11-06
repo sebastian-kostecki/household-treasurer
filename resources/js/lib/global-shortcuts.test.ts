@@ -86,4 +86,26 @@ describe('resolveGlobalShortcut', () => {
         expect(press('2', { isComposing: true })).toBeNull();
         expect(press('2', { repeat: true })).toBeNull();
     });
+
+    it('maps Ctrl+K and ⌘K to the palette, in a field too', () => {
+        expect(press('k', { ctrlKey: true })).toEqual({ kind: 'palette' });
+        expect(press('K', { metaKey: true })).toEqual({ kind: 'palette' });
+        expect(press('k', { ctrlKey: true, targetIsEditable: true })).toEqual({
+            kind: 'palette',
+        });
+    });
+
+    it('keeps the palette shortcut silent under an open layer', () => {
+        expect(press('k', { ctrlKey: true, hasOpenLayer: true })).toBeNull();
+    });
+
+    it('keeps the palette shortcut silent on repeat, composition and with Alt', () => {
+        expect(press('k', { ctrlKey: true, repeat: true })).toBeNull();
+        expect(press('k', { ctrlKey: true, isComposing: true })).toBeNull();
+        expect(press('k', { ctrlKey: true, altKey: true })).toBeNull();
+    });
+
+    it('does not treat a bare k as the palette', () => {
+        expect(press('k')).toBeNull();
+    });
 });
