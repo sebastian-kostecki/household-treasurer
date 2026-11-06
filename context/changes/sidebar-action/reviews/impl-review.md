@@ -74,7 +74,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
 - **Location**: tests/e2e/global-shortcuts.spec.ts:80
 - **Detail**: `await expect(page).toHaveURL(/\/operations$/)` passes on its first poll because `router.visit` has not completed yet. The test stays green even if the shortcut fires, which is the failure it guards against. The other tests in the file assert an effect (menu, focus).
 - **Fix**: Record `page.on('request')` before the key press and assert that no Inertia navigation request was sent after a short settle, or assert the dialog is still open and the URL unchanged after waiting for a known idle signal.
-- **Decision**: PENDING
+- **Decision**: FIXED — Fix now: the spec records Inertia requests (`x-inertia`), takes focus off the dialog field so only the open layer can silence the shortcut, then closes the dialog and presses the key again as a positive control; exactly one request must be recorded. Red with `hasOpenLayer` forced to false (2 requests), green on the real code.
 
 ### F4 — Dead code left behind
 

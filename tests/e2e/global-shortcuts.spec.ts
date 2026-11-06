@@ -71,11 +71,28 @@ test('a digit does nothing while the expense dialog is open', async ({
     await page.goto('/operations');
     await page.getByRole('button', { name: 'Dodaj operację' }).click();
     await page.getByRole('menuitem', { name: 'Wydatek' }).click();
-    await expect(
-        page.getByRole('dialog', { name: 'Dodaj wydatek' }),
-    ).toBeVisible();
+    const dialog = page.getByRole('dialog', { name: 'Dodaj wydatek' });
+    await expect(dialog).toBeVisible();
 
+    const navigations: string[] = [];
+    page.on('request', (request) => {
+        if (request.headers()['x-inertia'] !== undefined) {
+            navigations.push(request.url());
+        }
+    });
+
+    // The dialog focuses a field, where a digit is silent anyway. Take the
+    // focus off it, so only the open layer can keep the shortcut quiet.
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
     await page.keyboard.press('2');
 
-    await expect(page).toHaveURL(/\/operations$/);
+    // Close the dialog: the same key must now navigate. That visit also
+    // orders after any request the first press would have sent, so the list
+    // holds exactly one entry (the control) when the shortcut was silent.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await page.keyboard.press('2');
+    await expect(page).toHaveURL(/\/budget$/);
+
+    expect(navigations).toHaveLength(1);
 });
