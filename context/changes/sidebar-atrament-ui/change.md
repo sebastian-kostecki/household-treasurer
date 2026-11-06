@@ -1,7 +1,7 @@
 ---
 change_id: sidebar-atrament-ui
 title: Sidebar według komponentu Sidebar z design systemu Atrament
-status: new
+status: preparing
 created: 2026-11-06
 updated: 2026-11-06
 archived_at: null
@@ -17,9 +17,9 @@ archived_at: null
 - **Decyzja: rok budżetu bez segmentów.** Zostaje menu `BudgetYearSwitcher` (radio + „Dodaj rok”, `pending`/`aria-busy`, komunikat błędu), dopasowane wyglądem do wzorca. Powody: segmenty nie mieszczą się w zwiniętym pasku 3rem (reguła `js-sidebar.md`), lat przybywa bez limitu przy 224 px, „2027 +” miesza wybór z tworzeniem i wymaga danych, których `budgetYears` nie niesie; README wzorca („W kodzie”) zostawia menu.
 - **Zarzuty z wstępnego audytu** (do `## Charges` w `research.md`):
   - C1 `ui/sidebar/utils.ts:6`: szerokość `16rem` zamiast tokenu `sidebar-width` 224 px; brak `--sidebar-width` w `app.css`.
-  - C2 `BudgetYearSwitcher.vue:96,124`, `NavMain.vue:203`: etykiety `text-sidebar-foreground/80 text-xs` zamiast `label-caps` (`app.css:262`); „Rok budżetu” w przycisku, nie nad nim.
-  - C3 `NavMain.vue:211`, `ui/sidebar/SidebarMenuButtonChild.vue:28`: aktywna pozycja bez `aria-current="page"`.
-  - C4 `UserInfo.vue:25-27`, `NavUser.vue:253`: kwadratowy awatar 32 px na `bg-muted` zamiast okrągłego 28 px na `sidebar-accent`; brak e-maila (`UserInfo` jest też w menu użytkownika).
+  - C2 `BudgetYearSwitcher.vue:96,124`, `NavMain.vue:25`: etykiety `text-sidebar-foreground/80 text-xs` zamiast `label-caps` (`app.css:262`); „Rok budżetu” w przycisku, nie nad nim.
+  - C3 `NavMain.vue:28-33`, `ui/sidebar/SidebarMenuButtonChild.vue:28`: aktywna pozycja bez `aria-current="page"`.
+  - C4 `UserInfo.vue:25-27`, `NavUser.vue:29-34`: kwadratowy awatar 32 px na `bg-muted` zamiast okrągłego 28 px na `sidebar-accent`; brak e-maila (`UserInfo` jest też w menu użytkownika).
   - C5 `AppLogo.vue:10-14`: znak `Vault` 32 px zamiast „HT” w JetBrains Mono 26 px `radius-sm`; zamyka odroczony C5a z `sidebar-ui-contract`, decyzja do ADR-0053.
   - Drobne: `AppSidebar.vue:101` `<slot />` poza `<Sidebar>` (dwa korzenie, nikt nie podaje treści slotu).
 - **Macierz 7 stanów:** hover, focus-visible i disabled w kitchen sinku są dziś „zrzutami z aplikacji”, nie są pokazane.
