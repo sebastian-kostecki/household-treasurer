@@ -599,10 +599,10 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [x] 2.1 `npm run types:check` przechodzi
-- [x] 2.2 `npm run check:ui` przechodzi z `SettingsPanel.vue` dopisanym do `FILES` w `scripts/check-ui-literals.mjs`
-- [x] 2.3 `npm run test` (w tym `ui-contract.test.ts`) przechodzi
-- [x] 2.4 `npm run build` przechodzi
+- [x] 2.1 `npm run types:check` przechodzi — 5520370
+- [x] 2.2 `npm run check:ui` przechodzi z `SettingsPanel.vue` dopisanym do `FILES` w `scripts/check-ui-literals.mjs` — 5520370
+- [x] 2.3 `npm run test` (w tym `ui-contract.test.ts`) przechodzi — 5520370
+- [x] 2.4 `npm run build` przechodzi — 5520370
 
 #### Manual
 
@@ -613,10 +613,10 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [ ] 3.1 Nowe asercje w `ProfileUpdateTest` i `SecurityTest` nie przechodzą przed dodaniem `lang/pl.json` i `lang/pl/validation.php`, a po dodaniu przechodzą
-- [ ] 3.2 Testy ustawień przechodzą na PostgreSQL: `docker run … artisan test --compact tests/Feature/Settings tests/Feature/AppShellTest.php` (polecenie z AGENTS.md dla worktree)
-- [ ] 3.3 `npm run types:check`, `npm run test`, `npm run build` przechodzą
-- [ ] 3.4 `vendor/bin/pint --dirty --format agent` bez zmian do zatwierdzenia
+- [x] 3.1 Nowe asercje w `ProfileUpdateTest` i `SecurityTest` nie przechodzą przed dodaniem `lang/pl.json` i `lang/pl/validation.php`, a po dodaniu przechodzą
+- [x] 3.2 Testy ustawień przechodzą na PostgreSQL: `docker run … artisan test --compact tests/Feature/Settings tests/Feature/AppShellTest.php` (polecenie z AGENTS.md dla worktree)
+- [x] 3.3 `npm run types:check`, `npm run test`, `npm run build` przechodzą
+- [x] 3.4 `vendor/bin/pint --dirty --format agent` bez zmian do zatwierdzenia
 
 #### Manual
 

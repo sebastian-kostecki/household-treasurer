@@ -34,7 +34,8 @@ class ProfileUpdateTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('profile.edit'));
+            ->assertRedirect(route('profile.edit'))
+            ->assertInertiaFlash('toast.message', 'Profil zapisany.');
 
         $user->refresh();
 
@@ -91,7 +92,7 @@ class ProfileUpdateTest extends TestCase
             ]);
 
         $response
-            ->assertSessionHasErrors('password')
+            ->assertSessionHasErrors(['password' => 'Podane hasło jest nieprawidłowe.'])
             ->assertRedirect(route('profile.edit'));
 
         $this->assertNotNull($user->fresh());
