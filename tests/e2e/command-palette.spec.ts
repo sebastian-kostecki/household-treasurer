@@ -57,6 +57,26 @@ test('a category goes to Operations filtered by the category and the year', asyn
     expect(query.get('date_to')).toMatch(/^\d{4}-12-31$/);
 });
 
+test('categories that load after the user has typed are still filtered and shown', async ({
+    page,
+}) => {
+    // Hold the categories response back, so the text is typed before the
+    // category rows exist: they mount while a search is already active.
+    await page.route('**/command-palette/categories', async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await route.continue();
+    });
+    await page.goto('/dashboard');
+    await openPaletteWithShortcut(page);
+
+    await page.getByRole('combobox').fill('Żywność');
+
+    await expect(page.getByRole('option', { name: /Żywność/ })).toBeVisible({
+        timeout: 10000,
+    });
+    await expect(page.getByText('Brak wyników')).toBeHidden();
+});
+
 test('"Dodaj operację" opens the type menu on Operations', async ({ page }) => {
     await page.goto('/dashboard');
     await openPaletteWithShortcut(page);

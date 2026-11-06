@@ -50,7 +50,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
   - Tradeoff: Touches `ui/command`, which the plan names in ADR-0054 as the place for a11y changes, so the ADR sentence should mention it.
   - Confidence: MEDIUM — the logic is clear in the source, the runtime effect is not reproduced.
   - Blind spot: How reka `ListboxRoot` highlights the first item after a late re-filter.
-- **Decision**: PENDING
+- **Decision**: FIXED — Fix now: `watch(() => allItems.value.size, filterItems)` in `Command.vue`, e2e "categories that load after the user has typed…" (red without the watch, green with it), deviation added to ADR-0054.
 
 ### F2 — "Dodaj rok budżetu" from the palette does nothing when the mobile sheet is closed
 

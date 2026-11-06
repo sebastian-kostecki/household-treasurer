@@ -77,6 +77,13 @@ watch(() => filterState.search, () => {
   filterItems()
 })
 
+// Not in the shadcn-vue registry: items that mount after the user has typed (the palette loads
+// its categories from the server) register in `allItems` only in `onMounted`, so without this
+// they stay unfiltered and their group stays hidden until the next keystroke (ADR-0054).
+watch(() => allItems.value.size, () => {
+  filterItems()
+})
+
 provideCommandContext({
   allItems,
   allGroups,
