@@ -73,7 +73,7 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
-    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
     --color-sidebar: var(--sidebar-background);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -163,7 +163,7 @@
     --dialog-pad-y: 16px;
     /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
     --control-h: var(--control-height);
-    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
     --sidebar-background: #0f1b2d;
     --sidebar-foreground: #9eacc0;
     --sidebar-strong: #e8edf4;
@@ -216,7 +216,7 @@
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
-    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
     --sidebar-background: #070c14;
     --sidebar-foreground: #8b9ab0;
     --sidebar-strong: #e6ecf3;
@@ -239,7 +239,7 @@
 
 /**
  * Named typography styles and control sizes of the "Atrament" system
- * (ADR-0037, table in `.docs/design-system.md`). Registered as utilities so
+ * (ADR-0037, table in `context/foundation/design-system.md`). Registered as utilities so
  * `@apply table-header` works in the component classes below.
  */
 @utility page-title {

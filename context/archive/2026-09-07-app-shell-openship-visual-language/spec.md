@@ -62,7 +62,7 @@ Visual reference: Openship dashboard language (https://github.com/oblien/openshi
 - Budget year switcher: always visible in the sidebar header. The control is a button with a menu of years and "Dodaj rok"; in the collapsed icon strip it shrinks to an icon with a tooltip. Shared Inertia data should expose the selected year (or null) so every page shares one context. No domain persistence of Budget yet; the control can be a non-functional or empty-state control that is already in the chrome.
 - New authenticated Inertia pages (empty/first-run, not full CRUD): Dashboard (checklist + Liquidity card row + Execution section with expense progress bars in empty/zero state), Budget (phase badge, start-execution control disabled or explained as upcoming, two tables), Accounts (empty list), Operations (empty table/cards + Import CSV control that can be disabled or explain upcoming).
 - Do not implement Account, Budget, Category, Financial Operation, Own Transfer, or CSV import persistence in this spec. Domain rules stay in the PRD for later tickets.
-- Polish UI copy lives in Laravel language files (or equivalent already in the repo) and is passed into pages as needed. Code, logs, and glossary remain English (`User`, `Account`, `Budget`, … per CONTEXT.md).
+- Polish UI copy lives in Laravel language files (or equivalent already in the repo) and is passed into pages as needed. Code, logs, and glossary remain English (`User`, `Account`, `Budget`, … per context/foundation/glossary.md).
 - Number and date formatting helpers must use the Polish patterns above whenever amounts or dates are shown. Do not rely on the browser locale.
 - Semantic colours: destructive/red for over-limit and negative balance; a green token for income/positive; muted for archived. Do not let Users pick Category colours.
 - Feedback: keep Inertia inline validation; success toasts for completed writes when those writes exist (may only apply to settings/auth in this spec); confirm dialogs for destructive starter actions that already exist (e.g. profile/security) when those screens are translated.
@@ -89,6 +89,6 @@ Visual reference: Openship dashboard language (https://github.com/oblien/openshi
 
 ## Further Notes
 
-- Glossary: `CONTEXT.md`. Product requirements: `.docs/prd.md`, `.docs/mvp.md`. Stack: `.docs/tech-stack.md`. Visual ADR: `.docs/adr/0001-openship-visual-language.md`.
+- Glossary: `context/foundation/glossary.md`. Product requirements: `context/foundation/prd-mvp.md`, `context/foundation/mvp.md`. Stack: `context/foundation/tech-stack.md`. Visual ADR: `context/foundation/adr/0001-openship-visual-language.md`.
 - Next step after this spec is `/to-tickets` (tracer-bullet tickets with blocking edges), then `/implement` per ticket. Do not implement this spec in the same change as domain CRUD.
 - Openship is a visual reference only. Navigation labels and domain words must stay Household Treasurer (Budget vs Liquidity), never “project” or “deployment”.

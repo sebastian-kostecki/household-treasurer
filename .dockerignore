@@ -2,7 +2,7 @@
 .git
 .gitignore
 .gitattributes
-.docs
+context
 .agents
 .idea
 .vscode
@@ -50,6 +50,5 @@ scripts
 # CI and docs
 .github
 AGENTS.md
-CONTEXT.md
 boost.json
 skills-lock.json

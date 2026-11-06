@@ -6,7 +6,7 @@ use App\Enums\CategoryType;
 use App\Models\Category;
 
 /**
- * Year after the Month (CONTEXT.md): Execution of a Category before the current
+ * Year after the Month (context/foundation/glossary.md): Execution of a Category before the current
  * month plus the amount its month item counts with by the To Spend rule, set
  * against the Category's Current Plan. Year Remainder is Current Plan minus that.
  *

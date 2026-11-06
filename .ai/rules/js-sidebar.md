@@ -10,7 +10,7 @@ paths:
 
 ## Sidebar colours are the `--sidebar-*` tokens
 
-Sidebar colours are `--sidebar-*` tokens from resources/css/app.css (roles in .docs/design-system.md, "Sidebar"); there is no `--sidebar` token, the background is `--sidebar-background`. No `dark:` variants and no literals in sidebar files: `npm run check:ui` guards them (they are on the list in scripts/check-ui-literals.mjs).
+Sidebar colours are `--sidebar-*` tokens from resources/css/app.css (roles in context/foundation/design-system.md, "Sidebar"); there is no `--sidebar` token, the background is `--sidebar-background`. No `dark:` variants and no literals in sidebar files: `npm run check:ui` guards them (they are on the list in scripts/check-ui-literals.mjs).
 
 ## Header and footer slots survive the collapsed strip
 

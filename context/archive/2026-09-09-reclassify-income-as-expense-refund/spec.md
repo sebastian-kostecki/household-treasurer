@@ -62,5 +62,5 @@ Recorded in ADR-0015. Requirements: FR-TRX-13–16.
 
 ## Further Notes
 
-- Glossary: `CONTEXT.md`. Product requirements: `.docs/prd.md` (FR-TRX-13–16, BR-17). Decision: `.docs/adr/0015-reclassify-shop-return-on-edit-not-import.md`.
+- Glossary: `context/foundation/glossary.md`. Product requirements: `context/foundation/prd-mvp.md` (FR-TRX-13–16, BR-17). Decision: `context/foundation/adr/0015-reclassify-shop-return-on-edit-not-import.md`.
 - Visual language stays the OpenShip surface recipe (ADR-0001 / ADR-0003). This spec adds a control to existing edit dialogs; it does not restyle the shell.

@@ -1,6 +1,6 @@
 # Agenda and Cash Expectations
 
-Map: [Unpaid dated cash events: a plane next to Liquidity and Execution](https://github.com/sebastian-kostecki/household-treasurer/issues/68). Glossary: `CONTEXT.md`. ADRs 0017–0022.
+Map: [Unpaid dated cash events: a plane next to Liquidity and Execution](https://github.com/sebastian-kostecki/household-treasurer/issues/68). Glossary: `context/foundation/glossary.md`. ADRs 0017–0022.
 
 ## Problem Statement
 
@@ -84,7 +84,7 @@ This is a calendar of known events, not a debt ledger, not a monthly liquidity f
 - Dashboard payload: overdue and today Cash Expectations for this User (any year), notice-only. Click uses existing `budget.select-year` then visits Agenda (same year-switch behaviour as other shell year changes).
 - Account destroy / opening-date update: treat Cash Expectations as history for FR-ACC-04/06 analogs. Category destroy and type change: block while named by a Cash Expectation. Draft Budget destroy: block while any of its Categories are named by a Cash Expectation.
 - Snapshots: bump `user:backup` version to **5**; require `cash_expectations` on v5; restore v1–4 without the key as empty Agenda. Reset wipes the table. Spatie whole-database backups (ADR-0013) need no extra path. Extends ADR-0008; no new snapshot ADR.
-- Update `.docs/prd.md` and `.docs/mvp.md`: Cash Expectation / Agenda in scope; BR-14 remains “they are not Financial Operations”; §12 first bullet narrows to debt ledger / remaining loan balance (Cash Expectation is not that). FR-ADM-01 lists `cash_expectations` and version 5 (restore still accepts 1–4). First Run unchanged (FR-TD-11 analog).
+- Update `context/foundation/prd-mvp.md` and `context/foundation/mvp.md`: Cash Expectation / Agenda in scope; BR-14 remains “they are not Financial Operations”; §12 first bullet narrows to debt ledger / remaining loan balance (Cash Expectation is not that). FR-ADM-01 lists `cash_expectations` and version 5 (restore still accepts 1–4). First Run unchanged (FR-TD-11 analog).
 - Polish UI copy in `lang/pl/ui.php`. Code and docs stay English (`Cash Expectation`, `Agenda`, `Settlement candidate`). Do not label the nav Zobowiązania, Harmonogram, or Prognoza.
 
 ## Testing Decisions

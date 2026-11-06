@@ -61,6 +61,6 @@ Recorded in ADR-0014. Requirements: FR-BUD-11–14, FR-CAT-12–13, BR-16.
 
 ## Further Notes
 
-- Glossary: `CONTEXT.md`. Product requirements: `.docs/prd.md` (FR-BUD-11–14, FR-CAT-12–13), `.docs/mvp.md`. Decision: `.docs/adr/0014-copy-categories-as-new-records-on-budget-create.md`.
+- Glossary: `context/foundation/glossary.md`. Product requirements: `context/foundation/prd-mvp.md` (FR-BUD-11–14, FR-CAT-12–13), `context/foundation/mvp.md`. Decision: `context/foundation/adr/0014-copy-categories-as-new-records-on-budget-create.md`.
 - Next step is `/to-tickets` or implement this spec. Do not invent a second copy verb while implementing.
 - Visual language stays the OpenShip surface recipe (ADR-0001 / ADR-0003). This spec adds a select to an existing dialog; it does not restyle the shell.

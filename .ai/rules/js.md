@@ -9,7 +9,7 @@ paths:
 
 Use token utilities (bg-primary, text-destructive, text-warning, text-success, text-muted-foreground), never hex values or Tailwind palette colours (red-500, amber-700).
 primary = action (ink); brand = identity, navigation, document state and the one approving action (ADR-0042), never money status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions, never an expense amount (in Operations an expense amount is `foreground`, ADR-0038; only the expense type tile is `destructive-soft`, ADR-0039); warning = within bounds but close to breaking.
-Category colour is identity only (CategoryChip tile at 15%), never status. Full table: .docs/design-system.md.
+Category colour is identity only (CategoryChip tile at 15%), never status. Full table: context/foundation/design-system.md.
 
 ## Amounts go through formatMoney with tabular-nums
 
@@ -38,7 +38,7 @@ Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid
 
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
-Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in .docs/design-system.md.
+Values live in resources/css/app.css (:root / .dark, published by @theme inline). Base components are in components/ui/*, domain ones in components/. Before a new component check StatTile, IndexEmptyState and the "Gotowe elementy" list in context/foundation/design-system.md.
 Signed amount colour goes through amountToneClass, column labels through the `table-header` style (the only column caption recipe; capitals `label-caps` only above metrics and in the sidebar), severity and status pills through Badge (variants warning / destructive-soft / ok / brand / neutral / outline; `brand` also marks document state, such as an approved month plan, ADR-0042; `outline` marks a closed past month, „Końcowy”), the elapsed-year mark in ExecutionMeter in `brand-text`.
 Archived rows: no tone, except a term deposit balance < 0 (FR-TD-08) — then `amountToneClass`.
 No colour literals, palette classes or arbitrary px/rem values in views; npm run check:ui guards the cleaned files (add newly cleaned views to scripts/check-ui-literals.mjs). Component sandboxes: /dev/ui/dashboard, /dev/ui/accounts, /dev/ui/term-deposits, /dev/operations, /dev/import-preview and /dev/month-plan.

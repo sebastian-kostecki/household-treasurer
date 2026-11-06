@@ -19,12 +19,12 @@ timeline_budget:
 
 ## Current System Overview
 
-Household Treasurer to responsywna aplikacja webowa do budżetu domowego. Słownik: `CONTEXT.md`, poprzedni PRD (plan miesiąca): `context/foundation/prd.md`.
+Household Treasurer to responsywna aplikacja webowa do budżetu domowego. Słownik: `context/foundation/glossary.md`, poprzedni PRD (plan miesiąca): `context/foundation/prd.md`.
 
 - **Architektura:** monolit Laravel z frontendem Inertia + Vue, baza PostgreSQL.
 - **Użytkownicy:** konta tworzy administrator, dane każdego użytkownika są odizolowane. Faktycznie korzysta jedna osoba.
 - **Funkcje dziś:** budżet roczny (plan początkowy, plan aktualny, wykonanie), plan miesiąca i „do wydania”, tempo, powiadomienia, Podsumowanie miesiąca, porównanie planów miesięcy z rokiem, operacje ręczne i Import CSV/XLSX z podpowiedziami kategorii, konta, transfery własne, lokaty, Dashboard.
-- **Kategorie dziś:** należą do jednego budżetu (roku). Typ: przychód albo wydatek. Wydatek ma dwie flagi: równomierna / jednorazowa (Paced / One-off) oraz rachunek / bieżąca (Month Item Kind). Kategoria ma nazwę, ikonę, kolor i kolejność; można ją zarchiwizować. Nowy budżet kopiuje aktywne kategorie z poprzedniego roku razem z flagami. Nie ma jednej tożsamości kategorii przez lata: lata łączy zapytanie po nazwie i typie (`CONTEXT.md`, Category: _Avoid_ „a Category identity that spans years”). Nie ma grup kategorii.
+- **Kategorie dziś:** należą do jednego budżetu (roku). Typ: przychód albo wydatek. Wydatek ma dwie flagi: równomierna / jednorazowa (Paced / One-off) oraz rachunek / bieżąca (Month Item Kind). Kategoria ma nazwę, ikonę, kolor i kolejność; można ją zarchiwizować. Nowy budżet kopiuje aktywne kategorie z poprzedniego roku razem z flagami. Nie ma jednej tożsamości kategorii przez lata: lata łączy zapytanie po nazwie i typie (`context/foundation/glossary.md`, Category: _Avoid_ „a Category identity that spans years”). Nie ma grup kategorii.
 - **Raporty dziś:** brak widoku raportów i wykresów. Najbliżej: Podsumowanie miesiąca, porównanie planów miesięcy z rokiem, kolumny wykonania w budżecie rocznym.
 
 ### Stan danych na devie (2026-11-04)
@@ -212,7 +212,7 @@ Plan miesiąca i „do wydania” zmieniają się świadomie w zakresie wydatkó
 ### Kompatybilność wsteczna
 
 - `user:backup` i `user:restore`: format dostaje nową wersję i obejmuje nowe dane; snapshot w starym formacie nadal się wczytuje z wartościami domyślnymi.
-- Zmiana reguły „do wydania” wymaga nowego ADR i wpisów w `CONTEXT.md` przed kodem (wymóg wskazany przez użytkownika).
+- Zmiana reguły „do wydania” wymaga nowego ADR i wpisów w `context/foundation/glossary.md` przed kodem (wymóg wskazany przez użytkownika).
 
 ### Migracja danych
 
@@ -229,7 +229,7 @@ Plan miesiąca i „do wydania” zmieniają się świadomie w zakresie wydatkó
 
 ### Wymagania jakościowe
 
-- Raport roku otwiera się w czasie do 2 sekund przy 10 000 operacji (obecne wymaganie aplikacji, `.docs/prd.md` sekcja 10).
+- Raport roku otwiera się w czasie do 2 sekund przy 10 000 operacji (obecne wymaganie aplikacji, `context/foundation/prd-mvp.md` sekcja 10).
 - Kwoty w raporcie są co do grosza równe wykonaniu kategorii w budżecie rocznym i Wynikowi miesiąca dla tego samego okresu.
 - Istniejące wymagania aplikacji obowiązują nowe widoki: izolacja danych użytkownika, kwoty bez obliczeń zmiennoprzecinkowych.
 
@@ -237,7 +237,7 @@ Plan miesiąca i „do wydania” zmieniają się świadomie w zakresie wydatkó
 
 Wydatek nieregularny obniża „do wydania” co miesiąc o 1/12 swojego planu rocznego, a jego płatności pokrywa kwota zebrana do tej pory; „do wydania” w miesiącu płatności obniża tylko nadwyżka ponad zebrane.
 
-Obecnie system liczy „do wydania” jako: przychody (plan, a po wpływie kwota faktyczna) − pozycje „rachunek” (plan, a po wpłacie kwota faktyczna) − pozycje „bieżąca” (większa z: plan, kwota faktyczna) − odkładam + dobieram (`CONTEXT.md`, To Spend). Wydatek płacony kilka razy w roku nie pasuje: jako „jednorazowa” startuje w Propozycji planu od 0, a jako równomierny rachunek obniża „do wydania” skokiem w miesiącu płatności. Ta zmiana modyfikuje regułę: wydatek nieregularny (płacony kilka razy albo raz w roku, np. prąd, ubezpieczenie auta, wakacje, rekolekcje) wchodzi do „do wydania” kwotą 1/12 planu rocznego w każdym miesiącu. Ta kwota zwiększa „zebrane” tej pozycji już w tym miesiącu. Płatność najpierw zmniejsza „zebrane”; część płatności ponad „zebrane” obniża „do wydania” w miesiącu płatności, a „zebrane” spada do 0. Przykład: prąd, plan roczny 1800 zł → 150 zł co miesiąc; w marcu „zebrane” to 450 zł (styczeń–marzec), więc rachunek 430 zł nie obniża dodatkowo „do wydania” i zostaje 20 zł, a rachunek 600 zł obniża „do wydania” o 150 zł.
+Obecnie system liczy „do wydania” jako: przychody (plan, a po wpływie kwota faktyczna) − pozycje „rachunek” (plan, a po wpłacie kwota faktyczna) − pozycje „bieżąca” (większa z: plan, kwota faktyczna) − odkładam + dobieram (`context/foundation/glossary.md`, To Spend). Wydatek płacony kilka razy w roku nie pasuje: jako „jednorazowa” startuje w Propozycji planu od 0, a jako równomierny rachunek obniża „do wydania” skokiem w miesiącu płatności. Ta zmiana modyfikuje regułę: wydatek nieregularny (płacony kilka razy albo raz w roku, np. prąd, ubezpieczenie auta, wakacje, rekolekcje) wchodzi do „do wydania” kwotą 1/12 planu rocznego w każdym miesiącu. Ta kwota zwiększa „zebrane” tej pozycji już w tym miesiącu. Płatność najpierw zmniejsza „zebrane”; część płatności ponad „zebrane” obniża „do wydania” w miesiącu płatności, a „zebrane” spada do 0. Przykład: prąd, plan roczny 1800 zł → 150 zł co miesiąc; w marcu „zebrane” to 450 zł (styczeń–marzec), więc rachunek 430 zł nie obniża dodatkowo „do wydania” i zostaje 20 zł, a rachunek 600 zł obniża „do wydania” o 150 zł.
 
 „Zebrane” widać przy pozycji w planie miesiąca i w Podsumowaniu miesiąca. Nie zmienia sald kont ani Spendable Liquidity, tak jak „odkładam”. Zbieranie zaczyna się od miesiąca, w którym użytkownik oznaczył wydatek jako nieregularny (zebrane startuje od 0); minione miesiące się nie zmieniają. Na koniec roku niewydane „zebrane” obniża plan roczny tej kategorii i przechodzi do wyniku roku.
 

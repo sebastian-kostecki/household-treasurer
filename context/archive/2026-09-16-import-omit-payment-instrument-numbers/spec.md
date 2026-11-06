@@ -55,7 +55,7 @@ Worked example (BNP Paribas `Opis`):
 - One-shot backfill: an Action the data migration calls. For every Financial Operation, Own Transfer, and Capital Movement with a non-null Raw Statement Description on that record (either Own Transfer snapshot counts), omit live Description and, on Financial Operations, Counterparty, then apply the same empty-Description fallback. If Description would still be empty, skip that record. Do not write Raw Statement Description. Do not touch Cash Expectations. Do not change Import duplicate identity columns.
 - Hand-create and hand-edit validation stay as they are (`raw_statement_description` prohibited; no omit on those paths).
 - No schema change. No new ADR (ADR-0005 and ADR-0007 already fix Raw Statement Description as the snapshot and fingerprint input).
-- Update product requirements for mBank, BNP Paribas, and Other so live Description/Counterparty omit payment-instrument numbers while the original statement snapshot stays the file row. Glossary in `CONTEXT.md` already records this.
+- Update product requirements for mBank, BNP Paribas, and Other so live Description/Counterparty omit payment-instrument numbers while the original statement snapshot stays the file row. Glossary in `context/foundation/glossary.md` already records this.
 
 ## Testing Decisions
 
@@ -78,6 +78,6 @@ Worked example (BNP Paribas `Opis`):
 ## Further Notes
 
 - Tracker: https://github.com/sebastian-kostecki/household-treasurer/issues/142 (`ready-for-agent`).
-- Glossary: `CONTEXT.md` (Import, Financial Operation, Counterparty, Raw Statement Description, Import duplicate). Decisions this spec relies on: ADR-0005, ADR-0006, ADR-0007.
-- Product requirements to extend: `.docs/prd.md` FR-IMP-05, FR-IMP-06, FR-IMP-07 (live fields omit; snapshot stays the file row).
+- Glossary: `context/foundation/glossary.md` (Import, Financial Operation, Counterparty, Raw Statement Description, Import duplicate). Decisions this spec relies on: ADR-0005, ADR-0006, ADR-0007.
+- Product requirements to extend: `context/foundation/prd-mvp.md` FR-IMP-05, FR-IMP-06, FR-IMP-07 (live fields omit; snapshot stays the file row).
 - Visual language unchanged. No new UI chrome.
