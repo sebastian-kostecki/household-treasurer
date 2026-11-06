@@ -15,7 +15,7 @@ Nowa strona „Raporty”. Dla wybranego miesiąca albo całego roku budżetu (r
 - **Typ operacji równa się typowi kategorii** dzięki walidacji (`app/Concerns/ExpenseValidationRules.php:45-47`), ale schemat tego nie wymusza. Operacja zawsze dziedziczy `budget_id` z kategorii, a walidacja nie pozwala na datę spoza roku budżetu.
 - **Wybór roku:** `SelectedBudgetYear::resolve` (`app/Support/SelectedBudgetYear.php:10`) czyta sesję `budget_year` i spada na najwcześniejszy rok. Przełącznik w sidebarze wysyła POST `budget.select-year` z `destination` z listy `['budget','month-plan']` (`app/Http/Requests/SelectBudgetYearRequest.php:27`, `BudgetController::selectYear` `:173`). Miesiąc: `BudgetViewedMonth::resolve` (`app/Support/BudgetViewedMonth.php:9`) i `BudgetMonthPicker` z propem `monthUrl` (`resources/js/components/BudgetMonthPicker.vue:13`).
 - **UI:** `SegmentedControl` (reka ToggleGroup), `StatTile`, `CategoryChip`, `ListSurface`, `IndexEmptyState`. W `components/ui` nie ma `table` ani `chart`. Tokeny `--chart-1..5` są w `resources/css/app.css` (`:57-61`, `:128-132`, `:172-176`), ale nikt ich nie używa. Pozycje nawigacji to tablica `mainNavItems` w `resources/js/components/AppSidebar.vue:41-72`, a etykiety leżą w `lang/pl/ui.php` (`nav`).
-- **Dokumenty są ze sobą sprzeczne:** `.docs/design-system.md:38` mówi, że kolor kategorii „nie maluje pasków”, a `AGENTS.md:52` każe brać kolory wykresu z `category-appearance.ts`.
+- **Dokumenty są ze sobą sprzeczne:** `context/foundation/design-system.md:38` mówi, że kolor kategorii „nie maluje pasków”, a `AGENTS.md:52` każe brać kolory wykresu z `category-appearance.ts`.
 - **Test wydajności:** `tests/Feature/Nfr/NfrPerf01Test.php` (grupa `nfr`, tylko PostgreSQL, `phpunit.nfr.xml`) wkłada 10 000 operacji do jednej kategorii, wszystkie z jednego dnia, i mierzy żądania `microtime` z limitem 2,0 s.
 
 ## Desired End State
@@ -33,7 +33,7 @@ Weryfikacja:
 - Kwoty kategorii daje `MonthCategoryActuals::forMonths($budget, range(1, 12))` albo `[$month]`, jednym zapytaniem dla obu okresów. S-12 (trend) użyje tego samego odczytu (`app/Support/MonthCategoryActuals.php:27-59`).
 - Wzór kontrolera dla strony z rokiem z sesji i miesiącem z query: `MonthPlanController::show` (`app/Http/Controllers/MonthPlanController.php:37-77`), razem z gałęzią „brak budżetu”.
 - Wzór testu propsów: `tests/Feature/MonthPlanPageTest.php` (`travelTo`, `withSession(['budget_year' => 2026])`, `assertInertia`).
-- `CONTEXT.md:111-113`: rok to „Wynik roku”, a samo „Wynik” jest dla roku _Avoid_. Budget ma _Avoid_ „Period”, więc w kodzie nie nazywamy niczego `Period` w znaczeniu budżetu.
+- `context/foundation/glossary.md:111-113`: rok to „Wynik roku”, a samo „Wynik” jest dla roku _Avoid_. Budget ma _Avoid_ „Period”, więc w kodzie nie nazywamy niczego `Period` w znaczeniu budżetu.
 - Shadcn-vue `chart` (`new-york-v4`) instaluje `ChartContainer`, `ChartTooltipContent`, `ChartLegendContent`, `ChartStyle` i `index.ts`. Sam zależy od `reka-ui` i `@vueuse/core`, które już są, a wykresy rysuje `@unovis/vue` z peer dependency `@unovis/ts` (wersja 1.7.1 z 2026-09-29). SSR nie jest włączony (brak `resources/js/ssr.ts`), więc unovis, który działa na DOM, nie ma tu konfliktu.
 - `composer ci:check` uruchamia `npm run check`, `check:ui`, `types:check`, `npm test` i testy PHP.
 
@@ -46,7 +46,7 @@ Weryfikacja:
 - Pełnej dostępności wykresu dla czytników ekranu: wykres ma `aria-hidden`, a dostępną formą jest tabela (PRD v2 Non-Goals).
 - Kitchen sinka, macierzy 7 stanów i bramki zrzutów ekranu. To nowy widok, a `CLAUDE.md` kieruje dopracowanie wyglądu do `/10x-ui` po jego powstaniu.
 - Kopii odczytu w TS: serwer liczy wszystko, łącznie z udziałem %.
-- Zmian schematu, snapshotu backupu i Dashboardu (`.docs/specs/dashboard-hierarchy.md:76` zabrania tam wykresów).
+- Zmian schematu, snapshotu backupu i Dashboardu (`context/archive/2026-09-23-dashboard-hierarchy/spec.md:76` zabrania tam wykresów).
 - Indeksu `(budget_id, operation_date)`, chyba że test wydajności z fazy 2 przekroczy limit.
 - Kolorowania pasków kolorem kategorii.
 
@@ -71,13 +71,13 @@ Reguły raportu (te same dla miesiąca i roku):
 
 ### Overview
 
-Klasa `CategoryReport` z regułami okresu, udziału, listy i kolejności oraz wpis w `CONTEXT.md`. Testy dowodzą równości z Wynikiem miesiąca i z licznikiem wykonania.
+Klasa `CategoryReport` z regułami okresu, udziału, listy i kolejności oraz wpis w `context/foundation/glossary.md`. Testy dowodzą równości z Wynikiem miesiąca i z licznikiem wykonania.
 
 ### Changes Required:
 
 #### 1. Słownik
 
-**File**: `CONTEXT.md`
+**File**: `context/foundation/glossary.md`
 
 **Intent**: Dodaj termin raportu, żeby kolejne wycinki strumienia A (S-12, S-13, S-17) używały jednej definicji udziału i listy kategorii. To nowy odczyt bez zmiany żadnej reguły, więc nie wymaga ADR przed kodem.
 
@@ -128,7 +128,7 @@ Klasa `CategoryReport` z regułami okresu, udziału, listy i kolejności oraz wp
 
 #### Manual Verification:
 
-- Wpis Category Report w `CONTEXT.md` jest zgodny z decyzjami (udział wśród dodatnich, lista kategorii z operacjami, „Wynik” / „Wynik roku”)
+- Wpis Category Report w `context/foundation/glossary.md` jest zgodny z decyzjami (udział wśród dodatnich, lista kategorii z operacjami, „Wynik” / „Wynik roku”)
 
 **Implementation Note**: Po przejściu weryfikacji automatycznej zatrzymaj się na ręczne potwierdzenie przed fazą 2.
 
@@ -255,7 +255,7 @@ ADR-0036, komponent shadcn-vue Chart i unovis oraz dwa rodzaje wykresów obok ta
 
 #### 1. Decyzja
 
-**File**: `.docs/adr/0036-report-charts-shadcn-vue-chart-unovis.md` (nowy)
+**File**: `context/foundation/adr/0036-report-charts-shadcn-vue-chart-unovis.md` (nowy)
 
 **Intent**: Zapisz wybór biblioteki dla strumienia A, zanim trafi do kodu (`AGENTS.md`, „Charts and reports”).
 
@@ -294,13 +294,13 @@ ADR-0036, komponent shadcn-vue Chart i unovis oraz dwa rodzaje wykresów obok ta
 
 #### 4. Dokumenty i reguły
 
-**File**: `AGENTS.md`, `.docs/design-system.md`, `.ai/rules/js.md`
+**File**: `AGENTS.md`, `context/foundation/design-system.md`, `.ai/rules/js.md`
 
 **Intent**: Usuń sprzeczność w sprawie kolorów i zostaw regułę następnemu agentowi (strumień A).
 
 **Contract**:
 - `AGENTS.md` „Charts and reports”: biblioteka jest już wybrana (ADR-0036); kolory wykresu to tokeny `--success` (przychody) i `--chart-1` (wydatki); kolor kategorii tylko w `CategoryChip`; wykres ma `aria-hidden` i tabelę obok.
-- `.docs/design-system.md`: wiersz tabeli znaczeń dla wykresów (`chart-1` = wydatki w wykresach raportu) i zdanie przy kolorze kategorii bez zmiany zakazu.
+- `context/foundation/design-system.md`: wiersz tabeli znaczeń dla wykresów (`chart-1` = wydatki w wykresach raportu) i zdanie przy kolorze kategorii bez zmiany zakazu.
 - `.ai/rules/js.md`: krótka reguła „wykresy przez `components/ui/chart`, kolor jednego typu, tabela obok”. Wiersz w `.ai/rules/index.md` nie jest potrzebny, bo glob `resources/js/**/*.vue` już tam jest.
 
 ### Success Criteria:
@@ -360,7 +360,7 @@ Bez migracji danych i zmian snapshotu. Wycofanie to wdrożenie poprzedniej wersj
 - Wzór testu propsów: `tests/Feature/MonthPlanPageTest.php`
 - Wzór testu wydajności: `tests/Feature/Nfr/NfrPerf01Test.php`
 - Lekcja o liczniku wykonania: `context/archive/2026-11-03-month-plans-vs-year/reviews/impl-review.md:97-114`
-- Kontrakt UI: `.docs/design-system.md`, `.ai/rules/js.md`, `.ai/rules/css.md`, `.ai/skills/openship-ui-development/SKILL.md`
+- Kontrakt UI: `context/foundation/design-system.md`, `.ai/rules/js.md`, `.ai/rules/css.md`, `.ai/skills/openship-ui-development/SKILL.md`
 - Rejestr shadcn-vue chart: `https://shadcn-vue.com/r/styles/new-york-v4/chart.json`
 
 ## Progress
@@ -379,7 +379,7 @@ Bez migracji danych i zmian snapshotu. Wycofanie to wdrożenie poprzedniej wersj
 
 #### Manual
 
-- [ ] 1.6 Wpis Category Report w CONTEXT.md jest zgodny z decyzjami
+- [ ] 1.6 Wpis Category Report w context/foundation/glossary.md jest zgodny z decyzjami
 
 ### Phase 2: Strona „Raporty” z tabelami
 

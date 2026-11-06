@@ -483,7 +483,7 @@ Weryfikacja NFR-ACC-01 i NFR-ACC-02 następuje po pierwszym tygodniu dogfoodu; t
 ## 12. Poza zakresem MVP
 
 - księga długów, pozostałe saldo kredytu, recurrences i automatyczne zobowiązania,
-- Agenda i Cash Expectation jako powierzchnia produktu (specyfikacja następnego przyrostu: `.docs/specs/agenda-cash-expectations.md`; słownik: `CONTEXT.md`); nie są jeszcze w tym wydaniu,
+- Agenda i Cash Expectation jako powierzchnia produktu (specyfikacja następnego przyrostu: `context/archive/2026-09-10-agenda-cash-expectations/spec.md`; słownik: `context/foundation/glossary.md`); nie są jeszcze w tym wydaniu,
 - samodzielna rejestracja w interfejsie webowym,
 - rezerwy budżetowe,
 - miesięczne harmonogramy oraz prognozy płynności,

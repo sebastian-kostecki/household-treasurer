@@ -8,7 +8,7 @@ Dashboard shows everything at once and with equal weight: Paced month alerts as 
 
 Give Dashboard one job: “does anything need me now, and how much can I still spend this month”. Always read the current calendar year’s Budget (ADR-0031). Order the page as: First Run checklist (while incomplete), an attention zone of Dashboard notices (only when non-empty), headline tiles (“to spend” of the current month; Spendable Liquidity; Total funds), expense and income sections that each show a summary and the first five Categories in budget order, and a compact holdings list. On desktop the holdings list moves into a right-hand column. Everything deeper is one click away: in-place expand for the first level, links to Budget or Operations for the rest.
 
-Dashboard notice is a term in `CONTEXT.md` (Superseded by S-07 / ADR-0033: it was a UI term only). Cash Expectation notices (ADR-0019) are out of scope here; the Agenda spec adds them as another notice kind.
+Dashboard notice is a term in `context/foundation/glossary.md` (Superseded by S-07 / ADR-0033: it was a UI term only). Cash Expectation notices (ADR-0019) are out of scope here; the Agenda spec adds them as another notice kind.
 
 ## User Stories
 
@@ -79,5 +79,5 @@ Dashboard notice is a term in `CONTEXT.md` (Superseded by S-07 / ADR-0033: it wa
 
 ## Further Notes
 
-- Glossary: `CONTEXT.md` (Spendable Liquidity, Total funds, Month Remaining, Available Limit, Planned Balance, Year Elapsed, First Run). Decision: `.docs/adr/0031-dashboard-always-shows-current-calendar-year.md`. Related: ADR-0019, ADR-0024.
+- Glossary: `context/foundation/glossary.md` (Spendable Liquidity, Total funds, Month Remaining, Available Limit, Planned Balance, Year Elapsed, First Run). Decision: `context/foundation/adr/0031-dashboard-always-shows-current-calendar-year.md`. Related: ADR-0019, ADR-0024.
 - Suggested slices: (1) current-year rule, headline tiles, Planned Balance, page order and grid; (2) attention zone with the four notice kinds and links; (3) compact holdings list; (4) Category section defaults and the two-line mobile row.

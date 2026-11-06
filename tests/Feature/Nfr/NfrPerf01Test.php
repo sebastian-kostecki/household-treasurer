@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
- * NFR-PERF-01 acceptance test — see .docs/prd.md §10.
+ * NFR-PERF-01 acceptance test — see context/foundation/prd-mvp.md §10.
  *
  * Run in Sail on PostgreSQL:
  * ./vendor/bin/sail artisan test --group=nfr --configuration=phpunit.nfr.xml

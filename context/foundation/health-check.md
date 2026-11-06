@@ -122,7 +122,7 @@ Brak.
 - **`phpunit.xml` z domyślnym SQLite** — zielony przebieg na hoście nic nie mówi o PostgreSQL. Skompensowane regułą „Test database” w `AGENTS.md`, a CI działa na PostgreSQL.
 - **Zdublowany numer ADR 0008** (`0008-cross-import-own-transfer-pair.md`, `0008-user-domain-snapshots-via-artisan.md`), luka 0025–0028. Fix: poprawka 9.
 
-Obecne: `.editorconfig`, `.gitignore` (obejmuje `.env`, `.env.prod`, `.env.production`), `.env.example`, `.env.prod.example`, `tsconfig.json` z `strict: true`, `pint.json`, formatowanie i lint przez `vp` (zamiast Prettiera i ESLinta), `AGENTS.md`, `.ai/rules`, `CONTEXT.md`.
+Obecne: `.editorconfig`, `.gitignore` (obejmuje `.env`, `.env.prod`, `.env.production`), `.env.example`, `.env.prod.example`, `tsconfig.json` z `strict: true`, `pint.json`, formatowanie i lint przez `vp` (zamiast Prettiera i ESLinta), `AGENTS.md`, `.ai/rules`, `context/foundation/glossary.md`.
 
 ## Stack Assessment Cross-Reference
 
@@ -251,7 +251,7 @@ Dodaj `development` do `on.push.branches` w `tests.yml` albo otwieraj PR od razu
 **Effort**: moderate (15–30 min)
 **Fix**:
 
-Zmień numer jednego z plików 0008 na 0035 (`git mv`) i popraw odwołania (`grep -rn "0008" .docs CONTEXT.md AGENTS.md context`). Nowe ADR z prd-v2 numeruj od 0036. Albo zostaw numery bez zmian i dopisz wyjaśnienie w `.docs/adr`.
+Zmień numer jednego z plików 0008 na 0035 (`git mv`) i popraw odwołania (`grep -rn "0008" AGENTS.md context`). Nowe ADR z prd-v2 numeruj od 0036. Albo zostaw numery bez zmian i dopisz wyjaśnienie w `context/foundation/adr`.
 
 ### Addressed in upcoming lessons (Category B)
 

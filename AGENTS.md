@@ -1,14 +1,14 @@
 # Household Treasurer
 
-Single-user household budget and liquidity tracker: Laravel 13, Inertia 3, Vue 3 with shadcn-vue, Vite+ (`vp`), PostgreSQL. UI copy is Polish; code and agent docs use the English domain language from `CONTEXT.md`.
+Single-user household budget and liquidity tracker: Laravel 13, Inertia 3, Vue 3 with shadcn-vue, Vite+ (`vp`), PostgreSQL. UI copy is Polish; code and agent docs use the English domain language from `context/foundation/glossary.md`.
 
 ## Hard rules
 
 - Money is `int` in minor units (`*_minor_units` `bigint` columns), parsed with `App\Support\MinorUnits`; `float` stays out of money code.
 - `phpunit.xml` defaults to SQLite, CI and production run PostgreSQL: a green SQLite run proves nothing for migrations, raw SQL, date or JSON functions and constraints. Run those tests on PostgreSQL (Commands).
-- A change to a `CONTEXT.md` rule or to a term marked _Avoid_ starts with the `CONTEXT.md` entry and a new ADR in `.docs/adr` (next free number), then code.
+- A change to a glossary rule (`context/foundation/glossary.md`) or to a term marked _Avoid_ starts with the glossary entry and a new ADR in `context/foundation/adr` (next free number), then code.
 - Docs describe more than the code: Agenda, Cash Expectation, Reserve and Year Close are not on `main`. Confirm a term exists in code before building on it.
-- UI follows the Atrament design system in `.docs/design-system.md`: values only as tokens from `resources/css/app.css` (no hex or Tailwind palette colours), `components/ui/*` never edited for a single screen, every view state in its `/dev/...` kitchen sink, `npm run check:ui` guarding the views. A new token or colour meaning lands on that page and, when it changes a decision, in an ADR. The claude.ai artifact linked there is a preview, not a source of values.
+- UI follows the Atrament design system in `context/foundation/design-system.md`: values only as tokens from `resources/css/app.css` (no hex or Tailwind palette colours), `components/ui/*` never edited for a single screen, every view state in its `/dev/...` kitchen sink, `npm run check:ui` guarding the views. A new token or colour meaning lands on that page and, when it changes a decision, in an ADR. The claude.ai artifact linked there is a preview, not a source of values.
 - An Inertia prop changes on both sides (PHP array, `defineProps<>` type) in one commit, with an `assertInertia` test.
 - A chart library is a plan decision plus an ADR (`.ai/rules/reports.md`).
 - CI, Sail and production run PHP 8.5, the host CLI 8.4: write code that runs on 8.4.1. npm is the only package manager.
@@ -26,8 +26,8 @@ Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). R
 
 - `app/Actions` writes; `app/Support` readings and calculations; `app/Http/Requests`; `app/Policies`.
 - `resources/js/pages`; `components` (domain); `components/ui` (shadcn-vue); `lib` (pure logic, `*.test.ts` next to it).
-- `CONTEXT.md` glossary; `.docs/adr` decisions; `.docs/design-system.md` design system; `.docs/prd.md` and `.docs/specs` requirements.
-- `context/changes/<id>/` the 10x change in progress; `context/archive/` closed changes; `context/foundation/` cross-change docs.
+- `context/foundation/` cross-change docs: `glossary.md`; `adr/` decisions; `design-system.md`; `prd-mvp.md` and `mvp.md` product requirements, `prd.md` and `prd-vN.md` change PRDs from `/10x-prd`; `tech-stack.md`; `roadmap.md`, `test-plan.md`; `agents/` procedures.
+- `context/changes/<id>/` the 10x change in progress; `context/archive/` closed changes (pre-10x feature specs sit there as `<date>-<name>/spec.md`).
 
 ## Rules by path
 
@@ -39,10 +39,10 @@ Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). R
 
 ## Procedures
 
-- Preview a worktree in a browser: `.docs/agents/worktree-preview.md`
-- GitHub Issues and triage labels: `.docs/agents/issue-tracker.md`, `.docs/agents/triage-labels.md`
-- Domain docs before exploring: `.docs/agents/domain.md`
-- Boost tools missing: `.docs/agents/without-boost.md`
+- Preview a worktree in a browser: `context/foundation/agents/worktree-preview.md`
+- GitHub Issues and triage labels: `context/foundation/agents/issue-tracker.md`
+- Domain docs before exploring: `context/foundation/agents/domain.md`
+- Boost tools missing: `context/foundation/agents/without-boost.md`
 
 <laravel-boost-guidelines>
 === foundation rules ===

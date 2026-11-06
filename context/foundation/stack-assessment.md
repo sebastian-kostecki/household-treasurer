@@ -37,7 +37,7 @@ Ocena opiera się na `composer.lock`, `package-lock.json`, plikach konfiguracyjn
 
 **CI i wdrożenie.** `.github/workflows/tests.yml`: `composer audit`, Sloppy, migracje, build i `composer ci:check` (lint, typy, testy JS i PHP) na PostgreSQL 18 i PHP 8.5. Wdrożenie ręczne przez `scripts/deploy.sh` i `docker-compose.prod.yml`.
 
-**Pliki instrukcji.** `AGENTS.md` (299 linii: fakty projektu i wytyczne Boost), `.ai/rules` (3 reguły), `CONTEXT.md`, 31 ADR w `.docs/adr`, `.mcp.json` z Boost MCP dla Claude Code (`boost.json`: `"agents": ["claude_code"]`). `CLAUDE.md` istnieje lokalnie, ale jest w `.gitignore` i zawiera tylko blok `@przeprogramowani/10x-cli`.
+**Pliki instrukcji.** `AGENTS.md` (299 linii: fakty projektu i wytyczne Boost), `.ai/rules` (3 reguły), `context/foundation/glossary.md`, 31 ADR w `context/foundation/adr`, `.mcp.json` z Boost MCP dla Claude Code (`boost.json`: `"agents": ["claude_code"]`). `CLAUDE.md` istnieje lokalnie, ale jest w `.gitignore` i zawiera tylko blok `@przeprogramowani/10x-cli`.
 
 ## Quality Gate Assessment
 
@@ -103,9 +103,9 @@ Stos jest dobry, a reguły kompensujące z poprzedniej oceny są już w `AGENTS.
 
 - **Wykresy nie mają jeszcze miejsca w stosie.** Brak biblioteki wykresów w `package.json` i komponentu `chart` w `components/ui`. Agent sięgnie odruchowo po Chart.js, ApexCharts albo ECharts. Wybór (np. komponent Chart z rejestru shadcn-vue, oparty na Unovis, albo własne SVG) to decyzja dla `/10x-plan` i ADR. Kolory muszą iść z tokenów (`.ai/rules/js.md`), a kwoty przez `formatMoney`. Kompensacja: reguła „Charts and reports”.
 - **Kwoty raportu muszą być równe co do grosza istniejącym odczytom.** PRD wymaga zgodności z wykonaniem kategorii w budżecie rocznym i z Wynikiem miesiąca. Nowe zapytanie SQL obok `BudgetMonthResult`, `CategoryExecutionMetrics` i `MonthCategoryActuals` grozi rozjazdem (zwroty netto, transfery własne, ruchy kapitału). Wymóg 2 s przy 10 000 operacji ma już wzorzec w `tests/Feature/Nfr`. Kompensacja: reguła „Charts and reports”.
-- **Wydatki nieregularne zmieniają regułę „do wydania”.** `ToSpendCalculator` ma kopię TS, która zasila podgląd planu oraz ostrzeżenia przy wpisie i w Imporcie. Reguła „Month logic lives twice” to pokrywa. PRD wymaga wpisu w `CONTEXT.md` i nowego ADR przed kodem; kolejny numer to 0035 (numer 0008 jest zdublowany, 0025–0028 nie istnieją).
+- **Wydatki nieregularne zmieniają regułę „do wydania”.** `ToSpendCalculator` ma kopię TS, która zasila podgląd planu oraz ostrzeżenia przy wpisie i w Imporcie. Reguła „Month logic lives twice” to pokrywa. PRD wymaga wpisu w `context/foundation/glossary.md` i nowego ADR przed kodem; kolejny numer to 0035 (numer 0008 jest zdublowany, 0025–0028 nie istnieją).
 - **Podbicie wersji snapshotu może zablokować przywracanie wersji 5.** `RestoreUserData` (linie ~77–97) akceptuje `[1, 2, 3, 4, BackupUserData::SNAPSHOT_VERSION]`, a warunki per wersja też odwołują się do stałej. Zmiana `SNAPSHOT_VERSION` z 5 na 6 bez dopisania `5` sprawi, że obecne backupy przestaną się wczytywać, wbrew FR-014. Kompensacja: reguła „Snapshot format”.
-- **Kategoria przez lata stoi w sprzeczności ze słownikiem.** `CONTEXT.md` ma przy Category _Avoid_ „a Category identity that spans years”. FR-007–FR-009 (nice-to-have) wymagają zmiany słownika i ADR przed kodem.
+- **Kategoria przez lata stoi w sprzeczności ze słownikiem.** `context/foundation/glossary.md` ma przy Category _Avoid_ „a Category identity that spans years”. FR-007–FR-009 (nice-to-have) wymagają zmiany słownika i ADR przed kodem.
 
 ### Recommended Instruction File Additions
 
@@ -134,7 +134,7 @@ Ponieważ `CLAUDE.md` jest ignorowany przez Git, rozważ śledzenie go w repozyt
 
 ## Domain changes come before code
 
-A change to a rule in `CONTEXT.md` (for example To Spend) or to a term marked _Avoid_ needs the `CONTEXT.md` entry and a new ADR in `.docs/adr` before the code. Take the next free number after the highest existing ADR.
+A change to a rule in `context/foundation/glossary.md` (for example To Spend) or to a term marked _Avoid_ needs the `context/foundation/glossary.md` entry and a new ADR in `context/foundation/adr` before the code. Take the next free number after the highest existing ADR.
 ```
 
 ## Summary

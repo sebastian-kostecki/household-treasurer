@@ -1,6 +1,6 @@
 # Household Treasurer — Tech stack
 
-Decyzje technologiczne MVP. Wymagania produktowe pozostają w `.docs/prd.md` i `.docs/mvp.md`.
+Decyzje technologiczne MVP. Wymagania produktowe pozostają w `context/foundation/prd-mvp.md` i `context/foundation/mvp.md`.
 
 ## 1. Wybrany stack
 
