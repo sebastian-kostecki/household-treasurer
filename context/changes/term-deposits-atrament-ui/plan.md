@@ -488,7 +488,7 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Manual
 
-- [ ] 1.3 ADR-0051, design-system.md i js.md są zgodne z decyzjami briefu
+- [x] 1.3 ADR-0051, design-system.md i js.md są zgodne z decyzjami briefu — 9829443
 
 ### Phase 2: Kontrakt propsów
 
@@ -510,11 +510,11 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Manual
 
-- [ ] 3.5 Dwie miary, „W tym zarchiwizowane”, nagłówki kolumn od md i saldo z „zł”
-- [ ] 3.6 Kafelek ze skrótem banku i pełna nazwa w kolumnie Bank
-- [ ] 3.7 Lokata bez daty ma wyciszone „—”
-- [ ] 3.8 Na 390 px wiersz ma dwie linie, bez przewijania w poziomie
-- [ ] 3.9 Panele Lokat i Kont na Dashboardzie bez zmian
+- [x] 3.5 Dwie miary, „W tym zarchiwizowane”, nagłówki kolumn od md i saldo z „zł” — 3ce2844
+- [x] 3.6 Kafelek ze skrótem banku i pełna nazwa w kolumnie Bank — 3ce2844
+- [x] 3.7 Lokata bez daty ma wyciszone „—” — 3ce2844
+- [x] 3.8 Na 390 px wiersz ma dwie linie, bez przewijania w poziomie — 3ce2844
+- [x] 3.9 Panele Lokat i Kont na Dashboardzie bez zmian — 3ce2844
 
 ### Phase 4: Dialog lokaty
 
@@ -527,10 +527,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Manual
 
-- [ ] 4.5 Utworzenie lokaty zapisuje pola, pola 34 px, saldo z „zł”
-- [ ] 4.6 Edycja zapisuje zmiany i pokazuje ostrzeżenie o ujemnym saldzie
-- [ ] 4.7 W trakcie zapisu spinner, a Esc, tło i Anuluj ghost nie zamykają dialogu
-- [ ] 4.8 Błędne saldo wyłącza Zapisz, podpowiedź daty czytana przez czytnik ekranu
+- [x] 4.5 Utworzenie lokaty zapisuje pola, pola 34 px, saldo z „zł” — dbbee8f
+- [x] 4.6 Edycja zapisuje zmiany i pokazuje ostrzeżenie o ujemnym saldzie — dbbee8f
+- [x] 4.7 W trakcie zapisu spinner, a Esc, tło i Anuluj ghost nie zamykają dialogu — dbbee8f
+- [x] 4.8 Błędne saldo wyłącza Zapisz, podpowiedź daty czytana przez czytnik ekranu — dbbee8f
 
 ### Phase 5: Stany i bramka wizualna
 
@@ -542,7 +542,7 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Manual
 
-- [ ] 5.4 Każdy scenariusz renderuje się w /dev/ui/term-deposits bez błędów
-- [ ] 5.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia, ujemne saldo zarchiwizowanej lokaty czytelne
-- [ ] 5.6 Hover, focus-visible i disabled widoczne na zrzutach
-- [ ] 5.7 Łączne środki na Lokatach równe mierze Kont i Dashboardu
+- [x] 5.4 Każdy scenariusz renderuje się w /dev/ui/term-deposits bez błędów — 928fac5
+- [x] 5.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia, ujemne saldo zarchiwizowanej lokaty czytelne — 928fac5
+- [x] 5.6 Hover, focus-visible i disabled widoczne na zrzutach — 928fac5
+- [x] 5.7 Łączne środki na Lokatach równe mierze Kont i Dashboardu — 928fac5
