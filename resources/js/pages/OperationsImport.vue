@@ -29,6 +29,7 @@ const t = useTranslations();
 
 const selectedFile = ref<File | null>(null);
 const fileText = ref<string | null>(null);
+const fileReadError = ref<string | null>(null);
 const importFormat = ref<ImportFormat>('other');
 const formatChosenByUser = ref(false);
 const hasHeader = ref(true);
@@ -45,6 +46,19 @@ const isMbankFormat = computed(() => importFormat.value === 'mbank');
 const isBnpParibasFormat = computed(() => importFormat.value === 'bnp_paribas');
 const isNamedFormat = computed(
     () => isMbankFormat.value || isBnpParibasFormat.value,
+);
+
+const isXlsxFile = computed(
+    () => selectedFile.value?.name.toLowerCase().endsWith('.xlsx') ?? false,
+);
+
+// "Inny" maps columns from text, and the server takes only CSV for it.
+const fileError = computed<string | null>(
+    () =>
+        fileReadError.value ??
+        (importFormat.value === 'other' && isXlsxFile.value
+            ? t.operations.import_other_needs_csv
+            : null),
 );
 
 const columnLabels = computed<string[]>(() =>
@@ -117,8 +131,12 @@ watch(importFormat, (format) => {
     }
 });
 
+// The column labels come from the first non-empty line, so the head of the
+// file is enough; the server reads and limits the whole file.
+const FILE_HEAD_BYTES = 64 * 1024;
+
 async function loadFileText(file: File): Promise<void> {
-    const text = await file.text();
+    const text = await file.slice(0, FILE_HEAD_BYTES).text();
 
     // A later file was chosen while this one was loading.
     if (selectedFile.value !== file) {
@@ -138,6 +156,7 @@ function onFileChange(event: Event): void {
 
     selectedFile.value = file;
     fileText.value = null;
+    fileReadError.value = null;
     resetColumns();
 
     if (file === null) {
@@ -150,8 +169,19 @@ function onFileChange(event: Event): void {
         formatChosenByUser.value,
     );
 
-    if (!file.name.toLowerCase().endsWith('.xlsx')) {
-        void loadFileText(file);
+    if (!isXlsxFile.value) {
+        loadFileText(file).catch((error: unknown) => {
+            console.error(
+                new Error('Import: reading the chosen file failed', {
+                    cause: error,
+                }),
+            );
+
+            // A later file was chosen while this one was loading.
+            if (selectedFile.value === file) {
+                fileReadError.value = t.operations.import_file_read_failed;
+            }
+        });
     }
 }
 </script>
@@ -249,7 +279,7 @@ function onFileChange(event: Event): void {
 
                 <FormField
                     :label="t.operations.import_file"
-                    :error="errors.file"
+                    :error="fileError ?? errors.file"
                     v-slot="{ id, describedBy, invalid }"
                 >
                     <Input

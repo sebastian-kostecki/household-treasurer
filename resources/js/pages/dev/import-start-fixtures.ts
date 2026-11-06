@@ -51,7 +51,6 @@ export const importStartErrors: Partial<Record<string, string>> = {
     has_header: 'Wybierz, czy plik ma nagłówek.',
     date_column: 'Wybierz kolumnę z datą.',
     amount_layout: 'Wybierz układ kwot.',
-    file: 'Wybierz plik CSV lub XLSX.',
 };
 
 export const noImportStartErrors: Partial<Record<string, string>> = {};

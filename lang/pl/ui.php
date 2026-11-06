@@ -608,6 +608,8 @@ return [
         'import_column' => 'Kolumna',
         'import_optional_column' => 'opcjonalnie',
         'import_no_column' => 'Brak kolumny',
+        'import_file_read_failed' => 'Nie udało się odczytać pliku. Wybierz go ponownie.',
+        'import_other_needs_csv' => 'Dla formatu Inny wybierz plik CSV.',
         'import_no_accounts' => 'Brak aktywnych kont',
         'import_no_accounts_description' => 'Import przypisuje operacje do jednego konta. Dodaj konto albo przywróć zarchiwizowane, a potem wróć do importu.',
         'import_open_accounts' => 'Otwórz konta',

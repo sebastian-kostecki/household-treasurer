@@ -20,8 +20,16 @@ describe('importColumnLabels', () => {
 
     it('keeps a separator inside quotes within one cell', () => {
         expect(
+            importColumnLabels('Data;"Opis, długi";Kwota', true, 'Kolumna'),
+        ).toEqual(['Data', 'Opis, długi', 'Kwota']);
+    });
+
+    // Parity with CsvImportParser::detectDelimiter: the server counts quoted
+    // separators too, so this line is split on the comma there.
+    it('picks the separator like the server, counting quoted commas', () => {
+        expect(
             importColumnLabels('"Opis, długi";Kwota', true, 'Kolumna'),
-        ).toEqual(['Opis, długi', 'Kwota']);
+        ).toEqual(['Opis, długi;Kwota']);
     });
 
     it('names an empty header cell by its position', () => {

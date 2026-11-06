@@ -15,7 +15,8 @@ Step 1 is a form panel built to ADR-0048: `.form-panel` (`--form-panel-width`) w
 - The logic of the columns and of the format (file extension sets the format only until the user chooses it by hand; a change to "Inny" recalculates the columns from the loaded file) lives in `resources/js/lib/import-start.ts` with a test next to it, not in the view.
 - No active Account: `IndexEmptyState` with a link to Konta instead of the form.
 - The kitchen sink at `/dev/ui/import` (`local` only) renders the 7-state matrix; add new step 1 states there.
-- `tests/Unit/ImportStartHardcodedUiTest.php` guards the view file; the file is also on the `check:ui` list.
+- `tests/Unit/ImportStartHardcodedUiTest.php` guards the step 1 files (the page, `ImportRecognizedFields`, `ImportColumnMapping`, the sink and its fixtures); they are also on the `check:ui` list.
+- The file field shows why the form cannot go on: a failed read of the file (reported with its cause) or an `.xlsx` with "Inny", which maps columns only from CSV text. Column labels split the first line with the same separator rule as `CsvImportParser`, so the chosen indexes point at the cells the server reads.
 
 ## Step 2 (preview)
 

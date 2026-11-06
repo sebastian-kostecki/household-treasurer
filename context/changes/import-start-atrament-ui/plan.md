@@ -541,11 +541,11 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [x] 4.1 `php artisan test --compact tests/Feature/ImportStartKitchenSinkTest.php tests/Unit/ImportStartHardcodedUiTest.php` przechodzi
-- [x] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build`
-- [x] 4.3 Pełna bramka na PostgreSQL w worktree: `docker run … --entrypoint composer sail-8.5/app ci:check` (AGENTS.md, Commands) przechodzi
-- [x] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście
-- [x] 4.5 `npx playwright test` (cały suite, w tym seed i nowy spec) przechodzi
+- [x] 4.1 `php artisan test --compact tests/Feature/ImportStartKitchenSinkTest.php tests/Unit/ImportStartHardcodedUiTest.php` przechodzi — ac30117
+- [x] 4.2 `npm run check:ui`, `npm run check`, `npm test` i `npm run types:check` przechodzą po `npm run build` — ac30117
+- [x] 4.3 Pełna bramka na PostgreSQL w worktree: `docker run … --entrypoint composer sail-8.5/app ci:check` (AGENTS.md, Commands) przechodzi — ac30117
+- [x] 4.4 `vendor/bin/sloppy ci` przechodzi na hoście — ac30117
+- [x] 4.5 `npx playwright test` (cały suite, w tym seed i nowy spec) przechodzi — ac30117
 
 #### Manual
 

@@ -2,8 +2,9 @@
 
 /**
  * Import step 1 view files take values from tokens and named classes in app.css,
- * never from literals (ADR-0048, finding F6 of the change import-start-atrament-ui).
- * app.css itself is the token source and is not scanned.
+ * never from literals (ADR-0048). app.css itself is the token source and is not scanned.
+ * The scanner is a copy of AccountsHardcodedUiTest; a shared helper for all
+ * *HardcodedUiTest files is the open debt F6 of the change accounts-atrament-ui.
  */
 const IMPORT_START_VIEW_FILES = [
     'resources/js/pages/OperationsImport.vue',
@@ -62,9 +63,9 @@ test('import start view files contain no hardcoded colours, arbitrary values or 
 });
 
 test('the scan reports file and line for an arbitrary value', function () {
-    $findings = importStartHardcodedUiFindings('resources/js/pages/Accounts.vue', "<div>\n<th class=\"text-[11px]\">\n</div>");
+    $findings = importStartHardcodedUiFindings('resources/js/pages/OperationsImport.vue', "<div>\n<th class=\"text-[11px]\">\n</div>");
 
-    expect($findings)->toBe(['resources/js/pages/Accounts.vue:2: arbitrary value: -[11px]']);
+    expect($findings)->toBe(['resources/js/pages/OperationsImport.vue:2: arbitrary value: -[11px]']);
 });
 
 test('the scan catches styles from before the Atrament system', function () {

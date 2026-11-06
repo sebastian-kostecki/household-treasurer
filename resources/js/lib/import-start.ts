@@ -39,14 +39,17 @@ function parseCsvLine(line: string, delimiter: string): string[] {
     return cells;
 }
 
-function detectDelimiter(rawLine: string): ';' | ',' {
-    const line = rawLine.replace(/"[^"]*"/g, '');
+/**
+ * Same rule as CsvImportParser::detectDelimiter on the server: a semicolon only
+ * when the raw line, quotes included, has more semicolons than commas. The
+ * labels must split the line the way the server will, or the chosen column
+ * indexes point at other cells in step 2.
+ */
+function detectDelimiter(line: string): ';' | ',' {
+    const semicolons = line.split(';').length - 1;
+    const commas = line.split(',').length - 1;
 
-    if (line.includes(';') && !line.includes(',')) {
-        return ';';
-    }
-
-    return line.split(';').length > line.split(',').length ? ';' : ',';
+    return semicolons > commas ? ';' : ',';
 }
 
 /**
