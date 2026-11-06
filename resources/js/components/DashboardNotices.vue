@@ -11,7 +11,7 @@ import {
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
 import { formatMoney } from '@/lib/format';
-import { monthElapsedPercent } from '@/lib/month-pace-calculator';
+import { noticePresentation } from '@/lib/dashboard-notice-presentation';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { operations as operationsRoute } from '@/routes';
 import { index as termDepositsIndex } from '@/routes/term-deposits';
@@ -94,75 +94,32 @@ function monthName(month: number): string {
     return t.budget[`month_name_${month}`] ?? '';
 }
 
-function noticeTitle(notice: DashboardNotice): string {
-    switch (notice.kind) {
-        case 'month_item_over_plan':
-        case 'one_off_over_limit':
-            return t.dashboard.notice_title_over_plan.replace(
-                ':name',
-                notice.name,
-            );
-        case 'negative_account':
-        case 'negative_term_deposit':
-            return t.dashboard.notice_title_negative_balance.replace(
-                ':name',
-                notice.name,
-            );
-        case 'month_to_spend_negative':
-            return t.dashboard.notice_title_month_to_spend_negative.replace(
-                ':month',
-                capitalized(monthName(notice.month)),
-            );
-        case 'month_plan_not_approved':
-            return t.dashboard.notice_title_month_plan_not_approved;
-        case 'month_pace_ahead':
-            return t.dashboard.notice_title_month_pace_ahead;
-    }
+function noticeLabel(notice: DashboardNotice): string {
+    return t.dashboard[`notice_label_${noticePresentation(notice).labelKey}`];
 }
 
-function noticeText(notice: DashboardNotice): string {
-    switch (notice.kind) {
-        case 'month_item_over_plan':
-            return t.dashboard.notice_text_month_item_over_plan.replace(
-                ':amount',
-                formatMoney(Math.abs(notice.amount_minor_units)),
-            );
-        case 'one_off_over_limit':
-            return t.dashboard.notice_text_one_off_over_limit.replace(
-                ':amount',
-                formatMoney(Math.abs(notice.amount_minor_units)),
-            );
-        case 'negative_account':
-        case 'negative_term_deposit':
-            return t.dashboard.notice_text_negative_balance.replace(
-                ':amount',
-                formatMoney(notice.amount_minor_units),
-            );
-        case 'month_to_spend_negative':
-            return t.dashboard.notice_text_month_to_spend_negative.replace(
-                ':amount',
-                formatMoney(Math.abs(notice.amount_minor_units)),
-            );
-        case 'month_plan_not_approved':
-            return t.dashboard.notice_text_month_plan_not_approved.replace(
-                ':month',
-                monthName(notice.month),
-            );
-        case 'month_pace_ahead':
-            return t.dashboard.notice_text_month_pace_ahead
-                .replace(':percent', String(notice.percent))
-                .replace(
-                    ':days_percent',
-                    String(
-                        monthElapsedPercent(
-                            notice.elapsed_day,
-                            notice.days_in_month,
-                        ),
-                    ),
-                )
-                .replace(':elapsed', String(notice.elapsed_day))
-                .replace(':days', String(notice.days_in_month));
+function noticeIdentity(notice: DashboardNotice): string {
+    const identity = noticePresentation(notice).identity;
+
+    return identity.type === 'name'
+        ? identity.name
+        : capitalized(monthName(identity.month));
+}
+
+function noticeValue(notice: DashboardNotice): string | null {
+    const value = noticePresentation(notice).value;
+
+    if (value === null) {
+        return null;
     }
+
+    if (value.type === 'money') {
+        return formatMoney(value.minorUnits);
+    }
+
+    return t.dashboard.notice_value_pace
+        .replace(':percent', String(value.percent))
+        .replace(':days_percent', String(value.daysPercent));
 }
 
 function capitalized(text: string): string {
@@ -321,12 +278,26 @@ function noticeKey(notice: DashboardNotice): string {
                 </span>
 
                 <span class="dashboard-notice-body">
-                    <span class="dashboard-notice-title">
-                        {{ noticeTitle(notice) }}
+                    <span
+                        class="dashboard-notice-kind meta text-muted-foreground"
+                    >
+                        {{ noticeLabel(notice) }}
                     </span>
-                    <span class="dashboard-notice-text">
-                        {{ noticeText(notice) }}
+                    <span class="dashboard-notice-identity">
+                        {{ noticeIdentity(notice) }}
                     </span>
+                </span>
+
+                <span
+                    v-if="noticeValue(notice) !== null"
+                    class="dashboard-notice-value amount"
+                    :class="
+                        notice.severity === 'exceeded'
+                            ? 'text-destructive'
+                            : 'text-warning'
+                    "
+                >
+                    {{ noticeValue(notice) }}
                 </span>
             </Link>
         </div>

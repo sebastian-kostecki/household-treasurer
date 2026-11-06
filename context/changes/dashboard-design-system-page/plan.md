@@ -415,10 +415,10 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [x] 2.1 Nowe testy najpierw były czerwone, teraz przechodzą: `npm run test`
-- [x] 2.2 Typy przechodzą: `npm run types:check`
-- [x] 2.3 Lint i formatowanie przechodzą: `npm run check`, po zmianach PHP `vendor/bin/pint --dirty --format agent`
-- [x] 2.4 Istniejący `dashboard-fixtures.test.ts` przechodzi bez edycji
+- [x] 2.1 Nowe testy najpierw były czerwone, teraz przechodzą: `npm run test` — 4a2ddff
+- [x] 2.2 Typy przechodzą: `npm run types:check` — 4a2ddff
+- [x] 2.3 Lint i formatowanie przechodzą: `npm run check`, po zmianach PHP `vendor/bin/pint --dirty --format agent` — 4a2ddff
+- [x] 2.4 Istniejący `dashboard-fixtures.test.ts` przechodzi bez edycji — 4a2ddff
 
 #### Manual
 
@@ -428,10 +428,10 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [ ] 3.1 Testy JS i typy przechodzą: `npm run test`, `npm run types:check`
-- [ ] 3.2 Skan literałów przechodzi: `npm run check:ui`
-- [ ] 3.3 Straż Dashboardu przechodzi: `tests/Unit/DashboardHardcodedUiTest.php`
-- [ ] 3.4 `grep -rn "yearElapsedCaption\|notice-title\|notice-text" resources` nie zwraca trafień
+- [x] 3.1 Testy JS i typy przechodzą: `npm run test`, `npm run types:check`
+- [x] 3.2 Skan literałów przechodzi: `npm run check:ui`
+- [x] 3.3 Straż Dashboardu przechodzi: `tests/Unit/DashboardHardcodedUiTest.php`
+- [x] 3.4 `grep -rn "yearElapsedCaption\|notice-title\|notice-text" resources` nie zwraca trafień
 
 #### Manual
 

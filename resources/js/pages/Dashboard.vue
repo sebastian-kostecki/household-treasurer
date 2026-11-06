@@ -221,8 +221,6 @@ setLayoutProps({
             :month-pace="month_pace"
             :spendable-liquidity-minor-units="spendable_liquidity_minor_units"
             :total-funds-minor-units="total_funds_minor_units"
-            :year-elapsed-as-of="year_elapsed_as_of"
-            :year-elapsed-percent="year_elapsed_percent"
             @start="onYearSelectionStart"
             @finish="onYearSelectionFinish"
             @error="onYearSelectionFailed"

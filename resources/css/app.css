@@ -1185,17 +1185,21 @@
         @apply flex size-6 shrink-0 items-center justify-center rounded-md;
     }
 
-    /* Dwie równe linie przy lewej krawędzi: tytuł i zdanie z liczbami. */
+    /* Dwie linie przy lewej krawędzi: rodzaj i tożsamość; wartość po prawej. */
     .dashboard-notice-body {
         @apply flex min-w-0 flex-1 flex-col items-start text-left;
     }
 
-    .dashboard-notice-title {
+    .dashboard-notice-kind {
+        @apply w-full truncate;
+    }
+
+    .dashboard-notice-identity {
         @apply text-foreground w-full truncate text-sm font-medium;
     }
 
-    .dashboard-notice-text {
-        @apply text-muted-foreground w-full text-xs;
+    .dashboard-notice-value {
+        @apply shrink-0 whitespace-nowrap;
     }
 
     .dashboard-notice-icon-exceeded {
