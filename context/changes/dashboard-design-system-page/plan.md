@@ -462,10 +462,10 @@ Brak migracji danych. Klucz `dashboard-year-elapsed` mógł być użyty przez us
 
 #### Automated
 
-- [x] 5.1 Pełna bramka przechodzi: `composer ci:check` oraz `vendor/bin/sloppy ci`
-- [x] 5.2 Test sinka przechodzi: `tests/Feature/DashboardKitchenSinkTest.php`
-- [x] 5.3 `dashboard-fixtures.test.ts` przechodzi bez edycji asercji
-- [x] 5.4 Zrzuty 390/1280 × jasny/ciemny są w `screenshots/`
+- [x] 5.1 Pełna bramka przechodzi: `composer ci:check` oraz `vendor/bin/sloppy ci` — 58ecb69
+- [x] 5.2 Test sinka przechodzi: `tests/Feature/DashboardKitchenSinkTest.php` — 58ecb69
+- [x] 5.3 `dashboard-fixtures.test.ts` przechodzi bez edycji asercji — 58ecb69
+- [x] 5.4 Zrzuty 390/1280 × jasny/ciemny są w `screenshots/` — 58ecb69
 
 #### Manual
 
