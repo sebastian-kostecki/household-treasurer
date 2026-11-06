@@ -22,6 +22,7 @@ export type AccountRow = AccountFormAccount & {
 export type AccountsPageProps = {
     accounts: AccountRow[];
     liquidity_total_minor_units: number;
+    total_funds_minor_units: number;
     show_archived: boolean;
     archived_accounts_count: number;
 };

@@ -131,7 +131,8 @@ class ArchiveAccountTest extends TestCase
             ->get(route('accounts.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('liquidity_total_minor_units', 150000),
+                ->where('liquidity_total_minor_units', 150000)
+                ->where('total_funds_minor_units', 150000),
             );
     }
 

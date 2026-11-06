@@ -13,6 +13,7 @@ import IncomeFormDialog from '@/components/IncomeFormDialog.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import type { AccountFormAccount } from '@/types/accounts';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 import {
     dialogAccounts,
@@ -46,7 +47,11 @@ const states = [
     'confirm-destructive',
     'confirm-saving',
     'confirm-deficit',
-    'account',
+    'account-bank-new',
+    'account-cash-new',
+    'account-edit',
+    'account-errors',
+    'account-saving',
     'expense-new',
     'expense-edit',
     'expense-refund-edit',
@@ -83,7 +88,11 @@ const labels: Record<SinkState, string> = {
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
     'confirm-saving': 'Potwierdzenie: zapis w toku',
     'confirm-deficit': 'Potwierdzenie: ostrzeżenie o deficycie',
-    account: 'Konto (powłoka)',
+    'account-bank-new': 'Konto: nowe (bank)',
+    'account-cash-new': 'Konto: nowe (gotówka, bez banku)',
+    'account-edit': 'Konto: edycja',
+    'account-errors': 'Konto: błędy pól',
+    'account-saving': 'Konto: zapis w toku',
     'expense-new': 'Wydatek: nowy',
     'expense-edit': 'Wydatek: edycja (przed = po)',
     'expense-refund-edit': 'Wydatek: edycja zwrotu (trzy typy)',
@@ -102,6 +111,15 @@ const labels: Record<SinkState, string> = {
     'capital-edit': 'Ruch kapitału: edycja',
     'capital-negative-deposit': 'Ruch kapitału: ujemna lokata',
     'capital-errors': 'Ruch kapitału: zapis i błędy',
+};
+
+const account: AccountFormAccount = {
+    id: 1,
+    name: 'Konto osobiste',
+    type: 'bank',
+    bank: 'mbank',
+    opening_date: '2026-01-01',
+    opening_balance_minor_units: 150000,
 };
 
 const category: CategoryFormCategory = {
@@ -481,9 +499,33 @@ function setOpen(state: SinkState, value: boolean): void {
             @update:open="setOpen('capital-errors', $event)"
         />
         <AccountFormDialog
-            :open="isOpen('account')"
+            :open="isOpen('account-bank-new')"
             mode="create"
-            @update:open="setOpen('account', $event)"
+            @update:open="setOpen('account-bank-new', $event)"
+        />
+        <AccountFormDialog
+            :open="isOpen('account-cash-new')"
+            mode="create"
+            default-type="cash"
+            @update:open="setOpen('account-cash-new', $event)"
+        />
+        <AccountFormDialog
+            :open="isOpen('account-edit')"
+            mode="edit"
+            :account="account"
+            @update:open="setOpen('account-edit', $event)"
+        />
+        <AccountFormDialog
+            :open="isOpen('account-errors')"
+            mode="create"
+            :form="validateForm"
+            @update:open="setOpen('account-errors', $event)"
+        />
+        <AccountFormDialog
+            :open="isOpen('account-saving')"
+            mode="create"
+            :form="savingForm"
+            @update:open="setOpen('account-saving', $event)"
         />
     </div>
 </template>

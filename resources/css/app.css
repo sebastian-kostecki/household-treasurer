@@ -685,6 +685,63 @@
         }
     }
 
+    /**
+     * Accounts table: below `md` a row is two lines (name + balance, then type +
+     * actions); from `md` it is one line of columns.
+     */
+    .accounts-grid {
+        @apply grid items-center gap-x-4;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            'name balance'
+            'type actions';
+    }
+
+    @variant md {
+        .accounts-grid {
+            grid-template-columns: minmax(0, 1fr) 180px 150px 96px;
+            grid-template-areas: 'name type balance actions';
+        }
+    }
+
+    .accounts-header-row {
+        @apply table-header border-border-soft hidden border-b px-4 py-2;
+    }
+
+    @variant md {
+        .accounts-header-row {
+            @apply grid;
+        }
+    }
+
+    .accounts-row {
+        @apply border-border-soft hover:bg-secondary min-h-row gap-y-1 border-b px-4 py-2 text-sm transition-colors last:border-b-0;
+    }
+
+    .accounts-row-archived {
+        @apply text-muted-foreground;
+    }
+
+    .accounts-cell-name {
+        grid-area: name;
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .accounts-cell-type {
+        grid-area: type;
+        @apply min-w-0;
+    }
+
+    .accounts-cell-balance {
+        grid-area: balance;
+        @apply text-right;
+    }
+
+    .accounts-cell-actions {
+        grid-area: actions;
+        @apply flex justify-end gap-1;
+    }
+
     .budget-category-row {
         @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
     }

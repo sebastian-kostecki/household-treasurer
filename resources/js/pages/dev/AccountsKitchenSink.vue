@@ -12,7 +12,7 @@ const createDialogOpen = ref(false);
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-total, negative-total i with-archived poniżej.',
+        where: 'Scenariusze default (panel z dwiema miarami), zero-total, negative-total, with-archived (Switch włączony), archived-negative (zarchiwizowane z ujemnym i dodatnim saldem) i long-names (zawijanie nazw przy 390 px) poniżej; Switch wyłączony w default i all-archived.',
     },
     {
         state: 'hover',
@@ -20,7 +20,7 @@ const stateMatrix = [
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty po Tab z działającej aplikacji: przycisk „Dodaj konto”, przełącznik, IconAction, X dialogu, wyzwalacz banku.',
+        where: 'Zrzuty po Tab z działającej aplikacji: przycisk „Dodaj konto”, przełącznik (Switch), IconAction, X dialogu, wyzwalacz banku.',
     },
     {
         state: 'disabled',
@@ -46,7 +46,7 @@ const stateMatrix = [
 
     <div class="flex flex-1 flex-col gap-8 p-4">
         <header class="space-y-1">
-            <h1 class="text-xl font-semibold">Accounts kitchen sink</h1>
+            <h1 class="page-title">Accounts kitchen sink</h1>
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local). Widok Konta w
                 każdym scenariuszu danych. Fixture'y nie istnieją w bazie, więc

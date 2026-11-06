@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateAccountRequest;
 use App\Models\Account;
 use App\Support\AccountIdentity;
 use App\Support\SpendableLiquidity;
+use App\Support\TotalFunds;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ class AccountController extends Controller
         return Inertia::render('Accounts', [
             'accounts' => $accounts,
             'liquidity_total_minor_units' => SpendableLiquidity::forUser($request->user()),
+            'total_funds_minor_units' => TotalFunds::forUser($request->user()),
             'show_archived' => $showArchived,
             'archived_accounts_count' => $allAccounts
                 ->filter(fn (Account $account): bool => $account->isArchived())

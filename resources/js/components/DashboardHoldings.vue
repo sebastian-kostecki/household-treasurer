@@ -8,7 +8,7 @@ import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
+import { bankLabel } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoneyAmount } from '@/lib/format';
 import { index as accountsIndex } from '@/routes/accounts';
@@ -29,21 +29,17 @@ function accountCaption(account: AccountSummary): string {
 
     return account.bank === null
         ? t.accounts.type_bank
-        : bankLabel(account.bank);
+        : bankLabel(t.accounts, account.bank);
 }
 
 function termDepositCaption(termDeposit: TermDepositSummary): string {
-    const bank = bankLabel(termDeposit.bank);
+    const bank = bankLabel(t.accounts, termDeposit.bank);
 
     return termDeposit.end_date === null
         ? bank
         : t.dashboard.holdings_deposit_caption
               .replace(':bank', bank)
               .replace(':date', formatDate(termDeposit.end_date));
-}
-
-function bankLabel(bank: AccountBank): string {
-    return t.accounts[`bank_${bank}` as keyof typeof t.accounts] ?? bank;
 }
 
 const showEmptyState = computed(
