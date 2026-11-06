@@ -244,10 +244,10 @@ None; frontend and docs only.
 
 #### Automated
 
-- [x] 2.1 ui-contract.test.ts passes including the guard
-- [x] 2.2 Frontend gate passes (check, check:ui, types:check, npm test)
-- [x] 2.3 AlignCategoryCurrentPlanTest passes on PostgreSQL
-- [x] 2.4 BudgetCategoryAlignPlanAction is referenced nowhere
+- [x] 2.1 ui-contract.test.ts passes including the guard — c0c6ada
+- [x] 2.2 Frontend gate passes (check, check:ui, types:check, npm test) — c0c6ada
+- [x] 2.3 AlignCategoryCurrentPlanTest passes on PostgreSQL — c0c6ada
+- [x] 2.4 BudgetCategoryAlignPlanAction is referenced nowhere — c0c6ada
 
 #### Manual
 
@@ -258,8 +258,8 @@ None; frontend and docs only.
 
 #### Automated
 
-- [ ] 3.1 composer ci:check and vendor/bin/sloppy ci pass
-- [ ] 3.2 No transitional ADR-0045 note left in design-system.md
+- [x] 3.1 composer ci:check and vendor/bin/sloppy ci pass
+- [x] 3.2 No transitional ADR-0045 note left in design-system.md
 
 #### Manual
 
