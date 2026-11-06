@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationTypeTile from '@/components/OperationTypeTile.vue';
 import {
     Tooltip,
@@ -9,14 +7,12 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountIdentityFields } from '@/lib/account-identity';
 
 const {
     variant,
     description,
     counterparty = null,
     detail = null,
-    account = null,
     rawStatementDescription = null,
     rawStatementDescriptions = [],
 } = defineProps<{
@@ -24,22 +20,16 @@ const {
     description: string;
     counterparty?: string | null;
     detail?: string | null;
-    account?: AccountIdentityFields | null;
     rawStatementDescription?: string | null;
     rawStatementDescriptions?: string[];
 }>();
 
 const t = useTranslations();
 const primaryLine = counterparty?.trim() ? counterparty : description;
-const secondaryLine = computed(
-    () =>
-        [counterparty?.trim() ? description : null, detail]
-            .filter((part): part is string => !!part && part.trim() !== '')
-            .join(' · ') || null,
-);
-const hasMetaLine = computed(
-    () => secondaryLine.value !== null || account !== null,
-);
+const secondaryLine =
+    [counterparty?.trim() ? description : null, detail]
+        .filter((part): part is string => !!part && part.trim() !== '')
+        .join(' · ') || null;
 const tooltipDescriptions =
     rawStatementDescriptions.length > 0
         ? rawStatementDescriptions
@@ -65,28 +55,12 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                     <OperationTypeTile :variant="variant" />
                     <div class="min-w-0">
                         <p class="truncate font-medium">{{ primaryLine }}</p>
-                        <div
-                            v-if="hasMetaLine"
-                            class="meta text-muted-foreground flex min-w-0 items-center gap-1"
+                        <p
+                            v-if="secondaryLine"
+                            class="meta text-muted-foreground truncate"
                         >
-                            <span v-if="secondaryLine" class="truncate">{{
-                                secondaryLine
-                            }}</span>
-                            <span
-                                v-if="secondaryLine && account"
-                                aria-hidden="true"
-                                >·</span
-                            >
-                            <CompactAccountIdentity
-                                v-if="account"
-                                class="min-w-0"
-                                mark-size="xs"
-                                :name="account.name"
-                                :type="account.type"
-                                :bank="account.bank"
-                                :mark_url="account.mark_url"
-                            />
-                        </div>
+                            {{ secondaryLine }}
+                        </p>
                     </div>
                 </div>
             </TooltipTrigger>
@@ -102,26 +76,9 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
         <OperationTypeTile :variant="variant" />
         <div class="min-w-0">
             <p class="truncate font-medium">{{ primaryLine }}</p>
-            <div
-                v-if="hasMetaLine"
-                class="meta text-muted-foreground flex min-w-0 items-center gap-1"
-            >
-                <span v-if="secondaryLine" class="truncate">{{
-                    secondaryLine
-                }}</span>
-                <span v-if="secondaryLine && account" aria-hidden="true"
-                    >·</span
-                >
-                <CompactAccountIdentity
-                    v-if="account"
-                    class="min-w-0"
-                    mark-size="xs"
-                    :name="account.name"
-                    :type="account.type"
-                    :bank="account.bank"
-                    :mark_url="account.mark_url"
-                />
-            </div>
+            <p v-if="secondaryLine" class="meta text-muted-foreground truncate">
+                {{ secondaryLine }}
+            </p>
         </div>
     </div>
 </template>
