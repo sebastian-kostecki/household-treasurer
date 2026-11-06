@@ -642,18 +642,18 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Manual
 
-- [ ] 6.4 Nowe scenariusze renderują się w /dev/ui/dashboard bez błędów
-- [ ] 6.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia i nieczytelnego tekstu
-- [ ] 6.6 Hover, focus-visible i disabled widoczne na zrzutach
-- [ ] 6.7 Sumy wierszy grup zgodne ze stroną Budżet
+- [x] 6.4 Nowe scenariusze renderują się w /dev/ui/dashboard bez błędów
+- [x] 6.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia i nieczytelnego tekstu
+- [x] 6.6 Hover, focus-visible i disabled widoczne na zrzutach
+- [x] 6.7 Sumy wierszy grup zgodne ze stroną Budżet
 
 ### Phase 7: Poprawki według mocka
 
 #### Automated
 
-- [x] 7.1 Statyka, typy, straże i Vitest przechodzą
-- [x] 7.2 Testy Dashboardu i straże na PostgreSQL przechodzą
+- [x] 7.1 Statyka, typy, straże i Vitest przechodzą — 1e7d2f1
+- [x] 7.2 Testy Dashboardu i straże na PostgreSQL przechodzą — 1e7d2f1
 
 #### Manual
 
-- [x] 7.3 Zrzuty 1280/390 px w obu motywach zgodne z mockiem
+- [x] 7.3 Zrzuty 1280/390 px w obu motywach zgodne z mockiem — 1e7d2f1
