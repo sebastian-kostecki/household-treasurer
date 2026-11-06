@@ -1,10 +1,10 @@
 ---
 change_id: sidebar-atrament-ui
 title: Sidebar według komponentu Sidebar z design systemu Atrament
-status: impl_reviewed
+status: archived
 created: 2026-11-06
 updated: 2026-11-06
-archived_at: null
+archived_at: 2026-11-06T21:44:26Z
 ---
 
 ## Notes
