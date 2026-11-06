@@ -1,7 +1,7 @@
 ---
 change_id: dashboard-design-system-page
 title: Dashboard design system page
-status: new
+status: preparing
 created: 2026-11-06
 updated: 2026-11-06
 archived_at: null
