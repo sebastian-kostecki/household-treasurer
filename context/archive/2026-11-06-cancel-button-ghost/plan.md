@@ -238,7 +238,7 @@ None; frontend and docs only.
 
 #### Manual
 
-- [ ] 1.5 Form dialogs in /dev/ui/dialogs show a ghost Anuluj in both themes
+- [x] 1.5 Form dialogs in /dev/ui/dialogs show a ghost Anuluj in both themes — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
 
 ### Phase 2: "Zakończyć kategorię?" on ConfirmActionDialog and the kitchen sink
 
@@ -251,8 +251,8 @@ None; frontend and docs only.
 
 #### Manual
 
-- [ ] 2.5 /dev/ui/dialogs?open=confirm-align-plan shows ghost Anuluj and primary Zakończ
-- [ ] 2.6 Budget row Zakończ confirms with spinner, closes and sets Pozostało to 0
+- [x] 2.5 /dev/ui/dialogs?open=confirm-align-plan shows ghost Anuluj and primary Zakończ — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
+- [x] 2.6 Budget row Zakończ confirms with spinner, closes and sets Pozostało to 0 — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
 
 ### Phase 3: Docs
 
@@ -263,4 +263,4 @@ None; frontend and docs only.
 
 #### Manual
 
-- [ ] 3.3 Month Plan edit bar Anuluj stays ghost-inverse
+- [x] 3.3 Month Plan edit bar Anuluj stays ghost-inverse — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)

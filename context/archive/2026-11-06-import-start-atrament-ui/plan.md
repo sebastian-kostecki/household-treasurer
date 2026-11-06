@@ -505,7 +505,7 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Manual
 
-- [ ] 1.3 ADR-0048, `design-system.md` i `js-import.md` nie przeczą sobie ani ADR-0037/0040/0045
+- [x] 1.3 ADR-0048, `design-system.md` i `js-import.md` nie przeczą sobie ani ADR-0037/0040/0045 — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
 
 ### Phase 2: Poprawka danych test-first (C1, C2)
 
@@ -519,8 +519,8 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Manual
 
-- [ ] 2.6 Format „Inny” z plikiem `.csv`: format zostaje „Inny”, kolumny się pojawiają, przełączenie nagłówka zmienia etykiety bez gubienia wybranych kolumn
-- [ ] 2.7 Wysyłka z pustym `has_header` lub `amount_layout` (np. przez DevTools) pokazuje błąd pod polem
+- [x] 2.6 Format „Inny” z plikiem `.csv`: format zostaje „Inny”, kolumny się pojawiają, przełączenie nagłówka zmienia etykiety bez gubienia wybranych kolumn — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
+- [x] 2.7 Wysyłka z pustym `has_header` lub `amount_layout` (np. przez DevTools) pokazuje błąd pod polem — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
 
 ### Phase 3: Widok w Atramencie (C3–C5)
 
@@ -533,9 +533,9 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Manual
 
-- [ ] 3.5 Strona przy 1280 i 390 px odpowiada karcie `PageImportStart`: panel 640, nagłówek h2 + `meta`, akcja w stopce, kafelek banku w „Konto”
-- [ ] 3.6 Tab przechodzi kolejno przez pola i segmenty z pierścieniem `ring`, a strzałki w `SegmentedControl` przenoszą fokus
-- [ ] 3.7 Użytkownik bez aktywnych kont widzi stan pusty z działającym linkiem do Kont
+- [x] 3.5 Strona przy 1280 i 390 px odpowiada karcie `PageImportStart`: panel 640, nagłówek h2 + `meta`, akcja w stopce, kafelek banku w „Konto” — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
+- [x] 3.6 Tab przechodzi kolejno przez pola i segmenty z pierścieniem `ring`, a strzałki w `SegmentedControl` przenoszą fokus — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
+- [x] 3.7 Użytkownik bez aktywnych kont widzi stan pusty z działającym linkiem do Kont — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
 
 ### Phase 4: Sink, zrzuty i bramka
 
@@ -549,5 +549,5 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Manual
 
-- [ ] 4.6 Zrzuty w obu motywach i obu szerokościach są w `screenshots/` i odpowiadają karcie `PageImportStart`
-- [ ] 4.7 Sink pokazuje wszystkie scenariusze bez błędów w konsoli i bez zdublowanych `id` (sprawdzenie w DevTools)
+- [x] 4.6 Zrzuty w obu motywach i obu szerokościach są w `screenshots/` i odpowiadają karcie `PageImportStart` — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
+- [x] 4.7 Sink pokazuje wszystkie scenariusze bez błędów w konsoli i bez zdublowanych `id` (sprawdzenie w DevTools) — sprawdzone ręcznie 2026-11-06 (Playwright, osobna baza)
