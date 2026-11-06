@@ -33,8 +33,6 @@ yarn-error.log
 /.claude/*
 !/.claude/settings.json
 !/.claude/hooks/
-!/.claude/skills/
-/.claude/skills/10x-*
-/.cursor
-/CLAUDE.md
+!/.claude/rules/
+/CLAUDE.local.md
 /skills-lock.json
