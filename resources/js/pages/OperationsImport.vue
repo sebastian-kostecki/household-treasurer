@@ -16,23 +16,24 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    defaultColumnIndices,
+    formatForChosenFile,
+    importColumnLabels,
+} from '@/lib/import-start';
+import type { ImportFormat, ImportStartAccount } from '@/lib/import-start';
 import { operations as operationsRoute } from '@/routes';
 
-type AccountRow = AccountPickerOption & {
-    opening_date: string;
-};
-
-type ImportFormat = 'mbank' | 'bnp_paribas' | 'other';
-
 const { accounts } = defineProps<{
-    accounts: AccountRow[];
+    accounts: ImportStartAccount[];
 }>();
 
 const t = useTranslations();
 
 const selectedFile = ref<File | null>(null);
+const fileText = ref<string | null>(null);
 const importFormat = ref<ImportFormat>('other');
+const formatChosenByUser = ref(false);
 const hasHeader = ref(true);
 const accountId = ref<number | ''>(accounts[0]?.id ?? '');
 const amountLayout = ref<'signed' | 'split'>('signed');
@@ -42,12 +43,21 @@ const counterpartyColumn = ref<number | ''>('');
 const amountColumn = ref<number | ''>('');
 const inflowColumn = ref<number | ''>('');
 const outflowColumn = ref<number | ''>('');
-const columnLabels = ref<string[]>([]);
 
 const isMbankFormat = computed(() => importFormat.value === 'mbank');
 const isBnpParibasFormat = computed(() => importFormat.value === 'bnp_paribas');
 const isNamedFormat = computed(
     () => isMbankFormat.value || isBnpParibasFormat.value,
+);
+
+const columnLabels = computed<string[]>(() =>
+    fileText.value === null || isNamedFormat.value
+        ? []
+        : importColumnLabels(
+              fileText.value,
+              hasHeader.value,
+              t.operations.import_column,
+          ),
 );
 
 const canSubmit = computed(() => {
@@ -60,6 +70,7 @@ const canSubmit = computed(() => {
     }
 
     return (
+        columnLabels.value.length > 0 &&
         dateColumn.value !== '' &&
         descriptionColumn.value !== '' &&
         (amountLayout.value === 'signed'
@@ -81,112 +92,70 @@ setLayoutProps({
     ],
 });
 
-watch(selectedFile, async (file) => {
-    columnLabels.value = [];
-
-    if (file === null) {
-        dateColumn.value = '';
-        descriptionColumn.value = '';
-        counterpartyColumn.value = '';
-        amountColumn.value = '';
-        inflowColumn.value = '';
-        outflowColumn.value = '';
-
-        return;
-    }
-
-    if (file.name.toLowerCase().endsWith('.csv')) {
-        importFormat.value = 'mbank';
-    } else if (file.name.toLowerCase().endsWith('.xlsx')) {
-        importFormat.value = 'bnp_paribas';
-    }
-
-    if (isNamedFormat.value) {
-        return;
-    }
-
-    const text = await file.text();
-    const firstLine = text.split(/\r?\n/).find((line) => line.trim() !== '');
-
-    if (firstLine === undefined) {
-        return;
-    }
-
-    const delimiter =
-        firstLine.includes(';') && !firstLine.includes(',')
-            ? ';'
-            : firstLine.split(';').length > firstLine.split(',').length
-              ? ';'
-              : ',';
-
-    const cells = parseCsvLine(firstLine, delimiter);
-
-    columnLabels.value = hasHeader.value
-        ? cells.map((cell, index) =>
-              cell.trim() !== ''
-                  ? cell.trim()
-                  : `${t.operations.import_column} ${index + 1}`,
-          )
-        : cells.map((_, index) => `${t.operations.import_column} ${index + 1}`);
-
-    dateColumn.value = 0;
-    descriptionColumn.value = Math.min(1, columnLabels.value.length - 1);
+function resetColumns(): void {
+    dateColumn.value = '';
+    descriptionColumn.value = '';
     counterpartyColumn.value = '';
-    amountColumn.value = Math.min(2, columnLabels.value.length - 1);
-    inflowColumn.value = Math.min(2, columnLabels.value.length - 1);
-    outflowColumn.value = Math.min(3, columnLabels.value.length - 1);
+    amountColumn.value = '';
+    inflowColumn.value = '';
+    outflowColumn.value = '';
+}
+
+function applyDefaultColumns(count: number): void {
+    const indices = defaultColumnIndices(count);
+
+    dateColumn.value = indices.date;
+    descriptionColumn.value = indices.description;
+    counterpartyColumn.value = '';
+    amountColumn.value = indices.amount;
+    inflowColumn.value = indices.inflow;
+    outflowColumn.value = indices.outflow;
+}
+
+// Defaults are set only when a new file is loaded or the format becomes
+// "Inny"; toggling the header keeps the column count, so choices stay.
+watch(importFormat, (format) => {
+    if (format === 'other' && columnLabels.value.length > 0) {
+        applyDefaultColumns(columnLabels.value.length);
+    }
 });
 
-watch(importFormat, () => {
-    if (selectedFile.value === null || isNamedFormat.value) {
-        columnLabels.value = [];
+async function loadFileText(file: File): Promise<void> {
+    const text = await file.text();
 
+    // A later file was chosen while this one was loading.
+    if (selectedFile.value !== file) {
         return;
     }
 
-    const file = selectedFile.value;
-    selectedFile.value = null;
-    selectedFile.value = file;
-});
+    fileText.value = text;
 
-watch(hasHeader, () => {
-    if (selectedFile.value !== null && !isNamedFormat.value) {
-        const file = selectedFile.value;
-        selectedFile.value = null;
-        selectedFile.value = file;
+    if (importFormat.value === 'other') {
+        applyDefaultColumns(importColumnLabels(text, true, '').length);
     }
-});
-
-function parseCsvLine(line: string, delimiter: string): string[] {
-    const cells: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let index = 0; index < line.length; index++) {
-        const character = line[index];
-
-        if (character === '"') {
-            inQuotes = !inQuotes;
-            continue;
-        }
-
-        if (character === delimiter && !inQuotes) {
-            cells.push(current);
-            current = '';
-            continue;
-        }
-
-        current += character;
-    }
-
-    cells.push(current);
-
-    return cells;
 }
 
 function onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    selectedFile.value = input.files?.[0] ?? null;
+    const file = input.files?.[0] ?? null;
+
+    selectedFile.value = file;
+    fileText.value = null;
+    resetColumns();
+
+    if (file === null) {
+        return;
+    }
+
+    importFormat.value = formatForChosenFile(
+        file.name,
+        importFormat.value,
+        formatChosenByUser.value,
+    );
+
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        void loadFileText(file);
+    }
 }
 </script>
 
@@ -247,6 +216,7 @@ function onFileChange(event: Event): void {
                             v-model="importFormat"
                             class="native-select"
                             required
+                            @change="formatChosenByUser = true"
                         >
                             <option value="mbank">
                                 {{ t.operations.import_format_mbank }}
@@ -350,21 +320,18 @@ function onFileChange(event: Event): void {
                         <div class="flex items-center gap-2">
                             <Checkbox
                                 id="import-has-header"
-                                name="has_header"
-                                :checked="hasHeader"
-                                value="1"
-                                @update:checked="hasHeader = $event === true"
+                                v-model="hasHeader"
                             />
                             <Label for="import-has-header">
                                 {{ t.operations.import_has_header }}
                             </Label>
                         </div>
                         <input
-                            v-if="!hasHeader"
                             type="hidden"
                             name="has_header"
-                            value="0"
+                            :value="hasHeader ? '1' : '0'"
                         />
+                        <InputError :message="errors.has_header" />
 
                         <fieldset
                             v-if="columnLabels.length > 0"
@@ -479,6 +446,7 @@ function onFileChange(event: Event): void {
                                         {{ t.operations.import_amount_split }}
                                     </label>
                                 </div>
+                                <InputError :message="errors.amount_layout" />
                             </div>
 
                             <div

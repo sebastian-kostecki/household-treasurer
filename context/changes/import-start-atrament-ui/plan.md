@@ -500,8 +500,8 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [x] 1.1 ADR-0048 istnieje i jest jedynym plikiem `0048-*` w `context/foundation/adr/`
-- [x] 1.2 `php artisan boost:index-rules` kończy się bez błędu, a `.ai/rules/index.md` nadal mapuje `OperationsImport*.vue` na `js-import.md`
+- [x] 1.1 ADR-0048 istnieje i jest jedynym plikiem `0048-*` w `context/foundation/adr/` — 8f24448
+- [x] 1.2 `php artisan boost:index-rules` kończy się bez błędu, a `.ai/rules/index.md` nadal mapuje `OperationsImport*.vue` na `js-import.md` — 8f24448
 
 #### Manual
 
@@ -511,11 +511,11 @@ Brak migracji i zmian propsów. Wycofanie to revert commitów fazy 3–4. Commit
 
 #### Automated
 
-- [ ] 2.1 Przed poprawką: `UiTranslationKeysTest`, `import-start.test.ts`, `ui-contract.test.ts` i spec E2E są czerwone z powodu opisanego błędu
-- [ ] 2.2 `php artisan test --compact tests/Unit/UiTranslationKeysTest.php tests/Feature/CsvImportTest.php` przechodzi
-- [ ] 2.3 `npm test` przechodzi (w tym `import-start.test.ts` i `ui-contract.test.ts` bez wyjątków)
-- [ ] 2.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` przechodzi
-- [ ] 2.5 `npm run check` i `npm run types:check` przechodzą
+- [x] 2.1 Przed poprawką: `UiTranslationKeysTest`, `import-start.test.ts`, `ui-contract.test.ts` i spec E2E są czerwone z powodu opisanego błędu
+- [x] 2.2 `php artisan test --compact tests/Unit/UiTranslationKeysTest.php tests/Feature/CsvImportTest.php` przechodzi
+- [x] 2.3 `npm test` przechodzi (w tym `import-start.test.ts` i `ui-contract.test.ts` bez wyjątków)
+- [x] 2.4 `npx playwright test tests/e2e/import-other-format-without-header.spec.ts` przechodzi
+- [x] 2.5 `npm run check` i `npm run types:check` przechodzą
 
 #### Manual
 
