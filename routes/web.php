@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\AccountsKitchenSinkController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\DialogsKitchenSinkController;
+use App\Http\Controllers\Dev\ImportStartKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
 use App\Http\Controllers\ExpenseController;
@@ -25,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
     Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
+    Route::get('dev/ui/import', [ImportStartKitchenSinkController::class, 'show'])->name('dev.ui.import');
     Route::get('dev/ui/dialogs', [DialogsKitchenSinkController::class, 'show'])->name('dev.ui.dialogs');
     Route::post('dev/ui/dialogs/validate', [DialogsKitchenSinkController::class, 'validate'])->name('dev.ui.dialogs.validate');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');

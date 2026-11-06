@@ -74,6 +74,40 @@ CSV;
             );
     }
 
+    public function test_has_header_zero_keeps_the_first_line_as_an_operation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+2026-03-15;Salary;2500,00
+2026-03-16;Groceries;-45,50
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => '0',
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.valid', true)
+                ->where('rows.0.amount_minor_units', 250000)
+                ->where('rows.1.amount_minor_units', -4550),
+            );
+    }
+
     public function test_user_can_preview_csv_with_split_inflow_and_outflow_columns(): void
     {
         $this->travelTo('2026-06-01');
