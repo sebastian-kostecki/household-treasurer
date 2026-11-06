@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { LayoutGrid } from '@lucide/vue';
 import AppSidebar from '@/components/AppSidebar.vue';
+import BrandMark from '@/components/BrandMark.vue';
+import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import {
     SidebarMenu,
@@ -21,6 +23,28 @@ type SidebarFrame = {
 };
 
 const t = useTranslations();
+const appName = usePage().props.name;
+
+const brandMarkPlaces = [
+    {
+        key: 'sidebar',
+        label: 'Sidebar',
+        surface: 'bg-sidebar',
+        nameTone: 'text-sidebar-strong',
+    },
+    {
+        key: 'welcome',
+        label: 'Nagłówek Welcome',
+        surface: 'bg-background',
+        nameTone: 'text-foreground',
+    },
+    {
+        key: 'login',
+        label: 'Tło logowania',
+        surface: 'bg-muted',
+        nameTone: 'text-foreground',
+    },
+];
 
 const stateMatrix = [
     {
@@ -29,7 +53,7 @@ const stateMatrix = [
     },
     {
         state: 'empty',
-        where: 'Ramki expanded-empty i collapsed-empty poniżej (brak lat budżetu).',
+        where: 'Ramki expanded-empty i collapsed-empty poniżej (brak lat budżetu, nad stanem pustym etykieta „Rok budżetu”).',
     },
     {
         state: 'loading',
@@ -45,15 +69,15 @@ const stateMatrix = [
     },
     {
         state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Notatka przy ramce menu-states poniżej (najedź kursorem na pozycje).',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Sekcja focus-visible poniżej (prawdziwe kontrolki, przejdź Tabem).',
     },
     {
         state: 'disabled',
-        where: 'Zrzuty z działającej aplikacji przy spowolnionej sieci (przełącznik roku podczas POST).',
+        where: 'Trzecia pozycja ramki menu-states (aria-disabled i aria-busy, jak przełącznik roku podczas POST).',
     },
 ];
 
@@ -102,7 +126,9 @@ const frames: SidebarFrame[] = [
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local), tylko desktop.
                 Sidebar w czterech wariantach: rozwinięty i zwinięty, z latami
-                budżetu i bez. Elementy zależne od zalogowanego użytkownika
+                budżetu i bez. Macierz stanów to standardowe siedem (default,
+                empty, loading, error, hover, focus-visible, disabled) plus
+                pozycja aktywna, właściwa dla menu. Elementy zależne od zalogowanego użytkownika
                 (NavUser, źródła kopiowania w oknie dodawania roku) są
                 prawdziwe, nie fixture. Zduplikowane id pól roku w
                 CreateBudgetDialog są tu dopuszczalne.
@@ -158,7 +184,7 @@ const frames: SidebarFrame[] = [
                     {{ frame.key }}: {{ frame.label }}
                 </h2>
                 <div
-                    class="relative h-160 transform-gpu overflow-hidden border"
+                    class="relative h-svh transform-gpu overflow-hidden border"
                 >
                     <SidebarProvider
                         :default-open="frame.defaultOpen"
@@ -179,7 +205,9 @@ const frames: SidebarFrame[] = [
             >
                 menu-states: Pozycja w spoczynku i aktywna
             </h2>
-            <SidebarProvider class="bg-sidebar min-h-0 w-64 p-2">
+            <SidebarProvider
+                class="bg-sidebar text-sidebar-foreground min-h-0 w-(--sidebar-panel-width) p-2"
+            >
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton>
@@ -193,8 +221,84 @@ const frames: SidebarFrame[] = [
                             <span>Aktywna</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            aria-disabled="true"
+                            aria-busy="true"
+                        >
+                            <LayoutGrid />
+                            <span>Wyłączona</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarProvider>
+            <p class="text-muted-foreground text-sm">
+                Hover: najedź kursorem na pozycję w spoczynku, tło przechodzi na
+                akcent sidebara. Aktywna pozycja zostaje miętowa także pod
+                kursorem.
+            </p>
+        </section>
+
+        <section class="space-y-2" data-frame="focus-visible">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                focus-visible: Pierścień na kontrolkach sidebara
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Przejdź klawiszem Tab przez pozycje menu i przycisk roku;
+                pierścień ma być widoczny na tle sidebara.
+            </p>
+            <SidebarProvider
+                class="bg-sidebar text-sidebar-foreground min-h-0 w-(--sidebar-panel-width) p-2"
+            >
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton>
+                            <LayoutGrid />
+                            <span>Pierwsza pozycja</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton :is-active="true">
+                            <LayoutGrid />
+                            <span>Aktywna pozycja</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+                <BudgetYearSwitcher
+                    :budget-years="[2025, 2026]"
+                    :budget-year="2026"
+                />
+            </SidebarProvider>
+        </section>
+
+        <section class="space-y-2" data-frame="brand-mark">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                brand-mark: Znak w miejscach użycia
+            </h2>
+            <div class="grid grid-cols-3 gap-6">
+                <div
+                    v-for="place in brandMarkPlaces"
+                    :key="place.key"
+                    class="space-y-1"
+                >
+                    <p class="text-muted-foreground text-sm">
+                        {{ place.label }}
+                    </p>
+                    <div
+                        class="flex items-center gap-2 border p-4"
+                        :class="place.surface"
+                    >
+                        <BrandMark />
+                        <span class="font-semibold" :class="place.nameTone">{{
+                            appName
+                        }}</span>
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 </template>

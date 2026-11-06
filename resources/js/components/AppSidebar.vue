@@ -16,6 +16,7 @@ import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
@@ -83,6 +84,7 @@ const mainNavItems: NavItem[] = [
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
+            <SidebarGroupLabel>{{ t.shell.budget_year }}</SidebarGroupLabel>
             <BudgetYearSwitcher
                 :budget-years="budgetYears"
                 :budget-year="budgetYear"
@@ -98,5 +100,4 @@ const mainNavItems: NavItem[] = [
             <NavUser />
         </SidebarFooter>
     </Sidebar>
-    <slot />
 </template>

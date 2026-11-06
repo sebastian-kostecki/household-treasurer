@@ -18,6 +18,10 @@ defineProps<{
 }>();
 
 const { currentUrl } = useCurrentUrl();
+
+function isActive(item: NavItem): boolean {
+    return isCurrentSection(toUrl(item.href), currentUrl.value);
+}
 </script>
 
 <template>
@@ -27,7 +31,8 @@ const { currentUrl } = useCurrentUrl();
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton
                     as-child
-                    :is-active="isCurrentSection(toUrl(item.href), currentUrl)"
+                    :is-active="isActive(item)"
+                    :aria-current="isActive(item) ? 'page' : undefined"
                     :tooltip="item.title"
                 >
                     <Link :href="item.href">

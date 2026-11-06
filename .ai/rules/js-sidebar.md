@@ -19,3 +19,5 @@ Whatever goes into the `SidebarHeader` / `SidebarFooter` slots is built from `Si
 ## The active item comes from isCurrentSection
 
 The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted. Check the icon mode, the empty year state and both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).
+
+The same calculation drives `is-active` and `aria-current="page"` on the link (Inertia's `Link` does not add the attribute). Section labels are `SidebarGroupLabel` (`label-caps`), never a hand-built `text-xs` caption. The width comes only from `--sidebar-panel-width` in app.css (not from `--sidebar-width`, which `SidebarProvider` overwrites inline); do not write `w-64` or `16rem` for it. The product mark is `BrandMark`, with the name of the product next to it, not a Lucide icon (ADR-0053).

@@ -11,4 +11,4 @@ Add --name in :root and .dark plus --color-name in @theme inline, then use it as
 
 ## Typography styles and control sizes are named in app.css
 
-Typography is the named styles `page-title`, `section-title`, `table-header`, `label-caps`, `meta`, `mark-label`, `kpi-lg`, `kpi`, `amount` and `amount-sum` (table in context/foundation/design-system.md); sizes are the tokens `--control-height` (32px), `--control-height-sm` (26px) and `--row-height` (34px), which are dimensions and have no `.dark` variant. Add a new style or size here and use it by name; there is no `column-caption` (ADR-0037).
+Typography is the named styles `page-title`, `section-title`, `table-header`, `label-caps`, `meta`, `mark-label`, `brand-mark`, `kpi-lg`, `kpi`, `amount` and `amount-sum` (table in context/foundation/design-system.md); sizes are the tokens `--control-height` (32px), `--control-height-sm` (26px) and `--row-height` (34px), `--sidebar-panel-width` (224px) and `--brand-mark-size` (26px), which are dimensions and have no `.dark` variant. Add a new style or size here and use it by name; there is no `column-caption` (ADR-0037).
