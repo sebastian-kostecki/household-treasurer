@@ -127,6 +127,15 @@ const defaultProps: DashboardPageProps = {
         },
     ],
     month_to_spend: { state: 'approved', to_spend_minor_units: 154000 },
+    month_pace: {
+        as_of: '2026-09-23',
+        elapsed_day: 23,
+        days_in_month: 30,
+        pool_plan_minor_units: 400000,
+        pool_actual_minor_units: 240000,
+        percent: 60,
+        is_ahead: false,
+    },
     current_month: 9,
     planSummary: {
         income: {
@@ -160,6 +169,15 @@ const zeroAmountsProps: DashboardPageProps = {
     total_funds_minor_units: 0,
     dashboardNotices: [],
     month_to_spend: { state: 'proposal', to_spend_minor_units: 0 },
+    month_pace: {
+        as_of: '2026-09-23',
+        elapsed_day: 23,
+        days_in_month: 30,
+        pool_plan_minor_units: 0,
+        pool_actual_minor_units: 0,
+        percent: null,
+        is_ahead: false,
+    },
     planSummary: {
         income: zeroTotals,
         expense: zeroTotals,
@@ -186,6 +204,15 @@ const negativeProps: DashboardPageProps = {
     spendable_liquidity_minor_units: -45000,
     total_funds_minor_units: -45000,
     month_to_spend: { state: 'approved', to_spend_minor_units: -23000 },
+    month_pace: {
+        as_of: '2026-09-23',
+        elapsed_day: 23,
+        days_in_month: 30,
+        pool_plan_minor_units: 400000,
+        pool_actual_minor_units: 423000,
+        percent: 106,
+        is_ahead: true,
+    },
     expenseCategories: [
         category(
             3,
@@ -246,6 +273,7 @@ const emptyNewUserProps: DashboardPageProps = {
     year_elapsed_percent: null,
     dashboardNotices: [],
     month_to_spend: null,
+    month_pace: null,
     current_month: null,
     planSummary: null,
 };

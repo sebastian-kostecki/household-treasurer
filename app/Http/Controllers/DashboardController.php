@@ -13,6 +13,7 @@ use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\DashboardNotices;
+use App\Support\MonthPace;
 use App\Support\MonthToSpend;
 use App\Support\ShellState;
 use App\Support\SpendableLiquidity;
@@ -60,6 +61,7 @@ class DashboardController extends Controller
         $dashboardNotices = [];
         $monthToSpend = null;
         $monthToSpendReading = null;
+        $monthPace = null;
         $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
@@ -99,6 +101,7 @@ class DashboardController extends Controller
 
                 $currentMonth = $today->month;
                 $monthToSpendReading = MonthToSpend::forMonth($budget, $currentMonth, $today);
+                $monthPace = MonthPace::forMonth($monthToSpendReading, $budget->year, $currentMonth, $today);
                 $summary = $monthToSpendReading->summary();
 
                 if ($summary['state'] !== 'none') {
@@ -132,6 +135,7 @@ class DashboardController extends Controller
             'expenseCategories' => $expenseCategories,
             'dashboardNotices' => $dashboardNotices,
             'month_to_spend' => $monthToSpend,
+            'month_pace' => $monthPace,
             'current_month' => $currentMonth,
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,

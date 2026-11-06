@@ -532,23 +532,23 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Automated
 
-- [x] 2.1 Testy Vitest przechodzą
-- [x] 2.2 Statyka i typy przechodzą
-- [x] 2.3 Straże literałów przechodzą (check:ui, DashboardHardcodedUiTest, MonthPlanHardcodedUiTest)
+- [x] 2.1 Testy Vitest przechodzą — f3ce873
+- [x] 2.2 Statyka i typy przechodzą — f3ce873
+- [x] 2.3 Straże literałów przechodzą (check:ui, DashboardHardcodedUiTest, MonthPlanHardcodedUiTest) — f3ce873
 
 #### Manual
 
-- [x] 2.4 Panele miar Budżetu i Planu miesiąca wyglądają jak przed zmianą
+- [x] 2.4 Panele miar Budżetu i Planu miesiąca wyglądają jak przed zmianą — f3ce873
 
 ### Phase 3: Kontrakt propsów i logika
 
 #### Automated
 
-- [ ] 3.1 Testy Dashboardu na PostgreSQL przechodzą
-- [ ] 3.2 Vitest przechodzi
-- [ ] 3.3 Typy po buildzie przechodzą
-- [ ] 3.4 Formatowanie PHP (Pint)
-- [ ] 3.5 Sloppy bez nowych znalezisk
+- [x] 3.1 Testy Dashboardu na PostgreSQL przechodzą
+- [x] 3.2 Vitest przechodzi
+- [x] 3.3 Typy po buildzie przechodzą
+- [x] 3.4 Formatowanie PHP (Pint)
+- [x] 3.5 Sloppy bez nowych znalezisk
 
 ### Phase 4: Górna część widoku
 

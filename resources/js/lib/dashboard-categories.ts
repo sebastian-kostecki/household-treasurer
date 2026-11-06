@@ -1,3 +1,9 @@
+import {
+    DEFAULT_OPERATIONS_SECTION,
+    EMPTY_OPERATIONS_FILTERS,
+    operationsListQuery,
+} from './operations-list-query';
+
 export type DashboardCategory = {
     id: number;
     name: string;
@@ -20,6 +26,27 @@ export type DashboardTypeTotals = {
     remaining_minor_units: number;
     percent_complete: number | null;
 };
+
+/**
+ * Cel wiersza kategorii: operacje tej kategorii w całym roku budżetu, żeby
+ * kwota w tabeli miała widoczne źródło.
+ */
+export function categoryOperationsQuery(
+    category: DashboardCategory,
+    categoryType: 'income' | 'expense',
+    year: number,
+): Record<string, string | number | undefined> {
+    return operationsListQuery(
+        {
+            ...EMPTY_OPERATIONS_FILTERS,
+            category_name: category.name,
+            category_type: categoryType,
+            date_from: `${year}-01-01`,
+            date_to: `${year}-12-31`,
+        },
+        DEFAULT_OPERATIONS_SECTION,
+    );
+}
 
 export const VISIBLE_CATEGORY_LIMIT = 8;
 

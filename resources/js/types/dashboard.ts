@@ -4,6 +4,7 @@ import type {
     DashboardCategory,
     DashboardTypeTotals,
 } from '@/lib/dashboard-categories';
+import type { MonthPace } from '@/types/month-plan';
 
 export type AccountSummary = {
     id: number;
@@ -56,6 +57,7 @@ export type DashboardPageProps = {
         state: 'proposal' | 'approved';
         to_spend_minor_units: number;
     } | null;
+    month_pace: MonthPace | null;
     current_month: number | null;
     planSummary: PlanSummary | null;
 };
