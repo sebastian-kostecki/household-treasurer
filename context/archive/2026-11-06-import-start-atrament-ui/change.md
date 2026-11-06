@@ -1,10 +1,10 @@
 ---
 change_id: import-start-atrament-ui
 title: Import start atrament ui
-status: impl_reviewed
+status: archived
 created: 2026-11-06
 updated: 2026-11-06
-archived_at: null
+archived_at: 2026-11-06T15:50:45Z
 ---
 
 ## Notes
