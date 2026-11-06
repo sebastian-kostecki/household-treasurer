@@ -1,7 +1,7 @@
 ---
 change_id: sidebar-atrament-ui
 title: Sidebar według komponentu Sidebar z design systemu Atrament
-status: implementing
+status: implemented
 created: 2026-11-06
 updated: 2026-11-06
 archived_at: null

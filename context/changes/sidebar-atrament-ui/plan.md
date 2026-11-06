@@ -480,16 +480,16 @@ Brak danych. Ciasteczko `sidebar_state` bez zmian. Konflikt w `AppSidebar.vue` z
 
 #### Automated
 
-- [x] 6.1 Vitest: `npm test`
-- [x] 6.2 Literały: `npm run check:ui`
-- [x] 6.3 Typy: `npm run types:check`
-- [x] 6.4 Build: `npm run build`
-- [x] 6.5 Pest: `SidebarKitchenSinkTest` i `AppShellTest`
-- [x] 6.6 Pełna bramka na PostgreSQL w worktree
-- [x] 6.7 Sloppy na hoście: `vendor/bin/sloppy ci`
-- [x] 6.8 E2E: `npx playwright test`
+- [x] 6.1 Vitest: `npm test` — 807ba6c
+- [x] 6.2 Literały: `npm run check:ui` — 807ba6c
+- [x] 6.3 Typy: `npm run types:check` — 807ba6c
+- [x] 6.4 Build: `npm run build` — 807ba6c
+- [x] 6.5 Pest: `SidebarKitchenSinkTest` i `AppShellTest` — 807ba6c
+- [x] 6.6 Pełna bramka na PostgreSQL w worktree — 807ba6c
+- [x] 6.7 Sloppy na hoście: `vendor/bin/sloppy ci` — 807ba6c
+- [x] 6.8 E2E: `npx playwright test` — 807ba6c
 
 #### Manual
 
-- [x] 6.9 `/dev/ui/sidebar` pokazuje 7 stanów i ramkę `brand-mark`, Tab z pierścieniem
-- [x] 6.10 Zrzuty 1280/390 px w obu motywach przejrzane, Dashboard bez regresji
+- [x] 6.9 `/dev/ui/sidebar` pokazuje 7 stanów i ramkę `brand-mark`, Tab z pierścieniem — 807ba6c
+- [x] 6.10 Zrzuty 1280/390 px w obu motywach przejrzane, Dashboard bez regresji — 807ba6c
