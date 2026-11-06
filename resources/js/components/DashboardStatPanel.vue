@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { amountToneClass } from '@/lib/amount-tone';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatMoney } from '@/lib/format';
 import type { MonthPace } from '@/types/month-plan';
 
 const props = defineProps<{
@@ -21,8 +21,6 @@ const props = defineProps<{
     monthPace: MonthPace | null;
     spendableLiquidityMinorUnits: number;
     totalFundsMinorUnits: number;
-    yearElapsedAsOf: string | null;
-    yearElapsedPercent: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -68,24 +66,6 @@ const monthDaysCaption = computed(() => {
         .replace(':days', String(props.monthPace.days_in_month));
 });
 
-const yearElapsedCaption = computed(() => {
-    if (props.monthPace !== null) {
-        return props.monthPace.percent === null
-            ? t.dashboard.month_pace_none
-            : t.dashboard.month_pace_percent.replace(
-                  ':percent',
-                  String(Math.round(props.monthPace.percent)),
-              );
-    }
-
-    return props.yearElapsedAsOf === null
-        ? undefined
-        : t.dashboard.year_elapsed_as_of.replace(
-              ':date',
-              formatDate(props.yearElapsedAsOf),
-          );
-});
-
 const metrics = computed<StatPanelMetric[]>(() => {
     const list: StatPanelMetric[] = [];
 
@@ -112,15 +92,6 @@ const metrics = computed<StatPanelMetric[]>(() => {
             caption: t.dashboard.total_funds_caption,
         },
     );
-
-    if (props.yearElapsedPercent !== null) {
-        list.push({
-            id: 'year-elapsed',
-            label: t.dashboard.year_elapsed,
-            value: `${Math.round(props.yearElapsedPercent)}%`,
-            caption: yearElapsedCaption.value,
-        });
-    }
 
     return list;
 });
