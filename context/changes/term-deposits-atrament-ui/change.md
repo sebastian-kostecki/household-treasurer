@@ -1,7 +1,7 @@
 ---
 change_id: term-deposits-atrament-ui
 title: Term deposits atrament ui
-status: preparing
+status: implementing
 created: 2026-11-06
 updated: 2026-11-06
 archived_at: null
