@@ -431,17 +431,17 @@ Brak migracji danych. Ciasteczko `sidebar_state` w przeglądarkach użytkownikó
 
 #### Automated
 
-- [x] 3.1 Testy JS (w tym `global-shortcuts.test.ts`): `npm test`
-- [x] 3.2 Literały: `npm run check:ui`
-- [x] 3.3 Typy i build: `npm run build && npm run types:check`
-- [x] 3.4 Feature: `php artisan test --compact tests/Feature/AppShellTest.php`
-- [x] 3.5 E2E: `npx playwright test tests/e2e/global-shortcuts.spec.ts tests/e2e/sidebar-current-section.spec.ts`
+- [x] 3.1 Testy JS (w tym `global-shortcuts.test.ts`): `npm test` — 1f66130
+- [x] 3.2 Literały: `npm run check:ui` — 1f66130
+- [x] 3.3 Typy i build: `npm run build && npm run types:check` — 1f66130
+- [x] 3.4 Feature: `php artisan test --compact tests/Feature/AppShellTest.php` — 1f66130
+- [x] 3.5 E2E: `npx playwright test tests/e2e/global-shortcuts.spec.ts tests/e2e/sidebar-current-section.spec.ts` — 1f66130
 
 #### Manual
 
-- [x] 3.6 Znaczniki `1`–`6` przy menu i linijka „Skróty: 1–6 …” czytelne w obu motywach, aktywna pozycja z czytelnym znacznikiem
+- [x] 3.6 Znaczniki `1`–`6` przy menu i linijka „Skróty: 1–6 …” czytelne w obu motywach, aktywna pozycja z czytelnym znacznikiem — 1f66130
 - [x] 3.7 `N` otwiera menu typów; wyłączone typy (transfer, ruch kapitału) nadal pokazują powód
-- [x] 3.8 Czytnik ekranu (lub drzewo dostępności) podaje link jako „Dashboard”, ze skrótem z `aria-keyshortcuts`
+- [x] 3.8 Czytnik ekranu (lub drzewo dostępności) podaje link jako „Dashboard”, ze skrótem z `aria-keyshortcuts` — 1f66130
 
 ### Phase 4: Paleta ⌘K
 
