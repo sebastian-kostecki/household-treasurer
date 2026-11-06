@@ -8,19 +8,21 @@ Issues and specs for this repo live as GitHub issues in `sebastian-kostecki/hous
 - **Read an issue**: `gh issue view <number> --comments`.
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with `--label` and `--state` filters as needed.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
-- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`. Label names: `.docs/agents/triage-labels.md`.
+- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`. Label names: the table below.
 - **Close**: `gh issue close <number> --comment "..."`
 
 GitHub shares one number space across issues and PRs, so a bare `#42` may be either: resolve with `gh issue view 42` and fall back to `gh pr view 42`.
 
+## Triage labels
+
+| Label             | Meaning                                  |
+| ----------------- | ---------------------------------------- |
+| `needs-triage`    | Maintainer needs to evaluate this issue  |
+| `needs-info`      | Waiting on reporter for more information |
+| `ready-for-agent` | Fully specified, ready for an AFK agent  |
+| `ready-for-human` | Requires human implementation            |
+| `wontfix`         | Will not be actioned                     |
+
 ## Pull requests as a triage surface
 
-**PRs as a request surface: no.** External PRs are not treated as feature requests; triage covers issues only.
-
-## When a skill says "publish to the issue tracker"
-
-Create a GitHub issue.
-
-## When a skill says "fetch the relevant ticket"
-
-Run `gh issue view <number> --comments`.
+External PRs are not treated as feature requests; triage covers issues only.

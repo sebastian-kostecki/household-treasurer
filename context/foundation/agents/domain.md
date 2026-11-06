@@ -1,15 +1,15 @@
 # Domain docs
 
-This is a single-context repo; agent-facing docs live under `.docs/` (not `docs/`).
+Project documentation lives under `context/` (10x layout): `foundation/` holds the documents that outlive any one change, `changes/<id>/` the change in progress, `archive/` closed changes.
 
 ## Before exploring, read
 
-- `CONTEXT.md` at the repo root: the glossary and the rules behind each term, with the synonyms to avoid.
-- `.docs/adr/`: the ADRs that touch the area you are about to work in (grep the term, then read the latest numbers first; a later ADR can supersede part of an earlier one).
+- `context/foundation/glossary.md`: the glossary and the rules behind each term, with the synonyms to avoid.
+- `context/foundation/adr/`: the ADRs that touch the area you are about to work in (grep the term, then read the latest numbers first; a later ADR can supersede part of an earlier one).
 
 ## Use the glossary's vocabulary
 
-When your output names a domain concept (an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md` and skip the synonyms it marks _Avoid_. A concept missing from the glossary is a signal: either you are inventing language the project does not use, or there is a real gap to resolve with `/mattpocock-skills:domain-modeling`, which edits `CONTEXT.md` and writes ADRs.
+When your output names a domain concept (an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `context/foundation/glossary.md` and skip the synonyms it marks _Avoid_. A concept missing from the glossary is a signal: either you are inventing language the project does not use, or there is a real gap. Close the gap inside the current 10x change (`context/changes/<id>/`): a glossary entry with its _Avoid_ list and a new ADR in `context/foundation/adr/` come before code, as the hard rule in `AGENTS.md` says. Name the gap in the plan phase that introduces the term.
 
 ## Flag ADR conflicts
 
