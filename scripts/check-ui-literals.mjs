@@ -17,7 +17,6 @@ const FILES = [
     'resources/js/components/BudgetPlanSummaryStrip.vue',
     'resources/js/components/CategoryMeterRow.vue',
     'resources/js/components/CreateBudgetDialog.vue',
-    'resources/js/components/StatTile.vue',
     'resources/js/pages/dev/DashboardKitchenSink.vue',
     'resources/js/components/AppSidebar.vue',
     'resources/js/components/BudgetYearSwitcher.vue',

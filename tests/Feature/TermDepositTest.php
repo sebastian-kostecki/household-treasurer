@@ -7,7 +7,6 @@ use App\Models\Account;
 use App\Models\CapitalMovement;
 use App\Models\TermDeposit;
 use App\Models\User;
-use App\Support\AccountIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -104,6 +103,10 @@ class TermDepositTest extends TestCase
     public function test_term_deposits_page_lists_balances_and_total(): void
     {
         $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'current_balance_minor_units' => 300000,
+            'opening_balance_minor_units' => 300000,
+        ]);
         TermDeposit::factory()->for($user)->create([
             'name' => 'Lokata A',
             'bank' => Bank::LokatyFacto,
@@ -127,15 +130,16 @@ class TermDepositTest extends TestCase
                 ->has('termDeposits', 2)
                 ->where('termDeposits.0.name', 'Lokata A')
                 ->where('termDeposits.0.bank', Bank::LokatyFacto->value)
-                ->where('termDeposits.0.mark_url', AccountIdentity::markUrl(Bank::LokatyFacto))
+                ->missing('termDeposits.0.mark_url')
                 ->where('termDeposits.0.end_date', '2026-12-31')
                 ->where('termDeposits.0.current_balance_minor_units', 100000)
                 ->where('termDeposits.1.name', 'Lokata B')
                 ->where('termDeposits.1.bank', Bank::Other->value)
-                ->where('termDeposits.1.mark_url', null)
+                ->missing('termDeposits.1.mark_url')
                 ->where('termDeposits.1.end_date', null)
                 ->where('termDeposits.1.current_balance_minor_units', 25050)
                 ->where('term_deposits_total_minor_units', 125050)
+                ->where('total_funds_minor_units', 425050)
                 ->where('archived_term_deposits_total_minor_units', 0)
                 ->where('archived_term_deposits_count', 0),
             );

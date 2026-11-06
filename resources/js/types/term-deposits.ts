@@ -12,7 +12,6 @@ export type TermDepositFormTermDeposit = {
 
 export type TermDepositRow = TermDepositFormTermDeposit & {
     bank: AccountBank;
-    mark_url: string | null;
     current_balance_minor_units: number;
     is_negative: boolean;
     is_archived: boolean;
@@ -23,6 +22,7 @@ export type TermDepositRow = TermDepositFormTermDeposit & {
 
 export type TermDepositsPageProps = {
     termDeposits: TermDepositRow[];
+    total_funds_minor_units: number;
     term_deposits_total_minor_units: number;
     archived_term_deposits_total_minor_units: number;
     archived_term_deposits_count: number;

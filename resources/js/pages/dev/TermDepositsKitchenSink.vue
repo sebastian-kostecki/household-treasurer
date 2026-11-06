@@ -14,7 +14,7 @@ const errorDialogOpen = ref(false);
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-total, negative-total, with-archived i with-archived-negative poniżej (stopka sumy „W tym zarchiwizowane”, zarchiwizowane saldo ujemne na czerwono w wierszu i w stopce).',
+        where: 'Scenariusze default, zero-total, negative-total, with-archived, with-archived-negative i long-names poniżej (long-names: długa nazwa zawija się w obszarze nazwy, bank „Lokaty Facto”, brak daty): panel miar „Suma lokat” i „Łączne środki”, stopka „W tym zarchiwizowane” (saldo ujemne na czerwono w wierszu i w stopce), tabela z nagłówkami, bank w kafelku, „—” przy braku daty zakończenia (default).',
     },
     {
         state: 'hover',
@@ -22,7 +22,7 @@ const stateMatrix = [
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji po Tab: przycisk „Dodaj lokatę”, przełącznik, IconAction, X dialogu, wybór banku.',
+        where: 'Zrzuty z działającej aplikacji po Tab: przycisk „Dodaj lokatę”, przełącznik w wierszu tytułu, IconAction, X dialogu, wybór banku.',
     },
     {
         state: 'disabled',
@@ -34,7 +34,7 @@ const stateMatrix = [
     },
     {
         state: 'empty',
-        where: 'Scenariusze empty-new-user i all-archived poniżej.',
+        where: 'Scenariusze empty-new-user i all-archived poniżej. Przełącznik „Pokaż zarchiwizowane” wł./wył.: with-archived (włączony) i default (wyłączony, widoczny przy archived_term_deposits_count > 0 w all-archived); stany dialogu term-deposit-* w /dev/ui/dialogs.',
     },
     {
         state: 'loading',
@@ -48,7 +48,7 @@ const stateMatrix = [
 
     <div class="flex flex-1 flex-col gap-8 p-4">
         <header class="space-y-1">
-            <h1 class="text-xl font-semibold">Term deposits kitchen sink</h1>
+            <h1 class="page-title">Term deposits kitchen sink</h1>
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local). Widok Lokaty w
                 każdym scenariuszu danych. Zduplikowane id pól w kilku
@@ -61,7 +61,7 @@ const stateMatrix = [
 
         <section class="space-y-3" data-section="state-matrix">
             <h2
-                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
             >
                 Macierz stanów
             </h2>
@@ -78,7 +78,7 @@ const stateMatrix = [
                     <tr
                         v-for="row in stateMatrix"
                         :key="row.state"
-                        class="border-t align-top"
+                        class="border-border-soft border-t align-top"
                     >
                         <td class="py-2 pr-4 font-mono">{{ row.state }}</td>
                         <td class="py-2">{{ row.where }}</td>
@@ -89,11 +89,11 @@ const stateMatrix = [
 
         <section class="space-y-2" data-section="error-form">
             <h2
-                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
             >
                 error: formularz lokaty (tryb tworzenia)
             </h2>
-            <Button variant="secondary" @click="errorDialogOpen = true">
+            <Button variant="outline" @click="errorDialogOpen = true">
                 Otwórz formularz lokaty
             </Button>
             <TermDepositFormDialog
@@ -109,7 +109,7 @@ const stateMatrix = [
             class="space-y-2"
         >
             <h2
-                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
             >
                 {{ scenario.title }}
             </h2>
