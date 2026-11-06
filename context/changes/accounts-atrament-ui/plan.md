@@ -524,9 +524,9 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Automated
 
-- [x] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail)
-- [x] 5.2 Sloppy na hoście
-- [x] 5.3 Statyka, typy, straże i Vitest
+- [x] 5.1 Pełna bramka CI (composer ci:check w obrazie Sail) — 772d352
+- [x] 5.2 Sloppy na hoście — 772d352
+- [x] 5.3 Statyka, typy, straże i Vitest — 772d352
 
 #### Manual
 
