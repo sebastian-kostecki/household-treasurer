@@ -435,24 +435,24 @@ Bez migracji danych. Usunięcie trzech plików z `public/marks` nie wpływa na d
 
 #### Automated
 
-- [x] 2.1 Testy payloadów na PostgreSQL (OperationsIdentity, TermDeposit, CsvImport, OperationsFilter, CapitalMovement, Dashboard, Account)
-- [x] 2.2 `npm run types:check` przechodzi
-- [x] 2.3 `vendor/bin/pint --dirty --format agent` i `vendor/bin/sloppy ci` bez nowych znalezisk
-- [x] 2.4 Pliki `public/marks/ing.svg`, `pekao.svg`, `santander.svg` nie istnieją
+- [x] 2.1 Testy payloadów na PostgreSQL (OperationsIdentity, TermDeposit, CsvImport, OperationsFilter, CapitalMovement, Dashboard, Account) — 964e342
+- [x] 2.2 `npm run types:check` przechodzi — 964e342
+- [x] 2.3 `vendor/bin/pint --dirty --format agent` i `vendor/bin/sloppy ci` bez nowych znalezisk — 964e342
+- [x] 2.4 Pliki `public/marks/ing.svg`, `pekao.svg`, `santander.svg` nie istnieją — 964e342
 
 ### Phase 3: Komponent `AccountAvatar` i podmiana istniejących kafelków
 
 #### Automated
 
-- [ ] 3.1 `npx vitest run resources/js/lib/account-identity.test.ts` przechodzi, z przypadkami logo, gotówka, „Inny”, bank bez logo, błąd obrazu
-- [ ] 3.2 `npm run types:check`, `npm run lint` (lub skrypt lint z `package.json`) i `npm run check:ui` przechodzą
-- [ ] 3.3 `grep -rn "AccountMarkCompact\|AccountIdentityBlock" resources/js scripts tests` zwraca 0 trafień
-- [ ] 3.4 `php artisan test --compact tests/Unit/AccountsHardcodedUiTest.php tests/Unit/DashboardHardcodedUiTest.php tests/Unit/TermDepositsHardcodedUiTest.php` przechodzi
+- [x] 3.1 `npx vitest run resources/js/lib/account-identity.test.ts` przechodzi, z przypadkami logo, gotówka, „Inny”, bank bez logo, błąd obrazu
+- [x] 3.2 `npm run types:check`, `npm run lint` (lub skrypt lint z `package.json`) i `npm run check:ui` przechodzą
+- [x] 3.3 `grep -rn "AccountMarkCompact\|AccountIdentityBlock" resources/js scripts tests` zwraca 0 trafień
+- [x] 3.4 `php artisan test --compact tests/Unit/AccountsHardcodedUiTest.php tests/Unit/DashboardHardcodedUiTest.php tests/Unit/TermDepositsHardcodedUiTest.php` przechodzi
 
 #### Manual
 
-- [ ] 3.5 `/dev/ui/accounts`: siatka znaków w xs/sm/md, logo nieprzycięte, skrót mieści się w xs, błąd obrazu pokazuje skrót
-- [ ] 3.6 `/dev/ui/dashboard` i `/dev/ui/term-deposits`: logo w wierszach kont i lokat, gotówka „zł”, wiersze bez skoku wysokości
+- [x] 3.5 `/dev/ui/accounts`: siatka znaków w xs/sm/md, logo nieprzycięte, skrót mieści się w xs, błąd obrazu pokazuje skrót
+- [x] 3.6 `/dev/ui/dashboard` i `/dev/ui/term-deposits`: logo w wierszach kont i lokat, gotówka „zł”, wiersze bez skoku wysokości
 
 ### Phase 4: Awatar tam, gdzie była sama nazwa
 

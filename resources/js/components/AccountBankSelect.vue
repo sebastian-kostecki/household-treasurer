@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import {
     Select,
     SelectContent,
@@ -53,7 +53,11 @@ function bankName(bank: AccountBank): string {
         >
             <SelectValue>
                 <span class="flex items-center gap-2">
-                    <AccountMarkCompact type="bank" :bank="selectedBank" />
+                    <AccountAvatar
+                        type="bank"
+                        :bank="selectedBank"
+                        :mark_url="null"
+                    />
                     <span>{{ bankName(selectedBank) }}</span>
                 </span>
             </SelectValue>
@@ -66,7 +70,7 @@ function bankName(bank: AccountBank): string {
                 :text-value="bankName(bank)"
             >
                 <span class="flex items-center gap-2">
-                    <AccountMarkCompact type="bank" :bank="bank" />
+                    <AccountAvatar type="bank" :bank="bank" :mark_url="null" />
                     <span>{{ bankName(bank) }}</span>
                 </span>
             </SelectItem>

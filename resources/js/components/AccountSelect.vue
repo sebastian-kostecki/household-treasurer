@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import {
     Select,
     SelectContent,
@@ -61,9 +61,10 @@ const selectedAccount = computed(() =>
                         v-if="selectedAccount"
                         class="flex items-center gap-2"
                     >
-                        <AccountMarkCompact
+                        <AccountAvatar
                             :type="selectedAccount.type"
                             :bank="selectedAccount.bank"
+                            :mark_url="selectedAccount.mark_url"
                         />
                         <span>{{ selectedAccount.name }}</span>
                     </span>
@@ -77,9 +78,10 @@ const selectedAccount = computed(() =>
                     :text-value="account.name"
                 >
                     <span class="flex items-center gap-2">
-                        <AccountMarkCompact
+                        <AccountAvatar
                             :type="account.type"
                             :bank="account.bank"
+                            :mark_url="account.mark_url"
                         />
                         <span>{{ account.name }}</span>
                     </span>

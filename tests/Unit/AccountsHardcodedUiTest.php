@@ -2,15 +2,14 @@
 
 /**
  * Accounts view files take values from tokens and named classes in app.css,
- * never from literals (ADR-0044). AccountIdentityBlock.vue,
- * AccountBankSelect.vue are left out because they have consumers outside Accounts
- * (Dashboard, the term deposit dialog); scripts/check-ui-literals.mjs still
+ * never from literals (ADR-0044). AccountBankSelect.vue is left out because it has consumers outside Accounts
+ * (the term deposit dialog); scripts/check-ui-literals.mjs still
  * guards their colour literals. app.css itself is the token source and is not scanned.
  */
 const ACCOUNTS_VIEW_FILES = [
     'resources/js/pages/Accounts.vue',
     'resources/js/components/AccountFormDialog.vue',
-    'resources/js/components/AccountMarkCompact.vue',
+    'resources/js/components/AccountAvatar.vue',
     'resources/js/pages/dev/AccountsKitchenSink.vue',
     'resources/js/pages/dev/accounts-fixtures.ts',
 ];

@@ -4,7 +4,7 @@ import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
-import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -205,10 +205,11 @@ function toggleShowArchived(checked: boolean): void {
                 :class="{ 'accounts-row-archived': account.is_archived }"
             >
                 <div class="accounts-cell-name">
-                    <AccountMarkCompact
+                    <AccountAvatar
                         size="md"
                         :type="account.type"
                         :bank="account.bank"
+                        :mark_url="account.mark_url"
                     />
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">

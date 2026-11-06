@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { accountShortMark, bankLabel, bankOptions } from './account-identity';
+import {
+    accountAvatarContent,
+    accountShortMark,
+    bankLabel,
+    bankOptions,
+} from './account-identity';
 
 describe('bankLabel', () => {
     it('reads the bank name from the accounts translations', () => {
@@ -34,5 +39,58 @@ describe('accountShortMark', () => {
             expect(mark!.length).toBeGreaterThanOrEqual(1);
             expect(mark!.length).toBeLessThanOrEqual(3);
         }
+    });
+});
+
+describe('accountAvatarContent', () => {
+    it('shows the logo of a bank with a mark_url', () => {
+        expect(
+            accountAvatarContent(
+                { type: 'bank', bank: 'mbank', mark_url: '/marks/mbank.jpg' },
+                false,
+            ),
+        ).toEqual({ kind: 'logo', src: '/marks/mbank.jpg' });
+    });
+
+    it('shows zł for cash even with a stray mark_url', () => {
+        expect(
+            accountAvatarContent(
+                { type: 'cash', bank: null, mark_url: '/marks/bogus.svg' },
+                false,
+            ),
+        ).toEqual({ kind: 'mark', text: 'zł' });
+    });
+
+    it('shows the icon for other and for a missing bank', () => {
+        expect(
+            accountAvatarContent(
+                { type: 'bank', bank: 'other', mark_url: null },
+                false,
+            ),
+        ).toEqual({ kind: 'icon' });
+        expect(
+            accountAvatarContent(
+                { type: 'bank', bank: null, mark_url: null },
+                false,
+            ),
+        ).toEqual({ kind: 'icon' });
+    });
+
+    it('shows the short mark of a bank without a logo', () => {
+        expect(
+            accountAvatarContent(
+                { type: 'bank', bank: 'ing', mark_url: null },
+                false,
+            ),
+        ).toEqual({ kind: 'mark', text: 'ING' });
+    });
+
+    it('falls back to the short mark, not the icon, when the logo fails', () => {
+        expect(
+            accountAvatarContent(
+                { type: 'bank', bank: 'pko_bp', mark_url: '/marks/pko-bp.svg' },
+                true,
+            ),
+        ).toEqual({ kind: 'mark', text: 'PKO' });
     });
 });

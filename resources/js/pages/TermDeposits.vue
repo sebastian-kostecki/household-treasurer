@@ -3,7 +3,7 @@ import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import TermDepositController from '@/actions/App/Http/Controllers/TermDepositController';
-import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -228,10 +228,11 @@ function toggleShowArchived(checked: boolean): void {
                 }"
             >
                 <div class="term-deposits-cell-name">
-                    <AccountMarkCompact
+                    <AccountAvatar
                         size="md"
                         type="bank"
                         :bank="termDeposit.bank"
+                        :mark_url="termDeposit.mark_url"
                     />
                     <div class="flex min-w-0 flex-wrap items-center gap-2">
                         <p class="font-medium">{{ termDeposit.name }}</p>

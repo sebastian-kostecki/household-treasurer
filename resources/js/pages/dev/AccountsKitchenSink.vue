@@ -2,10 +2,14 @@
 import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent, ref } from 'vue';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
-import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { bankLabel, bankOptions } from '@/lib/account-identity';
+import {
+    type AccountBank,
+    bankLabel,
+    bankOptions,
+} from '@/lib/account-identity';
 import { accountsScenarios } from './accounts-fixtures';
 
 const Accounts = defineAsyncComponent(() => import('@/pages/Accounts.vue'));
@@ -14,26 +18,51 @@ const createDialogOpen = ref(false);
 
 const t = useTranslations();
 
+const bankMarkUrls: Record<AccountBank, string | null> = {
+    alior: '/marks/alior.svg',
+    bnp_paribas: '/marks/bnp-paribas.jpg',
+    ing: null,
+    lokaty_facto: '/marks/lokaty-facto.svg',
+    mbank: '/marks/mbank.jpg',
+    pekao: null,
+    pko_bp: '/marks/pko-bp.svg',
+    revolut: '/marks/revolut.svg',
+    santander: null,
+    other: null,
+};
+
 const bankMarkTiles = [
     ...bankOptions.map((bank) => ({
         key: bank,
         label: bankLabel(t.accounts, bank),
         type: 'bank' as const,
         bank,
+        mark_url: bankMarkUrls[bank],
     })),
     {
         key: 'cash',
         label: t.accounts.type_cash,
         type: 'cash' as const,
         bank: null,
+        mark_url: null,
     },
     {
         key: 'no-bank',
         label: 'Bank bez znaku',
         type: 'bank' as const,
         bank: null,
+        mark_url: null,
+    },
+    {
+        key: 'image-error',
+        label: 'Błąd obrazu (zły URL, skrót zamiast logo)',
+        type: 'bank' as const,
+        bank: 'pko_bp' as const,
+        mark_url: '/marks/missing-logo.svg',
     },
 ];
+
+const avatarSizes = ['xs', 'sm', 'md'] as const;
 
 const stateMatrix = [
     {
@@ -122,15 +151,13 @@ const stateMatrix = [
                     :key="tile.key"
                     class="flex items-center gap-3 text-sm"
                 >
-                    <AccountMarkCompact
+                    <AccountAvatar
+                        v-for="size in avatarSizes"
+                        :key="size"
                         :type="tile.type"
                         :bank="tile.bank"
-                        size="md"
-                    />
-                    <AccountMarkCompact
-                        :type="tile.type"
-                        :bank="tile.bank"
-                        size="sm"
+                        :mark_url="tile.mark_url"
+                        :size="size"
                     />
                     <span>{{ tile.label }}</span>
                 </li>

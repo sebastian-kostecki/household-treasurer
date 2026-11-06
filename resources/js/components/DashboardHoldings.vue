@@ -2,7 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { ArrowRight } from '@lucide/vue';
 import { computed } from 'vue';
-import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
@@ -106,21 +106,22 @@ const termDepositsTotalMinorUnits = computed(() =>
                         :key="account.id"
                         class="dashboard-holdings-row"
                     >
-                        <AccountIdentityBlock
-                            class="min-w-0 flex-1"
-                            :name="account.name"
-                            :type="account.type"
-                            :bank="account.bank"
-                            :mark_url="account.mark_url"
-                            size="sm"
-                        >
-                            <p class="text-sm font-medium">
-                                {{ account.name }}
-                            </p>
-                            <p class="meta text-muted-foreground">
-                                {{ accountCaption(account) }}
-                            </p>
-                        </AccountIdentityBlock>
+                        <div class="flex min-w-0 flex-1 items-center gap-3">
+                            <AccountAvatar
+                                size="md"
+                                :type="account.type"
+                                :bank="account.bank"
+                                :mark_url="account.mark_url"
+                            />
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium">
+                                    {{ account.name }}
+                                </p>
+                                <p class="meta text-muted-foreground">
+                                    {{ accountCaption(account) }}
+                                </p>
+                            </div>
+                        </div>
                         <p
                             class="amount shrink-0"
                             :class="
@@ -178,21 +179,22 @@ const termDepositsTotalMinorUnits = computed(() =>
                     :key="termDeposit.id"
                     class="dashboard-holdings-row"
                 >
-                    <AccountIdentityBlock
-                        class="min-w-0 flex-1"
-                        :name="termDeposit.name"
-                        type="bank"
-                        :bank="termDeposit.bank"
-                        :mark_url="termDeposit.mark_url"
-                        size="sm"
-                    >
-                        <p class="text-sm font-medium">
-                            {{ termDeposit.name }}
-                        </p>
-                        <p class="meta text-muted-foreground">
-                            {{ termDepositCaption(termDeposit) }}
-                        </p>
-                    </AccountIdentityBlock>
+                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                        <AccountAvatar
+                            size="md"
+                            type="bank"
+                            :bank="termDeposit.bank"
+                            :mark_url="termDeposit.mark_url"
+                        />
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium">
+                                {{ termDeposit.name }}
+                            </p>
+                            <p class="meta text-muted-foreground">
+                                {{ termDepositCaption(termDeposit) }}
+                            </p>
+                        </div>
+                    </div>
                     <p
                         class="amount shrink-0"
                         :class="

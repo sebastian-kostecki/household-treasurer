@@ -82,7 +82,7 @@ const defaultProps: DashboardPageProps = {
             name: 'Konto osobiste',
             type: 'bank',
             bank: 'mbank',
-            mark_url: null,
+            mark_url: '/marks/mbank.jpg',
             current_balance_minor_units: 845050,
             is_negative: false,
             is_archived: false,
@@ -102,8 +102,8 @@ const defaultProps: DashboardPageProps = {
         {
             id: 1,
             name: 'Lokata roczna',
-            bank: 'pekao',
-            mark_url: null,
+            bank: 'pko_bp',
+            mark_url: '/marks/pko-bp.svg',
             end_date: '2026-12-31',
             current_balance_minor_units: 1000000,
             is_negative: false,
@@ -274,7 +274,7 @@ const negativeProps: DashboardPageProps = {
             name: 'Konto osobiste',
             type: 'bank',
             bank: 'mbank',
-            mark_url: null,
+            mark_url: '/marks/mbank.jpg',
             amount_minor_units: -45000,
         },
         {
@@ -447,7 +447,7 @@ const allNoticeKindsProps: DashboardPageProps = {
             name: 'Konto osobiste',
             type: 'bank',
             bank: 'mbank',
-            mark_url: null,
+            mark_url: '/marks/mbank.jpg',
             amount_minor_units: -45000,
         },
         {
@@ -455,8 +455,8 @@ const allNoticeKindsProps: DashboardPageProps = {
             kind: 'negative_term_deposit',
             id: 1,
             name: 'Lokata roczna',
-            bank: 'pekao',
-            mark_url: null,
+            bank: 'pko_bp',
+            mark_url: '/marks/pko-bp.svg',
             amount_minor_units: -10000,
         },
         {

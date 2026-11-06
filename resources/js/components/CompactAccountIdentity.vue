@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import AccountMarkCompact from '@/components/AccountMarkCompact.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import type { AccountIdentityFields } from '@/lib/account-identity';
 
 withDefaults(
     defineProps<
         AccountIdentityFields & {
-            markSize?: 'sm' | 'md';
+            markSize?: 'xs' | 'sm' | 'md';
         }
     >(),
     {
@@ -16,7 +16,12 @@ withDefaults(
 
 <template>
     <div class="flex min-w-0 items-center gap-2">
-        <AccountMarkCompact :type="type" :bank="bank" :size="markSize" />
+        <AccountAvatar
+            :type="type"
+            :bank="bank"
+            :mark_url="mark_url"
+            :size="markSize"
+        />
 
         <span class="truncate text-sm">{{ name }}</span>
     </div>

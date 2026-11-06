@@ -73,3 +73,22 @@ export function bankLabel(
 ): string {
     return accountTranslations[`bank_${bank}`] ?? bank;
 }
+
+export type AccountAvatarContent =
+    | { kind: 'logo'; src: string }
+    | { kind: 'mark'; text: string }
+    | { kind: 'icon' };
+
+/** What the account avatar shows: the bank logo, else the short mark (also after an image error), else the icon. */
+export function accountAvatarContent(
+    account: Pick<AccountIdentityFields, 'type' | 'bank' | 'mark_url'>,
+    imageFailed: boolean,
+): AccountAvatarContent {
+    if (account.type === 'bank' && account.mark_url !== null && !imageFailed) {
+        return { kind: 'logo', src: account.mark_url };
+    }
+
+    const text = accountShortMark(account);
+
+    return text === null ? { kind: 'icon' } : { kind: 'mark', text };
+}

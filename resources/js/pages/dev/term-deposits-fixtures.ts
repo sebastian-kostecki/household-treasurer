@@ -10,6 +10,19 @@ export type TermDepositsScenario = {
     props: TermDepositsPageProps;
 };
 
+const bankMarkUrls: Record<AccountBank, string | null> = {
+    alior: '/marks/alior.svg',
+    bnp_paribas: '/marks/bnp-paribas.jpg',
+    ing: null,
+    lokaty_facto: '/marks/lokaty-facto.svg',
+    mbank: '/marks/mbank.jpg',
+    pekao: null,
+    pko_bp: '/marks/pko-bp.svg',
+    revolut: '/marks/revolut.svg',
+    santander: null,
+    other: null,
+};
+
 function termDeposit(
     id: number,
     name: string,
@@ -21,7 +34,7 @@ function termDeposit(
         id,
         name,
         bank,
-        mark_url: bank === 'other' ? null : `/marks/${bank}.jpg`,
+        mark_url: bankMarkUrls[bank],
         opening_date: '2026-01-15',
         end_date: '2027-01-15',
         opening_balance_minor_units: Math.abs(balance) || 100000,
