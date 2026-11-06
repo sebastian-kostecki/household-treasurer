@@ -483,8 +483,8 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [x] 1.1 ADR-0051 istnieje
-- [x] 1.2 Formatowanie dokumentów przechodzi (npm run check)
+- [x] 1.1 ADR-0051 istnieje — 9829443
+- [x] 1.2 Formatowanie dokumentów przechodzi (npm run check) — 9829443
 
 #### Manual
 
@@ -494,10 +494,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-term-deposits` zostaje jak
 
 #### Automated
 
-- [ ] 2.1 Testy Lokat, archiwizacji, TotalFunds i sinka Lokat na PostgreSQL przechodzą
-- [ ] 2.2 Typy po buildzie przechodzą
-- [ ] 2.3 Formatowanie PHP (Pint)
-- [ ] 2.4 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy Lokat, archiwizacji, TotalFunds i sinka Lokat na PostgreSQL przechodzą
+- [x] 2.2 Typy po buildzie przechodzą
+- [x] 2.3 Formatowanie PHP (Pint)
+- [x] 2.4 Sloppy bez nowych znalezisk
 
 ### Phase 3: Widok Lokaty
 

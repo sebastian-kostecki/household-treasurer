@@ -104,6 +104,10 @@ class TermDepositTest extends TestCase
     public function test_term_deposits_page_lists_balances_and_total(): void
     {
         $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'current_balance_minor_units' => 300000,
+            'opening_balance_minor_units' => 300000,
+        ]);
         TermDeposit::factory()->for($user)->create([
             'name' => 'Lokata A',
             'bank' => Bank::LokatyFacto,
@@ -136,6 +140,7 @@ class TermDepositTest extends TestCase
                 ->where('termDeposits.1.end_date', null)
                 ->where('termDeposits.1.current_balance_minor_units', 25050)
                 ->where('term_deposits_total_minor_units', 125050)
+                ->where('total_funds_minor_units', 425050)
                 ->where('archived_term_deposits_total_minor_units', 0)
                 ->where('archived_term_deposits_count', 0),
             );

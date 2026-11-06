@@ -23,6 +23,7 @@ export type TermDepositRow = TermDepositFormTermDeposit & {
 
 export type TermDepositsPageProps = {
     termDeposits: TermDepositRow[];
+    total_funds_minor_units: number;
     term_deposits_total_minor_units: number;
     archived_term_deposits_total_minor_units: number;
     archived_term_deposits_count: number;
