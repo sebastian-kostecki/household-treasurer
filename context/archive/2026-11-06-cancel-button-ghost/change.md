@@ -1,10 +1,10 @@
 ---
 change_id: cancel-button-ghost
 title: Przycisk „Anuluj” jako ghost w dialogach i trybach edycji planu
-status: impl_reviewed
+status: archived
 created: 2026-11-06
 updated: 2026-11-06
-archived_at: null
+archived_at: 2026-11-06T19:54:52Z
 ---
 
 ## Notes
