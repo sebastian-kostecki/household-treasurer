@@ -728,7 +728,7 @@
 
     .accounts-cell-name {
         grid-area: name;
-        @apply flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1;
+        @apply flex min-w-0 items-center gap-2;
     }
 
     .accounts-cell-type {
@@ -1059,7 +1059,8 @@
      * Tabele realizacji budżetu na Dashboardzie (Dochody, Wydatki): jedna
      * siatka dla nagłówka kolumn, wiersza kategorii i wiersza sumy. Na
      * telefonie wiersz to dwie linie (kategoria i pozostało, potem miernik
-     * z procentem i znacznikiem „przekroczono”), od `md` jedna linia kolumn.
+     * z procentem i znacznikiem „przekroczono”), a od 38rem szerokości samej
+     * tabeli (kontener `.category-meter-table`, ADR-0050) jedna linia kolumn.
      */
     .category-meter-header-row,
     .category-meter-sum-row,
@@ -1152,7 +1153,7 @@
 
     .category-meter-cell-meter {
         grid-area: meter;
-        @apply flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1;
+        @apply flex min-w-0 items-center gap-2;
     }
 
     /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */

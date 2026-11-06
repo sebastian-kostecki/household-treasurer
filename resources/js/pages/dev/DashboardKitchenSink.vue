@@ -39,15 +39,15 @@ const stateMatrix = [
     },
     {
         state: 'disabled',
-        where: 'Zrzuty z fazy 6 przy spowolnionej sieci (link Plan miesiąca, „Otwórz budżet”, karta ostrzeżenia z POST).',
+        where: 'Zrzuty ręczne przy spowolnionej sieci (link Plan miesiąca, „Otwórz budżet”, karta ostrzeżenia z POST).',
     },
     {
         state: 'hover',
-        where: 'Zrzuty z fazy 6 z działającej aplikacji (wiersz kategorii, karta alertu).',
+        where: 'Zrzuty ręczne z działającej aplikacji (wiersz kategorii, karta alertu).',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z fazy 6 z działającej aplikacji, kolejność Tab: Switch „Postęp roku”, „Otwórz budżet”, wiersze kategorii, karty alertów.',
+        where: 'Zrzuty ręczne z działającej aplikacji, kolejność Tab: Switch „Postęp roku”, „Otwórz budżet”, wiersze kategorii, karty alertów.',
     },
 ];
 
