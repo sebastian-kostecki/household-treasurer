@@ -42,8 +42,8 @@ Aplikacja nie odpowiada dziś na pytanie, ile i na co wydaję oraz zarabiam w wy
 
 | ID   | Change ID                         | Outcome (user can …)                                                                                   | Prerequisites | PRD refs                                             | Status   |
 | ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- | ---------------------------------------------------- | -------- |
-| F-02 | irregular-expense-domain-decisions | (foundation) ADR i wpisy w `CONTEXT.md` opisują wydatek nieregularny, „zebrane” i regułę końca roku     | —             | Constraints & Compatibility, Business Logic Changes  | ready    |
-| S-11 | period-report-by-category         | użytkownik może zobaczyć przychody, wydatki, wynik i kategorie z udziałem % za wybrany miesiąc albo rok | —             | US-01, FR-001, FR-002, FR-003                        | ready    |
+| F-02 | irregular-expense-domain-decisions | (foundation) ADR i wpisy w `context/foundation/glossary.md` opisują wydatek nieregularny, „zebrane” i regułę końca roku     | —             | Constraints & Compatibility, Business Logic Changes  | ready    |
+| S-11 | period-report-by-category         | użytkownik może zobaczyć przychody, wydatki, wynik i kategorie z udziałem % za wybrany miesiąc albo rok | —             | US-01, FR-001, FR-002, FR-003                        | planning |
 | S-12 | category-trend-by-month           | użytkownik może zobaczyć kwoty kategorii i sumy w kolejnych miesiącach roku                            | S-11          | US-02, FR-005                                        | proposed |
 | S-13 | report-to-operations              | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                      | S-11          | FR-004                                               | proposed |
 | S-14 | irregular-expense-in-month-plan   | użytkownik może oznaczyć wydatek jako nieregularny i widzieć jego miesięczną kwotę oraz „zebrane”       | F-02          | US-03, US-04, FR-010, FR-011, FR-012, FR-014         | proposed |
@@ -79,10 +79,10 @@ Różnice względem dokumentów, istotne dla wycinków: Align działa dla pojedy
 
 ### F-02: Decyzje domenowe wydatku nieregularnego
 
-- **Outcome:** (foundation) nowy ADR i wpisy w `CONTEXT.md` opisują trzeci rodzaj pozycji planu miesiąca („nieregularny”), „zebrane”, jego wpływ na „do wydania” i Propozycję planu oraz regułę końca roku.
+- **Outcome:** (foundation) nowy ADR i wpisy w `context/foundation/glossary.md` opisują trzeci rodzaj pozycji planu miesiąca („nieregularny”), „zebrane”, jego wpływ na „do wydania” i Propozycję planu oraz regułę końca roku.
 - **Change ID:** irregular-expense-domain-decisions
 - **PRD refs:** Constraints & Compatibility (Kompatybilność wsteczna), Business Logic Changes, Rozstrzygnięcia domenowe
-- **Unlocks:** S-14 (AGENTS.md i PRD wymagają ADR oraz wpisów w `CONTEXT.md` przed zmianą reguły To Spend), S-15 (rozstrzyga niewiadomą o mechanizmie końca roku).
+- **Unlocks:** S-14 (AGENTS.md i PRD wymagają ADR oraz wpisów w `context/foundation/glossary.md` przed zmianą reguły To Spend), S-15 (rozstrzyga niewiadomą o mechanizmie końca roku).
 - **Prerequisites:** —
 - **Parallel with:** S-11, S-12, S-13, S-16, S-17
 - **Blockers:** —
@@ -103,7 +103,7 @@ Różnice względem dokumentów, istotne dla wycinków: Align działa dla pojedy
 - **Unknowns:**
   - Biblioteka wykresów czy wykres bez biblioteki? Decyzja wymaga ADR według AGENTS.md. — Owner: user. Block: no.
 - **Risk:** Tu powstaje widok raportów i decyzja o wykresach, z których korzysta reszta strumienia A. Sumy muszą być co do grosza równe wykonaniu w budżecie rocznym i Wynikowi miesiąca, a raport roku musi się otwierać w 2 s przy 10 000 operacji.
-- **Status:** ready
+- **Status:** planning
 
 ### S-12: Trend kategorii w miesiącach roku
 
@@ -164,7 +164,7 @@ Różnice względem dokumentów, istotne dla wycinków: Align działa dla pojedy
 - **Blockers:** —
 - **Unknowns:**
   - Gdzie użytkownik widzi i poprawia powiązanie startowe ustawione po nazwie i typie? — Owner: user. Block: no.
-- **Risk:** Element opcjonalny (nice-to-have). Zmienia termin oznaczony _Avoid_ w `CONTEXT.md` („a Category identity that spans years”), więc ADR musi być przed kodem. Łączenie po nazwie i typie działa w kilku miejscach, w tym w podpowiedziach Importu, których trafność trzeba zmierzyć przed i po zmianie; porządkowanie kategorii w danych kończy się przed pomiarem „przed”. Snapshot podnosi też S-14, więc numery wersji trzeba uzgodnić. Tu powstaje też mock budżetu 2025 z operacjami (tylko dev), bo to pierwszy wycinek, który potrzebuje dwóch lat.
+- **Risk:** Element opcjonalny (nice-to-have). Zmienia termin oznaczony _Avoid_ w `context/foundation/glossary.md` („a Category identity that spans years”), więc ADR musi być przed kodem. Łączenie po nazwie i typie działa w kilku miejscach, w tym w podpowiedziach Importu, których trafność trzeba zmierzyć przed i po zmianie; porządkowanie kategorii w danych kończy się przed pomiarem „przed”. Snapshot podnosi też S-14, więc numery wersji trzeba uzgodnić. Tu powstaje też mock budżetu 2025 z operacjami (tylko dev), bo to pierwszy wycinek, który potrzebuje dwóch lat.
 - **Status:** ready
 
 ### S-17: Rok do roku
@@ -183,7 +183,7 @@ Różnice względem dokumentów, istotne dla wycinków: Align działa dla pojedy
 
 | Roadmap ID | Change ID                          | Suggested issue title                                             | Ready for `/10x-plan` | Notes                                           |
 | ---------- | ---------------------------------- | ----------------------------------------------------------------- | --------------------- | ----------------------------------------------- |
-| F-02       | irregular-expense-domain-decisions | ADR i `CONTEXT.md`: wydatek nieregularny, „zebrane”, koniec roku   | yes                   | Run `/10x-plan irregular-expense-domain-decisions` |
+| F-02       | irregular-expense-domain-decisions | ADR i `context/foundation/glossary.md`: wydatek nieregularny, „zebrane”, koniec roku   | yes                   | Run `/10x-plan irregular-expense-domain-decisions` |
 | S-11       | period-report-by-category          | Raporty: przychody, wydatki, wynik i kategorie za miesiąc albo rok | yes                   | Run `/10x-plan period-report-by-category`       |
 | S-12       | category-trend-by-month            | Raporty: trend kategorii w miesiącach roku                         | no                    | Czeka na S-11                                   |
 | S-13       | report-to-operations               | Raporty: przejście z kategorii do operacji                         | no                    | Czeka na S-11                                   |
@@ -220,7 +220,7 @@ Brak otwartych pytań. Rozstrzygnięte przez użytkownika 2026-11-04:
 
 (Pusta przy pierwszym wygenerowaniu. Wpisy dodaje `/10x-archive`.)
 
-- **F-01: (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `CONTEXT.md`.** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-domain-decisions/`. Lesson: —.
+- **F-01: (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `context/foundation/glossary.md`.** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-domain-decisions/`. Lesson: —.
 - **S-01: użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-and-to-spend/`. Lesson: —.
 - **S-02: użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-set-aside-and-draw/`. Lesson: —.
 - **S-03: użytkownik może zmienić zatwierdzony plan w trakcie miesiąca** — Archived 2026-11-02 → `context/archive/2026-11-02-approved-plan-changes/`. Lesson: —.

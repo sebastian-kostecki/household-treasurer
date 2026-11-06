@@ -148,7 +148,7 @@ for (const file of files) {
 
 if (hits > 0) {
     console.log(
-        `\nZnaleziono literały (${hits}): użyj tokenu z resources/css/app.css lub klasy komponentu — zob. .docs/design-system.md.`,
+        `\nZnaleziono literały (${hits}): użyj tokenu z resources/css/app.css lub klasy komponentu — zob. context/foundation/design-system.md.`,
     );
     process.exit(1);
 }

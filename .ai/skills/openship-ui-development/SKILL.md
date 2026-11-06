@@ -1,66 +1,24 @@
 ---
 name: openship-ui-development
-description: 'Apply the OpenShip-inspired surface ladder and control chrome for Household Treasurer. Activates when restyling pages, lists, cards, dialogs, buttons, inputs, or theme tokens; when the user mentions OpenShip, Wallet Master surface recipe, grey floor, lifted cards, or quiet operator UI.'
+description: 'Restyle a Household Treasurer view to the Atrament design system: tokens, surfaces, controls, dialogs, typography. Activates when the user asks for a restyle, a theme or token change, dark mode, a design-system pass, or mentions Atrament, OpenShip or the surface recipe.'
 license: MIT
 metadata:
     author: household-treasurer
 ---
 
-# OpenShip UI Development (Household Treasurer)
+# UI development (Household Treasurer)
 
-## North star
+The visual language started as OpenShip (ADR-0001, ADR-0003) and is now the Atrament design system (ADR-0035 and later). The single page of rules, for humans and agents, is `context/foundation/design-system.md`; this skill only says where to look and in what order.
 
-Openship dashboard language is the original north star. **Wallet Master** (same author, Laravel + Inertia Vue) is the canonical implemented recipe for that language on this stack. Reimplement the recipe here; do **not** copy Wallet Master Vue/CSS files, Openship `@repo/ui`, or Openship theme class names.
+## Read first
 
-## Colour roles (ADR-0035)
+1. `context/foundation/design-system.md`: tokens, surface recipe, control sizes, typography styles, colour meaning, ready-made components. It names the ADRs behind every rule and which ADR supersedes which.
+2. `.ai/rules/css.md` for `resources/css/app.css`, and `.ai/rules/js.md` plus the view rule (`js-month-plan.md`, `js-operations.md`, `js-import.md`, `js-dialogs.md`, `js-sidebar.md`) for the view you touch.
+3. The visual reference artifact linked at the top of `context/foundation/design-system.md` is a preview only, never the source of a value.
 
-- `--primary` is ink (`#0f1b2d` light, `#e6ecf3` dark) and means action. Mint `--brand` means identity and navigation, never status; `--brand-text` (`#0b6a7b`) is for links and thin strokes in the brand colour. `--ring` and sidebar primary come from the system tokens in `resources/css/app.css`.
-- Wallet Master mint is not `--primary`; copying Wallet Master files stays out of scope.
-- `--destructive` (red) and `--success` (green) keep their money/warning meanings.
-- Light is the default appearance; dark uses the same ladder and semantics.
+## Working rules
 
-## Surface ladder
-
-1. **Page floor** — `bg-background`. Light: near-white grey. Dark: near-black.
-2. **Lifted surface** — cards and list shells on `bg-card`, no resting drop shadow, hairline border (`border-border/60`), large radius (`rounded-2xl`).
-3. **Highest layer** — dropdowns, popovers, dialogs: opaque `bg-card`, real shadow, hairline border, dim overlay (~40% black).
-
-Never white card on white page; never black card on pure black without lift.
-
-## Radius recipe (two tiers)
-
-- **Large surfaces** — cards, sidebar inset panels, dialogs: `rounded-2xl`.
-- **Medium controls** — buttons, inputs, native `<select>` (`.native-select`), nav chips: `rounded-xl`.
-
-Prefer rounding more over reintroducing `rounded-md` cards.
-
-## Shared primitives
-
-Restyle through `resources/js/components/ui/` primitives so auth, settings, and signed-in pages inherit the same chrome:
-
-- `Card` — lifted, no resting shadow.
-- `Button` — medium radius, no resting shadow on outline/ghost.
-- `Input` — quieter border, medium radius, `ring` focus ring.
-- `Dialog` — centred overlay, large radius, header / body / footer; form and confirm dialogs share this chrome.
-- Dropdowns — native `<select>` with the `.native-select` class from `resources/css/app.css` for simple enums without icons; the Reka `Select` primitive when an option shows an icon or logo (e.g. `AccountBankSelect`). Both are `rounded-xl`.
-
-## Typography
-
-- UI sans is **Inter** (Bunny Fonts), weights 400/500/600, subsets `latin` + `latin-ext`. `--font-mono` is **JetBrains Mono** for amounts, adopted view by view. See ADR-0035 (ADR-0023 for `latin-ext`).
-- Do not reintroduce Instrument Sans or drop `latin-ext` — Polish UI would fall back mid-word.
-- Until a view moves to JetBrains Mono, its amounts stay on Inter with `tabular-nums`.
-
-## Out of scope for this skill
-
-- Sidebar IA, Budget year switcher behaviour, Dashboard KPI layout. Sidebar tokens and slot rules: section "Sidebar" in `.ai/rules/js.md`.
-- Copying Wallet Master files, new CSS frameworks.
-- Replacing native selects with Reka Select in domain forms.
-- Asserting Tailwind classes in Pest tests.
-
-## References
-
-- ADR-0001 — OpenShip on shadcn-vue, light default (teal primary superseded by ADR-0035).
-- ADR-0003 — Wallet Master as surface recipe.
-- ADR-0023 — typeface with latin-ext subsets (Geist superseded by ADR-0035).
-- ADR-0035 — Atrament i morski tokens, Inter and JetBrains Mono.
-- Parent spec — GitHub issue #21 (list and form chrome).
+- Values come from tokens and named styles in `resources/css/app.css`; a new size, grid or label style gets a named class there, not an arbitrary value in a template. `npm run check:ui` guards the cleaned views (list in `scripts/check-ui-literals.mjs`).
+- Restyle through `resources/js/components/ui/*` primitives so every page inherits the same chrome; do not edit a primitive for a single screen.
+- Every view has a kitchen sink under `/dev/...` (`APP_ENV=local`) with its state matrix; add new states there.
+- A change to a token or to colour meaning is recorded in `context/foundation/design-system.md` and, when it changes a decision, in a new ADR.

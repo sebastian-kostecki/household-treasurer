@@ -33,18 +33,18 @@ Rok wybiera globalny przełącznik w sidebarze (sesja), a miesiąc parametr `?mo
 | Źródło kwot | Serwer: `CategoryReport` na `MonthCategoryActuals`, bez kopii w TS | Reguła `AGENTS.md`; ten sam odczyt posłuży S-12 | Plan |
 | Dowód równości | Test przez trasy zapisu operacji z porównaniem z licznikiem; 12 miesięcy porównanych z `BudgetMonthResult` | Fabryki nie aktualizują licznika (lekcja F6 z S-10) | Plan |
 | Dostępność | Tabela z rolami ARIA, wykres `aria-hidden` | Tabela jest dostępną formą wykresu (PRD Non-Goals) | Plan |
-| Etykieta wyniku | „Wynik” dla miesiąca, „Wynik roku” dla roku | `CONTEXT.md`: samo „Wynik” jest dla roku _Avoid_ | Plan |
+| Etykieta wyniku | „Wynik” dla miesiąca, „Wynik roku” dla roku | `context/foundation/glossary.md`: samo „Wynik” jest dla roku _Avoid_ | Plan |
 
 ## Scope
 
 **In scope:**
-- `App\Support\CategoryReport` i wpis Category Report w `CONTEXT.md`;
+- `App\Support\CategoryReport` i wpis Category Report w `context/foundation/glossary.md`;
 - trasa `reports`, `ReportController`, `destination: 'reports'` w przełączniku roku;
 - pozycja „Raporty” w sidebarze i teksty w `lang/pl/ui.php`;
 - `Reports.vue`, kafelki, tabele kategorii, puste stany i podpis „okres w toku”;
 - ADR-0036, komponent `chart` i unovis, wykresy sum i kategorii;
 - testy: odczyt, strona, select-year, wydajność `nfr`, `formatShareTenths`;
-- poprawki `AGENTS.md`, `.docs/design-system.md` i `.ai/rules/js.md`.
+- poprawki `AGENTS.md`, `context/foundation/design-system.md` i `.ai/rules/js.md`.
 
 **Out of scope:**
 - trend (S-12), przejście do Operacji (S-13), rok do roku (S-17);
@@ -63,7 +63,7 @@ Rok wybiera globalny przełącznik w sidebarze (sesja), a miesiąc parametr `?mo
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Odczyt raportu na serwerze | `CategoryReport`, wpis w `CONTEXT.md`, testy reguł i równości (SQLite i PostgreSQL) | Równość z licznikiem testowana przez fabryki zamiast przez akcję |
+| 1. Odczyt raportu na serwerze | `CategoryReport`, wpis w `context/foundation/glossary.md`, testy reguł i równości (SQLite i PostgreSQL) | Równość z licznikiem testowana przez fabryki zamiast przez akcję |
 | 2. Strona „Raporty” z tabelami | Trasa, kontroler, wybór okresu, nawigacja, kafelki, tabele, puste stany, `assertInertia`, test 2 s | Hydratacja wierszy (dzień × kategoria) przy 10 000 operacji |
 | 3. Wykres | ADR-0036, shadcn-vue Chart i unovis, paski obok tabel, spójne dokumenty o kolorach | Wygenerowany kod chart a `vp check` bez ostrzeżeń; rozmiar bundla |
 

@@ -89,6 +89,7 @@ export default defineConfig({
             '.agents/**',
             '.claude/**',
             '.github/**',
+            '.playwright/**',
             'composer.json',
             'context/**',
             'resources/js/components/ui/*',
