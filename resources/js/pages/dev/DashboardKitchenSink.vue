@@ -12,7 +12,7 @@ const t = useTranslations();
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze default, zero-amounts i negative poniżej.',
+        where: 'Scenariusze default, zero-amounts, negative, many-categories (ponad 5 kategorii w grupie), income-over-100, overrun (Status „przekroczono”, grupa wydatków ponad 100%), all-notice-kinds (7 rodzajów, „Pokaż wszystkie”), deposits-only, month-start, month-end, pace-unknown i no-month-plan (3 miary) poniżej.',
     },
     {
         state: 'empty',
@@ -28,15 +28,15 @@ const stateMatrix = [
     },
     {
         state: 'disabled',
-        where: 'Zrzuty z działającej aplikacji przy spowolnionej sieci (processing na formularzach, karty powiadomień podczas POST).',
+        where: 'Zrzuty z fazy 6 przy spowolnionej sieci (link Plan miesiąca, „Otwórz budżet”, karta ostrzeżenia z POST).',
     },
     {
         state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Zrzuty z fazy 6 z działającej aplikacji (wiersz kategorii, karta ostrzeżenia).',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji).',
+        where: 'Zrzuty z fazy 6 z działającej aplikacji (zakładki, wiersz kategorii, karta ostrzeżenia, „Wszystkie”).',
     },
 ];
 

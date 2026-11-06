@@ -568,24 +568,24 @@ Bez migracji danych. Klucze `localStorage` `dashboard-year-elapsed` i `dashboard
 
 #### Automated
 
-- [x] 5.1 Statyka, typy i straże przechodzą
-- [x] 5.2 Vitest przechodzi
-- [x] 5.3 Brak resztek po checkboxie, akordeonie i limicie
-- [x] 5.4 DashboardHardcodedUiTest obejmuje cały widok, testy Dashboardu zielone
+- [x] 5.1 Statyka, typy i straże przechodzą — d5f86a9
+- [x] 5.2 Vitest przechodzi — d5f86a9
+- [x] 5.3 Brak resztek po checkboxie, akordeonie i limicie — d5f86a9
+- [x] 5.4 DashboardHardcodedUiTest obejmuje cały widok, testy Dashboardu zielone — d5f86a9
 
 #### Manual
 
-- [x] 5.5 Panel realizacji z wierszami grup i zakładkami resetowanymi po odświeżeniu
-- [x] 5.6 Klik w wiersz kategorii otwiera przefiltrowane Operacje
-- [x] 5.7 Na 390 px Konta i Lokaty rozwinięte, bez przewijania w poziomie
+- [x] 5.5 Panel realizacji z wierszami grup i zakładkami resetowanymi po odświeżeniu — d5f86a9
+- [x] 5.6 Klik w wiersz kategorii otwiera przefiltrowane Operacje — d5f86a9
+- [x] 5.7 Na 390 px Konta i Lokaty rozwinięte, bez przewijania w poziomie — d5f86a9
 
 ### Phase 6: Stany i bramka wizualna
 
 #### Automated
 
-- [ ] 6.1 Pełna bramka CI (composer ci:check w obrazie Sail)
-- [ ] 6.2 Sloppy na hoście
-- [ ] 6.3 Statyka, typy, straże i Vitest
+- [x] 6.1 Pełna bramka CI (composer ci:check w obrazie Sail)
+- [x] 6.2 Sloppy na hoście
+- [x] 6.3 Statyka, typy, straże i Vitest
 
 #### Manual
 
