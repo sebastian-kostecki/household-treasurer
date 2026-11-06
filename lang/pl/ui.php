@@ -665,7 +665,7 @@ return [
         'import_row_control_label' => ':column: :date, :description',
         'import_preview_empty_description' => 'Plik nie zawiera wierszy z datą i kwotą. Wróć i wybierz inny plik.',
         'import_duplicate_acknowledge' => 'Rozumiem, że zaznaczone duplikaty importu mogą utworzyć drugi wpis',
-        'import_duplicate_acknowledgement_required' => 'Zaznacz potwierdzenie, że rozumiesz ryzyko drugiego wpisu, aby zaimportować zaznaczone duplikaty.',
+        'import_duplicate_acknowledgement_required' => 'Potwierdź, że chcesz zaimportować zaznaczone duplikaty.',
         'import_confirm' => 'Zatwierdź import',
         'date' => 'Data',
         'description' => 'Opis',

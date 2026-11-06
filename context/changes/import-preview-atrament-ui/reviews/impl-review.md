@@ -85,3 +85,11 @@ Notes: diff 1fc9820..deb008d matches the plan's file list (no EXTRA, no MISSING)
 ## Observation dismissed (not a finding)
 
 (e) "Żabka -32,90" missing from the real-app preview: not a defect of this change. `isOperationShapedRow` (CsvImportController.php:472-479, unchanged) silently drops CSV rows with an unparseable date or amount before the preview, so it is a data/parsing quirk of the screenshot CSV. Possible separate issue: such rows vanish without any message.
+
+## Follow-ups (user decisions, 2026-11-06)
+
+- **Minus sign.** `formatMoney` prints an ASCII hyphen ("-64,00 zł") while `formatFinancialOperationAmount` prints U+2212. Unify it in a separate change for the whole app (Accounts, Dashboard, Operations, import preview), not locally in `importRowAmount`.
+- **Server English in Import (D1).** Extend this change's pattern step by step: an error becomes a code (or a known field) and the UI composes the Polish text from `lang/pl/ui.php`, with the server text as fallback. Starts with the `rows.*` errors of `CsvImportController` and the toast after commit.
+- **Summary gap.** The ~38 px between the summary header and the pills stays, consistent with `MonthSummaryCard`.
+- **Sink row ids.** The index offsets in `/dev/import-preview` stay (F4).
+- **Copy.** The duplicate-acknowledgement error reads „Potwierdź, że chcesz zaimportować zaznaczone duplikaty.”; ADR-0052 "Reasons" cites ADR-0050 instead of ADR-0043.
