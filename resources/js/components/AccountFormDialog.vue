@@ -109,11 +109,17 @@ watch(
     { immediate: true },
 );
 
-watch(type, (nextType, previousType) => {
-    if (nextType === 'bank' && previousType === 'cash') {
+/**
+ * A user switching cash → bank starts from "Inny". Not a watcher: seeding the form
+ * from an edited account also changes `type` and must keep the account's bank.
+ */
+function selectType(nextType: AccountTypeValue): void {
+    if (nextType === 'bank' && type.value === 'cash') {
         bank.value = 'other';
     }
-});
+
+    type.value = nextType;
+}
 
 watch(openingBalanceInput, (value) => {
     const parsed = parseMoneyInputToMinorUnits(value);
@@ -190,7 +196,8 @@ function closeDialog(): void {
                     v-slot="{ labelId, describedBy, invalid }"
                 >
                     <SegmentedControl
-                        v-model="type"
+                        :model-value="type"
+                        @update:model-value="selectType"
                         :options="typeOptions"
                         :ariaLabelledby="labelId"
                         :ariaDescribedby="describedBy"

@@ -477,7 +477,7 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Manual
 
-- [ ] 1.3 ADR-0044, design-system.md i js.md są zgodne z decyzjami briefu
+- [x] 1.3 ADR-0044, design-system.md i js.md są zgodne z decyzjami briefu
 
 ### Phase 2: Kontrakt propsów
 
@@ -499,10 +499,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Manual
 
-- [ ] 3.5 Dwie miary, nagłówki kolumn od md i saldo z „zł” w jednej kolumnie
-- [ ] 3.6 Zarchiwizowany wiersz wyciszony bez przezroczystości, „Przywróć” w pełnym kontraście
-- [ ] 3.7 Na 390 px wiersz ma dwie linie, bez przewijania w poziomie
-- [ ] 3.8 Lokaty i panele Kont na Dashboardzie bez zmian
+- [x] 3.5 Dwie miary, nagłówki kolumn od md i saldo z „zł” w jednej kolumnie
+- [x] 3.6 Zarchiwizowany wiersz wyciszony bez przezroczystości, „Przywróć” w pełnym kontraście
+- [x] 3.7 Na 390 px wiersz ma dwie linie, bez przewijania w poziomie
+- [x] 3.8 Lokaty i panele Kont na Dashboardzie bez zmian
 
 ### Phase 4: Dialog konta
 
@@ -515,10 +515,10 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Manual
 
-- [ ] 4.5 Konto bankowe i gotówkowe zapisują poprawne type i bank, Gotówka chowa pole Bank
-- [ ] 4.6 Edycja otwiera dialog z typem konta i zapisuje zmiany
-- [ ] 4.7 W trakcie zapisu spinner, a Esc, tło i Anuluj nie zamykają dialogu
-- [ ] 4.8 Błędne saldo otwarcia daje komunikat i wyłącza Zapisz
+- [x] 4.5 Konto bankowe i gotówkowe zapisują poprawne type i bank, Gotówka chowa pole Bank
+- [x] 4.6 Edycja otwiera dialog z typem konta i zapisuje zmiany
+- [x] 4.7 W trakcie zapisu spinner, a Esc, tło i Anuluj nie zamykają dialogu
+- [x] 4.8 Błędne saldo otwarcia daje komunikat i wyłącza Zapisz
 
 ### Phase 5: Stany i bramka wizualna
 
@@ -530,7 +530,7 @@ Bez migracji danych i bez zmian tras. `#show-archived-accounts` zostaje jako `id
 
 #### Manual
 
-- [ ] 5.4 Każdy scenariusz renderuje się w /dev/ui/accounts bez błędów
-- [ ] 5.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia, ujemne saldo zarchiwizowanego konta czytelne
-- [ ] 5.6 Hover, focus-visible i disabled widoczne na zrzutach
-- [ ] 5.7 Płynność i Łączne środki na Kontach równe miarom Dashboardu
+- [x] 5.4 Każdy scenariusz renderuje się w /dev/ui/accounts bez błędów
+- [x] 5.5 Zrzuty 390/1280 px w obu motywach bez przepełnienia, ujemne saldo zarchiwizowanego konta czytelne
+- [x] 5.6 Hover, focus-visible i disabled widoczne na zrzutach
+- [x] 5.7 Płynność i Łączne środki na Kontach równe miarom Dashboardu
