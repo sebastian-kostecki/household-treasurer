@@ -49,6 +49,7 @@ const states = [
     'confirm-destructive',
     'confirm-saving',
     'confirm-deficit',
+    'confirm-align-plan',
     'account-bank-new',
     'account-cash-new',
     'account-edit',
@@ -95,6 +96,7 @@ const labels: Record<SinkState, string> = {
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
     'confirm-saving': 'Potwierdzenie: zapis w toku',
     'confirm-deficit': 'Potwierdzenie: ostrzeżenie o deficycie',
+    'confirm-align-plan': 'Potwierdzenie: zakończ kategorię',
     'account-bank-new': 'Konto: nowe (bank)',
     'account-cash-new': 'Konto: nowe (gotówka, bez banku)',
     'account-edit': 'Konto: edycja',
@@ -354,6 +356,15 @@ function setOpen(state: SinkState, value: boolean): void {
                 roku 400,00 zł. Niepokryty deficyt: 800,00 zł.
             </Alert>
         </ConfirmActionDialog>
+        <ConfirmActionDialog
+            :open="isOpen('confirm-align-plan')"
+            :form="plainForm"
+            title="Zakończyć kategorię?"
+            description="Plan bieżący zostanie ustawiony na kwotę wykonania. Pozostało będzie wynosić 0."
+            confirm-label="Zakończ"
+            cancel-label="Anuluj"
+            @update:open="setOpen('confirm-align-plan', $event)"
+        />
         <ExpenseFormDialog
             :open="isOpen('expense-new')"
             mode="create"

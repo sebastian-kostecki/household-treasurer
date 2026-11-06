@@ -343,7 +343,7 @@ function closeDialog(): void {
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             :disabled="processing"
                             @click="
                                 () => {

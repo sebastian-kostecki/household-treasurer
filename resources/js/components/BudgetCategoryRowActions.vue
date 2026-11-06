@@ -9,7 +9,6 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
-import BudgetCategoryAlignPlanAction from '@/components/BudgetCategoryAlignPlanAction.vue';
 import type { BudgetCategoryRow } from '@/components/BudgetCategoryList.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import { Button } from '@/components/ui/button';
@@ -116,9 +115,13 @@ function openDeleteDialog(): void {
             </DropdownMenuContent>
         </DropdownMenu>
 
-        <BudgetCategoryAlignPlanAction
+        <ConfirmActionDialog
             v-model:open="alignDialogOpen"
-            :category="category"
+            :form="CategoryController.alignCurrentPlan.form(category)"
+            :title="t.budget.align_current_plan_confirm_title"
+            :description="t.budget.align_current_plan_confirm_body"
+            :confirm-label="t.budget.align_current_plan"
+            :cancel-label="t.budget.cancel"
         />
 
         <ConfirmActionDialog
