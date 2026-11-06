@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\AccountsKitchenSinkController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\DialogsKitchenSinkController;
+use App\Http\Controllers\Dev\SettingsKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
 use App\Http\Controllers\ExpenseController;
@@ -27,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
     Route::get('dev/ui/dialogs', [DialogsKitchenSinkController::class, 'show'])->name('dev.ui.dialogs');
     Route::post('dev/ui/dialogs/validate', [DialogsKitchenSinkController::class, 'validate'])->name('dev.ui.dialogs.validate');
+    Route::get('dev/ui/settings', [SettingsKitchenSinkController::class, 'show'])->name('dev.ui.settings');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');
     Route::get('dev/ui/term-deposits', [TermDepositsKitchenSinkController::class, 'show'])->name('dev.ui.term-deposits');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])

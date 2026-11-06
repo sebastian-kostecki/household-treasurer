@@ -26,5 +26,6 @@ const options = computed<{ value: Appearance; label: string }[]>(() => [
         :options="options"
         :ariaLabel="t.settings.appearance_theme"
         tone="neutral"
+        class="self-start"
     />
 </template>

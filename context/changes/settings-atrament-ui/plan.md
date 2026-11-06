@@ -631,9 +631,9 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [x] 4.1 `npm run types:check`, `npm run test`, `npm run build` przechodzą
-- [x] 4.2 `npm run check:ui -- resources/js/components/AppearanceTabs.vue` nie zgłasza literałów (dziś zgłasza `bg-neutral-*`, `dark:`)
-- [x] 4.3 Testy ustawień przechodzą na PostgreSQL (`tests/Feature/Settings`)
+- [x] 4.1 `npm run types:check`, `npm run test`, `npm run build` przechodzą — 033f9b5
+- [x] 4.2 `npm run check:ui -- resources/js/components/AppearanceTabs.vue` nie zgłasza literałów (dziś zgłasza `bg-neutral-*`, `dark:`) — 033f9b5
+- [x] 4.3 Testy ustawień przechodzą na PostgreSQL (`tests/Feature/Settings`) — 033f9b5
 
 #### Manual
 
@@ -645,11 +645,11 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Automated
 
-- [ ] 5.1 `SettingsHardcodedUiTest` i `SettingsKitchenSinkTest` przechodzą
-- [ ] 5.2 `npm run check:ui` przechodzi z plikami ustawień na liście
-- [ ] 5.3 `composer ci:check` przechodzi (na PostgreSQL w worktree, polecenie z AGENTS.md)
-- [ ] 5.4 `vendor/bin/sloppy ci` przechodzi
-- [ ] 5.5 `npm run types:check`, `npm run test`, `npm run build` przechodzą
+- [x] 5.1 `SettingsHardcodedUiTest` i `SettingsKitchenSinkTest` przechodzą
+- [x] 5.2 `npm run check:ui` przechodzi z plikami ustawień na liście
+- [x] 5.3 `composer ci:check` przechodzi (na PostgreSQL w worktree, polecenie z AGENTS.md)
+- [x] 5.4 `vendor/bin/sloppy ci` przechodzi
+- [x] 5.5 `npm run types:check`, `npm run test`, `npm run build` przechodzą
 
 #### Manual
 
