@@ -35,7 +35,7 @@ Actions that need confirmation (delete, archive, restore) use `ConfirmActionDial
 ## Responsive lists are one markup on a grid, inside ListSurface
 
 Do not build a second mobile tree hidden with `md:hidden`. Use one row on a grid-template-areas class (`.operations-grid`, `.budget-category-grid`, `.accounts-grid`) inside a single `ListSurface`, with a `hidden md:grid` header row (the Operations list has no header row, ADR-0039). States of the Budget page (the 7-state matrix, without a month strip: execution rows within plan, income over 100%, overrun with the `przekroczono` Badge, archived, one-off without the year mark, paced with it; draft with a Type column; empty list; no budget; Switch on/off; StatPanel with 3 and 4 metrics) are shown in the kitchen sink at `/dev/kitchen-sink/budget` (`local` only); add a new Budget state there.
-The Dashboard (ADR-0043) follows the same rule: the execution panel is one `ListSurface` on the `.category-meter-row` grid, with the Status column and a group row above the Categories of each type, not a second mobile tree, and the Accounts and Term Deposits panels are one markup at every width (no accordion). New Dashboard states go to `/dev/ui/dashboard`.
+The Dashboard (ADR-0043, ADR-0045) follows the same rule: the panel "Budżet <year>" holds two `ListSurface` tables, Dochody and Wydatki, on the `.category-meter-row` grid (Kategoria | Plan bieżący | Realizacja | Pozostało | Wykonanie, with a sum row and no tabs, group rows or Status column), not a second mobile tree, and the Accounts and Term Deposits panels are one markup at every width (no accordion). New Dashboard states go to `/dev/ui/dashboard`.
 
 ## Tokens and shared components come first; the UI literal check guards cleaned views
 
