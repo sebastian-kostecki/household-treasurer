@@ -592,8 +592,8 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Manual
 
-- [ ] 1.4 ADR-0049 zawiera layout (z telefonem), `SettingsPanel`, `FormField` na stronach, oba warianty z kontrastem, `ConfirmActionDialog` (ghost + `error`), motyw, tłumaczenia serwera, odroczenie 2FA/passkeys i odrzucone opcje
-- [ ] 1.5 `design-system.md` i `js.md` nie przeczą ADR-0049 (w szczególności nie mówią już, że `Heading` jest przepisem sekcji ustawień)
+- [x] 1.4 ADR-0049 zawiera layout (z telefonem), `SettingsPanel`, `FormField` na stronach, oba warianty z kontrastem, `ConfirmActionDialog` (ghost + `error`), motyw, tłumaczenia serwera, odroczenie 2FA/passkeys i odrzucone opcje
+- [x] 1.5 `design-system.md` i `js.md` nie przeczą ADR-0049 (w szczególności nie mówią już, że `Heading` jest przepisem sekcji ustawień)
 
 ### Phase 2: Elementy wspólne
 
@@ -606,8 +606,8 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Manual
 
-- [ ] 2.5 `/dev/ui/dialogs?open=confirm-destructive` i `?open=confirm-saving` mają „Anuluj” `ghost` (bez tła i obwódki, tekst `muted-foreground`) w obu motywach
-- [ ] 2.6 Potwierdzenia w Budżecie, Kontach i Operacjach otwierają się i zamykają jak wcześniej
+- [x] 2.5 `/dev/ui/dialogs?open=confirm-destructive` i `?open=confirm-saving` mają „Anuluj” `ghost` (bez tła i obwódki, tekst `muted-foreground`) w obu motywach
+- [x] 2.6 Potwierdzenia w Budżecie, Kontach i Operacjach otwierają się i zamykają jak wcześniej
 
 ### Phase 3: Layout i Profil
 
@@ -620,12 +620,12 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Manual
 
-- [ ] 3.5 `/settings/profile` przy 1280 px: tytuł „Ustawienia” z opisem, podnawigacja w kolumnie 200 px z „Profil” jak karta, panele „Profil” i „Usuń konto” według karty, w obu motywach
-- [ ] 3.6 Przy 390 px: podnawigacja w jednym rzędzie nad panelami, bez poziomego przewijania strony
-- [ ] 3.7 Zapis profilu pokazuje toast „Profil zapisany.”; puste imię pokazuje błąd pod polem z czerwoną ramką
-- [ ] 3.8 „Usuń konto” otwiera okno z polem „Hasło”; złe hasło daje „Podane hasło jest nieprawidłowe.” i fokus wraca na pole; „Anuluj” jest `ghost`; Esc i „Anuluj” zamykają okno, w trakcie zapisu okno się nie zamyka
-- [ ] 3.9 Tab przechodzi przez linki podnawigacji z widocznym fokusem 2 px; czytnik ekranu ogłasza aktywną pozycję (`aria-current`)
-- [ ] 3.10 `/settings/security` i `/settings/appearance` renderują się w nowym layoucie bez błędów w konsoli
+- [x] 3.5 `/settings/profile` przy 1280 px: tytuł „Ustawienia” z opisem, podnawigacja w kolumnie 200 px z „Profil” jak karta, panele „Profil” i „Usuń konto” według karty, w obu motywach
+- [x] 3.6 Przy 390 px: podnawigacja w jednym rzędzie nad panelami, bez poziomego przewijania strony
+- [x] 3.7 Zapis profilu pokazuje toast „Profil zapisany.”; puste imię pokazuje błąd pod polem z czerwoną ramką
+- [x] 3.8 „Usuń konto” otwiera okno z polem „Hasło”; złe hasło daje „Podane hasło jest nieprawidłowe.” i fokus wraca na pole; „Anuluj” jest `ghost`; Esc i „Anuluj” zamykają okno, w trakcie zapisu okno się nie zamyka
+- [x] 3.9 Tab przechodzi przez linki podnawigacji z widocznym fokusem 2 px; czytnik ekranu ogłasza aktywną pozycję (`aria-current`)
+- [x] 3.10 `/settings/security` i `/settings/appearance` renderują się w nowym layoucie bez błędów w konsoli
 
 ### Phase 4: Bezpieczeństwo i Wygląd
 
@@ -637,9 +637,9 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Manual
 
-- [ ] 4.4 `/settings/security`: panel „Zmień hasło” z trzema polami po polsku; złe obecne hasło pokazuje polski błąd pod polem; poprawna zmiana pokazuje „Hasło zmienione.” i czyści pola; sekcje 2FA i passkeys działają jak wcześniej
-- [ ] 4.5 `/settings/appearance`: „Jasny / Ciemny / Systemowy” przełącza motyw od razu, aktywna opcja jak karta w obu motywach; strzałki zmieniają opcję, Tab zatrzymuje się raz
-- [ ] 4.6 Przy odświeżeniu z zapisanym motywem „Ciemny” sprawdzone, czy zaznaczenie przeskakuje z „Systemowy”; wynik zapisany w `context/changes/settings-atrament-ui/follow-ups/` (bez poprawki w tej zmianie)
+- [x] 4.4 `/settings/security`: panel „Zmień hasło” z trzema polami po polsku; złe obecne hasło pokazuje polski błąd pod polem; poprawna zmiana pokazuje „Hasło zmienione.” i czyści pola; sekcje 2FA i passkeys działają jak wcześniej
+- [x] 4.5 `/settings/appearance`: „Jasny / Ciemny / Systemowy” przełącza motyw od razu, aktywna opcja jak karta w obu motywach; strzałki zmieniają opcję, Tab zatrzymuje się raz
+- [x] 4.6 Przy odświeżeniu z zapisanym motywem „Ciemny” sprawdzone, czy zaznaczenie przeskakuje z „Systemowy”; wynik zapisany w `context/changes/settings-atrament-ui/follow-ups/` (bez poprawki w tej zmianie)
 
 ### Phase 5: Stany i bramka
 
@@ -653,6 +653,6 @@ Brak migracji danych. Zapisany motyw (`localStorage` i cookie `appearance`) ma t
 
 #### Manual
 
-- [ ] 5.6 `/dev/ui/settings` pokazuje każdy stan z macierzy albo uzasadnione N/A
-- [ ] 5.7 Zrzuty przy 1280 i 390 px w obu motywach są w `screenshots/` i zgadzają się z kartą `PageSettingsProfile` (tytuł, podnawigacja, panele, strefa usuwania), z odejściem na telefonie z ADR-0049
-- [ ] 5.8 Brak angielskich tekstów w Profilu, w panelu hasła i w Wyglądzie (poza odroczonymi sekcjami 2FA i passkeys)
+- [x] 5.6 `/dev/ui/settings` pokazuje każdy stan z macierzy albo uzasadnione N/A
+- [x] 5.7 Zrzuty przy 1280 i 390 px w obu motywach są w `screenshots/` i zgadzają się z kartą `PageSettingsProfile` (tytuł, podnawigacja, panele, strefa usuwania), z odejściem na telefonie z ADR-0049
+- [x] 5.8 Brak angielskich tekstów w Profilu, w panelu hasła i w Wyglądzie (poza odroczonymi sekcjami 2FA i passkeys)
