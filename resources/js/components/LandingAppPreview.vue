@@ -137,7 +137,6 @@ const yearProgress = t.budget.year_progress.replace(
                         v-for="year in years"
                         :key="year"
                         class="sidebar-year-segment flex items-center justify-center"
-                        :aria-pressed="year === selectedYear"
                     >
                         {{ year }}
                     </span>

@@ -349,6 +349,9 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(source).not.toContain('<Link');
         expect(source).not.toContain('<a ');
         expect(source).not.toContain('<button');
+        expect(source).not.toContain('<Button');
+        expect(source).not.toContain('tabindex');
+        expect(source).not.toContain('<input');
     });
 
     it.each([

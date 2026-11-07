@@ -63,6 +63,7 @@ class WelcomeKitchenSinkTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Welcome')
                 ->where('auth.user.id', $user->id)
+                ->where('auth.user.email', $user->email)
                 ->where('canRegister', false));
     }
 
