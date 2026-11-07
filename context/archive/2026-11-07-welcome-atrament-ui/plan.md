@@ -404,7 +404,7 @@ Bez migracji i zmian konfiguracji.
 
 #### Manual
 
-- [ ] 1.3 ADR-0057 i `design-system.md` zgadzają się z tabelą decyzji w `plan-brief.md`
+- [x] 1.3 ADR-0057 i `design-system.md` zgadzają się z tabelą decyzji w `plan-brief.md`
 
 ### Phase 2: Tokeny, klasy i teksty
 
@@ -417,7 +417,7 @@ Bez migracji i zmian konfiguracji.
 
 #### Manual
 
-- [ ] 2.5 Wyniki kontrastu pasa zapisane w ADR-0057 i przechodzą progi
+- [x] 2.5 Wyniki kontrastu pasa zapisane w ADR-0057 i przechodzą progi
 
 ### Phase 3: Strażnik i widoki
 
@@ -432,11 +432,11 @@ Bez migracji i zmian konfiguracji.
 
 #### Manual
 
-- [ ] 3.7 Przy 1280 px strona odpowiada karcie PageWelcome w obu motywach
-- [ ] 3.8 Przyciski hero i pasa mają 36 px, przyciski paska 32 px
-- [ ] 3.9 Przy 390 px bez poziomego przewijania, podgląd bez kolumny „Plan bieżący”
-- [ ] 3.10 Nagłówki sekcji widoczne pod paskiem po skoku do kotwicy
-- [ ] 3.11 Tab omija podgląd, fokus widoczny także na ciemnym pasie
+- [x] 3.7 Przy 1280 px strona odpowiada karcie PageWelcome w obu motywach
+- [x] 3.8 Przyciski hero i pasa mają 36 px, przyciski paska 32 px
+- [x] 3.9 Przy 390 px bez poziomego przewijania, podgląd bez kolumny „Plan bieżący”
+- [x] 3.10 Nagłówki sekcji widoczne pod paskiem po skoku do kotwicy
+- [x] 3.11 Tab omija podgląd, fokus widoczny także na ciemnym pasie
 
 ### Phase 4: Kitchen sink i bramka wizualna
 
@@ -449,6 +449,6 @@ Bez migracji i zmian konfiguracji.
 
 #### Manual
 
-- [ ] 4.5 Zrzuty trzech stanów przy 1280 i 390 px w obu motywach odpowiadają karcie
-- [ ] 4.6 `guest-register` pokazuje „Zarejestruj się” w pasku i hero, `guest` nie
-- [ ] 4.7 Pas wezwania i sidebar podglądu czytelne w ciemnym motywie
+- [x] 4.5 Zrzuty trzech stanów przy 1280 i 390 px w obu motywach odpowiadają karcie
+- [x] 4.6 `guest-register` pokazuje „Zarejestruj się” w pasku i hero, `guest` nie
+- [x] 4.7 Pas wezwania i sidebar podglądu czytelne w ciemnym motywie
