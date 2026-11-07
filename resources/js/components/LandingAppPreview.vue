@@ -249,7 +249,7 @@ const yearProgress = t.budget.year_progress.replace(
 
                 <template #footer>
                     <p class="meta text-muted-foreground">
-                        {{ t.budget.amounts_in_zl }}
+                        {{ t.common.amounts_in_zl }}
                     </p>
                 </template>
             </ListSurface>

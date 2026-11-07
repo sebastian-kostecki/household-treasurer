@@ -361,7 +361,7 @@ const expenseRowsEmpty = computed(
         </template>
 
         <p class="month-plan-footer meta text-muted-foreground">
-            {{ t.budget.amounts_in_zl }}
+            {{ t.common.amounts_in_zl }}
         </p>
     </ListSurface>
 </template>

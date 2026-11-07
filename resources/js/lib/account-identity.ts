@@ -56,12 +56,12 @@ const bankShortMarks: Record<AccountBank, string | null> = {
     other: null,
 };
 
-/** Text for the account tile: „zł” for cash, the bank's short mark, null when the tile shows an icon. */
+/** Text for the account tile: the bank's short mark, null when the tile shows an icon (cash and other, ADR-0058). */
 export function accountShortMark(
     account: Pick<AccountIdentityFields, 'type' | 'bank'>,
 ): string | null {
     if (account.type === 'cash') {
-        return 'zł';
+        return null;
     }
 
     return account.bank === null ? null : bankShortMarks[account.bank];
@@ -78,18 +78,24 @@ export function bankLabel(
 export type AccountAvatarContent =
     | { kind: 'logo'; src: string }
     | { kind: 'mark'; text: string }
-    | { kind: 'icon' };
+    | { kind: 'icon'; icon: 'cash' | 'other' };
 
-/** What the account avatar shows: the bank logo, else the short mark (also after an image error), else the icon. */
+/** What the account avatar shows: the bank logo, else the short mark (also after an image error), else the icon (`Coins` for cash, `Building2` otherwise, ADR-0058). */
 export function accountAvatarContent(
     account: Pick<AccountIdentityFields, 'type' | 'bank' | 'mark_url'>,
     imageFailed: boolean,
 ): AccountAvatarContent {
+    if (account.type === 'cash') {
+        return { kind: 'icon', icon: 'cash' };
+    }
+
     if (account.type === 'bank' && account.mark_url !== null && !imageFailed) {
         return { kind: 'logo', src: account.mark_url };
     }
 
     const text = accountShortMark(account);
 
-    return text === null ? { kind: 'icon' } : { kind: 'mark', text };
+    return text === null
+        ? { kind: 'icon', icon: 'other' }
+        : { kind: 'mark', text };
 }

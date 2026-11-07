@@ -245,7 +245,6 @@ return [
         'execution_expense_metric' => 'Wykonanie wydatków',
         'year_progress' => 'Postęp roku :percent%',
         'panel_execution_of_plan' => ':execution z :plan',
-        'amounts_in_zl' => 'Kwoty w zł',
         'progress' => 'Postęp',
         'over_limit_badge' => 'przekroczono',
         'kind_income' => 'dochód',
@@ -775,6 +774,7 @@ return [
         'import_interest_category' => 'Kategoria dochodu (odsetki)',
     ],
     'common' => [
+        'amounts_in_zl' => 'Kwoty w zł',
         'loading' => 'Ładowanie',
         'not_applicable' => 'nie dotyczy',
         'coming_soon' => 'Wkrótce',

@@ -441,3 +441,26 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         );
     });
 });
+
+// Components that are only table rows show amounts without the unit; the panel
+// footer says "Kwoty w zł" (ADR-0037, ADR-0058). The list only grows.
+const UNITLESS_TABLE_ROW_FILES = [
+    'components/FinancialOperationRow.vue',
+    'components/OwnTransferRow.vue',
+    'components/CapitalMovementRow.vue',
+    'components/OperationsDayRow.vue',
+    'components/MonthYearSummary.vue',
+    'components/BudgetCategoryRow.vue',
+    'components/BudgetAmountCell.vue',
+];
+
+describe('table rows carry no amount unit (ADR-0058)', () => {
+    it.each(UNITLESS_TABLE_ROW_FILES)(
+        'does not import formatMoney or formatSignedMoney in %s',
+        (file) => {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(source).not.toMatch(/\bformat(Signed)?Money\b(?!Amount)/);
+        },
+    );
+});

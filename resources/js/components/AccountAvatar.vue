@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2 } from '@lucide/vue';
+import { Building2, Coins } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import {
     type AccountBank,
@@ -64,6 +64,11 @@ const iconSizeClass = computed(
         >
             {{ content.text }}
         </span>
+        <Coins
+            v-else-if="content.icon === 'cash'"
+            class="text-muted-foreground"
+            :class="iconSizeClass"
+        />
         <Building2
             v-else
             class="text-muted-foreground"

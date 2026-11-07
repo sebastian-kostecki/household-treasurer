@@ -370,7 +370,7 @@ async function onDragEnd(): Promise<void> {
         </Collapsible>
 
         <p class="meta text-muted-foreground pt-3">
-            {{ t.budget.amounts_in_zl }}
+            {{ t.common.amounts_in_zl }}
         </p>
     </ListSurface>
 </template>

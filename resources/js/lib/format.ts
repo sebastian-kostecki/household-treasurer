@@ -177,13 +177,13 @@ export function formatDayLabel(
 
 /**
  * Format minor units as a signed Polish amount for financial operations,
- * with the unit, e.g. "−1 234,56 zł" (Operations list, ADR-0039).
+ * without the unit, e.g. "−1 234,56" (Operations list, ADR-0039, ADR-0058).
  */
 export function formatFinancialOperationAmount(
     type: 'income' | 'expense',
     amountMinorUnits: number,
 ): string {
-    const formatted = formatMoney(Math.abs(amountMinorUnits));
+    const formatted = formatMoneyAmount(Math.abs(amountMinorUnits));
 
     if (type === 'income' || amountMinorUnits < 0) {
         return `+${formatted}`;
@@ -207,18 +207,18 @@ export function financialOperationAmountClass(
 }
 
 /**
- * Format a day sum: "+1 234,56 zł" above zero, "−1 234,56 zł" (U+2212) below, "0,00 zł" at zero.
+ * Format a day sum without the unit (ADR-0058): "+1 234,56" above zero, "−1 234,56" (U+2212) below, "0,00" at zero.
  */
 export function formatOperationDaySum(minorUnits: number): string {
     if (minorUnits > 0) {
-        return `+${formatMoney(minorUnits)}`;
+        return `+${formatMoneyAmount(minorUnits)}`;
     }
 
     if (minorUnits < 0) {
-        return `−${formatMoney(Math.abs(minorUnits))}`;
+        return `−${formatMoneyAmount(Math.abs(minorUnits))}`;
     }
 
-    return formatMoney(0);
+    return formatMoneyAmount(0);
 }
 
 /**

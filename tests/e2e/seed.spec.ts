@@ -36,10 +36,10 @@ test('expense added through the operation dialog shows on the list, survives a r
         .filter({ has: page.getByText(description, { exact: true }) })
         .filter({ has: page.getByRole('button', { name: 'Więcej akcji' }) })
         .last();
-    await expect(row).toContainText('−12,34 zł');
+    await expect(row).toContainText('−12,34');
 
     await page.reload();
-    await expect(row).toContainText('−12,34 zł');
+    await expect(row).toContainText('−12,34');
 
     // Cleanup — asserted, so a cleanup that fails turns the run red.
     await row.getByRole('button', { name: 'Więcej akcji' }).click();

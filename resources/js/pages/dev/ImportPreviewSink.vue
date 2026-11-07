@@ -360,6 +360,11 @@ const sampleErrors = {
                         "
                     />
                 </div>
+                <template #footer>
+                    <p class="meta text-muted-foreground">
+                        {{ t.common.amounts_in_zl }}
+                    </p>
+                </template>
             </ListSurface>
 
             <div v-if="section.key === 'rows-focus'" class="flex justify-end">

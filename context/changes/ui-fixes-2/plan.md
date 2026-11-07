@@ -652,33 +652,33 @@ Brak. Zmiany to CSS, formatowanie i statyczne zasoby. `clamp()` i `minmax()` nie
 
 #### Automated
 
-- [x] 2.1 Test przypięcia najpierw pada, potem przechodzi na PostgreSQL
-- [x] 2.2 W UI i zasobach nie zostało „Household Treasurer” ani „HT” poza przypiętymi wartościami domyślnymi
-- [x] 2.3 `apple-touch-icon.png` ma 180×180, a `favicon.ico` 32×32
-- [x] 2.4 `npm run check:ui` przechodzi z `BrandMark.vue` na liście
-- [x] 2.5 Bramka: `composer ci:check` przez Sail, `vendor/bin/sloppy ci` i `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 Test przypięcia najpierw pada, potem przechodzi na PostgreSQL — 80184c2
+- [x] 2.2 W UI i zasobach nie zostało „Household Treasurer” ani „HT” poza przypiętymi wartościami domyślnymi — 80184c2
+- [x] 2.3 `apple-touch-icon.png` ma 180×180, a `favicon.ico` 32×32 — 80184c2
+- [x] 2.4 `npm run check:ui` przechodzi z `BrandMark.vue` na liście — 80184c2
+- [x] 2.5 Bramka: `composer ci:check` przez Sail, `vendor/bin/sloppy ci` i `vendor/bin/pint --dirty --format agent` — 80184c2
 
 #### Manual
 
-- [x] 2.6 Zrzuty `/dev/ui/sidebar` i `/dev/ui/welcome?state=guest` pokazują znak i „Domowy Skarbnik”
-- [x] 2.7 Znak czytelny przy 26 px w sidebarze i jako favicon 16 px, w jasnym i ciemnym motywie
-- [x] 2.8 Tytuł karty przeglądarki po `npm run build` to „… - Domowy Skarbnik”
-- [x] 2.9 Po zmianie `APP_NAME` w lokalnym `.env` zalogowana sesja przeżywa przeładowanie
+- [x] 2.6 Zrzuty `/dev/ui/sidebar` i `/dev/ui/welcome?state=guest` pokazują znak i „Domowy Skarbnik” — 80184c2
+- [x] 2.7 Znak czytelny przy 26 px w sidebarze i jako favicon 16 px, w jasnym i ciemnym motywie — 80184c2
+- [x] 2.8 Tytuł karty przeglądarki po `npm run build` to „… - Domowy Skarbnik” — 80184c2
+- [x] 2.9 Po zmianie `APP_NAME` w lokalnym `.env` zalogowana sesja przeżywa przeładowanie — 80184c2
 
 ### Phase 3: Jedna zasada kwot
 
 #### Automated
 
-- [ ] 3.1 Testy formaterów, `import-row-amount`, `account-identity` i `ui-contract` najpierw padają, potem przechodzą: `npm test`
-- [ ] 3.2 W wierszach tabel nie ma `formatMoney(` ani `formatSignedMoney(` poza podpisem „Zatwierdzono:”
-- [ ] 3.3 E2E: `npx playwright test tests/e2e/seed.spec.ts` przechodzi
-- [ ] 3.4 `npm run check:ui` i `npm run types:check` przechodzą
-- [ ] 3.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
+- [x] 3.1 Testy formaterów, `import-row-amount`, `account-identity` i `ui-contract` najpierw padają, potem przechodzą: `npm test`
+- [x] 3.2 W wierszach tabel nie ma `formatMoney(` ani `formatSignedMoney(` poza podpisem „Zatwierdzono:”
+- [x] 3.3 E2E: `npx playwright test tests/e2e/seed.spec.ts` przechodzi
+- [x] 3.4 `npm run check:ui` i `npm run types:check` przechodzą
+- [x] 3.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 3.6 Zrzuty przy 1280 i 390 px sześciu sinków: kwoty w tabelach bez „zł”, stopka „Kwoty w zł” pod każdą tabelą, „zł” w miarach
-- [ ] 3.7 Gotówka ma ikonę monet w Kontach, Dashboardzie, wyborze konta, chipie filtra i podglądzie importu
+- [x] 3.6 Zrzuty przy 1280 i 390 px sześciu sinków: kwoty w tabelach bez „zł”, stopka „Kwoty w zł” pod każdą tabelą, „zł” w miarach
+- [x] 3.7 Gotówka ma ikonę monet w Kontach, Dashboardzie, wyborze konta, chipie filtra i podglądzie importu
 
 ### Phase 4: Strzałka zmiany planu
 

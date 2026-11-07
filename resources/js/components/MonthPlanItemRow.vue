@@ -124,7 +124,7 @@ const deviationClass = computed(() => {
                             : ''
                     "
                 >
-                    {{ formatMoney(row.available_limit_minor_units) }}
+                    {{ formatMoneyAmount(row.available_limit_minor_units) }}
                 </span>
             </p>
         </div>

@@ -17,8 +17,8 @@ describe('bankLabel', () => {
 });
 
 describe('accountShortMark', () => {
-    it('returns zł for cash', () => {
-        expect(accountShortMark({ type: 'cash', bank: null })).toBe('zł');
+    it('returns no text mark for cash', () => {
+        expect(accountShortMark({ type: 'cash', bank: null })).toBeNull();
     });
 
     it('returns the short mark of a bank', () => {
@@ -52,13 +52,13 @@ describe('accountAvatarContent', () => {
         ).toEqual({ kind: 'logo', src: '/marks/mbank.jpg' });
     });
 
-    it('shows zł for cash even with a stray mark_url', () => {
+    it('shows the cash icon for cash even with a stray mark_url', () => {
         expect(
             accountAvatarContent(
                 { type: 'cash', bank: null, mark_url: '/marks/bogus.svg' },
                 false,
             ),
-        ).toEqual({ kind: 'mark', text: 'zł' });
+        ).toEqual({ kind: 'icon', icon: 'cash' });
     });
 
     it('shows the icon for other and for a missing bank', () => {
@@ -67,13 +67,13 @@ describe('accountAvatarContent', () => {
                 { type: 'bank', bank: 'other', mark_url: null },
                 false,
             ),
-        ).toEqual({ kind: 'icon' });
+        ).toEqual({ kind: 'icon', icon: 'other' });
         expect(
             accountAvatarContent(
                 { type: 'bank', bank: null, mark_url: null },
                 false,
             ),
-        ).toEqual({ kind: 'icon' });
+        ).toEqual({ kind: 'icon', icon: 'other' });
     });
 
     it('shows the short mark of a bank without a logo', () => {
