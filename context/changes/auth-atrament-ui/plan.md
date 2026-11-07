@@ -528,27 +528,27 @@ Bez migracji danych. `config/passkeys.php` jest nowy; na produkcji po wdrożeniu
 
 #### Automated
 
-- [x] 2.1 Nowe testy nie przechodziły przed poprawką
-- [x] 2.2 Testy auth przechodzą na PostgreSQL
-- [x] 2.3 `npm run types:check` przechodzi po typie `email: string | null`
-- [x] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
+- [x] 2.1 Nowe testy nie przechodziły przed poprawką — 8c7e3ae
+- [x] 2.2 Testy auth przechodzą na PostgreSQL — 8c7e3ae
+- [x] 2.3 `npm run types:check` przechodzi po typie `email: string | null` — 8c7e3ae
+- [x] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia — 8c7e3ae
 
 #### Manual
 
-- [x] 2.5 Logowanie kluczem dostępu w przeglądarce kończy się na `/dashboard`
+- [x] 2.5 Logowanie kluczem dostępu w przeglądarce kończy się na `/dashboard` — 8c7e3ae
 
 ### Phase 3: Tokeny, klasy i komponenty współdzielone
 
 #### Automated
 
-- [ ] 3.1 `npm test` przechodzi, w tym `auth-year-progress.test.ts`
-- [ ] 3.2 `npm run check` przechodzi bez ostrzeżeń
-- [ ] 3.3 `npm run check:ui` przechodzi z `TextLink.vue` i `PasswordInput.vue` w `FILES`
-- [ ] 3.4 `UiTranslationKeysTest` i testy ustawień przechodzą
+- [x] 3.1 `npm test` przechodzi, w tym `auth-year-progress.test.ts`
+- [x] 3.2 `npm run check` przechodzi bez ostrzeżeń
+- [x] 3.3 `npm run check:ui` przechodzi z `TextLink.vue` i `PasswordInput.vue` w `FILES`
+- [x] 3.4 `UiTranslationKeysTest` i testy ustawień przechodzą
 
 #### Manual
 
-- [ ] 3.5 W ustawieniach Tab dochodzi do „Pokaż hasło” z polską etykietą
+- [x] 3.5 W ustawieniach Tab dochodzi do „Pokaż hasło” z polską etykietą
 
 ### Phase 4: Układ i siedem widoków
 

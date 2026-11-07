@@ -34,6 +34,25 @@ return [
         'no_budget_year' => 'Brak budżetu — dodaj rok, aby szukać kategorii.',
     ],
     'auth' => [
+        'aside' => [
+            'pitch' => 'Spokojna kontrola nad domowym budżetem.',
+            'lead' => 'Planuj miesiące, zapisuj operacje i patrz, ile naprawdę możesz wydać.',
+            'point_plan' => 'Plan roku podzielony na miesiące i kategorie.',
+            'point_operations' => 'Operacje z kont, importem z banku i przelewami własnymi.',
+            'point_to_spend' => 'Zawsze wiesz, ile zostało do wydania w tym miesiącu.',
+            'year_label' => 'Rok budżetu',
+            'progress_label' => 'Postęp roku',
+            'legal' => '© :year Household Treasurer',
+        ],
+        'password_toggle' => [
+            'show' => 'Pokaż hasło',
+            'hide' => 'Ukryj hasło',
+        ],
+        'passkey' => [
+            'login' => 'Zaloguj się kluczem dostępu',
+            'confirm' => 'Potwierdź kluczem dostępu',
+            'or' => 'lub',
+        ],
         'login' => [
             'title' => 'Zaloguj się',
             'description' => 'Wpisz e-mail i hasło, aby się zalogować',
@@ -75,6 +94,9 @@ return [
             'title' => 'Zweryfikuj e-mail',
             'description' => 'Kliknij link w wiadomości, aby zweryfikować adres e-mail.',
             'resend' => 'Wyślij ponownie e-mail weryfikacyjny',
+            'sent_title' => 'Wysłaliśmy link',
+            'sent_body' => 'Nowy link weryfikacyjny trafił na adres :email.',
+            'wrong_address' => 'To nie ten adres?',
             'logout' => 'Wyloguj się',
         ],
         'confirm_password' => [
@@ -89,6 +111,9 @@ return [
             'recovery_description' => 'Potwierdź dostęp do konta, wpisując kod odzyskiwania.',
             'use_recovery' => 'Użyj kodu odzyskiwania',
             'use_code' => 'Użyj kodu uwierzytelniającego',
+            'no_phone' => 'Nie masz telefonu pod ręką?',
+            'recovery_placeholder' => 'Wpisz kod odzyskiwania',
+            'otp_label' => 'Kod uwierzytelniający',
             'submit' => 'Kontynuuj',
         ],
     ],

@@ -28,6 +28,8 @@ const FILES = [
     'resources/js/components/BrandMark.vue',
     'resources/js/layouts/auth/AuthCardLayout.vue',
     'resources/js/pages/Welcome.vue',
+    'resources/js/components/TextLink.vue',
+    'resources/js/components/PasswordInput.vue',
     'resources/js/components/AppMobileBar.vue',
     'resources/js/components/CommandPalette.vue',
     'resources/js/layouts/app/AppSidebarLayout.vue',

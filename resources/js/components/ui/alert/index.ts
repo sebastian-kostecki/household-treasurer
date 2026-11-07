@@ -19,6 +19,8 @@ export const alertVariants = cva(
           "bg-warning-soft text-foreground border-transparent [&>svg]:text-warning *:data-[slot=alert-description]:text-foreground",
         danger:
           "bg-destructive-soft text-foreground border-transparent [&>svg]:text-destructive *:data-[slot=alert-title]:text-destructive *:data-[slot=alert-description]:text-foreground",
+        ok:
+          "bg-accent text-accent-foreground border-transparent [&>svg]:text-accent-foreground *:data-[slot=alert-title]:text-accent-foreground *:data-[slot=alert-description]:text-accent-foreground",
       },
     },
     defaultVariants: {

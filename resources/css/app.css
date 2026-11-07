@@ -166,6 +166,8 @@
     --command-palette-width: 520px;
     --settings-nav-width: 200px;
     --settings-content-width: 640px;
+    --auth-aside-width: 440px;
+    --auth-card-width: 400px;
     --dialog-pad-x: 18px;
     --dialog-pad-y: 16px;
     /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
@@ -254,6 +256,22 @@
     letter-spacing: -0.01em;
 }
 
+@utility display {
+    @apply text-4xl/10 font-semibold;
+}
+
+@utility heading {
+    @apply text-2xl/[30px] font-semibold;
+}
+
+@utility lead {
+    @apply text-[15px]/[22px];
+}
+
+@utility card-title {
+    @apply text-sm/5 font-semibold;
+}
+
 @utility section-title {
     @apply text-[13px]/[18px] font-semibold;
 }
@@ -332,6 +350,142 @@
 }
 
 @layer components {
+    /* Entry screens (ADR-0056): dark panel next to a 400px card from lg, a bar with the mark below. */
+    .auth-shell {
+        @apply bg-background min-h-svh;
+    }
+
+    @media (min-width: 64rem) {
+        .auth-shell {
+            display: grid;
+            grid-template-columns: var(--auth-aside-width) minmax(0, 1fr);
+        }
+    }
+
+    .auth-aside {
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border flex items-center gap-3 border-b px-4 py-3;
+    }
+
+    .auth-aside :is(h1, h2, strong) {
+        @apply text-sidebar-strong;
+    }
+
+    @media (min-width: 64rem) {
+        .auth-aside {
+            @apply sticky top-0 h-svh flex-col items-stretch justify-between gap-8 border-r border-b-0 p-8;
+        }
+    }
+
+    .auth-pitch {
+        @apply hidden flex-col gap-3 lg:flex;
+    }
+
+    .auth-pitch h2 {
+        @apply heading;
+    }
+
+    .auth-pitch p {
+        @apply lead;
+    }
+
+    .auth-year {
+        @apply border-sidebar-border hidden flex-col gap-2 rounded-lg border p-4 text-xs/4 lg:flex;
+    }
+
+    .auth-year-head {
+        @apply flex items-baseline justify-between gap-2;
+    }
+
+    .auth-year-head strong {
+        @apply tabular-nums;
+    }
+
+    .auth-months {
+        @apply grid grid-cols-12 gap-1;
+    }
+
+    .auth-months > * {
+        @apply bg-sidebar-accent h-2 rounded-xs;
+    }
+
+    .auth-months > [data-state='past'] {
+        @apply bg-sidebar-foreground;
+    }
+
+    .auth-months > [data-state='current'] {
+        @apply bg-brand;
+    }
+
+    .auth-points {
+        @apply hidden flex-col gap-2 text-[13px]/[18px] lg:flex;
+    }
+
+    .auth-points li {
+        @apply flex gap-2;
+    }
+
+    .auth-legal {
+        @apply meta hidden lg:block;
+    }
+
+    .auth-main {
+        @apply flex items-start justify-center px-4 py-8 lg:items-center lg:py-12;
+    }
+
+    .auth-card {
+        @apply bg-card text-card-foreground w-full max-w-(--auth-card-width) rounded-lg border;
+    }
+
+    .auth-card-head {
+        @apply flex flex-col gap-1.5 px-6 pt-6;
+    }
+
+    .auth-card-icon {
+        @apply bg-accent text-accent-foreground mb-2 flex size-9 items-center justify-center rounded-md;
+    }
+
+    .auth-card-body {
+        @apply flex flex-col gap-4 px-6 py-6;
+    }
+
+    .auth-card-foot {
+        @apply border-border text-muted-foreground flex items-center justify-center gap-1 border-t px-6 py-4 text-[13px]/[18px];
+    }
+
+    .auth-submit {
+        @apply h-control-field w-full justify-center;
+    }
+
+    .auth-or {
+        @apply text-muted-foreground flex items-center gap-3 text-xs/4;
+    }
+
+    .auth-or::before,
+    .auth-or::after {
+        @apply bg-border h-px flex-1 content-[''];
+    }
+
+    /* One-time code: 40x44 slots, mono 18/500, 8px apart, a dash after the third character (override of ui/input-otp without editing it). */
+    .auth-otp {
+        @apply flex items-center justify-center gap-2;
+    }
+
+    .auth-otp [data-slot='input-otp-slot'] {
+        @apply h-11! w-10! rounded-md! border! font-mono text-lg/6! font-medium;
+    }
+
+    .auth-otp [data-slot='input-otp-group'] {
+        @apply gap-2;
+    }
+
+    .auth-otp [data-slot='input-otp-separator'] {
+        @apply text-muted-foreground;
+    }
+
+    .auth-otp [data-slot='input-otp-separator'] svg {
+        @apply size-3;
+    }
+
     /* Year switcher in the sidebar (ADR-0055): three segments per row, the selected year on sidebar-strong. */
     .sidebar-year-segments {
         @apply grid grid-cols-3 gap-1;
