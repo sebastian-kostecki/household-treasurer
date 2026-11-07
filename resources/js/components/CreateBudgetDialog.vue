@@ -56,7 +56,7 @@ const defaultYear = computed(() => {
         return props.suggestedYear;
     }
 
-    return shell.budgetYears.length > 0 ? currentYear + 1 : currentYear;
+    return shell.value.budgetYears.length > 0 ? currentYear + 1 : currentYear;
 });
 
 const targetYear = ref(defaultYear.value);
@@ -64,7 +64,7 @@ const sourceBudgetId = ref('');
 const busy = ref(false);
 
 const availableSources = computed((): CopyableBudgetSource[] =>
-    shell.copyableBudgetSources.filter(
+    shell.value.copyableBudgetSources.filter(
         (source) => source.year < targetYear.value,
     ),
 );
@@ -72,7 +72,7 @@ const availableSources = computed((): CopyableBudgetSource[] =>
 const showSourceSelect = computed(() => availableSources.value.length > 0);
 
 function resolveDefaultSourceBudgetId(year: number): string {
-    const sources = shell.copyableBudgetSources.filter(
+    const sources = shell.value.copyableBudgetSources.filter(
         (source) => source.year < year,
     );
 

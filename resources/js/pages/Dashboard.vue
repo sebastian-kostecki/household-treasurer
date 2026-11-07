@@ -90,7 +90,7 @@ const noBudgetMessage = computed(() =>
 );
 
 const canSelectCurrentYearInShell = computed(() =>
-    shell.budgetYears.includes(props.budget_year),
+    shell.value.budgetYears.includes(props.budget_year),
 );
 </script>
 
