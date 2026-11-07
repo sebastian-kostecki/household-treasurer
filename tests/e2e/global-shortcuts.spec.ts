@@ -1,0 +1,105 @@
+// E2E test: global keyboard shortcuts (1-n views, N add operation, / search).
+// Risk it protects: a shortcut fires while the user types or while a dialog is
+// open (a digit in the search field switches the view), or an intent set
+// before the Operations page loads is lost.
+import { test, expect, type Page } from '@playwright/test';
+
+// The shortcut listener is attached when the layout mounts, which can happen
+// after `goto` resolves; a key pressed earlier is lost, so repeat the press
+// until the expected navigation happens.
+async function pressUntilUrl(page: Page, key: string, url: RegExp) {
+    await expect(async () => {
+        await page.keyboard.press(key);
+        await expect(page).toHaveURL(url, { timeout: 1000 });
+    }).toPass({ timeout: 10000 });
+}
+
+test('a digit switches the view', async ({ page }) => {
+    await page.goto('/dashboard');
+
+    await pressUntilUrl(page, '2', /\/budget$/);
+});
+
+test('a digit typed in the Operations search field stays in the field', async ({
+    page,
+}) => {
+    await page.goto('/operations');
+    const search = page.locator('#operations-search');
+
+    await search.focus();
+    await page.keyboard.press('1');
+
+    await expect(page).toHaveURL(/\/operations$/);
+    await expect(search).toHaveValue('1');
+});
+
+test('N opens the add operation menu on Operations after the visit', async ({
+    page,
+}) => {
+    await page.goto('/dashboard');
+
+    await pressUntilUrl(page, 'n', /\/operations$/);
+    await expect(page.getByRole('menu')).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Wydatek' })).toBeVisible();
+});
+
+test('N on Operations opens the same menu without leaving the page', async ({
+    page,
+}) => {
+    await page.goto('/operations');
+
+    await page.keyboard.press('n');
+
+    await expect(page).toHaveURL(/\/operations$/);
+    await expect(page.getByRole('menu')).toBeVisible();
+});
+
+test('/ on the Dashboard focuses an empty search field on Operations', async ({
+    page,
+}) => {
+    await page.goto('/dashboard');
+
+    // Press the key once, after the layout (and its key listener) has mounted.
+    // `pressUntilUrl` would press again while the visit is still running, and
+    // the second `/` would be typed into the search field that just got focus.
+    await expect(
+        page.getByRole('button', { name: /Szukaj i przejdź/ }),
+    ).toBeVisible();
+    await page.keyboard.press('/');
+    await expect(page).toHaveURL(/\/operations$/);
+    const search = page.locator('#operations-search');
+    await expect(search).toBeFocused();
+    await expect(search).toHaveValue('');
+});
+
+test('a digit does nothing while the expense dialog is open', async ({
+    page,
+}) => {
+    await page.goto('/operations');
+    await page.getByRole('button', { name: 'Dodaj operację' }).click();
+    await page.getByRole('menuitem', { name: 'Wydatek' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Dodaj wydatek' });
+    await expect(dialog).toBeVisible();
+
+    const navigations: string[] = [];
+    page.on('request', (request) => {
+        if (request.headers()['x-inertia'] !== undefined) {
+            navigations.push(request.url());
+        }
+    });
+
+    // The dialog focuses a field, where a digit is silent anyway. Take the
+    // focus off it, so only the open layer can keep the shortcut quiet.
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await page.keyboard.press('2');
+
+    // Close the dialog: the same key must now navigate. That visit also
+    // orders after any request the first press would have sent, so the list
+    // holds exactly one entry (the control) when the shortcut was silent.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await page.keyboard.press('2');
+    await expect(page).toHaveURL(/\/budget$/);
+
+    expect(navigations).toHaveLength(1);
+});

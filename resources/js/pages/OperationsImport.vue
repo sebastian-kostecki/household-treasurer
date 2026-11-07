@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
@@ -88,19 +88,6 @@ const canSubmit = computed(() => {
             ? amountColumn.value !== ''
             : inflowColumn.value !== '' && outflowColumn.value !== '')
     );
-});
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.operations,
-            href: operationsRoute(),
-        },
-        {
-            title: t.operations.import_title,
-            href: CsvImportController.create.url(),
-        },
-    ],
 });
 
 function resetColumns(): void {

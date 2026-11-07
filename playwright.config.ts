@@ -15,10 +15,14 @@ const baseURL = `http://localhost:${PORT}`;
 
 export default defineConfig({
     testDir: './tests/e2e',
-    fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : undefined,
+    // One worker, also locally: every spec logs in as the same user through
+    // one storageState, so all workers share one database session, and the
+    // session driver has no locking. A request of one worker saves the session
+    // without what another one has just put in it (the import preview), and a
+    // spec that deletes the account another one has picked breaks it too.
+    workers: 1,
     reporter: 'html',
     use: {
         baseURL,

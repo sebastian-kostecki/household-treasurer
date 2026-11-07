@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head } from '@inertiajs/vue3';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import FormField from '@/components/FormField.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
@@ -7,7 +7,6 @@ import SettingsPanel from '@/components/SettingsPanel.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import { edit } from '@/routes/security';
 import type { Props as ManagePasskeysProps } from '@/components/ManagePasskeys.vue';
 import ManagePasskeys from '@/components/ManagePasskeys.vue';
 import type { Props as ManageTwoFactorProps } from '@/components/ManageTwoFactor.vue';
@@ -21,15 +20,6 @@ type Props = {
 
 const props = defineProps<Props>();
 const t = useTranslations();
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.settings.security,
-            href: edit(),
-        },
-    ],
-});
 </script>
 
 <template>

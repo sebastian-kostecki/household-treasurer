@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\AccountsKitchenSinkController;
@@ -47,6 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
     Route::post('budgets/{budget}/start-execution', [BudgetController::class, 'startExecution'])->name('budgets.start-execution');
     Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
+    Route::get('command-palette/categories', CommandPaletteCategoryController::class)->name('command-palette.categories');
     Route::get('month-plan', [MonthPlanController::class, 'show'])->name('month-plan');
     if (app()->environment('local')) {
         Route::inertia('dev/month-plan', 'dev/MonthPlanSink');

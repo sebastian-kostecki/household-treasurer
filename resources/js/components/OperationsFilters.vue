@@ -378,6 +378,7 @@ function removeFilter(key: OperationsFilterChipKey): void {
                     aria-hidden="true"
                 />
                 <Input
+                    id="operations-search"
                     v-model="search"
                     type="search"
                     class="pr-9 pl-9"

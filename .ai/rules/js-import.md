@@ -24,7 +24,7 @@ The sections below apply to `OperationsImportPreview.vue` and `ImportPreview*.vu
 
 Step 2 follows PageImportPreview (ADR-0052):
 
-- Title row as in step 1: `<Head>` and h1 `import_title`, `meta` "Krok 2: …", "Wróć do operacji" as `outline` with `ArrowLeft` to Operations, last breadcrumb item "Podgląd importu"; the empty state has "Wybierz inny plik" to step 1.
+- Title row as in step 1: `<Head>` and h1 `import_title`, `meta` "Krok 2: …", "Wróć do operacji" as `outline` with `ArrowLeft` to Operations; the empty state has "Wybierz inny plik" to step 1.
 - The summary is `ListSurface` with `#header` (`h2.section-title` + `p.meta`, the duplicates caveat in `meta`), not `.form-panel` and not `Card`/`CardTitle`.
 - Pills: valid `neutral`, invalid `destructive-soft`, duplicate and pair `outline`; never the full `destructive`.
 - The amount goes through `importRowAmount` (`resources/js/lib/import-row-amount.ts`): sign and colour by the chosen type, "zł" in the cell, style `amount`; no `amountToneClass` by the sign in the file.

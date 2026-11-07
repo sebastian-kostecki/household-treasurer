@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
@@ -48,15 +48,6 @@ watch(showArchived, (value) => {
 const filterQuery = computed(() =>
     props.show_archived ? { query: { show_archived: 1 } } : undefined,
 );
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.accounts,
-            href: accountsRoute(),
-        },
-    ],
-});
 
 function accountTypeLabel(type: AccountRow['type']): string {
     return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;

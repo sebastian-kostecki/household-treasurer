@@ -236,19 +236,35 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         );
     });
 
-    it.each(['components/AppLogo.vue', 'components/UserInfo.vue'])(
-        'centres the mark or avatar in the collapsed icon rail in %s',
-        (file) => {
-            expect(read(file)).toContain(
-                'group-data-[collapsible=icon]:mx-auto',
-            );
-        },
-    );
-
-    it('names the budget year button with the section label and the year', () => {
-        expect(read('components/BudgetYearSwitcher.vue')).toMatch(
-            /:aria-label="`\$\{t\.shell\.budget_year\}: \$\{budgetYear\}`"/,
+    it('does not collapse to an icon strip on desktop', () => {
+        expect(read('components/AppSidebar.vue')).not.toContain(
+            'collapsible="icon"',
         );
+        expect(read('components/AppShell.vue')).toContain(':open="true"');
+        expect(read('layouts/app/AppSidebarLayout.vue')).not.toContain(
+            'AppSidebarHeader',
+        );
+    });
+
+    it.each([
+        'components/AppSidebar.vue',
+        'components/NavMain.vue',
+        'components/NavUser.vue',
+        'components/AppLogo.vue',
+        'components/UserInfo.vue',
+        'components/BudgetYearSwitcher.vue',
+    ])('has no icon-mode classes in %s', (file) => {
+        expect(read(file)).not.toContain('group-data-[collapsible=icon]');
+    });
+
+    it('renders the budget year switcher as a labelled group of pressed-state segments', () => {
+        const switcher = read('components/BudgetYearSwitcher.vue');
+
+        expect(switcher).toContain('role="group"');
+        expect(switcher).toContain(':aria-labelledby="labelId"');
+        expect(switcher).toContain(':aria-pressed=');
+        expect(switcher).toContain('t.shell.add_budget_for_year');
+        expect(switcher).not.toContain('DropdownMenu');
     });
 
     it('renders section labels with label-caps', () => {
@@ -313,5 +329,49 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
 
     it('does not render a slot in AppSidebar', () => {
         expect(read('components/AppSidebar.vue')).not.toContain('<slot');
+    });
+
+    it('marks the shortcut in NavMain for sighted users only', () => {
+        const navMain = read('components/NavMain.vue');
+
+        expect(navMain).toMatch(/<kbd[^>]*aria-hidden="true"/);
+        expect(navMain).toContain('aria-keyshortcuts');
+    });
+
+    it('gives the palette input the combobox role and a list to control', () => {
+        const palette = read('components/CommandPalette.vue');
+
+        expect(palette).toContain('role="combobox"');
+        expect(palette).toContain(':aria-controls="listId"');
+        expect(palette).toContain('aria-autocomplete="list"');
+    });
+
+    it('keeps ui/dialog free of the palette', () => {
+        const dialogDir = join(JS_ROOT, 'components/ui/dialog');
+
+        for (const file of readdirSync(dialogDir)) {
+            expect(
+                readFileSync(join(dialogDir, file), 'utf8'),
+                `components/ui/dialog/${file}`,
+            ).not.toMatch(/command/i);
+        }
+    });
+
+    it('takes the views from useAppViews, not from a local list', () => {
+        const sidebar = read('components/AppSidebar.vue');
+
+        expect(sidebar).toContain('useAppViews()');
+        expect(sidebar).not.toContain('NavItem[]');
+    });
+
+    it('mounts the new budget dialog in the layout, not inside the sidebar', () => {
+        // On a phone the sidebar content lives in a sheet and is unmounted while
+        // it is closed, so a dialog inside it cannot be opened from the palette.
+        expect(read('components/AppSidebar.vue')).not.toContain(
+            'CreateBudgetDialog',
+        );
+        expect(read('layouts/app/AppSidebarLayout.vue')).toContain(
+            '<CreateBudgetDialog',
+        );
     });
 });

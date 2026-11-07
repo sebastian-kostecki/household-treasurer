@@ -163,6 +163,7 @@
     --form-panel-width: 640px;
     --aside-width: 300px;
     --sidebar-panel-width: 224px;
+    --command-palette-width: 520px;
     --settings-nav-width: 200px;
     --settings-content-width: 640px;
     --dialog-pad-x: 18px;
@@ -331,6 +332,99 @@
 }
 
 @layer components {
+    /* Year switcher in the sidebar (ADR-0055): three segments per row, the selected year on sidebar-strong. */
+    .sidebar-year-segments {
+        @apply grid grid-cols-3 gap-1;
+    }
+
+    /* Shortcut marker: the key a view or action answers to (mono, outlined in the current colour). */
+    .kbd {
+        @apply ml-auto inline-flex min-w-5 items-center justify-center rounded-xs border border-current px-1 font-mono text-[11px]/4 font-medium;
+    }
+
+    /* Shortcut line above the user in the sidebar footer. */
+    .sidebar-hint {
+        @apply text-sidebar-foreground px-2 text-[11px]/4;
+    }
+
+    /* "Szukaj i przejdź" button: sidebar-accent at rest, like the search field of the pattern. */
+    .sidebar-search {
+        @apply bg-sidebar-accent text-sidebar-foreground;
+    }
+
+    .sidebar-year-segment {
+        @apply h-control-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ring-sidebar-ring rounded-md px-2 text-xs/4 font-medium tabular-nums outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
+    }
+
+    .sidebar-year-segment[aria-pressed='true'] {
+        @apply bg-sidebar-strong text-sidebar font-semibold;
+    }
+
+    /* Command palette (ADR-0055): sidebar colours on the local DialogContent; the `!` beats its card utilities. */
+    .command-palette {
+        @apply bg-sidebar! text-sidebar-strong! border-sidebar-border! shadow-dialog top-[20vh]! translate-y-0! gap-0! overflow-hidden! rounded-xl! p-0!;
+        max-width: min(
+            var(--command-palette-width),
+            calc(100% - 2rem)
+        ) !important;
+    }
+
+    .command-palette-root {
+        @apply text-sidebar-strong bg-transparent!;
+    }
+
+    .command-palette-search {
+        @apply border-sidebar-border relative border-b;
+    }
+
+    .command-palette-search [data-slot='command-input-wrapper'] {
+        @apply border-b-0 pr-14;
+    }
+
+    .command-palette-search [data-slot='command-input'] {
+        @apply placeholder:text-sidebar-foreground;
+    }
+
+    .command-palette-search [data-slot='command-input-wrapper'] svg {
+        @apply text-sidebar-foreground opacity-100;
+    }
+
+    .command-palette-esc {
+        @apply text-sidebar-foreground absolute top-1/2 right-3 -translate-y-1/2;
+    }
+
+    .command-palette-list [data-slot='command-group-heading'] {
+        @apply text-sidebar-foreground!;
+    }
+
+    .command-palette-list [data-slot='command-group'] {
+        @apply text-sidebar-strong;
+    }
+
+    .command-palette-item {
+        @apply data-highlighted:bg-sidebar-accent! data-highlighted:text-sidebar-accent-foreground! ring-sidebar-ring [&_svg:not([class*='text-'])]:text-sidebar-foreground rounded-md data-highlighted:ring-2;
+    }
+
+    .command-palette-item .kbd {
+        @apply text-sidebar-foreground;
+    }
+
+    .command-palette-item .meta {
+        @apply text-sidebar-foreground;
+    }
+
+    .command-palette-amount {
+        @apply ml-auto tabular-nums;
+    }
+
+    .command-palette-state {
+        @apply text-sidebar-foreground px-2 py-1.5 text-sm;
+    }
+
+    .command-palette-list [data-slot='command-empty'] {
+        @apply text-sidebar-foreground;
+    }
+
     .native-select {
         @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:outline-ring focus-visible:aria-invalid:border-destructive aria-invalid:border-destructive h-control-field flex w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-solid disabled:cursor-not-allowed disabled:opacity-50;
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import TermDepositController from '@/actions/App/Http/Controllers/TermDepositController';
@@ -51,15 +51,6 @@ watch(showArchived, (value) => {
 const filterQuery = computed(() =>
     props.show_archived ? { query: { show_archived: 1 } } : undefined,
 );
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.term_deposits,
-            href: termDepositsRoute(),
-        },
-    ],
-});
 
 function archivedAmountClass(amountMinorUnits: number): string | undefined {
     return amountMinorUnits < 0 ? amountToneClass(amountMinorUnits) : undefined;

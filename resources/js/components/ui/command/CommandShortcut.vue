@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { cn } from "@/lib/utils"
 
@@ -9,11 +9,8 @@ const props = defineProps<{
 
 <template>
   <span
-    data-slot="breadcrumb-page"
-    role="link"
-    aria-disabled="true"
-    aria-current="page"
-    :class="cn('text-foreground font-normal', props.class)"
+    data-slot="command-shortcut"
+    :class="cn('text-muted-foreground ml-auto text-xs tracking-widest', props.class)"
   >
     <slot />
   </span>

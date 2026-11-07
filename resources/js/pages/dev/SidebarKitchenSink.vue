@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
 import { LayoutGrid } from '@lucide/vue';
+import { nextTick, onMounted, ref } from 'vue';
+import AppMobileBar from '@/components/AppMobileBar.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
+import CommandPalette from '@/components/CommandPalette.vue';
 import BrandMark from '@/components/BrandMark.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -11,13 +14,15 @@ import {
     SidebarMenuItem,
     SidebarProvider,
 } from '@/components/ui/sidebar';
+import { useAppViews } from '@/composables/useAppViews';
 import { useTranslations } from '@/composables/useTranslations';
+import { paletteFixtureCategories } from '@/lib/command-palette-fixtures';
+import type { PaletteCategories } from '@/lib/command-palette-items';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 
 type SidebarFrame = {
     key: string;
     label: string;
-    defaultOpen: boolean;
     budgetYears: number[];
     budgetYear: number | null;
 };
@@ -46,14 +51,74 @@ const brandMarkPlaces = [
     },
 ];
 
+const views = useAppViews();
+
+type PaletteState =
+    | 'default'
+    | 'filtered'
+    | 'no-results'
+    | 'loading'
+    | 'error'
+    | 'no-budget-year';
+
+const paletteStates: { state: PaletteState; search: string }[] = [
+    { state: 'default', search: '' },
+    { state: 'filtered', search: 'zyw' },
+    { state: 'no-results', search: 'zzzz' },
+    { state: 'loading', search: '' },
+    { state: 'error', search: '' },
+    { state: 'no-budget-year', search: '' },
+];
+
+const requestedPalette = new URLSearchParams(
+    usePage().url.split('?')[1] ?? '',
+).get('palette');
+const activePalette =
+    paletteStates.find((entry) => entry.state === requestedPalette) ?? null;
+const paletteOpen = ref(activePalette !== null);
+
+function fixturePaletteCategories(): PaletteCategories {
+    switch (activePalette?.state) {
+        case 'loading':
+            return { status: 'loading' };
+        case 'error':
+            return { status: 'error' };
+        case 'no-budget-year':
+            return { status: 'loaded', budgetYear: null, items: [] };
+        default:
+            return paletteFixtureCategories;
+    }
+}
+
+// The query lives inside the registry `Command`, so a filtered state types it
+// into the real input and lets the component filter.
+onMounted(() => {
+    if (activePalette === null || activePalette.search === '') {
+        return;
+    }
+
+    setTimeout(() => {
+        void nextTick(() => {
+            const input = document.querySelector<HTMLInputElement>(
+                '[data-slot="command-input"]',
+            );
+
+            if (input !== null) {
+                input.value = activePalette.search;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+    }, 50);
+});
+
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Ramki expanded-years i collapsed-years poniżej.',
+        where: 'Ramka expanded-years poniżej oraz mobile-bar (pasek z ☰ widoczny tylko na telefonie).',
     },
     {
         state: 'empty',
-        where: 'Ramki expanded-empty i collapsed-empty poniżej (brak lat budżetu, nad stanem pustym etykieta „Rok budżetu”).',
+        where: 'Ramka expanded-empty poniżej (brak lat budżetu, nad stanem pustym etykieta „Rok budżetu”).',
     },
     {
         state: 'loading',
@@ -72,6 +137,10 @@ const stateMatrix = [
         where: 'Notatka przy ramce menu-states poniżej (najedź kursorem na pozycje).',
     },
     {
+        state: 'palette',
+        where: 'Sekcja palette-* poniżej: ?palette=default, filtered, no-results, loading, error i no-budget-year otwierają paletę z danymi stałymi.',
+    },
+    {
         state: 'focus-visible',
         where: 'Sekcja focus-visible poniżej (prawdziwe kontrolki, przejdź Tabem).',
     },
@@ -85,32 +154,57 @@ function showYearSelectionError(): void {
     notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
 }
 
+type YearFrame = SidebarFrame & { pending: boolean };
+
+const yearFrames: YearFrame[] = [
+    {
+        key: 'years-one',
+        label: 'Jeden rok',
+        budgetYears: [2026],
+        budgetYear: 2026,
+        pending: false,
+    },
+    {
+        key: 'years-many',
+        label: 'Wiele lat',
+        budgetYears: [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        budgetYear: 2026,
+        pending: false,
+    },
+    {
+        key: 'years-empty',
+        label: 'Bez budżetu',
+        budgetYears: [],
+        budgetYear: null,
+        pending: false,
+    },
+    {
+        key: 'years-pending',
+        label: 'Oczekiwanie',
+        budgetYears: [2025, 2026],
+        budgetYear: 2026,
+        pending: true,
+    },
+];
+
+function markPending(instance: unknown): void {
+    const exposed = instance as { pending?: boolean } | null;
+
+    if (exposed !== null && exposed !== undefined) {
+        exposed.pending = true;
+    }
+}
+
 const frames: SidebarFrame[] = [
     {
         key: 'expanded-years',
-        label: 'Rozwinięty, z latami',
-        defaultOpen: true,
-        budgetYears: [2025, 2026],
-        budgetYear: 2026,
-    },
-    {
-        key: 'collapsed-years',
-        label: 'Zwinięty, z latami',
-        defaultOpen: false,
+        label: 'Z latami',
         budgetYears: [2025, 2026],
         budgetYear: 2026,
     },
     {
         key: 'expanded-empty',
-        label: 'Rozwinięty, bez lat',
-        defaultOpen: true,
-        budgetYears: [],
-        budgetYear: null,
-    },
-    {
-        key: 'collapsed-empty',
-        label: 'Zwinięty, bez lat',
-        defaultOpen: false,
+        label: 'Bez lat',
         budgetYears: [],
         budgetYear: null,
     },
@@ -125,13 +219,15 @@ const frames: SidebarFrame[] = [
             <h1 class="text-xl font-semibold">Sidebar kitchen sink</h1>
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local), tylko desktop.
-                Sidebar w czterech wariantach: rozwinięty i zwinięty, z latami
-                budżetu i bez. Macierz stanów to standardowe siedem (default,
-                empty, loading, error, hover, focus-visible, disabled) plus
-                pozycja aktywna, właściwa dla menu. Elementy zależne od
-                zalogowanego użytkownika (NavUser, źródła kopiowania w oknie
-                dodawania roku) są prawdziwe, nie fixture. Zduplikowane id pól
-                roku w CreateBudgetDialog są tu dopuszczalne.
+                Sidebar jest zawsze rozwinięty (bez trybu ikon); dwa warianty: z
+                latami budżetu i bez, oraz pasek mobilny z przyciskiem menu.
+                Macierz stanów to standardowe siedem (default, empty, loading,
+                error, hover, focus-visible, disabled) plus pozycja aktywna,
+                właściwa dla menu. Elementy zależne od zalogowanego użytkownika
+                (NavUser, źródła kopiowania w oknie dodawania roku) są
+                prawdziwe, nie fixture. Okno nowego budżetu jest jedno, z
+                powłoki (AppSidebarLayout), więc „+” w każdej ramce otwiera to
+                samo okno.
             </p>
         </header>
 
@@ -186,10 +282,7 @@ const frames: SidebarFrame[] = [
                 <div
                     class="relative h-svh transform-gpu overflow-hidden border"
                 >
-                    <SidebarProvider
-                        :default-open="frame.defaultOpen"
-                        class="h-full min-h-0"
-                    >
+                    <SidebarProvider :open="true" class="h-full min-h-0">
                         <AppSidebar
                             :budget-years="frame.budgetYears"
                             :budget-year="frame.budgetYear"
@@ -198,6 +291,84 @@ const frames: SidebarFrame[] = [
                 </div>
             </section>
         </div>
+
+        <section class="space-y-2" data-frame="years">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                years-*: Rok budżetu w segmentach
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Przełącznik w panelu 224 px: jeden rok z „+”, wiele lat (trzy
+                wiersze), brak budżetu i oczekiwanie (segmenty wyłączone). „+”
+                otwiera okno nowego budżetu tylko w ramkach z pełnym sidebarem
+                (expanded-*).
+            </p>
+            <div class="grid grid-cols-4 gap-6">
+                <div
+                    v-for="frame in yearFrames"
+                    :key="frame.key"
+                    class="space-y-1"
+                    :data-frame="frame.key"
+                >
+                    <p class="text-muted-foreground font-mono text-sm">
+                        {{ frame.key }}
+                    </p>
+                    <SidebarProvider
+                        class="bg-sidebar text-sidebar-foreground min-h-0 w-(--sidebar-panel-width) p-2"
+                    >
+                        <BudgetYearSwitcher
+                            :ref="frame.pending ? markPending : undefined"
+                            :budget-years="frame.budgetYears"
+                            :budget-year="frame.budgetYear"
+                        />
+                    </SidebarProvider>
+                </div>
+            </div>
+        </section>
+
+        <section class="space-y-2" data-frame="palette">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                palette-*: Szukaj i przejdź (⌘K)
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Każdy stan otwiera paletę z danymi stałymi po przeładowaniu
+                strony (parametr <code>?palette=</code>). Kategorie ładują się z
+                endpointu tylko w aplikacji, tu są fiksurami.
+            </p>
+            <ul class="flex flex-wrap gap-4 font-mono text-sm">
+                <li v-for="entry in paletteStates" :key="entry.state">
+                    <a
+                        class="underline"
+                        :href="`?palette=${entry.state}`"
+                        :data-palette-state="entry.state"
+                        >{{ entry.state }}</a
+                    >
+                </li>
+            </ul>
+            <CommandPalette
+                v-model:open="paletteOpen"
+                :views="views"
+                :categories="fixturePaletteCategories()"
+            />
+        </section>
+
+        <section class="space-y-2" data-frame="mobile-bar">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                mobile-bar: Pasek z przyciskiem menu (telefon)
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Na telefonie (≤ 768 px) pasek stoi nad treścią strony i otwiera
+                arkusz z sidebarem; tu rysowany bez względu na szerokość.
+            </p>
+            <SidebarProvider class="min-h-0 w-full max-w-sm border">
+                <AppMobileBar />
+            </SidebarProvider>
+        </section>
 
         <section class="space-y-2" data-frame="menu-states">
             <h2
@@ -213,12 +384,14 @@ const frames: SidebarFrame[] = [
                         <SidebarMenuButton>
                             <LayoutGrid />
                             <span>W spoczynku</span>
+                            <kbd class="kbd" aria-hidden="true">1</kbd>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton :is-active="true">
                             <LayoutGrid />
                             <span>Aktywna</span>
+                            <kbd class="kbd" aria-hidden="true">2</kbd>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>

@@ -33,11 +33,17 @@ function isActive(item: NavItem): boolean {
                     as-child
                     :is-active="isActive(item)"
                     :aria-current="isActive(item) ? 'page' : undefined"
-                    :tooltip="item.title"
                 >
-                    <Link :href="item.href">
+                    <Link :href="item.href" :aria-keyshortcuts="item.shortcut">
                         <component :is="item.icon" />
                         <span>{{ item.title }}</span>
+                        <kbd
+                            v-if="item.shortcut"
+                            class="kbd"
+                            aria-hidden="true"
+                        >
+                            {{ item.shortcut }}
+                        </kbd>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>

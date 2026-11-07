@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head } from '@inertiajs/vue3';
 import { computed, onUnmounted, ref } from 'vue';
 import { Check, Circle } from '@lucide/vue';
 import DashboardController from '@/actions/App/Http/Controllers/DashboardController';
@@ -29,7 +29,6 @@ import {
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
 import { formatLongDate } from '@/lib/format';
-import { dashboard } from '@/routes';
 import type { DashboardPageProps } from '@/types/dashboard';
 
 const props = defineProps<DashboardPageProps>();
@@ -93,15 +92,6 @@ const noBudgetMessage = computed(() =>
 const canSelectCurrentYearInShell = computed(() =>
     shell.budgetYears.includes(props.budget_year),
 );
-
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.dashboard,
-            href: dashboard(),
-        },
-    ],
-});
 </script>
 
 <template>
