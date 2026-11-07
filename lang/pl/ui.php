@@ -195,7 +195,6 @@ return [
         'execution_footer' => 'Kwoty w zł · kreska = postęp roku (:percent%) · kliknij wiersz, aby zobaczyć operacje',
         'execution_footer_no_mark' => 'Kwoty w zł · kliknij wiersz, aby zobaczyć operacje',
         'year_elapsed' => 'Postęp roku',
-        'plan_changed' => 'Plan zmieniony',
         'month_remaining' => 'Pozostało w miesiącu',
         'attention_zone_title' => 'Wymaga uwagi',
         'notice_label_negative_balance' => 'Saldo ujemne',
