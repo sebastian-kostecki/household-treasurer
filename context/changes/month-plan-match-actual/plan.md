@@ -369,14 +369,14 @@ Brak: bez zmian schematu i danych. Wycofanie = revert commitów fazy 2 i 3; glos
 
 #### Automated
 
-- [ ] 2.1 Testy reguły przechodzą
-- [ ] 2.2 Cały zestaw JS przechodzi
-- [ ] 2.3 Typy przechodzą
-- [ ] 2.4 Lint i format
+- [x] 2.1 Testy reguły przechodzą
+- [x] 2.2 Cały zestaw JS przechodzi
+- [x] 2.3 Typy przechodzą
+- [x] 2.4 Lint i format
 
 #### Manual
 
-- [ ] 2.5 Po „Zmień” wiersz z wydatkami ponad plan ma w polu kwotę wydatków, podglądy reagują, „Anuluj” przywraca plan
+- [x] 2.5 Po „Zmień” wiersz z wydatkami ponad plan ma w polu kwotę wydatków, podglądy reagują, „Anuluj” przywraca plan
 
 ### Phase 3: Przycisk i znacznik w komórce „Faktycznie”
 

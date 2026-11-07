@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/collapsible';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
+import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type {
     MonthItemKind,
@@ -32,6 +33,8 @@ export type MonthPlanRowState = {
     yearStale: boolean;
     invalid: boolean;
     kindError?: string;
+    /** Button or marker "plan = actual" in change mode (ADR-0062). */
+    matchActual: MatchActualState;
 };
 
 export type SetAsideDirection = 'set_aside' | 'draw';

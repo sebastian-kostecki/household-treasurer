@@ -219,6 +219,7 @@ function stateOf(
             config.kindErrorId === row.category_id
                 ? 'Nie udało się zapisać rodzaju pozycji.'
                 : undefined,
+        matchActual: null,
     });
 }
 

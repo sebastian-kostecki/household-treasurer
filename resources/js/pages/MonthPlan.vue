@@ -27,6 +27,10 @@ import {
     monthItemDeviationMinorUnits,
 } from '@/lib/month-item-deviation';
 import { monthPacePreview } from '@/lib/month-pace-preview';
+import {
+    changeModeAmountInputs,
+    matchActualState,
+} from '@/lib/month-plan-match-actual';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import { toSpendBreakdown } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
@@ -132,8 +136,22 @@ watch(
 
 function startChanging(): void {
     isChanging.value = true;
-    amountInputs.value = initialAmountInputs();
+    amountInputs.value = changeModeAmountInputs(planRows.value);
     resetTouched();
+}
+
+/** Writes the actual amount into the plan field; only where the row offers it (ADR-0062). */
+function matchActual(categoryId: number): void {
+    const row = planRows.value.find((item) => item.category_id === categoryId);
+
+    if (!row || rowState(row).matchActual !== 'offer') {
+        return;
+    }
+
+    amountInputs.value = {
+        ...amountInputs.value,
+        [categoryId]: minorUnitsToMoneyInput(row.actual_minor_units),
+    };
 }
 
 function stopChanging(): void {
@@ -457,6 +475,9 @@ function rowState(row: MonthPlanItem): MonthPlanRowState {
         yearStale: yearStale(row),
         invalid: isAmountFlagged(row),
         kindError: kindErrorFor(row),
+        matchActual: isChanging.value
+            ? matchActualState(row, parsedAmount(row), isEditableRow(row))
+            : null,
     };
 }
 
