@@ -16,6 +16,7 @@ use App\Http\Controllers\Dev\ImportStartKitchenSinkController;
 use App\Http\Controllers\Dev\SettingsKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
+use App\Http\Controllers\Dev\WelcomeKitchenSinkController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthPlanController;
@@ -30,6 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
     Route::get('dev/ui/auth', [AuthKitchenSinkController::class, 'show'])->name('dev.ui.auth');
+    Route::get('dev/ui/welcome', [WelcomeKitchenSinkController::class, 'show'])->name('dev.ui.welcome');
     Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
     Route::get('dev/ui/import', [ImportStartKitchenSinkController::class, 'show'])->name('dev.ui.import');
     Route::get('dev/import-preview', [ImportPreviewKitchenSinkController::class, 'show'])->name('dev.import-preview');

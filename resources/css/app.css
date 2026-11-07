@@ -514,7 +514,7 @@
     }
 
     .landing-hero {
-        @apply grid items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.25fr)] lg:py-16;
+        @apply grid items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:py-16;
     }
 
     .landing-hero-title {
@@ -576,19 +576,19 @@
 
     /* Application preview: a static, aria-hidden mock-up of the Dashboard built from its blocks. */
     .landing-preview {
-        @apply bg-background border-border grid grid-cols-1 overflow-hidden rounded-lg border sm:grid-cols-[136px_minmax(0,1fr)];
+        @apply bg-background border-border grid grid-cols-1 overflow-hidden rounded-lg border sm:grid-cols-[216px_minmax(0,1fr)];
     }
 
     .landing-preview-side {
-        @apply bg-sidebar text-sidebar-foreground border-sidebar-border hidden flex-col gap-3 border-r px-2 py-3 sm:flex;
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border hidden min-w-0 flex-col gap-2 border-r p-2 text-sm sm:flex;
     }
 
     .landing-preview-nav-item {
-        @apply flex items-center gap-2 rounded-md px-2 py-1 text-xs/4 font-medium whitespace-nowrap;
+        @apply flex h-8 items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm whitespace-nowrap [&>svg]:size-4 [&>svg]:shrink-0;
     }
 
     .landing-preview-nav-item[data-active='true'] {
-        @apply bg-sidebar-primary text-sidebar-primary-foreground;
+        @apply bg-sidebar-primary text-sidebar-primary-foreground font-semibold;
     }
 
     .landing-preview-main {

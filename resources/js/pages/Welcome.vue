@@ -99,10 +99,12 @@ const heroPoints = [
 
     <div class="bg-background text-foreground min-h-screen">
         <header class="landing-bar">
-            <div class="landing-wrap flex items-center justify-between gap-4">
-                <a href="#top" class="flex items-center gap-2">
+            <div
+                class="landing-wrap flex items-center justify-between gap-2 sm:gap-4"
+            >
+                <a href="#top" class="flex min-w-0 items-center gap-2">
                     <BrandMark />
-                    <span class="card-title">{{ name }}</span>
+                    <span class="card-title truncate">{{ name }}</span>
                 </a>
 
                 <nav class="hidden items-center gap-6 text-sm md:flex">

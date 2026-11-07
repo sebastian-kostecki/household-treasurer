@@ -423,12 +423,12 @@ Bez migracji i zmian konfiguracji.
 
 #### Automated
 
-- [x] 3.1 `WelcomeHardcodedUiTest` czerwony przed edycją widoku, zielony po niej
-- [x] 3.2 `npm run check:ui` przechodzi z trzema plikami landingu
-- [x] 3.3 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`)
-- [x] 3.4 `npm run build && npm run types:check` przechodzą
-- [x] 3.5 `LandingPageTest` i `LandingPageSourceTest` przechodzą
-- [x] 3.6 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
+- [x] 3.1 `WelcomeHardcodedUiTest` czerwony przed edycją widoku, zielony po niej — 4e3c940
+- [x] 3.2 `npm run check:ui` przechodzi z trzema plikami landingu — 4e3c940
+- [x] 3.3 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`) — 4e3c940
+- [x] 3.4 `npm run build && npm run types:check` przechodzą — 4e3c940
+- [x] 3.5 `LandingPageTest` i `LandingPageSourceTest` przechodzą — 4e3c940
+- [x] 3.6 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą — 4e3c940
 
 #### Manual
 
@@ -442,10 +442,10 @@ Bez migracji i zmian konfiguracji.
 
 #### Automated
 
-- [ ] 4.1 `WelcomeKitchenSinkTest` przechodzi
-- [ ] 4.2 `npm run build && npm run types:check` przechodzą po nowej trasie
-- [ ] 4.3 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
-- [ ] 4.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
+- [x] 4.1 `WelcomeKitchenSinkTest` przechodzi
+- [x] 4.2 `npm run build && npm run types:check` przechodzą po nowej trasie
+- [x] 4.3 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
+- [x] 4.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
 
 #### Manual
 
