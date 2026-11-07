@@ -572,13 +572,13 @@ Bez migracji danych. `config/passkeys.php` jest nowy; na produkcji po wdrożeniu
 
 #### Automated
 
-- [x] 5.1 `AuthKitchenSinkTest` przechodzi
-- [x] 5.2 `npm run build && npm run types:check` przechodzą po nowej trasie
-- [x] 5.3 `npm run check:ui` przechodzi z `dev/AuthKitchenSink.vue`
-- [x] 5.4 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
+- [x] 5.1 `AuthKitchenSinkTest` przechodzi — 41a07ce
+- [x] 5.2 `npm run build && npm run types:check` przechodzą po nowej trasie — 41a07ce
+- [x] 5.3 `npm run check:ui` przechodzi z `dev/AuthKitchenSink.vue` — 41a07ce
+- [x] 5.4 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą — 41a07ce
 
 #### Manual
 
-- [x] 5.5 Zrzuty wszystkich par ekran × stan przy 1280 i 390 px w obu motywach
-- [x] 5.6 Alert `ok` i tekst panelu czytelne w ciemnym motywie
-- [x] 5.7 Pola OTP 40×44 px z kreską po trzecim znaku
+- [x] 5.5 Zrzuty wszystkich par ekran × stan przy 1280 i 390 px w obu motywach — 41a07ce
+- [x] 5.6 Alert `ok` i tekst panelu czytelne w ciemnym motywie — 41a07ce
+- [x] 5.7 Pola OTP 40×44 px z kreską po trzecim znaku — 41a07ce
