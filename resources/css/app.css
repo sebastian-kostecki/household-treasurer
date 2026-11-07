@@ -156,6 +156,9 @@
     --radius: 10px;
     --control-height: 32px;
     --control-height-sm: 26px;
+    --control-height-lg: 36px;
+    --landing-width: 1120px;
+    --landing-bar-height: 56px;
     --brand-mark-size: 26px;
     --row-height: 34px;
     --field-height: 34px;
@@ -258,6 +261,7 @@
 
 @utility display {
     @apply text-4xl/10 font-semibold;
+    letter-spacing: -0.025em;
 }
 
 @utility heading {
@@ -329,6 +333,10 @@
 
 @utility h-control-sm {
     height: var(--control-height-sm);
+}
+
+@utility h-control-lg {
+    height: var(--control-height-lg);
 }
 
 @utility size-control {
@@ -484,6 +492,118 @@
 
     .auth-otp [data-slot='input-otp-separator'] svg {
         @apply size-3;
+    }
+
+    /* Welcome page (ADR-0057): PageWelcome card of the design system. 36px buttons are the utility h-control-lg, not a class here. */
+    .landing-wrap {
+        @apply mx-auto w-full max-w-(--landing-width) px-4 sm:px-6;
+    }
+
+    .landing-bar {
+        @apply bg-card border-border sticky top-0 z-10 flex items-center border-b;
+        height: var(--landing-bar-height);
+    }
+
+    .landing-section {
+        @apply border-border border-t py-14;
+        scroll-margin-top: var(--landing-bar-height);
+    }
+
+    .landing-hero {
+        @apply grid items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.25fr)] lg:py-16;
+    }
+
+    .landing-hero-title {
+        @apply sm:display text-3xl/9 font-semibold;
+        letter-spacing: -0.025em;
+    }
+
+    .landing-points {
+        @apply text-muted-foreground flex flex-col gap-1.5 text-sm;
+    }
+
+    .landing-points li {
+        @apply flex items-center gap-2;
+    }
+
+    .landing-points svg {
+        @apply text-brand-text size-4 shrink-0;
+    }
+
+    .landing-grid {
+        @apply grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .landing-feature {
+        @apply bg-card text-card-foreground border-border flex flex-col gap-1.5 rounded-lg border px-4 pt-4 pb-5;
+    }
+
+    .landing-icon {
+        @apply bg-accent text-accent-foreground mb-1 flex size-8 shrink-0 items-center justify-center rounded-md;
+    }
+
+    .landing-steps {
+        @apply bg-card text-card-foreground border-border grid grid-cols-1 overflow-hidden rounded-lg border md:auto-cols-fr md:grid-flow-col;
+    }
+
+    .landing-steps > li {
+        @apply border-border border-t p-4 first:border-t-0 md:border-t-0 md:border-l md:first:border-l-0;
+    }
+
+    .landing-step-no {
+        @apply label-caps text-muted-foreground block;
+    }
+
+    .landing-cta {
+        @apply bg-sidebar text-sidebar-foreground flex flex-col items-start justify-between gap-5 rounded-lg px-8 py-7 sm:flex-row sm:items-center;
+    }
+
+    .landing-cta :is(h2, h3) {
+        @apply text-sidebar-strong text-lg/6 font-semibold;
+    }
+
+    .landing-cta :focus-visible {
+        outline-color: var(--sidebar-ring);
+    }
+
+    .landing-foot {
+        @apply bg-card border-border border-t;
+    }
+
+    /* Application preview: a static, aria-hidden mock-up of the Dashboard built from its blocks. */
+    .landing-preview {
+        @apply bg-background border-border grid grid-cols-1 overflow-hidden rounded-lg border sm:grid-cols-[136px_minmax(0,1fr)];
+    }
+
+    .landing-preview-side {
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border hidden flex-col gap-3 border-r px-2 py-3 sm:flex;
+    }
+
+    .landing-preview-nav-item {
+        @apply flex items-center gap-2 rounded-md px-2 py-1 text-xs/4 font-medium whitespace-nowrap;
+    }
+
+    .landing-preview-nav-item[data-active='true'] {
+        @apply bg-sidebar-primary text-sidebar-primary-foreground;
+    }
+
+    .landing-preview-main {
+        @apply flex min-w-0 flex-col gap-2.5 p-3;
+    }
+
+    .landing-preview-row {
+        @apply border-border-soft grid items-center gap-x-3 border-b px-3 py-1.5 text-sm;
+        grid-template-columns: minmax(0, 1fr) 74px 104px;
+    }
+
+    @media (min-width: 40rem) {
+        .landing-preview-row {
+            grid-template-columns: minmax(0, 1fr) 74px 74px 104px;
+        }
+    }
+
+    .landing-preview-row-plan {
+        @apply hidden text-right sm:block;
     }
 
     /* Year switcher in the sidebar (ADR-0055): three segments per row, the selected year on sidebar-strong. */

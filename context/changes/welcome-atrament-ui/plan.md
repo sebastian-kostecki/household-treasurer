@@ -399,8 +399,8 @@ Bez migracji i zmian konfiguracji.
 
 #### Automated
 
-- [x] 1.1 ADR-0057 istnieje pod kolejnym wolnym numerem
-- [x] 1.2 Indeks reguł zawiera `js-landing.md` po `php artisan boost:index-rules`
+- [x] 1.1 ADR-0057 istnieje pod kolejnym wolnym numerem — 0295d9c
+- [x] 1.2 Indeks reguł zawiera `js-landing.md` po `php artisan boost:index-rules` — 0295d9c
 
 #### Manual
 
@@ -410,10 +410,10 @@ Bez migracji i zmian konfiguracji.
 
 #### Automated
 
-- [ ] 2.1 `npm run build` przechodzi z nowymi tokenami i klasami
-- [ ] 2.2 `npm run check` przechodzi bez ostrzeżeń
-- [ ] 2.3 `UiTranslationKeysTest` i `LandingPageTest` przechodzą
-- [ ] 2.4 W tablicy `landing` nie ma „marketingu”, „passkeys” ani „w MVP”
+- [x] 2.1 `npm run build` przechodzi z nowymi tokenami i klasami
+- [x] 2.2 `npm run check` przechodzi bez ostrzeżeń
+- [x] 2.3 `UiTranslationKeysTest` i `LandingPageTest` przechodzą
+- [x] 2.4 W tablicy `landing` nie ma „marketingu”, „passkeys” ani „w MVP”
 
 #### Manual
 

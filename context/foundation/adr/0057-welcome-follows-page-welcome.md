@@ -26,13 +26,12 @@ Call-to-action band. `.landing-cta` is a dark panel on the `--sidebar-*` tokens,
 
 Contrast of the band (measured in Phase 2).
 
-<!-- PLACEHOLDER (Phase 2): fill in with the measured values, light and dark theme.
 | Pair | Light | Dark | Threshold |
 | --- | --- | --- | --- |
-| `brand-foreground` on `brand` (button text) | ? : 1 | ? : 1 | 4.5:1 |
-| `brand` outline on `sidebar-background` (non-text) | ? : 1 | ? : 1 | 3:1 |
-Already measured while researching: `sidebar-foreground` on `sidebar-background` 7.50:1 / 6.86:1, `sidebar-strong` on `sidebar-background` 14.69:1 / 16.48:1.
-If a pair fails, the change stops and asks before any token changes. -->
+| `brand-foreground` on `brand` (button text) | 8.56 : 1 | 8.56 : 1 | 4.5:1 |
+| `brand` outline on `sidebar-background` (non-text; also the `sidebar-ring` focus outline) | 9.63 : 1 | 10.92 : 1 | 3:1 |
+
+Already measured while researching: `sidebar-foreground` on `sidebar-background` 7.50:1 / 6.86:1, `sidebar-strong` on `sidebar-background` 14.69:1 / 16.48:1. Both new pairs pass in both themes, so no token changes. The values come from a one-off script (WCAG relative luminance, sRGB) over the hex values in `:root` and `.dark` of `app.css`; the script is not committed.
 
 Application preview. `LandingAppPreview.vue` is built from the blocks of the Dashboard (ADR-0045) instead of a sketch of dots: `StatPanel` with three measures (Do wydania, Płynność, Łączne środki) with no `toneClass`, so no measure is in `text-success` (`success` is income, and the measures are not income); a panel "Wydatki" in `ListSurface flush` with a `table-header` row and four rows `.landing-preview-row`; in each row `CategoryChip`, amounts through `formatMoneyAmount` in the `amount` style, `ExecutionMeter` with `yearElapsedPercent` 84, and the footer "Kwoty w zł" (ADR-0037). The grid `.landing-preview-row` has four columns (`minmax(0,1fr) 74px 74px 104px`: category, plan, realisation, meter), as in the card, not the five of `.category-meter-row`: there is no "Pozostało" column, and the Dashboard class is not changed. Below `sm` the "Plan bieżący" column is dropped, so a 390 px screen has no horizontal scroll. The sidebar of the preview is built from the `--sidebar-*` tokens on plain elements, with no `SidebarProvider` (`useSidebar()` needs one): `.landing-preview-side` (hidden below `sm`) and `.landing-preview-nav-item`, the active item (Dashboard) on `sidebar-primary`. Fixture data sits in a local constant typed `DashboardCategory`; `pages/dev/dashboard-fixtures.ts` is not imported into a production page. The data of the preview is a mock-up, not the user's.
 
