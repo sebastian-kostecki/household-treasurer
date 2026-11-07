@@ -29,6 +29,16 @@ test('format Inny stays after choosing a csv file, the header checkbox drives th
         buffer: Buffer.from(csv, 'utf8'),
     });
 
+    // The page preselects the first account, which can be a temporary "E2E …"
+    // account of a spec running in parallel and deleted before the preview.
+    // Pick a demo account by hand instead.
+    await page.getByRole('combobox', { name: 'Konto' }).click();
+    await page
+        .getByRole('option')
+        .filter({ hasNotText: /^E2E / })
+        .first()
+        .click();
+
     // The format chosen by hand survives the file with a .csv extension.
     await expect(format.locator('option:checked')).toHaveText('Inny');
 

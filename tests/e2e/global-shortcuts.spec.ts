@@ -59,7 +59,14 @@ test('/ on the Dashboard focuses an empty search field on Operations', async ({
 }) => {
     await page.goto('/dashboard');
 
-    await pressUntilUrl(page, '/', /\/operations$/);
+    // Press the key once, after the layout (and its key listener) has mounted.
+    // `pressUntilUrl` would press again while the visit is still running, and
+    // the second `/` would be typed into the search field that just got focus.
+    await expect(
+        page.getByRole('button', { name: /Szukaj i przejdź/ }),
+    ).toBeVisible();
+    await page.keyboard.press('/');
+    await expect(page).toHaveURL(/\/operations$/);
     const search = page.locator('#operations-search');
     await expect(search).toBeFocused();
     await expect(search).toHaveValue('');
