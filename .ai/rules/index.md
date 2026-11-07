@@ -7,6 +7,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | resources/css/app.css | .ai/rules/css.md |
 | resources/js/**/*.test.ts, vite.config.ts, package.json, tsconfig.json | .ai/rules/frontend-toolchain.md |
 | app/Http/Controllers/**/*.php, resources/js/pages/**/*.vue | .ai/rules/inertia-props.md |
+| resources/js/pages/auth/**, resources/js/layouts/auth/**, resources/js/layouts/AuthLayout.vue, resources/js/components/PasskeyVerify.vue, resources/js/components/PasswordInput.vue, resources/js/components/TextLink.vue, resources/js/lib/auth-*.ts | .ai/rules/js-auth.md |
 | resources/js/components/*Dialog.vue, resources/js/components/FormField.vue, resources/js/components/FormPreview.vue, resources/js/components/ui/dialog/**, resources/js/lib/operation-dialog-preview*.ts, resources/js/composables/useOperationAmountInput*.ts | .ai/rules/js-dialogs.md |
 | resources/js/pages/OperationsImport*.vue, resources/js/components/ImportPreview*.vue, resources/js/lib/import-*.ts | .ai/rules/js-import.md |
 | resources/js/pages/MonthPlan.vue, resources/js/components/MonthPlan*.vue, resources/js/components/Month*.vue, resources/js/components/BudgetMonthPicker.vue, resources/js/lib/month-plan-*.ts, tests/Unit/MonthPlanHardcodedUiTest.php | .ai/rules/js-month-plan.md |

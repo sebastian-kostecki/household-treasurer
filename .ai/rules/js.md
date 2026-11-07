@@ -9,6 +9,7 @@ paths:
 
 Use token utilities (bg-primary, text-destructive, text-warning, text-success, text-muted-foreground), never hex values or Tailwind palette colours (red-500, amber-700).
 primary = action (ink); brand = identity, navigation, document state and the one approving action (ADR-0042), never money status; brand-text = links and strokes in the brand colour; success = income; destructive = exceeded (negative balance, over limit, negative Month Remaining) and delete actions, never an expense amount (in Operations an expense amount is `foreground`, ADR-0038; only the expense type tile is `destructive-soft`, ADR-0039); warning = within bounds but close to breaking.
+Exception (ADR-0056): `accent` also marks a confirmation that carries no amount, only as `<Alert variant="ok">` (as Badge `ok` already does); never `text-success` for it, because `success` is income.
 Category colour is identity only (CategoryChip tile at 15%), never status. Full table: context/foundation/design-system.md.
 
 ## Amounts go through formatMoney with tabular-nums
@@ -22,7 +23,7 @@ The Account or Term Deposit mark is `AccountAvatar` (ADR-0054): the bank logo (`
 
 ## Non-blocking warnings use the warning Alert variant; a reading note uses `note`
 
-A one-sentence note about a reading shown on the same page, under the metrics panel or under a table (month plan pace, drawing past available liquidity), uses `<Alert variant="note">` (ADR-0042). Other warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. Exception: in form dialogs of operations the warning is `text-warning` text inside the before → after preview block, under the reading it concerns, not an Alert (ADR-0041). variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0039: expense `destructive-soft` + `destructive`, income `success/10` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`; the tile marks the type, the expense amount stays `foreground`.
+A one-sentence note about a reading shown on the same page, under the metrics panel or under a table (month plan pace, drawing past available liquidity), uses `<Alert variant="note">` (ADR-0042). Other warnings that do not block saving (over limit, over Month Remaining, negative To Spend after an entry, negative balance, import duplicates) use <Alert variant="warning"> or bg-warning/10. The Alert variants are default, destructive, warning, note, danger and ok; `ok` is a confirmation without an amount, such as "link sent" (ADR-0056). Exception: in form dialogs of operations the warning is `text-warning` text inside the before → after preview block, under the reading it concerns, not an Alert (ADR-0041). variant="destructive" is only for real errors (AlertError) and delete actions; field errors use InputError. Operation type tiles follow ADR-0039: expense `destructive-soft` + `destructive`, income `success/10` + `success`, refund `warning-soft` + `refund`, own transfer `transfer`; the tile marks the type, the expense amount stays `foreground`.
 
 ## Bind the reka-ui Checkbox with v-model, never :checked
 
