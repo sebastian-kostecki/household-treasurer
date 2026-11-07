@@ -1,5 +1,3 @@
-import { meterPercentClass } from './dashboard-categories';
-
 export type BudgetCategoryType = 'income' | 'expense';
 
 /**
@@ -15,21 +13,6 @@ export function executionClass(
     }
 
     return type === 'income' ? 'text-success' : '';
-}
-
-export function percentClass(
-    type: BudgetCategoryType,
-    percent: number | null,
-    isOverLimit: boolean,
-    isArchived: boolean,
-): string {
-    if (isArchived) {
-        return '';
-    }
-
-    return (
-        meterPercentClass(type, percent, isOverLimit) || 'text-muted-foreground'
-    );
 }
 
 export function remainingClass(

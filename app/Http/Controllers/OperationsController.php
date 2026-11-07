@@ -18,7 +18,9 @@ use App\Support\CategoryAppearance;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
+use App\Support\OperationsDaySums;
 use App\Support\OperationsFilterOptions;
+use App\Support\OperationsSectionTotals;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,6 +62,15 @@ class OperationsController extends Controller
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 
+        $operationDaySums = in_array(OperationsListSection::FinancialOperations, $suppressedSections, true)
+            ? []
+            : OperationsDaySums::forDates(
+                $user,
+                $filters,
+                array_values(array_unique(array_column($operations->items(), 'operation_date'))),
+            );
+        $sectionTotals = OperationsSectionTotals::forUser($user);
+
         $ownTransfersQuery = $user->ownTransfers()
             ->with(['sourceAccount:id,name,type,bank', 'destinationAccount:id,name,type,bank'])
             ->orderByDesc('transfer_date')
@@ -88,7 +99,7 @@ class OperationsController extends Controller
             ]);
 
         $capitalMovementsQuery = $user->capitalMovements()
-            ->with(['account:id,name,type,bank', 'termDeposit:id,name'])
+            ->with(['account:id,name,type,bank', 'termDeposit:id,name,bank'])
             ->orderByDesc('movement_date')
             ->orderByDesc('id');
 
@@ -110,6 +121,8 @@ class OperationsController extends Controller
                 'account_id' => $movement->account_id,
                 'term_deposit_id' => $movement->term_deposit_id,
                 'term_deposit_name' => $movement->termDeposit->name,
+                'term_deposit_bank' => $movement->termDeposit->bank->value,
+                'term_deposit_mark_url' => AccountIdentity::markUrl($movement->termDeposit->bank),
                 ...AccountIdentity::prefixedRowFields($movement->account, 'account'),
             ]);
 
@@ -186,9 +199,10 @@ class OperationsController extends Controller
                 fn (OperationsListSection $section): string => $section->value,
                 $suppressedSections,
             ),
-            'hasAnyRecords' => $user->financialOperations()->exists()
-                || $user->ownTransfers()->exists()
-                || $user->capitalMovements()->exists(),
+            'hasAnyRecords' => array_sum($sectionTotals) > 0,
+            'section' => $request->section()->value,
+            'operationDaySums' => (object) $operationDaySums,
+            'sectionTotals' => $sectionTotals,
             'filterYears' => OperationsFilterOptions::years($user),
             'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),
             'filterAccounts' => OperationsFilterOptions::accounts($user),

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Check } from '@lucide/vue';
 import { computed } from 'vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import AccountSelect from '@/components/AccountSelect.vue';
 import CategorySelect from '@/components/CategorySelect.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
@@ -9,10 +10,17 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
-import { amountToneClass } from '@/lib/amount-tone';
 import { formatDate, formatMoney } from '@/lib/format';
+import { importRowAmount } from '@/lib/import-row-amount';
 import {
     applyPairCandidateSelection,
     availablePairCandidates,
@@ -26,6 +34,10 @@ import {
     uniquePairCandidate,
     type PairCandidate,
 } from '@/lib/import-pair-selection';
+import {
+    importInvalidReasonText,
+    importPairReasonText,
+} from '@/lib/import-row-reasons';
 import type { ToSpendWarning } from '@/lib/entry-to-spend-warning';
 import type { MonthRemainingWarningState } from '@/lib/import-month-remaining-warnings';
 import {
@@ -186,6 +198,12 @@ const rowDate = computed(() =>
     row.operation_date ? formatDate(row.operation_date) : '—',
 );
 
+const rowAmount = computed(() =>
+    row.amount_minor_units === null
+        ? null
+        : importRowAmount(selection.value.type, row.amount_minor_units),
+);
+
 const rowDescription = computed(() => row.description ?? '—');
 
 function controlLabel(column: string): string {
@@ -228,6 +246,27 @@ function pairCandidateOptionLabel(candidate: PairCandidate): string {
             : t.operations.import_pair_kind_own_transfer;
 
     return `${candidate.account_name} · ${formatDate(candidate.date)} · ${kindLabel} · ${candidate.description}`;
+}
+
+const PAIR_CANDIDATE_NONE = '__none__';
+
+const selectedPairCandidateValue = computed(() => {
+    const key = selectedPairCandidateKey(selection.value);
+
+    return key === '' ? PAIR_CANDIDATE_NONE : key;
+});
+
+const selectedPairCandidate = computed(
+    () =>
+        pairPickerCandidates.value.find(
+            (candidate) =>
+                pairCandidateKey(candidate) ===
+                selectedPairCandidateKey(selection.value),
+        ) ?? null,
+);
+
+function pairCandidateValueToKey(value: string): string {
+    return value === PAIR_CANDIDATE_NONE ? '' : value;
 }
 
 function onTypeChange(): void {
@@ -321,7 +360,7 @@ function onPairCandidateChange(value: string): void {
                     v-model="selection.selected"
                     :disabled="!row.valid"
                     :aria-label="selectRowLabel"
-                    class="size-6 rounded-md"
+                    class="import-preview-select-check"
                 >
                     <Check class="size-4" />
                 </Checkbox>
@@ -338,16 +377,16 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-date">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.date }}
                 </span>
-                <p class="text-sm font-medium">
+                <p class="tabular-nums">
                     {{ rowDate }}
                 </p>
             </div>
 
             <div class="import-preview-cell-description">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.description }}
                 </span>
                 <OperationDescriptionCell
@@ -360,22 +399,18 @@ function onPairCandidateChange(value: string): void {
 
             <div
                 class="import-preview-cell-amount"
-                :class="amountToneClass(row.amount_minor_units ?? 0)"
+                :class="rowAmount?.className"
             >
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.amount }}
                 </span>
                 <p>
-                    {{
-                        row.amount_minor_units !== null
-                            ? formatMoney(row.amount_minor_units)
-                            : '—'
-                    }}
+                    {{ rowAmount?.text ?? '—' }}
                 </p>
             </div>
 
             <div class="import-preview-cell-type">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.type }}
                 </span>
                 <select
@@ -409,7 +444,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-classification">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.import_classification }}
                 </span>
                 <div
@@ -428,33 +463,79 @@ function onPairCandidateChange(value: string): void {
                         class="w-full"
                         @update:model-value="onOtherAccountChange"
                     />
-                    <select
+                    <Select
                         v-if="pairPickerCandidates.length > 0"
-                        :id="`row-pair-candidate-${row.index}`"
-                        class="native-select w-full"
-                        :aria-label="
-                            controlLabel(
-                                t.operations.import_pair_select_first_leg,
-                            )
-                        "
-                        :value="selectedPairCandidateKey(selection)"
-                        @change="
+                        :model-value="selectedPairCandidateValue"
+                        @update:model-value="
                             onPairCandidateChange(
-                                ($event.target as HTMLSelectElement).value,
+                                pairCandidateValueToKey(String($event)),
                             )
                         "
                     >
-                        <option value="">
-                            {{ t.operations.import_pair_select_first_leg }}
-                        </option>
-                        <option
-                            v-for="candidate in pairPickerCandidates"
-                            :key="pairCandidateKey(candidate)"
-                            :value="pairCandidateKey(candidate)"
+                        <SelectTrigger
+                            :id="`row-pair-candidate-${row.index}`"
+                            class="w-full"
+                            :aria-label="
+                                controlLabel(
+                                    t.operations.import_pair_select_first_leg,
+                                )
+                            "
                         >
-                            {{ pairCandidateOptionLabel(candidate) }}
-                        </option>
-                    </select>
+                            <SelectValue>
+                                <span
+                                    v-if="selectedPairCandidate"
+                                    class="flex min-w-0 items-center gap-2"
+                                >
+                                    <AccountAvatar
+                                        :type="
+                                            selectedPairCandidate.account_type
+                                        "
+                                        :bank="
+                                            selectedPairCandidate.account_bank
+                                        "
+                                        :mark_url="
+                                            selectedPairCandidate.account_mark_url
+                                        "
+                                    />
+                                    <span class="truncate">{{
+                                        pairCandidateOptionLabel(
+                                            selectedPairCandidate,
+                                        )
+                                    }}</span>
+                                </span>
+                                <span v-else class="text-muted-foreground">
+                                    {{
+                                        t.operations
+                                            .import_pair_select_first_leg
+                                    }}
+                                </span>
+                            </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="PAIR_CANDIDATE_NONE">
+                                {{ t.operations.import_pair_select_first_leg }}
+                            </SelectItem>
+                            <SelectItem
+                                v-for="candidate in pairPickerCandidates"
+                                :key="pairCandidateKey(candidate)"
+                                :value="pairCandidateKey(candidate)"
+                                :text-value="
+                                    pairCandidateOptionLabel(candidate)
+                                "
+                            >
+                                <span class="flex min-w-0 items-center gap-2">
+                                    <AccountAvatar
+                                        :type="candidate.account_type"
+                                        :bank="candidate.account_bank"
+                                        :mark_url="candidate.account_mark_url"
+                                    />
+                                    <span>{{
+                                        pairCandidateOptionLabel(candidate)
+                                    }}</span>
+                                </span>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                     <input
                         v-if="selection.pair_first_leg_kind !== ''"
                         type="hidden"
@@ -496,13 +577,13 @@ function onPairCandidateChange(value: string): void {
                             {{ termDeposit.name }}
                         </option>
                     </select>
-                    <p class="text-muted-foreground text-xs">
+                    <p class="meta text-muted-foreground">
                         {{ capitalMovementDirectionLabel() }}
                     </p>
                     <template v-if="showInterestOverlay">
                         <Label
                             :for="`row-interest-amount-${row.index}`"
-                            class="text-xs"
+                            class="form-field-label"
                         >
                             {{ t.operations.import_interest_amount }}
                         </Label>
@@ -567,7 +648,7 @@ function onPairCandidateChange(value: string): void {
                 <p
                     v-if="showsSuggestion"
                     :id="suggestionId"
-                    class="text-muted-foreground text-xs"
+                    class="meta text-muted-foreground"
                 >
                     <span aria-hidden="true">✦</span>
                     {{ t.operations.import_category_suggestion }}
@@ -575,7 +656,7 @@ function onPairCandidateChange(value: string): void {
             </div>
 
             <div class="import-preview-cell-status">
-                <span class="column-caption xl:sr-only">
+                <span class="table-header xl:sr-only">
                     {{ t.operations.import_status }}
                 </span>
                 <div v-if="row.valid" class="flex flex-wrap gap-1">
@@ -587,13 +668,13 @@ function onPairCandidateChange(value: string): void {
                     </Badge>
                     <Badge
                         v-if="!row.import_duplicate && !showsPairBadge"
-                        variant="secondary"
+                        variant="neutral"
                     >
                         {{ t.operations.import_row_valid }}
                     </Badge>
                 </div>
                 <div v-else>
-                    <Badge variant="destructive">
+                    <Badge variant="destructive-soft">
                         {{ t.operations.import_row_invalid }}
                     </Badge>
                 </div>
@@ -603,15 +684,15 @@ function onPairCandidateChange(value: string): void {
         <div v-if="hasNotes" class="mt-2 space-y-2 px-0.5">
             <p
                 v-if="showsPairBadge && matchingCandidate !== null"
-                class="text-muted-foreground text-xs"
+                class="meta text-muted-foreground"
             >
-                {{ matchingCandidate.reason }}
+                {{ importPairReasonText(matchingCandidate, t.operations) }}
             </p>
             <p
                 v-if="!row.valid && row.invalid_reason"
-                class="text-muted-foreground text-xs"
+                class="meta text-muted-foreground"
             >
-                {{ row.invalid_reason }}
+                {{ importInvalidReasonText(row.invalid_reason, t.operations) }}
             </p>
             <Alert v-if="makesAccountNegative" variant="warning">
                 <AlertDescription>

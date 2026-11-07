@@ -11,14 +11,11 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
-use App\Support\BudgetMonthReadings;
-use App\Support\BudgetMonthResult;
 use App\Support\BudgetPlanSummary;
-use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
-use App\Support\MonthToSpend;
 use App\Support\SelectedBudgetYear;
+use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -46,14 +43,7 @@ class BudgetController extends Controller
                 'expenseTotals' => BudgetPlanSummary::emptyTypeTotals(),
                 'deficitWarning' => null,
                 'show_archived' => false,
-                'viewedMonth' => null,
-                'pacedPoolMonthRemainingMinorUnits' => null,
-                'monthIncomeExecutionMinorUnits' => null,
-                'monthExpenseExecutionMinorUnits' => null,
-                'monthResultMinorUnits' => null,
-                'currentMonth' => null,
-                'viewedMonthTiming' => null,
-                'monthToSpend' => null,
+                'year_elapsed_percent' => null,
                 'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
             ]);
         }
@@ -61,23 +51,9 @@ class BudgetController extends Controller
         $allCategories = $budget->categories()
             ->ordered()
             ->get();
-        $allExpenseCategories = $allCategories
-            ->where('type', CategoryType::Expense)
-            ->values();
 
         $showArchived = $request->boolean('show_archived');
         $today = CarbonImmutable::today('UTC');
-        $viewedMonth = BudgetViewedMonth::resolve(
-            $request->query('month'),
-            $budget->year,
-            $today,
-        );
-        $monthReadings = BudgetMonthReadings::forBudget(
-            $budget,
-            $allExpenseCategories,
-            $viewedMonth,
-            $today,
-        );
 
         $categories = $showArchived
             ? $allCategories
@@ -86,7 +62,6 @@ class BudgetController extends Controller
             );
 
         $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
-        $monthResult = BudgetMonthResult::forViewedMonth($budget, $viewedMonth);
 
         return Inertia::render('Budget', [
             'budget' => [
@@ -105,11 +80,7 @@ class BudgetController extends Controller
             'expenseCategories' => $categories
                 ->where('type', CategoryType::Expense)
                 ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload(
-                    $category,
-                    $budget,
-                    $monthReadings['categories'][$category->id] ?? null,
-                ))
+                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
                 ->all(),
             'planSummary' => $planSummary,
             'incomeTotals' => $planSummary['income'],
@@ -118,15 +89,8 @@ class BudgetController extends Controller
                 ? BudgetDeficitWarning::forBudget($budget, $user, $categories)
                 : null,
             'show_archived' => $showArchived,
-            'viewedMonth' => $viewedMonth,
-            'pacedPoolMonthRemainingMinorUnits' => $monthReadings['paced_pool_month_remaining_minor_units'],
-            'monthIncomeExecutionMinorUnits' => $monthResult['income_execution_minor_units'],
-            'monthExpenseExecutionMinorUnits' => $monthResult['expense_execution_minor_units'],
-            'monthResultMinorUnits' => $monthResult['month_result_minor_units'],
-            'currentMonth' => $monthReadings['current_month'],
-            'viewedMonthTiming' => $monthReadings['viewed_month_timing'],
-            'monthToSpend' => $budget->isExecution()
-                ? MonthToSpend::forMonth($budget, $viewedMonth, $today)->summary()
+            'year_elapsed_percent' => $budget->isExecution()
+                ? YearElapsed::percent(YearElapsed::asOfDate($budget->year, $today))
                 : null,
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);
@@ -207,7 +171,6 @@ class BudgetController extends Controller
     }
 
     /**
-     * @param  array{month_remaining_minor_units: int|null, month_execution_minor_units: int}|null  $monthReading
      * @return array{
      *     id: int,
      *     name: string,
@@ -228,15 +191,10 @@ class BudgetController extends Controller
      *     can_archive: bool,
      *     can_restore: bool,
      *     can_align_current_plan: bool,
-     *     month_remaining_minor_units?: int|null,
-     *     month_execution_minor_units?: int,
      * }
      */
-    private function categoryPayload(
-        Category $category,
-        Budget $budget,
-        ?array $monthReading = null,
-    ): array {
+    private function categoryPayload(Category $category, Budget $budget): array
+    {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;
         $initialPlanMinorUnits = $budget->isExecution()
@@ -274,10 +232,6 @@ class BudgetController extends Controller
             'can_align_current_plan' => $budget->isExecution()
                 && ! $category->isArchived()
                 && $remainingMinorUnits !== 0,
-            ...($monthReading !== null ? [
-                'month_remaining_minor_units' => $monthReading['month_remaining_minor_units'],
-                'month_execution_minor_units' => $monthReading['month_execution_minor_units'],
-            ] : []),
         ];
     }
 }

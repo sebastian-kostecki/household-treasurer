@@ -11,19 +11,26 @@ Konta logowania tworzy administrator. Samodzielna rejestracja jest wyłączona. 
 
 ## Stack
 
-Laravel 13, PHP 8.5, PostgreSQL, Vue 3, Inertia 3, Tailwind CSS, Pest. Szczegóły: [`.docs/tech-stack.md`](.docs/tech-stack.md).
+Laravel 13, PHP 8.5, PostgreSQL, Vue 3, Inertia 3, Tailwind CSS, Pest. Szczegóły: [`context/foundation/tech-stack.md`](context/foundation/tech-stack.md).
 
 ## Dokumentacja
 
-| Dokument                                     | Po co                                 |
-| -------------------------------------------- | ------------------------------------- |
-| [`CONTEXT.md`](CONTEXT.md)                   | Słownik domeny (język kodu i agentów) |
-| [`.docs/prd.md`](.docs/prd.md)               | Wymagania produktu                    |
-| [`.docs/mvp.md`](.docs/mvp.md)               | Krótki zakres MVP                     |
-| [`.docs/tech-stack.md`](.docs/tech-stack.md) | Decyzje technologiczne                |
-| [`.docs/adr/`](.docs/adr/)                   | Decyzje architektoniczne              |
+Dokumentacja projektu leży w `context/` według konwencji 10x: `foundation/` to dokumenty żyjące ponad zmianami, `changes/` to zmiany w toku, `archive/` to zmiany zamknięte.
 
-Słownik w `CONTEXT.md` jest źródłem nazw. Unikaj synonimów, które ten plik wyklucza.
+| Dokument                                                                     | Po co                                                           |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [`context/foundation/glossary.md`](context/foundation/glossary.md)           | Słownik domeny (język kodu i agentów)                           |
+| [`context/foundation/prd-mvp.md`](context/foundation/prd-mvp.md)             | Wymagania produktu (MVP)                                        |
+| [`context/foundation/mvp.md`](context/foundation/mvp.md)                     | Krótki zakres MVP                                               |
+| [`context/foundation/prd.md`](context/foundation/prd.md), `prd-v2.md`        | PRD kolejnych zmian (plan miesiąca, raporty)                    |
+| [`context/foundation/roadmap.md`](context/foundation/roadmap.md)             | Mapa drogowa                                                    |
+| [`context/foundation/tech-stack.md`](context/foundation/tech-stack.md)       | Decyzje technologiczne                                          |
+| [`context/foundation/adr/`](context/foundation/adr/)                         | Decyzje architektoniczne                                        |
+| [`context/foundation/design-system.md`](context/foundation/design-system.md) | Design system (Atrament): tokeny, powierzchnie, typografia      |
+| [`context/foundation/test-plan.md`](context/foundation/test-plan.md)         | Plan testów                                                     |
+| [`AGENTS.md`](AGENTS.md)                                                     | Zasady pracy dla agentów AI; `.ai/rules/` ma reguły per ścieżka |
+
+Słownik w `context/foundation/glossary.md` jest źródłem nazw. Unikaj synonimów, które ten plik wyklucza.
 
 ## Wymagania lokalne
 
@@ -116,4 +123,4 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 ## Produkcja
 
-Własny Docker Compose na VPS (aplikacja + PostgreSQL + Caddy + worker kolejki). Backupy instancji: Spatie Laravel Backup. Nie używaj obrazu Sail na produkcji. Zobacz [`.docs/tech-stack.md`](.docs/tech-stack.md).
+Własny Docker Compose na VPS (aplikacja + PostgreSQL + Caddy + worker kolejki). Backupy instancji: Spatie Laravel Backup. Nie używaj obrazu Sail na produkcji. Zobacz [`context/foundation/tech-stack.md`](context/foundation/tech-stack.md).

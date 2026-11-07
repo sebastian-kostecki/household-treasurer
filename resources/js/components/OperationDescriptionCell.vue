@@ -12,19 +12,24 @@ const {
     variant,
     description,
     counterparty = null,
+    detail = null,
     rawStatementDescription = null,
     rawStatementDescriptions = [],
 } = defineProps<{
     variant: 'income' | 'expense' | 'refund' | 'transfer';
     description: string;
     counterparty?: string | null;
+    detail?: string | null;
     rawStatementDescription?: string | null;
     rawStatementDescriptions?: string[];
 }>();
 
 const t = useTranslations();
 const primaryLine = counterparty?.trim() ? counterparty : description;
-const secondaryLine = counterparty?.trim() ? description : null;
+const secondaryLine =
+    [counterparty?.trim() ? description : null, detail]
+        .filter((part): part is string => !!part && part.trim() !== '')
+        .join(' · ') || null;
 const tooltipDescriptions =
     rawStatementDescriptions.length > 0
         ? rawStatementDescriptions
@@ -42,7 +47,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
         <Tooltip>
             <TooltipTrigger as-child>
                 <div
-                    class="operations-raw-trigger flex min-w-0 items-stretch gap-2.5"
+                    class="operations-raw-trigger flex min-w-0 items-center gap-2.5"
                     tabindex="0"
                     role="group"
                     :aria-label="primaryLine"
@@ -52,7 +57,7 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
                         <p class="truncate font-medium">{{ primaryLine }}</p>
                         <p
                             v-if="secondaryLine"
-                            class="text-muted-foreground truncate text-sm"
+                            class="meta text-muted-foreground truncate"
                         >
                             {{ secondaryLine }}
                         </p>
@@ -67,14 +72,11 @@ const tooltipLabel = tooltipDescriptions.join('\n\n');
             </TooltipContent>
         </Tooltip>
     </TooltipProvider>
-    <div v-else class="flex min-w-0 items-stretch gap-2.5">
+    <div v-else class="flex min-w-0 items-center gap-2.5">
         <OperationTypeTile :variant="variant" />
         <div class="min-w-0">
             <p class="truncate font-medium">{{ primaryLine }}</p>
-            <p
-                v-if="secondaryLine"
-                class="text-muted-foreground truncate text-sm"
-            >
+            <p v-if="secondaryLine" class="meta text-muted-foreground truncate">
                 {{ secondaryLine }}
             </p>
         </div>

@@ -10,10 +10,17 @@ export type TermDepositsScenario = {
     props: TermDepositsPageProps;
 };
 
-const markUrls: Partial<Record<AccountBank, string>> = {
+const bankMarkUrls: Record<AccountBank, string | null> = {
+    alior: '/marks/alior.svg',
+    bnp_paribas: '/marks/bnp-paribas.jpg',
+    ing: null,
+    lokaty_facto: '/marks/lokaty-facto.svg',
     mbank: '/marks/mbank.jpg',
-    ing: '/marks/ing.svg',
-    pekao: '/marks/pekao.svg',
+    pekao: null,
+    pko_bp: '/marks/pko-bp.svg',
+    revolut: '/marks/revolut.svg',
+    santander: null,
+    other: null,
 };
 
 function termDeposit(
@@ -27,11 +34,11 @@ function termDeposit(
         id,
         name,
         bank,
+        mark_url: bankMarkUrls[bank],
         opening_date: '2026-01-15',
         end_date: '2027-01-15',
         opening_balance_minor_units: Math.abs(balance) || 100000,
         current_balance_minor_units: balance,
-        mark_url: markUrls[bank] ?? null,
         is_negative: balance < 0,
         is_archived: false,
         can_delete: false,
@@ -78,6 +85,7 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
         title: 'default: aktywne lokaty, różne salda i daty',
         props: {
             termDeposits: activeRows,
+            total_funds_minor_units: 2195000,
             term_deposits_total_minor_units: 1695000,
             archived_term_deposits_total_minor_units: 0,
             archived_term_deposits_count: 0,
@@ -94,6 +102,7 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
                 archived(12, 'Zarchiwizowana zerowa', 'ing', 0),
                 archived(13, 'Zarchiwizowana ujemna', 'other', -12000),
             ],
+            total_funds_minor_units: 2483000,
             term_deposits_total_minor_units: 1983000,
             archived_term_deposits_total_minor_units: 288000,
             archived_term_deposits_count: 3,
@@ -110,6 +119,7 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
                 }),
                 archived(42, 'Zarchiwizowana ujemna', 'other', -30000),
             ],
+            total_funds_minor_units: 970000,
             term_deposits_total_minor_units: 470000,
             archived_term_deposits_total_minor_units: -30000,
             archived_term_deposits_count: 1,
@@ -128,6 +138,7 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
                     end_date: null,
                 }),
             ],
+            total_funds_minor_units: 500000,
             term_deposits_total_minor_units: 0,
             archived_term_deposits_total_minor_units: 0,
             archived_term_deposits_count: 0,
@@ -142,6 +153,7 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
                 termDeposit(31, 'Lokata Pekao ujemna', 'pekao', -80000),
                 termDeposit(32, 'Lokata w Innym banku', 'other', 20000),
             ],
+            total_funds_minor_units: 440000,
             term_deposits_total_minor_units: -60000,
             archived_term_deposits_total_minor_units: 0,
             archived_term_deposits_count: 0,
@@ -153,6 +165,7 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
         title: 'empty-new-user: brak lokat, suma 0',
         props: {
             termDeposits: [],
+            total_funds_minor_units: 500000,
             term_deposits_total_minor_units: 0,
             archived_term_deposits_total_minor_units: 0,
             archived_term_deposits_count: 0,
@@ -164,10 +177,37 @@ export const termDepositsScenarios: TermDepositsScenario[] = [
         title: 'all-archived: wszystkie lokaty zarchiwizowane, ukryte, suma ≠ 0',
         props: {
             termDeposits: [],
+            total_funds_minor_units: 650000,
             term_deposits_total_minor_units: 150000,
             archived_term_deposits_total_minor_units: 150000,
             archived_term_deposits_count: 2,
             show_archived: false,
+        },
+    },
+    {
+        key: 'long-names',
+        title: 'long-names: długa nazwa, najdłuższa etykieta banku, brak daty zakończenia',
+        props: {
+            termDeposits: [
+                termDeposit(
+                    51,
+                    'Lokata terminowa na wakacje rodzinne i remont łazienki w mieszkaniu na Mokotowie',
+                    'lokaty_facto',
+                    1840000,
+                    { end_date: null, can_delete: true },
+                ),
+                archived(
+                    52,
+                    'Zarchiwizowana lokata promocyjna z wyjątkowo długą nazwą, która musi się zawinąć',
+                    'bnp_paribas',
+                    -45000,
+                ),
+            ],
+            total_funds_minor_units: 2055000,
+            term_deposits_total_minor_units: 1795000,
+            archived_term_deposits_total_minor_units: -45000,
+            archived_term_deposits_count: 1,
+            show_archived: true,
         },
     },
 ];

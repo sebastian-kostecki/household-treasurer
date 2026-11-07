@@ -1,6 +1,13 @@
+import { DEFAULT_CATEGORY_COLOR } from './category-appearance';
 import type { AccountPickerOption } from './account-identity';
-import type { ToSpendWarning } from './entry-to-spend-warning';
-import type { MonthRemainingWarningState } from './import-month-remaining-warnings';
+import type {
+    EntryToSpendInputs,
+    ToSpendWarning,
+} from './entry-to-spend-warning';
+import type {
+    MonthRemainingContext,
+    MonthRemainingWarningState,
+} from './import-month-remaining-warnings';
 import type { PairCandidate } from './import-pair-selection';
 import {
     emptySelection,
@@ -15,10 +22,12 @@ const pairCandidate: PairCandidate = {
     id: 501,
     account_id: 2,
     account_name: 'Konto oszczędnościowe',
+    account_type: 'bank',
+    account_bank: 'mbank',
+    account_mark_url: '/marks/mbank.jpg',
     date: '2026-10-12',
     description: 'Przelew na oszczędności',
     converts_financial_operation: false,
-    reason: 'Ta sama kwota i data w drugim koncie',
 };
 
 function row(index: number, overrides: Partial<ImportRow>): ImportRow {
@@ -73,7 +82,7 @@ export const invalidRow = row(4, {
     description: 'Operacja z przyszłości',
     amount_minor_units: -4_900,
     valid: false,
-    invalid_reason: 'Data operacji nie może być w przyszłości.',
+    invalid_reason: 'future_date',
 });
 
 export const nullAmountRow = row(5, {
@@ -95,6 +104,55 @@ export const suggestedCategoryRow = row(7, {
     category_suggestion: { income: null, expense: 11 },
 });
 
+export const ownTransferPairRow = row(8, {
+    operation_date: '2026-10-13',
+    description: 'Wpłata z konta oszczędnościowego',
+    amount_minor_units: 50_000,
+    import_pair_candidate: true,
+    pair_candidates: [
+        {
+            kind: 'own_transfer',
+            id: 601,
+            account_id: 2,
+            account_name: 'Konto oszczędnościowe',
+            account_type: 'bank',
+            account_bank: 'mbank',
+            account_mark_url: '/marks/mbank.jpg',
+            date: '2026-10-13',
+            description: 'Przelew własny',
+            converts_financial_operation: false,
+        },
+    ],
+});
+
+export const ownTransferPairNoLogoRow = row(10, {
+    operation_date: '2026-10-16',
+    description: 'Wpłata z konta oszczędnościowego (ING)',
+    amount_minor_units: 30_000,
+    import_pair_candidate: true,
+    pair_candidates: [
+        {
+            kind: 'financial_operation',
+            id: 701,
+            account_id: 2,
+            account_name: 'Konto oszczędnościowe',
+            account_type: 'bank',
+            account_bank: 'ing',
+            account_mark_url: null,
+            date: '2026-10-16',
+            description: 'Przelew na konto',
+            converts_financial_operation: false,
+        },
+    ],
+});
+
+export const refundRow = row(9, {
+    operation_date: '2026-10-15',
+    description: 'Zwrot za zakupy',
+    counterparty: 'Biedronka',
+    amount_minor_units: 6_400,
+});
+
 export const importPreviewRows: ImportRow[] = [
     incomeRow,
     expenseRow,
@@ -104,14 +162,26 @@ export const importPreviewRows: ImportRow[] = [
     nullAmountRow,
     capitalMovementRow,
     suggestedCategoryRow,
+    ownTransferPairRow,
+    ownTransferPairNoLogoRow,
+    refundRow,
 ];
+
+export const importPreviewMonthRemainingContext: MonthRemainingContext = {
+    today: '2026-10-20',
+    budgets: [],
+};
+
+export const importPreviewEntryToSpend: EntryToSpendInputs = {
+    budgets: [],
+};
 
 export const incomeCategories: CategoryRow[] = [
     {
         id: 1,
         name: 'Wynagrodzenie',
         icon: 'briefcase',
-        color: '#16a34a',
+        color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
         is_paced: false,
     },
@@ -119,7 +189,7 @@ export const incomeCategories: CategoryRow[] = [
         id: 2,
         name: 'Odsetki',
         icon: 'landmark',
-        color: '#0d9488',
+        color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
         is_paced: false,
     },
@@ -130,7 +200,7 @@ export const expenseCategories: CategoryRow[] = [
         id: 11,
         name: 'Jedzenie',
         icon: 'shopping-cart',
-        color: '#0d9488',
+        color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
         is_paced: true,
     },
@@ -138,7 +208,7 @@ export const expenseCategories: CategoryRow[] = [
         id: 12,
         name: 'Mieszkanie',
         icon: 'house',
-        color: '#7c3aed',
+        color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
         is_paced: false,
     },
@@ -172,7 +242,7 @@ export const importAccount: AccountPickerOption & {
     name: 'Konto osobiste',
     type: 'bank',
     bank: 'mbank',
-    mark_url: null,
+    mark_url: '/marks/mbank.jpg',
     current_balance_minor_units: 120_000,
 };
 
@@ -219,6 +289,12 @@ export function importPreviewSelections(): Record<number, RowSelection> {
     selections[7] = {
         ...selections[7],
         type: 'expense',
+        category_id: 11,
+    };
+    selections[9] = {
+        ...selections[9],
+        selected: true,
+        type: 'refund',
         category_id: 11,
     };
     selections[6] = {

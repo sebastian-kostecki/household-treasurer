@@ -1,105 +1,57 @@
-## Project facts
+# Household Treasurer
 
-- CI, Sail and production run PHP 8.5. The host CLI is 8.4, and the locked dependencies need at least 8.4.1, so write code that runs on 8.4.1.
-- Run project commands through Sail, for example `./vendor/bin/sail artisan test --compact`. In a worktree, the running Sail stack serves the main checkout, not your code, so run the Sail image directly (see "Test database"). If you use the host CLI, say so in your report.
-- npm is the only JS package manager. Do not add `pnpm-workspace.yaml`, because `vp migrate` reads it and switches the project to pnpm.
-- Docs describe more than the code. Confirm the code exists before relying on a term from `CONTEXT.md`, `.docs/prd.md` or `.docs/specs/`. Agenda, Cash Expectation, Reserve and Year Close are not implemented on `main`.
+Single-user household budget and liquidity tracker: Laravel 13, Inertia 3, Vue 3 with shadcn-vue, Vite+ (`vp`), PostgreSQL. UI copy is Polish; code and agent docs use the English domain language from `context/foundation/glossary.md`.
 
-## Money
+## Hard rules
 
-Amounts are integers in minor units: `*_minor_units` columns (`bigint`) and `int` in PHP, with `float` kept out of money code. Parse user input with `App\Support\MinorUnits`. In Vue, follow `.ai/rules/js.md`.
+- Money is `int` in minor units (`*_minor_units` `bigint` columns), parsed with `App\Support\MinorUnits`; `float` stays out of money code.
+- `phpunit.xml` defaults to SQLite, CI and production run PostgreSQL: a green SQLite run proves nothing for migrations, raw SQL, date or JSON functions and constraints. Run those tests on PostgreSQL (Commands).
+- A change to a glossary rule (`context/foundation/glossary.md`) or to a term marked _Avoid_ starts with the glossary entry and a new ADR in `context/foundation/adr` (next free number), then code.
+- Docs describe more than the code: Agenda, Cash Expectation, Reserve and Year Close are not on `main`. Confirm a term exists in code before building on it.
+- UI follows the Atrament design system in `context/foundation/design-system.md`: values only as tokens from `resources/css/app.css` (no hex or Tailwind palette colours), `components/ui/*` never edited for a single screen, every view state in its `/dev/...` kitchen sink, `npm run check:ui` guarding the views. A new token or colour meaning lands on that page and, when it changes a decision, in an ADR. The claude.ai artifact linked there is a preview, not a source of values.
+- An Inertia prop changes on both sides (PHP array, `defineProps<>` type) in one commit, with an `assertInertia` test.
+- A chart library is a plan decision plus an ADR (`.ai/rules/reports.md`).
+- CI, Sail and production run PHP 8.5, the host CLI 8.4: write code that runs on 8.4.1. npm is the only package manager.
 
-## Test database
+## Commands
 
-`phpunit.xml` defaults to in-memory SQLite, while CI and production use PostgreSQL, so a green SQLite run proves nothing about PostgreSQL. For migrations, raw SQL, date or JSON functions, and behavior that depends on constraints, run the affected tests on PostgreSQL:
+Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). Run them through Sail; say so in your report if you used the host CLI.
 
-`docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`
+- Gate: `composer ci:check` (steps in `composer.json` → `scripts`) plus `vendor/bin/sloppy ci` on the host (CI runs it as its own step). After PHP changes: `vendor/bin/pint --dirty --format agent`.
+- PostgreSQL tests, main checkout: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`
+- PostgreSQL tests, worktree (the Sail stack serves the main checkout): `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`; for the full gate swap the tail for `--entrypoint composer sail-8.5/app ci:check`.
+- Fresh checkout or worktree, in CI order: `composer install`, `.env` from `.env.example`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories, so after changing routes run `npm run build` before `npm run types:check`.
 
-That command fails from a worktree. With Sail running and after the fresh-checkout steps, run the Sail image on the worktree instead. It gives the same PHP 8.5, Node and PostgreSQL as CI:
+## Where things live
 
-`docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`
+- `app/Actions` writes; `app/Support` readings and calculations; `app/Http/Requests`; `app/Policies`.
+- `resources/js/pages`; `components` (domain); `components/ui` (shadcn-vue); `lib` (pure logic, `*.test.ts` next to it).
+- `context/foundation/` cross-change docs: `glossary.md`; `adr/` decisions; `design-system.md`; `prd-mvp.md` and `mvp.md` product requirements, `prd.md` and `prd-vN.md` change PRDs from `/10x-prd`; `tech-stack.md`; `roadmap.md`, `test-plan.md`; `agents/` procedures.
+- `context/changes/<id>/` the 10x change in progress; `context/archive/` closed changes (pre-10x feature specs sit there as `<date>-<name>/spec.md`).
 
-For the full CI gate, replace `--entrypoint php sail-8.5/app artisan test --compact <path>` with `--entrypoint composer sail-8.5/app ci:check`.
+## Rules by path
 
-## Sloppy (static analysis)
+`.ai/rules/<area>.md` holds the rules for specific files (`paths:` frontmatter), listed in `.ai/rules/index.md`. Read the matching rule before editing a file; Claude Code loads it on its own. Add a durable rule there (or with `record-rule`) and run `php artisan boost:index-rules`. The Laravel Boost guidelines block at the end of this file is generated by `php artisan boost:update`; project content goes above it.
 
-[Sloppy](https://github.com/heyosseus/sloppy) (`heyosseus/sloppy`, dev dependency) flags code-quality debt in PHP: god methods and classes, queries in loops, possible N+1, duplicated logic. CI runs `vendor/bin/sloppy ci` as its own step, outside `composer ci:check`, so the Sail `ci:check` gate does not cover it.
+## Commits and changes
 
-- Run `vendor/bin/sloppy ci` on the host before finishing PHP changes. It reads git history, and it was verified on the host (including from a worktree), not inside the Sail image. In a pull request it reports only findings the change introduced; on a push it scans everything against the baseline.
-- `.sloppy-baseline.json` holds the 26 findings that existed when Sloppy was added, keyed by class and member, not line number. Editing a baselined method does not resurface its finding. Do not regenerate the baseline to silence a new finding: fix it. Run `vendor/bin/sloppy baseline` only after you have fixed a baselined finding, so the entry is dropped.
-- See everything, baseline included: `vendor/bin/sloppy scan --no-baseline --all`. Narrow it with `--rule=SL101` or `--path=app/Actions`.
-- There is no `sloppy.php`, so package defaults apply (`fail_on: high`, `tests` and `vendor` excluded). Add a config file only for a decision about the whole project, not to hide one finding.
-- Findings are heuristics. `SL203` guesses from a property name: `$termDeposit->bank` is a `Bank` enum cast, not a relation, so no eager loading helps. Check the model's `casts()` and relations before "fixing" an N+1 report.
+`type(<change-id>): opis po polsku`, with `type` one of `feat`, `fix`, `docs`, `chore` and `(p2)` for a plan phase. Closing a change moves `context/changes/<id>/` to `context/archive/YYYY-MM-DD-<id>/` (`chore(archive): close <id>`). Work branches merge into `development`.
 
-## Inertia props contract
+## Procedures
 
-Props are PHP arrays in controllers and hand-written TypeScript types in `defineProps<>`, and `vue-tsc` cannot see the PHP side. When you add, rename or change a prop, change both sides in the same commit and assert the prop with `assertInertia` in a Feature test.
-
-## Month logic lives twice
-
-`app/Support/MonthRemainingCalculator.php` and `resources/js/lib/month-remaining-calculator.ts` carry the same calculation, and `hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the TS copy. The calculators are covered by `tests/Unit/MonthRemainingCalculatorTest.php` and `resources/js/lib/month-remaining-calculator.test.ts`; the two preview files have no tests. Change both copies and both tests together. Compute new month readings on the server and pass them as props; add a TS copy only when a preview must react before submit, and state the reason in the plan.
-
-`app/Support/ToSpendCalculator.php` and `resources/js/lib/to-spend-calculator.ts` are a second pair, covered by `tests/Unit/ToSpendCalculatorTest.php` and `resources/js/lib/to-spend-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page: a proposal cannot be saved before approval, so the preview must react before submit. A second reason is changing an approved plan: the save overwrites the final plan, so the preview must react before save. It also feeds the entry warning ("do wydania" below zero) in `resources/js/lib/entry-to-spend-warning.ts` and `import-to-spend-warnings.ts`, both covered by `*.test.ts` next to them, so a change to the calculator affects the hand-entry and Import previews too.
-
-`app/Support/MonthItemDeviation.php` and `resources/js/lib/month-item-deviation.ts` are a third pair, covered by `tests/Unit/MonthItemDeviationTest.php` and `resources/js/lib/month-item-deviation.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview in the editable month proposal: a proposal cannot be saved before approval, so the preview must react before submit.
-
-`app/Support/MonthPaceCalculator.php` and `resources/js/lib/month-pace-calculator.ts` are a fourth pair, covered by `tests/Unit/MonthPaceCalculatorTest.php` and `resources/js/lib/month-pace-calculator.test.ts`. Change both copies and both tests together. The TS copy exists for the live preview on the month plan page, for the same two reasons as the To Spend pair.
-
-## Wayfinder
-
-Wayfinder is in beta. Copy the pattern from an existing page and read `vendor/laravel/wayfinder/resources/boost/skills/wayfinder-development/SKILL.blade.php` before using a new option. After changing routes, run `npm run build` before `npm run types:check`.
-
-## Frontend toolchain
-
-Static checks run through Vite+ (`vp`): `npm run check`, with autofix through `npm run check:fix`. Warnings fail the run. CI also runs `npm run types:check` for Vue templates. Frontend tests run through `npm test` (`vp test`): keep `*.test.ts` next to the code, import from `vite-plus/test`, and use relative imports, because Vite plugins and the `@` alias are off during tests. Stay within `vp`, because this project has no separate ESLint, Prettier or Vitest setup. `vite-plus`, the `vite` alias and `overrides.vite` in `package.json` must stay on the same version, so upgrade them together. Confirm options with `npx vp --help`, because online docs may describe a newer version than the installed one.
-
-## Fresh checkout or worktree
-
-Before running checks, follow the CI order: `composer install`, copy `.env.example` to `.env`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories (`resources/js/actions`, `resources/js/routes`, `resources/js/wayfinder`), which `npm run types:check` needs.
-
-## Preview from a worktree
-
-Manual checks of a phase need a running app that serves the worktree code. The Sail stack serves the main checkout, so before asking the user to confirm manual checks, build and start a preview and give the address and login:
-
-1. In the worktree `.env` set `DB_DATABASE` to a separate database (`create database <name>` in the `household-treasurer-pgsql-1` container). Never point it at `household_treasurer`: migrating it changes the main checkout's schema.
-2. Run `php artisan migrate --seed --force` with the Sail image on the `household-treasurer_sail` network. `DemoHouseholdSeeder` creates `test@example.com` / `password` with a budget in execution.
-3. Run `npm run build` again after every Vue or route change. The preview serves the built assets, and the Wayfinder step makes the build take a few minutes.
-4. Start `php artisan serve --host=0.0.0.0 --port=8000` in the Sail image with `-d -p 8090:8000 --network household-treasurer_sail` and the worktree mounted at `/var/www/html`, then open http://localhost:8090.
-5. Stop it with `docker rm -f <container>` and drop the database after the change is merged.
-
-## When Boost tools are not available
-
-Boost MCP is configured for Claude Code, and `.ai/rules/boost` does not exist. Claude Code starts it with host PHP through `.mcp.json`, so a worktree needs `composer install` and `.env`, and the database tools need the Sail PostgreSQL container running. If the Boost tools are missing from your tool list:
-
-- Package docs: check the installed version, then read the matching official docs: `laravel.com/docs/13.x`, `inertiajs.com/docs/v3`, `pestphp.com/docs`.
-- Skills: the project skill is `.ai/skills/openship-ui-development/SKILL.md`. Package skills are not tracked: find `<skill-name>/SKILL.blade.php` under `vendor/laravel/boost/.ai/` or `vendor/laravel/*/resources/boost/skills/`.
-- Schema: read `database/migrations/`.
-- Durable rules: edit `.ai/rules/<area>.md` and add its row to `.ai/rules/index.md`.
-
-## Agent skills
-
-### Issue tracker
-
-Issues live in this repo’s GitHub Issues (`gh` CLI). See `.docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Canonical roles map 1:1: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `.docs/agents/triage-labels.md`.
-
-### Domain docs
-
-single-context. See `.docs/agents/domain.md`.
+- Preview a worktree in a browser: `context/foundation/agents/worktree-preview.md`
+- GitHub Issues and triage labels: `context/foundation/agents/issue-tracker.md`
+- Domain docs before exploring: `context/foundation/agents/domain.md`
+- Boost tools missing: `context/foundation/agents/without-boost.md`
 
 <laravel-boost-guidelines>
 === foundation rules ===
 
 # Laravel Boost Guidelines
 
-The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
-
 ## Foundational Context
 
-This application is a Laravel application running on PHP 8.4. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
+This application is a Laravel application running on PHP 8.5. Always use the APIs that match the installed major version of each package — do not assume a version.
 
 Before relying on a package's API, confirm its installed version:
 
@@ -127,15 +79,11 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Frontend Bundling
 
-- If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+- If a frontend change doesn't show in the UI or you get a "Unable to locate file in Vite manifest" error, run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
 
 ## Documentation Files
 
 - You must only create documentation files if explicitly requested by the user.
-
-## Replies
-
-- Be concise in your explanations - focus on what's important rather than explaining obvious details.
 
 === boost rules ===
 
@@ -165,8 +113,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Project Rules
 
-- This project contains committed, area-grouped rules in `.ai/rules` when that directory exists (settled decisions, non-obvious traps, standing constraints). Framework and package guidelines that only apply to specific paths (testing, frontend, components) also live there, under `.ai/rules/boost` — this is not just recorded decisions, it is load-bearing guidance you have not seen inline. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule. If `.ai/rules` does not exist, continue without it.
-- Record durable rules with `record-rule` so the next agent or teammate inherits them instead of working them out again. Pass a `glob` (e.g. `app/Http/Controllers/**`), a short `title`, and a few-line `note`. Always use `record-rule`, never your native memory or notes tool — native memory is personal and session-scoped; only `.ai/rules` is shared with the team and persists in the repo.
+- This project contains committed, area-grouped rules in `.ai/rules` when that directory exists, including path-scoped framework guidelines under `.ai/rules/boost`. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule. If `.ai/rules` does not exist, continue without it.
 
 ## Artisan
 
@@ -191,18 +138,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
 
-=== deployments rules ===
-
-# Deployment
-
-- Laravel can be deployed using [Laravel Cloud](https://cloud.laravel.com/), which is the fastest way to deploy and scale production Laravel applications.
-
 === tests rules ===
 
 # Test Enforcement
 
-- Test every code change by adding or updating a test.
-- Run the affected tests and ensure they pass.
+- Add or update tests for behavior and logic changes when a test provides meaningful regression coverage.
+- Pure copy, styling, and layout-only changes do not require new or updated tests.
+- When test coverage applies, run the affected tests and ensure they pass.
 - Test the changed behavior and its important failure modes, but do not add tests beyond them.
 - Read the `testing-best-practices` skill before writing tests.
 
@@ -255,10 +197,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
 - When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
 
-## Vite Error
-
-- If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
-
 === wayfinder/core rules ===
 
 # Laravel Wayfinder
@@ -286,7 +224,6 @@ Use Wayfinder to generate TypeScript functions for Laravel routes. Import from `
 - Run the narrowest set of tests that covers the change. Pass a file path or `--filter=testName` to `php artisan test --compact`.
 - Rerun a test after each change to it.
 - Run `vendor/bin/pest` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
-- After the feature tests pass, ask the user to run the complete suite with `php artisan test --compact`.
 
 === inertia-vue/core rules ===
 

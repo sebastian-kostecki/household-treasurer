@@ -162,10 +162,12 @@ describe('initialSelection', () => {
                     id: 501,
                     account_id: 2,
                     account_name: 'Konto',
+                    account_type: 'bank',
+                    account_bank: 'mbank',
+                    account_mark_url: '/marks/mbank.jpg',
                     date: '2026-10-12',
                     description: 'Przelew',
                     converts_financial_operation: false,
-                    reason: 'Ta sama kwota',
                 },
             ],
         });

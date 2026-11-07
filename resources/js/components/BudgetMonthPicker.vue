@@ -3,14 +3,14 @@ import { router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { budget as budgetRoute } from '@/routes';
+import type { MonthStripState } from '@/types/month-plan';
 
 const props = defineProps<{
     budgetYear: number;
     viewedMonth: number;
-    showArchived: boolean;
-    currentMonth: number | null;
-    monthUrl?: (month: number) => string;
+    monthUrl: (month: number) => string;
+    /** State of each month, January first; a month without a plan has no dot. */
+    monthStates?: (MonthStripState | null)[];
 }>();
 
 const t = useTranslations();
@@ -22,21 +22,28 @@ function monthChipLabel(month: number): string {
     return t.budget[`month_chip_${month}` as keyof typeof t.budget];
 }
 
+function monthState(month: number): MonthStripState | null {
+    return props.monthStates?.[month - 1] ?? null;
+}
+
+const stateNames: Record<MonthStripState, string> = {
+    summary: t.month_plan.month_state_summary,
+    approved: t.month_plan.month_state_approved,
+    proposal: t.month_plan.month_state_proposal,
+};
+
 function monthAccessibleName(month: number): string {
     const monthName = t.budget[`month_name_${month}` as keyof typeof t.budget];
+    const state = monthState(month);
 
-    return `${monthName} ${props.budgetYear}`;
+    return state === null
+        ? `${monthName} ${props.budgetYear}`
+        : `${monthName} ${props.budgetYear}, ${stateNames[state]}`;
 }
 
 function selectMonth(month: number): void {
     router.get(
-        props.monthUrl?.(month) ??
-            budgetRoute({
-                query: {
-                    month,
-                    show_archived: props.showArchived ? 1 : undefined,
-                },
-            }),
+        props.monthUrl(month),
         {},
         {
             preserveState: true,
@@ -59,7 +66,7 @@ function selectMonth(month: number): void {
         role="group"
         :aria-label="t.budget.month_picker_label"
         :aria-busy="pendingMonth !== null"
-        class="border-border/60 bg-muted/40 grid grid-cols-6 gap-1 rounded-xl border p-1 sm:grid-cols-12"
+        class="bg-card grid grid-cols-6 gap-1 rounded-lg border p-1 sm:grid-cols-12"
     >
         <Button
             v-for="month in months"
@@ -69,13 +76,14 @@ function selectMonth(month: number): void {
             :variant="month === displayedMonth ? 'default' : 'ghost'"
             :aria-label="monthAccessibleName(month)"
             :aria-current="month === displayedMonth ? 'true' : undefined"
-            class="relative w-full rounded-lg px-0 text-xs tabular-nums"
+            class="relative w-full px-0 tabular-nums"
             @click="selectMonth(month)"
         >
-            {{ monthChipLabel(month) }}
+            <span class="meta">{{ monthChipLabel(month) }}</span>
             <span
-                v-if="month === currentMonth && month !== displayedMonth"
-                class="bg-primary absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full"
+                v-if="monthState(month) !== null"
+                class="month-strip-dot absolute bottom-1 left-1/2 -translate-x-1/2"
+                :class="`month-strip-dot-${monthState(month)}`"
                 aria-hidden="true"
             />
         </Button>

@@ -5,20 +5,19 @@ import BudgetAmountCell from '@/components/BudgetAmountCell.vue';
 import type { BudgetCategoryRow } from '@/components/BudgetCategoryList.vue';
 import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import ExecutionMeter from '@/components/ExecutionMeter.vue';
 import PlanChangedHint from '@/components/PlanChangedHint.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    executionClass,
-    percentClass,
-    remainingClass,
-} from '@/lib/budget-category-cells';
+import { executionClass, remainingClass } from '@/lib/budget-category-cells';
+import { showsYearElapsedMark } from '@/lib/dashboard-categories';
 
 const props = defineProps<{
     category: BudgetCategoryRow;
     categoryType: 'income' | 'expense';
     phase: 'draft' | 'execution';
     showHandle: boolean;
+    yearElapsedPercent: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -29,6 +28,30 @@ const t = useTranslations();
 
 const isDraft = computed(() => props.phase === 'draft');
 const isArchived = computed(() => props.category.is_archived);
+
+const showsOverLimitBadge = computed(
+    () =>
+        props.phase === 'execution' &&
+        props.categoryType === 'expense' &&
+        props.category.is_over_limit &&
+        !props.category.is_archived,
+);
+
+const kindLabel = computed(() => {
+    if (props.categoryType === 'income') {
+        return t.budget.kind_income;
+    }
+
+    return props.category.month_item_kind === 'bill'
+        ? t.budget.kind_bill
+        : t.budget.kind_running;
+});
+
+const meterYearElapsedPercent = computed(() =>
+    showsYearElapsedMark(props.categoryType, props.category)
+        ? props.yearElapsedPercent
+        : null,
+);
 
 const remainingLabel = computed(() =>
     props.categoryType === 'income'
@@ -50,7 +73,7 @@ const remainingLabel = computed(() =>
             <button
                 v-if="!isArchived"
                 type="button"
-                class="drag-handle text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-xl active:cursor-grabbing"
+                class="drag-handle text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-md active:cursor-grabbing"
                 tabindex="-1"
                 :aria-label="t.budget.drag_handle"
             >
@@ -64,9 +87,16 @@ const remainingLabel = computed(() =>
                 :icon="category.icon"
                 :color="category.color"
             />
-            <Badge v-if="isArchived" variant="secondary">
+            <Badge v-if="isArchived" variant="neutral">
                 {{ t.budget.archived_badge }}
             </Badge>
+            <Badge v-else-if="showsOverLimitBadge" variant="destructive-soft">
+                {{ t.budget.over_limit_badge }}
+            </Badge>
+        </div>
+
+        <div v-if="isDraft" class="budget-category-cell-kind">
+            <Badge variant="neutral">{{ kindLabel }}</Badge>
         </div>
 
         <BudgetAmountCell
@@ -75,14 +105,13 @@ const remainingLabel = computed(() =>
             :label="t.budget.plan"
             :amount="category.current_plan_minor_units"
             label-hidden
-            value-class="font-semibold"
         />
         <template v-else>
             <BudgetAmountCell
                 area="initial"
                 :label="t.budget.initial_plan"
                 :amount="category.initial_plan_minor_units"
-                value-class="font-medium text-muted-foreground"
+                value-class="text-muted-foreground"
             >
                 <PlanChangedHint
                     :category="category"
@@ -93,46 +122,37 @@ const remainingLabel = computed(() =>
                 area="current"
                 :label="t.budget.current_plan"
                 :amount="category.current_plan_minor_units"
-                value-class="font-semibold"
             />
             <BudgetAmountCell
                 area="execution"
                 :label="t.budget.execution"
                 :amount="category.execution_minor_units"
-                :value-class="[
-                    'font-medium',
-                    executionClass(categoryType, isArchived),
-                ]"
-            >
-                <span
-                    v-if="category.percent_complete !== null"
-                    class="text-xs tabular-nums"
-                    :class="
-                        percentClass(
-                            categoryType,
-                            category.percent_complete,
-                            category.is_over_limit,
-                            isArchived,
-                        )
-                    "
-                    :title="t.budget.progress_hint"
-                >
-                    {{ category.percent_complete }}%
-                </span>
-            </BudgetAmountCell>
+                :value-class="executionClass(categoryType, isArchived)"
+            />
             <BudgetAmountCell
                 area="remaining"
                 :label="remainingLabel"
                 :amount="category.remaining_minor_units"
-                :value-class="[
-                    'font-medium',
+                :value-class="
                     remainingClass(
                         categoryType,
                         category.is_over_limit,
                         isArchived,
-                    ),
-                ]"
+                    )
+                "
             />
+            <div
+                class="budget-category-cell-meter"
+                :title="t.budget.progress_hint"
+            >
+                <ExecutionMeter
+                    :percent-complete="category.percent_complete"
+                    :category-type="categoryType"
+                    :is-over-limit="category.is_over_limit"
+                    :year-elapsed-percent="meterYearElapsedPercent"
+                    :muted="isArchived"
+                />
+            </div>
         </template>
 
         <BudgetCategoryRowActions

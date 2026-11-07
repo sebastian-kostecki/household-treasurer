@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AccountType;
+use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
@@ -229,6 +231,8 @@ class OperationsFilterTest extends TestCase
         $user = User::factory()->create();
         $archived = Account::factory()->for($user)->archived()->create([
             'name' => 'Old bank',
+            'type' => AccountType::Bank,
+            'bank' => Bank::Alior,
             'opening_date' => '2025-01-01',
         ]);
         $active = Account::factory()->for($user)->create([
@@ -423,10 +427,14 @@ class OperationsFilterTest extends TestCase
         $user = User::factory()->create();
         $archived = Account::factory()->for($user)->archived()->create([
             'name' => 'Old bank',
+            'type' => AccountType::Bank,
+            'bank' => Bank::Alior,
             'opening_date' => '2025-01-01',
         ]);
         Account::factory()->for($user)->create([
             'name' => 'Cash',
+            'type' => AccountType::Cash,
+            'bank' => null,
             'opening_date' => '2025-01-01',
         ]);
         $this->addOperation($user, [
@@ -440,8 +448,14 @@ class OperationsFilterTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('filterAccounts', 2)
                 ->where('filterAccounts.0.name', 'Cash')
+                ->where('filterAccounts.0.type', AccountType::Cash->value)
+                ->where('filterAccounts.0.bank', null)
+                ->where('filterAccounts.0.mark_url', null)
                 ->where('filterAccounts.0.is_archived', false)
                 ->where('filterAccounts.1.name', 'Old bank')
+                ->where('filterAccounts.1.type', AccountType::Bank->value)
+                ->where('filterAccounts.1.bank', Bank::Alior->value)
+                ->where('filterAccounts.1.mark_url', url('/marks/alior.svg'))
                 ->where('filterAccounts.1.is_archived', true),
             );
     }

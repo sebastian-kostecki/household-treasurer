@@ -21,31 +21,31 @@ class CsvImportPreviewValidator
         $today ??= CarbonImmutable::today();
 
         if ($row['operation_date'] === null) {
-            return $this->invalid(__('Invalid or missing date.'));
+            return $this->invalid(ImportRowInvalidReason::MissingDate);
         }
 
         if ($row['operation_date'] > $today->toDateString()) {
-            return $this->invalid(__('The operation date cannot be in the future.'));
+            return $this->invalid(ImportRowInvalidReason::FutureDate);
         }
 
         if ($row['operation_date'] < $account->opening_date->toDateString()) {
-            return $this->invalid(__('The operation date cannot be earlier than the account opening date.'));
+            return $this->invalid(ImportRowInvalidReason::BeforeAccountOpening);
         }
 
         if ($row['description'] === null || trim($row['description']) === '') {
-            return $this->invalid(__('Description is required.'));
+            return $this->invalid(ImportRowInvalidReason::MissingDescription);
         }
 
         if ($row['amount_has_foreign_currency'] ?? false) {
-            return $this->invalid(__('Only PLN amounts are supported.'));
+            return $this->invalid(ImportRowInvalidReason::ForeignCurrency);
         }
 
         if ($row['amount_minor_units'] === null) {
-            return $this->invalid(__('Invalid or missing amount.'));
+            return $this->invalid(ImportRowInvalidReason::MissingAmount);
         }
 
         if ($row['amount_minor_units'] === 0) {
-            return $this->invalid(__('Amount must not be zero.'));
+            return $this->invalid(ImportRowInvalidReason::ZeroAmount);
         }
 
         return ['valid' => true, 'invalid_reason' => null];
@@ -54,11 +54,11 @@ class CsvImportPreviewValidator
     /**
      * @return array{valid: false, invalid_reason: string}
      */
-    private function invalid(string $reason): array
+    private function invalid(ImportRowInvalidReason $reason): array
     {
         return [
             'valid' => false,
-            'invalid_reason' => $reason,
+            'invalid_reason' => $reason->value,
         ];
     }
 }

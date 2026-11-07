@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
-import OperationsDateCell from '@/components/OperationsDateCell.vue';
 import OwnTransferActions from '@/components/OwnTransferActions.vue';
 import type { OwnTransferFormTransfer } from '@/components/OwnTransferFormDialog.vue';
 import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
@@ -24,10 +23,6 @@ const emit = defineEmits<{
 
 <template>
     <div class="operations-grid operations-grid-transfer operations-row">
-        <div class="operations-cell-date">
-            <OperationsDateCell :date="transfer.transfer_date" />
-        </div>
-
         <div class="operations-cell-description">
             <OperationDescriptionCell
                 variant="transfer"

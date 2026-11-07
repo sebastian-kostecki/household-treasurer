@@ -12,6 +12,7 @@ use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use App\Support\CsvImport\ImportIdentityDigest;
 use App\Support\CsvImport\ImportRowFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,6 +72,40 @@ CSV;
                 ->has('monthRemainingContext.budgets', 1)
                 ->has('entryToSpend.budgets', 1)
                 ->where('entryToSpend.budgets.0.year', 2026),
+            );
+    }
+
+    public function test_has_header_zero_keeps_the_first_line_as_an_operation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+2026-03-15;Salary;2500,00
+2026-03-16;Groceries;-45,50
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => '0',
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.valid', true)
+                ->where('rows.0.amount_minor_units', 250000)
+                ->where('rows.1.amount_minor_units', -4550),
             );
     }
 
@@ -274,7 +309,7 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 1)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('Only PLN amounts are supported.')),
+                ->where('rows.0.invalid_reason', 'foreign_currency'),
             );
     }
 
@@ -312,7 +347,7 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 3)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('The operation date cannot be in the future.'))
+                ->where('rows.0.invalid_reason', 'future_date')
                 ->where('rows.1.valid', false)
                 ->where('rows.2.valid', false),
             );
@@ -2850,7 +2885,13 @@ CSV);
                 ->where('rows.0.import_pair_candidate', true)
                 ->has('rows.0.pair_candidates', 1)
                 ->where('rows.0.pair_candidates.0.kind', 'financial_operation')
-                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id)
+                ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.account_type', $checking->type->value)
+                ->where('rows.0.pair_candidates.0.account_bank', $checking->bank?->value)
+                ->where('rows.0.pair_candidates.0.account_mark_url', AccountIdentity::markUrl($checking->bank))
+                ->where('rows.0.pair_candidates.0.date', '2026-03-15')
+                ->missing('rows.0.pair_candidates.0.reason'),
             );
     }
 
@@ -3147,7 +3188,13 @@ CSV);
                 ->where('rows.0.import_pair_candidate', true)
                 ->has('rows.0.pair_candidates', 1)
                 ->where('rows.0.pair_candidates.0.kind', 'own_transfer')
-                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id)
+                ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.account_type', $checking->type->value)
+                ->where('rows.0.pair_candidates.0.account_bank', $checking->bank?->value)
+                ->where('rows.0.pair_candidates.0.account_mark_url', AccountIdentity::markUrl($checking->bank))
+                ->where('rows.0.pair_candidates.0.date', '2026-03-15')
+                ->missing('rows.0.pair_candidates.0.reason'),
             );
     }
 

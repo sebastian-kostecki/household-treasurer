@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
-import { MoreHorizontal } from '@lucide/vue';
+import { Head, router } from '@inertiajs/vue3';
+import { MoreHorizontal, Plus } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
@@ -8,21 +8,12 @@ import BudgetCategoryList, {
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
-import BudgetMonthStrip from '@/components/BudgetMonthStrip.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
+import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { DialogTrigger } from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -30,6 +21,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
@@ -43,11 +35,6 @@ type BudgetSummary = {
     can_delete: boolean;
     can_start_execution: boolean;
     can_reorder: boolean;
-};
-
-type MonthToSpend = {
-    state: 'proposal' | 'approved' | 'none';
-    to_spend_minor_units: number | null;
 };
 
 type DeficitWarning = {
@@ -71,22 +58,14 @@ const props = defineProps<{
     expenseTotals: DashboardTypeTotals;
     deficitWarning: DeficitWarning | null;
     show_archived: boolean;
-    viewedMonth: number | null;
-    pacedPoolMonthRemainingMinorUnits: number | null;
-    monthIncomeExecutionMinorUnits: number | null;
-    monthExpenseExecutionMinorUnits: number | null;
-    monthResultMinorUnits: number | null;
-    currentMonth: number | null;
-    viewedMonthTiming: 'past' | 'current' | 'future' | null;
-    monthToSpend: MonthToSpend | null;
+    year_elapsed_percent: number | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
 }>();
 
 const t = useTranslations();
 
 const createBudgetDialogOpen = ref(false);
-const createIncomeDialogOpen = ref(false);
-const createExpenseDialogOpen = ref(false);
+const createCategoryDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingCategory = ref<BudgetCategoryRow | null>(null);
 const deleteBudgetDialogOpen = ref(false);
@@ -111,6 +90,16 @@ const phaseLabel = computed(() =>
         : t.budget.phase_draft,
 );
 
+const phaseBadgeVariant = computed(() =>
+    props.budget?.phase === 'execution' ? 'brand' : 'warning',
+);
+
+const phaseDescription = computed(() =>
+    props.budget?.phase === 'execution'
+        ? t.budget.description_execution
+        : t.budget.description_draft,
+);
+
 const deficitWarningMessage = computed(() => {
     if (props.deficitWarning === null) {
         return null;
@@ -133,15 +122,6 @@ const deficitWarningMessage = computed(() => {
         );
 });
 
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.budget,
-            href: budgetRoute(),
-        },
-    ],
-});
-
 function openEditDialog(category: BudgetCategoryRow): void {
     editingCategory.value = category;
     editDialogOpen.value = true;
@@ -152,7 +132,6 @@ function toggleShowArchived(checked: boolean): void {
         budgetRoute({
             query: {
                 show_archived: checked ? 1 : undefined,
-                month: viewedMonthQuery(),
             },
         }),
         {},
@@ -164,10 +143,6 @@ function toggleShowArchived(checked: boolean): void {
             },
         },
     );
-}
-
-function viewedMonthQuery(): number | undefined {
-    return props.viewedMonth ?? undefined;
 }
 
 function openDeleteBudgetDialog(): void {
@@ -186,61 +161,47 @@ function openDeleteBudgetDialog(): void {
 
         <template v-else>
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-2">
-                    <h1 class="text-lg font-semibold">
-                        {{ t.budget.title }} {{ budget.year }}
-                    </h1>
-                    <Badge variant="secondary">{{ phaseLabel }}</Badge>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <h1 class="page-title">
+                            {{ t.budget.title }} {{ budget.year }}
+                        </h1>
+                        <Badge :variant="phaseBadgeVariant">
+                            {{ phaseLabel }}
+                        </Badge>
+                    </div>
+                    <p class="text-muted-foreground text-sm">
+                        {{ phaseDescription }}
+                    </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <Dialog v-if="budget.can_start_execution">
-                        <DialogTrigger as-child>
-                            <Button>
-                                {{ t.budget.start_execution }}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <Form
-                                v-bind="
-                                    BudgetController.startExecution.form(budget)
-                                "
-                                v-slot="{ processing }"
-                            >
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        {{ t.budget.start_execution_title }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{
-                                            t.budget.start_execution_description
-                                        }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <p
-                                    v-if="deficitWarningMessage"
-                                    class="text-destructive text-sm"
-                                >
-                                    {{ deficitWarningMessage }}
-                                </p>
-                                <DialogFooter class="gap-2">
-                                    <DialogClose as-child>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                        >
-                                            {{ t.budget.cancel }}
-                                        </Button>
-                                    </DialogClose>
-                                    <Button
-                                        type="submit"
-                                        :disabled="processing"
-                                    >
-                                        {{ t.budget.start_execution_confirm }}
-                                    </Button>
-                                </DialogFooter>
-                            </Form>
-                        </DialogContent>
-                    </Dialog>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="createCategoryDialogOpen = true"
+                    >
+                        <Plus class="size-4" aria-hidden="true" />
+                        {{ t.budget.add_category }}
+                    </Button>
+                    <ConfirmActionDialog
+                        v-if="budget.can_start_execution"
+                        :form="BudgetController.startExecution.form(budget)"
+                        :title="t.budget.start_execution_title"
+                        :description="t.budget.start_execution_description"
+                        :confirm-label="t.budget.start_execution_confirm"
+                        :cancel-label="t.budget.cancel"
+                    >
+                        <template #trigger>
+                            <DialogTrigger as-child>
+                                <Button>
+                                    {{ t.budget.start_execution }}
+                                </Button>
+                            </DialogTrigger>
+                        </template>
+                        <Alert v-if="deficitWarningMessage" variant="warning">
+                            {{ deficitWarningMessage }}
+                        </Alert>
+                    </ConfirmActionDialog>
                     <DropdownMenu v-if="budget.can_delete">
                         <DropdownMenuTrigger as-child>
                             <Button
@@ -271,33 +232,12 @@ function openDeleteBudgetDialog(): void {
                 :planned-balance-minor-units="
                     planSummary.planned_balance_minor_units
                 "
-            />
-
-            <BudgetMonthStrip
-                v-if="
-                    viewedMonth !== null &&
-                    monthIncomeExecutionMinorUnits !== null &&
-                    monthExpenseExecutionMinorUnits !== null &&
-                    monthResultMinorUnits !== null &&
-                    viewedMonthTiming !== null
-                "
-                :budget-year="budget.year"
-                :viewed-month="viewedMonth"
-                :show-archived="show_archived"
-                :current-month="currentMonth"
-                :viewed-month-timing="viewedMonthTiming"
-                :month-income-execution-minor-units="
-                    monthIncomeExecutionMinorUnits
-                "
-                :month-expense-execution-minor-units="
-                    monthExpenseExecutionMinorUnits
-                "
-                :month-result-minor-units="monthResultMinorUnits"
-                :month-to-spend="monthToSpend"
+                :expense-percent-complete="expenseTotals.percent_complete"
+                :year-elapsed-percent="year_elapsed_percent"
             />
 
             <div class="flex items-center gap-2">
-                <Checkbox id="show-archived-budget" v-model="showArchived" />
+                <Switch id="show-archived-budget" v-model="showArchived" />
                 <Label
                     for="show-archived-budget"
                     class="text-muted-foreground text-sm"
@@ -316,8 +256,7 @@ function openDeleteBudgetDialog(): void {
                     :totals="incomeTotals"
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
-                    :add-label="t.budget.add_income"
-                    @add="createIncomeDialogOpen = true"
+                    :year-elapsed-percent="year_elapsed_percent"
                     @edit="openEditDialog"
                 />
 
@@ -330,58 +269,27 @@ function openDeleteBudgetDialog(): void {
                     :totals="expenseTotals"
                     :can-reorder="budget.can_reorder"
                     :empty-description="t.budget.empty"
-                    :add-label="t.budget.add_expense"
-                    @add="createExpenseDialogOpen = true"
+                    :year-elapsed-percent="year_elapsed_percent"
                     @edit="openEditDialog"
                 />
             </div>
         </template>
     </div>
 
-    <Dialog v-if="budget" v-model:open="deleteBudgetDialogOpen">
-        <DialogContent>
-            <Form
-                v-bind="BudgetController.destroy.form(budget)"
-                v-slot="{ processing }"
-            >
-                <DialogHeader>
-                    <DialogTitle>
-                        {{ t.budget.delete_budget_confirm_title }}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {{ t.budget.delete_budget_confirm_body }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter class="gap-2">
-                    <DialogClose as-child>
-                        <Button type="button" variant="secondary">
-                            {{ t.budget.cancel }}
-                        </Button>
-                    </DialogClose>
-                    <Button
-                        type="submit"
-                        variant="destructive"
-                        :disabled="processing"
-                    >
-                        {{ t.budget.delete_budget }}
-                    </Button>
-                </DialogFooter>
-            </Form>
-        </DialogContent>
-    </Dialog>
-
-    <CategoryFormDialog
+    <ConfirmActionDialog
         v-if="budget"
-        v-model:open="createIncomeDialogOpen"
-        mode="create"
-        :budget-id="budget.id"
-        default-type="income"
-        :category-appearance-options="categoryAppearanceOptions"
+        v-model:open="deleteBudgetDialogOpen"
+        :form="BudgetController.destroy.form(budget)"
+        destructive
+        :title="t.budget.delete_budget_confirm_title"
+        :description="t.budget.delete_budget_confirm_body"
+        :confirm-label="t.budget.delete_budget"
+        :cancel-label="t.budget.cancel"
     />
 
     <CategoryFormDialog
         v-if="budget"
-        v-model:open="createExpenseDialogOpen"
+        v-model:open="createCategoryDialogOpen"
         mode="create"
         :budget-id="budget.id"
         default-type="expense"

@@ -1,12 +1,12 @@
-export type PairCandidate = {
+import type { PrefixedAccountIdentityFields } from './account-identity';
+
+export type PairCandidate = PrefixedAccountIdentityFields<'account'> & {
     kind: 'financial_operation' | 'own_transfer';
     id: number;
     account_id: number;
-    account_name: string;
     date: string;
     description: string;
     converts_financial_operation: boolean;
-    reason: string;
 };
 
 export type PairRowSelection = {

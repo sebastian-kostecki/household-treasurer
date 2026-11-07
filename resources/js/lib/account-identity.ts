@@ -27,6 +27,7 @@ export type PrefixedAccountIdentityFields<Prefix extends string> = {
 
 export type AccountPickerOption = AccountIdentityFields & {
     id: number;
+    is_archived?: boolean;
 };
 
 export const bankOptions: AccountBank[] = [
@@ -42,19 +43,53 @@ export const bankOptions: AccountBank[] = [
     'other',
 ];
 
-const bankMarkPaths: Record<AccountBank, string | null> = {
-    alior: '/marks/alior.svg',
-    bnp_paribas: '/marks/bnp-paribas.jpg',
-    ing: '/marks/ing.svg',
-    lokaty_facto: '/marks/lokaty-facto.svg',
-    mbank: '/marks/mbank.jpg',
-    pekao: '/marks/pekao.svg',
-    pko_bp: '/marks/pko-bp.svg',
-    revolut: '/marks/revolut.svg',
-    santander: '/marks/santander.svg',
+const bankShortMarks: Record<AccountBank, string | null> = {
+    alior: 'ALI',
+    bnp_paribas: 'BNP',
+    ing: 'ING',
+    lokaty_facto: 'LF',
+    mbank: 'mB',
+    pekao: 'PEK',
+    pko_bp: 'PKO',
+    revolut: 'REV',
+    santander: 'SAN',
     other: null,
 };
 
-export function bankMarkPath(bank: AccountBank): string | null {
-    return bankMarkPaths[bank];
+/** Text for the account tile: „zł” for cash, the bank's short mark, null when the tile shows an icon. */
+export function accountShortMark(
+    account: Pick<AccountIdentityFields, 'type' | 'bank'>,
+): string | null {
+    if (account.type === 'cash') {
+        return 'zł';
+    }
+
+    return account.bank === null ? null : bankShortMarks[account.bank];
+}
+
+/** Bank name from the `accounts.bank_*` translations; the enum value when a key is missing. */
+export function bankLabel(
+    accountTranslations: Record<string, string>,
+    bank: AccountBank,
+): string {
+    return accountTranslations[`bank_${bank}`] ?? bank;
+}
+
+export type AccountAvatarContent =
+    | { kind: 'logo'; src: string }
+    | { kind: 'mark'; text: string }
+    | { kind: 'icon' };
+
+/** What the account avatar shows: the bank logo, else the short mark (also after an image error), else the icon. */
+export function accountAvatarContent(
+    account: Pick<AccountIdentityFields, 'type' | 'bank' | 'mark_url'>,
+    imageFailed: boolean,
+): AccountAvatarContent {
+    if (account.type === 'bank' && account.mark_url !== null && !imageFailed) {
+        return { kind: 'logo', src: account.mark_url };
+    }
+
+    const text = accountShortMark(account);
+
+    return text === null ? { kind: 'icon' } : { kind: 'mark', text };
 }

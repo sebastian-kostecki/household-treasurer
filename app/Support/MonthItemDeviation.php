@@ -6,7 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
 
 /**
- * Deviation of a month item from its plan (CONTEXT.md: To Spend, "item over plan").
+ * Deviation of a month item from its plan (context/foundation/glossary.md: To Spend, "item over plan").
  *
  * Copy in resources/js/lib/month-item-deviation.ts, used for the live preview
  * while a month plan proposal is edited. Change both together.

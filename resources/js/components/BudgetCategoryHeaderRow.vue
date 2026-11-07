@@ -44,6 +44,9 @@ const remainingHint = computed(() =>
         <div class="budget-category-cell-category">
             {{ t.budget.category }}
         </div>
+        <div v-if="isDraft" class="budget-category-cell-kind">
+            {{ t.budget.type }}
+        </div>
         <div v-if="isDraft" class="budget-category-cell-plan">
             {{ t.budget.plan }}
         </div>
@@ -71,6 +74,9 @@ const remainingHint = computed(() =>
                     :label="remainingLabel"
                     :hint="remainingHint"
                 />
+            </div>
+            <div class="budget-category-cell-meter">
+                {{ t.budget.progress }}
             </div>
         </template>
         <div class="budget-category-cell-actions">

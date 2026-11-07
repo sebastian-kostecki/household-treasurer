@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { AlertTriangle, ArrowLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
+import ImportPreviewDuplicateAcknowledgement from '@/components/ImportPreviewDuplicateAcknowledgement.vue';
 import ImportPreviewRow from '@/components/ImportPreviewRow.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ImportPreviewSubmitBar from '@/components/ImportPreviewSubmitBar.vue';
@@ -11,22 +12,16 @@ import ListSurface from '@/components/ListSurface.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
 import {
     monthHasPlan,
     type EntryToSpendInputs,
 } from '@/lib/entry-to-spend-warning';
-import { firstRowsError } from '@/lib/import-preview-errors';
+import {
+    duplicateAcknowledgementErrorText,
+    firstRowsError,
+} from '@/lib/import-preview-errors';
 import { importSubmitBlockReason } from '@/lib/import-submit-block';
 import { computeImportToSpendWarnings } from '@/lib/import-to-spend-warnings';
 import {
@@ -172,23 +167,6 @@ const toSpendWarnings = computed(() =>
     computeImportToSpendWarnings(rows, selections.value, entryToSpend),
 );
 
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.operations,
-            href: operationsRoute(),
-        },
-        {
-            title: t.operations.import_title,
-            href: CsvImportController.create.url(),
-        },
-        {
-            title: t.operations.import_preview,
-            href: CsvImportController.showPreview.url(),
-        },
-    ],
-});
-
 function refreshPairSelections(): void {
     for (const row of rows) {
         const selection = selections.value[row.index];
@@ -211,20 +189,21 @@ watch(consumedFirstLegKeysSet, () => {
 </script>
 
 <template>
-    <Head :title="t.operations.import_preview" />
+    <Head :title="t.operations.import_title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-lg font-semibold">
-                    {{ t.operations.import_preview }}
+                <h1 class="page-title">
+                    {{ t.operations.import_title }}
                 </h1>
-                <p class="text-muted-foreground text-sm">
+                <p class="meta text-muted-foreground">
                     {{ t.operations.import_preview_description }}
                 </p>
             </div>
-            <Button v-if="rows.length > 0" as-child variant="outline">
-                <Link :href="CsvImportController.create.url()">
+            <Button as-child variant="outline">
+                <Link :href="operationsRoute()">
+                    <ArrowLeft class="size-4" aria-hidden="true" />
                     {{ t.operations.import_back }}
                 </Link>
             </Button>
@@ -238,8 +217,8 @@ watch(consumedFirstLegKeysSet, () => {
                 <template #actions>
                     <Button variant="outline" as-child>
                         <Link :href="CsvImportController.create.url()">
-                            <ArrowLeft class="size-4" />
-                            {{ t.operations.import_back }}
+                            <ArrowLeft class="size-4" aria-hidden="true" />
+                            {{ t.operations.import_choose_other_file }}
                         </Link>
                     </Button>
                 </template>
@@ -247,22 +226,25 @@ watch(consumedFirstLegKeysSet, () => {
         </ListSurface>
 
         <template v-else>
-            <Card>
-                <CardHeader>
-                    <CardTitle class="text-base">
-                        {{ t.operations.import_summary_title }}
-                    </CardTitle>
-                    <CardDescription>
-                        {{
-                            t.operations.import_summary_description.replace(
-                                ':account',
-                                account.name,
-                            )
-                        }}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="flex flex-wrap gap-2">
-                    <Badge variant="secondary">
+            <ListSurface class="gap-4">
+                <template #header>
+                    <div class="space-y-1">
+                        <h2 class="section-title">
+                            {{ t.operations.import_summary_title }}
+                        </h2>
+                        <p class="meta text-muted-foreground">
+                            {{
+                                t.operations.import_summary_description.replace(
+                                    ':account',
+                                    account.name,
+                                )
+                            }}
+                        </p>
+                    </div>
+                </template>
+
+                <div class="flex flex-wrap gap-2">
+                    <Badge variant="neutral">
                         {{
                             t.operations.import_valid_rows.replace(
                                 ':count',
@@ -270,7 +252,10 @@ watch(consumedFirstLegKeysSet, () => {
                             )
                         }}
                     </Badge>
-                    <Badge v-if="invalidRowCount > 0" variant="destructive">
+                    <Badge
+                        v-if="invalidRowCount > 0"
+                        variant="destructive-soft"
+                    >
                         {{
                             t.operations.import_invalid_rows.replace(
                                 ':count',
@@ -294,11 +279,11 @@ watch(consumedFirstLegKeysSet, () => {
                             )
                         }}
                     </Badge>
-                    <p class="text-muted-foreground w-full text-xs">
+                    <p class="meta text-muted-foreground w-full">
                         {{ t.operations.import_duplicate_warning_body }}
                     </p>
-                </CardContent>
-            </Card>
+                </div>
+            </ListSurface>
 
             <Alert v-if="duplicateRowCount > 0" variant="warning">
                 <AlertTriangle class="size-4" />
@@ -330,7 +315,7 @@ watch(consumedFirstLegKeysSet, () => {
                 v-slot="{ errors, processing }"
                 class="space-y-4"
             >
-                <ListSurface>
+                <ListSurface flush>
                     <div class="overflow-x-auto">
                         <div
                             class="import-preview-grid import-preview-header-row"
@@ -384,21 +369,16 @@ watch(consumedFirstLegKeysSet, () => {
                     </div>
                 </ListSurface>
 
-                <div
+                <ImportPreviewDuplicateAcknowledgement
                     v-if="requiresDuplicateAcknowledgement"
-                    class="flex items-center gap-2"
-                >
-                    <Checkbox
-                        id="duplicate-warning"
-                        name="duplicate_warning_acknowledged"
-                        v-model="duplicateWarningAcknowledged"
-                        value="1"
-                    />
-                    <Label for="duplicate-warning">
-                        {{ t.operations.import_duplicate_acknowledge }}
-                    </Label>
-                </div>
-                <InputError :message="errors.duplicate_warning_acknowledged" />
+                    v-model="duplicateWarningAcknowledged"
+                    :error="
+                        duplicateAcknowledgementErrorText(
+                            errors.duplicate_warning_acknowledged,
+                            t.operations,
+                        )
+                    "
+                />
                 <InputError :message="firstRowsError(errors)" />
 
                 <ImportPreviewSubmitBar

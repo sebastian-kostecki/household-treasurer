@@ -1,19 +1,49 @@
 import type { CapitalMovementRowData } from '@/components/CapitalMovementRow.vue';
 import type { FinancialOperationRowData } from '@/components/FinancialOperationRow.vue';
 import type { OwnTransferRowData } from '@/components/OwnTransferRow.vue';
+import type { OperationsListSection } from '@/components/OperationsActiveFilterChips.vue';
+import type {
+    OperationsFilterAccount,
+    OperationsFilterCategory,
+    OperationsFilterTermDeposit,
+    OperationsListFilters,
+} from '@/components/OperationsFilters.vue';
 import type { PaginatedCollection } from '@/components/PaginationLinks.vue';
+import { EMPTY_OPERATIONS_FILTERS } from '@/lib/operations-list-query';
 
 const mainAccount = {
     account_name: 'Konto osobiste',
     account_type: 'bank',
-    account_bank: 'ing',
-    account_mark_url: null,
+    account_bank: 'pko_bp',
+    account_mark_url: '/marks/pko-bp.svg',
 } as const;
 
 const savingsAccount = {
     account_name: 'Konto oszczędnościowe',
     account_type: 'bank',
     account_bank: 'mbank',
+    account_mark_url: '/marks/mbank.jpg',
+} as const;
+
+const cashAccount = {
+    account_name: 'Gotówka',
+    account_type: 'cash',
+    account_bank: null,
+    account_mark_url: null,
+} as const;
+
+const bankWithoutLogoAccount = {
+    account_name: 'Konto w ING',
+    account_type: 'bank',
+    account_bank: 'ing',
+    account_mark_url: null,
+} as const;
+
+const otherBankArchivedAccount = {
+    account_name:
+        'Wspólne konto rodzinne na wydatki bieżące, rachunki i opłaty za przedszkole',
+    account_type: 'bank',
+    account_bank: 'other',
     account_mark_url: null,
 } as const;
 
@@ -31,7 +61,7 @@ export const incomeOperation: FinancialOperationRowData = {
     ...baseOperation,
     id: 1,
     type: 'income',
-    operation_date: '2026-11-02',
+    operation_date: '2026-11-04',
     amount_minor_units: 850000,
     description: 'Wynagrodzenie',
     category_name: 'Wynagrodzenie',
@@ -39,9 +69,9 @@ export const incomeOperation: FinancialOperationRowData = {
 
 export const expenseOperation: FinancialOperationRowData = {
     ...baseOperation,
-    id: 2,
+    id: 3,
     type: 'expense',
-    operation_date: '2026-11-01',
+    operation_date: '2026-11-04',
     amount_minor_units: 12345,
     description: 'Zakupy spożywcze',
     category_name: 'Jedzenie',
@@ -49,9 +79,9 @@ export const expenseOperation: FinancialOperationRowData = {
 
 export const refundOperation: FinancialOperationRowData = {
     ...baseOperation,
-    id: 3,
+    id: 2,
     type: 'expense',
-    operation_date: '2026-10-31',
+    operation_date: '2026-11-04',
     amount_minor_units: -4500,
     description: 'Zwrot zamówienia',
     category_name: 'Zakupy',
@@ -61,7 +91,7 @@ export const bankDescriptionOperation: FinancialOperationRowData = {
     ...baseOperation,
     id: 4,
     type: 'expense',
-    operation_date: '2026-10-30',
+    operation_date: '2026-11-03',
     amount_minor_units: 6990,
     description: 'Abonament telefoniczny',
     category_name: 'Rachunki',
@@ -73,20 +103,66 @@ export const counterpartyOperation: FinancialOperationRowData = {
     ...baseOperation,
     id: 5,
     type: 'expense',
-    operation_date: '2026-10-29',
+    operation_date: '2026-11-03',
     amount_minor_units: 24999,
     description: 'Faktura październik',
     counterparty: 'Sklep Techniczny Sp. z o.o.',
     category_name: 'Dom',
 };
 
+export const cashOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    ...cashAccount,
+    id: 6,
+    account_id: 3,
+    type: 'expense',
+    operation_date: '2026-11-03',
+    amount_minor_units: 1850,
+    description: 'Bułki i kawa',
+    category_name: 'Jedzenie',
+};
+
+export const bankWithoutLogoOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    ...bankWithoutLogoAccount,
+    id: 7,
+    account_id: 4,
+    type: 'expense',
+    operation_date: '2026-11-03',
+    amount_minor_units: 4200,
+    description: 'Opłata za konto',
+    category_name: 'Rachunki',
+};
+
+export const otherBankArchivedOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    ...otherBankArchivedAccount,
+    id: 8,
+    account_id: 5,
+    type: 'expense',
+    operation_date: '2026-11-03',
+    amount_minor_units: 1000,
+    description: 'Opłata za przedszkole',
+    category_name: 'Rachunki',
+};
+
+/** Dzień z dodatnią sumą (dochód, zwrot, wydatek), potem dzień z ujemną. */
 export const financialOperationFixtures: FinancialOperationRowData[] = [
     incomeOperation,
-    expenseOperation,
     refundOperation,
+    expenseOperation,
     bankDescriptionOperation,
     counterpartyOperation,
+    cashOperation,
+    bankWithoutLogoOperation,
+    otherBankArchivedOperation,
 ];
+
+/** Sumy dnia liczy serwer; tu: 8500,00 + 45,00 − 123,45 oraz −69,90 − 249,99. */
+export const operationDaySumsFixture: Record<string, number> = {
+    '2026-11-04': 842155,
+    '2026-11-03': -31989,
+};
 
 export const ownTransferFixture: OwnTransferRowData = {
     id: 1,
@@ -99,11 +175,11 @@ export const ownTransferFixture: OwnTransferRowData = {
     source_account_name: mainAccount.account_name,
     source_account_type: mainAccount.account_type,
     source_account_bank: mainAccount.account_bank,
-    source_account_mark_url: null,
+    source_account_mark_url: mainAccount.account_mark_url,
     destination_account_name: savingsAccount.account_name,
     destination_account_type: savingsAccount.account_type,
     destination_account_bank: savingsAccount.account_bank,
-    destination_account_mark_url: null,
+    destination_account_mark_url: savingsAccount.account_mark_url,
 };
 
 export const ownTransferFixtures: OwnTransferRowData[] = [ownTransferFixture];
@@ -117,6 +193,8 @@ export const capitalMovementToDeposit: CapitalMovementRowData = {
     account_id: 1,
     term_deposit_id: 1,
     term_deposit_name: 'Lokata 12M',
+    term_deposit_bank: 'lokaty_facto',
+    term_deposit_mark_url: '/marks/lokaty-facto.svg',
     ...mainAccount,
 };
 
@@ -168,3 +246,78 @@ export function paginate<T>(
         ],
     };
 }
+
+export const emptyPaginator = paginate<never>([], 1, 1);
+
+export const searchFiltersFixture: OperationsListFilters = {
+    ...EMPTY_OPERATIONS_FILTERS,
+    q: 'zakupy',
+};
+
+export const filterCategoriesFixture: OperationsFilterCategory[] = [
+    {
+        name: 'Wynagrodzenie',
+        type: 'income',
+        icon: 'banknote',
+        color: '#0d9488',
+    },
+    { name: 'Jedzenie', type: 'expense', icon: 'utensils', color: '#0d9488' },
+];
+
+export const filterAccountsFixture: OperationsFilterAccount[] = [
+    {
+        id: 1,
+        name: mainAccount.account_name,
+        type: mainAccount.account_type,
+        bank: mainAccount.account_bank,
+        mark_url: mainAccount.account_mark_url,
+        is_archived: false,
+    },
+    {
+        id: 2,
+        name: savingsAccount.account_name,
+        type: savingsAccount.account_type,
+        bank: savingsAccount.account_bank,
+        mark_url: savingsAccount.account_mark_url,
+        is_archived: false,
+    },
+    {
+        id: 3,
+        name: cashAccount.account_name,
+        type: cashAccount.account_type,
+        bank: cashAccount.account_bank,
+        mark_url: cashAccount.account_mark_url,
+        is_archived: false,
+    },
+    {
+        id: 4,
+        name: bankWithoutLogoAccount.account_name,
+        type: bankWithoutLogoAccount.account_type,
+        bank: bankWithoutLogoAccount.account_bank,
+        mark_url: bankWithoutLogoAccount.account_mark_url,
+        is_archived: true,
+    },
+    {
+        id: 5,
+        name: otherBankArchivedAccount.account_name,
+        type: otherBankArchivedAccount.account_type,
+        bank: otherBankArchivedAccount.account_bank,
+        mark_url: otherBankArchivedAccount.account_mark_url,
+        is_archived: true,
+    },
+];
+
+export const accountFilterFixture: OperationsListFilters = {
+    ...EMPTY_OPERATIONS_FILTERS,
+    account_id: 1,
+};
+
+export const filterTermDepositsFixture: OperationsFilterTermDeposit[] = [
+    { id: 1, name: 'Lokata 12M' },
+];
+
+export const sectionTotalsFixture: Record<OperationsListSection, number> = {
+    financial_operations: 15,
+    own_transfers: 3,
+    capital_movements: 6,
+};

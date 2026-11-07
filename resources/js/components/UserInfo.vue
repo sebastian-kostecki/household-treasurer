@@ -7,10 +7,12 @@ import type { User } from '@/types';
 type Props = {
     user: User;
     showEmail?: boolean;
+    variant?: 'default' | 'sidebar';
 };
 
 const props = withDefaults(defineProps<Props>(), {
     showEmail: false,
+    variant: 'default',
 });
 
 const { getInitials } = useInitials();
@@ -22,17 +24,33 @@ const showAvatar = computed(
 </script>
 
 <template>
-    <Avatar class="h-8 w-8 overflow-hidden rounded-lg">
+    <Avatar
+        class="overflow-hidden"
+        :class="variant === 'sidebar' ? 'size-7' : 'size-8'"
+    >
         <AvatarImage v-if="showAvatar" :src="user.avatar!" :alt="user.name" />
-        <AvatarFallback class="rounded-lg">
+        <AvatarFallback
+            :class="
+                variant === 'sidebar'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground meta font-semibold'
+                    : 'text-foreground'
+            "
+        >
             {{ getInitials(user.name) }}
         </AvatarFallback>
     </Avatar>
 
     <div class="grid flex-1 text-left text-sm leading-tight">
         <span class="truncate font-medium">{{ user.name }}</span>
-        <span v-if="showEmail" class="text-muted-foreground truncate text-xs">{{
-            user.email
-        }}</span>
+        <span
+            v-if="variant === 'sidebar'"
+            class="meta text-sidebar-foreground truncate"
+            >{{ user.email }}</span
+        >
+        <span
+            v-else-if="showEmail"
+            class="text-muted-foreground truncate text-xs"
+            >{{ user.email }}</span
+        >
     </div>
 </template>

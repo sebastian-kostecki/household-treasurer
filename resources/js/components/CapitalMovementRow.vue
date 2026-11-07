@@ -3,13 +3,17 @@ import CapitalMovementActions from '@/components/CapitalMovementActions.vue';
 import type { CapitalMovementFormMovement } from '@/components/CapitalMovementFormDialog.vue';
 import CompactAccountIdentity from '@/components/CompactAccountIdentity.vue';
 import OperationDescriptionCell from '@/components/OperationDescriptionCell.vue';
-import OperationsDateCell from '@/components/OperationsDateCell.vue';
-import type { PrefixedAccountIdentityFields } from '@/lib/account-identity';
+import type {
+    AccountBank,
+    PrefixedAccountIdentityFields,
+} from '@/lib/account-identity';
 import { formatMoney } from '@/lib/format';
 
 export type CapitalMovementRowData = CapitalMovementFormMovement &
     PrefixedAccountIdentityFields<'account'> & {
         term_deposit_name: string;
+        term_deposit_bank: AccountBank;
+        term_deposit_mark_url: string | null;
     };
 
 defineProps<{
@@ -23,10 +27,6 @@ const emit = defineEmits<{
 
 <template>
     <div class="operations-grid operations-grid-transfer operations-row">
-        <div class="operations-cell-date">
-            <OperationsDateCell :date="movement.movement_date" />
-        </div>
-
         <div class="operations-cell-description">
             <OperationDescriptionCell
                 variant="transfer"
@@ -45,14 +45,24 @@ const emit = defineEmits<{
                     :mark_url="movement.account_mark_url"
                 />
                 <span class="text-muted-foreground shrink-0">→</span>
-                <span class="min-w-0 flex-1 truncate font-medium">
-                    {{ movement.term_deposit_name }}
-                </span>
+                <CompactAccountIdentity
+                    class="min-w-0 flex-1"
+                    mark-size="md"
+                    type="bank"
+                    :bank="movement.term_deposit_bank"
+                    :mark_url="movement.term_deposit_mark_url"
+                    :name="movement.term_deposit_name"
+                />
             </template>
             <template v-else>
-                <span class="min-w-0 flex-1 truncate font-medium">
-                    {{ movement.term_deposit_name }}
-                </span>
+                <CompactAccountIdentity
+                    class="min-w-0 flex-1"
+                    mark-size="md"
+                    type="bank"
+                    :bank="movement.term_deposit_bank"
+                    :mark_url="movement.term_deposit_mark_url"
+                    :name="movement.term_deposit_name"
+                />
                 <span class="text-muted-foreground shrink-0">→</span>
                 <CompactAccountIdentity
                     class="min-w-0 flex-1"

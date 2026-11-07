@@ -2,79 +2,21 @@
 import { Link } from '@inertiajs/vue3';
 import { AlertTriangle, CalendarDays, OctagonX } from '@lucide/vue';
 import { computed, onUnmounted, ref } from 'vue';
-import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
-import CategoryChip from '@/components/CategoryChip.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountBank } from '@/lib/account-identity';
 import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
 import { formatMoney } from '@/lib/format';
-import { monthElapsedPercent } from '@/lib/month-pace-calculator';
+import { noticePresentation } from '@/lib/dashboard-notice-presentation';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { operations as operationsRoute } from '@/routes';
 import { index as termDepositsIndex } from '@/routes/term-deposits';
-
-export type DashboardNoticeSeverity = 'exceeded' | 'warning';
-
-export type DashboardNotice = {
-    severity: DashboardNoticeSeverity;
-} & (
-    | {
-          kind: 'negative_account';
-          id: number;
-          name: string;
-          type: 'bank' | 'cash';
-          bank: AccountBank | null;
-          mark_url: string | null;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'negative_term_deposit';
-          id: number;
-          name: string;
-          bank: AccountBank;
-          mark_url: string | null;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'month_to_spend_negative';
-          month: number;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'month_item_over_plan';
-          id: number;
-          name: string;
-          icon: string;
-          color: string;
-          category_name: string;
-          amount_minor_units: number;
-      }
-    | {
-          kind: 'month_plan_not_approved';
-          month: number;
-      }
-    | {
-          kind: 'month_pace_ahead';
-          month: number;
-          percent: number;
-          elapsed_day: number;
-          days_in_month: number;
-      }
-    | {
-          kind: 'one_off_over_limit';
-          id: number;
-          name: string;
-          icon: string;
-          color: string;
-          category_name: string;
-          amount_minor_units: number;
-      }
-);
+import type { DashboardNotice } from '@/types/dashboard';
 
 // Two rows of the card grid's widest breakpoint (3 columns).
 const VISIBLE_NOTICE_LIMIT = 6;
@@ -129,32 +71,8 @@ const warningCount = computed(
         props.notices.filter((notice) => notice.severity === 'warning').length,
 );
 
-function severityTextClass(severity: DashboardNoticeSeverity): string {
-    return severity === 'exceeded' ? 'text-destructive' : 'text-warning';
-}
-
-function severityCardClass(severity: DashboardNoticeSeverity): string {
-    return severity === 'exceeded'
-        ? 'border-destructive/25 bg-destructive/5 hover:bg-destructive/10'
-        : 'border-warning/30 bg-warning/5 hover:bg-warning/10';
-}
-
-function noticeKindLabel(notice: DashboardNotice): string {
-    switch (notice.kind) {
-        case 'negative_account':
-        case 'negative_term_deposit':
-            return t.dashboard.notice_negative_balance;
-        case 'month_to_spend_negative':
-            return t.dashboard.notice_month_to_spend_negative;
-        case 'month_item_over_plan':
-            return t.dashboard.notice_month_item_over_plan;
-        case 'month_plan_not_approved':
-            return t.dashboard.notice_month_plan_not_approved;
-        case 'month_pace_ahead':
-            return t.dashboard.notice_month_pace_ahead;
-        case 'one_off_over_limit':
-            return t.dashboard.notice_one_off_over_limit;
-    }
+function isNoticePending(notice: DashboardNotice): boolean {
+    return isMonthNotice(notice) && monthPlanRequestPending.value;
 }
 
 function isMonthNotice(notice: DashboardNotice): notice is Extract<
@@ -177,26 +95,42 @@ function monthName(month: number): string {
     return t.budget[`month_name_${month}`] ?? '';
 }
 
+function noticeLabel(notice: DashboardNotice): string {
+    return t.dashboard[`notice_label_${noticePresentation(notice).labelKey}`];
+}
+
+function noticeIdentity(notice: DashboardNotice): string {
+    const identity = noticePresentation(notice).identity;
+
+    return identity.type === 'month'
+        ? capitalized(monthName(identity.month))
+        : identity.name;
+}
+
+function noticeAvatar(notice: DashboardNotice) {
+    const identity = noticePresentation(notice).identity;
+
+    return identity.type === 'account' ? identity.avatar : null;
+}
+
 function noticeValue(notice: DashboardNotice): string | null {
-    if (notice.kind === 'month_plan_not_approved') {
+    const value = noticePresentation(notice).value;
+
+    if (value === null) {
         return null;
     }
 
-    if (notice.kind === 'month_pace_ahead') {
-        return t.dashboard.notice_month_pace_value
-            .replace(':pace', String(notice.percent))
-            .replace(
-                ':elapsed',
-                String(
-                    monthElapsedPercent(
-                        notice.elapsed_day,
-                        notice.days_in_month,
-                    ),
-                ),
-            );
+    if (value.type === 'money') {
+        return formatMoney(value.minorUnits);
     }
 
-    return formatMoney(notice.amount_minor_units);
+    return t.dashboard.notice_value_pace
+        .replace(':percent', String(value.percent))
+        .replace(':days_percent', String(value.daysPercent));
+}
+
+function capitalized(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 const showCollapse = computed(
@@ -284,7 +218,7 @@ function noticeKey(notice: DashboardNotice): string {
 <template>
     <section class="space-y-3" :aria-labelledby="headingId">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 :id="headingId" class="text-sm font-semibold">
+            <h2 :id="headingId" class="section-title">
                 {{ t.dashboard.attention_zone_title }}
             </h2>
             <div class="flex flex-wrap items-center gap-2">
@@ -323,13 +257,9 @@ function noticeKey(notice: DashboardNotice): string {
                         : undefined
                 "
                 :as="isMonthNotice(notice) ? 'button' : 'a'"
-                :disabled="
-                    isMonthNotice(notice) && monthPlanRequestPending
-                        ? true
-                        : undefined
-                "
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full flex-col gap-2 rounded-2xl border p-4 text-left transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:opacity-60"
-                :class="severityCardClass(notice.severity)"
+                :disabled="isNoticePending(notice) ? true : undefined"
+                class="dashboard-notice"
+                :aria-busy="isNoticePending(notice) ? 'true' : undefined"
                 @start="monthPlanRequestPending = isMonthNotice(notice)"
                 @error="
                     isMonthNotice(notice) ? onMonthPlanRequestFailed() : null
@@ -337,76 +267,59 @@ function noticeKey(notice: DashboardNotice): string {
                 @finish="monthPlanRequestPending = false"
             >
                 <span
-                    class="inline-flex items-center gap-1.5 text-xs font-medium"
-                    :class="severityTextClass(notice.severity)"
+                    class="dashboard-notice-icon"
+                    :class="`dashboard-notice-icon-${notice.severity}`"
                 >
+                    <Spinner v-if="isNoticePending(notice)" class="size-3.5" />
+                    <CalendarDays
+                        v-else-if="isMonthNotice(notice)"
+                        class="size-3.5"
+                        aria-hidden="true"
+                    />
                     <OctagonX
-                        v-if="notice.severity === 'exceeded'"
-                        class="size-3.5 shrink-0"
+                        v-else-if="notice.severity === 'exceeded'"
+                        class="size-3.5"
                         aria-hidden="true"
                     />
-                    <AlertTriangle
-                        v-else
-                        class="size-3.5 shrink-0"
-                        aria-hidden="true"
-                    />
-                    {{ noticeKindLabel(notice) }}
+                    <AlertTriangle v-else class="size-3.5" aria-hidden="true" />
                 </span>
 
-                <div class="flex min-w-0 items-center gap-2">
-                    <AccountIdentityBlock
-                        v-if="notice.kind === 'negative_account'"
-                        class="shrink-0"
-                        size="sm"
-                        :name="notice.name"
-                        :type="notice.type"
-                        :bank="notice.bank"
-                        :mark_url="notice.mark_url"
-                    />
-                    <AccountIdentityBlock
-                        v-else-if="notice.kind === 'negative_term_deposit'"
-                        class="shrink-0"
-                        size="sm"
-                        type="bank"
-                        :name="notice.name"
-                        :bank="notice.bank"
-                        :mark_url="notice.mark_url"
-                    />
+                <span class="dashboard-notice-body">
                     <span
-                        v-else-if="isMonthNotice(notice)"
-                        class="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-lg"
-                        aria-hidden="true"
+                        class="dashboard-notice-kind meta text-muted-foreground"
                     >
-                        <CalendarDays class="size-4" />
+                        {{ noticeLabel(notice) }}
                     </span>
-                    <CategoryChip
-                        v-else
-                        class="shrink-0"
-                        :name="notice.name"
-                        :icon="notice.icon"
-                        :color="notice.color"
-                        size="sm"
-                        :show-name="false"
-                    />
+                    <span class="dashboard-notice-identity">
+                        <template
+                            v-for="avatar in [noticeAvatar(notice)]"
+                            :key="noticeKey(notice)"
+                        >
+                            <AccountAvatar
+                                v-if="avatar"
+                                size="xs"
+                                :type="avatar.type"
+                                :bank="avatar.bank"
+                                :mark_url="avatar.mark_url"
+                            />
+                        </template>
+                        <span class="truncate">{{
+                            noticeIdentity(notice)
+                        }}</span>
+                    </span>
+                </span>
 
-                    <span
-                        class="min-w-0 flex-1 truncate text-base font-semibold"
-                    >
-                        {{
-                            isMonthNotice(notice)
-                                ? monthName(notice.month)
-                                : notice.name
-                        }}
-                    </span>
-
-                    <span
-                        v-if="noticeValue(notice) !== null"
-                        class="shrink-0 text-base font-semibold tabular-nums"
-                        :class="severityTextClass(notice.severity)"
-                    >
-                        {{ noticeValue(notice) }}
-                    </span>
-                </div>
+                <span
+                    v-if="noticeValue(notice) !== null"
+                    class="dashboard-notice-value amount"
+                    :class="
+                        notice.severity === 'exceeded'
+                            ? 'text-destructive'
+                            : 'text-warning'
+                    "
+                >
+                    {{ noticeValue(notice) }}
+                </span>
             </Link>
         </div>
 

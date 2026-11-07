@@ -10,11 +10,20 @@ const props = withDefaults(
         color: string;
         size?: 'sm' | 'md';
         showName?: boolean;
+        /** Name size; defaults to `xs` for `sm` and `sm` for `md`. */
+        textSize?: 'xs' | 'sm';
     }>(),
     {
         size: 'md',
         showName: true,
+        textSize: undefined,
     },
+);
+
+const nameSizeClass = computed(() =>
+    (props.textSize ?? (props.size === 'sm' ? 'xs' : 'sm')) === 'xs'
+        ? 'text-xs'
+        : '',
 );
 
 const tileSizeClass = computed(() =>
@@ -45,7 +54,7 @@ const tileStyle = computed(() => categoryTileStyle(props.color));
         <span
             v-if="showName"
             class="truncate text-sm font-medium"
-            :class="size === 'sm' ? 'text-xs' : ''"
+            :class="nameSizeClass"
         >
             {{ name }}
         </span>

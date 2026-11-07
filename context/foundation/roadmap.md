@@ -1,254 +1,216 @@
 ---
 project: 'Household Treasurer'
-version: 1
+version: 2
 status: draft
 created: 2026-11-02
-updated: 2026-11-03
-prd_version: 1
+updated: 2026-11-04
+prd_version: 2
 main_goal: market-feedback
 top_blocker: decisions
-milestone_id: month-control-without-spreadsheet
-milestone_seq: 1
-milestone_status: done
+milestone_id: period-reports-and-irregular-expenses
+milestone_seq: 2
+milestone_status: open
 ---
 
 # Roadmap: Household Treasurer
 
-> Derived from `context/foundation/prd.md` (v1) + auto-researched codebase baseline.
+> Derived from `context/foundation/prd-v2.md` (v2) + auto-researched codebase baseline.
 > Edit-in-place; the next milestone continues this file. Archive only when an independent roadmap replaces it.
 > Slices below are listed in dependency order. The "At a glance" table is the index.
+> Identyfikatory kontynuują numerację M-1 (F-01, S-01…S-10 są w `## Done`), więc M-2 zaczyna od F-02 i S-11.
 
 ## Milestone
 
-**M-1: Kontrola miesiąca bez arkusza** — Status: done
+**M-2: Raporty okresu i wydatki nieregularne** — Status: open
 
-- **Intent:** Użytkownik prowadzi kontrolę całego miesiąca wyłącznie w aplikacji, od planu po podsumowanie, bez zakładek miesięcznych arkusza `budget_szablon.xlsx`.
-- **Source materials:** `context/foundation/prd.md` (v1), z blokiem przekazania dla mapy drogowej z `context/foundation/shape-notes.md`.
-- **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, a pełny miesiąc został przeprowadzony w aplikacji zgodnie z głównym kryterium sukcesu PRD.
-- **Scope anchors:** FR-001 do FR-019, US-01.
+- **Intent:** Użytkownik odczytuje w aplikacji, ile i na co wydaje oraz zarabia w miesiącu i w roku, także w kolejnych miesiącach roku. Wydatek nieregularny (np. prąd) ma w planie miesiąca stałą miesięczną kwotę i widoczne „zebrane”, bez odkładania pieniędzy na osobne konto.
+- **Source materials:** `context/foundation/prd-v2.md` (v2), z blokiem przekazania dla mapy drogowej z `context/foundation/shape-notes.md`.
+- **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, a użytkownik przeszedł pięć kroków głównego kryterium sukcesu z PRD v2.
+- **Scope anchors:** FR-001 do FR-014, US-01 do US-04.
 
 ## Vision recap
 
-Budżet roczny nie pozwala kontrolować wydatków w codzienności, a obecne odczyty `Wynik` i `Pozostało w miesiącu` nie mówią wyraźnie, ile jest jeszcze do wydania. Zmiana dodaje plan miesiąca obok budżetu rocznego i jedną liczbę „do wydania”, tak aby zasadniczo nie wydawać więcej, niż zarobiono. Odstępstwo od tej zasady pozostaje jawną decyzją, a nie błędem.
+Aplikacja nie odpowiada dziś na pytanie, ile i na co wydaję oraz zarabiam w wybranym okresie, ani jak to się zmienia w czasie, więc do analizy wstecz użytkownik wraca do arkusza. Raporty mają sens tylko na uporządkowanej liście kategorii, dlatego porządek kategorii idzie razem z nimi. Wydatki płacone kilka razy w roku (prąd, ubezpieczenie auta, wakacje) dostają w planie miesiąca stałą miesięczną kwotę i „zebrane” zamiast ręcznego odkładania na inne konto.
 
 ## North star
 
-**S-01: użytkownik może zobaczyć propozycję planu miesiąca, poprawić ją, zatwierdzić i odczytać jedną liczbę „do wydania”** — ten przepływ najszybciej sprawdza wzór z PRD na prawdziwych danych, a to właśnie jest cel sekwencjonowania.
+**S-11: użytkownik może otworzyć „Raporty”, wybrać miesiąc albo rok i zobaczyć przychody, wydatki, wynik oraz kategorie z kwotą i udziałem %** — ten odczyt na ~1000 prawdziwych operacjach 2026 najszybciej pokaże, gdzie pieniądze płyną inaczej, niż użytkownik sądził, a to jest cel kolejności tego kamienia milowego.
 
-> Gwiazda przewodnia (north star) to najmniejszy wycinek od początku do końca, którego dostarczenie dowodzi, że produkt działa. Stoi tak wcześnie, jak pozwalają warunki wstępne, bo reszta ma sens tylko wtedy, gdy on działa.
+> Gwiazda przewodnia (north star) to najmniejszy wycinek od początku do końca, którego dostarczenie dowodzi, że zmiana działa. Stoi tak wcześnie, jak pozwalają warunki wstępne, bo reszta ma sens tylko wtedy, gdy on działa.
 
 ## At a glance
 
-| ID   | Change ID                   | Outcome (user can …)                                                                             | Prerequisites       | PRD refs                                                   | Status   |
-| ---- | --------------------------- | ------------------------------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------- | -------- |
-| F-01 | month-plan-domain-decisions | (foundation) decyzje o planie miesiąca i progi powiadomień są zapisane w dokumentach domeny       | —                   | Constraints & Compatibility, FR-012                        | done |
-| S-01 | month-plan-and-to-spend     | użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”      | F-01                | US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019      | done |
-| S-02 | set-aside-and-draw          | użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania” | S-01                | FR-004, FR-016                                             | done |
-| S-03 | approved-plan-changes       | użytkownik może zmienić zatwierdzony plan w trakcie miesiąca                                     | S-01                | FR-003                                                     | done |
-| S-04 | month-items-plan-vs-actual  | użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe        | S-01                | FR-006, FR-008                                             | done |
-| S-05 | month-spending-pace         | użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca                             | S-04                | FR-007                                                     | done |
-| S-06 | to-spend-replaces-remaining | użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu | S-01                | FR-011, FR-013                                             | done |
-| S-07 | month-plan-notices          | użytkownik może zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca                | F-01, S-04, S-05    | FR-012                                                     | done |
-| S-08 | plan-based-entry-warnings   | użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu        | S-01                | FR-014, FR-017                                             | done |
-| S-09 | month-summary               | użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne             | S-02, S-03, S-04    | US-01, FR-009, FR-013                                      | done |
-| S-10 | month-plans-vs-year         | użytkownik może porównać plany miesięcy z budżetem rocznym                                       | S-01                | FR-010                                                     | done        |
+| ID   | Change ID                         | Outcome (user can …)                                                                                   | Prerequisites | PRD refs                                             | Status   |
+| ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------- | ---------------------------------------------------- | -------- |
+| F-02 | irregular-expense-domain-decisions | (foundation) ADR i wpisy w `context/foundation/glossary.md` opisują wydatek nieregularny, „zebrane” i regułę końca roku     | —             | Constraints & Compatibility, Business Logic Changes  | ready    |
+| S-11 | period-report-by-category         | użytkownik może zobaczyć przychody, wydatki, wynik i kategorie z udziałem % za wybrany miesiąc albo rok | —             | US-01, FR-001, FR-002, FR-003                        | planning |
+| S-12 | category-trend-by-month           | użytkownik może zobaczyć kwoty kategorii i sumy w kolejnych miesiącach roku                            | S-11          | US-02, FR-005                                        | proposed |
+| S-13 | report-to-operations              | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                      | S-11          | FR-004                                               | proposed |
+| S-14 | irregular-expense-in-month-plan   | użytkownik może oznaczyć wydatek jako nieregularny i widzieć jego miesięczną kwotę oraz „zebrane”       | F-02          | US-03, US-04, FR-010, FR-011, FR-012, FR-014         | proposed |
+| S-15 | irregular-collected-year-end      | użytkownik może zobaczyć, że niewydane „zebrane” na koniec roku obniża plan roczny kategorii           | F-02, S-14    | FR-011, FR-012                                       | blocked  |
+| S-16 | category-identity-across-years    | użytkownik może zmienić nazwę kategorii i ręcznie powiązać ją z kategorią z innego roku bez utraty ciągłości | —        | FR-007, FR-008, FR-009, FR-013, FR-014               | ready    |
+| S-17 | year-over-year-comparison         | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej                               | S-11, S-16    | FR-006                                               | proposed |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                  | Chain                                     | Note                                                                     |
-| ------ | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------ |
-| A      | Plan i liczba          | `F-01` → `S-01` → `S-02` → `S-03` → `S-09` | Najkrótsza droga do użycia na prawdziwym miesiącu; `S-09` dołącza do B przy `S-04`. |
-| B      | Pozycje i sygnały      | `S-04` → `S-05` → `S-07`                  | Dołącza do A przy `S-01`; zamienia liczbę w konkretne sygnały w trakcie miesiąca. |
-| C      | Zastąpienie odczytów   | `S-06` → `S-08`                           | Dołącza do A przy `S-01`; `S-08` nie zależy od `S-06`, łączy je wspólny temat. |
-| D      | Porównanie z rokiem    | `S-10`                                    | Dołącza do A przy `S-01`; niezależne od pozostałych strumieni.            |
+| Stream | Theme                    | Chain                       | Note                                                                                   |
+| ------ | ------------------------ | --------------------------- | -------------------------------------------------------------------------------------- |
+| A      | Raporty                  | `S-11` → `S-12` → `S-13`    | Najszybszy odczyt na prawdziwych danych; `S-12` i `S-13` są od siebie niezależne.       |
+| B      | Wydatki nieregularne     | `F-02` → `S-14` → `S-15`    | Jedyna zmiana reguły „do wydania”; niezależny od A.                                     |
+| C      | Kategoria przez lata     | `S-16` → `S-17`             | Elementy opcjonalne (nice-to-have); `S-17` dołącza do A przy `S-11`.                    |
 
 ## Baseline
 
-What's already in place in the codebase as of `2026-11-02` (auto-researched + user-confirmed).
+What's already in place in the codebase as of `2026-11-04` (auto-researched + user-confirmed).
 Foundations below assume these are present and do NOT re-scaffold them.
 
-- **Frontend:** present — strony Inertia/Vue w `resources/js/pages`, tylko po polsku.
-- **Backend / API:** present — trasy sesyjne w `routes/web.php` i `routes/settings.php`; JSON API nie ma.
-- **Data:** present — 16 migracji, PostgreSQL. Planu miesiąca ani rodzaju pozycji nie ma w kodzie.
-- **Auth:** present — logowanie, 2FA i passkeys przez Fortify, polityki w `app/Policies`, bez samodzielnej rejestracji.
-- **Deploy / infra:** present — `docker-compose.prod.yml`, `scripts/deploy.sh`; wdrożenie ręczne, CI tylko testuje.
-- **Observability:** partial — log plikowy, `/up`, `backup:monitor`; bez śledzenia błędów i metryk.
+- **Frontend:** present — strony Inertia/Vue w `resources/js/pages`. Nie ma biblioteki wykresów (AGENTS.md wymaga ADR przed jej dodaniem) ani strony „Raporty”.
+- **Backend / API:** present — trasy sesyjne w `routes/web.php`. Strona Operacje filtruje już po nazwie i typie kategorii oraz po `date_from` / `date_to` (`app/Http/Requests/IndexOperationsRequest.php`).
+- **Data:** present — 20 migracji, PostgreSQL. `MonthItemKind` ma tylko `bill` i `running`. Odczyty `BudgetMonthResult`, `CategoryExecutionMetrics` i `MonthCategoryActuals` są w `app/Support`. Snapshot jest w wersji 5. `DemoHouseholdSeeder` tworzy tylko bieżący rok; mocka 2025 nie ma.
+- **Auth:** present — Fortify, 2FA, passkeys, polityki w `app/Policies`, bez samodzielnej rejestracji.
+- **Deploy / infra:** present — `docker-compose.prod.yml`, ręczne `scripts/deploy.sh`; CI tylko testuje.
+- **Observability:** partial — log plikowy, `/up`, `backup:monitor`. Wzorem testu wydajności raportu jest `tests/Feature/Nfr/NfrPerf01Test.php`.
 
-Różnice względem dokumentów, istotne dla wycinków: strona Budżet dostaje `Pozostało w miesiącu` w propsach, ale go nie wyświetla (odczyt pokazuje kafelek Dashboardu), `Wynik` jest tylko na stronie Budżet, a żadne powiadomienie nie używa jeszcze wagi `warning`.
+Różnice względem dokumentów, istotne dla wycinków: Align działa dla pojedynczej kategorii, ale Year Close nie jest zaimplementowany, więc reguła końca roku z PRD nie ma dziś mechanizmu, który by ją uruchomił. Lata łączy nazwa i typ kategorii w kilku miejscach (kopiowanie budżetu, podpowiedzi Importu, porównanie planów miesięcy z rokiem, Earmark).
 
 ## Foundations
 
-### F-01: Decyzje domenowe planu miesiąca
+### F-02: Decyzje domenowe wydatku nieregularnego
 
-- **Outcome:** (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `CONTEXT.md`.
-- **Change ID:** month-plan-domain-decisions
-- **PRD refs:** Constraints & Compatibility, FR-012
-- **Unlocks:** S-01 (model planu jest niezgodny z ADR-0024, dopóki nowy ADR go nie zastąpi), S-07 (ADR-0032 wymaga terminu i progów przed kodem powiadomienia `warning`).
+- **Outcome:** (foundation) nowy ADR i wpisy w `context/foundation/glossary.md` opisują trzeci rodzaj pozycji planu miesiąca („nieregularny”), „zebrane”, jego wpływ na „do wydania” i Propozycję planu oraz regułę końca roku.
+- **Change ID:** irregular-expense-domain-decisions
+- **PRD refs:** Constraints & Compatibility (Kompatybilność wsteczna), Business Logic Changes, Rozstrzygnięcia domenowe
+- **Unlocks:** S-14 (AGENTS.md i PRD wymagają ADR oraz wpisów w `context/foundation/glossary.md` przed zmianą reguły To Spend), S-15 (rozstrzyga niewiadomą o mechanizmie końca roku).
 - **Prerequisites:** —
-- **Parallel with:** —
+- **Parallel with:** S-11, S-12, S-13, S-16, S-17
 - **Blockers:** —
 - **Unknowns:** —
-- **Status:** done
+- **Risk:** Stoi przed kodem, bo zmienia regułę To Spend i dodaje termin obok Month Item Kind; musi też jasno powiedzieć, czym „zebrane” różni się od Set-aside, Reserve i Earmark.
+- **Status:** ready
 
 ## Slices
 
-### S-01: Plan miesiąca i liczba „do wydania”
+### S-11: Raport okresu według kategorii
 
-- **Outcome:** użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”
-- **Change ID:** month-plan-and-to-spend
-- **PRD refs:** US-01, FR-001, FR-002, FR-005, FR-015, FR-018, FR-019
-- **Prerequisites:** F-01
-- **Parallel with:** —
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Wprowadza nowe dane i rodzaj pozycji, więc tu powstaje format snapshotu, a przywracanie wersji 1 do 4 ma działać dalej; błąd we wzorze podważa całą resztę mapy.
-- **Status:** done
-
-### S-02: Odkładam / dobieram
-
-- **Outcome:** użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania”
-- **Change ID:** set-aside-and-draw
-- **PRD refs:** FR-004, FR-016
-- **Prerequisites:** S-01
-- **Parallel with:** S-03, S-04, S-05, S-06, S-07, S-08, S-10
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Stoi osobno, bo to pierwsza kwota planu spoza kategorii; ostrzeżenie o dobieraniu ponad Spendable Liquidity nie może zmieniać sald.
-- **Status:** done
-
-### S-03: Zmiana zatwierdzonego planu
-
-- **Outcome:** użytkownik może zmienić zatwierdzony plan w trakcie miesiąca
-- **Change ID:** approved-plan-changes
-- **PRD refs:** FR-003
-- **Prerequisites:** S-01
-- **Parallel with:** S-02, S-04, S-05, S-06, S-07, S-08, S-10
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Podsumowanie potrzebuje planu zatwierdzonego i końcowego, więc oba muszą pozostać rozróżnialne od pierwszej zmiany.
-- **Status:** done
-
-### S-04: Pozycje miesiąca: plan i wykonanie
-
-- **Outcome:** użytkownik może zobaczyć plan i faktyczną kwotę każdej pozycji oraz kategorie jednorazowe
-- **Change ID:** month-items-plan-vs-actual
-- **PRD refs:** FR-006, FR-008
-- **Prerequisites:** S-01
-- **Parallel with:** S-02, S-03, S-06, S-08, S-10
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Stoi wcześnie, bo tempo, powiadomienia i podsumowanie korzystają z tego widoku; ryzyko to zaciemnienie go długą listą kategorii z zerowym planem.
-- **Status:** done
-
-### S-05: Tempo wydatków
-
-- **Outcome:** użytkownik może zobaczyć tempo wydatków względem upływu dni miesiąca
-- **Change ID:** month-spending-pace
-- **PRD refs:** FR-007
-- **Prerequisites:** S-04
-- **Parallel with:** S-02, S-03, S-06, S-08, S-09, S-10
-- **Blockers:** —
-- **Unknowns:** —
-- **Risk:** Fałszywe ostrzeżenia uczą ignorowania sygnału, dlatego tempo obejmuje tylko pozycje „bieżące” bez kategorii jednorazowych.
-- **Status:** done
-
-### S-06: „Do wydania” zamiast `Pozostało w miesiącu`
-
-- **Outcome:** użytkownik może odczytać „do wydania” na Dashboardzie i stronie Budżet, także w miesiącu bez planu
-- **Change ID:** to-spend-replaces-remaining
-- **PRD refs:** FR-011, FR-013
-- **Prerequisites:** S-01
-- **Parallel with:** S-02, S-03, S-04, S-05, S-07, S-08, S-09, S-10
+- **Outcome:** użytkownik może zobaczyć przychody, wydatki, wynik i kategorie z udziałem % za wybrany miesiąc albo rok
+- **Change ID:** period-report-by-category
+- **PRD refs:** US-01, FR-001, FR-002, FR-003
+- **Prerequisites:** —
+- **Parallel with:** F-02, S-14, S-15, S-16
 - **Blockers:** —
 - **Unknowns:**
-  - Czy na stronie Budżet „do wydania” ma być nowym odczytem, skoro `Pozostało w miesiącu` nie jest tam dziś wyświetlane? — Owner: user. Block: no.
-- **Risk:** Stary odczyt zostaje dla minionych miesięcy bez planu, więc oba odczyty muszą współistnieć bez mylenia użytkownika.
-- **Status:** done
+  - Biblioteka wykresów czy wykres bez biblioteki? Decyzja wymaga ADR według AGENTS.md. — Owner: user. Block: no.
+- **Risk:** Tu powstaje widok raportów i decyzja o wykresach, z których korzysta reszta strumienia A. Sumy muszą być co do grosza równe wykonaniu w budżecie rocznym i Wynikowi miesiąca, a raport roku musi się otwierać w 2 s przy 10 000 operacji.
+- **Status:** planning
 
-### S-07: Powiadomienia planu miesiąca
+### S-12: Trend kategorii w miesiącach roku
 
-- **Outcome:** użytkownik może zobaczyć na Dashboardzie powiadomienia związane z planem miesiąca
-- **Change ID:** month-plan-notices
-- **PRD refs:** FR-012
-- **Prerequisites:** F-01, S-04, S-05
-- **Parallel with:** S-02, S-03, S-06, S-08, S-09, S-10
+- **Outcome:** użytkownik może zobaczyć kwoty kategorii i sumy w kolejnych miesiącach roku
+- **Change ID:** category-trend-by-month
+- **PRD refs:** US-02, FR-005
+- **Prerequisites:** S-11
+- **Parallel with:** S-13, F-02, S-14, S-15, S-16, S-17
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** To pierwsze powiadomienia o wadze `warning`, a powiadomienia o drobiazgach uczą ignorowania strefy uwagi.
-- **Status:** done
+- **Risk:** Wynik każdego miesiąca musi równać się Wynikowi miesiąca bez zapytań w pętli po miesiącach (Sloppy). Niepełny bieżący miesiąc i skoki wydatków nieregularnych łatwo odczytać jako alarm.
+- **Status:** proposed
 
-### S-08: Ostrzeżenia przy operacjach liczone z planu
+### S-13: Z raportu do operacji kategorii
 
-- **Outcome:** użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu
-- **Change ID:** plan-based-entry-warnings
-- **PRD refs:** FR-014, FR-017
-- **Prerequisites:** S-01
-- **Parallel with:** S-02, S-03, S-04, S-05, S-06, S-07, S-09, S-10
+- **Outcome:** użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie
+- **Change ID:** report-to-operations
+- **PRD refs:** FR-004
+- **Prerequisites:** S-11
+- **Parallel with:** S-12, F-02, S-14, S-15, S-16, S-17
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Logika ostrzeżeń istnieje dziś w dwóch kopiach, więc zmiana musi objąć obie, a wprowadzanie operacji nie może stać się dłuższe.
-- **Status:** done
+- **Risk:** Element opcjonalny (nice-to-have). Strona Operacje filtruje już po kategorii i datach, więc ryzyko to tylko rozjazd między tym, co raport liczy (zwroty netto, bez transferów własnych), a tym, co lista pokazuje.
+- **Status:** proposed
 
-### S-09: Podsumowanie miesiąca
+### S-14: Wydatek nieregularny w planie miesiąca
 
-- **Outcome:** użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne
-- **Change ID:** month-summary
-- **PRD refs:** US-01, FR-009, FR-013
-- **Prerequisites:** S-02, S-03, S-04
-- **Parallel with:** S-05, S-06, S-07, S-08, S-10
+- **Outcome:** użytkownik może oznaczyć wydatek jako nieregularny i widzieć jego miesięczną kwotę oraz „zebrane” w planie miesiąca i w Podsumowaniu miesiąca, a płatność najpierw zmniejsza „zebrane”
+- **Change ID:** irregular-expense-in-month-plan
+- **PRD refs:** US-03, US-04, FR-010, FR-011, FR-012, FR-014
+- **Prerequisites:** F-02
+- **Parallel with:** S-11, S-12, S-13, S-16, S-17
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Zamyka US-01 i rozstrzyga odczyt minionego miesiąca z planem, więc musi czekać na odkładanie oraz plan zatwierdzony i końcowy.
-- **Status:** done
+- **Risk:** Zbieranie i płatność to jedna reguła, której nie da się dostarczyć osobno bez podwójnego obniżenia „do wydania” w miesiącu płatności. Zmiana obejmuje dwie kopie kalkulatorów (PHP i TS), podglądy wpisu i Importu oraz snapshot w wersji 6. Budżet roczny i minione miesiące nie mogą się zmienić.
+- **Status:** proposed
 
-### S-10: Plany miesięcy a budżet roczny
+### S-15: „Zebrane” na koniec roku
 
-- **Outcome:** użytkownik może porównać plany miesięcy z budżetem rocznym
-- **Change ID:** month-plans-vs-year
-- **PRD refs:** FR-010
-- **Prerequisites:** S-01
-- **Parallel with:** S-02, S-03, S-04, S-05, S-06, S-07, S-08, S-09
+- **Outcome:** użytkownik może zobaczyć, że niewydane „zebrane” na koniec roku obniża plan roczny kategorii i przechodzi do wyniku roku
+- **Change ID:** irregular-collected-year-end
+- **PRD refs:** FR-011, FR-012
+- **Prerequisites:** F-02, S-14
+- **Parallel with:** S-11, S-12, S-13, S-16, S-17
+- **Blockers:** —
+- **Unknowns:**
+  - Co uruchamia obniżenie planu na koniec roku, skoro Year Close nie istnieje: akcja użytkownika w stylu Align, automat po 31 grudnia czy tylko odczyt? Rozstrzyga F-02. — Owner: user. Block: yes.
+- **Risk:** To jedyny wyjątek od zasady „budżet roczny bez zmian” (FR-012). Stoi osobno, bo wymaga mechanizmu, którego w kodzie nie ma, a 2026 kończy się wcześnie w życiu tej funkcji.
+- **Status:** blocked
+
+### S-16: Kategoria rozpoznawana między latami
+
+- **Outcome:** użytkownik może zmienić nazwę kategorii i ręcznie powiązać ją 1:1 z kategorią z innego roku, a nowy budżet kopiuje kategorie razem z powiązaniem
+- **Change ID:** category-identity-across-years
+- **PRD refs:** FR-007, FR-008, FR-009, FR-013, FR-014
+- **Prerequisites:** —
+- **Parallel with:** F-02, S-11, S-12, S-13, S-14, S-15
+- **Blockers:** —
+- **Unknowns:**
+  - Gdzie użytkownik widzi i poprawia powiązanie startowe ustawione po nazwie i typie? — Owner: user. Block: no.
+- **Risk:** Element opcjonalny (nice-to-have). Zmienia termin oznaczony _Avoid_ w `context/foundation/glossary.md` („a Category identity that spans years”), więc ADR musi być przed kodem. Łączenie po nazwie i typie działa w kilku miejscach, w tym w podpowiedziach Importu, których trafność trzeba zmierzyć przed i po zmianie; porządkowanie kategorii w danych kończy się przed pomiarem „przed”. Snapshot podnosi też S-14, więc numery wersji trzeba uzgodnić. Tu powstaje też mock budżetu 2025 z operacjami (tylko dev), bo to pierwszy wycinek, który potrzebuje dwóch lat.
+- **Status:** ready
+
+### S-17: Rok do roku
+
+- **Outcome:** użytkownik może porównać okres raportu z tym samym okresem rok wcześniej
+- **Change ID:** year-over-year-comparison
+- **PRD refs:** FR-006
+- **Prerequisites:** S-11, S-16
+- **Parallel with:** F-02, S-12, S-13, S-14, S-15
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Stoi na końcu, bo nie jest potrzebne do prowadzenia miesiąca, a porównanie nie może zmieniać budżetu rocznego.
-- **Status:** done
+- **Risk:** Element opcjonalny (nice-to-have). Stoi po S-16, żeby porównanie nie powstało na łączeniu po nazwie, które S-16 zastępuje. Raport pokazuje nazwę kategorii z najnowszego roku w okresie.
+- **Status:** proposed
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID                   | Suggested issue title                                        | Ready for `/10x-plan` | Notes                                              |
-| ---------- | --------------------------- | ------------------------------------------------------------ | --------------------- | -------------------------------------------------- |
-| F-01       | month-plan-domain-decisions | Zapisać decyzje domenowe planu miesiąca i progi powiadomień  | yes                   | Run `/10x-plan month-plan-domain-decisions`        |
-| S-01       | month-plan-and-to-spend     | Plan miesiąca i liczba „do wydania”                          | no                    | Czeka na F-01                                      |
-| S-02       | set-aside-and-draw          | Kwota „odkładam / dobieram” w planie miesiąca                | no                    | Czeka na S-01                                      |
-| S-03       | approved-plan-changes       | Zmiana zatwierdzonego planu miesiąca                         | no                    | Czeka na S-01                                      |
-| S-04       | month-items-plan-vs-actual  | Plan i wykonanie pozycji miesiąca                            | no                    | Czeka na S-01                                      |
-| S-05       | month-spending-pace         | Tempo wydatków względem dni miesiąca                         | no                    | Czeka na S-04                                      |
-| S-06       | to-spend-replaces-remaining | „Do wydania” na Dashboardzie i stronie Budżet                | no                    | Czeka na S-01                                      |
-| S-07       | month-plan-notices          | Powiadomienia Dashboardu związane z planem miesiąca          | no                    | Czeka na F-01, S-04 i S-05                         |
-| S-08       | plan-based-entry-warnings   | Ostrzeżenia przy operacjach i w Imporcie liczone z planu     | no                    | Czeka na S-01                                      |
-| S-09       | month-summary               | Podsumowanie miesiąca i realne odkładanie                    | no                    | Czeka na S-02, S-03 i S-04                         |
-| S-10       | month-plans-vs-year         | Porównanie planów miesięcy z budżetem rocznym                | no                    | Czeka na S-01                                      |
+| Roadmap ID | Change ID                          | Suggested issue title                                             | Ready for `/10x-plan` | Notes                                           |
+| ---------- | ---------------------------------- | ----------------------------------------------------------------- | --------------------- | ----------------------------------------------- |
+| F-02       | irregular-expense-domain-decisions | ADR i `context/foundation/glossary.md`: wydatek nieregularny, „zebrane”, koniec roku   | yes                   | Run `/10x-plan irregular-expense-domain-decisions` |
+| S-11       | period-report-by-category          | Raporty: przychody, wydatki, wynik i kategorie za miesiąc albo rok | yes                   | Run `/10x-plan period-report-by-category`       |
+| S-12       | category-trend-by-month            | Raporty: trend kategorii w miesiącach roku                         | no                    | Czeka na S-11                                   |
+| S-13       | report-to-operations               | Raporty: przejście z kategorii do operacji                         | no                    | Czeka na S-11                                   |
+| S-14       | irregular-expense-in-month-plan    | Wydatek nieregularny i „zebrane” w planie miesiąca                 | no                    | Czeka na F-02                                   |
+| S-15       | irregular-collected-year-end       | Niewydane „zebrane” na koniec roku                                 | no                    | Zablokowane: mechanizm końca roku (F-02)        |
+| S-16       | category-identity-across-years     | Kategoria rozpoznawana między latami                               | yes                   | Opcjonalne; Run `/10x-plan category-identity-across-years` |
+| S-17       | year-over-year-comparison          | Raporty: porównanie rok do roku                                    | no                    | Czeka na S-11 i S-16                            |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
 ## Open Roadmap Questions
 
-1. **Jaki jest koszt obecnego obejścia?** Notatki opisują arkusz i jego strukturę, ale nie nazywają ceny jego utrzymania. — Owner: user. Block: none.
-2. **Czy są wymiary jakości, w które ta zmiana świadomie nie celuje?** Non-Goals z notatek są wyłącznie funkcjonalne. — Owner: user. Block: none.
+Brak otwartych pytań. Rozstrzygnięte przez użytkownika 2026-11-04:
+
+1. **Kiedy uporządkować listę kategorii w danych** — po pierwszym odczycie raportu (S-11), przed rozpoczęciem S-16. Pierwszy raport na obecnych danych pokaże, co poprawić, a porządkowanie kończy się przed pomiarem trafności podpowiedzi Importu „przed zmianą” w S-16, więc oba pomiary (FR-013) idą na tych samych danych.
 
 ## Parked
 
-- **Agenda i terminy płatności** — Why parked: PRD §Non-Goals; rachunek nie ma daty płatności.
-- **Współdzielenie z domownikami** — Why parked: PRD §Non-Goals; jedna osoba prowadzi cały dom.
-- **Import arkusza** — Why parked: PRD §Non-Goals; bez przenoszenia danych z `budget_szablon.xlsx`.
-- **Zmiany budżetu rocznego i sald** — Why parked: PRD §Non-Goals i zabezpieczenia PRD.
-- **Przenoszenie reszty i zamykanie miesiąca** — Why parked: PRD §Non-Goals; rozliczenie to tylko podsumowanie.
-- **Fundusz wydatków nieregularnych i przelewy na oszczędności** — Why parked: PRD §Non-Goals; oszczędności to jedna kwota.
-- **Płatności w częściach** — Why parked: PRD §Non-Goals; reguła zakłada rachunki płacone jednorazowo.
-- **Procent od zarobków w „odkładam”** — Why parked: PRD §Non-Goals; pierwsza wersja przyjmuje tylko kwotę.
-- **Śledzenie błędów i metryki** — Why parked: punkt bazowy pokazuje obserwowalność częściową, ale PRD jej nie wymaga, więc nie ma tu elementu przygotowawczego.
+- **Grupy kategorii i domyślna lista kategorii** — Why parked: PRD §Non-Goals; lista kategorii to dane użytkownika.
+- **Porządkowanie listy kategorii** — Why parked: PRD „Poza aplikacją”; praca na danych użytkownika, nie wycinek.
+- **Oznaczanie wyjazdów (tagi ponad kategorię)** — Why parked: PRD §Non-Goals; koszt wakacji to kategoria Wakacje.
+- **Własny zakres dat i eksport raportu** — Why parked: PRD §Non-Goals; okres to miesiąc albo rok, bez CSV i PDF.
+- **Pełna dostępność wykresu** — Why parked: PRD §Non-Goals; dostępną formą tych samych danych jest tabela.
+- **Wydruk raportu** — Why parked: PRD §Non-Goals, spójnie z brakiem eksportu.
+- **Podział i scalanie kategorii między latami** — Why parked: PRD FR-009 (Socratic); powiązanie tylko 1:1, podział zrywa porównanie.
+- **Year Close i Reserve** — Why parked: niezaimplementowane na `main` (AGENTS.md) i spoza PRD v2; S-15 nie buduje ich przy okazji.
+- **Śledzenie błędów i metryki** — Why parked: obserwowalność jest częściowa, ale PRD v2 jej nie wymaga.
 
 ## Milestone History
 
@@ -258,7 +220,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 (Pusta przy pierwszym wygenerowaniu. Wpisy dodaje `/10x-archive`.)
 
-- **F-01: (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `CONTEXT.md`.** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-domain-decisions/`. Lesson: —.
+- **F-01: (foundation) nowy ADR zastąpił ADR-0024 w części o „drugim budżecie miesięcznym”, a nowe terminy oraz progi powiadomień o wadze `warning` są w `context/foundation/glossary.md`.** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-domain-decisions/`. Lesson: —.
 - **S-01: użytkownik może zobaczyć propozycję planu, poprawić ją, zatwierdzić i odczytać „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-month-plan-and-to-spend/`. Lesson: —.
 - **S-02: użytkownik może wpisać w planie kwotę „odkładam / dobieram” i zobaczyć jej wpływ na „do wydania”** — Archived 2026-11-02 → `context/archive/2026-11-02-set-aside-and-draw/`. Lesson: —.
 - **S-03: użytkownik może zmienić zatwierdzony plan w trakcie miesiąca** — Archived 2026-11-02 → `context/archive/2026-11-02-approved-plan-changes/`. Lesson: —.

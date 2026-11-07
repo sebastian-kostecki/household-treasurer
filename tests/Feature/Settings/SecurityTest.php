@@ -93,7 +93,8 @@ class SecurityTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('security.edit'));
+            ->assertRedirect(route('security.edit'))
+            ->assertInertiaFlash('toast.message', 'Hasło zmienione.');
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
     }
@@ -112,7 +113,7 @@ class SecurityTest extends TestCase
             ]);
 
         $response
-            ->assertSessionHasErrors('current_password')
+            ->assertSessionHasErrors(['current_password' => 'Podane hasło jest nieprawidłowe.'])
             ->assertRedirect(route('security.edit'));
     }
 }

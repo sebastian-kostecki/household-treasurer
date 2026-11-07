@@ -49,7 +49,7 @@ const meters = [
                     :class="
                         dot === 1
                             ? 'bg-sidebar-primary'
-                            : 'bg-muted-foreground/25'
+                            : 'bg-sidebar-foreground/60'
                     "
                 />
             </aside>

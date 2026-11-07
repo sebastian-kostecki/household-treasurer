@@ -1,9 +1,23 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeftRight, Landmark, Plus, Upload } from '@lucide/vue';
+import {
+    ArrowDownLeft,
+    ArrowLeftRight,
+    ArrowUpRight,
+    ChevronDown,
+    Landmark,
+    Plus,
+    Upload,
+} from '@lucide/vue';
 import { computed, useId } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useTranslations } from '@/composables/useTranslations';
 import { operationsCreateAvailability } from '@/lib/operations-create-availability';
 
@@ -11,6 +25,8 @@ const { accountsCount, termDepositsCount } = defineProps<{
     accountsCount: number;
     termDepositsCount: number;
 }>();
+
+const menuOpen = defineModel<boolean>('menuOpen', { default: false });
 
 const emit = defineEmits<{
     'add-income': [];
@@ -21,7 +37,9 @@ const emit = defineEmits<{
 
 const t = useTranslations();
 const idPrefix = useId();
+const transferLabelId = `${idPrefix}-transfer-label`;
 const transferReasonId = `${idPrefix}-transfer-reason`;
+const capitalMovementLabelId = `${idPrefix}-capital-movement-label`;
 const capitalMovementReasonId = `${idPrefix}-capital-movement-reason`;
 
 const availability = computed(() =>
@@ -39,64 +57,141 @@ const capitalMovementReason = computed(() => {
 
     return key === null ? null : t.operations[key];
 });
+
+/**
+ * Unavailable items stay focusable (`aria-disabled`, not `disabled`), because
+ * reka skips disabled items during keyboard navigation and the reason would
+ * never be announced. Selecting one keeps the menu open and opens no dialog.
+ */
+function selectTransfer(event: Event): void {
+    if (!availability.value.transfer.enabled) {
+        event.preventDefault();
+
+        return;
+    }
+
+    emit('add-transfer');
+}
+
+function selectCapitalMovement(event: Event): void {
+    if (!availability.value.capitalMovement.enabled) {
+        event.preventDefault();
+
+        return;
+    }
+
+    emit('add-capital-movement');
+}
 </script>
 
 <template>
-    <div class="flex flex-col gap-2 md:items-end">
-        <div class="flex flex-wrap gap-2">
-            <Button as-child>
-                <Link :href="CsvImportController.create.url()">
-                    <Upload class="size-4" />
-                    {{ t.operations.import_title }}
-                </Link>
-            </Button>
-            <Button variant="outline" @click="emit('add-income')">
-                <Plus class="size-4" />
-                {{ t.operations.add_income }}
-            </Button>
-            <Button variant="outline" @click="emit('add-expense')">
-                <Plus class="size-4" />
-                {{ t.operations.add_expense }}
-            </Button>
-            <Button
-                variant="outline"
-                :disabled="!availability.transfer.enabled"
-                :aria-describedby="
-                    transferReason === null ? undefined : transferReasonId
-                "
-                @click="emit('add-transfer')"
-            >
-                <Landmark class="size-4" />
-                {{ t.operations.add_transfer }}
-            </Button>
-            <Button
-                variant="outline"
-                :disabled="!availability.capitalMovement.enabled"
-                :aria-describedby="
-                    capitalMovementReason === null
-                        ? undefined
-                        : capitalMovementReasonId
-                "
-                @click="emit('add-capital-movement')"
-            >
-                <ArrowLeftRight class="size-4" />
-                {{ t.operations.add_capital_movement }}
-            </Button>
-        </div>
+    <div class="flex flex-wrap items-center gap-2">
+        <Button variant="outline" as-child>
+            <Link :href="CsvImportController.create.url()">
+                <Upload class="size-4" aria-hidden="true" />
+                {{ t.operations.import_csv }}
+            </Link>
+        </Button>
 
-        <p
-            v-if="transferReason !== null"
-            :id="transferReasonId"
-            class="text-muted-foreground text-xs"
-        >
-            {{ transferReason }}
-        </p>
-        <p
-            v-if="capitalMovementReason !== null"
-            :id="capitalMovementReasonId"
-            class="text-muted-foreground text-xs"
-        >
-            {{ capitalMovementReason }}
-        </p>
+        <DropdownMenu v-model:open="menuOpen">
+            <DropdownMenuTrigger as-child>
+                <Button type="button">
+                    <Plus class="size-4" aria-hidden="true" />
+                    {{ t.operations.add_operation }}
+                    <ChevronDown class="size-4" aria-hidden="true" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-72">
+                <DropdownMenuItem @select="emit('add-income')">
+                    <ArrowDownLeft class="size-4" aria-hidden="true" />
+                    {{ t.operations.menu_income }}
+                </DropdownMenuItem>
+                <DropdownMenuItem @select="emit('add-expense')">
+                    <ArrowUpRight class="size-4" aria-hidden="true" />
+                    {{ t.operations.menu_expense }}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    as-child
+                    class="items-start"
+                    @select="selectTransfer"
+                >
+                    <div
+                        :aria-disabled="
+                            availability.transfer.enabled ? undefined : 'true'
+                        "
+                        :aria-labelledby="transferLabelId"
+                        :aria-describedby="
+                            transferReason === null
+                                ? undefined
+                                : transferReasonId
+                        "
+                    >
+                        <ArrowLeftRight
+                            class="mt-0.5 size-4"
+                            aria-hidden="true"
+                        />
+                        <span class="flex min-w-0 flex-col">
+                            <span
+                                :id="transferLabelId"
+                                :class="
+                                    availability.transfer.enabled
+                                        ? ''
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ t.operations.menu_own_transfer }}
+                            </span>
+                            <span
+                                v-if="transferReason !== null"
+                                :id="transferReasonId"
+                                class="meta text-muted-foreground"
+                            >
+                                {{ transferReason }}
+                            </span>
+                        </span>
+                    </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    as-child
+                    class="items-start"
+                    @select="selectCapitalMovement"
+                >
+                    <div
+                        :aria-disabled="
+                            availability.capitalMovement.enabled
+                                ? undefined
+                                : 'true'
+                        "
+                        :aria-labelledby="capitalMovementLabelId"
+                        :aria-describedby="
+                            capitalMovementReason === null
+                                ? undefined
+                                : capitalMovementReasonId
+                        "
+                    >
+                        <Landmark class="mt-0.5 size-4" aria-hidden="true" />
+                        <span class="flex min-w-0 flex-col">
+                            <span
+                                :id="capitalMovementLabelId"
+                                :class="
+                                    availability.capitalMovement.enabled
+                                        ? ''
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ t.operations.menu_capital_movement }}
+                            </span>
+                            <span
+                                v-if="capitalMovementReason !== null"
+                                :id="capitalMovementReasonId"
+                                class="meta text-muted-foreground"
+                            >
+                                {{ capitalMovementReason }}
+                            </span>
+                        </span>
+                    </div>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     </div>
 </template>

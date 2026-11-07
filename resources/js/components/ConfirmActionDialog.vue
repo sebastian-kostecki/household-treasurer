@@ -25,7 +25,12 @@ defineProps<{
     destructive?: boolean;
 }>();
 
-const open = ref(false);
+const emit = defineEmits<{
+    error: [errors: Record<string, string>];
+}>();
+
+// Without v-model:open the dialog keeps its own state and opens from the trigger slot.
+const open = defineModel<boolean>('open', { default: false });
 const busy = ref(false);
 
 function onOpenChange(next: boolean): void {
@@ -43,15 +48,18 @@ function onOpenChange(next: boolean): void {
         <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="form"
+                class="grid gap-4"
                 @start="busy = true"
                 @finish="busy = false"
                 @success="open = false"
+                @error="(errors) => emit('error', errors)"
                 v-slot="{ processing, errors }"
             >
                 <DialogHeader>
                     <DialogTitle>{{ title }}</DialogTitle>
                     <DialogDescription>{{ description }}</DialogDescription>
                 </DialogHeader>
+                <slot />
                 <InputError
                     v-for="(message, key) in errors"
                     :key="key"
@@ -61,7 +69,7 @@ function onOpenChange(next: boolean): void {
                     <DialogClose as-child>
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="ghost"
                             :disabled="processing"
                         >
                             {{ cancelLabel }}

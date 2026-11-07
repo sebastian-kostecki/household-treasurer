@@ -1,7 +1,10 @@
 /**
- * Format minor units as Polish PLN string, e.g. 123456 -> "1 234,56 zł"
+ * Format minor units as a Polish amount without the unit, e.g. 123456 -> "1 234,56"
+ * (table cells; the unit goes in the panel footer, ADR-0037).
  */
-export function formatMoney(minorUnits: number): string {
+export const MONEY_UNIT = 'zł';
+
+export function formatMoneyAmount(minorUnits: number): string {
     const negative = minorUnits < 0;
     const absolute = Math.abs(minorUnits);
     const zl = Math.floor(absolute / 100);
@@ -9,7 +12,14 @@ export function formatMoney(minorUnits: number): string {
     const formattedZl = zl.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const sign = negative ? '-' : '';
 
-    return `${sign}${formattedZl},${gr.toString().padStart(2, '0')} zł`;
+    return `${sign}${formattedZl},${gr.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Format minor units as Polish PLN string, e.g. 123456 -> "1 234,56 zł"
+ */
+export function formatMoney(minorUnits: number): string {
+    return `${formatMoneyAmount(minorUnits)} ${MONEY_UNIT}`;
 }
 
 /**
@@ -18,6 +28,15 @@ export function formatMoney(minorUnits: number): string {
  */
 export function formatSignedMoney(minorUnits: number): string {
     const formatted = formatMoney(minorUnits);
+
+    return minorUnits > 0 ? `+${formatted}` : formatted;
+}
+
+/**
+ * Like formatSignedMoney, without the unit (table cells, ADR-0037).
+ */
+export function formatSignedMoneyAmount(minorUnits: number): string {
+    const formatted = formatMoneyAmount(minorUnits);
 
     return minorUnits > 0 ? `+${formatted}` : formatted;
 }
@@ -118,7 +137,47 @@ export function formatRelativeDate(date: Date | string): string {
 }
 
 /**
- * Format minor units as signed Polish PLN for financial operations.
+ * Format a date as a full Polish date with weekday and year,
+ * e.g. "czwartek, 5 listopada 2026".
+ */
+export function formatLongDate(date: Date | string): string {
+    const value =
+        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(value);
+}
+
+/**
+ * Format a date as a Polish day label, e.g. "środa, 4 listopada"; the year is
+ * added when it differs from the year of `today`.
+ */
+export function formatDayLabel(
+    date: Date | string,
+    today: Date = new Date(),
+): string {
+    const value =
+        typeof date === 'string' ? new Date(`${date}T12:00:00`) : date;
+    const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    };
+
+    if (value.getFullYear() !== today.getFullYear()) {
+        options.year = 'numeric';
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', options).format(value);
+}
+
+/**
+ * Format minor units as a signed Polish amount for financial operations,
+ * with the unit, e.g. "−1 234,56 zł" (Operations list, ADR-0039).
  */
 export function formatFinancialOperationAmount(
     type: 'income' | 'expense',
@@ -144,5 +203,27 @@ export function financialOperationAmountClass(
         return 'text-success';
     }
 
-    return 'text-destructive';
+    return 'text-foreground';
+}
+
+/**
+ * Format a day sum: "+1 234,56 zł" above zero, "−1 234,56 zł" (U+2212) below, "0,00 zł" at zero.
+ */
+export function formatOperationDaySum(minorUnits: number): string {
+    if (minorUnits > 0) {
+        return `+${formatMoney(minorUnits)}`;
+    }
+
+    if (minorUnits < 0) {
+        return `−${formatMoney(Math.abs(minorUnits))}`;
+    }
+
+    return formatMoney(0);
+}
+
+/**
+ * CSS class for a day sum: income in `success`, otherwise `foreground`.
+ */
+export function operationDaySumClass(minorUnits: number): string {
+    return minorUnits > 0 ? 'text-success' : 'text-foreground';
 }

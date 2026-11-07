@@ -1,5 +1,5 @@
 import { expect, test } from 'vite-plus/test';
-import { toSpendMinorUnits } from './to-spend-calculator';
+import { toSpendBreakdown, toSpendMinorUnits } from './to-spend-calculator';
 import type { ToSpendItem } from './to-spend-calculator';
 
 function canonicalItems(
@@ -128,3 +128,63 @@ test('set-aside lowers the amount to spend', () => {
 test('a draw raises the amount to spend', () => {
     expect(toSpendMinorUnits(setAsideExampleItems(), -30_000)).toBe(250_000);
 });
+
+test('breakdown of the canonical example gives income, expense and 3730,00', () => {
+    expect(toSpendBreakdown(canonicalItems(), 0)).toEqual({
+        incomeMinorUnits: 800_000,
+        expenseMinorUnits: 427_000,
+        toSpendMinorUnits: 373_000,
+    });
+});
+
+test('breakdown counts a bill with only a refund at plan as an expense', () => {
+    const breakdown = toSpendBreakdown(canonicalItems(0, -10_000, false), 0);
+
+    expect(breakdown.expenseMinorUnits).toBe(432_000);
+    expect(breakdown.toSpendMinorUnits).toBe(368_000);
+});
+
+test('breakdown counts a running item at the greater of plan and actual', () => {
+    const breakdown = toSpendBreakdown(
+        [
+            {
+                type: 'expense',
+                kind: 'running',
+                plan: 150_000,
+                actual: 60_000,
+                hasPositiveAmount: true,
+            },
+            {
+                type: 'expense',
+                kind: 'running',
+                plan: 40_000,
+                actual: 52_000,
+                hasPositiveAmount: true,
+            },
+        ],
+        0,
+    );
+
+    expect(breakdown.expenseMinorUnits).toBe(202_000);
+});
+
+test('breakdown of an empty list is three zeros', () => {
+    expect(toSpendBreakdown([], 0)).toEqual({
+        incomeMinorUnits: 0,
+        expenseMinorUnits: 0,
+        toSpendMinorUnits: 0,
+    });
+});
+
+test.each([50_000, -30_000])(
+    'breakdown satisfies income minus expense minus set-aside for %i',
+    (setAside) => {
+        const breakdown = toSpendBreakdown(setAsideExampleItems(), setAside);
+
+        expect(breakdown.incomeMinorUnits).toBe(600_000);
+        expect(breakdown.expenseMinorUnits).toBe(380_000);
+        expect(
+            breakdown.incomeMinorUnits - breakdown.expenseMinorUnits - setAside,
+        ).toBe(breakdown.toSpendMinorUnits);
+    },
+);

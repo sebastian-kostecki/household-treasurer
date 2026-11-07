@@ -1,3 +1,9 @@
+import {
+    DEFAULT_OPERATIONS_SECTION,
+    EMPTY_OPERATIONS_FILTERS,
+    operationsListQuery,
+} from './operations-list-query';
+
 export type DashboardCategory = {
     id: number;
     name: string;
@@ -21,33 +27,25 @@ export type DashboardTypeTotals = {
     percent_complete: number | null;
 };
 
-export const VISIBLE_CATEGORY_LIMIT = 8;
-
-export const DASHBOARD_SECTION_VISIBLE_CATEGORY_LIMIT = 5;
-
-export function dashboardVisibleCategoryLimit(
-    _categoryType: 'income' | 'expense',
-): number {
-    return DASHBOARD_SECTION_VISIBLE_CATEGORY_LIMIT;
-}
-
-export function sliceVisibleCategories(
-    categories: DashboardCategory[],
-    visibleLimit: number,
-    isExpanded: boolean,
-): DashboardCategory[] {
-    if (isExpanded || categories.length <= visibleLimit) {
-        return categories;
-    }
-
-    return categories.slice(0, visibleLimit);
-}
-
-export function hiddenDashboardCategoryCount(
-    categoryCount: number,
-    visibleLimit: number,
-): number {
-    return Math.max(categoryCount - visibleLimit, 0);
+/**
+ * Cel wiersza kategorii: operacje tej kategorii w całym roku budżetu, żeby
+ * kwota w tabeli miała widoczne źródło.
+ */
+export function categoryOperationsQuery(
+    category: { name: string },
+    categoryType: 'income' | 'expense',
+    year: number,
+): Record<string, string | number | undefined> {
+    return operationsListQuery(
+        {
+            ...EMPTY_OPERATIONS_FILTERS,
+            category_name: category.name,
+            category_type: categoryType,
+            date_from: `${year}-01-01`,
+            date_to: `${year}-12-31`,
+        },
+        DEFAULT_OPERATIONS_SECTION,
+    );
 }
 
 export function showsYearElapsedMark(
@@ -95,7 +93,7 @@ export function meterBarClass(
         return 'bg-destructive';
     }
 
-    return 'bg-primary';
+    return 'bg-foreground';
 }
 
 export function meterPercentClass(
@@ -123,44 +121,6 @@ export function remainingClass(
     isOverLimit: boolean,
 ): string {
     if (categoryType === 'expense' && isOverLimit) {
-        return 'text-destructive';
-    }
-
-    return '';
-}
-
-export function sectionBarClass(
-    categoryType: 'income' | 'expense',
-    percentComplete: number | null,
-): string {
-    if (percentComplete === null) {
-        return 'bg-muted';
-    }
-
-    if (categoryType === 'income' && percentComplete > 100) {
-        return 'bg-success';
-    }
-
-    if (categoryType === 'expense' && percentComplete > 100) {
-        return 'bg-destructive';
-    }
-
-    return 'bg-primary';
-}
-
-export function sectionPercentClass(
-    categoryType: 'income' | 'expense',
-    percentComplete: number | null,
-): string {
-    if (percentComplete === null) {
-        return 'text-muted-foreground';
-    }
-
-    if (categoryType === 'income' && percentComplete > 100) {
-        return 'text-success';
-    }
-
-    if (categoryType === 'expense' && percentComplete > 100) {
         return 'text-destructive';
     }
 

@@ -355,7 +355,7 @@ class CsvImportController extends Controller
 
     /**
      * @param  list<array<string, mixed>>  $previewRows
-     * @return array<int, array{id: int, name: string, current_balance_minor_units: int}>
+     * @return array<int, array{id: int, name: string, type: string, bank: string|null, mark_url: string|null, current_balance_minor_units: int}>
      */
     private function otherAccounts(Request $request, Account $importAccount, array $previewRows): array
     {

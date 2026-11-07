@@ -19,15 +19,15 @@ timeline_budget:
 
 ## Current System Overview
 
-Household Treasurer to responsywna aplikacja webowa do planowania rocznego budżetu domowego, rejestrowania jego wykonania i kontroli środków na kontach oraz lokatach. Szczegóły: `.docs/prd.md`, słownik: `CONTEXT.md`.
+Household Treasurer to responsywna aplikacja webowa do planowania rocznego budżetu domowego, rejestrowania jego wykonania i kontroli środków na kontach oraz lokatach. Szczegóły: `context/foundation/prd-mvp.md`, słownik: `context/foundation/glossary.md`.
 
 - **Architektura:** monolit Laravel z frontendem Inertia + Vue.
-- **Stack (`.docs/tech-stack.md`):** Laravel 13, PostgreSQL, Vue 3 + TypeScript, Inertia 3, Vite, Tailwind CSS + shadcn-vue, Pest, Docker.
+- **Stack (`context/foundation/tech-stack.md`):** Laravel 13, PostgreSQL, Vue 3 + TypeScript, Inertia 3, Vite, Tailwind CSS + shadcn-vue, Pest, Docker.
 - **Użytkownicy:** konta tworzone przez administratora, dane każdego użytkownika są odizolowane. Faktycznie korzysta jedna osoba.
 - **Funkcje dziś:** budżet roczny (plan początkowy, plan aktualny, wykonanie, kategorie Paced i One-off), operacje ręczne i Import CSV/XLSX, konta, transfery własne, lokaty i ruchy kapitału, Dashboard.
 - **Odczyty miesięczne dziś:** `Wynik` (Month Result: dochody minus wydatki zaksięgowane w miesiącu) i `Pozostało w miesiącu` (Month Remaining: bieżąca część rocznego planu kategorii równomiernych).
-- **Kwoty dziś:** ewidencjonowane z dokładnością do jednego grosza, bez obliczeń zmiennoprzecinkowych (`.docs/prd.md`, sekcja 5 i BR-02).
-- **Wyszukane w repo:** Agenda i Cash Expectation są opisane w `CONTEXT.md` i `.docs/specs/agenda-cash-expectations.md`, ale kod jest tylko na niezmergowanych gałęziach (ostatni commit 2026-09-14). Reserve i Year Close są opisane w dokumentach, bez implementacji. Dokumentację należy traktować ostrożnie: opisuje więcej niż kod.
+- **Kwoty dziś:** ewidencjonowane z dokładnością do jednego grosza, bez obliczeń zmiennoprzecinkowych (`context/foundation/prd-mvp.md`, sekcja 5 i BR-02).
+- **Wyszukane w repo:** Agenda i Cash Expectation są opisane w `context/foundation/glossary.md` i `context/archive/2026-09-10-agenda-cash-expectations/spec.md`, ale kod jest tylko na niezmergowanych gałęziach (ostatni commit 2026-09-14). Reserve i Year Close są opisane w dokumentach, bez implementacji. Dokumentację należy traktować ostrożnie: opisuje więcej niż kod.
 
 ## Problem Statement & Motivation
 
@@ -180,7 +180,7 @@ Nie mogą się zepsuć (wskazane przez użytkownika):
 ### Wymagania jakościowe
 
 - Po zapisaniu operacji albo Importu kolejny odczyt pokazuje aktualną i poprawną liczbę „do wydania”.
-- Istniejące wymagania aplikacji obowiązują także nowe widoki: czas odpowiedzi do 2 sekund przy 10 000 operacji, dostępność, responsywność, izolacja danych (`.docs/prd.md`, sekcja 10), dokładność kwot do jednego grosza (`.docs/prd.md`, BR-01).
+- Istniejące wymagania aplikacji obowiązują także nowe widoki: czas odpowiedzi do 2 sekund przy 10 000 operacji, dostępność, responsywność, izolacja danych (`context/foundation/prd-mvp.md`, sekcja 10), dokładność kwot do jednego grosza (`context/foundation/prd-mvp.md`, BR-01).
 
 ## Business Logic Changes
 

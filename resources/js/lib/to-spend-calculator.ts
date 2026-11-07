@@ -7,33 +7,54 @@ export type ToSpendItem = {
 };
 
 /**
- * Copy of App\Support\ToSpendCalculator::toSpendMinorUnits, used for the live
- * preview while a month plan proposal is edited, while an approved plan is
- * changed (saving overwrites the final plan, so the preview must react before
- * save) and for the entry warnings (entry-to-spend-warning.ts,
+ * Copy of App\Support\ToSpendCalculator::toSpendMinorUnits and ::breakdown, used
+ * for the live preview while a month plan proposal is edited, while an approved
+ * plan is changed (saving overwrites the final plan, so the preview must react
+ * before save) and for the entry warnings (entry-to-spend-warning.ts,
  * import-to-spend-warnings.ts). Change both together.
  */
-export function toSpendMinorUnits(
+export function toSpendBreakdown(
     items: ToSpendItem[],
     setAsideMinorUnits: number,
-): number {
-    let total = 0;
+): {
+    incomeMinorUnits: number;
+    expenseMinorUnits: number;
+    toSpendMinorUnits: number;
+} {
+    let incomeMinorUnits = 0;
+    let expenseMinorUnits = 0;
 
     for (const item of items) {
         if (item.type === 'income') {
-            total += item.hasPositiveAmount ? item.actual : item.plan;
+            incomeMinorUnits += item.hasPositiveAmount
+                ? item.actual
+                : item.plan;
 
             continue;
         }
 
         if (item.kind === 'bill') {
-            total -= item.hasPositiveAmount ? item.actual : item.plan;
+            expenseMinorUnits += item.hasPositiveAmount
+                ? item.actual
+                : item.plan;
 
             continue;
         }
 
-        total -= Math.max(item.plan, item.actual);
+        expenseMinorUnits += Math.max(item.plan, item.actual);
     }
 
-    return total - setAsideMinorUnits;
+    return {
+        incomeMinorUnits,
+        expenseMinorUnits,
+        toSpendMinorUnits:
+            incomeMinorUnits - expenseMinorUnits - setAsideMinorUnits,
+    };
+}
+
+export function toSpendMinorUnits(
+    items: ToSpendItem[],
+    setAsideMinorUnits: number,
+): number {
+    return toSpendBreakdown(items, setAsideMinorUnits).toSpendMinorUnits;
 }

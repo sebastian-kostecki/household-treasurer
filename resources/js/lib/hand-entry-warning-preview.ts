@@ -50,9 +50,13 @@ export type HandEntryPreviewInput = {
 };
 
 export type HandEntryPreviewResult = {
+    accountBalanceBeforeMinorUnits: number | null;
+    accountBalanceAfterMinorUnits: number | null;
+    termDepositBalanceBeforeMinorUnits: number | null;
+    termDepositBalanceAfterMinorUnits: number | null;
+    availableLimitBeforeMinorUnits: number | null;
     showNegativeBalanceWarning: boolean;
     showTermDepositNegativeBalanceWarning: boolean;
-    availableLimitNowMinorUnits: number | null;
     availableLimitAfterMinorUnits: number | null;
     showOverLimitWarning: boolean;
 };
@@ -262,14 +266,14 @@ export function previewHandEntryWarnings(
             editedRecord,
             proposal.account_id,
             originalAccountId,
-            originalAccountSignedEffect,
+            -originalAccountSignedEffect,
         );
         const termDepositAdjustment = termDepositLiquidityAdjustmentMinorUnits(
             mode,
             editedRecord,
             proposal.term_deposit_id ?? -1,
             originalTermDepositId,
-            originalTermDepositSignedEffect,
+            -originalTermDepositSignedEffect,
         );
         const predictedAccountBalance =
             account === undefined
@@ -285,12 +289,18 @@ export function previewHandEntryWarnings(
                   termDepositSignedEffect;
 
         return {
+            accountBalanceBeforeMinorUnits:
+                account?.current_balance_minor_units ?? null,
+            accountBalanceAfterMinorUnits: predictedAccountBalance,
+            termDepositBalanceBeforeMinorUnits:
+                termDeposit?.current_balance_minor_units ?? null,
+            termDepositBalanceAfterMinorUnits: predictedTermDepositBalance,
+            availableLimitBeforeMinorUnits: null,
             showNegativeBalanceWarning:
                 predictedAccountBalance !== null && predictedAccountBalance < 0,
             showTermDepositNegativeBalanceWarning:
                 predictedTermDepositBalance !== null &&
                 predictedTermDepositBalance < 0,
-            availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
@@ -320,10 +330,15 @@ export function previewHandEntryWarnings(
                   );
 
         return {
+            accountBalanceBeforeMinorUnits:
+                sourceAccount?.current_balance_minor_units ?? null,
+            accountBalanceAfterMinorUnits: predictedBalance,
+            termDepositBalanceBeforeMinorUnits: null,
+            termDepositBalanceAfterMinorUnits: null,
+            availableLimitBeforeMinorUnits: null,
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
             showTermDepositNegativeBalanceWarning: false,
-            availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
@@ -331,10 +346,21 @@ export function previewHandEntryWarnings(
 
     if (proposal.kind === 'income') {
         if (mode === 'create') {
+            const createAccount = findAccount(accounts, proposal.account_id);
+
             return {
+                accountBalanceBeforeMinorUnits:
+                    createAccount?.current_balance_minor_units ?? null,
+                accountBalanceAfterMinorUnits:
+                    createAccount === undefined
+                        ? null
+                        : createAccount.current_balance_minor_units +
+                          Math.abs(signedAmount),
+                termDepositBalanceBeforeMinorUnits: null,
+                termDepositBalanceAfterMinorUnits: null,
+                availableLimitBeforeMinorUnits: null,
                 showNegativeBalanceWarning: false,
                 showTermDepositNegativeBalanceWarning: false,
-                availableLimitNowMinorUnits: null,
                 availableLimitAfterMinorUnits: null,
                 showOverLimitWarning: false,
             };
@@ -363,10 +389,15 @@ export function previewHandEntryWarnings(
                   );
 
         return {
+            accountBalanceBeforeMinorUnits:
+                account?.current_balance_minor_units ?? null,
+            accountBalanceAfterMinorUnits: predictedBalance,
+            termDepositBalanceBeforeMinorUnits: null,
+            termDepositBalanceAfterMinorUnits: null,
+            availableLimitBeforeMinorUnits: null,
             showNegativeBalanceWarning:
                 predictedBalance !== null && predictedBalance < 0,
             showTermDepositNegativeBalanceWarning: false,
-            availableLimitNowMinorUnits: null,
             availableLimitAfterMinorUnits: null,
             showOverLimitWarning: false,
         };
@@ -400,22 +431,31 @@ export function previewHandEntryWarnings(
                   'expense',
                   signedAmount,
               );
-    const availableLimitNowMinorUnits =
+    const limitWithoutEditedRecordMinorUnits =
         category === undefined
             ? null
             : category.planned_amount_minor_units -
               category.execution_minor_units +
               executionAdjustment;
     const availableLimitAfterMinorUnits =
-        availableLimitNowMinorUnits === null
+        limitWithoutEditedRecordMinorUnits === null
             ? null
-            : availableLimitNowMinorUnits - signedAmount;
+            : limitWithoutEditedRecordMinorUnits - signedAmount;
 
     return {
+        accountBalanceBeforeMinorUnits:
+            account?.current_balance_minor_units ?? null,
+        accountBalanceAfterMinorUnits: predictedBalance,
+        termDepositBalanceBeforeMinorUnits: null,
+        termDepositBalanceAfterMinorUnits: null,
+        availableLimitBeforeMinorUnits:
+            category === undefined
+                ? null
+                : category.planned_amount_minor_units -
+                  category.execution_minor_units,
         showNegativeBalanceWarning:
             predictedBalance !== null && predictedBalance < 0,
         showTermDepositNegativeBalanceWarning: false,
-        availableLimitNowMinorUnits,
         availableLimitAfterMinorUnits,
         showOverLimitWarning:
             proposal.kind === 'expense' &&
