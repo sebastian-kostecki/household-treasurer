@@ -701,12 +701,12 @@ Brak. Zmiany to CSS, formatowanie i statyczne zasoby. `clamp()` i `minmax()` nie
 
 #### Automated
 
-- [x] 5.1 `npm run check:ui` przechodzi, a `DashboardHardcodedUiTest` jest zielony
-- [x] 5.2 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
+- [x] 5.1 `npm run check:ui` przechodzi, a `DashboardHardcodedUiTest` jest zielony — 5bbafd0
+- [x] 5.2 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci` — 5bbafd0
 
 #### Manual
 
-- [x] 5.3 Przy 1920 i 2560 px miernik wypełnia wolną szerokość, a kolumna Konta i Lokaty jest szersza niż 300 px
-- [x] 5.4 Przy 1024 i 1280 px tabela wykonania przełącza się jak dotąd, a kolumna boczna ma 300 px
-- [x] 5.5 W Budżecie przy 1920 i 2560 px kolumny kwot i postęp są szersze, nazwa kategorii nieucinana przy 1280 px
-- [x] 5.6 Przy 390 px oba widoki wyglądają jak przed zmianą
+- [x] 5.3 Przy 1920 i 2560 px miernik wypełnia wolną szerokość, a kolumna Konta i Lokaty jest szersza niż 300 px — 5bbafd0
+- [x] 5.4 Przy 1024 i 1280 px tabela wykonania przełącza się jak dotąd, a kolumna boczna ma 300 px — 5bbafd0
+- [x] 5.5 W Budżecie przy 1920 i 2560 px kolumny kwot i postęp są szersze, nazwa kategorii nieucinana przy 1280 px — 5bbafd0
+- [x] 5.6 Przy 390 px oba widoki wyglądają jak przed zmianą — 5bbafd0
