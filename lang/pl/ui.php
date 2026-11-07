@@ -42,7 +42,7 @@ return [
             'point_to_spend' => 'Zawsze wiesz, ile zostało do wydania w tym miesiącu.',
             'year_label' => 'Rok budżetu',
             'progress_label' => 'Postęp roku',
-            'legal' => '© :year Household Treasurer',
+            'legal' => '© :year Domowy Skarbnik',
         ],
         'password_toggle' => [
             'show' => 'Pokaż hasło',
@@ -783,7 +783,7 @@ return [
         'pagination_next' => 'Następna strona',
     ],
     'landing' => [
-        'meta_description' => 'Household Treasurer — budżet roczny, płynność kont i lokat oraz operacje w jednej aplikacji dla gospodarstwa domowego.',
+        'meta_description' => 'Domowy Skarbnik — budżet roczny, płynność kont i lokat oraz operacje w jednej aplikacji dla gospodarstwa domowego.',
         'nav_features' => 'Funkcje',
         'nav_how' => 'Jak to działa',
         'cta_login' => 'Zaloguj się',

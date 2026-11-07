@@ -1,4 +1,4 @@
-# Household Treasurer
+# Domowy Skarbnik (Household Treasurer)
 
 Single-user household budget and liquidity tracker: Laravel 13, Inertia 3, Vue 3 with shadcn-vue, Vite+ (`vp`), PostgreSQL. UI copy is Polish; code and agent docs use the English domain language from `context/foundation/glossary.md`.
 

@@ -639,31 +639,31 @@ Brak. Zmiany to CSS, formatowanie i statyczne zasoby. `clamp()` i `minmax()` nie
 
 #### Automated
 
-- [x] 1.1 Cztery ADR-y istnieją: `ls context/foundation/adr/0058-* context/foundation/adr/0059-* context/foundation/adr/0060-* context/foundation/adr/0061-*`
-- [x] 1.2 Każdy z ADR-ów 0039, 0044, 0047, 0051, 0052, 0053, 0054, 0057, 0042 i 0043 kończy się odwołaniem do nowego ADR-u
-- [x] 1.3 Na stronie design systemu i w regułach nie ma starych wyjątków (grep zwraca pusto)
-- [x] 1.4 Indeks reguł przebudowany: `php artisan boost:index-rules` kończy się sukcesem
+- [x] 1.1 Cztery ADR-y istnieją: `ls context/foundation/adr/0058-* context/foundation/adr/0059-* context/foundation/adr/0060-* context/foundation/adr/0061-*` — 2f8d382
+- [x] 1.2 Każdy z ADR-ów 0039, 0044, 0047, 0051, 0052, 0053, 0054, 0057, 0042 i 0043 kończy się odwołaniem do nowego ADR-u — 2f8d382
+- [x] 1.3 Na stronie design systemu i w regułach nie ma starych wyjątków (grep zwraca pusto) — 2f8d382
+- [x] 1.4 Indeks reguł przebudowany: `php artisan boost:index-rules` kończy się sukcesem — 2f8d382
 
 #### Manual
 
-- [x] 1.5 Użytkownik czyta cztery ADR-y i zmienione sekcje `design-system.md` i potwierdza, że oddają decyzje z planu
+- [x] 1.5 Użytkownik czyta cztery ADR-y i zmienione sekcje `design-system.md` i potwierdza, że oddają decyzje z planu — 2f8d382
 
 ### Phase 2: Nazwa i znak
 
 #### Automated
 
-- [ ] 2.1 Test przypięcia najpierw pada, potem przechodzi na PostgreSQL
-- [ ] 2.2 W UI i zasobach nie zostało „Household Treasurer” ani „HT” poza przypiętymi wartościami domyślnymi
-- [ ] 2.3 `apple-touch-icon.png` ma 180×180, a `favicon.ico` 32×32
-- [ ] 2.4 `npm run check:ui` przechodzi z `BrandMark.vue` na liście
-- [ ] 2.5 Bramka: `composer ci:check` przez Sail, `vendor/bin/sloppy ci` i `vendor/bin/pint --dirty --format agent`
+- [x] 2.1 Test przypięcia najpierw pada, potem przechodzi na PostgreSQL
+- [x] 2.2 W UI i zasobach nie zostało „Household Treasurer” ani „HT” poza przypiętymi wartościami domyślnymi
+- [x] 2.3 `apple-touch-icon.png` ma 180×180, a `favicon.ico` 32×32
+- [x] 2.4 `npm run check:ui` przechodzi z `BrandMark.vue` na liście
+- [x] 2.5 Bramka: `composer ci:check` przez Sail, `vendor/bin/sloppy ci` i `vendor/bin/pint --dirty --format agent`
 
 #### Manual
 
-- [ ] 2.6 Zrzuty `/dev/ui/sidebar` i `/dev/ui/welcome?state=guest` pokazują znak i „Domowy Skarbnik”
-- [ ] 2.7 Znak czytelny przy 26 px w sidebarze i jako favicon 16 px, w jasnym i ciemnym motywie
-- [ ] 2.8 Tytuł karty przeglądarki po `npm run build` to „… - Domowy Skarbnik”
-- [ ] 2.9 Po zmianie `APP_NAME` w lokalnym `.env` zalogowana sesja przeżywa przeładowanie
+- [x] 2.6 Zrzuty `/dev/ui/sidebar` i `/dev/ui/welcome?state=guest` pokazują znak i „Domowy Skarbnik”
+- [x] 2.7 Znak czytelny przy 26 px w sidebarze i jako favicon 16 px, w jasnym i ciemnym motywie
+- [x] 2.8 Tytuł karty przeglądarki po `npm run build` to „… - Domowy Skarbnik”
+- [x] 2.9 Po zmianie `APP_NAME` w lokalnym `.env` zalogowana sesja przeżywa przeładowanie
 
 ### Phase 3: Jedna zasada kwot
 

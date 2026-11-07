@@ -1,4 +1,4 @@
-# Household Treasurer
+# Domowy Skarbnik
 
 Aplikacja webowa do rocznego budżetu domowego: plan kategorii kontra rzeczywiste przepływy oraz płynność na kontach i lokatach. Interfejs jest po polsku. Waluta MVP: PLN.
 
