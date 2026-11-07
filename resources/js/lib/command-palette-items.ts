@@ -7,6 +7,16 @@ export type PaletteCategory = {
     execution_minor_units: number;
 };
 
+/** The state of the "Kategorie: operacje" group of the palette. */
+export type PaletteCategories =
+    | { status: 'loading' }
+    | { status: 'error' }
+    | {
+          status: 'loaded';
+          budgetYear: number | null;
+          items: PaletteCategory[];
+      };
+
 export type PaletteItem =
     | { kind: 'view'; index: number }
     | { kind: 'add-operation' }

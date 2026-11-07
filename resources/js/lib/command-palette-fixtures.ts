@@ -1,4 +1,4 @@
-import type { PaletteCategories } from '@/components/CommandPalette.vue';
+import type { PaletteCategories } from '@/lib/command-palette-items';
 
 /** Fixed categories for the palette states of `/dev/ui/sidebar` (kitchen sink). */
 export const paletteFixtureCategories: PaletteCategories = {

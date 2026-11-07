@@ -25,20 +25,12 @@ import {
     paletteCategorySearchValue,
     paletteSearchText,
     type PaletteAction,
+    type PaletteCategories,
     type PaletteCategory,
     type PaletteItem,
 } from '@/lib/command-palette-items';
 import { formatMoney } from '@/lib/format';
 import type { NavItem } from '@/types';
-
-export type PaletteCategories =
-    | { status: 'loading' }
-    | { status: 'error' }
-    | {
-          status: 'loaded';
-          budgetYear: number | null;
-          items: PaletteCategory[];
-      };
 
 const props = defineProps<{
     open: boolean;

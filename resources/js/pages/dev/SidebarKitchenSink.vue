@@ -4,9 +4,7 @@ import { LayoutGrid } from '@lucide/vue';
 import { nextTick, onMounted, ref } from 'vue';
 import AppMobileBar from '@/components/AppMobileBar.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
-import CommandPalette, {
-    type PaletteCategories,
-} from '@/components/CommandPalette.vue';
+import CommandPalette from '@/components/CommandPalette.vue';
 import BrandMark from '@/components/BrandMark.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -19,6 +17,7 @@ import {
 import { useAppViews } from '@/composables/useAppViews';
 import { useTranslations } from '@/composables/useTranslations';
 import { paletteFixtureCategories } from '@/lib/command-palette-fixtures';
+import type { PaletteCategories } from '@/lib/command-palette-items';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
 
 type SidebarFrame = {

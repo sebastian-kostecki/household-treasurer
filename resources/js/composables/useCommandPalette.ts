@@ -1,25 +1,20 @@
-import { router, useHttp } from '@inertiajs/vue3';
+import { router, useHttp, usePage } from '@inertiajs/vue3';
 import { nextTick, ref, watch } from 'vue';
 import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { requestOperationsIntent } from '@/composables/useOperationsIntent';
-import { useShell } from '@/composables/useTranslations';
 import { budgetYearSegments } from '@/lib/budget-year-segments';
 import { categoryOperationsQuery } from '@/lib/dashboard-categories';
-import type { PaletteCategory, PaletteItem } from '@/lib/command-palette-items';
+import type {
+    PaletteCategories,
+    PaletteCategory,
+    PaletteItem,
+} from '@/lib/command-palette-items';
 import { operations } from '@/routes';
 import { categories as categoriesRoute } from '@/routes/command-palette';
 import { edit as editProfile } from '@/routes/profile';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import type { NavItem } from '@/types';
-
-export type PaletteCategoriesState =
-    | { status: 'loading' }
-    | { status: 'error' }
-    | {
-          status: 'loaded';
-          budgetYear: number | null;
-          items: PaletteCategory[];
-      };
+import type { ShellState } from '@/types/shell';
 
 type CategoriesResponse = {
     budget_year: number | null;
@@ -39,10 +34,10 @@ export function openCommandPalette(): void {
  * component in the app layout.
  */
 export function useCommandPalette(views: NavItem[]) {
-    const shell = useShell();
+    const page = usePage();
     const createBudgetDialog = useCreateBudgetDialog();
     const http = useHttp();
-    const categories = ref<PaletteCategoriesState>({ status: 'loading' });
+    const categories = ref<PaletteCategories>({ status: 'loading' });
     let requestId = 0;
 
     async function loadCategories(): Promise<void> {
@@ -65,6 +60,12 @@ export function useCommandPalette(views: NavItem[]) {
                 items: response.categories,
             };
         } catch (error) {
+            // A request cancelled on purpose is not a failure; anything else
+            // is logged with its cause.
+            if (error instanceof Error && error.name === 'HttpCancelledError') {
+                return;
+            }
+
             console.error('Command palette: loading categories failed', error);
 
             if (currentRequest === requestId && open.value) {
@@ -122,6 +123,10 @@ export function useCommandPalette(views: NavItem[]) {
     }
 
     function nextBudgetYear(): number | undefined {
+        // Read at call time: every visit replaces `page.props`, so a `shell`
+        // object kept from the layout's setup can be one visit old.
+        const shell = page.props.shell as ShellState;
+
         return budgetYearSegments(
             shell.budgetYears,
             shell.budgetYear,

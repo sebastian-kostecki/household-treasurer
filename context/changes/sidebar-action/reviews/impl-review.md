@@ -120,7 +120,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
 - **Location**: context/changes/sidebar-action/plan.md:123
 - **Detail**: `grep -rn "AppSidebarHeader|Breadcrumb|breadcrumbs|sidebarOpen|sidebar_state" resources/js app bootstrap tests` returns the negative assertion in `ui-contract.test.ts:245`, `->missing('sidebarOpen')` in `AppShellTest.php:46` and the untouched `SIDEBAR_COOKIE_NAME` in `ui/sidebar/utils.ts:4` (the primitive still writes the cookie on Ctrl+B; ADR-0054 says nobody reads it). The criterion was written without these. The code is right; the plan sentence is imprecise.
 - **Fix**: Accept; no code change. Optionally note the three expected hits in the plan.
-- **Decision**: PENDING
+- **Decision**: SKIPPED — the code is right and the plan is closed; the three expected hits are listed in this finding.
 
 ### F8 — Manual item 3.7 ticked with no commit and no automated evidence
 
@@ -130,7 +130,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
 - **Location**: context/changes/sidebar-action/plan.md:443
 - **Detail**: "`N` otwiera menu typów; wyłączone typy … nadal pokazują powód" is the only manual item without a SHA, and `global-shortcuts.spec.ts` checks that the menu opens but not the disabled reasons. `OperationsPageActions.vue` changed in 4 lines (the `menuOpen` model), so the risk is small.
 - **Fix**: Confirm the item by hand (press `N` on Operations, read the reasons) and append the SHA, or add one assertion on a disabled item's reason to the existing spec.
-- **Decision**: PENDING
+- **Decision**: SKIPPED — low risk (`OperationsPageActions.vue` changed in 4 lines, the disabled-reason menu is untouched); item 3.7 stays ticked without a SHA.
 
 ### F9 — Palette composable: stale shell snapshot, cancelled request logged as error, duplicated type
 
@@ -140,7 +140,7 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
 - **Location**: resources/js/composables/useCommandPalette.ts:42,63-73,124-130
 - **Detail**: Three small points, none runtime-verified. `nextBudgetYear()` reads a `shell` object captured in the persistent layout's setup; if Inertia replaces `page.props.shell` on each visit, it could propose a year that already exists after one is created (the same snapshot pattern already exists in `AppSidebarLayout` and `CreateBudgetDialog`). A request cancelled by closing and reopening the palette is logged with `console.error` before the `requestId` check, which is noise but keeps the cause. `PaletteCategoriesState` duplicates `PaletteCategories` from `CommandPalette.vue`, and `lib/command-palette-fixtures.ts` imports a type from a `.vue` file.
 - **Fix**: Read `usePage().props.shell` inside `nextBudgetYear`, check `requestId` before logging, and move one shared type to `lib/command-palette-items.ts`.
-- **Decision**: PENDING
+- **Decision**: FIXED — Fix now: `nextBudgetYear` reads `usePage().props.shell` at call time (Inertia replaces `page.value` on every visit, confirmed in the source); the catch skips only `HttpCancelledError` (matched by `error.name`, the class is not exported by `@inertiajs/vue3`), every other error is still logged with its cause; one shared `PaletteCategories` type in `lib/command-palette-items.ts`, no `.vue` import in the fixtures. Not reproduced in a browser: a stale `shell` after creating a year, and a cancelled request (no unit test, the composable needs Inertia). The same one-visit-old `useShell()` snapshot in `AppSidebarLayout` and `CreateBudgetDialog` was left as it is.
 
 ### F10 — Vendored `ui/command` extended for one screen; palette CSS uses raw literals outside the scanned files
 
