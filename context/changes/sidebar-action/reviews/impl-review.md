@@ -150,4 +150,35 @@ Manual items 1.8–1.10, 2.5–2.8, 3.6, 3.8 and 4.9–4.13 carry a commit SHA. 
 - **Location**: resources/js/components/ui/command/Command.vue:20-23, resources/css/app.css (`.command-palette*`)
 - **Detail**: The files were written by hand from the registry JSON instead of `npx shadcn-vue add command`, and `Command.vue` gained `defineExpose({ highlightFirstItem })`. ADR-0054 states both openly with the reason (the CLI would also pull its own `dialog`), and the `package.json`, `package-lock.json` and `ui/dialog` diffs are empty, so the plan's intent holds. It still departs from the AGENTS.md rule that `components/ui/*` is never edited for a single screen. Also, `.command-palette` uses `!important`, `top-[20vh]` and a `calc(100% - 2rem)` width; `check:ui` scans listed Vue files only, so these are not flagged. Extra, harmless additions: `command-palette-fixtures.ts`, extra `ui-contract.test.ts` guards, `.sidebar-search` and `.command-palette-*` helper classes.
 - **Fix**: Accept with the ADR as the record; if F1 or F5 touch `Command.vue`, add them to ADR-0054's "Rows in ui/command" paragraph so the list of deviations stays complete.
-- **Decision**: PENDING
+- **Decision**: SKIPPED — accepted, ADR-0054 ("Rows in `ui/command`") is the record and lists every deviation from the registry: `highlightFirstItem`, the re-filter on item count (F1) and `searchText` (F5). The raw `vh`/`rem` values and `!important` in `.command-palette` stay as they are.
+
+## Triage
+
+Triaged on 2026-11-07. The verdict above is the verdict at review time; the fixes below were made afterwards, each with its own commit.
+
+| Finding | Decision | Commit |
+|---------|----------|--------|
+| F1 palette filter loses late categories | FIXED | 81b2965 |
+| F2 new budget dialog unmounted on a phone | FIXED | 2f49827 |
+| F3 e2e digit-in-dialog could not fail | FIXED | ad0b686 |
+| F4 dead code | FIXED | 36d2811 |
+| F5 search matched shortcut and amount | FIXED (differently: `searchText` prop) | 951d3ae |
+| F6 e2e timing and shared state | FIXED (`workers: 1`, `/` spec, import spec) | 4df4eb1 |
+| F7 plan criterion 1.5 | SKIPPED | — |
+| F8 manual item 3.7 | SKIPPED | — |
+| F9 palette composable details | FIXED (not reproduced in a browser, see the finding) | fc45ffa |
+| F10 vendored `ui/command` and palette CSS | SKIPPED (ADR-0054 is the record) | — |
+
+Fixed 7, skipped 3, none left pending. F1, F2, F3 and F5 each have a test that was red on the old code and is green now.
+
+### State after triage
+
+| Check | Result |
+|-------|--------|
+| `npm test` | 36 files, 382 tests passed |
+| `npm run check:ui`, `npm run build`, `npm run types:check` | passed |
+| `vendor/bin/sloppy ci` | 100/100, 0 findings |
+| `npx playwright test` (full suite, now one worker) | 23 passed, also twice in a row before the last two fixes |
+| `composer ci:check` (Docker, PostgreSQL) | 941 passed, 2 skipped (7146 assertions), exit 0 |
+
+Not verified at runtime: a stale `shell` after creating a year and the cancelled palette request (F9); the layout-level `useShell()` snapshot in `AppSidebarLayout` and `CreateBudgetDialog` is unchanged.
