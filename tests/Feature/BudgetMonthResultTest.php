@@ -154,13 +154,10 @@ class BudgetMonthResultTest extends TestCase
             'amount_minor_units' => -2_000,
         ]);
 
-        $this->assertSame(
-            [
-                'income_execution_minor_units' => 20_000,
-                'expense_execution_minor_units' => 8_000,
-                'month_result_minor_units' => 12_000,
-            ],
-            BudgetMonthResult::forViewedMonth($budget, 3),
-        );
+        $monthResult = BudgetMonthResult::forViewedMonth($budget, 3);
+
+        $this->assertSame(20_000, $monthResult['income_execution_minor_units']);
+        $this->assertSame(8_000, $monthResult['expense_execution_minor_units']);
+        $this->assertSame(12_000, $monthResult['month_result_minor_units']);
     }
 }
