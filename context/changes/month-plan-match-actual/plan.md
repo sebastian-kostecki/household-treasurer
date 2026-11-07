@@ -382,13 +382,13 @@ Brak: bez zmian schematu i danych. Wycofanie = revert commitów fazy 2 i 3; glos
 
 #### Automated
 
-- [x] 3.1 Bramka composer ci:check przechodzi
-- [x] 3.2 Sloppy przechodzi
-- [x] 3.3 Pint po zmianie PHP
+- [x] 3.1 Bramka composer ci:check przechodzi — bc4a3c0
+- [x] 3.2 Sloppy przechodzi — bc4a3c0
+- [x] 3.3 Pint po zmianie PHP — bc4a3c0
 
 #### Manual
 
-- [x] 3.4 Kitchen sink pokazuje nowe stany
-- [x] 3.5 Przycisk i znacznik mieszczą się przy 390 px i przy xl, tooltipy i aria-label poprawne
-- [x] 3.6 Klawiatura: przycisk, wpisanie wydatków, fokus na polu, znacznik
-- [x] 3.7 Zapis zmienia Bieżący plan, po zapisie brak „ponad plan” i strzałka w górę
+- [x] 3.4 Kitchen sink pokazuje nowe stany — bc4a3c0
+- [x] 3.5 Przycisk i znacznik mieszczą się przy 390 px i przy xl, tooltipy i aria-label poprawne — bc4a3c0
+- [x] 3.6 Klawiatura: przycisk, wpisanie wydatków, fokus na polu, znacznik — bc4a3c0
+- [x] 3.7 Zapis zmienia Bieżący plan, po zapisie brak „ponad plan” i strzałka w górę — bc4a3c0
