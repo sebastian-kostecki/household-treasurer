@@ -193,13 +193,13 @@ Nie dotyczy. Kształt propsu `shell` i `ShellState` zostają, a jedyna zmiana AP
 
 #### Automated
 
-- [x] 2.1 Spec przechodzi na buildzie produkcyjnym przy działającym stosie Sail i bez `public/hot`: `npx playwright test tests/e2e/sidebar-year-refresh.spec.ts`
-- [x] 2.2 Istniejące specy sidebara dalej przechodzą: `npx playwright test tests/e2e/sidebar-current-section.spec.ts tests/e2e/command-palette.spec.ts`
-- [x] 2.3 Indeks reguł jest aktualny: `php artisan boost:index-rules`
-- [x] 2.4 Kontrole statyczne frontendu przechodzą: `npm run check`
+- [x] 2.1 Spec przechodzi na buildzie produkcyjnym przy działającym stosie Sail i bez `public/hot`: `npx playwright test tests/e2e/sidebar-year-refresh.spec.ts` — 17d879c
+- [x] 2.2 Istniejące specy sidebara dalej przechodzą: `npx playwright test tests/e2e/sidebar-current-section.spec.ts tests/e2e/command-palette.spec.ts` — 17d879c
+- [x] 2.3 Indeks reguł jest aktualny: `php artisan boost:index-rules` — 17d879c
+- [x] 2.4 Kontrole statyczne frontendu przechodzą: `npm run check` — 17d879c
 
 #### Manual
 
-- [x] 2.5 Po przebiegu specu baza E2E ma znów tylko rok 2026 (spec posprzątał)
-- [x] 2.6 Spec pada na buildzie bez poprawki z fazy 1 (sprawdzone raz, np. przez `git stash` zmian z `resources/js` i `npm run build`), z komunikatem o zaznaczeniu starego roku
+- [x] 2.5 Po przebiegu specu baza E2E ma znów tylko rok 2026 (spec posprzątał) — 17d879c
+- [x] 2.6 Spec pada na buildzie bez poprawki z fazy 1 (sprawdzone raz, np. przez `git stash` zmian z `resources/js` i `npm run build`), z komunikatem o zaznaczeniu starego roku — 17d879c
 - [x] 2.7 Nowa sekcja w `js-sidebar.md` jest zwięzła i zgodna z opisem w tym planie
