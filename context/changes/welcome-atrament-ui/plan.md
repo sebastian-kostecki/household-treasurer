@@ -443,9 +443,9 @@ Bez migracji i zmian konfiguracji.
 #### Automated
 
 - [x] 4.1 `WelcomeKitchenSinkTest` przechodzi — 31f7b04
-- [x] 4.2 `npm run build && npm run types:check` przechodzą po nowej trasie
+- [x] 4.2 `npm run build && npm run types:check` przechodzą po nowej trasie — 31f7b04
 - [x] 4.3 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą — 31f7b04
-- [x] 4.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
+- [x] 4.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia — 31f7b04
 
 #### Manual
 
