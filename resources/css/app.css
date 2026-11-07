@@ -311,6 +311,10 @@
     @apply font-mono text-[22px]/7 font-medium;
 }
 
+@utility landing-kpi {
+    @apply font-mono text-[15px]/6 font-medium;
+}
+
 @utility amount {
     @apply font-mono text-[13px]/[18px] font-medium tabular-nums;
 }
@@ -589,6 +593,10 @@
 
     .landing-preview-main {
         @apply flex min-w-0 flex-col gap-2.5 p-3;
+    }
+
+    .landing-preview .stat-panel-metric {
+        @apply px-3 py-3;
     }
 
     .landing-preview-row {

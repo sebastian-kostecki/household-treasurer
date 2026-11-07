@@ -825,7 +825,6 @@ return [
         'preview_year' => '2026',
         'preview_category_food' => 'Żywność',
         'preview_category_transport' => 'Transport',
-        'preview_category_salary' => 'Wynagrodzenie',
         'preview_category_housing' => 'Mieszkanie',
         'preview_category_health' => 'Zdrowie',
         'preview_metric_to_spend' => 'Do wydania',

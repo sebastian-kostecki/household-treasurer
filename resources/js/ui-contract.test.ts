@@ -323,8 +323,32 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         'components/AppLogo.vue',
         'layouts/auth/AuthCardLayout.vue',
         'pages/Welcome.vue',
+        'components/LandingAppPreview.vue',
     ])('uses BrandMark in %s', (file) => {
         expect(read(file)).toContain('BrandMark');
+    });
+
+    it.each([
+        'pages/Welcome.vue',
+        'components/LandingAppPreview.vue',
+        'components/LandingFeatureCard.vue',
+    ])(
+        'keeps %s free of literal routes except /register and of text-success (ADR-0057)',
+        (file) => {
+            const source = read(file);
+
+            expect(source).not.toMatch(/href="\/(?!register")/);
+            expect(source).not.toContain('text-success');
+        },
+    );
+
+    it('keeps the landing preview free of anything focusable (ADR-0057)', () => {
+        const source = read('components/LandingAppPreview.vue');
+
+        expect(source).toContain('aria-hidden="true"');
+        expect(source).not.toContain('<Link');
+        expect(source).not.toContain('<a ');
+        expect(source).not.toContain('<button');
     });
 
     it.each([

@@ -39,6 +39,8 @@ const FILES = [
     'resources/js/pages/auth/VerifyEmail.vue',
     'resources/js/pages/dev/AuthKitchenSink.vue',
     'resources/js/pages/Welcome.vue',
+    'resources/js/components/LandingAppPreview.vue',
+    'resources/js/components/LandingFeatureCard.vue',
     'resources/js/components/TextLink.vue',
     'resources/js/components/PasswordInput.vue',
     'resources/js/components/AppMobileBar.vue',

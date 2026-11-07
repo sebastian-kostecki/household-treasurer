@@ -410,10 +410,10 @@ Bez migracji i zmian konfiguracji.
 
 #### Automated
 
-- [x] 2.1 `npm run build` przechodzi z nowymi tokenami i klasami
-- [x] 2.2 `npm run check` przechodzi bez ostrzeżeń
-- [x] 2.3 `UiTranslationKeysTest` i `LandingPageTest` przechodzą
-- [x] 2.4 W tablicy `landing` nie ma „marketingu”, „passkeys” ani „w MVP”
+- [x] 2.1 `npm run build` przechodzi z nowymi tokenami i klasami — 5fbc699
+- [x] 2.2 `npm run check` przechodzi bez ostrzeżeń — 5fbc699
+- [x] 2.3 `UiTranslationKeysTest` i `LandingPageTest` przechodzą — 5fbc699
+- [x] 2.4 W tablicy `landing` nie ma „marketingu”, „passkeys” ani „w MVP” — 5fbc699
 
 #### Manual
 
@@ -423,12 +423,12 @@ Bez migracji i zmian konfiguracji.
 
 #### Automated
 
-- [ ] 3.1 `WelcomeHardcodedUiTest` czerwony przed edycją widoku, zielony po niej
-- [ ] 3.2 `npm run check:ui` przechodzi z trzema plikami landingu
-- [ ] 3.3 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`)
-- [ ] 3.4 `npm run build && npm run types:check` przechodzą
-- [ ] 3.5 `LandingPageTest` i `LandingPageSourceTest` przechodzą
-- [ ] 3.6 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
+- [x] 3.1 `WelcomeHardcodedUiTest` czerwony przed edycją widoku, zielony po niej
+- [x] 3.2 `npm run check:ui` przechodzi z trzema plikami landingu
+- [x] 3.3 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`)
+- [x] 3.4 `npm run build && npm run types:check` przechodzą
+- [x] 3.5 `LandingPageTest` i `LandingPageSourceTest` przechodzą
+- [x] 3.6 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
 
 #### Manual
 
