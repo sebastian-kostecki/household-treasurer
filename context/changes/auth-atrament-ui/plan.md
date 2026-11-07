@@ -554,31 +554,31 @@ Bez migracji danych. `config/passkeys.php` jest nowy; na produkcji po wdrożeniu
 
 #### Automated
 
-- [x] 4.1 `npm run check:ui` przechodzi z nowymi plikami
-- [x] 4.2 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`)
-- [x] 4.3 `npm run build && npm run types:check` przechodzą
-- [x] 4.4 `composer ci:check` przechodzi
-- [x] 4.5 `vendor/bin/sloppy ci` przechodzi
-- [x] 4.6 Setup e2e loguje się
+- [x] 4.1 `npm run check:ui` przechodzi z nowymi plikami — 9e015f1
+- [x] 4.2 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`) — 9e015f1
+- [x] 4.3 `npm run build && npm run types:check` przechodzą — 9e015f1
+- [x] 4.4 `composer ci:check` przechodzi — 9e015f1
+- [x] 4.5 `vendor/bin/sloppy ci` przechodzi — 9e015f1
+- [x] 4.6 Setup e2e loguje się — 9e015f1
 
 #### Manual
 
-- [x] 4.7 Siedem ekranów przy 1280 px jak karty Page*, przy 390 px panel jest paskiem
-- [x] 4.8 Kolejność Tab na Login zgodna z DOM
-- [x] 4.9 Błędne hasło pokazuje polski komunikat pod polem e-mail
-- [x] 4.10 W UI wejścia nie ma angielskiego tekstu
+- [x] 4.7 Siedem ekranów przy 1280 px jak karty Page*, przy 390 px panel jest paskiem — 9e015f1
+- [x] 4.8 Kolejność Tab na Login zgodna z DOM — 9e015f1
+- [x] 4.9 Błędne hasło pokazuje polski komunikat pod polem e-mail — 9e015f1
+- [x] 4.10 W UI wejścia nie ma angielskiego tekstu — 9e015f1
 
 ### Phase 5: Kitchen sink i bramka wizualna
 
 #### Automated
 
-- [ ] 5.1 `AuthKitchenSinkTest` przechodzi
-- [ ] 5.2 `npm run build && npm run types:check` przechodzą po nowej trasie
-- [ ] 5.3 `npm run check:ui` przechodzi z `dev/AuthKitchenSink.vue`
-- [ ] 5.4 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
+- [x] 5.1 `AuthKitchenSinkTest` przechodzi
+- [x] 5.2 `npm run build && npm run types:check` przechodzą po nowej trasie
+- [x] 5.3 `npm run check:ui` przechodzi z `dev/AuthKitchenSink.vue`
+- [x] 5.4 `composer ci:check` i `vendor/bin/sloppy ci` przechodzą
 
 #### Manual
 
-- [ ] 5.5 Zrzuty wszystkich par ekran × stan przy 1280 i 390 px w obu motywach
-- [ ] 5.6 Alert `ok` i tekst panelu czytelne w ciemnym motywie
-- [ ] 5.7 Pola OTP 40×44 px z kreską po trzecim znaku
+- [x] 5.5 Zrzuty wszystkich par ekran × stan przy 1280 i 390 px w obu motywach
+- [x] 5.6 Alert `ok` i tekst panelu czytelne w ciemnym motywie
+- [x] 5.7 Pola OTP 40×44 px z kreską po trzecim znaku

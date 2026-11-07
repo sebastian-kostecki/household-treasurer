@@ -8,6 +8,7 @@ use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\AccountsKitchenSinkController;
+use App\Http\Controllers\Dev\AuthKitchenSinkController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\DialogsKitchenSinkController;
 use App\Http\Controllers\Dev\ImportPreviewKitchenSinkController;
@@ -28,6 +29,7 @@ Route::inertia('/', 'Welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
+    Route::get('dev/ui/auth', [AuthKitchenSinkController::class, 'show'])->name('dev.ui.auth');
     Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
     Route::get('dev/ui/import', [ImportStartKitchenSinkController::class, 'show'])->name('dev.ui.import');
     Route::get('dev/import-preview', [ImportPreviewKitchenSinkController::class, 'show'])->name('dev.import-preview');
