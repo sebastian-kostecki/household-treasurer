@@ -850,32 +850,37 @@
         @apply text-left sm:text-right;
     }
 
+    /** CategoryChip `lg` (ADR-0060): the tile as tall as the name (20px) with its caption (14px). */
+    .category-chip-lg {
+        @apply size-9 rounded-lg;
+    }
+
     /**
      * Month plan table: one markup on every width. Below `xl` a row is three
-     * lines (name + status, kind, then plan / actual / deviation); from `xl` it
-     * is one line of six columns (Kategoria, Rodzaj, Plan, Faktycznie,
-     * Odchylenie, Status).
+     * lines (name + status, kind, then approved / plan / actual / deviation);
+     * from `xl` it is one line of seven columns (Kategoria, Rodzaj,
+     * Zatwierdzony, Plan, Faktycznie, Odchylenie, Status).
      */
     .month-plan-grid {
         @apply grid w-full gap-x-3;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-template-areas:
-            'category category status'
-            'kind kind kind'
-            'plan actual deviation';
+            'category category category status'
+            'kind kind kind kind'
+            'approved plan actual deviation';
     }
 
     .month-plan-grid-no-kind {
         grid-template-areas:
-            'category category status'
-            'plan actual deviation';
+            'category category category status'
+            'approved plan actual deviation';
     }
 
     @variant xl {
         .month-plan-grid,
         .month-plan-grid-no-kind {
-            grid-template-columns: minmax(0, 1fr) 9rem 8rem 7rem 7rem 8rem;
-            grid-template-areas: 'category kind plan actual deviation status';
+            grid-template-columns: minmax(0, 1fr) 9rem 7rem 8rem 7rem 7rem 8rem;
+            grid-template-areas: 'category kind approved plan actual deviation status';
         }
     }
 
@@ -887,6 +892,11 @@
     .month-plan-cell-kind {
         grid-area: kind;
         @apply min-w-0;
+    }
+
+    .month-plan-cell-approved {
+        grid-area: approved;
+        @apply flex min-w-0 flex-wrap items-baseline justify-end gap-x-1.5 text-right;
     }
 
     .month-plan-cell-plan {

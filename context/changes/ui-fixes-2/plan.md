@@ -669,33 +669,33 @@ Brak. Zmiany to CSS, formatowanie i statyczne zasoby. `clamp()` i `minmax()` nie
 
 #### Automated
 
-- [x] 3.1 Testy formaterów, `import-row-amount`, `account-identity` i `ui-contract` najpierw padają, potem przechodzą: `npm test`
-- [x] 3.2 W wierszach tabel nie ma `formatMoney(` ani `formatSignedMoney(` poza podpisem „Zatwierdzono:”
-- [x] 3.3 E2E: `npx playwright test tests/e2e/seed.spec.ts` przechodzi
-- [x] 3.4 `npm run check:ui` i `npm run types:check` przechodzą
-- [x] 3.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
+- [x] 3.1 Testy formaterów, `import-row-amount`, `account-identity` i `ui-contract` najpierw padają, potem przechodzą: `npm test` — 9c8982d
+- [x] 3.2 W wierszach tabel nie ma `formatMoney(` ani `formatSignedMoney(` poza podpisem „Zatwierdzono:” — 9c8982d
+- [x] 3.3 E2E: `npx playwright test tests/e2e/seed.spec.ts` przechodzi — 9c8982d
+- [x] 3.4 `npm run check:ui` i `npm run types:check` przechodzą — 9c8982d
+- [x] 3.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci` — 9c8982d
 
 #### Manual
 
-- [x] 3.6 Zrzuty przy 1280 i 390 px sześciu sinków: kwoty w tabelach bez „zł”, stopka „Kwoty w zł” pod każdą tabelą, „zł” w miarach
-- [x] 3.7 Gotówka ma ikonę monet w Kontach, Dashboardzie, wyborze konta, chipie filtra i podglądzie importu
+- [x] 3.6 Zrzuty przy 1280 i 390 px sześciu sinków: kwoty w tabelach bez „zł”, stopka „Kwoty w zł” pod każdą tabelą, „zł” w miarach — 9c8982d
+- [x] 3.7 Gotówka ma ikonę monet w Kontach, Dashboardzie, wyborze konta, chipie filtra i podglądzie importu — 9c8982d
 
 ### Phase 4: Strzałka zmiany planu
 
 #### Automated
 
-- [ ] 4.1 `plan-change-direction.test.ts` najpierw pada, potem przechodzi: `npm test`
-- [ ] 4.2 Testy sinków Budżetu i Planu miesiąca przechodzą na PostgreSQL
-- [ ] 4.3 `MonthPlanHardcodedUiTest` z nowymi plikami, `npm run check:ui` i `npm run types:check` są zielone
-- [ ] 4.4 `PlanChangedHint` i `History` zniknęły z `resources/js`
-- [ ] 4.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
+- [x] 4.1 `plan-change-direction.test.ts` najpierw pada, potem przechodzi: `npm test`
+- [x] 4.2 Testy sinków Budżetu i Planu miesiąca przechodzą na PostgreSQL
+- [x] 4.3 `MonthPlanHardcodedUiTest` z nowymi plikami, `npm run check:ui` i `npm run types:check` są zielone
+- [x] 4.4 `PlanChangedHint` i `History` zniknęły z `resources/js`
+- [x] 4.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 4.6 Zrzuty `/dev/kitchen-sink/budget` i `/dev/month-plan` przy 1280 i 390 px w obu motywach: strzałki we właściwym kierunku i kolorze, kolumna „Zatwierdzony” wyrównana
-- [ ] 4.7 W trybie zmian Planu miesiąca strzałka zmienia kierunek podczas wpisywania kwoty
-- [ ] 4.8 Kafelek kategorii ma wysokość nazwy razem z podpisem
-- [ ] 4.9 Podpowiedź i nazwa strzałki mówią „zwiększony” albo „zmniejszony”
+- [x] 4.6 Zrzuty `/dev/kitchen-sink/budget` i `/dev/month-plan` przy 1280 i 390 px w obu motywach: strzałki we właściwym kierunku i kolorze, kolumna „Zatwierdzony” wyrównana
+- [x] 4.7 W trybie zmian Planu miesiąca strzałka zmienia kierunek podczas wpisywania kwoty
+- [x] 4.8 Kafelek kategorii ma wysokość nazwy razem z podpisem
+- [x] 4.9 Podpowiedź i nazwa strzałki mówią „zwiększony” albo „zmniejszony”
 
 ### Phase 5: Szerokie ekrany
 

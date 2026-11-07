@@ -105,6 +105,8 @@ const FILES = [
     'resources/js/pages/MonthPlan.vue',
     'resources/js/pages/dev/MonthPlanSink.vue',
     'resources/js/components/MonthPlanItemRow.vue',
+    'resources/js/components/CategoryChip.vue',
+    'resources/js/components/PlanChangeArrow.vue',
     'resources/js/components/MonthPlanKindCell.vue',
     'resources/js/components/MonthPlanTable.vue',
     'resources/js/components/MonthPlanTitleRow.vue',

@@ -59,15 +59,6 @@ export function showsYearElapsedMark(
     return category.is_paced === true;
 }
 
-export function planChanged(category: {
-    initial_plan_minor_units: number;
-    current_plan_minor_units: number;
-}): boolean {
-    return (
-        category.initial_plan_minor_units !== category.current_plan_minor_units
-    );
-}
-
 export function progressWidth(percentComplete: number | null): string {
     if (percentComplete === null) {
         return '0%';

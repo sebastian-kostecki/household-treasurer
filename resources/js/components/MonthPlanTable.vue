@@ -24,6 +24,8 @@ import type {
 } from '@/types/month-plan';
 
 export type MonthPlanRowState = {
+    /** The plan the row shows now (typed value in change mode); null while the entry is unreadable. */
+    planMinorUnits: number | null;
     deviation: number | null;
     overPlan: boolean;
     status: MonthItemStatus | null;
@@ -133,6 +135,9 @@ const expenseRowsEmpty = computed(
             <span class="month-plan-cell-kind">
                 {{ t.month_plan.kind_column }}
             </span>
+            <span class="month-plan-cell-approved">
+                {{ t.month_plan.approved_plan }}
+            </span>
             <span class="month-plan-cell-plan">
                 {{ t.month_plan.plan }}
             </span>
@@ -162,6 +167,7 @@ const expenseRowsEmpty = computed(
             :model-value="amountInputs[row.category_id]"
             :row="row"
             :editable="editable"
+            :plan-minor-units="rowState(row).planMinorUnits"
             :deviation="rowState(row).deviation"
             :over-plan="rowState(row).overPlan"
             :status="rowState(row).status"
@@ -214,6 +220,7 @@ const expenseRowsEmpty = computed(
             :model-value="amountInputs[row.category_id]"
             :row="row"
             :editable="editable"
+            :plan-minor-units="rowState(row).planMinorUnits"
             :deviation="rowState(row).deviation"
             :over-plan="rowState(row).overPlan"
             :status="rowState(row).status"
@@ -257,6 +264,7 @@ const expenseRowsEmpty = computed(
                     :model-value="amountInputs[row.category_id]"
                     :row="row"
                     :editable="editable"
+                    :plan-minor-units="rowState(row).planMinorUnits"
                     :deviation="rowState(row).deviation"
                     :over-plan="rowState(row).overPlan"
                     :status="rowState(row).status"
