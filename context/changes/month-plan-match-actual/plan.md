@@ -359,11 +359,11 @@ Brak: bez zmian schematu i danych. Wycofanie = revert commitów fazy 2 i 3; glos
 
 #### Automated
 
-- [x] 1.1 Plik ADR-0062 istnieje, a glosariusz odwołuje się do niego w obu wpisach
+- [x] 1.1 Plik ADR-0062 istnieje, a glosariusz odwołuje się do niego w obu wpisach — 38b0784
 
 #### Manual
 
-- [x] 1.2 Użytkownik akceptuje brzmienie wpisów w glosariuszu i ADR-0062
+- [x] 1.2 Użytkownik akceptuje brzmienie wpisów w glosariuszu i ADR-0062 — 38b0784
 
 ### Phase 2: Reguła w lib i podłączenie w stronie
 
