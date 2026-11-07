@@ -15,3 +15,5 @@ Reasons. The server sends the rejection code and the data of the candidate (the 
 Row checkbox. The checkbox of the row is 24 px through the named class `.import-preview-select-check`, because it is the main action of the row and a touch target below 24 px fails WCAG 2.5.8. The confirmation of duplicates is `.form-check-row` (ADR-0048) with its error linked by `aria-describedby`.
 
 We rejected translating on the server with `__('ui.…')` (it would be the first `ui.*` key used in PHP and a second date formatter next to `formatDate`), `lang/pl.json` (the date would stay ISO and the mechanism has no decision behind it), the colour by the sign in the file (the preview would disagree with what is saved), `formatMoneyAmount` with a footer (the preview would disagree with Operations) and removing the 24 px (a target below WCAG 2.5.8 on a phone). It changes no rule in `context/foundation/glossary.md` and no _Avoid_ term.
+
+Superseded in part by ADR-0058: "zł" in the amount cell of the import preview (the fourth exception to ADR-0037) and the missing "Kwoty w zł" footer. The cell carries no unit and the panel has the footer.

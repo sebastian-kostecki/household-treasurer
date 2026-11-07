@@ -1,0 +1,15 @@
+# Plan change direction arrow and the "Zatwierdzony" column
+
+A plan can change after it was fixed: in the Budget the current plan differs from the initial plan, and in the Month Plan the plan in change mode differs from the approved plan. Until now the Budget showed this only with a `History` icon in `brand-text` (`PlanChangedHint`), which does not say which way the plan moved, and the Month Plan showed the approved amount as a caption "Zatwierdzono: … zł" under the plan. This ADR gives the change a direction and a colour meaning, and the approved amount a column.
+
+Arrow. `ArrowUp` or `ArrowDown` (`@lucide/vue`) stands next to the reference amount: the initial plan in the Budget ("Plan początkowy"), the approved plan in the Month Plan ("Zatwierdzony"). The direction is the current plan against the reference. In the Month Plan in change mode the arrow compares the approved amount with the amount the row shows at that moment (the value of the field), the same value from which the deviation is computed, and not the `plan_minor_units` from the server, so the arrow reacts to editing.
+
+Colour. The tone depends on the type of the category. For an expense category a lower plan (down) is favourable, `success`, and a higher plan (up) is unfavourable, `destructive`; for an income category it is the other way round. A row of an archived category has the arrow in `muted-foreground`, as the rest of the row (`design-system.md`). `success` and `destructive` gain this meaning in the colour table: the direction of a plan change, favourable or unfavourable by the type of the category. No new token is added. The arrow has a tooltip and an `aria-label` with the direction ("Plan zwiększony względem planu początkowego" / "... zatwierdzonego" and the matching decrease), because colour cannot be the only carrier of the meaning.
+
+Month Plan layout. The table gets a column "Zatwierdzony" before "Plan": the approved amount in a muted tone, the arrow when the plan differs from the approved amount, and "—" before the approval. The column is empty in the sum rows and in the put-aside row, and it needs no new Inertia prop, because `approved_minor_units` is already sent. The caption "Zatwierdzono:" is gone. Below `xl` the arrow stands in the line of the mobile caption, not beside the amount; if 390 px does not fit it, the fallback is a 2 x 2 grid of amounts (Phase 4 of `ui-fixes-2`, section 4).
+
+Category tile. In the Month Plan `CategoryChip` has the size `lg`: the tile has the height of the name together with its caption, the icon on the left, the name beside it and under the name the annual line or the available limit, inside the chip. The Budget and the Dashboard keep the small chip.
+
+This supersedes in part ADR-0042 (the six columns of the Month Plan table and the caption of the approved amount). It changes no rule in `context/foundation/glossary.md` and no _Avoid_ term, and it adds no Inertia prop.
+
+We rejected new `trend-*` tokens (today they would duplicate `success` and `destructive`) and the approved amount inside the plan cell (in change mode it crowds the input field).

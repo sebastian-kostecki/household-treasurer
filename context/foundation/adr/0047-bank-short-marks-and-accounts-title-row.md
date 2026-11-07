@@ -29,3 +29,5 @@ The README of `CategoryChip` in the artifact ("logo instead of an abbreviation")
 The change touches no rule in `context/foundation/glossary.md` and no _Avoid_ term.
 
 Supersedes in part ADR-0044: the 28 px logo in the bank tile, already superseded by ADR-0045. We rejected passing the marks as an Inertia prop from PHP (a second source of the list with no gain, and the dialogs have no such payload anyway), one 28 px size for every use (the pick lists would grow, the card has only the 28 px tile) and a short mark in the Accounts table only (Operations and the dialogs would show a different tile for the same bank).
+
+Superseded in part by ADR-0058: a cash Account shows "zł" in the bank tile. It shows the `Coins` icon.

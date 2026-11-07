@@ -23,3 +23,5 @@ The notice card has two lines instead of the identity and the right-hand amount:
 The same pass aligns the rest of the view with the mock: the percentages in the metrics panel and the execution footer are whole numbers, the day bar is made of dashes, the "Plan miesiąca →" link shares one line with the day caption, the execution meter has a fixed track with a small monospaced percentage right behind it, Accounts and Term Deposits rows carry a small mark, a name and a caption (bank, "Portfel" or "<bank> · do <date>") with a bold footer without the "Kwoty w zł" line, and the title line shows the full Polish date.
 
 Superseded in part by ADR-0045: the metrics panel has three measures without Year Elapsed, budget execution is one panel with two tables (Dochody, Wydatki) and the Switch "Postęp roku" instead of tabs, group rows and the Plan and Status columns, and a notice card has the kind label, the identity and the value on the right. The Konta and Lokaty panels stay.
+
+Superseded in part by ADR-0061: the "fixed width" of the right column. `--aside-width` is a `clamp()` and grows with the window.
