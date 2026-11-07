@@ -156,16 +156,21 @@
     --radius: 10px;
     --control-height: 32px;
     --control-height-sm: 26px;
+    --control-height-lg: 36px;
+    --landing-width: 1120px;
+    --landing-bar-height: 56px;
     --brand-mark-size: 26px;
     --row-height: 34px;
     --field-height: 34px;
     --dialog-width: 460px;
     --form-panel-width: 640px;
-    --aside-width: 300px;
+    --aside-width: clamp(18.75rem, 22vw, 26rem);
     --sidebar-panel-width: 224px;
     --command-palette-width: 520px;
     --settings-nav-width: 200px;
     --settings-content-width: 640px;
+    --auth-aside-width: 440px;
+    --auth-card-width: 400px;
     --dialog-pad-x: 18px;
     --dialog-pad-y: 16px;
     /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
@@ -254,6 +259,23 @@
     letter-spacing: -0.01em;
 }
 
+@utility display {
+    @apply text-4xl/10 font-semibold;
+    letter-spacing: -0.025em;
+}
+
+@utility heading {
+    @apply text-2xl/[30px] font-semibold;
+}
+
+@utility lead {
+    @apply text-[15px]/[22px];
+}
+
+@utility card-title {
+    @apply text-sm/5 font-semibold;
+}
+
 @utility section-title {
     @apply text-[13px]/[18px] font-semibold;
 }
@@ -276,7 +298,7 @@
 }
 
 @utility brand-mark {
-    @apply flex items-center justify-center font-mono text-[11px]/none font-semibold;
+    @apply flex items-center justify-center;
     width: var(--brand-mark-size);
     height: var(--brand-mark-size);
 }
@@ -287,6 +309,10 @@
 
 @utility kpi {
     @apply font-mono text-[22px]/7 font-medium;
+}
+
+@utility landing-kpi {
+    @apply font-mono text-[15px]/6 font-medium;
 }
 
 @utility amount {
@@ -313,6 +339,10 @@
     height: var(--control-height-sm);
 }
 
+@utility h-control-lg {
+    height: var(--control-height-lg);
+}
+
 @utility size-control {
     width: var(--control-height);
     height: var(--control-height);
@@ -332,6 +362,258 @@
 }
 
 @layer components {
+    /* Entry screens (ADR-0056): dark panel next to a 400px card from lg, a bar with the mark below. */
+    .auth-shell {
+        @apply bg-background min-h-svh;
+    }
+
+    @media (min-width: 64rem) {
+        .auth-shell {
+            display: grid;
+            grid-template-columns: var(--auth-aside-width) minmax(0, 1fr);
+        }
+    }
+
+    .auth-aside {
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border flex items-center gap-3 border-b px-4 py-3;
+    }
+
+    .auth-aside :is(h1, h2, strong) {
+        @apply text-sidebar-strong;
+    }
+
+    @media (min-width: 64rem) {
+        .auth-aside {
+            @apply sticky top-0 h-svh flex-col items-stretch justify-between gap-8 border-r border-b-0 p-8;
+        }
+    }
+
+    .auth-pitch {
+        @apply hidden flex-col gap-3 lg:flex;
+    }
+
+    .auth-pitch h2 {
+        @apply heading;
+    }
+
+    .auth-pitch p {
+        @apply lead;
+    }
+
+    .auth-year {
+        @apply border-sidebar-border hidden flex-col gap-2 rounded-lg border p-4 text-xs/4 lg:flex;
+    }
+
+    .auth-year-head {
+        @apply flex items-baseline justify-between gap-2;
+    }
+
+    .auth-year-head strong {
+        @apply tabular-nums;
+    }
+
+    .auth-months {
+        @apply grid grid-cols-12 gap-1;
+    }
+
+    .auth-months > * {
+        @apply bg-sidebar-accent h-2 rounded-xs;
+    }
+
+    .auth-months > [data-state='past'] {
+        @apply bg-sidebar-foreground;
+    }
+
+    .auth-months > [data-state='current'] {
+        @apply bg-brand;
+    }
+
+    .auth-points {
+        @apply hidden flex-col gap-2 text-[13px]/[18px] lg:flex;
+    }
+
+    .auth-points li {
+        @apply flex gap-2;
+    }
+
+    .auth-legal {
+        @apply meta hidden lg:block;
+    }
+
+    .auth-main {
+        @apply flex items-start justify-center px-4 py-8 lg:items-center lg:py-12;
+    }
+
+    .auth-card {
+        @apply bg-card text-card-foreground w-full max-w-(--auth-card-width) rounded-lg border;
+    }
+
+    .auth-card-head {
+        @apply flex flex-col gap-1.5 px-6 pt-6;
+    }
+
+    .auth-card-icon {
+        @apply bg-accent text-accent-foreground mb-2 flex size-9 items-center justify-center rounded-md;
+    }
+
+    .auth-card-body {
+        @apply flex flex-col gap-4 px-6 py-6;
+    }
+
+    .auth-card-foot {
+        @apply border-border text-muted-foreground flex items-center justify-center gap-1 border-t px-6 py-4 text-[13px]/[18px];
+    }
+
+    .auth-submit {
+        @apply h-control-field w-full justify-center;
+    }
+
+    .auth-or {
+        @apply text-muted-foreground flex items-center gap-3 text-xs/4;
+    }
+
+    .auth-or::before,
+    .auth-or::after {
+        @apply bg-border h-px flex-1 content-[''];
+    }
+
+    /* One-time code: 40x44 slots, mono 18/500, 8px apart, a dash after the third character (override of ui/input-otp without editing it). */
+    .auth-otp {
+        @apply flex items-center justify-center gap-2;
+    }
+
+    .auth-otp [data-slot='input-otp-slot'] {
+        @apply h-11! w-10! rounded-md! border! font-mono text-lg/6! font-medium;
+    }
+
+    .auth-otp [data-slot='input-otp-group'] {
+        @apply gap-2;
+    }
+
+    .auth-otp [data-slot='input-otp-separator'] {
+        @apply text-muted-foreground;
+    }
+
+    .auth-otp [data-slot='input-otp-separator'] svg {
+        @apply size-3;
+    }
+
+    /* Welcome page (ADR-0057): PageWelcome card of the design system. 36px buttons are the utility h-control-lg, not a class here. */
+    .landing-wrap {
+        @apply mx-auto w-full max-w-(--landing-width) px-4 sm:px-6;
+    }
+
+    .landing-bar {
+        @apply bg-card border-border sticky top-0 z-10 flex items-center border-b;
+        height: var(--landing-bar-height);
+    }
+
+    .landing-section {
+        @apply border-border border-t py-14;
+        scroll-margin-top: var(--landing-bar-height);
+    }
+
+    .landing-hero {
+        @apply grid items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:py-16;
+    }
+
+    .landing-hero-title {
+        @apply sm:display text-3xl/9 font-semibold;
+        letter-spacing: -0.025em;
+    }
+
+    .landing-points {
+        @apply text-muted-foreground flex flex-col gap-1.5 text-sm;
+    }
+
+    .landing-points li {
+        @apply flex items-center gap-2;
+    }
+
+    .landing-points svg {
+        @apply text-brand-text size-4 shrink-0;
+    }
+
+    .landing-grid {
+        @apply grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .landing-feature {
+        @apply bg-card text-card-foreground border-border flex flex-col gap-1.5 rounded-lg border px-4 pt-4 pb-5;
+    }
+
+    .landing-icon {
+        @apply bg-accent text-accent-foreground mb-1 flex size-8 shrink-0 items-center justify-center rounded-md;
+    }
+
+    .landing-steps {
+        @apply bg-card text-card-foreground border-border grid grid-cols-1 overflow-hidden rounded-lg border md:auto-cols-fr md:grid-flow-col;
+    }
+
+    .landing-steps > li {
+        @apply border-border border-t p-4 first:border-t-0 md:border-t-0 md:border-l md:first:border-l-0;
+    }
+
+    .landing-step-no {
+        @apply label-caps text-muted-foreground block;
+    }
+
+    .landing-cta {
+        @apply bg-sidebar text-sidebar-foreground flex flex-col items-start justify-between gap-5 rounded-lg px-8 py-7 sm:flex-row sm:items-center;
+    }
+
+    .landing-cta :is(h2, h3) {
+        @apply text-sidebar-strong text-lg/6 font-semibold;
+    }
+
+    .landing-cta :focus-visible {
+        outline-color: var(--sidebar-ring);
+    }
+
+    .landing-foot {
+        @apply bg-card border-border border-t;
+    }
+
+    /* Application preview: a static, aria-hidden mock-up of the Dashboard built from its blocks. */
+    .landing-preview {
+        @apply bg-background border-border grid grid-cols-1 overflow-hidden rounded-lg border sm:grid-cols-[216px_minmax(0,1fr)];
+    }
+
+    .landing-preview-side {
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border hidden min-w-0 flex-col gap-2 border-r p-2 text-sm sm:flex;
+    }
+
+    .landing-preview-nav-item {
+        @apply flex h-8 items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm whitespace-nowrap [&>svg]:size-4 [&>svg]:shrink-0;
+    }
+
+    .landing-preview-nav-item[data-active='true'] {
+        @apply bg-sidebar-primary text-sidebar-primary-foreground font-semibold;
+    }
+
+    .landing-preview-main {
+        @apply flex min-w-0 flex-col gap-2.5 p-3;
+    }
+
+    .landing-preview .stat-panel-metric {
+        @apply px-3 py-3;
+    }
+
+    .landing-preview-row {
+        @apply border-border-soft grid items-center gap-x-3 border-b px-3 py-1.5 text-sm;
+        grid-template-columns: minmax(0, 1fr) 74px 104px;
+    }
+
+    @media (min-width: 40rem) {
+        .landing-preview-row {
+            grid-template-columns: minmax(0, 1fr) 74px 74px 104px;
+        }
+    }
+
+    .landing-preview-row-plan {
+        @apply hidden text-right sm:block;
+    }
+
     /* Year switcher in the sidebar (ADR-0055): three segments per row, the selected year on sidebar-strong. */
     .sidebar-year-segments {
         @apply grid grid-cols-3 gap-1;
@@ -568,32 +850,37 @@
         @apply text-left sm:text-right;
     }
 
+    /** CategoryChip `lg` (ADR-0060): the tile as tall as the name (20px) with its caption (14px). */
+    .category-chip-lg {
+        @apply size-9 rounded-lg;
+    }
+
     /**
      * Month plan table: one markup on every width. Below `xl` a row is three
-     * lines (name + status, kind, then plan / actual / deviation); from `xl` it
-     * is one line of six columns (Kategoria, Rodzaj, Plan, Faktycznie,
-     * Odchylenie, Status).
+     * lines (name + status, kind, then approved / plan / actual / deviation);
+     * from `xl` it is one line of seven columns (Kategoria, Rodzaj,
+     * Zatwierdzony, Plan, Faktycznie, Odchylenie, Status).
      */
     .month-plan-grid {
         @apply grid w-full gap-x-3;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-template-areas:
-            'category category status'
-            'kind kind kind'
-            'plan actual deviation';
+            'category category category status'
+            'kind kind kind kind'
+            'approved plan actual deviation';
     }
 
     .month-plan-grid-no-kind {
         grid-template-areas:
-            'category category status'
-            'plan actual deviation';
+            'category category category status'
+            'approved plan actual deviation';
     }
 
     @variant xl {
         .month-plan-grid,
         .month-plan-grid-no-kind {
-            grid-template-columns: minmax(0, 1fr) 9rem 8rem 7rem 7rem 8rem;
-            grid-template-areas: 'category kind plan actual deviation status';
+            grid-template-columns: minmax(0, 1fr) 9rem 7rem 8rem 7rem 7rem 8rem;
+            grid-template-areas: 'category kind approved plan actual deviation status';
         }
     }
 
@@ -605,6 +892,11 @@
     .month-plan-cell-kind {
         grid-area: kind;
         @apply min-w-0;
+    }
+
+    .month-plan-cell-approved {
+        grid-area: approved;
+        @apply flex min-w-0 flex-wrap items-baseline justify-end gap-x-1.5 text-right;
     }
 
     .month-plan-cell-plan {
@@ -792,15 +1084,15 @@
         .budget-category-grid {
             @apply items-center gap-x-3;
             grid-template-columns:
-                2.5rem minmax(0, 1fr) repeat(4, 6.5rem) minmax(6rem, 8rem)
-                4.5rem;
+                2.5rem minmax(0, 3fr) repeat(4, minmax(6.5rem, 1fr))
+                minmax(6rem, 1.5fr) 4.5rem;
             grid-template-areas: 'handle category opening current execution remaining meter actions';
         }
 
         .budget-category-grid-no-handle {
             grid-template-columns:
-                minmax(0, 1fr) repeat(4, 6.5rem) minmax(6rem, 8rem)
-                4.5rem;
+                minmax(0, 3fr) repeat(4, minmax(6.5rem, 1fr))
+                minmax(6rem, 1.5fr) 4.5rem;
             grid-template-areas: 'category opening current execution remaining meter actions';
         }
     }
@@ -1281,7 +1573,7 @@
             'meter meter';
     }
 
-    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 676 px przy sidebarze 224 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
+    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 676 px przy sidebarze 224 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Od ADR-0061 kolumny rosną wagami `fr`, nie stałymi maksimami: kwoty zostają na 5rem przy progu, a miernik bierze wolne miejsce. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
     .category-meter-table {
         container-type: inline-size;
     }
@@ -1292,10 +1584,8 @@
         .category-meter-row {
             grid-template-columns:
                 minmax(8rem, 1.4fr)
-                5rem
-                5rem
-                5rem
-                minmax(9rem, 1fr);
+                repeat(3, minmax(5rem, 0.5fr))
+                minmax(9rem, 1.2fr);
             grid-template-areas: 'category plan execution remaining meter';
         }
     }
@@ -1541,13 +1831,13 @@
         @apply ml-auto w-13 shrink-0 text-right text-sm font-medium tabular-nums;
     }
 
-    /* W tabeli realizacji tor ma stałą szerokość, a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
+    /* W tabeli realizacji tor zajmuje wolną szerokość komórki (minimum 3.5rem, ADR-0061), a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
     .category-meter-cell-meter .execution-meter {
-        @apply w-auto gap-x-2;
+        @apply min-w-0 flex-1 gap-x-2;
     }
 
     .category-meter-cell-meter .execution-meter-track {
-        @apply w-14 flex-none;
+        @apply min-w-14 flex-1;
     }
 
     .category-meter-cell-meter .execution-meter-percent {

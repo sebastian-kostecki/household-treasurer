@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoney } from '@/lib/format';
+import { formatMoneyAmount } from '@/lib/format';
 import type { MonthYearComparison } from '@/types/month-plan';
 
 const props = defineProps<{
@@ -39,13 +39,13 @@ const remainingLabel = computed(() => {
 
 <template>
     <span class="tabular-nums">
-        {{ formatMoney(comparison.year_minor_units) }}
+        {{ formatMoneyAmount(comparison.year_minor_units) }}
         {{ t.month_plan.year_of }}
-        {{ formatMoney(comparison.annual_plan_minor_units) }}
+        {{ formatMoneyAmount(comparison.annual_plan_minor_units) }}
         ·
         <span :class="remainingClass">
             {{ remainingLabel }}
-            {{ formatMoney(Math.abs(comparison.remaining_minor_units)) }}
+            {{ formatMoneyAmount(Math.abs(comparison.remaining_minor_units)) }}
         </span>
     </span>
 </template>

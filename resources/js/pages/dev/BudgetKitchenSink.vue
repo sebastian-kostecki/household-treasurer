@@ -138,14 +138,14 @@ const draftExpense = [
 
 const executionIncome = [
     executionRow(201, 'Wynagrodzenie', 'income', 650000, 650000, 650000),
-    executionRow(202, 'Premia', 'income', 120000, 120000, 135000),
-    executionRow(203, 'Zwrot podatku', 'income', 80000, 80000, 20000),
+    executionRow(202, 'Premia', 'income', 100000, 120000, 135000),
+    executionRow(203, 'Zwrot podatku', 'income', 80000, 60000, 20000),
 ];
 const executionExpense = [
     executionRow(211, 'Czynsz', 'expense', 250000, 250000, 250000, 'building'),
     executionRow(212, 'Jedzenie', 'expense', 180000, 200000, 215000, 'apple'),
     executionRow(213, 'Transport', 'expense', 45000, 45000, 12000, 'bus'),
-    executionRow(214, 'Rozrywka', 'expense', 30000, 30000, 0),
+    executionRow(214, 'Rozrywka', 'expense', 30000, 20000, 0),
     executionRow(
         215,
         'Remont łazienki',
@@ -172,7 +172,7 @@ const withArchived = [
         can_restore: true,
         can_delete: false,
         planned_amount_minor_units: 12000,
-        initial_plan_minor_units: 12000,
+        initial_plan_minor_units: 10000,
         current_plan_minor_units: 12000,
         execution_minor_units: 15000,
         remaining_minor_units: -3000,
@@ -302,7 +302,8 @@ const stateMatrix: { state: string; where: string }[] = [
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-income">
             <h2 id="ks-income" class="section-title">
-                Realizacja dochodów (w tym dochód ponad plan, kreska roku)
+                Realizacja dochodów (dochód ponad plan, kreska roku, plan
+                zwiększony „Premia” i zmniejszony „Zwrot podatku”)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.income_table"
@@ -320,8 +321,9 @@ const stateMatrix: { state: string; where: string }[] = [
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-expense">
             <h2 id="ks-expense" class="section-title">
-                Realizacja wydatków (przekroczenie, zmieniony plan, równomierna
-                z kreską, jednorazowa „Remont łazienki” bez kreski)
+                Realizacja wydatków (przekroczenie, plan zwiększony „Jedzenie” i
+                zmniejszony „Rozrywka”, bez zmiany „Czynsz”, równomierna z
+                kreską, jednorazowa „Remont łazienki” bez kreski)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"
@@ -339,7 +341,8 @@ const stateMatrix: { state: string; where: string }[] = [
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-archived">
             <h2 id="ks-archived" class="section-title">
-                Kategorie zarchiwizowane (rozwinięte archiwum po kliknięciu)
+                Kategorie zarchiwizowane (rozwinięte archiwum po kliknięciu;
+                „Siłownia” ze zmianą planu, strzałka wyciszona)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"

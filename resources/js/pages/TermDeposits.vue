@@ -17,7 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { bankLabel } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatDate, formatMoney, formatMoneyAmount } from '@/lib/format';
 import { index as termDepositsRoute } from '@/routes/term-deposits';
 import type {
     TermDepositRow,
@@ -258,7 +258,11 @@ function toggleShowArchived(checked: boolean): void {
                     class="term-deposits-cell-balance amount"
                     :class="balanceClass(termDeposit)"
                 >
-                    {{ formatMoney(termDeposit.current_balance_minor_units) }}
+                    {{
+                        formatMoneyAmount(
+                            termDeposit.current_balance_minor_units,
+                        )
+                    }}
                 </p>
 
                 <div class="term-deposits-cell-actions">
@@ -335,6 +339,11 @@ function toggleShowArchived(checked: boolean): void {
                     </ConfirmActionDialog>
                 </div>
             </div>
+            <template #footer>
+                <p class="meta text-muted-foreground">
+                    {{ t.common.amounts_in_zl }}
+                </p>
+            </template>
         </ListSurface>
     </div>
 

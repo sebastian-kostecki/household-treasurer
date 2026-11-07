@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { minorUnitsToMoneyInput } from '@/lib/format';
+import { parsePlanAmountInput } from '@/lib/month-plan-amount';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import {
     allMonthStates,
@@ -151,7 +152,7 @@ function tableConfig(
 const tables = reactive<TableConfig[]>([
     tableConfig(
         'read',
-        'Odczyt, bieżący zatwierdzony (linia „W roku”, „Zatwierdzono: X”, jednorazowe zwinięte)',
+        'Odczyt, bieżący zatwierdzony (linia „W roku”, kolumna „Zatwierdzony” ze strzałką, jednorazowe zwinięte)',
         approvedReading,
     ),
     tableConfig(
@@ -199,6 +200,12 @@ function stateOf(
     config: TableConfig,
 ): (row: MonthPlanItem) => MonthPlanRowState {
     return (row) => ({
+        planMinorUnits:
+            config.editable && (row.in_plan || !row.is_archived)
+                ? parsePlanAmountInput(
+                      config.amountInputs[row.category_id] ?? '',
+                  )
+                : row.plan_minor_units,
         deviation: row.deviation_minor_units,
         overPlan: row.is_over_plan,
         status: monthItemStatus(row, {

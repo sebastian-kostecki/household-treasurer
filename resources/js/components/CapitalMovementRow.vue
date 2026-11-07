@@ -7,7 +7,7 @@ import type {
     AccountBank,
     PrefixedAccountIdentityFields,
 } from '@/lib/account-identity';
-import { formatMoney } from '@/lib/format';
+import { formatSignedMoneyAmount } from '@/lib/format';
 
 export type CapitalMovementRowData = CapitalMovementFormMovement &
     PrefixedAccountIdentityFields<'account'> & {
@@ -76,7 +76,7 @@ const emit = defineEmits<{
         </div>
 
         <p class="operations-cell-amount">
-            {{ formatMoney(movement.amount_minor_units) }}
+            {{ formatSignedMoneyAmount(movement.amount_minor_units) }}
         </p>
 
         <CapitalMovementActions

@@ -17,7 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { bankLabel } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatMoneyAmount } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
 import type { AccountRow, AccountsPageProps } from '@/types/accounts';
 
@@ -226,7 +226,7 @@ function toggleShowArchived(checked: boolean): void {
                     class="accounts-cell-balance amount"
                     :class="balanceToneClass(account)"
                 >
-                    {{ formatMoney(account.current_balance_minor_units) }}
+                    {{ formatMoneyAmount(account.current_balance_minor_units) }}
                 </p>
 
                 <div class="accounts-cell-actions">
@@ -294,6 +294,11 @@ function toggleShowArchived(checked: boolean): void {
                     </ConfirmActionDialog>
                 </div>
             </div>
+            <template #footer>
+                <p class="meta text-muted-foreground">
+                    {{ t.common.amounts_in_zl }}
+                </p>
+            </template>
         </ListSurface>
     </div>
 

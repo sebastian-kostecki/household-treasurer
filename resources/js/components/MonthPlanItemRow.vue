@@ -4,13 +4,10 @@ import CategoryChip from '@/components/CategoryChip.vue';
 import InputError from '@/components/InputError.vue';
 import MonthPlanKindCell from '@/components/MonthPlanKindCell.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
+import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    formatMoney,
-    formatMoneyAmount,
-    formatSignedMoneyAmount,
-} from '@/lib/format';
+import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
 
@@ -18,6 +15,8 @@ const props = withDefaults(
     defineProps<{
         row: MonthPlanItem;
         editable: boolean;
+        /** The plan the row shows now (the typed value in change mode); null while the entry is unreadable. */
+        planMinorUnits: number | null;
         deviation: number | null;
         overPlan: boolean;
         status: MonthItemStatus | null;
@@ -48,6 +47,12 @@ const hasAmountField = computed(
     () => props.editable && (props.row.in_plan || !props.row.is_archived),
 );
 
+const hasSubtitle = computed(
+    () =>
+        (props.row.year_comparison !== null && !props.row.is_idle_one_off) ||
+        props.row.available_limit_minor_units !== null,
+);
+
 const deviationText = computed(() =>
     props.deviation === null ? '—' : formatSignedMoneyAmount(props.deviation),
 );
@@ -74,59 +79,66 @@ const deviationClass = computed(() => {
         class="month-plan-grid month-plan-row"
         :class="hasKindColumn ? '' : 'month-plan-grid-no-kind'"
     >
-        <div class="month-plan-cell-category flex flex-col gap-1">
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <CategoryChip
-                    :name="row.name"
-                    :icon="row.icon"
-                    :color="row.color"
-                />
-                <Badge v-if="row.is_one_off" variant="neutral">
-                    {{ t.month_plan.one_off_badge }}
-                </Badge>
-                <Badge v-if="row.is_archived" variant="neutral">
-                    {{ t.month_plan.archived_badge }}
-                </Badge>
-                <Badge v-if="!row.in_plan" variant="neutral">
-                    {{ t.month_plan.not_in_plan }}
-                </Badge>
-            </div>
-
-            <p
-                v-if="row.year_comparison !== null && !row.is_idle_one_off"
-                class="meta text-muted-foreground"
+        <div class="month-plan-cell-category">
+            <CategoryChip
+                :name="row.name"
+                :icon="row.icon"
+                :color="row.color"
+                size="lg"
             >
-                <span :class="yearStale ? '' : 'text-foreground'">
-                    {{ t.month_plan.year_line }}:
-                    <MonthYearSummary
-                        :comparison="row.year_comparison"
-                        :type="row.type"
-                    />
-                </span>
-                <span v-if="yearStale">
-                    · {{ t.month_plan.year_stale_hint }}
-                </span>
-            </p>
+                <template #badges>
+                    <Badge v-if="row.is_one_off" variant="neutral">
+                        {{ t.month_plan.one_off_badge }}
+                    </Badge>
+                    <Badge v-if="row.is_archived" variant="neutral">
+                        {{ t.month_plan.archived_badge }}
+                    </Badge>
+                    <Badge v-if="!row.in_plan" variant="neutral">
+                        {{ t.month_plan.not_in_plan }}
+                    </Badge>
+                </template>
 
-            <p
-                v-if="
-                    row.available_limit_minor_units !== null &&
-                    (row.year_comparison === null || row.is_idle_one_off)
-                "
-                class="meta text-muted-foreground"
-            >
-                {{ t.month_plan.available_limit }}:
-                <span
-                    class="tabular-nums"
-                    :class="
-                        row.available_limit_minor_units < 0
-                            ? 'text-destructive'
-                            : ''
-                    "
-                >
-                    {{ formatMoney(row.available_limit_minor_units) }}
-                </span>
-            </p>
+                <template v-if="hasSubtitle" #subtitle>
+                    <span
+                        v-if="
+                            row.year_comparison !== null && !row.is_idle_one_off
+                        "
+                        class="meta text-muted-foreground"
+                    >
+                        <span :class="yearStale ? '' : 'text-foreground'">
+                            {{ t.month_plan.year_line }}:
+                            <MonthYearSummary
+                                :comparison="row.year_comparison"
+                                :type="row.type"
+                            />
+                        </span>
+                        <span v-if="yearStale">
+                            · {{ t.month_plan.year_stale_hint }}
+                        </span>
+                    </span>
+
+                    <span
+                        v-else-if="row.available_limit_minor_units !== null"
+                        class="meta text-muted-foreground"
+                    >
+                        {{ t.month_plan.available_limit }}:
+                        <span
+                            class="tabular-nums"
+                            :class="
+                                row.available_limit_minor_units < 0
+                                    ? 'text-destructive'
+                                    : ''
+                            "
+                        >
+                            {{
+                                formatMoneyAmount(
+                                    row.available_limit_minor_units,
+                                )
+                            }}
+                        </span>
+                    </span>
+                </template>
+            </CategoryChip>
         </div>
 
         <div v-if="hasKindColumn" class="month-plan-cell-kind">
@@ -138,6 +150,38 @@ const deviationClass = computed(() => {
                 :error="kindError"
                 @change="emit('change-kind', $event)"
             />
+        </div>
+
+        <div class="month-plan-cell-approved">
+            <span class="meta text-muted-foreground xl:sr-only">
+                {{ t.month_plan.approved_plan }}
+            </span>
+            <PlanChangeArrow
+                v-if="
+                    row.approved_minor_units !== null && planMinorUnits !== null
+                "
+                :reference="row.approved_minor_units"
+                :current="planMinorUnits"
+                :category-type="row.type"
+                :muted="row.is_archived"
+                :increased-label="t.month_plan.plan_increased"
+                :decreased-label="t.month_plan.plan_decreased"
+            />
+            <span
+                v-if="row.approved_minor_units !== null"
+                class="amount text-muted-foreground w-full xl:w-auto"
+            >
+                {{ formatMoneyAmount(row.approved_minor_units) }}
+            </span>
+            <template v-else>
+                <span
+                    class="amount text-muted-foreground w-full xl:w-auto"
+                    aria-hidden="true"
+                >
+                    —
+                </span>
+                <span class="sr-only">{{ t.month_plan.approved_none }}</span>
+            </template>
         </div>
 
         <div class="month-plan-cell-plan">
@@ -165,16 +209,6 @@ const deviationClass = computed(() => {
                 class="text-right"
                 :message="t.month_plan.amount_invalid"
             />
-            <p
-                v-if="
-                    row.approved_minor_units !== null &&
-                    row.approved_minor_units !== row.plan_minor_units
-                "
-                class="meta text-muted-foreground"
-            >
-                {{ t.month_plan.approved_amount }}:
-                {{ formatMoney(row.approved_minor_units) }}
-            </p>
         </div>
 
         <div class="month-plan-cell-actual">

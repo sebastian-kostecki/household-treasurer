@@ -443,6 +443,10 @@ function rowState(row: MonthPlanItem): MonthPlanRowState {
 
     return {
         ...reading,
+        planMinorUnits:
+            isEditable.value && isEditableRow(row)
+                ? parsedAmount(row)
+                : row.plan_minor_units,
         status: monthItemStatus(row, {
             overPlan: reading.overPlan,
             planMinorUnits: isEditable.value

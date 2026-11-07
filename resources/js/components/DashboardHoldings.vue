@@ -154,6 +154,9 @@ const termDepositsTotalMinorUnits = computed(() =>
                                 {{ formatMoneyAmount(accountsTotalMinorUnits) }}
                             </span>
                         </div>
+                        <p class="meta text-muted-foreground">
+                            {{ t.common.amounts_in_zl }}
+                        </p>
                     </div>
                 </template>
             </ListSurface>
@@ -230,6 +233,9 @@ const termDepositsTotalMinorUnits = computed(() =>
                                 }}
                             </span>
                         </div>
+                        <p class="meta text-muted-foreground">
+                            {{ t.common.amounts_in_zl }}
+                        </p>
                     </div>
                 </template>
             </ListSurface>

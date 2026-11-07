@@ -41,10 +41,10 @@ const bankMarkTiles = [
     })),
     {
         key: 'cash',
-        label: t.accounts.type_cash,
+        label: `${t.accounts.type_cash} (ikona Coins, także z mark_url)`,
         type: 'cash' as const,
         bank: null,
-        mark_url: null,
+        mark_url: '/marks/mbank.jpg',
     },
     {
         key: 'no-bank',

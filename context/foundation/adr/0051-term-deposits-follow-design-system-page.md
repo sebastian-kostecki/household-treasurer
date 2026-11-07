@@ -17,3 +17,5 @@ The Term Deposit dialog takes the whole of ADR-0040, with "Anuluj" as `ghost` (A
 We rejected the "Kwoty w zł" footer (one column of amounts does not need a unit line), the `Switch` under the panel as in ADR-0044 (ADR-0045 and ADR-0047 put it in the title row), hiding the Bank column on a phone (the bank is part of what identifies the row), an empty date cell (an uneven column and nothing for a screen reader) and `FormPreview` in the Term Deposit dialog (no "before → after" reading there). The change touches no rule in `context/foundation/glossary.md` and no _Avoid_ term.
 
 Supersedes in part ADR-0037: the unit in the Term Deposits table.
+
+Superseded in part by ADR-0058: "zł" in each balance of the Term Deposits table and the missing "Kwoty w zł" footer. Balances carry no unit and the panel has the footer.

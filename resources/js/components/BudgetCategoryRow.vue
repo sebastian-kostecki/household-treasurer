@@ -6,7 +6,7 @@ import type { BudgetCategoryRow } from '@/components/BudgetCategoryList.vue';
 import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import ExecutionMeter from '@/components/ExecutionMeter.vue';
-import PlanChangedHint from '@/components/PlanChangedHint.vue';
+import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { executionClass, remainingClass } from '@/lib/budget-category-cells';
@@ -113,9 +113,13 @@ const remainingLabel = computed(() =>
                 :amount="category.initial_plan_minor_units"
                 value-class="text-muted-foreground"
             >
-                <PlanChangedHint
-                    :category="category"
-                    :label="t.budget.plan_changed"
+                <PlanChangeArrow
+                    :reference="category.initial_plan_minor_units"
+                    :current="category.current_plan_minor_units"
+                    :category-type="categoryType"
+                    :muted="isArchived"
+                    :increased-label="t.budget.plan_increased"
+                    :decreased-label="t.budget.plan_decreased"
                 />
             </BudgetAmountCell>
             <BudgetAmountCell

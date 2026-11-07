@@ -44,7 +44,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
 COPY --from=vendor /var/www/html /var/www/html
 COPY package.json package-lock.json ./
 RUN npm ci
-ARG VITE_APP_NAME="Household Treasurer"
+ARG VITE_APP_NAME="Domowy Skarbnik"
 ENV VITE_APP_NAME="${VITE_APP_NAME}" \
     APP_ENV=local \
     APP_DEBUG=true \

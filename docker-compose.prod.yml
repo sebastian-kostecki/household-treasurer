@@ -5,7 +5,7 @@ services:
             dockerfile: docker/8.5/Dockerfile.prod
             args:
                 WWWGROUP: ${WWWGROUP:-1000}
-                VITE_APP_NAME: ${VITE_APP_NAME:-Household Treasurer}
+                VITE_APP_NAME: ${VITE_APP_NAME:-Domowy Skarbnik}
                 POSTGRES_VERSION: 18
         image: household-treasurer-app:prod
         container_name: treasurer-app

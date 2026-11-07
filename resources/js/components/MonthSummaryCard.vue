@@ -2,11 +2,7 @@
 import { computed } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    formatMoney,
-    formatMoneyAmount,
-    formatSignedMoneyAmount,
-} from '@/lib/format';
+import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import type { MonthSummary } from '@/types/month-plan';
 
 const props = defineProps<{
@@ -156,10 +152,10 @@ function deviationClass(key: SummaryKey, minorUnits: number): string {
 
         <p class="meta text-muted-foreground pt-3">
             {{ t.month_plan.summary_year_draw }}:
-            {{ formatMoney(props.summary.year_draw_minor_units) }}
+            {{ formatMoneyAmount(props.summary.year_draw_minor_units) }}
         </p>
         <p class="meta text-muted-foreground pt-1">
-            {{ t.budget.amounts_in_zl }}
+            {{ t.common.amounts_in_zl }}
         </p>
     </ListSurface>
 </template>

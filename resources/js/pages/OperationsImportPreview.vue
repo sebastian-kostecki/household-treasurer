@@ -367,6 +367,11 @@ watch(consumedFirstLegKeysSet, () => {
                             :to-spend-warning="toSpendWarnings[row.index]"
                         />
                     </div>
+                    <template #footer>
+                        <p class="meta text-muted-foreground">
+                            {{ t.common.amounts_in_zl }}
+                        </p>
+                    </template>
                 </ListSurface>
 
                 <ImportPreviewDuplicateAcknowledgement

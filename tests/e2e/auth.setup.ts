@@ -18,13 +18,18 @@ setup('sign in once and save the session', async ({ page }) => {
     // clear first, because re-filling the same value fires no change event.
     await expect(async () => {
         const email = page.getByRole('textbox', { name: 'Adres e-mail' });
-        const passwordField = page.getByRole('textbox', { name: 'Hasło' });
+        const passwordField = page.getByRole('textbox', {
+            name: 'Hasło',
+            exact: true,
+        });
 
         await email.fill('');
         await email.fill(username);
         await passwordField.fill('');
         await passwordField.fill(password);
-        await page.getByRole('button', { name: 'Zaloguj się' }).click();
+        await page
+            .getByRole('button', { name: 'Zaloguj się', exact: true })
+            .click();
         await page.waitForURL((url) => !url.pathname.startsWith('/login'), {
             timeout: 5_000,
         });

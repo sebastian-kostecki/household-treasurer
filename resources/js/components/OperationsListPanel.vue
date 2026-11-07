@@ -171,6 +171,18 @@ const clearFiltersHref = computed(() =>
     }),
 );
 
+const footerText = computed(() => {
+    const explanation = {
+        financial_operations: null,
+        own_transfers: t.operations.own_transfers_footer,
+        capital_movements: t.operations.capital_movements_footer,
+    }[activeSection.value];
+
+    return explanation === null
+        ? t.common.amounts_in_zl
+        : `${t.common.amounts_in_zl} · ${explanation}`;
+});
+
 const operationGroups = computed(() =>
     groupOperationsByDay(operations.data, operationDaySums),
 );
@@ -315,18 +327,9 @@ const capitalMovementGroups = computed(() =>
                 </template>
             </template>
 
-            <template
-                v-if="
-                    state === 'list' && activeSection !== 'financial_operations'
-                "
-                #footer
-            >
+            <template v-if="state === 'list'" #footer>
                 <p class="meta text-muted-foreground">
-                    {{
-                        activeSection === 'own_transfers'
-                            ? t.operations.own_transfers_footer
-                            : t.operations.capital_movements_footer
-                    }}
+                    {{ footerText }}
                 </p>
             </template>
         </ListSurface>

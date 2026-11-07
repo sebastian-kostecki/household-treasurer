@@ -323,8 +323,74 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         'components/AppLogo.vue',
         'layouts/auth/AuthCardLayout.vue',
         'pages/Welcome.vue',
+        'components/LandingAppPreview.vue',
     ])('uses BrandMark in %s', (file) => {
         expect(read(file)).toContain('BrandMark');
+    });
+
+    it.each([
+        'pages/Welcome.vue',
+        'components/LandingAppPreview.vue',
+        'components/LandingFeatureCard.vue',
+    ])(
+        'keeps %s free of literal routes except /register and of text-success (ADR-0057)',
+        (file) => {
+            const source = read(file);
+
+            expect(source).not.toMatch(/href="\/(?!register")/);
+            expect(source).not.toContain('text-success');
+        },
+    );
+
+    it('keeps the landing preview free of anything focusable (ADR-0057)', () => {
+        const source = read('components/LandingAppPreview.vue');
+
+        expect(source).toContain('aria-hidden="true"');
+        expect(source).not.toContain('<Link');
+        expect(source).not.toContain('<a ');
+        expect(source).not.toContain('<button');
+        expect(source).not.toContain('<Button');
+        expect(source).not.toContain('tabindex');
+        expect(source).not.toContain('<input');
+    });
+
+    it.each([
+        'layouts/auth/AuthCardLayout.vue',
+        'layouts/AuthLayout.vue',
+        'components/AuthCardFooter.vue',
+        'components/PasskeyVerify.vue',
+        'pages/auth/ConfirmPassword.vue',
+        'pages/auth/ForgotPassword.vue',
+        'pages/auth/Login.vue',
+        'pages/auth/Register.vue',
+        'pages/auth/ResetPassword.vue',
+        'pages/auth/TwoFactorChallenge.vue',
+        'pages/auth/VerifyEmail.vue',
+    ])(
+        'keeps %s free of tabindex, text-success and literal routes (ADR-0056)',
+        (file) => {
+            const source = read(file);
+
+            expect(source).not.toMatch(/tabindex/i);
+            expect(source).not.toContain('text-success');
+            expect(source).not.toContain('href="/');
+            expect(source).not.toContain("'/dashboard'");
+        },
+    );
+
+    it.each([
+        'layouts/auth/AuthCardLayout.vue',
+        'layouts/AuthLayout.vue',
+        'components/AuthCardFooter.vue',
+        'components/PasskeyVerify.vue',
+        'pages/auth/ConfirmPassword.vue',
+        'pages/auth/ForgotPassword.vue',
+        'pages/auth/Login.vue',
+        'pages/auth/ResetPassword.vue',
+        'pages/auth/TwoFactorChallenge.vue',
+        'pages/auth/VerifyEmail.vue',
+    ])('keeps %s free of a literal form action (ADR-0056)', (file) => {
+        expect(read(file)).not.toContain('action="/');
     });
 
     it('does not render a slot in AppSidebar', () => {
@@ -374,4 +440,28 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
             '<CreateBudgetDialog',
         );
     });
+});
+
+// Components that are only table rows show amounts without the unit; the panel
+// footer says "Kwoty w zł" (ADR-0037, ADR-0058). The list only grows.
+const UNITLESS_TABLE_ROW_FILES = [
+    'components/FinancialOperationRow.vue',
+    'components/OwnTransferRow.vue',
+    'components/CapitalMovementRow.vue',
+    'components/OperationsDayRow.vue',
+    'components/MonthYearSummary.vue',
+    'components/BudgetCategoryRow.vue',
+    'components/BudgetAmountCell.vue',
+    'components/MonthPlanItemRow.vue',
+];
+
+describe('table rows carry no amount unit (ADR-0058)', () => {
+    it.each(UNITLESS_TABLE_ROW_FILES)(
+        'does not import formatMoney or formatSignedMoney in %s',
+        (file) => {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(source).not.toMatch(/\bformat(Signed)?Money\b(?!Amount)/);
+        },
+    );
 });

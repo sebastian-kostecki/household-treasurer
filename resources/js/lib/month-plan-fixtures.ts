@@ -58,6 +58,7 @@ export const paidBill = item({
     has_positive_amount: true,
     deviation_minor_units: 0,
     is_settled: true,
+    approved_minor_units: 150_000,
     year_comparison: {
         year_minor_units: 1_650_000,
         annual_plan_minor_units: 1_800_000,
@@ -77,6 +78,7 @@ export const settledIncome = item({
     can_change_kind: false,
     deviation_minor_units: 0,
     is_settled: true,
+    approved_minor_units: 450_000,
     year_comparison: {
         year_minor_units: 5_500_000,
         annual_plan_minor_units: 6_000_000,
@@ -113,6 +115,7 @@ export const archivedExpense = item({
     actual_minor_units: 12_000,
     has_positive_amount: true,
     deviation_minor_units: 0,
+    approved_minor_units: 15_000,
     can_change_kind: false,
 });
 
@@ -134,6 +137,7 @@ export const overPlanExpense = item({
     has_positive_amount: true,
     deviation_minor_units: -11_000,
     is_over_plan: true,
+    approved_minor_units: 35_000,
     year_comparison: {
         year_minor_units: 372_000,
         annual_plan_minor_units: 360_000,
