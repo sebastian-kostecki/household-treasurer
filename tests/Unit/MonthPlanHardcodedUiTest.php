@@ -10,6 +10,7 @@ const MONTH_PLAN_VIEW_FILES = [
     'resources/js/components/MonthPlanItemRow.vue',
     'resources/js/components/CategoryChip.vue',
     'resources/js/components/PlanChangeArrow.vue',
+    'resources/js/components/MonthPlanMatchActual.vue',
     'resources/js/components/MonthPlanKindCell.vue',
     'resources/js/components/ColumnHeaderHint.vue',
     'resources/js/components/MonthPlanStatPanel.vue',

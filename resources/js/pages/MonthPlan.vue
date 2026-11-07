@@ -702,6 +702,7 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                     @update-amount="updateAmount"
                     @amount-blur="touchAmount"
                     @change-kind="changeKind"
+                    @match-actual="matchActual"
                     @set-aside-blur="setAsideTouched = true"
                 />
 

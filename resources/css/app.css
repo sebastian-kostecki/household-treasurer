@@ -906,7 +906,12 @@
 
     .month-plan-cell-actual {
         grid-area: actual;
-        @apply text-right;
+        @apply flex min-w-0 flex-wrap items-baseline justify-end gap-x-1.5 text-right;
+    }
+
+    /* Action icon with a 24 px hit area (WCAG 2.5.8); the negative margin keeps the caption line height (ADR-0062). */
+    .month-plan-match-actual {
+        @apply -m-1 inline-flex size-6 shrink-0 items-center justify-center self-center rounded-sm;
     }
 
     .month-plan-cell-deviation {

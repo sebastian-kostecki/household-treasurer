@@ -369,26 +369,26 @@ Brak: bez zmian schematu i danych. Wycofanie = revert commitów fazy 2 i 3; glos
 
 #### Automated
 
-- [x] 2.1 Testy reguły przechodzą
-- [x] 2.2 Cały zestaw JS przechodzi
-- [x] 2.3 Typy przechodzą
-- [x] 2.4 Lint i format
+- [x] 2.1 Testy reguły przechodzą — 5d8eda6
+- [x] 2.2 Cały zestaw JS przechodzi — 5d8eda6
+- [x] 2.3 Typy przechodzą — 5d8eda6
+- [x] 2.4 Lint i format — 5d8eda6
 
 #### Manual
 
-- [x] 2.5 Po „Zmień” wiersz z wydatkami ponad plan ma w polu kwotę wydatków, podglądy reagują, „Anuluj” przywraca plan
+- [x] 2.5 Po „Zmień” wiersz z wydatkami ponad plan ma w polu kwotę wydatków, podglądy reagują, „Anuluj” przywraca plan — 5d8eda6
 
 ### Phase 3: Przycisk i znacznik w komórce „Faktycznie”
 
 #### Automated
 
-- [ ] 3.1 Bramka composer ci:check przechodzi
-- [ ] 3.2 Sloppy przechodzi
-- [ ] 3.3 Pint po zmianie PHP
+- [x] 3.1 Bramka composer ci:check przechodzi
+- [x] 3.2 Sloppy przechodzi
+- [x] 3.3 Pint po zmianie PHP
 
 #### Manual
 
-- [ ] 3.4 Kitchen sink pokazuje nowe stany
-- [ ] 3.5 Przycisk i znacznik mieszczą się przy 390 px i przy xl, tooltipy i aria-label poprawne
-- [ ] 3.6 Klawiatura: przycisk, wpisanie wydatków, fokus na polu, znacznik
-- [ ] 3.7 Zapis zmienia Bieżący plan, po zapisie brak „ponad plan” i strzałka w górę
+- [x] 3.4 Kitchen sink pokazuje nowe stany
+- [x] 3.5 Przycisk i znacznik mieszczą się przy 390 px i przy xl, tooltipy i aria-label poprawne
+- [x] 3.6 Klawiatura: przycisk, wpisanie wydatków, fokus na polu, znacznik
+- [x] 3.7 Zapis zmienia Bieżący plan, po zapisie brak „ponad plan” i strzałka w górę
