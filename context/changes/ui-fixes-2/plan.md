@@ -684,29 +684,29 @@ Brak. Zmiany to CSS, formatowanie i statyczne zasoby. `clamp()` i `minmax()` nie
 
 #### Automated
 
-- [x] 4.1 `plan-change-direction.test.ts` najpierw pada, potem przechodzi: `npm test`
-- [x] 4.2 Testy sinków Budżetu i Planu miesiąca przechodzą na PostgreSQL
-- [x] 4.3 `MonthPlanHardcodedUiTest` z nowymi plikami, `npm run check:ui` i `npm run types:check` są zielone
-- [x] 4.4 `PlanChangedHint` i `History` zniknęły z `resources/js`
-- [x] 4.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
+- [x] 4.1 `plan-change-direction.test.ts` najpierw pada, potem przechodzi: `npm test` — eae7d2c
+- [x] 4.2 Testy sinków Budżetu i Planu miesiąca przechodzą na PostgreSQL — eae7d2c
+- [x] 4.3 `MonthPlanHardcodedUiTest` z nowymi plikami, `npm run check:ui` i `npm run types:check` są zielone — eae7d2c
+- [x] 4.4 `PlanChangedHint` i `History` zniknęły z `resources/js` — eae7d2c
+- [x] 4.5 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci` — eae7d2c
 
 #### Manual
 
-- [x] 4.6 Zrzuty `/dev/kitchen-sink/budget` i `/dev/month-plan` przy 1280 i 390 px w obu motywach: strzałki we właściwym kierunku i kolorze, kolumna „Zatwierdzony” wyrównana
-- [x] 4.7 W trybie zmian Planu miesiąca strzałka zmienia kierunek podczas wpisywania kwoty
-- [x] 4.8 Kafelek kategorii ma wysokość nazwy razem z podpisem
-- [x] 4.9 Podpowiedź i nazwa strzałki mówią „zwiększony” albo „zmniejszony”
+- [x] 4.6 Zrzuty `/dev/kitchen-sink/budget` i `/dev/month-plan` przy 1280 i 390 px w obu motywach: strzałki we właściwym kierunku i kolorze, kolumna „Zatwierdzony” wyrównana — eae7d2c
+- [x] 4.7 W trybie zmian Planu miesiąca strzałka zmienia kierunek podczas wpisywania kwoty — eae7d2c
+- [x] 4.8 Kafelek kategorii ma wysokość nazwy razem z podpisem — eae7d2c
+- [x] 4.9 Podpowiedź i nazwa strzałki mówią „zwiększony” albo „zmniejszony” — eae7d2c
 
 ### Phase 5: Szerokie ekrany
 
 #### Automated
 
-- [ ] 5.1 `npm run check:ui` przechodzi, a `DashboardHardcodedUiTest` jest zielony
-- [ ] 5.2 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
+- [x] 5.1 `npm run check:ui` przechodzi, a `DashboardHardcodedUiTest` jest zielony
+- [x] 5.2 Bramka: `composer ci:check` przez Sail i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 5.3 Przy 1920 i 2560 px miernik wypełnia wolną szerokość, a kolumna Konta i Lokaty jest szersza niż 300 px
-- [ ] 5.4 Przy 1024 i 1280 px tabela wykonania przełącza się jak dotąd, a kolumna boczna ma 300 px
-- [ ] 5.5 W Budżecie przy 1920 i 2560 px kolumny kwot i postęp są szersze, nazwa kategorii nieucinana przy 1280 px
-- [ ] 5.6 Przy 390 px oba widoki wyglądają jak przed zmianą
+- [x] 5.3 Przy 1920 i 2560 px miernik wypełnia wolną szerokość, a kolumna Konta i Lokaty jest szersza niż 300 px
+- [x] 5.4 Przy 1024 i 1280 px tabela wykonania przełącza się jak dotąd, a kolumna boczna ma 300 px
+- [x] 5.5 W Budżecie przy 1920 i 2560 px kolumny kwot i postęp są szersze, nazwa kategorii nieucinana przy 1280 px
+- [x] 5.6 Przy 390 px oba widoki wyglądają jak przed zmianą

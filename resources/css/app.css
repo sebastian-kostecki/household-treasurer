@@ -164,7 +164,7 @@
     --field-height: 34px;
     --dialog-width: 460px;
     --form-panel-width: 640px;
-    --aside-width: 300px;
+    --aside-width: clamp(18.75rem, 22vw, 26rem);
     --sidebar-panel-width: 224px;
     --command-palette-width: 520px;
     --settings-nav-width: 200px;
@@ -1084,15 +1084,15 @@
         .budget-category-grid {
             @apply items-center gap-x-3;
             grid-template-columns:
-                2.5rem minmax(0, 1fr) repeat(4, 6.5rem) minmax(6rem, 8rem)
-                4.5rem;
+                2.5rem minmax(0, 3fr) repeat(4, minmax(6.5rem, 1fr))
+                minmax(6rem, 1.5fr) 4.5rem;
             grid-template-areas: 'handle category opening current execution remaining meter actions';
         }
 
         .budget-category-grid-no-handle {
             grid-template-columns:
-                minmax(0, 1fr) repeat(4, 6.5rem) minmax(6rem, 8rem)
-                4.5rem;
+                minmax(0, 3fr) repeat(4, minmax(6.5rem, 1fr))
+                minmax(6rem, 1.5fr) 4.5rem;
             grid-template-areas: 'category opening current execution remaining meter actions';
         }
     }
@@ -1573,7 +1573,7 @@
             'meter meter';
     }
 
-    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 676 px przy sidebarze 224 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
+    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 676 px przy sidebarze 224 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Od ADR-0061 kolumny rosną wagami `fr`, nie stałymi maksimami: kwoty zostają na 5rem przy progu, a miernik bierze wolne miejsce. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
     .category-meter-table {
         container-type: inline-size;
     }
@@ -1584,10 +1584,8 @@
         .category-meter-row {
             grid-template-columns:
                 minmax(8rem, 1.4fr)
-                5rem
-                5rem
-                5rem
-                minmax(9rem, 1fr);
+                repeat(3, minmax(5rem, 0.5fr))
+                minmax(9rem, 1.2fr);
             grid-template-areas: 'category plan execution remaining meter';
         }
     }
@@ -1833,13 +1831,13 @@
         @apply ml-auto w-13 shrink-0 text-right text-sm font-medium tabular-nums;
     }
 
-    /* W tabeli realizacji tor ma stałą szerokość, a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
+    /* W tabeli realizacji tor zajmuje wolną szerokość komórki (minimum 3.5rem, ADR-0061), a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
     .category-meter-cell-meter .execution-meter {
-        @apply w-auto gap-x-2;
+        @apply min-w-0 flex-1 gap-x-2;
     }
 
     .category-meter-cell-meter .execution-meter-track {
-        @apply w-14 flex-none;
+        @apply min-w-14 flex-1;
     }
 
     .category-meter-cell-meter .execution-meter-percent {
