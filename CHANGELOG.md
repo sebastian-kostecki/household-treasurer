@@ -1,115 +1,145 @@
 # Changelog
 
-Wszystkie istotne zmiany w Household Treasurer. Format według [Keep a Changelog](https://keepachangelog.com/pl/1.1.0/), wersje według [Semantic Versioning](https://semver.org/lang/pl/). Każda wersja to tag na `main` i release na GitHubie.
+All notable changes to Household Treasurer (Domowy Skarbnik). The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each version is a tag on `main` and a release on GitHub.
 
-Nazwy domenowe (_Current Plan_, _Own Transfer_, _Capital Movement_…) pochodzą ze słownika w [`context/foundation/glossary.md`](context/foundation/glossary.md). Szczegóły każdej zmiany 10x leżą w `context/archive/<data>-<change-id>/`.
+Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from the glossary in [`context/foundation/glossary.md`](context/foundation/glossary.md). The UI is in Polish, so screen labels are quoted in Polish where it helps to find them. Details of each 10x change live in `context/archive/<date>-<change-id>/`.
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-11-07
+
+The Atrament design system now also covers the screens before login (sign-in and the landing page), and a round of visual fixes gives the app its Polish name and its own mark.
+
+### Added
+
+- Atrament sign-in screens: a dark side panel (mark, tagline, current year block) next to a 400 px card, collapsing into a bar on phones, for Login, Register, Forgot Password, Reset Password, Verify Email, Confirm Password and the two-factor challenge; the `/dev/ui/auth?screen=&state=` kitchen sink renders every screen in every state as a full page (`auth-atrament-ui`, ADR-0056).
+- Atrament landing page: an app preview built from the real Dashboard building blocks, a navy call-to-action band with the `brand` button, a single steps panel and the `/dev/ui/welcome` kitchen sink with three states (`welcome-atrament-ui`, ADR-0057).
+- The app is called **Domowy Skarbnik** and has a "house with a coin" mark, also used as the favicon and apple-touch icon; the session cookie, cache prefix, Redis prefix and backup name are pinned in config, so the rename logs nobody out and does not start a new empty backup folder (`ui-fixes-2`, ADR-0058).
+- A changed plan shows an ↑ or ↓ arrow coloured by category type (for expenses ↓ is green and ↑ red, for income the other way round) in the Budget and in a new "Zatwierdzony" (approved) column in the Month Plan (`ui-fixes-2`, ADR-0059).
+- Cash accounts use a coins icon.
+- Polish server messages for login and password reset (`lang/pl/auth.php`, `lang/pl/passwords.php`).
+
+### Changed
+
+- One rule for amounts: tables show amounts without "zł" and end with a "Kwoty w zł" (amounts in PLN) footer, in Operations, Import, Accounts, Term Deposits, the Dashboard holdings and the Month Plan; "zł" stays in measures, dialogs and alerts (`ui-fixes-2`, ADR-0060).
+- Wide screens: the aside width and the amount columns on the Dashboard and in the Budget grow with the available width, and the execution bar takes the free space (`ui-fixes-2`, ADR-0061).
+- Confirmations on sign-in screens use the `ok` Alert; the remaining English copy in Verify Email, the two-factor challenge and the passkey prompt is now Polish.
+- Landing page copy for guests without jargon ("klucze dostępu" instead of "passkeys", no "w MVP").
+- Text styles `display`, `heading`, `lead` and `card-title` defined in `resources/css/app.css`; the `check:ui` guard and the UI contract test now cover the sign-in and landing views.
+
+### Fixed
+
+- Tab order on sign-in screens follows the markup instead of hard-coded `tabindex` values; the "Nie pamiętasz hasła?" link comes before the password field.
+- Reset Password without `?email=` in the link has an editable e-mail field instead of an empty read-only one.
+- Two-factor challenge: focus moves after switching between code and recovery mode, and the OTP error is linked with `aria-describedby`.
+- The password visibility toggle no longer sets `aria-pressed` next to a changing label.
+- The passkey prompt redirects through the Wayfinder `dashboard()` route instead of a literal URL, with a regression test for the redirect after passkey login.
+
 ## [1.3.0] — 2026-11-07
 
-Interfejs w design systemie **Atrament** ([`context/foundation/design-system.md`](context/foundation/design-system.md)): wszystkie widoki przechodzą na wspólne tokeny, kroje i komponenty.
+The interface moves to the **Atrament** design system ([`context/foundation/design-system.md`](context/foundation/design-system.md)): every view uses shared tokens, typefaces and components.
 
-### Dodano
+### Added
 
-- Warstwa tokenów Atrament w `resources/css/app.css` (kolory, kroje, odstępy, powierzchnie) i jej konsumenci w całej aplikacji (`design-tokens-atrament`).
-- Paleta poleceń **⌘K** z widokami, kategoriami i akcjami, skróty klawiaturowe do widoków oraz rok budżetu wybierany w segmentach na pasku bocznym (`sidebar-action`).
-- Awatar konta (`AccountAvatar`) z identyfikacją banku wszędzie tam, gdzie wcześniej była sama nazwa konta (`account-avatar`).
-- Skrót banku w `AccountMarkCompact` i przełącznik w wierszu tytułu strony Konta (`accounts-design-system-page`).
-- Dashboard według strony design systemu: trzy miary, karta alertu i blok „Budżet &lt;rok&gt;” (`dashboard-design-system-page`).
-- Konfiguracja Playwright E2E z testem seedowym i scenariuszami bramki wizualnej dla przebudowanych widoków.
+- Atrament token layer in `resources/css/app.css` (colours, typefaces, spacing, surfaces) and its consumers across the app (`design-tokens-atrament`).
+- **⌘K** command palette with views, categories and actions, keyboard shortcuts for views, and the budget year picked from segments in the sidebar (`sidebar-action`).
+- Account avatar (`AccountAvatar`) with bank identification wherever only the account name was shown before (`account-avatar`).
+- Bank short name in `AccountMarkCompact` and a toggle in the title row of the Accounts page (`accounts-design-system-page`).
+- Dashboard following the design system page: three measures, an alert card and the "Budżet &lt;year&gt;" block (`dashboard-design-system-page`).
+- Playwright E2E setup with a seed test and visual gate scenarios for the rebuilt views.
 
-### Zmieniono
+### Changed
 
-- Widoki przebudowane w Atramencie, każdy z kontraktem propsów, kitchen sinkiem w `/dev/...` i bramką wizualną: Budżet, Operacje, Plan miesiąca, Dashboard, Konta, Lokaty, Ustawienia (Profil, Bezpieczeństwo, Wygląd), Import (krok 1 i podgląd) oraz pasek boczny ze znakiem „HT”.
-- Dialogi kategorii i operacji (wydatek, dochód, transfer, ruch kapitału) na wspólnych elementach pola z odczytem „przed → po” (`category-dialog-atrament`, `operation-dialogs-atrament`).
-- Lista Operacji według preview z ADR-0039 (`ui-operations-atrament`).
-- Przyciski „Anuluj” w wariancie ghost; „Zakończyć kategorię?” korzysta z `ConfirmActionDialog` (`cancel-button-ghost`).
-- Powody odrzucenia wiersza i pary w podglądzie Importu są po polsku i składane w UI (`import-preview-atrament-ui`).
-- Pasek boczny bez górnej belki i bez zwijania.
-- Zależności: Inertia 3.11 (Laravel 3.7), Vue 3.5.44, Tailwind 4.3.4, Vite+ 1.5.0, Pest 5.3.5, Larastan 3.14, Sloppy 1.8.2; Node 24 w `.nvmrc` i `engines`.
-- CI: cache Composera, runner przypięty do `ubuntu-24.04`, testy także przy pushu na `development`.
+- Views rebuilt in Atrament, each with a props contract, a kitchen sink under `/dev/...` and a visual gate: Budget, Operations, Month Plan, Dashboard, Accounts, Term Deposits, Settings (Profile, Security, Appearance), Import (step 1 and preview) and the sidebar with the "HT" mark.
+- Category and operation dialogs (expense, income, transfer, capital movement) on shared field elements with a "before → after" reading (`category-dialog-atrament`, `operation-dialogs-atrament`).
+- Operations list following the preview from ADR-0039 (`ui-operations-atrament`).
+- "Anuluj" (Cancel) buttons use the ghost variant; "Zakończyć kategorię?" (end category?) uses `ConfirmActionDialog` (`cancel-button-ghost`).
+- Rejection reasons for a row and a pair in the Import preview are in Polish and composed in the UI (`import-preview-atrament-ui`).
+- Sidebar without the top bar and without collapsing.
+- Dependencies: Inertia 3.11 (Laravel 3.7), Vue 3.5.44, Tailwind 4.3.4, Vite+ 1.5.0, Pest 5.3.5, Larastan 3.14, Sloppy 1.8.2; Node 24 in `.nvmrc` and `engines`.
+- CI: Composer cache, runner pinned to `ubuntu-24.04`, tests also on push to `development`.
 
-### Naprawiono
+### Fixed
 
-- Edycja konta bankowego zachowuje wybrany bank.
-- Kolumny kategorii w Budżecie mieszczą się bez przewijania w bok.
-- Kolumna Status w Planie miesiąca jest wyrównana do prawej na każdej szerokości.
-- Paleta ⌘K: filtrowanie kategorii wczytanych po wpisaniu tekstu, wyszukiwanie tylko po etykiecie, okno nowego budżetu otwierane w layoucie zamiast w arkuszu paska bocznego.
-- Wiersz operacji nie pokazuje awatara konta.
-- Typowane pola konta kandydata pary w `ImportPairCandidateDetector`.
+- Editing a bank account keeps the selected bank.
+- Category columns in the Budget fit without horizontal scrolling.
+- The Status column in the Month Plan is right-aligned at every width.
+- ⌘K palette: filtering categories loaded after typing, searching by label only, and the new budget dialog opening in the layout instead of the sidebar sheet.
+- An operation row no longer shows the account avatar.
+- Typed account fields of a pair candidate in `ImportPairCandidateDetector`.
 
-### Bezpieczeństwo
+### Security
 
-- `symfony/serializer` 8.1.11 z poprawkami zgłoszonymi przez `composer audit`.
+- `symfony/serializer` 8.1.11 with the fixes reported by `composer audit`.
 
 ## [1.2.0] — 2026-11-04
 
-Import z podpowiedzią kategorii i uporządkowany podgląd Importu.
+Import with category suggestions and a tidier Import preview.
 
-### Dodano
+### Added
 
-- Podpowiedź kategorii w podglądzie Importu: wstępny wybór na podstawie wcześniejszych operacji, znacznik podpowiedzi przy wierszu oraz pomiar trafności i wydajności (`import-category-suggestions`).
-- Generyczny opis dla zaimportowanych wierszy bez opisu.
-- Kontrakt UI podglądu Importu: kitchen sink, macierz stanów i bramka (`import-preview-ui-contract`).
+- Category suggestion in the Import preview: a preselection based on earlier operations, a suggestion marker on the row, and accuracy and performance measurement (`import-category-suggestions`).
+- A generic description for imported rows without one.
+- UI contract for the Import preview: kitchen sink, state matrix and gate (`import-preview-ui-contract`).
 
-### Naprawiono
+### Fixed
 
-- Zatwierdzenie Importu, gdy podgląd zawiera wiersze niepoprawne.
+- Confirming an Import when the preview contains invalid rows.
 
-### Zmieniono
+### Changed
 
-- Zależności: Inertia (Vue) 3.9.1, Inertia Laravel 3.5.2, Fortify 1.41.0, Pest 5.3.4, `@lucide/vue` 1.64.0, `vue-input-otp` 0.4.0.
+- Dependencies: Inertia (Vue) 3.9.1, Inertia Laravel 3.5.2, Fortify 1.41.0, Pest 5.3.4, `@lucide/vue` 1.64.0, `vue-input-otp` 0.4.0.
 
 ## [1.1.0] — 2026-11-03
 
-Kamień milowy **M-1: Kontrola miesiąca bez arkusza** — plan miesiąca i „do wydania” w aplikacji zamiast w arkuszu ([`context/foundation/prd.md`](context/foundation/prd.md), [`context/foundation/roadmap.md`](context/foundation/roadmap.md)).
+Milestone **M-1: Month control without a spreadsheet** — the month plan and "to spend" live in the app instead of a spreadsheet ([`context/foundation/prd.md`](context/foundation/prd.md), [`context/foundation/roadmap.md`](context/foundation/roadmap.md)).
 
-### Dodano
+### Added
 
-- Strona **Plan miesiąca**: propozycja planu, korekta, zatwierdzenie i odczyt „do wydania”; rodzaj pozycji (rachunek / bieżący) na kategorii; snapshot w wersji 5 (`month-plan-and-to-spend`).
-- Kwota „odkładam / dobieram” w planie i jej wpływ na „do wydania” (`set-aside-and-draw`).
-- Zmiana zatwierdzonego planu w trakcie miesiąca (`approved-plan-changes`).
-- Plan i faktyczna kwota każdej pozycji oraz kategorie jednorazowe w zwiniętej sekcji (`month-items-plan-vs-actual`).
-- Tempo wydatków względem upływu dni miesiąca, liczone tym samym wzorem w PHP i TS (`month-spending-pace`).
-- „Do wydania” na Dashboardzie i w pasku miesiąca na stronie Budżet, także w miesiącu bez planu (`to-spend-replaces-remaining`).
-- Powiadomienia planu miesiąca na Dashboardzie (`month-plan-notices`).
-- Ostrzeżenia liczone z planu przy ręcznej operacji i w podglądzie Importu (`plan-based-entry-warnings`).
-- Podsumowanie miesiąca, w tym odkładanie zamierzone i realne (`month-summary`).
-- Porównanie planów miesięcy z budżetem rocznym (`month-plans-vs-year`).
-- Kontrakty UI z kitchen sinkiem i macierzą 7 stanów dla Dashboardu, Budżetu, Planu miesiąca, Kont, Lokat, Operacji i paska bocznego.
-- Sloppy w zależnościach i w CI.
+- **Month Plan** page: plan proposal, adjustment, approval and the "do wydania" (to spend) reading; item kind (bill / everyday) on the category; snapshot version 5 (`month-plan-and-to-spend`).
+- A "set aside / draw" amount in the plan and its effect on "to spend" (`set-aside-and-draw`).
+- Changing an approved plan during the month (`approved-plan-changes`).
+- Plan and actual amount for every item, with one-off categories in a collapsed section (`month-items-plan-vs-actual`).
+- Spending pace against the days elapsed in the month, calculated with the same formula in PHP and TS (`month-spending-pace`).
+- "To spend" on the Dashboard and in the month bar on the Budget page, also in a month without a plan (`to-spend-replaces-remaining`).
+- Month plan notices on the Dashboard (`month-plan-notices`).
+- Plan-based warnings for manual operations and in the Import preview (`plan-based-entry-warnings`).
+- Month summary, including intended and actual set-aside (`month-summary`).
+- Comparison of month plans with the yearly budget (`month-plans-vs-year`).
+- UI contracts with a kitchen sink and a 7-state matrix for the Dashboard, Budget, Month Plan, Accounts, Term Deposits, Operations and the sidebar.
+- Sloppy in the dependencies and in CI.
 
-### Zmieniono
+### Changed
 
-- Decyzje domenowe planu miesiąca: nowy ADR zastępuje ADR-0024 w części o „drugim budżecie miesięcznym”, nowe terminy i progi powiadomień w słowniku (`month-plan-domain-decisions`).
-- „Do wydania” zastępuje odczyt _Month Remaining_; oznaczenie _Paced_ w powiadomieniach zastąpiły powiadomienia planu miesiąca.
-- Przejście na Vite+ 1.x, aktualizacja Laravela z Wayfinderem i Larastanem; konfiguracja Boost MCP dla agentów.
+- Month plan domain decisions: a new ADR supersedes ADR-0024 where it described a "second monthly budget", with new terms and notice thresholds in the glossary (`month-plan-domain-decisions`).
+- "To spend" replaces the _Month Remaining_ reading; month plan notices replace the _Paced_ marker in notices.
+- Move to Vite+ 1.x, Laravel update with Wayfinder and Larastan; Boost MCP configuration for agents.
 
-### Naprawiono
+### Fixed
 
-- Wiersze Kont i Lokat korzystają ze wspólnej klasy `holdings-list-row`.
-- Zapis zmian planu jednym insertem zamiast zapisu w pętli.
+- Account and Term Deposit rows share the `holdings-list-row` class.
+- Plan changes are saved with a single insert instead of inserts in a loop.
 
 ## [1.0.0] — 2026-09-24
 
-Pierwsza wersja (MVP) wdrożona na produkcję: roczny budżet domowy i płynność na kontach i lokatach, w PLN, z interfejsem po polsku ([`context/foundation/prd-mvp.md`](context/foundation/prd-mvp.md)).
+The first version (MVP) deployed to production: a yearly household budget and liquidity across accounts and term deposits, in PLN, with a Polish interface ([`context/foundation/prd-mvp.md`](context/foundation/prd-mvp.md)).
 
-### Dodano
+### Added
 
-- **Konta i płynność:** konta bankowe i gotówkowe z identyfikacją banku (Alior, BNP Paribas, ING, Lokaty Facto, mBank, Pekao, PKO BP, Revolut, Santander), _Spendable Liquidity_ i _Total funds_, archiwizacja zamiast usuwania.
-- **Budżet roczny:** szkic budżetu z kategoriami dochodów i wydatków, start wykonania z zamrożonym _Initial Plan_, edycja _Current Plan_ w trakcie roku, wyrównanie planu kategorii do wykonania, kopiowanie kategorii z wcześniejszego roku, wygląd i kolejność kategorii (przeciąganie), kategorie równomierne (_Paced_) i jednorazowe (_One-off_).
-- **Operacje:** ręczne dochody, wydatki, zwroty i _Own Transfers_ z podglądem limitów i ostrzeżeń, opcjonalny kontrahent, edycja i usuwanie, przeklasyfikowanie dochodu na zwrot wydatku, lista z paginacją, wyszukiwaniem i filtrami.
-- **Lokaty:** _Term Deposits_ z bankiem i datą końca, _Capital Movement_ wprowadzany ręcznie i z wyciągu, przebudowa operacji lub transferu w ruch kapitału, filtr lokat na liście operacji.
-- **Import wyciągów:** CSV i XLSX, nazwane formaty mBank i BNP Paribas z automatycznym mapowaniem kolumn, pomijanie śmieciowych wierszy, wykrywanie duplikatów przy ponownym imporcie, pary kandydatów zamieniane na _Own Transfers_, import ruchów kapitału i odsetek, zapis kontrahenta i surowego opisu, pomijanie numerów instrumentów płatniczych, atomowy zapis partii.
-- **Dashboard** bieżącego roku: kafelki płynności, strefa uwagi z uporządkowanymi powiadomieniami o poziomie ważności, alerty kategorii równomiernych, znacznik upływu roku, sekcje budżetu z domyślnym zwinięciem, lista kont i lokat.
-- Odczyt wykonania i wyniku miesiąca w pasku miesięcy na stronie Budżet.
-- Logowanie z 2FA i passkeys przez Fortify; brak samodzielnej rejestracji, użytkowników tworzy administrator komendą Artisan.
-- Komendy administracyjne: `user:backup`, `user:restore`, `user:reset-data`, zarządzanie kontami z Artisana, `demo:seed-household`; kopie zapasowe aplikacji (Spatie) z harmonogramem i odtwarzaniem.
-- Polska strona powitalna, krój Geist z `latin-ext`, pierwszy design system z tokenami kolorów i bursztynowymi ostrzeżeniami nieblokującymi.
-- Produkcyjny stos Docker (za Traefikiem i Cloudflare, HTTPS), skrypt wdrożenia z `main`, CI w GitHub Actions, test wydajności NFR-PERF-01 na PostgreSQL, PHPStan na poziomie 7.
+- **Accounts and liquidity:** bank and cash accounts with bank identification (Alior, BNP Paribas, ING, Lokaty Facto, mBank, Pekao, PKO BP, Revolut, Santander), _Spendable Liquidity_ and _Total funds_, archiving instead of deleting.
+- **Yearly budget:** budget draft with income and expense categories, execution start with a frozen _Initial Plan_, editing the _Current Plan_ during the year, aligning a category plan with execution, copying categories from an earlier year, category appearance and order (drag and drop), _Paced_ and _One-off_ categories.
+- **Operations:** manual income, expenses, refunds and _Own Transfers_ with a preview of limits and warnings, an optional counterparty, editing and deleting, reclassifying income as an expense refund, a list with pagination, search and filters.
+- **Term deposits:** _Term Deposits_ with a bank and an end date, _Capital Movement_ entered by hand and from a statement, converting an operation or transfer into a capital movement, a term deposit filter on the operations list.
+- **Statement import:** CSV and XLSX, named mBank and BNP Paribas formats with automatic column mapping, skipping junk rows, duplicate detection on re-import, candidate pairs turned into _Own Transfers_, import of capital movements and interest, storing the counterparty and raw description, skipping payment instrument numbers, atomic batch save.
+- **Dashboard** for the current year: liquidity tiles, an attention zone with ordered notices by severity, _Paced_ category alerts, a year progress marker, budget sections collapsed by default, a list of accounts and term deposits.
+- Execution and month result reading in the month bar on the Budget page.
+- Login with 2FA and passkeys through Fortify; no self-registration, users are created by an administrator with an Artisan command.
+- Admin commands: `user:backup`, `user:restore`, `user:reset-data`, account management from Artisan, `demo:seed-household`; application backups (Spatie) with a schedule and restore.
+- Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
+- Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.0.0...v1.1.0
