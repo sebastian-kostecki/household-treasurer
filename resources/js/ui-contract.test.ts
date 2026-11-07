@@ -351,6 +351,21 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         },
     );
 
+    it.each([
+        'layouts/auth/AuthCardLayout.vue',
+        'layouts/AuthLayout.vue',
+        'components/AuthCardFooter.vue',
+        'components/PasskeyVerify.vue',
+        'pages/auth/ConfirmPassword.vue',
+        'pages/auth/ForgotPassword.vue',
+        'pages/auth/Login.vue',
+        'pages/auth/ResetPassword.vue',
+        'pages/auth/TwoFactorChallenge.vue',
+        'pages/auth/VerifyEmail.vue',
+    ])('keeps %s free of a literal form action (ADR-0056)', (file) => {
+        expect(read(file)).not.toContain('action="/');
+    });
+
     it('does not render a slot in AppSidebar', () => {
         expect(read('components/AppSidebar.vue')).not.toContain('<slot');
     });

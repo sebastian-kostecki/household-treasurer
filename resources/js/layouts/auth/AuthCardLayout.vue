@@ -37,7 +37,7 @@ const points = [
             </div>
 
             <div class="auth-year">
-                <div class="auth-year-head">
+                <div class="auth-year-head" aria-hidden="true">
                     <span>{{ t.auth.aside.year_label }}</span>
                     <strong
                         >{{ yearProgress.year }} ·

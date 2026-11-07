@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import { computed, ref, watchEffect } from 'vue';
+import { computed, nextTick, ref, watchEffect } from 'vue';
 import AuthCardFooter from '@/components/AuthCardFooter.vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -44,6 +44,13 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
     showRecoveryInput.value = !showRecoveryInput.value;
     clearErrors();
     code.value = '';
+
+    // The form is swapped, so the focused toggle disappears: move focus to the new field.
+    void nextTick(() => {
+        document
+            .getElementById(showRecoveryInput.value ? 'recovery-code' : 'otp')
+            ?.focus();
+    });
 };
 </script>
 
@@ -67,6 +74,7 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                 :maxlength="6"
                 :disabled="processing"
                 :aria-label="t.auth.two_factor.otp_label"
+                :aria-describedby="errors.code ? 'otp-error' : undefined"
                 :aria-invalid="errors.code ? 'true' : undefined"
                 autofocus
             >
@@ -86,7 +94,7 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     />
                 </InputOTPGroup>
             </InputOTP>
-            <InputError :message="errors.code" size="xs" />
+            <InputError id="otp-error" :message="errors.code" size="xs" />
         </div>
         <Button type="submit" class="auth-submit" :disabled="processing">
             <Spinner v-if="processing" />
@@ -109,6 +117,7 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
     >
         <div class="grid gap-2">
             <Input
+                id="recovery-code"
                 name="recovery_code"
                 type="text"
                 :placeholder="t.auth.two_factor.recovery_placeholder"

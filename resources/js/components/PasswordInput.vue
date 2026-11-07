@@ -43,7 +43,6 @@ defineExpose({
                     ? t.auth.password_toggle.hide
                     : t.auth.password_toggle.show
             "
-            :aria-pressed="showPassword"
         >
             <EyeOff v-if="showPassword" class="size-4" />
             <Eye v-else class="size-4" />

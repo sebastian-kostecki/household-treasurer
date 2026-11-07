@@ -49,7 +49,7 @@ class AuthKitchenSinkTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('auth/Login')
-                ->has('status'));
+                ->where('status', __('passwords.reset')));
     }
 
     public function test_it_renders_the_reset_password_page_without_an_email(): void

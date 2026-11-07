@@ -4,7 +4,6 @@ import { Link } from '@inertiajs/vue3';
 
 type Props = {
     href?: LinkComponentBaseProps['href'];
-    tabindex?: number;
     method?: Method;
     as?: string;
 };
@@ -28,7 +27,6 @@ const linkClass =
     <Link
         v-else
         :href="href as LinkComponentBaseProps['href']"
-        :tabindex="tabindex"
         :method="method"
         :as="as"
         :class="linkClass"

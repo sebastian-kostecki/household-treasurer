@@ -509,6 +509,12 @@ Bez migracji danych. `config/passkeys.php` jest nowy; na produkcji po wdrożeniu
 - Precedens `accent` = ok: `resources/js/components/ui/badge/index.ts:23`
 - Odpowiedź logowania kluczem: `vendor/laravel/passkeys/src/Http/Responses/PasskeyLoginResponse.php:20-29`
 
+## Addenda (impl-review, 2026-11-07)
+
+- **C13 was a false alarm.** Fortify sets `passkeys.redirect` to `Fortify::redirects('login')` (`vendor/laravel/fortify/src/FortifyServiceProvider.php:139`), so `config/passkeys.php` was not created and `PasskeyLoginRedirectTest` is a regression guard that was never red. Progress 2.1 ("nie przechodziły przed poprawką") applies to `PolishAuthMessagesTest` only.
+- **Sink states.** `error` and `recovery` were dropped from `/dev/ui/auth`: the Inertia `Form` fills `errors` only after a rejected submit. The test asserts a 404 for `state=error`; error screens come from a real submit.
+- **Card footer.** The plan's "slot `footer`" became `components/AuthCardFooter.vue` (`Teleport defer` to `#auth-card-foot`), because a page cannot fill a named slot of its layout. Recorded in ADR-0056.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

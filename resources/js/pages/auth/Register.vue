@@ -17,6 +17,8 @@ setLayoutProps({
     description: t.auth.register.description,
 });
 
+// Registration is off (`Features::registration()`), so Wayfinder has no `register`
+// route yet; `action` stays a literal until it is enabled, then use its `.form()`.
 defineProps<{
     passwordRules: string;
 }>();

@@ -64,11 +64,11 @@ class AuthKitchenSinkController extends Controller
 
         return match ($screen) {
             'login' => $state === 'status'
-                ? ['canResetPassword' => true, 'status' => 'Hasło zostało zmienione. Zaloguj się nowym hasłem.']
+                ? ['canResetPassword' => true, 'status' => __('passwords.reset')]
                 : ['canResetPassword' => true],
             'register' => ['passwordRules' => $passwordRules],
             'forgot-password' => $state === 'status'
-                ? ['status' => 'Wysłaliśmy link do zresetowania hasła na podany adres e-mail.']
+                ? ['status' => __('passwords.sent')]
                 : [],
             'reset-password' => [
                 'token' => 'kitchen-sink-token',
