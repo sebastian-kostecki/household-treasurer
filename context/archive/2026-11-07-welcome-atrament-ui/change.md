@@ -1,10 +1,10 @@
 ---
 change_id: welcome-atrament-ui
 title: Strona powitalna według design systemu Atrament
-status: impl_reviewed
+status: archived
 created: 2026-11-07
 updated: 2026-11-07
-archived_at: null
+archived_at: 2026-11-07T18:27:32Z
 ---
 
 ## Notes
