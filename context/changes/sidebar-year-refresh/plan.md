@@ -176,30 +176,30 @@ Nie dotyczy. Kształt propsu `shell` i `ShellState` zostają, a jedyna zmiana AP
 
 #### Automated
 
-- [x] 1.1 Test regresji `useShell` pada na helperze sprzed poprawki: `npm test -- resources/js/composables/useTranslations.test.ts` (uruchomiony przed krokiem 2)
-- [x] 1.2 Test przechodzi po poprawce: `npm test -- resources/js/composables/useTranslations.test.ts`
-- [x] 1.3 Wszystkie testy frontendu przechodzą: `npm test`
-- [x] 1.4 Kontrola typów przechodzi na świeżych plikach Wayfinder: `npm run build && npm run types:check`
-- [x] 1.5 Kontrola statyczna bez ostrzeżeń: `npm run check`
-- [x] 1.6 Kontrola literałów UI przechodzi: `npm run check:ui`
+- [x] 1.1 Test regresji `useShell` pada na helperze sprzed poprawki: `npm test -- resources/js/composables/useTranslations.test.ts` (uruchomiony przed krokiem 2) — df5f001
+- [x] 1.2 Test przechodzi po poprawce: `npm test -- resources/js/composables/useTranslations.test.ts` — df5f001
+- [x] 1.3 Wszystkie testy frontendu przechodzą: `npm test` — df5f001
+- [x] 1.4 Kontrola typów przechodzi na świeżych plikach Wayfinder: `npm run build && npm run types:check` — df5f001
+- [x] 1.5 Kontrola statyczna bez ostrzeżeń: `npm run check` — df5f001
+- [x] 1.6 Kontrola literałów UI przechodzi: `npm run check:ui` — df5f001
 
 #### Manual
 
-- [x] 1.7 Na `/budget` z dwoma latami kliknięcie drugiego roku w sidebarze zmienia zaznaczenie w sidebarze razem z nagłówkiem, bez F5
-- [x] 1.8 Utworzenie roku przez „<rok> +” dodaje segment nowego roku w sidebarze i zaznacza go, bez F5
-- [x] 1.9 Z `/accounts` kliknięcie roku zaznacza ten rok w sidebarze
+- [x] 1.7 Na `/budget` z dwoma latami kliknięcie drugiego roku w sidebarze zmienia zaznaczenie w sidebarze razem z nagłówkiem, bez F5 — df5f001
+- [x] 1.8 Utworzenie roku przez „<rok> +” dodaje segment nowego roku w sidebarze i zaznacza go, bez F5 — df5f001
+- [x] 1.9 Z `/accounts` kliknięcie roku zaznacza ten rok w sidebarze — df5f001
 
 ### Phase 2: E2E i reguła
 
 #### Automated
 
-- [ ] 2.1 Spec przechodzi na buildzie produkcyjnym przy działającym stosie Sail i bez `public/hot`: `npx playwright test tests/e2e/sidebar-year-refresh.spec.ts`
-- [ ] 2.2 Istniejące specy sidebara dalej przechodzą: `npx playwright test tests/e2e/sidebar-current-section.spec.ts tests/e2e/command-palette.spec.ts`
-- [ ] 2.3 Indeks reguł jest aktualny: `php artisan boost:index-rules`
-- [ ] 2.4 Kontrole statyczne frontendu przechodzą: `npm run check`
+- [x] 2.1 Spec przechodzi na buildzie produkcyjnym przy działającym stosie Sail i bez `public/hot`: `npx playwright test tests/e2e/sidebar-year-refresh.spec.ts`
+- [x] 2.2 Istniejące specy sidebara dalej przechodzą: `npx playwright test tests/e2e/sidebar-current-section.spec.ts tests/e2e/command-palette.spec.ts`
+- [x] 2.3 Indeks reguł jest aktualny: `php artisan boost:index-rules`
+- [x] 2.4 Kontrole statyczne frontendu przechodzą: `npm run check`
 
 #### Manual
 
-- [ ] 2.5 Po przebiegu specu baza E2E ma znów tylko rok 2026 (spec posprzątał)
-- [ ] 2.6 Spec pada na buildzie bez poprawki z fazy 1 (sprawdzone raz, np. przez `git stash` zmian z `resources/js` i `npm run build`), z komunikatem o zaznaczeniu starego roku
-- [ ] 2.7 Nowa sekcja w `js-sidebar.md` jest zwięzła i zgodna z opisem w tym planie
+- [x] 2.5 Po przebiegu specu baza E2E ma znów tylko rok 2026 (spec posprzątał)
+- [x] 2.6 Spec pada na buildzie bez poprawki z fazy 1 (sprawdzone raz, np. przez `git stash` zmian z `resources/js` i `npm run build`), z komunikatem o zaznaczeniu starego roku
+- [x] 2.7 Nowa sekcja w `js-sidebar.md` jest zwięzła i zgodna z opisem w tym planie
