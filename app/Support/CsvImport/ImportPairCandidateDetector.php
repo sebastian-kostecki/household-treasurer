@@ -2,6 +2,7 @@
 
 namespace App\Support\CsvImport;
 
+use App\Models\Account;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -191,7 +192,7 @@ class ImportPairCandidateDetector
             'kind' => 'financial_operation',
             'id' => $operation->id,
             'account_id' => (int) $operation->import_identity_account_id,
-            ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
+            ...$this->candidateAccountFields($operation->account),
             'date' => $operation->import_identity_date->toDateString(),
             'description' => $operation->description,
             'converts_financial_operation' => true,
@@ -228,10 +229,30 @@ class ImportPairCandidateDetector
             'kind' => 'own_transfer',
             'id' => $transfer->id,
             'account_id' => $identity['account_id'],
-            ...AccountIdentity::prefixedRowFields($account, 'account'),
+            ...$this->candidateAccountFields($account),
             'date' => $identity['date'],
             'description' => $transfer->description,
             'converts_financial_operation' => false,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     account_name: string,
+     *     account_type: string,
+     *     account_bank: string|null,
+     *     account_mark_url: string|null,
+     * }
+     */
+    private function candidateAccountFields(Account $account): array
+    {
+        $identity = AccountIdentity::payload($account);
+
+        return [
+            'account_name' => $identity['name'],
+            'account_type' => $identity['type'],
+            'account_bank' => $identity['bank'],
+            'account_mark_url' => $identity['mark_url'],
         ];
     }
 
