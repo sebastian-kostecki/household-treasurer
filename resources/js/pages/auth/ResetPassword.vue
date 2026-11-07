@@ -19,11 +19,11 @@ setLayoutProps({
 
 const props = defineProps<{
     token: string;
-    email: string;
+    email: string | null;
     passwordRules: string;
 }>();
 
-const inputEmail = ref(props.email);
+const inputEmail = ref(props.email ?? '');
 </script>
 
 <template>

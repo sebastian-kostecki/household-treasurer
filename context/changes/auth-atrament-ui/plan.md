@@ -517,25 +517,25 @@ Bez migracji danych. `config/passkeys.php` jest nowy; na produkcji po wdrożeniu
 
 #### Automated
 
-- [x] 1.1 ADR-0056 istnieje, a numer jest kolejnym wolnym
-- [x] 1.2 Indeks reguł zawiera `js-auth.md` po `php artisan boost:index-rules`
+- [x] 1.1 ADR-0056 istnieje, a numer jest kolejnym wolnym — d8fa003
+- [x] 1.2 Indeks reguł zawiera `js-auth.md` po `php artisan boost:index-rules` — d8fa003
 
 #### Manual
 
-- [x] 1.3 ADR-0056 i `design-system.md` zgadzają się z tabelą decyzji w `plan-brief.md`
+- [x] 1.3 ADR-0056 i `design-system.md` zgadzają się z tabelą decyzji w `plan-brief.md` — d8fa003
 
 ### Phase 2: Serwer, najpierw test (C11, C13, C15)
 
 #### Automated
 
-- [ ] 2.1 Nowe testy nie przechodziły przed poprawką
-- [ ] 2.2 Testy auth przechodzą na PostgreSQL
-- [ ] 2.3 `npm run types:check` przechodzi po typie `email: string | null`
-- [ ] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
+- [x] 2.1 Nowe testy nie przechodziły przed poprawką
+- [x] 2.2 Testy auth przechodzą na PostgreSQL
+- [x] 2.3 `npm run types:check` przechodzi po typie `email: string | null`
+- [x] 2.4 `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
 
 #### Manual
 
-- [ ] 2.5 Logowanie kluczem dostępu w przeglądarce kończy się na `/dashboard`
+- [x] 2.5 Logowanie kluczem dostępu w przeglądarce kończy się na `/dashboard`
 
 ### Phase 3: Tokeny, klasy i komponenty współdzielone
 
