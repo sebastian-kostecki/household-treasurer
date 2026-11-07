@@ -9,6 +9,8 @@ Weights, not maxima. Columns grow through `fr` weights, not through fixed maxima
 - Execution table of the Dashboard, from 38rem: category `minmax(8rem, 1.4fr)`, three amount columns `minmax(5rem, 0.5fr)` each, meter `minmax(9rem, 1.2fr)`. On a wide screen the meter grows fastest after the category.
 - Budget, from `xl`: category `minmax(0, 3fr)`, amount columns `minmax(6.5rem, 1fr)`, meter `minmax(6rem, 1.5fr)`. The draft grid is unchanged.
 
+Execution meter. In the execution table the meter track is no longer a fixed 56 px: it takes the free width of its cell (`min-w-14`, `flex-1`) with the percentage right behind it, so the bar grows together with the meter column. The wide-screen check showed that a wider column alone left an empty strip next to a short bar.
+
 Requirement. At 1280 px the category column is no narrower than today: about 236 px in the Budget and about 176 px in the execution table. A change that narrows it fails the screenshots.
 
 No `max-width` of the content and no `2xl` breakpoint are added.
