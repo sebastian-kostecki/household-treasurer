@@ -541,32 +541,32 @@ Bez migracji danych. `config/passkeys.php` jest nowy; na produkcji po wdrożeniu
 
 #### Automated
 
-- [x] 3.1 `npm test` przechodzi, w tym `auth-year-progress.test.ts`
-- [x] 3.2 `npm run check` przechodzi bez ostrzeżeń
-- [x] 3.3 `npm run check:ui` przechodzi z `TextLink.vue` i `PasswordInput.vue` w `FILES`
-- [x] 3.4 `UiTranslationKeysTest` i testy ustawień przechodzą
+- [x] 3.1 `npm test` przechodzi, w tym `auth-year-progress.test.ts` — 84125e8
+- [x] 3.2 `npm run check` przechodzi bez ostrzeżeń — 84125e8
+- [x] 3.3 `npm run check:ui` przechodzi z `TextLink.vue` i `PasswordInput.vue` w `FILES` — 84125e8
+- [x] 3.4 `UiTranslationKeysTest` i testy ustawień przechodzą — 84125e8
 
 #### Manual
 
-- [x] 3.5 W ustawieniach Tab dochodzi do „Pokaż hasło” z polską etykietą
+- [x] 3.5 W ustawieniach Tab dochodzi do „Pokaż hasło” z polską etykietą — 84125e8
 
 ### Phase 4: Układ i siedem widoków
 
 #### Automated
 
-- [ ] 4.1 `npm run check:ui` przechodzi z nowymi plikami
-- [ ] 4.2 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`)
-- [ ] 4.3 `npm run build && npm run types:check` przechodzą
-- [ ] 4.4 `composer ci:check` przechodzi
-- [ ] 4.5 `vendor/bin/sloppy ci` przechodzi
-- [ ] 4.6 Setup e2e loguje się
+- [x] 4.1 `npm run check:ui` przechodzi z nowymi plikami
+- [x] 4.2 `npm test` przechodzi (w tym nowe asercje `ui-contract.test.ts`)
+- [x] 4.3 `npm run build && npm run types:check` przechodzą
+- [x] 4.4 `composer ci:check` przechodzi
+- [x] 4.5 `vendor/bin/sloppy ci` przechodzi
+- [x] 4.6 Setup e2e loguje się
 
 #### Manual
 
-- [ ] 4.7 Siedem ekranów przy 1280 px jak karty Page*, przy 390 px panel jest paskiem
-- [ ] 4.8 Kolejność Tab na Login zgodna z DOM
-- [ ] 4.9 Błędne hasło pokazuje polski komunikat pod polem e-mail
-- [ ] 4.10 W UI wejścia nie ma angielskiego tekstu
+- [x] 4.7 Siedem ekranów przy 1280 px jak karty Page*, przy 390 px panel jest paskiem
+- [x] 4.8 Kolejność Tab na Login zgodna z DOM
+- [x] 4.9 Błędne hasło pokazuje polski komunikat pod polem e-mail
+- [x] 4.10 W UI wejścia nie ma angielskiego tekstu
 
 ### Phase 5: Kitchen sink i bramka wizualna
 

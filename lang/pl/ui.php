@@ -51,6 +51,7 @@ return [
         'passkey' => [
             'login' => 'Zaloguj się kluczem dostępu',
             'confirm' => 'Potwierdź kluczem dostępu',
+            'loading' => 'Uwierzytelnianie…',
             'or' => 'lub',
         ],
         'login' => [

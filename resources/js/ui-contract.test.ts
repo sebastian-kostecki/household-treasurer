@@ -327,6 +327,30 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(read(file)).toContain('BrandMark');
     });
 
+    it.each([
+        'layouts/auth/AuthCardLayout.vue',
+        'layouts/AuthLayout.vue',
+        'components/AuthCardFooter.vue',
+        'components/PasskeyVerify.vue',
+        'pages/auth/ConfirmPassword.vue',
+        'pages/auth/ForgotPassword.vue',
+        'pages/auth/Login.vue',
+        'pages/auth/Register.vue',
+        'pages/auth/ResetPassword.vue',
+        'pages/auth/TwoFactorChallenge.vue',
+        'pages/auth/VerifyEmail.vue',
+    ])(
+        'keeps %s free of tabindex, text-success and literal routes (ADR-0056)',
+        (file) => {
+            const source = read(file);
+
+            expect(source).not.toMatch(/tabindex/i);
+            expect(source).not.toContain('text-success');
+            expect(source).not.toContain('href="/');
+            expect(source).not.toContain("'/dashboard'");
+        },
+    );
+
     it('does not render a slot in AppSidebar', () => {
         expect(read('components/AppSidebar.vue')).not.toContain('<slot');
     });
