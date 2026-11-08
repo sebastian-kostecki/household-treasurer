@@ -1,157 +1,186 @@
 ---
 project: Household Treasurer
-assessed_at: 2026-11-04T13:06:05+01:00
+assessed_at: 2026-11-08T14:00:18+01:00
 agent_readiness: ready-with-compensation
 context_type: brownfield
 stack_components:
     language: PHP 8.5 (host 8.4.1), TypeScript 5.9
-    framework: Laravel 13.40, Inertia 3 (server 3.5, client 3.9), Vue 3.5
-    build_tool: Vite+ 1.4.0 (vp)
-    test_runner: Pest 5.3 (PHPUnit 13.4), Vitest 5 via vp test
+    framework: Laravel 13.40, Inertia 3 (server 3.7, client 3.11), Vue 3.5
+    build_tool: Vite+ 1.5.0 (vp)
+    test_runner: Pest 5.3 (PHPUnit 13.4), Vitest 5.1 via vp test, Playwright 1.65
     package_manager: Composer, npm
     ci_provider: GitHub Actions
     deployment_target: Docker Compose on a VPS
-gates_passed: 15
+gates_passed: 17
 gates_failed: 4
 ---
 
 ## Stack Components
 
-Ocena opiera się na `composer.lock`, `package-lock.json`, plikach konfiguracyjnych i plikach instrukcji z tego repozytorium. Kontekst zmiany: `context/foundation/prd-v2.md` (raport okresu z wykresem i tabelą, trend kategorii, wydatki nieregularne w planie miesiąca, nowa wersja snapshotu). Ocena zastępuje wersję z 2026-11-01 (commit `d38659a`); większość jej zaleceń jest już w `AGENTS.md`.
+Ocena opiera się na `composer.lock`, `package-lock.json`, plikach konfiguracyjnych i plikach instrukcji z tego repozytorium. Kontekst zmiany: `context/foundation/prd-v3.md` (zarządzanie kategoriami: jedna lista kategorii przez lata, grupy, rytm zamiast flag Paced/One-off i Month Item Kind, kategorie nieregularne z „zebranym”, scalanie kategorii, migracja istniejących danych, raporty z wykresem i tabelą, snapshot w nowym formacie). Ocena zastępuje wersję z 2026-11-04 pod prd-v2 (commit `b72ef6d`). Jej zalecenia są wdrożone: `CLAUDE.md` jest w repozytorium i importuje `@AGENTS.md`, a reguły „Charts and reports”, „Snapshot format” i „Domain changes come before code” są w `.ai/rules/reports.md`, `.ai/rules/snapshot.md` i w twardych regułach `AGENTS.md`.
 
-**PHP.** CI, Sail i obraz produkcyjny używają 8.5, host ma 8.4.1. `composer.json` deklaruje teraz `^8.4.1`, zgodnie z faktycznym minimum zablokowanych pakietów. Analiza statyczna: Larastan 3.13 na PHPStan 2.3, poziom 7. Formatowanie: Pint. Dodatkowo Sloppy 1.8 w CI (heurystyki jakości, baseline 26 znalezisk).
+**PHP.** CI, Sail i obraz produkcyjny używają 8.5, host 8.4.1, `composer.json` deklaruje `^8.4.1`. Analiza statyczna: Larastan 3.14 na PHPStan 2.3.5, poziom 7. Formatowanie: Pint 1.32. Sloppy 1.8.2 w CI z baseline (`.sloppy-baseline.json`).
 
-**TypeScript.** Wersja 5.9 z `strict: true`. `vue-tsc` 3.3 sprawdza szablony. Wszystkie 243 pliki `.vue` mają `lang="ts"`, frontend nie ma plików `.js`.
+**TypeScript.** Wersja 5.9.3 z `strict: true`, `vue-tsc` 3.3 sprawdza szablony. 255 z 256 plików `.vue` ma `lang="ts"`.
 
-**Laravel.** Wersja 13.40, monolit z Fortify. Stały układ: `app/Actions` (zapisy), `app/Support` (odczyty i obliczenia, 62 pliki), `app/Http/Requests`, `app/Policies`.
+**Laravel.** Wersja 13.40, monolit z Fortify 1.41. Stały układ: `app/Actions` (zapisy, 21 plików), `app/Support` (odczyty i obliczenia, 40 wpisów), `app/Http/Requests`, `app/Policies`. Baza: 20 migracji, wszystkie schematowe, z `down()`.
 
-**Inertia i Vue.** `inertiajs/inertia-laravel` 3.5, `@inertiajs/vue3` 3.9, Vue 3.5 z Composition API. UI: Tailwind 4.3 i shadcn-vue (`reka-ui` 2.11, styl `new-york-v4`). Projekt nie ma biblioteki wykresów ani komponentu `chart` w `resources/js/components/ui`.
+**Inertia i Vue.** `inertiajs/inertia-laravel` 3.7, `@inertiajs/vue3` 3.11, Vue 3.5 z Composition API. UI: Tailwind 4.3 i shadcn-vue (`reka-ui` 2.11), design system Atrament (`context/foundation/design-system.md`). W `resources/js/components/ui` nadal nie ma komponentu `chart`, a w `package.json` biblioteki wykresów.
 
-**Wayfinder.** `laravel/wayfinder` 0.1.23 (najnowsza, 2026-10-16) i `@laravel/vite-plugin-wayfinder` 0.1.10 (dostępna 0.1.11). Wygenerowane katalogi są poza Gitem.
+**Wayfinder.** `laravel/wayfinder` 0.1.23 i `@laravel/vite-plugin-wayfinder` 0.1.11 (od poprzedniej oceny podbity z 0.1.10). Wygenerowane katalogi są poza Gitem.
 
-**Build.** `vite-plus` 1.4.0 (`vp`) z aliasem `vite` → `@voidzero-dev/vite-plus-core` 1.4.0 i takim samym `overrides`. Dostępna jest 1.5.0. `vp check` robi lint (typowany, `denyWarnings`) i formatowanie; konfiguracja w `vite.config.ts`.
+**Build.** `vite-plus` 1.5.0 (`vp`), alias `vite` i `overrides.vite` na `@voidzero-dev/vite-plus-core@1.5.0`, wszystkie trzy zgodne. `vp check` robi lint i formatowanie, `vp test` uruchamia Vitest.
 
-**Testy.** Pest 5.3 na PHPUnit 13.4: 93 pliki w `tests/`, w tym testy wydajności w `tests/Feature/Nfr`. Frontend: Vitest 5 uruchamiany przez `vp test`, 20 plików `*.test.ts` obok kodu. Brak testów architektury (`arch()`).
+**Testy.** Pest 5.3 na PHPUnit 13.4: 114 plików `*Test.php`, w tym testy wydajności w `tests/Feature/Nfr`; `assertInertia` w 47 plikach. Frontend: 40 plików `*.test.ts` obok kodu. Playwright 1.65: 8 specyfikacji E2E (`playwright.config.ts`, `scripts/e2e-server.sh`). Brak testów architektury (`arch()`). `phpunit.xml` domyślnie używa SQLite.
 
-**Pakiety.** Composer i npm (`npm ci` w CI). `pnpm-workspace.yaml` usunięto.
+**Pakiety.** Composer i npm (`npm ci` w CI, `engines.node >= 24`).
 
-**CI i wdrożenie.** `.github/workflows/tests.yml`: `composer audit`, Sloppy, migracje, build i `composer ci:check` (lint, typy, testy JS i PHP) na PostgreSQL 18 i PHP 8.5. Wdrożenie ręczne przez `scripts/deploy.sh` i `docker-compose.prod.yml`.
+**CI i wdrożenie.** `.github/workflows/tests.yml`: `composer audit --locked`, Sloppy, migracje, `npm ci`, build i `composer ci:check` (`vp check`, `check:ui`, `vue-tsc`, `vp test`, Pint, PHPStan, Pest) na PostgreSQL 18 i PHP 8.5. Wdrożenie ręczne: `scripts/deploy.sh` buduje obraz, uruchamia `docker-compose.prod.yml` i robi `php artisan migrate --force` bez wcześniejszej kopii bazy.
 
-**Pliki instrukcji.** `AGENTS.md` (299 linii: fakty projektu i wytyczne Boost), `.ai/rules` (3 reguły), `context/foundation/glossary.md`, 31 ADR w `context/foundation/adr`, `.mcp.json` z Boost MCP dla Claude Code (`boost.json`: `"agents": ["claude_code"]`). `CLAUDE.md` istnieje lokalnie, ale jest w `.gitignore` i zawiera tylko blok `@przeprogramowani/10x-cli`.
+**Pliki instrukcji.** `CLAUDE.md` (śledzony, `@AGENTS.md` plus sekcja Claude Code), `AGENTS.md` (236 linii: twarde reguły, polecenia, układ, wytyczne Boost), `.ai/rules` (17 reguł z `paths:` i `index.md`, ładowane przez symlink `.claude/rules/project`), `context/foundation/glossary.md`, 62 ADR w `context/foundation/adr`, Boost MCP przez `.mcp.json`. `CLAUDE.local.md` jest ignorowany i trzyma materiały kursu.
 
 ## Quality Gate Assessment
 
-| Komponent            | Typowany | Konwencje | Dane treningowe | Dokumentacja | Werdykt        |
-| -------------------- | -------- | --------- | --------------- | ------------ | -------------- |
-| PHP + Larastan       | ✓        | —         | —               | —            | pass           |
-| TypeScript           | ✓        | —         | —               | —            | pass           |
-| Granica PHP ↔ Vue    | ~        | —         | —               | —            | pass-with-note |
-| Laravel 13           | —        | ✓         | ✓               | ✓            | pass           |
-| Inertia 3 + Vue 3    | —        | ✓         | ✓               | ✓            | pass           |
-| Vite+ 1.4 (`vp`)     | —        | ✓         | ✗               | ✓            | fail           |
-| Wayfinder 0.1        | ✓        | —         | ✗               | ~            | fail           |
-| Pest 5               | —        | —         | ✓               | ✓            | pass           |
-| Vitest (`vp test`)   | —        | —         | ✓               | ✓            | pass           |
+| Komponent          | Typowany | Konwencje | Dane treningowe | Dokumentacja | Werdykt        |
+| ------------------ | -------- | --------- | --------------- | ------------ | -------------- |
+| PHP + Larastan     | ✓        | —         | —               | —            | pass           |
+| TypeScript         | ✓        | —         | —               | —            | pass           |
+| Granica PHP ↔ Vue  | ~        | —         | —               | —            | pass-with-note |
+| Laravel 13         | —        | ✓         | ✓               | ✓            | pass           |
+| Inertia 3 + Vue 3  | —        | ✓         | ✓               | ✓            | pass           |
+| Vite+ 1.5 (`vp`)   | —        | ✓         | ✗               | ✓            | fail           |
+| Wayfinder 0.1      | ✓        | —         | ✗               | ~            | fail           |
+| Pest 5             | —        | —         | ✓               | ✓            | pass           |
+| Vitest (`vp test`) | —        | —         | ✓               | ✓            | pass           |
+| Playwright         | —        | —         | ✓               | ✓            | pass           |
 
 Legenda: ✓ zaliczone, ✗ niezaliczone, ~ częściowo, — nie dotyczy.
 
-Wynik: 15 z 19 ocen zaliczonych, 2 częściowe, 2 niezaliczone. Pole `gates_failed` liczy oceny częściowe jako niezaliczone, stąd 4. Zmiana względem 2026-11-01: dokumentacja Vite+ przeszła z częściowej na zaliczoną (projekt jest na linii 1.x), doszedł Vitest.
+Wynik: 17 z 21 ocen zaliczonych, 2 częściowe, 2 niezaliczone. Pole `gates_failed` liczy oceny częściowe jako niezaliczone, stąd 4. Zmiana względem 2026-11-04: doszedł Playwright (dwie oceny zaliczone), oceny pozostałych komponentów są bez zmian.
 
 ### Gate Details
 
 **Typowany**
 
 - **PHP: zaliczone.** `phpstan.neon` ustawia poziom 7 na `app/`, `bootstrap/app.php`, `config/`, `database/`, `routes/`, bez baseline. 0 wyciszeń `@phpstan-ignore`. `tests/` są poza analizą.
-- **TypeScript: zaliczone.** `tsconfig.json` ma `strict: true`. 243/243 pliki `.vue` z `lang="ts"`, 2 użycia `any`, 0 `@ts-ignore`/`@ts-expect-error`.
-- **Granica PHP ↔ Vue: częściowo.** Kontrolery zwracają tablice, propsy są typowane ręcznie w `defineProps<>`, a `vue-tsc` nie widzi PHP. Zabezpieczenie: `assertInertia` w 40 plikach testów (było 32) i reguła „Inertia props contract” w `AGENTS.md`.
+- **TypeScript: zaliczone.** `tsconfig.json` ma `strict: true`. 255/256 plików `.vue` z `lang="ts"`, 2 użycia `any`, 0 `@ts-ignore`/`@ts-expect-error`.
+- **Granica PHP ↔ Vue: częściowo.** Kontrolery zwracają tablice, a propsy są typowane ręcznie w `defineProps<>`; `vue-tsc` nie widzi PHP. Zabezpieczenie: twarda reguła w `AGENTS.md` (prop zmienia się po obu stronach w jednym commicie z testem `assertInertia`), `.ai/rules/inertia-props.md` i `assertInertia` w 47 plikach testów.
 - **Wayfinder: zaliczone.** Trasy trafiają do TypeScriptu jako wygenerowane funkcje.
 
 **Konwencje**
 
-- **Laravel: zaliczone.** Silne konwencje frameworka plus własne, stosowane konsekwentnie (Actions, Support, Requests, Policies).
-- **Inertia + Vue: zaliczone.** Strony w `resources/js/pages`, komponenty według starter kitu, 70 linii reguł UI w `.ai/rules/js.md` i skaner literałów `scripts/check-ui-literals.mjs` w CI.
-- **Vite+: zaliczone.** Jedna konfiguracja w `vite.config.ts` (`lint`, `fmt`, `test`), skrypty npm ukrywają wywołania `vp`.
+- **Laravel: zaliczone.** Silne konwencje frameworka plus własne, stosowane konsekwentnie (Actions, Support, Requests, Policies), opisane w `AGENTS.md` → „Where things live”.
+- **Inertia + Vue: zaliczone.** Strony w `resources/js/pages`, komponenty domenowe w `components`, logika w `lib` z testami obok. Reguły UI w `.ai/rules/js*.md`, skaner literałów `scripts/check-ui-literals.mjs` w CI.
+- **Vite+: zaliczone.** Jedna konfiguracja w `vite.config.ts` (lint, fmt, test), skrypty npm ukrywają wywołania `vp`.
 
 **Dane treningowe** (w obrębie rodziny języka)
 
-- **Laravel, Vue, Inertia, Pest, Vitest: zaliczone.** Standardowe wybory w swoich ekosystemach.
-- **Świeżość wersji: uwaga.** Laravel 13, Inertia 3, Pest 5 i Vitest 5 są młode, więc agent może pisać starsze API. Ochroną jest `search-docs` z Boost MCP, ale tylko jeśli agent widzi wytyczne z `AGENTS.md` (patrz luka 1).
-- **Vite+: niezaliczone.** Projekt z 2026 roku, mało materiału treningowego. Odruch agenta to `eslint`, `prettier`, osobny `vitest.config.ts` i importy z `vitest`; tu testy importują z `vite-plus/test`, a pluginy Vite i alias `@` są wyłączone w testach (`process.env.VITEST` w `vite.config.ts`).
+- **Laravel, Vue, Inertia, Pest, Vitest, Playwright: zaliczone.** Standardowe wybory w swoich ekosystemach.
+- **Świeżość wersji: uwaga.** Laravel 13, Inertia 3, Pest 5 i Vitest 5 są młode, więc agent może pisać starsze API. Ochroną jest `search-docs` z Boost MCP. W tej sesji Boost MCP się nie połączył, a fallback jest w `context/foundation/agents/without-boost.md`.
+- **Vite+: niezaliczone.** Projekt z 2026 roku, mało materiału treningowego. Odruch agenta to `eslint`, `prettier`, osobny `vitest.config.ts` i importy z `vitest`.
 - **Wayfinder: niezaliczone.** Wersja 0.1.x w becie, mało publicznych przykładów.
 
 **Dokumentacja**
 
-- **Laravel:** `laravel.com/docs/13.x`. **Inertia:** `inertiajs.com/docs/v3`. **Pest:** `pestphp.com/docs`. **Vitest:** `vitest.dev`. Wszystkie zaliczone.
-- **Vite+: zaliczone.** Oficjalny przewodnik `viteplus.dev` opisuje linię 1.x, a projekt jest o jedną wersję minor za najnowszą (1.4.0 wobec 1.5.0). `AGENTS.md` każe potwierdzać opcje przez `npx vp --help`.
+- **Laravel:** `laravel.com/docs/13.x`. **Inertia:** `inertiajs.com/docs/v3`. **Pest:** `pestphp.com/docs`. **Vitest:** `vitest.dev`. **Playwright:** `playwright.dev`. Wszystkie zaliczone.
+- **Vite+: zaliczone.** Oficjalny przewodnik `viteplus.dev` opisuje linię 1.x, a `.ai/rules/frontend-toolchain.md` każe potwierdzać opcje przez `npx vp --help`.
 - **Wayfinder: częściowo.** Głównym źródłem jest README i skill Boost w `vendor/laravel/wayfinder/resources/boost/skills/wayfinder-development/SKILL.blade.php`. API może się zmienić przed 1.0.
 
 ## Gaps & Compensation
 
-Stos jest dobry, a reguły kompensujące z poprzedniej oceny są już w `AGENTS.md`: Project facts, Money, Test database, Inertia props contract, Month logic lives twice (teraz cztery pary PHP/TS z testami po obu stronach), Wayfinder, Frontend toolchain, Fresh checkout, When Boost tools are not available. Główna luka przesunęła się z treści instrukcji na ich dostarczenie.
+### Luki stosu (skompensowane, bez nowych wpisów)
 
-### Luki w dostarczaniu instrukcji
+1. **Vite+ słabo znany agentom.** Pokryte przez `.ai/rules/frontend-toolchain.md` (import z `vite-plus/test`, wspólna wersja `vite-plus`/`vite`/`overrides`, tylko npm).
+2. **Wayfinder w becie.** Pokryte przez `.ai/rules/wayfinder.md` (kopiuj wzorzec z istniejącej strony, `npm run build` przed `npm run types:check`). Nowy widok „Kategorie” i raporty dodadzą trasy, więc reguła zadziała od razu.
+3. **Propsy Inertii bez wspólnego kontraktu.** Pokryte przez twardą regułę w `AGENTS.md` i `.ai/rules/inertia-props.md`. Raporty (grupy × kategorie × miesiące, porównanie rok do roku) dadzą duże struktury propsów, więc typ w `defineProps<>` warto trzymać w jednym pliku `lib/*` współdzielonym przez stronę i komponenty.
 
-1. **Claude Code nie wczytuje `AGENTS.md`.** Claude Code czyta `CLAUDE.md`, a lokalny `CLAUDE.md` zawiera tylko blok 10x-cli, bez importu `@AGENTS.md`. Sesja Claude Code nie widzi więc faktów projektu, reguły o groszach, par kalkulatorów, wymogu PostgreSQL ani wytycznych Boost. Dowód: kontekst tej sesji zawierał wyłącznie `CLAUDE.md`. Dodatkowo `CLAUDE.md` jest w `.gitignore` (linia 35), więc poprawka zostaje lokalna i nie trafi do świeżego klona. Kompensacja: „Load AGENTS.md” poniżej.
+Instrukcje docierają do agenta: `CLAUDE.md` importuje `@AGENTS.md`, a reguły ścieżek ładują się same. Luka w dostarczaniu instrukcji z poprzedniej oceny jest zamknięta.
 
-### Luki w ocenie stosu (skompensowane)
+### Ryzyka dla tej zmiany (prd-v3)
 
-2. **Vite+ słabo znany agentom.** Pokryte regułą „Frontend toolchain” w `AGENTS.md`, łącznie z importem z `vite-plus/test` i wspólną wersją `vite-plus`/`vite`/`overrides`. Nowego wpisu nie trzeba.
-3. **Wayfinder w becie.** Pokryte regułą „Wayfinder”. Nowego wpisu nie trzeba.
-4. **Propsy Inertii bez wspólnego kontraktu.** Pokryte regułą „Inertia props contract”. Raporty z prd-v2 dodadzą duże struktury propsów (kategorie × miesiące), więc reguła będzie tu szczególnie ważna.
+Stos przechodzi ocenę, ale prd-v3 to pierwsza zmiana, która przebudowuje dane zamiast je dokładać. Trzy z poniższych ryzyk nie mają jeszcze żadnej reguły.
 
-### Ryzyka dla tej zmiany (prd-v2)
-
-- **Wykresy nie mają jeszcze miejsca w stosie.** Brak biblioteki wykresów w `package.json` i komponentu `chart` w `components/ui`. Agent sięgnie odruchowo po Chart.js, ApexCharts albo ECharts. Wybór (np. komponent Chart z rejestru shadcn-vue, oparty na Unovis, albo własne SVG) to decyzja dla `/10x-plan` i ADR. Kolory muszą iść z tokenów (`.ai/rules/js.md`), a kwoty przez `formatMoney`. Kompensacja: reguła „Charts and reports”.
-- **Kwoty raportu muszą być równe co do grosza istniejącym odczytom.** PRD wymaga zgodności z wykonaniem kategorii w budżecie rocznym i z Wynikiem miesiąca. Nowe zapytanie SQL obok `BudgetMonthResult`, `CategoryExecutionMetrics` i `MonthCategoryActuals` grozi rozjazdem (zwroty netto, transfery własne, ruchy kapitału). Wymóg 2 s przy 10 000 operacji ma już wzorzec w `tests/Feature/Nfr`. Kompensacja: reguła „Charts and reports”.
-- **Wydatki nieregularne zmieniają regułę „do wydania”.** `ToSpendCalculator` ma kopię TS, która zasila podgląd planu oraz ostrzeżenia przy wpisie i w Imporcie. Reguła „Month logic lives twice” to pokrywa. PRD wymaga wpisu w `context/foundation/glossary.md` i nowego ADR przed kodem; kolejny numer to 0035 (numer 0008 jest zdublowany, 0025–0028 nie istnieją).
-- **Podbicie wersji snapshotu może zablokować przywracanie wersji 5.** `RestoreUserData` (linie ~77–97) akceptuje `[1, 2, 3, 4, BackupUserData::SNAPSHOT_VERSION]`, a warunki per wersja też odwołują się do stałej. Zmiana `SNAPSHOT_VERSION` z 5 na 6 bez dopisania `5` sprawi, że obecne backupy przestaną się wczytywać, wbrew FR-014. Kompensacja: reguła „Snapshot format”.
-- **Kategoria przez lata stoi w sprzeczności ze słownikiem.** `context/foundation/glossary.md` ma przy Category _Avoid_ „a Category identity that spans years”. FR-007–FR-009 (nice-to-have) wymagają zmiany słownika i ADR przed kodem.
+- **Pierwsza migracja danych w projekcie (bez reguły).** Wszystkie 20 migracji są schematowe, a FR-006 wymaga scalenia kategorii o tej samej nazwie i typie z różnych budżetów w jedną kategorię listy i przepięcia operacji, pozycji planu miesiąca i planów rocznych bez zmiany kwot. Agent ma tu trzy złe odruchy: modele Eloquent w migracji (zmienią się razem z kodem), test tylko na SQLite (domyślny w `phpunit.xml`) i `down()`, który nie potrafi rozdzielić scalonych kategorii. Kompensacja: reguła „Data migrations” poniżej.
+- **Wdrożenie migruje bez kopii bazy (bez reguły).** `scripts/deploy.sh` (linia 36) robi `php artisan migrate --force` bez `pg_dump` ani `user:backup` przed migracją. Przy scalaniu kategorii błąd migracji oznacza utratę danych na produkcji. Kompensacja: krok kopii w `deploy.sh` (do sprawdzenia w `/10x-health-check`) i punkt w regule „Data migrations”.
+- **Łączenie lat po nazwie i typie jest w kilku miejscach (bez reguły).** Po wprowadzeniu listy tożsamością kategorii jest jej identyfikator, a stare łączenia po nazwie muszą zniknąć: `app/Actions/CreateBudget.php` (kopiowanie kategorii, ADR-0014), `app/Support/MonthPlanProposal.php` (grudzień → styczeń), `app/Support/OperationsListQuery.php` i `app/Support/OperationsFilterOptions.php` (filtr Operacji, ADR-0016), `app/Support/CsvImport/ImportCategorySuggestionModel.php` i `ImportCategorySuggester.php` (podpowiedzi Importu po `(type, category name)`, ADR-0034). PRD wymienia też Earmark, ale Earmark nie istnieje w `app/` — to tylko dokumenty. Kompensacja: reguła „Category identity” poniżej.
+- **Słownik i ADR przed kodem (pokryte).** prd-v3 wprost łamie wpis słownika Category (_Avoid_ „a Category identity that spans years”, „A Category on one Budget is not the same Category…”), zastępuje ADR-0014, zmienia ADR-0016, ADR-0034 i regułę To Spend (ADR-0033) przez kategorie nieregularne. Twarda reguła w `AGENTS.md` to wymusza. Kolejny wolny numer ADR to 0063; numer 0008 jest zdublowany.
+- **Rytm zamiast dwóch flag ma duży zasięg (częściowo pokryte).** `is_paced` / `isPaced` występuje w 34 plikach, `month_item_kind` / `MonthItemKind` w 50 (PHP, TS, testy, migracje), w tym w parach kalkulatorów PHP/TS (`ToSpendCalculator`, `MonthPaceCalculator`, `MonthRemainingCalculator`, `MonthItemDeviation`). `.ai/rules/month-calculators.md` pilnuje zgodności par, ale nie kolejności przejścia. Usunięcie flag w jednym kroku zostawi czerwone CI na wiele godzin pracy. Kompensacja: punkt „expand, switch, contract” w regule „Category identity”.
+- **Snapshot w nowym formacie (częściowo pokryte).** `.ai/rules/snapshot.md` wymaga dopisania `5` do list wersji w `RestoreUserData` (dziś `[1, 2, 3, 4, SNAPSHOT_VERSION]`, `SNAPSHOT_VERSION = 5`). Dla prd-v3 to za mało: snapshot w wersjach 1–5 ma kategorie per budżet, więc przywrócenie musi je scalić tak samo jak migracja (FR-022), a nie tylko dać domyślne wartości nowym polom. Kompensacja: dopisek do `.ai/rules/snapshot.md`.
+- **Wykresy (pokryte).** `.ai/rules/reports.md` wymaga decyzji w planie i ADR przed dodaniem biblioteki, tabeli obok każdego wykresu, kolorów z tokenów i kwot zgodnych co do grosza z `BudgetMonthResult`, `CategoryExecutionMetrics` i `MonthCategoryActuals`. Nowych wpisów nie trzeba; decyzja o bibliotece należy do `/10x-plan`.
 
 ### Recommended Instruction File Additions
 
-**1. Do lokalnego `CLAUDE.md`** — dodaj jako pierwszą linię, poza znacznikami `BEGIN/END @przeprogramowani/10x-cli`, żeby aktualizacja 10x-cli jej nie nadpisała:
+**1. Nowa reguła `.ai/rules/migrations.md`** (plus wiersz w `.ai/rules/index.md`: `database/migrations/**/*.php, tests/Feature/Migrations/**` → `.ai/rules/migrations.md`, potem `php artisan boost:index-rules`):
 
 ```markdown
-@AGENTS.md
+---
+paths:
+    - 'database/migrations/**/*.php'
+    - 'tests/Feature/Migrations/**'
+---
+
+# Migrations
+
+## A data migration uses the query builder and is tested on PostgreSQL
+
+Migrations that move or merge rows (for example one Category list from per-Budget categories) use `DB::table()` and plain arrays, never Eloquent models or `app/Actions`: models change with the code, the migration must not. Write a test in `tests/Feature/Migrations/` that seeds the old shape, runs the migration and asserts the invariants: every operation keeps its amount and points to a category of the same type, budget plan and execution totals per Budget are equal before and after, to the grosz. Run it on PostgreSQL (AGENTS.md → Commands); SQLite proves nothing here.
+
+## Expand, then backfill, then drop
+
+Add new tables and columns in one migration, fill them in a second, drop the old columns only after the code no longer reads them, in a later phase. A migration that merges rows cannot be reversed: its `down()` throws a `RuntimeException` naming the backup to restore instead of pretending to split the rows.
+
+## Back up before a migration reaches production
+
+`scripts/deploy.sh` runs `php artisan migrate --force`. A change with a data migration adds a database dump to the backup directory before that line and says in its plan how to restore it.
 ```
 
-Ponieważ `CLAUDE.md` jest ignorowany przez Git, rozważ śledzenie go w repozytorium albo dopisanie tej linii przy każdym nowym klonie.
-
-**2. Do `AGENTS.md`** — wklej poza blokiem `<laravel-boost-guidelines>` (blok jest generowany przez Boost), np. po sekcji „Month logic lives twice”:
+**2. Nowa reguła `.ai/rules/categories.md`** (wiersz w indeksie: `app/Actions/*Budget*.php, app/Actions/*Categor*.php, app/Support/MonthPlanProposal.php, app/Support/Operations*.php, app/Support/CsvImport/ImportCategory*.php, app/Models/Category*.php`):
 
 ```markdown
-## Charts and reports
+---
+paths:
+    - 'app/Actions/*Budget*.php'
+    - 'app/Actions/*Categor*.php'
+    - 'app/Models/Category*.php'
+    - 'app/Support/MonthPlanProposal.php'
+    - 'app/Support/Operations*.php'
+    - 'app/Support/CsvImport/ImportCategory*.php'
+---
 
-- There is no chart library yet. Do not add one (Chart.js, ApexCharts, ECharts or another) without a decision recorded in the change plan and an ADR. If shadcn-vue Chart is chosen, add it with the shadcn-vue CLI into `resources/js/components/ui` and follow `components.json`.
-- Every chart has a table with the same numbers next to it (prd-v2), so the data is readable without the chart.
-- Chart colours come from tokens in `resources/css/app.css` and category colours from `resources/js/lib/category-appearance.ts`. Amounts go through `formatMoney`; see `.ai/rules/js.md`.
-- Compute report amounts on the server in `app/Support` and pass them as props in minor units. Reuse the existing readings (`BudgetMonthResult`, `CategoryExecutionMetrics`, `MonthCategoryActuals`) or prove equality with them in a test: a month's report result must equal Month Result, and a year's category total must equal the annual execution, to the grosz. Refunds count net; own transfers and capital movements are excluded.
-- A year report must load within 2 seconds at 10,000 operations. Add a test next to `tests/Feature/Nfr/NfrPerf01Test.php` and avoid per-month or per-category queries in loops (Sloppy flags them).
+# Categories
 
-## Snapshot format
+## A Category is identified by its id, never by its name
 
-`BackupUserData::SNAPSHOT_VERSION` is the version written by `user:backup`. `RestoreUserData` lists accepted versions explicitly and uses the constant for the newest one. When you bump the constant, add the previous number to every version list in `RestoreUserData`, give new fields defaults for older snapshots, and add a restore test for each older version, so existing backups still load.
+Since prd-v3 a Category spans years. Code that links years, proposes a plan, filters operations or suggests a category on Import joins by category id. Matching by `name` and `type` belongs only to the one-off data migration. Before closing the change, `grep -rn "'name'" app/Support app/Actions` shows no category lookup by name.
 
-## Domain changes come before code
+## Rhythm replaces the two flags in phases
 
-A change to a rule in `context/foundation/glossary.md` (for example To Spend) or to a term marked _Avoid_ needs the `context/foundation/glossary.md` entry and a new ADR in `context/foundation/adr` before the code. Take the next free number after the highest existing ADR.
+`is_paced` and `month_item_kind` are read in about 50 files, including the PHP/TS calculator pairs (`.ai/rules/month-calculators.md`). Add the rhythm next to the flags, switch readers one area per phase with tests green, and drop the flags in the last phase. Each calculator pair switches in one commit, PHP and TS together.
+```
+
+**3. Dopisek do `.ai/rules/snapshot.md`** (nowa sekcja na końcu):
+
+```markdown
+## An older snapshot is converted, not just defaulted
+
+When the data model changes shape (prd-v3: per-Budget categories become one Category list), restoring an older snapshot runs the same conversion as the data migration, reusing its rules, so a restored v1–v5 snapshot equals what the migration would produce from the same data. Test it in `tests/Feature/UserSnapshotCommandTest.php` with a v5 fixture that has the same category name in two Budgets.
 ```
 
 ## Summary
 
-**Werdykt: gotowy po kompensacji.** Stos dobrze wspiera agentów: PHPStan na poziomie 7 bez wyjątków, TypeScript strict, spójne konwencje Laravela, testy po obu stronach par kalkulatorów, pełna bramka w CI na PostgreSQL. Zmiana stosu nie jest potrzebna.
+**Werdykt: gotowy po kompensacji.** Stos dobrze wspiera agentów: PHPStan na poziomie 7 bez wyjątków, TypeScript strict, spójne konwencje Laravela, testy po obu stronach par kalkulatorów, E2E w Playwright, pełna bramka w CI na PostgreSQL. Zmiana stosu nie jest potrzebna, a obie słabsze części (Vite+ i Wayfinder) mają już reguły.
 
-**Mocne strony:** dyscyplina typów, zgodne z kodem `AGENTS.md`, rozbudowany słownik i ADR-y, Vitest dodany przez `vp test`, Sloppy i audyt zależności w CI.
+**Mocne strony:** dyscyplina typów, instrukcje dostarczane automatycznie (`CLAUDE.md` → `AGENTS.md` → `.ai/rules` według ścieżek), rozbudowany słownik i 62 ADR-y, Sloppy i `composer audit` w CI.
 
-**Główne luki:** Claude Code nie wczytuje `AGENTS.md`, bo `CLAUDE.md` go nie importuje (jedna linia do dopisania). Dla prd-v2 brakuje decyzji o wykresach i zasady zgodności kwot raportu z istniejącymi odczytami, a podbicie wersji snapshotu łatwo zrobić tak, że stare backupy przestaną się wczytywać.
+**Główne luki dla prd-v3:** projekt nie ma jeszcze wzorca migracji danych, a ta zmiana zaczyna się od scalenia kategorii z kilku lat; wdrożenie migruje bez kopii bazy; łączenie kategorii po nazwie jest rozsiane po sześciu plikach; snapshot w starym formacie trzeba konwertować, nie tylko uzupełniać. Trzy wpisy powyżej to pokrywają.
 
 **Do sprawdzenia w `/10x-health-check`:**
 
-- `CLAUDE.md` w `.gitignore` i brak importu `@AGENTS.md`,
-- `vite-plus` 1.4.0 wobec 1.5.0 oraz `@laravel/vite-plugin-wayfinder` 0.1.10 wobec 0.1.11,
+- `scripts/deploy.sh` bez kopii bazy przed `migrate --force`,
+- `phpunit.xml` z domyślnym SQLite przy PostgreSQL w CI i na produkcji, wobec pierwszej migracji danych,
 - `tests/` poza analizą PHPStan i brak testów architektury (`arch()`),
-- `phpunit.xml` z domyślnym SQLite przy PostgreSQL w CI i na produkcji,
 - brak automatycznego wdrożenia w CI,
-- zdublowany numer ADR 0008.
+- zdublowany numer ADR 0008,
+- Earmark opisany w PRD i słowniku, nieobecny w kodzie.
 
 **Następny krok:** `/10x-health-check`.
