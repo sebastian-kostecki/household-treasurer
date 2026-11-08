@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/collapsible';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
+import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type {
     MonthItemKind,
@@ -32,6 +33,8 @@ export type MonthPlanRowState = {
     yearStale: boolean;
     invalid: boolean;
     kindError?: string;
+    /** Button or marker "plan = actual" in change mode (ADR-0062). */
+    matchActual: MatchActualState;
 };
 
 export type SetAsideDirection = 'set_aside' | 'draw';
@@ -64,6 +67,7 @@ const emit = defineEmits<{
     'amount-blur': [categoryId: number];
     'change-kind': [row: MonthPlanItem, kind: MonthItemKind];
     'set-aside-blur': [];
+    'match-actual': [categoryId: number];
 }>();
 
 const idleOpen = defineModel<boolean>('idleOpen', { default: false });
@@ -175,11 +179,13 @@ const expenseRowsEmpty = computed(
             :kind-pending="kindPendingCategoryId === row.category_id"
             :kind-error="rowState(row).kindError"
             :invalid="rowState(row).invalid"
+            :match-actual="rowState(row).matchActual"
             @update:model-value="
                 emit('update-amount', row.category_id, $event ?? '')
             "
             @change-kind="emit('change-kind', row, $event)"
             @amount-blur="emit('amount-blur', row.category_id)"
+            @match-actual="emit('match-actual', row.category_id)"
         />
         <div
             v-if="yearTotals !== null && !incomeRowsEmpty"
@@ -228,11 +234,13 @@ const expenseRowsEmpty = computed(
             :kind-pending="kindPendingCategoryId === row.category_id"
             :kind-error="rowState(row).kindError"
             :invalid="rowState(row).invalid"
+            :match-actual="rowState(row).matchActual"
             @update:model-value="
                 emit('update-amount', row.category_id, $event ?? '')
             "
             @change-kind="emit('change-kind', row, $event)"
             @amount-blur="emit('amount-blur', row.category_id)"
+            @match-actual="emit('match-actual', row.category_id)"
         />
         <Collapsible v-if="idleRows.length > 0" v-model:open="idleOpen">
             <div class="month-plan-idle-row">
@@ -272,11 +280,13 @@ const expenseRowsEmpty = computed(
                     :kind-pending="kindPendingCategoryId === row.category_id"
                     :kind-error="rowState(row).kindError"
                     :invalid="rowState(row).invalid"
+                    :match-actual="rowState(row).matchActual"
                     @update:model-value="
                         emit('update-amount', row.category_id, $event ?? '')
                     "
                     @change-kind="emit('change-kind', row, $event)"
                     @amount-blur="emit('amount-blur', row.category_id)"
+                    @match-actual="emit('match-actual', row.category_id)"
                 />
             </CollapsibleContent>
         </Collapsible>

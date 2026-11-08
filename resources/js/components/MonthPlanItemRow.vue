@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import InputError from '@/components/InputError.vue';
 import MonthPlanKindCell from '@/components/MonthPlanKindCell.vue';
+import MonthPlanMatchActual from '@/components/MonthPlanMatchActual.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
+import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
 
@@ -24,14 +26,30 @@ const props = withDefaults(
         kindPending?: boolean;
         kindError?: string;
         invalid?: boolean;
+        /** Button or marker "plan = actual" in change mode (ADR-0062). */
+        matchActual?: MatchActualState;
     }>(),
-    { yearStale: false, kindPending: false, invalid: false },
+    {
+        yearStale: false,
+        kindPending: false,
+        invalid: false,
+        matchActual: null,
+    },
 );
 
 const emit = defineEmits<{
     'change-kind': [kind: MonthItemKind];
     'amount-blur': [];
+    'match-actual': [];
 }>();
+
+const planInput = ref<HTMLInputElement | null>(null);
+
+/** The button turns into the marker, so focus moves to the plan field. */
+function onMatchActual(): void {
+    emit('match-actual');
+    void nextTick(() => planInput.value?.focus());
+}
 
 const amountErrorId = computed(
     () => `month-plan-amount-error-${props.row.category_id}`,
@@ -190,6 +208,7 @@ const deviationClass = computed(() => {
             </span>
             <input
                 v-if="hasAmountField"
+                ref="planInput"
                 v-model="amountInput"
                 class="cell-input"
                 inputmode="decimal"
@@ -212,10 +231,17 @@ const deviationClass = computed(() => {
         </div>
 
         <div class="month-plan-cell-actual">
-            <span class="meta text-muted-foreground block xl:sr-only">
+            <span class="meta text-muted-foreground xl:sr-only">
                 {{ t.month_plan.actual }}
             </span>
-            <span class="amount">
+            <MonthPlanMatchActual
+                v-if="matchActual !== null"
+                :state="matchActual"
+                :offer-label="t.month_plan.match_actual"
+                :raised-label="t.month_plan.raised_to_actual"
+                @match="onMatchActual"
+            />
+            <span class="amount w-full xl:w-auto">
                 {{ formatMoneyAmount(row.actual_minor_units) }}
             </span>
         </div>

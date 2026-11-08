@@ -437,6 +437,8 @@ return [
         'category' => 'Kategoria',
         'plan' => 'Plan',
         'actual' => 'Faktycznie',
+        'match_actual' => 'Ustaw plan na wydatki',
+        'raised_to_actual' => 'Plan podniesiony do wydatków',
         'kind' => 'Rodzaj pozycji',
         'kind_column' => 'Rodzaj',
         'edit_bar_label' => 'Edycja planu',

@@ -19,7 +19,15 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { minorUnitsToMoneyInput } from '@/lib/format';
+import {
+    isMonthItemOverPlan,
+    monthItemDeviationMinorUnits,
+} from '@/lib/month-item-deviation';
 import { parsePlanAmountInput } from '@/lib/month-plan-amount';
+import {
+    changeModeAmountInputs,
+    matchActualState,
+} from '@/lib/month-plan-match-actual';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import {
     allMonthStates,
@@ -50,6 +58,10 @@ const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
         where: 'Każda sekcja poniżej: wiersz tytułu z odznakami, pasek miesięcy z kropkami wszystkich stanów, panel miar (domyślny, ujemny, podgląd na żywo, końcowe, tempo w normie, wyprzedzające z notatką, bez procentu, przyszły miesiąc), tabela w odczycie i edycji, podsumowanie minionego miesiąca, pasek edycji i stany puste.',
+    },
+    {
+        state: 'match-actual',
+        where: 'Tabela „Tryb zmian: plan = wydatki”: znacznik „Plan podniesiony do wydatków” (Paliwo), przyciski „Ustaw plan na wydatki” (Zakupy dodatkowe, ręcznie obniżony plan Jedzenia) oraz wiersze bez kontrolki (dochody, wydatek poniżej planu). Kliknięcie przycisku wpisuje kwotę do pola i przenosi fokus na pole.',
     },
     {
         state: 'hover',
@@ -168,6 +180,21 @@ const tables = reactive<TableConfig[]>([
         { editable: true, yearStale: true, idleOpen: true },
     ),
     tableConfig(
+        'edit-match-actual',
+        'Tryb zmian: plan = wydatki (znacznik, przycisk, ręcznie obniżony plan, wiersze bez kontrolki)',
+        approvedReading,
+        {
+            editable: true,
+            amountInputs: {
+                ...changeModeAmountInputs([
+                    ...approvedReading.income_items,
+                    ...approvedReading.expense_items,
+                ]),
+                [runningExpense.category_id]: minorUnitsToMoneyInput(50_000),
+            },
+        },
+    ),
+    tableConfig(
         'edit-errors',
         'Błędy (błędna kwota, błąd rodzaju, odkładanie nieczytelne z błędem serwera, rodzaj w zapisie)',
         approvedReading,
@@ -196,30 +223,69 @@ const tables = reactive<TableConfig[]>([
     ),
 ]);
 
+/** Editable tables compute the reading from the field like the page does; others keep the server reading. */
+function readingOf(
+    config: TableConfig,
+    row: MonthPlanItem,
+    fieldAmount: number | null,
+): { deviation: number | null; overPlan: boolean } {
+    if (!config.editable) {
+        return {
+            deviation: row.deviation_minor_units,
+            overPlan: row.is_over_plan,
+        };
+    }
+
+    if (fieldAmount === null) {
+        return { deviation: null, overPlan: false };
+    }
+
+    const item = {
+        type: row.type,
+        kind: row.month_item_kind,
+        plan: fieldAmount,
+        actual: row.actual_minor_units,
+        hasPositiveAmount: row.has_positive_amount,
+    };
+
+    return {
+        deviation: monthItemDeviationMinorUnits(item),
+        overPlan: isMonthItemOverPlan(item),
+    };
+}
+
 function stateOf(
     config: TableConfig,
 ): (row: MonthPlanItem) => MonthPlanRowState {
-    return (row) => ({
-        planMinorUnits:
-            config.editable && (row.in_plan || !row.is_archived)
-                ? parsePlanAmountInput(
-                      config.amountInputs[row.category_id] ?? '',
-                  )
-                : row.plan_minor_units,
-        deviation: row.deviation_minor_units,
-        overPlan: row.is_over_plan,
-        status: monthItemStatus(row, {
-            overPlan: row.is_over_plan,
-            planMinorUnits: row.plan_minor_units,
-            isClosed: !config.showSetAside,
-        }),
-        yearStale: config.yearStale,
-        invalid: config.invalidIds.includes(row.category_id),
-        kindError:
-            config.kindErrorId === row.category_id
-                ? 'Nie udało się zapisać rodzaju pozycji.'
-                : undefined,
-    });
+    return (row) => {
+        const hasField = config.editable && (row.in_plan || !row.is_archived);
+        const fieldAmount = hasField
+            ? parsePlanAmountInput(config.amountInputs[row.category_id] ?? '')
+            : row.plan_minor_units;
+        const reading = readingOf(config, row, fieldAmount);
+
+        return {
+            planMinorUnits: fieldAmount,
+            deviation: reading.deviation,
+            overPlan: reading.overPlan,
+            status: monthItemStatus(row, {
+                overPlan: reading.overPlan,
+                planMinorUnits: config.editable
+                    ? fieldAmount
+                    : row.plan_minor_units,
+                isClosed: !config.showSetAside,
+            }),
+            yearStale: config.yearStale,
+            invalid: config.invalidIds.includes(row.category_id),
+            kindError:
+                config.kindErrorId === row.category_id
+                    ? 'Nie udało się zapisać rodzaju pozycji.'
+                    : undefined,
+            matchActual: config.editable
+                ? matchActualState(row, fieldAmount, hasField)
+                : null,
+        };
+    };
 }
 
 const statPanels: {
@@ -312,6 +378,20 @@ function paceOf(reading: MonthPlanReading): {
               elapsedDay: pace.elapsed_day,
               daysInMonth: pace.days_in_month,
           };
+}
+
+function matchActualIn(config: TableConfig, categoryId: number): void {
+    const row = [
+        ...config.incomeRows,
+        ...config.expenseRows,
+        ...config.idleRows,
+    ].find((item) => item.category_id === categoryId);
+
+    if (row) {
+        config.amountInputs[categoryId] = minorUnitsToMoneyInput(
+            row.actual_minor_units,
+        );
+    }
 }
 
 const stripMonth = ref(11);
@@ -497,6 +577,7 @@ const stripMonth = ref(11);
                 "
                 @amount-blur="noop"
                 @change-kind="noop"
+                @match-actual="(id: number) => matchActualIn(config, id)"
                 @set-aside-blur="noop"
             />
         </section>
