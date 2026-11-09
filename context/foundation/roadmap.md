@@ -3,7 +3,7 @@ project: 'Household Treasurer'
 version: 3
 status: draft
 created: 2026-11-02
-updated: 2026-11-08
+updated: 2026-11-09
 prd_version: 3
 main_goal: quality
 top_blocker: decisions
@@ -42,8 +42,8 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 
 | ID   | Change ID                            | Outcome (user can …)                                                                                              | Prerequisites | PRD refs                                 | Status   |
 | ---- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ---------------------------------------- | -------- |
-| F-03 | category-list-domain-decisions       | (foundation) ADR i słownik opisują kategorię przez lata, grupę kategorii i regułę migracji                         | —             | Wymogi istniejącego systemu, Decyzje strukturalne 1 i 4, FR-006 | ready    |
-| F-04 | safe-first-data-migration            | (foundation) wdrożenie robi kopię bazy przed migracją, a reguły migracji danych, kategorii i snapshotu są w repo   | —             | Migracja danych (wskazane przez użytkownika), Guardrails | ready    |
+| F-03 | category-list-domain-decisions       | (foundation) ADR i słownik opisują kategorię przez lata, grupę kategorii i regułę migracji                         | —             | Wymogi istniejącego systemu, Decyzje strukturalne 1 i 4, FR-006 | done     |
+| F-04 | safe-first-data-migration            | (foundation) wdrożenie robi kopię bazy przed migracją, a reguły migracji danych, kategorii i snapshotu są w repo   | —             | Migracja danych (wskazane przez użytkownika), Guardrails | done     |
 | F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | ready    |
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | proposed |
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | proposed |
@@ -99,7 +99,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Stoi przed kodem, bo zmienia podstawową zasadę słownika; musi jasno powiedzieć, co dzieje się z planem rocznym (zostaje per budżet) i z kategoriami archiwalnymi, inaczej migracja w S-18 utrwali złą decyzję.
-- **Status:** ready
+- **Status:** done
 
 ### F-04: Bezpieczna pierwsza migracja danych
 
@@ -112,7 +112,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Mały, ale jedyny element, który chroni produkcję przed nieodwracalnym scaleniem kategorii; wzorzec testu migracji na PostgreSQL zostaje dla S-18, żeby powstał na prawdziwej migracji.
-- **Status:** ready
+- **Status:** done
 
 ### F-05: Decyzje domenowe rytmu i wydatku nieregularnego
 
@@ -388,3 +388,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-08: użytkownik może zobaczyć przy operacji i w podglądzie Importu ostrzeżenia liczone z planu** — Archived 2026-11-03 → `context/archive/2026-11-02-plan-based-entry-warnings/`. Lesson: —.
 - **S-09: użytkownik może zobaczyć podsumowanie miesiąca, w tym odkładanie zamierzone i realne** — Archived 2026-11-03 → `context/archive/2026-11-03-month-summary/`. Lesson: —.
 - **S-10: użytkownik może porównać plany miesięcy z budżetem rocznym** — Archived 2026-11-03 → `context/archive/2026-11-03-month-plans-vs-year/`. Lesson: —.
+- **F-03: (foundation) nowy ADR zastępuje ADR-0014 i zmienia ADR-0016 i ADR-0034, a wpisy w `context/foundation/glossary.md` opisują kategorię przez lata (bez terminu _Avoid_ „a Category identity that spans years”), grupę kategorii, archiwum globalne i regułę migracji (nazwa + typ → jedna kategoria listy).** — Archived 2026-11-09 → `context/archive/2026-11-09-category-list-domain-decisions/`. Lesson: —.

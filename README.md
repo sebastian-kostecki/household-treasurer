@@ -141,13 +141,15 @@ Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `d
 
 #### Gdzie leży kopia
 
-Na hoście: `${BACKUP_HOST_DIR}/Household Treasurer/RRRR-MM-DD-GG-MM-SS.zip` (czas UTC, w nazwie katalogu jest spacja, więc ścieżkę podawaj w cudzysłowie). W kontenerze: `/var/www/html/storage/app/backups/Household Treasurer/…`. Archiwum jest szyfrowane hasłem `BACKUP_ARCHIVE_PASSWORD`.
+Na hoście: `${BACKUP_HOST_DIR}/Household Treasurer/RRRR-MM-DD-GG-MM-SS.zip` (czas UTC, w nazwie katalogu jest spacja, więc ścieżkę podawaj w cudzysłowie). W kontenerze: `/var/www/html/storage/app/backups/Household Treasurer/…`. Archiwum jest szyfrowane hasłem `BACKUP_ARCHIVE_PASSWORD`, o ile jest ustawione; przy pustej zmiennej zip jest jawny (`config/backup.php`).
 
 #### Kiedy przywracać z kopii przed migracją
 
 Gdy wdrożenie się nie powiodło albo coś psuje się zaraz po nim. Przywrócenie traci wszystko, co powstało po czasie archiwum. Wycofanie po dniach pracy na nowym schemacie nie jest zadaniem tej kopii: należy do planu danej migracji (zob. `.ai/rules/migrations.md`).
 
 #### Przywrócenie produkcji
+
+Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba](context/changes/safe-first-data-migration/restore-trial.md)). Poniższych kroków na samej produkcji jeszcze nie ćwiczono; S-18 ma je przeprowadzić na bazie testowej przed pierwszą nieodwracalną migracją.
 
 1. `scripts/artisan.sh down` (tryb serwisowy).
 2. Lokalnie na `main`: `git revert` zmiany z migracją i `git push origin main`. Skrypt wdrożenia robi `git pull --ff-only origin main`, więc revert zrobiony tylko na VPS rozjedzie się z origin i zablokuje następne wdrożenie. Stary schemat nie działa z nowym kodem, więc kod musi wrócić razem z bazą.
