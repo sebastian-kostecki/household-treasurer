@@ -34,6 +34,7 @@ return [
                     storage_path('app/backups'),
                     storage_path('app/backup-temp'),
                     storage_path('app/framework'),
+                    storage_path('app/restore-trial'),
                 ],
 
                 'follow_links' => false,

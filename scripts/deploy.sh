@@ -20,7 +20,12 @@ production_pull_latest
 echo "==> Building app image..."
 $COMPOSE build app
 
+# Same precedence as Compose: shell, then .env.prod, then the default.
+if [[ -z "${BACKUP_HOST_DIR:-}" ]]; then
+    BACKUP_HOST_DIR="$(sed -n 's/^BACKUP_HOST_DIR=//p' .env.prod | tail -n 1 | tr -d '\r' | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/")"
+fi
 BACKUP_HOST_DIR="${BACKUP_HOST_DIR:-/storage/household-treasurer-backups}"
+export BACKUP_HOST_DIR
 
 echo "==> Ensuring backup directory exists..."
 sudo mkdir -p "$BACKUP_HOST_DIR"
@@ -31,6 +36,9 @@ $COMPOSE up -d
 
 echo "==> Fixing storage permissions..."
 $COMPOSE exec -T -u root app chown -R sail:sail storage bootstrap/cache
+
+echo "==> Backing up the instance before migrations..."
+$COMPOSE exec -T -u sail app php artisan backup:run --disable-notifications
 
 echo "==> Running migrations..."
 $COMPOSE exec -T app php artisan migrate --force
