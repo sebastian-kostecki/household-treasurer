@@ -358,13 +358,13 @@ Zmiana nie migruje danych. Pierwsze archiwum bez właściciela powstaje przy wdr
 
 #### Automated
 
-- [x] 3.1 Wynik próby zapisany w `restore-trial.md`
-- [x] 3.2 Po próbie nie zostało archiwum w repo
+- [x] 3.1 Wynik próby zapisany w `restore-trial.md` — 006e8dd
+- [x] 3.2 Po próbie nie zostało archiwum w repo — 006e8dd
 
 #### Manual
 
-- [x] 3.3 Wdrożenie F-04 pokazało krok kopii, a w katalogu kopii jest nowe archiwum
-- [x] 3.4 `backup:restore` do `restore_trial` bez roli `treasurer` zakończył się sukcesem
-- [x] 3.5 Liczby kontrolne równe na produkcji i w `restore_trial`
-- [x] 3.6 Lokalna baza deweloperska nie została nadpisana
-- [x] 3.7 Archiwum, baza `restore_trial` i pliki z produkcji usunięte, lokalne `private/` i `public/` przywrócone
+- [x] 3.3 Wdrożenie F-04 pokazało krok kopii, a w katalogu kopii jest nowe archiwum — 006e8dd
+- [x] 3.4 `backup:restore` do `restore_trial` bez roli `treasurer` zakończył się sukcesem — 006e8dd
+- [x] 3.5 Liczby kontrolne równe na produkcji i w `restore_trial` — 006e8dd
+- [x] 3.6 Lokalna baza deweloperska nie została nadpisana — 006e8dd
+- [x] 3.7 Archiwum, baza `restore_trial` i pliki z produkcji usunięte, lokalne `private/` i `public/` przywrócone — 006e8dd
