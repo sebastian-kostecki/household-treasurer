@@ -320,16 +320,16 @@ Nie dotyczy tej zmiany, bo dane się nie zmieniają. Wycofanie to revert commit�
 
 #### Automated
 
-- [x] 2.1 Nowe terminy mają wpis
-- [x] 2.2 Predykaty są zapisane dosłownie w obu dokumentach
-- [x] 2.3 Stara zasada zniknęła ze słownika
-- [ ] 2.4 Diff obejmuje tylko dokumenty tej zmiany
+- [x] 2.1 Nowe terminy mają wpis — 71273aa
+- [x] 2.2 Predykaty są zapisane dosłownie w obu dokumentach — 71273aa
+- [x] 2.3 Stara zasada zniknęła ze słownika — 71273aa
+- [x] 2.4 Diff obejmuje tylko dokumenty tej zmiany — 71273aa
 
 #### Manual
 
-- [x] 2.5 Przypadek „Domeny” daje oczekiwane pozycje
-- [x] 2.6 Przypadki nazw z wpisu Category dają oczekiwany wynik
-- [x] 2.7 Przypadki zmiany typu dają oczekiwany wynik
-- [x] 2.8 Przypadki usuwania dają oczekiwany wynik
-- [x] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0063
-- [x] 2.10 Słownik nie urósł poza zakres zmiany
+- [x] 2.5 Przypadek „Domeny” daje oczekiwane pozycje — 71273aa
+- [x] 2.6 Przypadki nazw z wpisu Category dają oczekiwany wynik — 71273aa
+- [x] 2.7 Przypadki zmiany typu dają oczekiwany wynik — 71273aa
+- [x] 2.8 Przypadki usuwania dają oczekiwany wynik — 71273aa
+- [x] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0063 — 71273aa
+- [x] 2.10 Słownik nie urósł poza zakres zmiany — 71273aa
