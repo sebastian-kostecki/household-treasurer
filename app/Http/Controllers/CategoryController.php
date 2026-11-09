@@ -15,11 +15,13 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\CategoryListReading;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 /**
  * The Budget page's Category actions (ADR-0063). `{category}` is the id of the
@@ -28,6 +30,11 @@ use Inertia\Inertia;
 class CategoryController extends Controller
 {
     use AuthorizesRequests;
+
+    public function index(Request $request): InertiaResponse
+    {
+        return Inertia::render('Categories', CategoryListReading::forUser($request->user()));
+    }
 
     public function store(StoreCategoryRequest $request, Budget $budget, CreateCategory $createCategory): RedirectResponse
     {

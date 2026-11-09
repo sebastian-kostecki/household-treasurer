@@ -537,15 +537,15 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [ ] 5.1 Test feature widoku i izolacji przechodzi
-- [ ] 5.2 check:ui, testy frontu i typy zielone
-- [ ] 5.3 E2E widoku i skrótów przechodzą
-- [ ] 5.4 Pełna bramka zielona
+- [x] 5.1 Test feature widoku i izolacji przechodzi
+- [x] 5.2 check:ui, testy frontu i typy zielone
+- [x] 5.3 E2E widoku i skrótów przechodzą
+- [x] 5.4 Pełna bramka zielona
 
 #### Manual
 
-- [ ] 5.5 Widok pokazuje archiwum i lata, czytelny na telefonie i w ciemnym motywie
-- [ ] 5.6 Kitchen sink pokazuje wszystkie stany
+- [x] 5.5 Widok pokazuje archiwum i lata, czytelny na telefonie i w ciemnym motywie
+- [x] 5.6 Kitchen sink pokazuje wszystkie stany
 
 ### Phase 6: Zabezpieczenia wdrożenia
 

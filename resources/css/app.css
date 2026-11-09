@@ -1253,6 +1253,58 @@
         @apply flex justify-end gap-1;
     }
 
+    /**
+     * Categories list: below `md` a row is two lines (the chip, then years +
+     * link); from `md` it is one line of columns. No amounts, so no money column.
+     */
+    .categories-grid {
+        @apply grid items-center gap-x-4;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            'name name'
+            'years link';
+    }
+
+    @variant md {
+        .categories-grid {
+            grid-template-columns: minmax(0, 1fr) 220px 120px;
+            grid-template-areas: 'name years link';
+        }
+    }
+
+    .categories-header-row {
+        @apply table-header border-border-soft hidden border-b px-4 py-2;
+    }
+
+    @variant md {
+        .categories-header-row {
+            @apply grid;
+        }
+    }
+
+    .categories-row {
+        @apply border-border-soft hover:bg-secondary min-h-row gap-y-1 border-b px-4 py-2 text-sm transition-colors last:border-b-0;
+    }
+
+    .categories-row-archived {
+        @apply text-muted-foreground;
+    }
+
+    .categories-cell-name {
+        grid-area: name;
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .categories-cell-years {
+        grid-area: years;
+        @apply min-w-0 tabular-nums;
+    }
+
+    .categories-cell-link {
+        grid-area: link;
+        @apply flex justify-end;
+    }
+
     .budget-category-row {
         @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
     }

@@ -1,0 +1,147 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Budget;
+use App\Models\BudgetLine;
+use App\Models\Category;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
+use Tests\TestCase;
+
+/**
+ * The read-only „Kategorie” view (ADR-0063): the User's list Categories with the
+ * years of their Budget Lines, no amounts.
+ */
+class CategoriesPageTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_guests_are_redirected_to_the_login_page(): void
+    {
+        $this->get(route('categories.index'))->assertRedirect(route('login'));
+    }
+
+    public function test_it_lists_active_categories_by_type_in_list_order_with_the_years_of_their_lines(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $budget2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $salary = Category::factory()->for($user)->income()->create(['name' => 'Wynagrodzenie', 'sort_order' => 0]);
+        $fun = Category::factory()->for($user)->expense()->create(['name' => 'Rozrywka', 'icon' => 'film', 'color' => '#ec4899', 'sort_order' => 1]);
+        $food = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 0]);
+        $withoutLines = Category::factory()->for($user)->expense()->create(['name' => 'Bez pozycji', 'sort_order' => 2]);
+
+        BudgetLine::factory()->for($budget2026)->create(['category_id' => $salary->id]);
+        BudgetLine::factory()->for($budget2027)->create(['category_id' => $salary->id]);
+        BudgetLine::factory()->for($budget2027)->create(['category_id' => $fun->id]);
+        BudgetLine::factory()->for($budget2026)->create(['category_id' => $fun->id]);
+        BudgetLine::factory()->for($budget2026)->create(['category_id' => $food->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Categories')
+                ->has('incomeCategories', 1)
+                ->where('incomeCategories.0', [
+                    'id' => $salary->id,
+                    'name' => 'Wynagrodzenie',
+                    'icon' => $salary->icon,
+                    'color' => $salary->color,
+                    'type' => 'income',
+                    'budget_years' => [2026, 2027],
+                    'archived_at' => null,
+                ])
+                ->has('expenseCategories', 3)
+                ->where('expenseCategories.0.id', $food->id)
+                ->where('expenseCategories.0.budget_years', [2026])
+                ->where('expenseCategories.1.id', $fun->id)
+                ->where('expenseCategories.1.icon', 'film')
+                ->where('expenseCategories.1.color', '#ec4899')
+                ->where('expenseCategories.1.budget_years', [2026, 2027])
+                ->where('expenseCategories.2.id', $withoutLines->id)
+                ->where('expenseCategories.2.budget_years', [])
+                ->where('archivedCategories', []),
+            );
+    }
+
+    public function test_archived_categories_are_apart_with_the_archive_date(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $active = Category::factory()->for($user)->expense()->create(['name' => 'Żywność']);
+        $holidays = Category::factory()->for($user)->expense()->create([
+            'name' => 'Wakacje',
+            'archived_at' => '2026-09-09 14:30:00',
+        ]);
+        BudgetLine::factory()->for($budget2026)->create(['category_id' => $active->id]);
+        BudgetLine::factory()->for($budget2026)->create(['category_id' => $holidays->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 1)
+                ->where('expenseCategories.0.id', $active->id)
+                ->has('archivedCategories', 1)
+                ->where('archivedCategories.0.id', $holidays->id)
+                ->where('archivedCategories.0.name', 'Wakacje')
+                ->where('archivedCategories.0.budget_years', [2026])
+                ->where('archivedCategories.0.archived_at', '2026-09-09'),
+            );
+    }
+
+    public function test_a_category_archived_on_the_list_with_an_active_line_is_still_in_the_archive_section(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($user)->income()->archived()->create();
+        BudgetLine::factory()->for($budget)->create(['category_id' => $category->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories', [])
+                ->has('archivedCategories', 1)
+                ->where('archivedCategories.0.id', $category->id),
+            );
+    }
+
+    public function test_another_users_categories_and_years_are_not_visible(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $otherBudget = Budget::factory()->for($other)->execution()->create(['year' => 2030]);
+        $otherCategory = Category::factory()->for($other)->expense()->create(['name' => 'Cudza']);
+        BudgetLine::factory()->for($otherBudget)->create(['category_id' => $otherCategory->id]);
+
+        $mine = Category::factory()->for($user)->expense()->create(['name' => 'Moja']);
+        $myBudget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        BudgetLine::factory()->for($myBudget)->create(['category_id' => $mine->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 1)
+                ->where('expenseCategories.0.id', $mine->id)
+                ->where('expenseCategories.0.budget_years', [2026])
+                ->where('incomeCategories', [])
+                ->where('archivedCategories', []),
+            );
+    }
+
+    public function test_a_user_without_categories_gets_empty_lists(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('categories.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Categories')
+                ->where('incomeCategories', [])
+                ->where('expenseCategories', [])
+                ->where('archivedCategories', []),
+            );
+    }
+}

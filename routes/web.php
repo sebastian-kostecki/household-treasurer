@@ -9,6 +9,7 @@ use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\AccountsKitchenSinkController;
 use App\Http\Controllers\Dev\AuthKitchenSinkController;
+use App\Http\Controllers\Dev\CategoriesKitchenSinkController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\DialogsKitchenSinkController;
 use App\Http\Controllers\Dev\ImportPreviewKitchenSinkController;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
     Route::get('dev/ui/import', [ImportStartKitchenSinkController::class, 'show'])->name('dev.ui.import');
     Route::get('dev/import-preview', [ImportPreviewKitchenSinkController::class, 'show'])->name('dev.import-preview');
+    Route::get('dev/ui/categories', [CategoriesKitchenSinkController::class, 'show'])->name('dev.ui.categories');
     Route::get('dev/ui/dialogs', [DialogsKitchenSinkController::class, 'show'])->name('dev.ui.dialogs');
     Route::post('dev/ui/dialogs/validate', [DialogsKitchenSinkController::class, 'validate'])->name('dev.ui.dialogs.validate');
     Route::get('dev/ui/settings', [SettingsKitchenSinkController::class, 'show'])->name('dev.ui.settings');
@@ -64,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('budgets/{budget}/month-plans/{month}', [MonthPlanController::class, 'update'])
         ->whereNumber('month')
         ->name('month-plans.update');
+    Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::patch('budgets/{budget}/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');

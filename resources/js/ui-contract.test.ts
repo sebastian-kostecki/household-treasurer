@@ -465,3 +465,49 @@ describe('table rows carry no amount unit (ADR-0058)', () => {
         },
     );
 });
+
+// The „Kategorie” view is read-only and shows no amounts (S-18), so none of
+// its files formats money; it is built from the shared surface blocks and its
+// values come from tokens.
+const CATEGORIES_VIEW_FILES = [
+    'pages/Categories.vue',
+    'pages/dev/CategoriesKitchenSink.vue',
+    'components/CategoryListRow.vue',
+    'components/CategoryArchiveSection.vue',
+];
+
+describe('the Categories view follows the Atrament surface blocks', () => {
+    it.each(CATEGORIES_VIEW_FILES)('has no hardcoded values in %s', (file) => {
+        const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+        expect(source).not.toMatch(HARDCODED);
+    });
+
+    it.each(CATEGORIES_VIEW_FILES)('shows no amount in %s', (file) => {
+        const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+        expect(source).not.toMatch(/\bformat(Signed)?Money(Amount)?\b/);
+    });
+
+    it('builds the page from ListSurface, CategoryListRow and IndexEmptyState', () => {
+        const page = readFileSync(
+            join(JS_ROOT, 'pages/Categories.vue'),
+            'utf8',
+        );
+
+        expect(page).toContain('<ListSurface');
+        expect(page).toContain('<CategoryListRow');
+        expect(page).toContain('<IndexEmptyState');
+    });
+
+    it('shows each category with CategoryChip and a Wayfinder link to Operations', () => {
+        const row = readFileSync(
+            join(JS_ROOT, 'components/CategoryListRow.vue'),
+            'utf8',
+        );
+
+        expect(row).toContain('<CategoryChip');
+        expect(row).toContain("from '@/routes'");
+        expect(row).not.toContain('href="/operations');
+    });
+});
