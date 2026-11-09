@@ -551,21 +551,21 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [x] 6.1 Test komendy liczb kontrolnych przechodzi na PostgreSQL
-- [x] 6.2 Skrypty wdrożenia przechodzą bash -n
-- [x] 6.3 Indeks reguł aktualny
-- [x] 6.4 Pełna bramka zielona
+- [x] 6.1 Test komendy liczb kontrolnych przechodzi na PostgreSQL — c096a4d
+- [x] 6.2 Skrypty wdrożenia przechodzą bash -n — c096a4d
+- [x] 6.3 Indeks reguł aktualny — c096a4d
+- [x] 6.4 Pełna bramka zielona — c096a4d
 
 #### Manual
 
-- [x] 6.5 Kroki README dają się wykonać bez domysłów
+- [x] 6.5 Kroki README dają się wykonać bez domysłów — c096a4d
 
 ### Phase 7: Próba na kopii produkcji
 
 #### Manual
 
-- [ ] 7.1 Liczby kontrolne po migracji i po down() zgodne z liczbami przed
-- [ ] 7.2 Budżet 2026 i operacje na kopii produkcji bez zmian
-- [ ] 7.3 Lista po migracji przejrzana i zaakceptowana
-- [ ] 7.4 Kroki Przywrócenie produkcji przeszły w restore_trial
-- [ ] 7.5 migration-trial.md zapisany i zaakceptowany przed wdrożeniem
+- [x] 7.1 Liczby kontrolne po migracji i po down() zgodne z liczbami przed
+- [x] 7.2 Budżet 2026 i operacje na kopii produkcji bez zmian
+- [x] 7.3 Lista po migracji przejrzana i zaakceptowana
+- [x] 7.4 Kroki Przywrócenie produkcji przeszły w restore_trial
+- [x] 7.5 migration-trial.md zapisany i zaakceptowany przed wdrożeniem
