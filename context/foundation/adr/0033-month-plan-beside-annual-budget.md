@@ -11,3 +11,4 @@ Four Dashboard notices come from the Month Plan, weighted by the ADR-0032 defini
 We rejected the annual Budget with corrections (default amounts would be the average, an assumption), a full monthly Budget (rebuilds the annual Budget and needs a data migration), carrying the remainder forward (a chain of months, and double counting with Draw), closing a month, an irregular-expense fund, and Month Pace per Category (weekly shopping makes it noisy).
 
 Superseded in part by ADR-0037: the Budget page no longer shows Month Result, Month Remaining or To Spend; the Period Report, the Dashboard and the Month Plan own those readings.
+Amended by ADR-0063: January reads December of the same list Category (not a lookup by name and type), items are the Categories with a Budget Line on that Budget, and Month Item Kind comes from the previous year’s Budget Line instead of being copied with the Category.
