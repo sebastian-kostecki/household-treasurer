@@ -24,7 +24,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -46,7 +46,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -68,7 +68,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -89,7 +89,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -110,7 +110,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertForbidden();
 
         $this->assertSame(500000, $category->fresh()->planned_amount_minor_units);
@@ -127,7 +127,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertForbidden();
 
         $this->assertSame(500000, $category->fresh()->planned_amount_minor_units);
@@ -145,7 +145,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         ]);
 
         $this->actingAs($otherUser)
-            ->post(route('categories.align-current-plan', $category))
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id]))
             ->assertForbidden();
 
         $this->assertSame(500000, $category->fresh()->planned_amount_minor_units);
@@ -157,12 +157,14 @@ class AlignCategoryCurrentPlanTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Open',
+            'sort_order' => 0,
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
             'execution_minor_units' => 100000,
         ]);
         BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Closed',
+            'sort_order' => 1,
             'planned_amount_minor_units' => 200000,
             'initial_plan_minor_units' => 200000,
             'execution_minor_units' => 200000,

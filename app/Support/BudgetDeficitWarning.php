@@ -22,10 +22,10 @@ class BudgetDeficitWarning
     public static function forBudget(Budget $budget, User $user, Collection $categories): ?array
     {
         $plannedIncome = (int) $categories
-            ->where('type', CategoryType::Income)
+            ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Income))
             ->sum('planned_amount_minor_units');
         $plannedExpenses = (int) $categories
-            ->where('type', CategoryType::Expense)
+            ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Expense))
             ->sum('planned_amount_minor_units');
         $plannedDeficit = $plannedExpenses - $plannedIncome;
 

@@ -24,7 +24,7 @@ class ImportCategoryOptions
             ->budgets()
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
-                ->where('type', CategoryType::Income)
+                ->ofType(CategoryType::Income)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
@@ -32,7 +32,7 @@ class ImportCategoryOptions
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
-                'name' => $category->name,
+                'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
             ]))
@@ -49,7 +49,7 @@ class ImportCategoryOptions
             ->budgets()
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
-                ->where('type', CategoryType::Expense)
+                ->ofType(CategoryType::Expense)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
@@ -57,7 +57,7 @@ class ImportCategoryOptions
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
-                'name' => $category->name,
+                'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
                 'is_paced' => $category->is_paced,

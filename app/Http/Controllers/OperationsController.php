@@ -41,7 +41,7 @@ class OperationsController extends Controller
         }
 
         $operations = $operationsQuery
-            ->with(['account:id,name,type,bank', 'budgetLine:id,name,icon,color'])
+            ->with(['account:id,name,type,bank', 'budgetLine:id,category_id'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
@@ -56,9 +56,9 @@ class OperationsController extends Controller
                 'amount_minor_units' => $operation->amount_minor_units,
                 'account_id' => $operation->account_id,
                 'category_id' => $operation->budget_line_id,
-                'category_name' => $operation->budgetLine->name,
-                'category_icon' => $operation->budgetLine->icon,
-                'category_color' => $operation->budgetLine->color,
+                'category_name' => $operation->budgetLine->category->name,
+                'category_icon' => $operation->budgetLine->category->icon,
+                'category_color' => $operation->budgetLine->category->color,
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 
@@ -150,7 +150,7 @@ class OperationsController extends Controller
         $incomeCategories = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
-                ->where('type', CategoryType::Income)
+                ->ofType(CategoryType::Income)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
@@ -158,7 +158,7 @@ class OperationsController extends Controller
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
-                'name' => $category->name,
+                'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
             ]))
@@ -167,7 +167,7 @@ class OperationsController extends Controller
         $expenseCategories = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
-                ->where('type', CategoryType::Expense)
+                ->ofType(CategoryType::Expense)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
@@ -175,7 +175,7 @@ class OperationsController extends Controller
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
-                'name' => $category->name,
+                'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,

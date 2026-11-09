@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\ChangeMonthPlan;
+use App\Enums\CategoryType;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\MonthPlan;
@@ -298,7 +299,7 @@ class ChangeMonthPlanTest extends TestCase
     private function currentSum(MonthPlan $plan, bool $income): int
     {
         return (int) $plan->items()
-            ->whereHas('budgetLine', fn ($query) => $query->where('type', $income ? 'income' : 'expense'))
+            ->whereHas('budgetLine', fn ($query) => $query->ofType($income ? CategoryType::Income : CategoryType::Expense))
             ->sum('current_amount_minor_units');
     }
 

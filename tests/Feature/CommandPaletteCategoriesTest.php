@@ -39,7 +39,7 @@ class CommandPaletteCategoriesTest extends TestCase
                 'budget_year' => 2026,
                 'categories' => [
                     [
-                        'id' => BudgetLine::query()->where('name', 'Dom')->value('id'),
+                        'id' => BudgetLine::query()->whereHas('category', fn ($query) => $query->where('name', 'Dom'))->value('id'),
                         'name' => 'Dom',
                         'type' => 'expense',
                         'icon' => 'house',

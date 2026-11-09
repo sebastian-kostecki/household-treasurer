@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\ArchiveCategory;
+use App\Actions\CreateCategory;
 use App\Actions\ReorderCategories;
+use App\Actions\RestoreCategory;
+use App\Actions\UpdateCategory;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryMonthItemKindRequest;
@@ -12,84 +15,39 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
-use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
+/**
+ * The Budget page's Category actions (ADR-0063). `{category}` is the id of the
+ * list Category everywhere; a Budget Line is found by the pair (budget, category).
+ */
 class CategoryController extends Controller
 {
     use AuthorizesRequests;
 
-    public function store(StoreCategoryRequest $request, Budget $budget): RedirectResponse
+    public function store(StoreCategoryRequest $request, Budget $budget, CreateCategory $createCategory): RedirectResponse
     {
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
         $attributes = $request->validated();
-        $type = CategoryType::from($attributes['type']);
-
-        if ($budget->isExecution()) {
-            $attributes['initial_plan_minor_units'] = 0;
-        }
-
-        $attributes['is_paced'] = $type === CategoryType::Expense
-            ? $request->boolean('is_paced', true)
-            : true;
-        $attributes['month_item_kind'] = $type === CategoryType::Expense
-            ? ($attributes['month_item_kind'] ?? MonthItemKind::Running->value)
-            : MonthItemKind::Running->value;
-        $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
-
-        DB::transaction(function () use ($request, $budget, $attributes, $type): void {
-            $category = Category::query()->firstOrCreate(
-                [
-                    'user_id' => $request->user()->id,
-                    'type' => $type->value,
-                    'name_key' => CategoryNameKey::of($attributes['name']),
-                ],
-                [
-                    'name' => CategoryNameKey::trim($attributes['name']),
-                    'icon' => $attributes['icon'],
-                    'color' => $attributes['color'],
-                    'sort_order' => $attributes['sort_order'],
-                ],
-            );
-
-            if ($budget->budgetLines()->where('category_id', $category->id)->exists()) {
-                throw ValidationException::withMessages([
-                    'name' => __('This category is already in the budget.'),
-                ]);
-            }
-
-            $budget->budgetLines()->create([...$attributes, 'category_id' => $category->id]);
-        });
+        $joinedExisting = $createCategory->handle($request->user(), $budget, $attributes);
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Category created.'),
+            'message' => $joinedExisting ? __('Existing category joined.') : __('Category created.'),
         ]);
 
         return to_route('budget');
     }
 
-    public function update(UpdateCategoryRequest $request, BudgetLine $category): RedirectResponse
+    public function update(UpdateCategoryRequest $request, Budget $budget, Category $category, UpdateCategory $updateCategory): RedirectResponse
     {
-        $updatableFields = [
-            'name',
-            'icon',
-            'color',
-            'type',
-            'planned_amount_minor_units',
-        ];
-
-        if ($category->type === CategoryType::Expense && ! $category->isArchived()) {
-            $updatableFields[] = 'is_paced';
-            $updatableFields[] = 'month_item_kind';
-        }
-
-        $category->update($request->safe()->only($updatableFields));
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        $attributes = $request->validated();
+        $updateCategory->handle($this->lineOf($budget, $category), $attributes);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -99,18 +57,20 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, BudgetLine $category): RedirectResponse
+    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, Budget $budget, Category $category): RedirectResponse
     {
-        $category->update($request->safe()->only(['month_item_kind']));
+        $this->lineOf($budget, $category)->update($request->safe()->only(['month_item_kind']));
 
         return back();
     }
 
-    public function destroy(Request $request, BudgetLine $category): RedirectResponse
+    public function destroy(Budget $budget, Category $category): RedirectResponse
     {
-        $this->authorize('delete', $category);
+        $line = $this->lineOf($budget, $category);
 
-        $category->delete();
+        $this->authorize('delete', $line);
+
+        $line->delete();
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -120,11 +80,11 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function archive(Request $request, BudgetLine $category): RedirectResponse
+    public function archive(Request $request, Category $category, ArchiveCategory $archiveCategory): RedirectResponse
     {
         $this->authorize('archive', $category);
 
-        $category->update(['archived_at' => now()]);
+        $archiveCategory->handle($category);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -134,11 +94,11 @@ class CategoryController extends Controller
         return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 
-    public function restore(Request $request, BudgetLine $category): RedirectResponse
+    public function restore(Request $request, Category $category, RestoreCategory $restoreCategory): RedirectResponse
     {
         $this->authorize('restore', $category);
 
-        $category->update(['archived_at' => null]);
+        $restoreCategory->handle($category);
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -148,12 +108,14 @@ class CategoryController extends Controller
         return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 
-    public function alignCurrentPlan(Request $request, BudgetLine $category): RedirectResponse
+    public function alignCurrentPlan(Request $request, Budget $budget, Category $category): RedirectResponse
     {
-        $this->authorize('alignCurrentPlan', $category);
+        $line = $this->lineOf($budget, $category);
 
-        $category->update([
-            'planned_amount_minor_units' => max(0, $category->execution_minor_units),
+        $this->authorize('alignCurrentPlan', $line);
+
+        $line->update([
+            'planned_amount_minor_units' => max(0, $line->execution_minor_units),
         ]);
 
         Inertia::flash('toast', [
@@ -180,12 +142,8 @@ class CategoryController extends Controller
         return response()->noContent();
     }
 
-    private function nextSortOrder(Budget $budget, CategoryType $type): int
+    private function lineOf(Budget $budget, Category $category): BudgetLine
     {
-        $maxSortOrder = $budget->budgetLines()
-            ->where('type', $type)
-            ->max('sort_order');
-
-        return ($maxSortOrder ?? -1) + 1;
+        return $budget->budgetLines()->where('category_id', $category->id)->firstOrFail();
     }
 }

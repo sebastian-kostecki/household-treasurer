@@ -71,15 +71,56 @@ test('history from the 2025 budget maps to the category of the same name and typ
         ->toBe(['income' => null, 'expense' => $current->id]);
 });
 
-test('two categories with the same name in the target budget give null', function () {
+test('a winner without a line in the budget of the row year gives null and does not fall through to the next candidate', function () {
+    $user = User::factory()->create();
+    [$budget2025, $budget2026] = suggesterBudgets($user);
+    $winner = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    $other = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Paliwo']);
+    $otherIn2026 = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Paliwo']);
+    suggesterRecordHistory($user, $winner, 'BIEDRONKA WARSZAWA');
+    suggesterRecordHistory($user, $other, 'BIEDRONKA');
+
+    expect($otherIn2026->category_id)->toBe($other->category_id)
+        ->and(suggesterFor($user, suggesterRow('BIEDRONKA WARSZAWA')))->toBe(['income' => null, 'expense' => null]);
+});
+
+test('a winner archived on the list gives null even when its line in the row year is active', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
     $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
-    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['category_id' => $old->category_id]);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
+    $old->category->update(['archived_at' => now()]);
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA')))->toBe(['income' => null, 'expense' => null]);
+});
+
+test('without name variants the vote by list category gives what a vote by name gave', function () {
+    $user = User::factory()->create();
+    [$budget2025, $budget2026] = suggesterBudgets($user);
+    $names = ['Zakupy' => 'BIEDRONKA WARSZAWA', 'Paliwo' => 'ORLEN STACJA', 'Rozrywka' => 'KINO HELIOS', 'Bez pozycji' => 'ZOO LAND'];
+    $lines2026 = [];
+
+    foreach ($names as $name => $description) {
+        $line2025 = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => $name]);
+        suggesterRecordHistory($user, $line2025, $description);
+
+        if ($name !== 'Bez pozycji') {
+            $lines2026[$name] = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => $name]);
+        }
+    }
+
+    // The old rule: vote per exact name, then the one line of that name in the row year (none: no suggestion).
+    $byName = fn (string $description): ?int => match (true) {
+        str_contains($description, 'BIEDRONKA') => $lines2026['Zakupy']->id,
+        str_contains($description, 'ORLEN') => $lines2026['Paliwo']->id,
+        str_contains($description, 'KINO') => $lines2026['Rozrywka']->id,
+        default => null,
+    };
+
+    foreach (['BIEDRONKA 4521', 'ORLEN 12', 'KINO HELIOS', 'ZOO LAND', 'NIEZNANY SKLEP'] as $description) {
+        expect(suggesterFor($user, suggesterRow($description))['expense'])->toBe($byName($description));
+    }
 });
 
 test('an archived target category gives null', function () {

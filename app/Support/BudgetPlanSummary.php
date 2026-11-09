@@ -73,7 +73,7 @@ class BudgetPlanSummary
      */
     public static function forType(Budget $budget, Collection $categories, CategoryType $type): array
     {
-        $typeCategories = $categories->where('type', $type);
+        $typeCategories = $categories->filter(fn (BudgetLine $category): bool => $category->hasType($type));
 
         $currentPlanMinorUnits = (int) $typeCategories->sum('planned_amount_minor_units');
         $executionMinorUnits = (int) $typeCategories->sum('execution_minor_units');

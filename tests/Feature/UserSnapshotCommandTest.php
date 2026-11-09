@@ -231,7 +231,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $restoredBill = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
-            ->where('name', 'Rent')
+            ->whereHas('category', fn ($query) => $query->where('name', 'Rent'))
             ->firstOrFail();
         $restoredPlan = MonthPlan::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
@@ -497,7 +497,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $restoredAccount = $targetUser->accounts()->where('name', $sourceAccount->name)->firstOrFail();
         $restoredBudget = $targetUser->budgets()->where('year', $sourceBudget->year)->firstOrFail();
-        $restoredCategory = BudgetLine::query()->where('budget_id', $restoredBudget->id)->where('name', $sourceCategory->name)->firstOrFail();
+        $restoredCategory = BudgetLine::query()->where('budget_id', $restoredBudget->id)->whereHas('category', fn ($query) => $query->where('name', $sourceCategory->category->name))->firstOrFail();
         $restoredOperation = $targetUser->financialOperations()->where('description', $sourceOperation->description)->firstOrFail();
         $restoredTransfer = $targetUser->ownTransfers()->where('description', $sourceTransfer->description)->firstOrFail();
 
@@ -654,7 +654,7 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(299999, $restored2026->initial_plan_minor_units);
         $this->assertSame(111111, $restored2026->execution_minor_units);
         $this->assertSame(310000, $restored2027->planned_amount_minor_units);
-        $this->assertSame('Rozrywka i kultura', $restored2026->name);
+        $this->assertSame('Rozrywka i kultura', $restored2026->category->name);
         $this->assertSame($restored2026->id, $targetUser->financialOperations()->firstOrFail()->budget_line_id);
         $this->assertNotSame($line2027->id, $restored2027->id);
     }

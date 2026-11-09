@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\ManageFinancialOperation;
+use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
@@ -67,6 +68,7 @@ class MonthPlanPageTest extends TestCase
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 4)
                 ->where('monthPlan.income_items.0.name', 'Pensja')
+                ->where('monthPlan.income_items.0.list_category_id', BudgetLine::query()->whereKey($user->budgets()->first()->budgetLines()->ofType(CategoryType::Income)->value('id'))->value('category_id'))
                 ->where('monthPlan.income_items.0.type', 'income')
                 ->where('monthPlan.income_items.0.month_item_kind', null)
                 ->where('monthPlan.income_items.0.plan_minor_units', 800_000)

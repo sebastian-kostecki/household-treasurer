@@ -78,7 +78,7 @@ class DashboardController extends Controller
                 fn (BudgetLine $category): bool => ! $category->isArchived(),
             );
             $visibleExpenseCategories = $visibleCategories
-                ->where('type', CategoryType::Expense)
+                ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Expense))
                 ->values();
             $asOf = YearElapsed::asOfDate($budget->year, $today);
             $yearElapsedAsOf = $asOf->toDateString();
@@ -90,7 +90,7 @@ class DashboardController extends Controller
 
             if ($budget->isExecution()) {
                 $incomeCategories = $visibleCategories
-                    ->where('type', CategoryType::Income)
+                    ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Income))
                     ->values()
                     ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
                     ->all();
@@ -239,7 +239,7 @@ class DashboardController extends Controller
 
         return [
             'id' => $category->id,
-            'name' => $category->name,
+            'name' => $category->category->name,
             ...CategoryAppearance::fields($category),
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,
@@ -252,10 +252,10 @@ class DashboardController extends Controller
                 $currentPlanMinorUnits,
                 $executionMinorUnits,
             ),
-            'is_over_limit' => $category->type === CategoryType::Expense
+            'is_over_limit' => $category->hasType(CategoryType::Expense)
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
-            ...($category->type === CategoryType::Expense ? [
+            ...($category->hasType(CategoryType::Expense) ? [
                 'is_paced' => $category->is_paced,
             ] : []),
         ];

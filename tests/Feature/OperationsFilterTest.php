@@ -353,7 +353,7 @@ class OperationsFilterTest extends TestCase
             ->assertSessionHasErrors('account_id');
     }
 
-    public function test_category_picker_uses_newest_year_chrome_and_omits_unused_drafts(): void
+    public function test_category_picker_uses_the_list_chrome_of_one_category_and_omits_unused_drafts(): void
     {
         $user = User::factory()->create();
         $this->addOperation($user, [
@@ -389,8 +389,8 @@ class OperationsFilterTest extends TestCase
                 ->has('filterCategories', 1)
                 ->where('filterCategories.0.name', 'Groceries')
                 ->where('filterCategories.0.type', 'expense')
-                ->where('filterCategories.0.icon', 'cart')
-                ->where('filterCategories.0.color', '#222222')
+                ->where('filterCategories.0.icon', 'tag')
+                ->where('filterCategories.0.color', '#111111')
                 ->where('filterYears', [2026, 2025]),
             );
 

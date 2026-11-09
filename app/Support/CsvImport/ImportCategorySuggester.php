@@ -2,6 +2,8 @@
 
 namespace App\Support\CsvImport;
 
+use App\Enums\BudgetPhase;
+use App\Models\BudgetLine;
 use App\Models\User;
 
 class ImportCategorySuggester
@@ -19,9 +21,9 @@ class ImportCategorySuggester
         }
 
         $model = ImportCategorySuggestionModel::fromHistory($this->loadHistory($user));
-        $categoryIds = null;
+        $lineIds = null;
 
-        return array_map(function (array $row) use ($user, $model, &$categoryIds): array {
+        return array_map(function (array $row) use ($user, $model, &$lineIds): array {
             if (! $this->isEligibleRow($row)) {
                 return $this->withSuggestion($row, null, null);
             }
@@ -30,20 +32,20 @@ class ImportCategorySuggester
                 is_string($row['description'] ?? null) ? $row['description'] : null,
                 is_string($row['counterparty'] ?? null) ? $row['counterparty'] : null,
             );
-            $incomeName = $model->suggest('income', $text);
-            $expenseName = $model->suggest('expense', $text);
+            $incomeCategoryId = $model->suggest('income', $text);
+            $expenseCategoryId = $model->suggest('expense', $text);
 
-            if ($incomeName === null && $expenseName === null) {
+            if ($incomeCategoryId === null && $expenseCategoryId === null) {
                 return $this->withSuggestion($row, null, null);
             }
 
-            $categoryIds ??= $this->categoryIdsByYearTypeAndName($user);
+            $lineIds ??= $this->lineIdsByYearAndCategory($user);
             $year = (int) substr((string) $row['operation_date'], 0, 4);
 
             return $this->withSuggestion(
                 $row,
-                $incomeName === null ? null : $this->uniqueId($categoryIds, $year, 'income', $incomeName),
-                $expenseName === null ? null : $this->uniqueId($categoryIds, $year, 'expense', $expenseName),
+                $incomeCategoryId === null ? null : ($lineIds[$year][$incomeCategoryId] ?? null),
+                $expenseCategoryId === null ? null : ($lineIds[$year][$expenseCategoryId] ?? null),
             );
         }, $rows);
     }
@@ -67,7 +69,7 @@ class ImportCategorySuggester
      * @return \Generator<int, array{
      *     id: int,
      *     type: 'income'|'expense',
-     *     category_name: string,
+     *     category_id: int,
      *     text: string,
      *     operation_date: string,
      * }>
@@ -84,7 +86,7 @@ class ImportCategorySuggester
                 'financial_operations.operation_date',
                 'financial_operations.description',
                 'financial_operations.counterparty',
-                'budget_lines.name as category_name',
+                'budget_lines.category_id',
             ])
             ->toBase()
             ->cursor();
@@ -93,7 +95,7 @@ class ImportCategorySuggester
             yield [
                 'id' => (int) $operation->id,
                 'type' => $operation->type,
-                'category_name' => $operation->category_name,
+                'category_id' => (int) $operation->category_id,
                 'text' => $this->textOf($operation->description, $operation->counterparty),
                 'operation_date' => substr((string) $operation->operation_date, 0, 10),
             ];
@@ -101,29 +103,32 @@ class ImportCategorySuggester
     }
 
     /**
-     * @return array<int, array<string, array<string, list<int>>>> year => type => name => category ids
+     * The target of a vote: the non-archived line of the winning list Category
+     * in the Budget in execution of the year of the row's date. A winner without
+     * such a line, or archived on the list, gives no suggestion (ADR-0063 about ADR-0034).
+     *
+     * @return array<int, array<int, int>> year => list category id => budget line id
      */
-    private function categoryIdsByYearTypeAndName(User $user): array
+    private function lineIdsByYearAndCategory(User $user): array
     {
+        $lines = BudgetLine::query()
+            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
+            ->join('categories', 'categories.id', '=', 'budget_lines.category_id')
+            ->where('budgets.user_id', $user->id)
+            ->where('budgets.phase', BudgetPhase::Execution)
+            ->whereNull('budget_lines.archived_at')
+            ->whereNull('categories.archived_at')
+            ->select(['budget_lines.id', 'budget_lines.category_id', 'budgets.year'])
+            ->toBase()
+            ->get();
+
         $ids = [];
 
-        foreach (['income' => ImportCategoryOptions::income($user), 'expense' => ImportCategoryOptions::expense($user)] as $type => $options) {
-            foreach ($options as $option) {
-                $ids[$option['budget_year']][$type][$option['name']][] = $option['id'];
-            }
+        foreach ($lines as $line) {
+            $ids[(int) $line->year][(int) $line->category_id] = (int) $line->id;
         }
 
         return $ids;
-    }
-
-    /**
-     * @param  array<int, array<string, array<string, list<int>>>>  $categoryIds
-     */
-    private function uniqueId(array $categoryIds, int $year, string $type, string $name): ?int
-    {
-        $matches = $categoryIds[$year][$type][$name] ?? [];
-
-        return count($matches) === 1 ? $matches[0] : null;
     }
 
     /**

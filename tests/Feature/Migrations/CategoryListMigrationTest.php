@@ -33,6 +33,7 @@ function categoryListMigrationFiles(): array
     return [
         database_path('migrations/2026_11_09_122524_expand_categories_into_category_list_and_budget_lines.php'),
         database_path('migrations/2026_11_09_122525_backfill_category_list.php'),
+        database_path('migrations/2026_11_09_132817_drop_legacy_category_columns_from_budget_lines.php'),
     ];
 }
 
@@ -380,8 +381,7 @@ test('down restores the old shape with names from the list and keeps what was ad
 
     foreach ([$budget2026, $budget2027] as $budgetId) {
         $newLines[$budgetId] = DB::table('budget_lines')->insertGetId([
-            'budget_id' => $budgetId, 'category_id' => $newCategory, 'name' => 'Remont', 'icon' => 'tag', 'color' => '#868e96',
-            'sort_order' => 5, 'type' => 'expense', 'planned_amount_minor_units' => 0, 'initial_plan_minor_units' => 0,
+            'budget_id' => $budgetId, 'category_id' => $newCategory, 'planned_amount_minor_units' => 0, 'initial_plan_minor_units' => 0,
             'execution_minor_units' => 700, 'created_at' => now(), 'updated_at' => now(),
         ]);
     }
@@ -474,4 +474,45 @@ test('the same old shape gives the same list and line assignments through the mi
 
     expect($migrated['list'])->toHaveCount(5)
         ->and($restored)->toBe($migrated);
+});
+
+test('the drop migration removes the description columns from budget lines and its down brings them back from the list', function () {
+    $userId = categoryListMigrationUser();
+    $budget2026 = categoryListMigrationBudget($userId, 2026, 'execution');
+    $budget2027 = categoryListMigrationBudget($userId, 2027, 'draft');
+
+    $line2026 = categoryListMigrationOldRecord($budget2026, 'Rozrywka', ['icon' => 'film', 'color' => '#ec4899', 'sort_order' => 4]);
+    $line2027 = categoryListMigrationOldRecord($budget2027, 'Rozrywka', ['icon' => 'film', 'color' => '#ec4899', 'sort_order' => 4]);
+    $salary = categoryListMigrationOldRecord($budget2026, 'Pensja', ['type' => 'income']);
+
+    categoryListMigrationArtisan('migrate');
+
+    foreach (['name', 'icon', 'color', 'sort_order', 'type'] as $column) {
+        expect(Schema::hasColumn('budget_lines', $column))->toBeFalse();
+    }
+
+    $amounts = categoryListMigrationSnapshot('budget_lines', 'budget_line_id');
+
+    DB::table('categories')->where('id', categoryListMigrationCategoryOf($line2026)->id)->update(['name' => 'Rozrywka i kultura', 'name_key' => 'rozrywka i kultura']);
+
+    Artisan::call('migrate:rollback', [
+        '--path' => [database_path('migrations/2026_11_09_132817_drop_legacy_category_columns_from_budget_lines.php')],
+        '--realpath' => true,
+        '--force' => true,
+    ]);
+
+    $lines = DB::table('budget_lines')->orderBy('id')->get()->keyBy('id');
+
+    expect($lines[$line2026]->name)->toBe('Rozrywka i kultura')
+        ->and($lines[$line2027]->name)->toBe('Rozrywka i kultura')
+        ->and($lines[$line2026]->icon)->toBe('film')
+        ->and($lines[$line2026]->color)->toBe('#ec4899')
+        ->and($lines[$line2026]->sort_order)->toBe(4)
+        ->and($lines[$salary]->type)->toBe('income')
+        ->and(categoryListMigrationSnapshot('budget_lines', 'budget_line_id'))->toBe($amounts);
+
+    categoryListMigrationArtisan('migrate');
+
+    expect(Schema::hasColumn('budget_lines', 'name'))->toBeFalse()
+        ->and(categoryListMigrationSnapshot('budget_lines', 'budget_line_id'))->toBe($amounts);
 });

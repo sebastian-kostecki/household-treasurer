@@ -224,8 +224,6 @@ class RestoreUserData
 
     /**
      * Snapshot 6: the User's Category list and the Budget Lines pointing at it.
-     * Until the description columns leave `budget_lines` (phase 3) the list
-     * Category's description is copied onto the line as well.
      *
      * @param  list<array<string, mixed>>  $categories
      * @param  list<array<string, mixed>>  $budgetLines
@@ -266,11 +264,6 @@ class RestoreUserData
             $rows[] = [
                 'budget_id' => $budgetId,
                 'category_id' => $listCategory->id,
-                'name' => $listCategory->name,
-                'icon' => $listCategory->icon,
-                'color' => $listCategory->color,
-                'sort_order' => $listCategory->sort_order,
-                'type' => $listCategory->type->value,
                 'is_paced' => $this->restoredCategoryIsPaced([...$lineData, 'type' => $listCategory->type->value]),
                 'month_item_kind' => $this->restoredCategoryMonthItemKind([...$lineData, 'type' => $listCategory->type->value])->value,
                 'planned_amount_minor_units' => $lineData['planned_amount_minor_units'],
@@ -324,6 +317,7 @@ class RestoreUserData
 
             $category = $targetUser->categories()->create([
                 'name' => $categoryData['name'],
+                'name_key' => CategoryNameKey::of((string) $categoryData['name']),
                 'icon' => $categoryData['icon'],
                 'color' => $categoryData['color'],
                 'sort_order' => $categoryData['sort_order'],
@@ -365,11 +359,6 @@ class RestoreUserData
             $category = BudgetLine::query()->create([
                 'budget_id' => $budgetId,
                 'category_id' => $listCategoryIds[$categoryData['id']],
-                'name' => $categoryData['name'],
-                'icon' => $categoryData['icon'],
-                'color' => $categoryData['color'],
-                'sort_order' => $categoryData['sort_order'],
-                'type' => CategoryType::from($categoryData['type']),
                 'is_paced' => $this->restoredCategoryIsPaced($categoryData),
                 'month_item_kind' => $this->restoredCategoryMonthItemKind($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],

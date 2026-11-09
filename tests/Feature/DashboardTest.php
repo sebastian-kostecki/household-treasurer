@@ -1623,7 +1623,7 @@ class DashboardTest extends TestCase
         int $amount,
     ): FinancialOperation {
         return FinancialOperation::factory()->for($user)->create([
-            'type' => $category->type === CategoryType::Income
+            'type' => $category->category->type === CategoryType::Income
                 ? FinancialOperationType::Income
                 : FinancialOperationType::Expense,
             'account_id' => $account->id,

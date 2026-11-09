@@ -66,12 +66,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('month-plans.update');
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
-    Route::patch('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::patch('categories/{category}/month-item-kind', [CategoryController::class, 'updateMonthItemKind'])->name('categories.month-item-kind');
-    Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::patch('budgets/{budget}/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::patch('budgets/{budget}/categories/{category}/month-item-kind', [CategoryController::class, 'updateMonthItemKind'])->name('categories.month-item-kind');
+    Route::delete('budgets/{budget}/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::post('budgets/{budget}/categories/{category}/align-current-plan', [CategoryController::class, 'alignCurrentPlan'])->name('categories.align-current-plan');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
     Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
-    Route::post('categories/{category}/align-current-plan', [CategoryController::class, 'alignCurrentPlan'])->name('categories.align-current-plan');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');

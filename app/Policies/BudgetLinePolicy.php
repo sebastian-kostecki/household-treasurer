@@ -17,18 +17,6 @@ class BudgetLinePolicy
         return $this->ownsBudgetLine($user, $budgetLine) && $budgetLine->budget->isDraft();
     }
 
-    public function archive(User $user, BudgetLine $budgetLine): bool
-    {
-        return $this->ownsBudgetLine($user, $budgetLine)
-            && $budgetLine->budget->isExecution()
-            && ! $budgetLine->isArchived();
-    }
-
-    public function restore(User $user, BudgetLine $budgetLine): bool
-    {
-        return $this->ownsBudgetLine($user, $budgetLine) && $budgetLine->isArchived();
-    }
-
     public function alignCurrentPlan(User $user, BudgetLine $budgetLine): bool
     {
         return $this->ownsBudgetLine($user, $budgetLine)

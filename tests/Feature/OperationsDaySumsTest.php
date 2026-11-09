@@ -21,7 +21,7 @@ function daySumOperation(User $user, Account $account, FinancialOperationType $t
     $budget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->first()
         ?? Budget::factory()->for($user)->create(['year' => 2026, 'phase' => BudgetPhase::Execution]);
     $categoryType = $type === FinancialOperationType::Income ? CategoryType::Income : CategoryType::Expense;
-    $category = BudgetLine::query()->where('budget_id', $budget->id)->where('type', $categoryType)->first()
+    $category = BudgetLine::query()->where('budget_id', $budget->id)->ofType($categoryType)->first()
         ?? BudgetLine::factory()->for($budget)->create(['type' => $categoryType]);
 
     return FinancialOperation::factory()->create([

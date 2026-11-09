@@ -31,12 +31,12 @@ class CategoryReorderTest extends TestCase
         $this->actingAs($user)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Income->value,
-                'category_ids' => [$second->id, $first->id],
+                'category_ids' => [$second->category_id, $first->category_id],
             ])
             ->assertNoContent();
 
-        $this->assertSame(1, $first->fresh()->sort_order);
-        $this->assertSame(0, $second->fresh()->sort_order);
+        $this->assertSame(1, $first->category->fresh()->sort_order);
+        $this->assertSame(0, $second->category->fresh()->sort_order);
     }
 
     public function test_new_category_is_appended_to_the_end_of_its_type(): void
@@ -60,7 +60,7 @@ class CategoryReorderTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Health',
             'sort_order' => 2,
@@ -86,8 +86,8 @@ class CategoryReorderTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Budget')
-                ->where('incomeCategories.0.id', $first->id)
-                ->where('incomeCategories.1.id', $second->id));
+                ->where('incomeCategories.0.id', $first->category_id)
+                ->where('incomeCategories.1.id', $second->category_id));
     }
 
     public function test_reorder_rejects_archived_category_ids(): void
@@ -104,7 +104,7 @@ class CategoryReorderTest extends TestCase
         $this->actingAs($user)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Income->value,
-                'category_ids' => [$archived->id, $active->id],
+                'category_ids' => [$archived->category_id, $active->category_id],
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('category_ids');
@@ -132,7 +132,7 @@ class CategoryReorderTest extends TestCase
         $this->actingAs($otherUser)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Income->value,
-                'category_ids' => [$category->id],
+                'category_ids' => [$category->category_id],
             ])
             ->assertForbidden();
     }
@@ -153,7 +153,7 @@ class CategoryReorderTest extends TestCase
         $this->actingAs($user)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Expense->value,
-                'category_ids' => [$second->id, $first->id],
+                'category_ids' => [$second->category_id, $first->category_id],
             ])
             ->assertNoContent();
     }

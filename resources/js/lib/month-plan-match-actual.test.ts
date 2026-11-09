@@ -10,6 +10,7 @@ import type { MonthPlanItem } from '@/types/month-plan';
 function row(overrides: Partial<MonthPlanItem> = {}): MonthPlanItem {
     return {
         category_id: 1,
+        list_category_id: 1,
         name: 'Jedzenie',
         icon: 'utensils',
         color: 'brand',

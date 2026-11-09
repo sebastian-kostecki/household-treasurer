@@ -2,12 +2,22 @@
 
 use App\Support\CsvImport\ImportCategorySuggestionModel;
 
+/**
+ * A stable list Category id for a name used in these tests.
+ */
+function suggestionCategory(string $name): int
+{
+    static $ids = [];
+
+    return $ids[$name] ??= count($ids) + 1;
+}
+
 function suggestionEntry(int $id, string $type, string $category, string $text, string $date = '2026-03-01'): array
 {
     return [
         'id' => $id,
         'type' => $type,
-        'category_name' => $category,
+        'category_id' => suggestionCategory($category),
         'text' => $text,
         'operation_date' => $date,
     ];
@@ -24,7 +34,7 @@ test('a shop seen with one category gives that category', function () {
         suggestionEntry(2, 'expense', 'Paliwo', 'PLATNOSC KARTA ORLEN WARSZAWA'),
     ]);
 
-    expect($model->suggest('expense', 'Biedronka 4521 Kraków'))->toBe('Zakupy');
+    expect($model->suggest('expense', 'Biedronka 4521 Kraków'))->toBe(suggestionCategory('Zakupy'));
 });
 
 test('a row sharing only noise with the history gives null', function () {
@@ -74,7 +84,7 @@ test('income entries do not vote for expense and the other way round', function 
         suggestionEntry(2, 'expense', 'Zakupy', 'BIEDRONKA'),
     ]);
 
-    expect($model->suggest('income', 'ACME WYNAGRODZENIE'))->toBe('Pensja')
+    expect($model->suggest('income', 'ACME WYNAGRODZENIE'))->toBe(suggestionCategory('Pensja'))
         ->and($model->suggest('expense', 'ACME WYNAGRODZENIE'))->toBeNull()
         ->and($model->suggest('income', 'BIEDRONKA'))->toBeNull();
 });
@@ -92,7 +102,7 @@ test('a heavy shared word diluted below the similarity threshold gives null', fu
 
     $diluted = 'BIEDRONKA '.implode(' ', $filler);
 
-    expect($model->suggest('expense', 'BIEDRONKA'))->toBe('Zakupy')
+    expect($model->suggest('expense', 'BIEDRONKA'))->toBe(suggestionCategory('Zakupy'))
         ->and($model->rank('expense', $diluted))->toBe([])
         ->and($model->suggest('expense', $diluted))->toBeNull();
 });
@@ -149,7 +159,7 @@ test('equally similar neighbours are ordered by newest date', function () {
 
     $ranked = ImportCategorySuggestionModel::fromHistory($entries)->rank('expense', 'BIEDRONKA');
 
-    expect(array_column($ranked, 'category_name'))->toBe(['Nowsza']);
+    expect(array_column($ranked, 'category_id'))->toBe([suggestionCategory('Nowsza')]);
 });
 
 test('equally similar neighbours on the same date are ordered by highest id', function () {
@@ -161,5 +171,5 @@ test('equally similar neighbours on the same date are ordered by highest id', fu
 
     $ranked = ImportCategorySuggestionModel::fromHistory($entries)->rank('expense', 'BIEDRONKA');
 
-    expect(array_column($ranked, 'category_name'))->toBe(['Większe id']);
+    expect(array_column($ranked, 'category_id'))->toBe([suggestionCategory('Większe id')]);
 });

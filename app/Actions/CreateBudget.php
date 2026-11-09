@@ -26,28 +26,32 @@ class CreateBudget
         });
     }
 
+    /**
+     * The new Budget gets a Budget Line for each active line of the source
+     * Budget (the same list Category, Current Plan as the plan, the flags of the
+     * source line, Initial Plan and Execution 0). No Category record is copied.
+     */
     private function copyCategories(Budget $targetBudget, int $sourceBudgetId): void
     {
-        $sourceCategories = BudgetLine::query()
+        $sourceLines = BudgetLine::query()
             ->where('budget_id', $sourceBudgetId)
             ->whereNull('archived_at')
             ->ordered()
             ->get();
 
-        foreach ($sourceCategories as $sourceCategory) {
-            $targetBudget->budgetLines()->create([
-                'category_id' => $sourceCategory->category_id,
-                'name' => $sourceCategory->name,
-                'type' => $sourceCategory->type,
-                'icon' => $sourceCategory->icon,
-                'color' => $sourceCategory->color,
-                'sort_order' => $sourceCategory->sort_order,
-                'is_paced' => $sourceCategory->is_paced,
-                'month_item_kind' => $sourceCategory->month_item_kind,
-                'planned_amount_minor_units' => $sourceCategory->planned_amount_minor_units,
-                'initial_plan_minor_units' => 0,
-                'execution_minor_units' => 0,
-            ]);
-        }
+        $now = now();
+
+        BudgetLine::query()->insert($sourceLines->map(fn (BudgetLine $line): array => [
+            'budget_id' => $targetBudget->id,
+            'category_id' => $line->category_id,
+            'is_paced' => $line->is_paced,
+            'month_item_kind' => $line->month_item_kind->value,
+            'planned_amount_minor_units' => $line->planned_amount_minor_units,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
+            'archived_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->all());
     }
 }

@@ -28,7 +28,7 @@ class MonthYearComparison
     {
         $before = $category->execution_minor_units - $rowAmounts['actual_minor_units'];
         $year = $before + ToSpendCalculator::itemMinorUnits(
-            $category->type,
+            $category->category->type,
             $category->month_item_kind,
             $rowAmounts['plan_minor_units'],
             $rowAmounts['actual_minor_units'],
@@ -36,7 +36,7 @@ class MonthYearComparison
         );
         $annual = $category->planned_amount_minor_units;
 
-        return self::result($category->type, $year, $annual);
+        return self::result($category->category->type, $year, $annual);
     }
 
     /**

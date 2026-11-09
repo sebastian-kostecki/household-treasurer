@@ -111,8 +111,8 @@ class EntryToSpendInputs
             'categories' => array_values($budget->budgetLines
                 ->map(fn (BudgetLine $category): array => [
                     'id' => $category->id,
-                    'type' => $category->type->value,
-                    'month_item_kind' => $category->type === CategoryType::Income
+                    'type' => $category->category->type->value,
+                    'month_item_kind' => $category->hasType(CategoryType::Income)
                         ? null
                         : $category->month_item_kind->value,
                 ])

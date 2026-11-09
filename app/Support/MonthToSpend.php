@@ -73,7 +73,7 @@ final class MonthToSpend
             $amounts = $this->rowAmounts($category);
 
             $items[] = [
-                'type' => $category->type,
+                'type' => $category->category->type,
                 'kind' => $category->month_item_kind,
                 'plan' => $amounts['plan_minor_units'],
                 'actual' => $amounts['actual_minor_units'],

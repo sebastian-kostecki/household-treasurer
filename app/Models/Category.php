@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'user_id',
     'name',
+    'name_key',
     'icon',
     'color',
     'sort_order',
@@ -45,7 +46,7 @@ class Category extends Model
     protected static function booted(): void
     {
         static::saving(function (Category $category): void {
-            if ($category->isDirty('name')) {
+            if ($category->isDirty('name') && ! $category->isDirty('name_key')) {
                 $category->name_key = CategoryNameKey::of($category->name);
             }
         });

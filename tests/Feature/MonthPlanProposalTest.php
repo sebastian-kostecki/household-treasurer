@@ -191,12 +191,26 @@ class MonthPlanProposalTest extends TestCase
         $this->assertSame(10_000, $january->amounts[$gym->id]);
     }
 
-    public function test_january_with_an_ambiguous_match_uses_the_average(): void
+    public function test_january_matches_the_same_list_category_by_id_after_a_rename(): void
     {
         $previous = $this->budget(2026);
-        $first = $this->food($previous);
-        $second = $this->food($previous);
-        $this->approve($previous, 12, [$first->id => 9_500, $second->id => 7_000]);
+        $previousFood = $this->food($previous);
+        $this->approve($previous, 12, [$previousFood->id => 9_500]);
+
+        $budget = $this->budget(2027);
+        $food = $this->food($budget, ['category_id' => $previousFood->category_id]);
+        $previousFood->category->update(['name' => 'Żywność', 'name_key' => 'żywność']);
+
+        $january = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
+
+        $this->assertSame(9_500, $january->amounts[$food->id]);
+    }
+
+    public function test_january_does_not_match_a_different_list_category_with_a_similar_name(): void
+    {
+        $previous = $this->budget(2026);
+        $other = $this->food($previous, ['name' => 'Jedzenie (2)']);
+        $this->approve($previous, 12, [$other->id => 9_500]);
 
         $budget = $this->budget(2027);
         $food = $this->food($budget);
@@ -204,21 +218,6 @@ class MonthPlanProposalTest extends TestCase
         $january = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
 
         $this->assertSame(8_333, $january->amounts[$food->id]);
-    }
-
-    public function test_january_prefers_the_only_active_category_among_duplicates(): void
-    {
-        $previous = $this->budget(2026);
-        $archivedFood = $this->food($previous, ['archived_at' => '2026-06-01 00:00:00']);
-        $activeFood = $this->food($previous);
-        $this->approve($previous, 12, [$activeFood->id => 9_500, $archivedFood->id => 1_000]);
-
-        $budget = $this->budget(2027);
-        $food = $this->food($budget);
-
-        $january = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
-
-        $this->assertSame(9_500, $january->amounts[$food->id]);
     }
 
     public function test_january_falls_back_to_zero_for_a_matched_category_absent_from_december(): void
@@ -323,7 +322,8 @@ class MonthPlanProposalTest extends TestCase
             $proposal->reading($month);
         }
 
-        $this->assertLessThanOrEqual(5, $queries);
+        // Two more than the lines alone: the list Category of each Budget's lines is eager loaded.
+        $this->assertLessThanOrEqual(7, $queries);
     }
 
     private function day(int $year, int $month, int $day): CarbonImmutable

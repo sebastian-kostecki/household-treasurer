@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\BudgetLine;
+use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Tests\TestCase;
 
 /*
@@ -47,4 +50,20 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * A Budget Line for tests without a database: the Category attributes
+ * (`type`, `name`, ...) go to the Category the line points at, the rest to the line.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function unitBudgetLine(array $attributes): BudgetLine
+{
+    $categoryAttributes = Arr::only($attributes, ['name', 'icon', 'color', 'sort_order', 'type']);
+
+    $line = (new BudgetLine)->forceFill(Arr::except($attributes, array_keys($categoryAttributes)));
+    $line->setRelation('category', (new Category)->forceFill($categoryAttributes));
+
+    return $line;
 }

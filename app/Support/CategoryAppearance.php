@@ -18,8 +18,8 @@ class CategoryAppearance
     public static function fields(BudgetLine $category): array
     {
         return [
-            'icon' => $category->icon,
-            'color' => $category->color,
+            'icon' => $category->category->icon,
+            'color' => $category->category->color,
         ];
     }
 
@@ -30,9 +30,9 @@ class CategoryAppearance
     {
         return [
             'id' => $category->id,
-            'name' => $category->name,
-            'icon' => $category->icon,
-            'color' => $category->color,
+            'name' => $category->category->name,
+            'icon' => $category->category->icon,
+            'color' => $category->category->color,
         ];
     }
 

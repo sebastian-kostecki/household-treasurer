@@ -15,17 +15,13 @@ use Illuminate\Support\Carbon;
 
 /**
  * One Category in one Budget (ADR-0063): the year's Initial Plan, Current Plan
- * and Execution. Until the description columns are dropped, name, icon, color,
- * sort_order and type are still read from here.
+ * and Execution. The description (name, icon, colour, sort order, type) is on
+ * the list `category` and is always loaded with the line.
  *
  * @property int $id
  * @property int $budget_id
  * @property int $category_id
- * @property string $name
- * @property string $icon
- * @property string $color
- * @property int $sort_order
- * @property CategoryType $type
+ * @property Category $category
  * @property bool $is_paced
  * @property MonthItemKind $month_item_kind
  * @property int $planned_amount_minor_units
@@ -38,11 +34,6 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'budget_id',
     'category_id',
-    'name',
-    'icon',
-    'color',
-    'sort_order',
-    'type',
     'is_paced',
     'month_item_kind',
     'planned_amount_minor_units',
@@ -56,15 +47,21 @@ class BudgetLine extends Model
     use HasFactory;
 
     /**
+     * The description of a line is read from its Category, so the Category
+     * always comes with it (one query per collection, no N+1).
+     *
+     * @var list<string>
+     */
+    protected $with = ['category'];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
-            'type' => CategoryType::class,
             'is_paced' => 'boolean',
             'month_item_kind' => MonthItemKind::class,
-            'sort_order' => 'integer',
             'planned_amount_minor_units' => 'integer',
             'initial_plan_minor_units' => 'integer',
             'execution_minor_units' => 'integer',
@@ -77,15 +74,38 @@ class BudgetLine extends Model
         return $this->archived_at !== null;
     }
 
+    public function hasType(CategoryType $type): bool
+    {
+        return $this->category->type === $type;
+    }
+
     /**
+     * @param  Builder<BudgetLine>  $query
+     * @return Builder<BudgetLine>
+     */
+    public function scopeOfType(Builder $query, CategoryType $type): Builder
+    {
+        return $query->whereHas('category', fn (Builder $category) => $category->where('type', $type->value));
+    }
+
+    /**
+     * Order of ADR-0063: the list order of the Category, then its name
+     * key, then the line id; archived lines last, as before.
+     *
      * @param  Builder<BudgetLine>  $query
      * @return Builder<BudgetLine>
      */
     public function scopeOrdered(Builder $query): Builder
     {
+        $categoryColumn = fn (string $column) => Category::query()
+            ->select($column)
+            ->whereColumn('categories.id', 'budget_lines.category_id');
+
         return $query
-            ->orderByRaw('CASE WHEN archived_at IS NULL THEN 0 ELSE 1 END')
-            ->orderBy('sort_order');
+            ->orderByRaw('CASE WHEN budget_lines.archived_at IS NULL THEN 0 ELSE 1 END')
+            ->orderBy($categoryColumn('sort_order'))
+            ->orderBy($categoryColumn('name_key'))
+            ->orderBy('budget_lines.id');
     }
 
     /**

@@ -11,7 +11,7 @@ function comparisonCategory(
     int $annualPlan,
     int $execution,
 ): BudgetLine {
-    return (new BudgetLine)->forceFill([
+    return unitBudgetLine([
         'type' => $type,
         'month_item_kind' => $kind ?? MonthItemKind::Running,
         'planned_amount_minor_units' => $annualPlan,

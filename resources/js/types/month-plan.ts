@@ -21,6 +21,8 @@ export type MonthYearComparison = {
 
 export type MonthPlanItem = {
     category_id: number;
+    /** Id of the list Category; the month item kind route takes it until Phase 4 makes `category_id` the list id. */
+    list_category_id: number;
     name: string;
     icon: string;
     color: string;

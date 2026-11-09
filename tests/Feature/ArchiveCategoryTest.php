@@ -20,7 +20,7 @@ class ArchiveCategoryTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.archive', $category))
+            ->post(route('categories.archive', $category->category_id))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -36,7 +36,7 @@ class ArchiveCategoryTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->income()->archived()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.restore', $category))
+            ->post(route('categories.restore', $category->category_id))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -52,7 +52,7 @@ class ArchiveCategoryTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.archive', $category))
+            ->post(route('categories.archive', $category->category_id))
             ->assertForbidden();
     }
 
@@ -64,11 +64,11 @@ class ArchiveCategoryTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->income()->archived()->create();
 
         $this->actingAs($otherUser)
-            ->post(route('categories.archive', $category))
+            ->post(route('categories.archive', $category->category_id))
             ->assertForbidden();
 
         $this->actingAs($otherUser)
-            ->post(route('categories.restore', $category))
+            ->post(route('categories.restore', $category->category_id))
             ->assertForbidden();
     }
 

@@ -491,27 +491,27 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [x] 2.1 Testy snapshotu przechodzą na PostgreSQL
-- [x] 2.2 Test parytetu migracja = restore v5 przechodzi
-- [x] 2.3 Pełna bramka zielona
+- [x] 2.1 Testy snapshotu przechodzą na PostgreSQL — cb575b2
+- [x] 2.2 Test parytetu migracja = restore v5 przechodzi — cb575b2
+- [x] 2.3 Pełna bramka zielona — cb575b2
 
 #### Manual
 
-- [x] 2.4 user:backup na devie daje v6, a restore oddaje te same kwoty
+- [x] 2.4 user:backup na devie daje v6, a restore oddaje te same kwoty — cb575b2
 
 ### Phase 3: Lista jako źródło prawdy
 
 #### Automated
 
-- [ ] 3.1 Testy strony Budżet, kategorii i archiwum przechodzą na PostgreSQL
-- [ ] 3.2 Nowe testy zachowania według ADR-0063 przechodzą
-- [ ] 3.3 Test migracji z usunięciem kolumn i down() przechodzi na PostgreSQL
-- [ ] 3.4 Pełna bramka zielona
+- [x] 3.1 Testy strony Budżet, kategorii i archiwum przechodzą na PostgreSQL
+- [x] 3.2 Nowe testy zachowania według ADR-0063 przechodzą
+- [x] 3.3 Test migracji z usunięciem kolumn i down() przechodzi na PostgreSQL
+- [x] 3.4 Pełna bramka zielona
 
 #### Manual
 
-- [ ] 3.5 Zmiana nazwy, dodanie, archiwum i przywrócenie działają między 2026 a szkicem 2027
-- [ ] 3.6 Kitchen sink Budżetu pokazuje nowe komunikaty
+- [x] 3.5 Zmiana nazwy, dodanie, archiwum i przywrócenie działają między 2026 a szkicem 2027
+- [x] 3.6 Kitchen sink Budżetu pokazuje nowe komunikaty
 
 ### Phase 4: Granica HTTP po id listy
 

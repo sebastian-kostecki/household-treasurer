@@ -16,6 +16,7 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -266,6 +267,7 @@ class DemoHouseholdSeeder extends Seeder
             $category = Category::query()->create([
                 'user_id' => $user->id,
                 'name' => $definition['name'],
+                'name_key' => CategoryNameKey::of($definition['name']),
                 'icon' => $definition['icon'],
                 'color' => $definition['color'],
                 'sort_order' => $index,
@@ -275,11 +277,6 @@ class DemoHouseholdSeeder extends Seeder
             $categories[$definition['name']] = BudgetLine::query()->create([
                 'budget_id' => $budgetId,
                 'category_id' => $category->id,
-                'name' => $definition['name'],
-                'icon' => $definition['icon'],
-                'color' => $definition['color'],
-                'sort_order' => $index,
-                'type' => $definition['type'],
                 'planned_amount_minor_units' => $definition['planned_amount_minor_units'],
                 'initial_plan_minor_units' => 0,
                 'execution_minor_units' => 0,

@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -43,7 +44,7 @@ trait IncomeValidationRules
                 'required',
                 'integer',
                 Rule::exists('budget_lines', 'id')
-                    ->where('type', CategoryType::Income->value)
+                    ->where(fn ($query) => $query->whereIn('category_id', Category::query()->where('type', CategoryType::Income->value)->select('id')))
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
                         $query->whereIn(
@@ -84,7 +85,7 @@ trait IncomeValidationRules
                 'required',
                 'integer',
                 Rule::exists('budget_lines', 'id')
-                    ->where('type', CategoryType::Expense->value)
+                    ->where(fn ($query) => $query->whereIn('category_id', Category::query()->where('type', CategoryType::Expense->value)->select('id')))
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
                         $query->whereIn(

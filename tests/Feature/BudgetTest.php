@@ -84,7 +84,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Salary',
             'type' => CategoryType::Income->value,
@@ -105,7 +105,7 @@ class BudgetTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'type' => CategoryType::Expense->value,
             'planned_amount_minor_units' => 120000,
@@ -137,7 +137,7 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $category), $this->categoryFields([
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
                 'name' => 'New name',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 20000,
@@ -145,7 +145,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'id' => $category->id,
             'name' => 'New name',
             'type' => CategoryType::Expense->value,
@@ -160,7 +160,7 @@ class BudgetTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
-            ->delete(route('categories.destroy', $category))
+            ->delete(route('categories.destroy', [$category->budget_id, $category->category_id]))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -281,7 +281,7 @@ class BudgetTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($otherUser)
-            ->patch(route('categories.update', $category), $this->categoryFields([
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
                 'name' => 'Stolen',
                 'type' => CategoryType::Income->value,
                 'planned_amount_minor_units' => 1,
@@ -289,7 +289,7 @@ class BudgetTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($otherUser)
-            ->delete(route('categories.destroy', $category))
+            ->delete(route('categories.destroy', [$category->budget_id, $category->category_id]))
             ->assertForbidden();
 
         $this->actingAs($otherUser)
@@ -600,7 +600,7 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $income), $this->categoryFields([
+            ->patch(route('categories.update', [$income->budget_id, $income->category_id]), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Income->value,
                 'planned_amount_minor_units' => 750000,
@@ -609,7 +609,7 @@ class BudgetTest extends TestCase
             ->assertRedirect(route('budget'));
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $expense), $this->categoryFields([
+            ->patch(route('categories.update', [$expense->budget_id, $expense->category_id]), $this->categoryFields([
                 'name' => 'Groceries',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 200000,
@@ -638,7 +638,7 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $category), $this->categoryFields([
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Income->value,
                 'planned_amount_minor_units' => 750000,
@@ -668,7 +668,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Bonus',
             'type' => CategoryType::Income->value,
@@ -698,14 +698,14 @@ class BudgetTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('budget'))
-            ->patch(route('categories.update', $category), $this->categoryFields([
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
                 'name' => 'Salary',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 500000,
             ]))
             ->assertSessionHasErrors('type');
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'id' => $category->id,
             'type' => CategoryType::Income->value,
             'planned_amount_minor_units' => 500000,
@@ -721,7 +721,7 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->delete(route('categories.destroy', $category))
+            ->delete(route('categories.destroy', [$category->budget_id, $category->category_id]))
             ->assertForbidden();
 
         $this->assertDatabaseHas('budget_lines', ['id' => $category->id]);
@@ -738,7 +738,7 @@ class BudgetTest extends TestCase
         ]);
 
         $this->actingAs($otherUser)
-            ->patch(route('categories.update', $category), $this->categoryFields([
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
                 'name' => 'Stolen',
                 'type' => CategoryType::Income->value,
                 'planned_amount_minor_units' => 1,
@@ -758,7 +758,7 @@ class BudgetTest extends TestCase
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
         ]);
-        $this->assertDatabaseMissing('budget_lines', [
+        $this->assertBudgetLineMissing([
             'budget_id' => $budget->id,
             'name' => 'Stolen',
         ]);
@@ -1008,7 +1008,7 @@ class BudgetTest extends TestCase
         $this->assertDatabaseCount('budgets', 2);
         $this->assertDatabaseCount('budget_lines', 5);
         $this->assertSame(2, BudgetLine::query()->where('budget_id', $targetBudget->id)->count());
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $targetBudget->id,
             'name' => 'Salary',
             'type' => CategoryType::Income->value,
@@ -1020,7 +1020,7 @@ class BudgetTest extends TestCase
             'execution_minor_units' => 0,
             'archived_at' => null,
         ]);
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $targetBudget->id,
             'name' => 'Groceries',
             'type' => CategoryType::Expense->value,
@@ -1031,7 +1031,7 @@ class BudgetTest extends TestCase
             'initial_plan_minor_units' => 0,
             'execution_minor_units' => 0,
         ]);
-        $this->assertDatabaseMissing('budget_lines', [
+        $this->assertBudgetLineMissing([
             'budget_id' => $targetBudget->id,
             'name' => 'Archived',
         ]);
@@ -1089,7 +1089,7 @@ class BudgetTest extends TestCase
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $targetBudget->id,
             'name' => 'Salary',
             'planned_amount_minor_units' => 300000,

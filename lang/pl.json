@@ -1,5 +1,9 @@
 {
     "Profile updated.": "Profil zapisany.",
     "Password updated.": "Hasło zmienione.",
-    "This category is already in the budget.": "Ta kategoria już jest w budżecie."
+    "This category is already in the budget.": "Ta kategoria już jest w budżecie.",
+    "Existing category joined.": "Dołączono istniejącą kategorię.",
+    "This category is in the archive. Restore it instead of creating a new one.": "Ta kategoria jest w archiwum. Przywróć ją zamiast tworzyć nową.",
+    "A category with this name already exists.": "Kategoria o takiej nazwie już istnieje.",
+    "The type of this category cannot be changed.": "Typu tej kategorii nie można zmienić."
 }

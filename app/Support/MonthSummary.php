@@ -42,7 +42,7 @@ final class MonthSummary
             $sum = 0;
 
             foreach ($toSpend->categories as $category) {
-                if ($category->type === $type) {
+                if ($category->category->type === $type) {
                     $sum += $amounts[$category->id] ?? 0;
                 }
             }

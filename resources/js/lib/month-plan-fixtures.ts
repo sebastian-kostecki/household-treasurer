@@ -30,6 +30,8 @@ function item(overrides: Partial<MonthPlanItem>): MonthPlanItem {
         is_join_candidate: false,
         year_comparison: null,
         ...overrides,
+        list_category_id:
+            overrides.list_category_id ?? overrides.category_id ?? 1,
     };
 }
 

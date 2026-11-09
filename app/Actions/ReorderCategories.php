@@ -4,29 +4,27 @@ namespace App\Actions;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\BudgetLine;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Drag and drop on the Budget page sets the list order (ADR-0063): the given
+ * list Categories get `sort_order` 0 to n-1, in the order given.
+ */
 class ReorderCategories
 {
     /**
-     * @param  list<int>  $categoryIds
+     * @param  list<int>  $categoryIds  ids of list Categories
      */
     public function handle(Budget $budget, CategoryType $type, array $categoryIds): void
     {
         $activeCategoryIds = $budget->budgetLines()
-            ->where('type', $type)
             ->whereNull('archived_at')
+            ->ofType($type)
             ->ordered()
-            ->pluck('id')
+            ->pluck('category_id')
+            ->map(fn ($id): int => (int) $id)
             ->all();
-
-        if (count($categoryIds) !== count($activeCategoryIds)) {
-            throw ValidationException::withMessages([
-                'category_ids' => __('The category order is invalid.'),
-            ]);
-        }
 
         $submittedIds = $categoryIds;
         sort($submittedIds);
@@ -40,11 +38,19 @@ class ReorderCategories
         }
 
         DB::transaction(function () use ($categoryIds): void {
+            $bindings = [];
             foreach ($categoryIds as $index => $categoryId) {
-                BudgetLine::query()
-                    ->whereKey($categoryId)
-                    ->update(['sort_order' => $index]);
+                $bindings[] = $categoryId;
+                $bindings[] = $index;
             }
+            $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+
+            DB::update(
+                'UPDATE categories SET sort_order = CASE id'
+                .str_repeat(' WHEN ? THEN CAST(? AS INTEGER)', count($categoryIds))
+                .' END WHERE id IN ('.$placeholders.')',
+                [...$bindings, ...$categoryIds],
+            );
         });
     }
 }

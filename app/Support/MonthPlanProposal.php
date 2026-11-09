@@ -171,7 +171,7 @@ class MonthPlanProposal
 
     private function proposedAmount(BudgetLine $category, int $month, ?MonthPlanReading $source): int
     {
-        if ($category->type === CategoryType::Expense && ! $category->is_paced) {
+        if ($category->hasType(CategoryType::Expense) && ! $category->is_paced) {
             return 0;
         }
 
@@ -192,23 +192,13 @@ class MonthPlanProposal
         return $source->amounts[$matched->id] ?? 0;
     }
 
+    /**
+     * The line of the same list Category in the previous year's Budget (ADR-0063 about ADR-0033).
+     */
     private function matchPreviousCategory(BudgetLine $category): ?BudgetLine
     {
-        $candidates = ($this->previousCategories ?? collect())
-            ->filter(fn (BudgetLine $candidate): bool => $candidate->name === $category->name
-                && $candidate->type === $category->type);
-
-        $active = $candidates->filter(fn (BudgetLine $candidate): bool => $candidate->archived_at === null);
-
-        if ($active->count() === 1) {
-            return $active->first();
-        }
-
-        if ($active->isEmpty() && $candidates->count() === 1) {
-            return $candidates->first();
-        }
-
-        return null;
+        return ($this->previousCategories ?? collect())
+            ->first(fn (BudgetLine $candidate): bool => $candidate->category_id === $category->category_id);
     }
 
     private function averageFromAnnual(int $annualMinorUnits, int $month): int

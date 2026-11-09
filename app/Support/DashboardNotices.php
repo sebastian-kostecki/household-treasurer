@@ -129,7 +129,7 @@ class DashboardNotices
                 $amounts = $monthReading->rowAmounts($category);
 
                 if (! MonthItemDeviation::isOverPlan(
-                    $category->type,
+                    $category->category->type,
                     $amounts['plan_minor_units'],
                     $amounts['actual_minor_units'],
                 )) {
@@ -139,9 +139,9 @@ class DashboardNotices
                 $overPlanAlerts[] = [
                     'budget_order' => $budgetOrder,
                     'id' => $category->id,
-                    'name' => $category->name,
+                    'name' => $category->category->name,
                     ...CategoryAppearance::fields($category),
-                    'category_name' => $category->name,
+                    'category_name' => $category->category->name,
                     'amount_minor_units' => $amounts['plan_minor_units'] - $amounts['actual_minor_units'],
                 ];
             }
@@ -164,7 +164,7 @@ class DashboardNotices
 
         if ($budget !== null && $budget->isExecution() && $today->year === $budget->year) {
             $expenseCategories = $budget->budgetLines()
-                ->where('type', CategoryType::Expense)
+                ->ofType(CategoryType::Expense)
                 ->ordered()
                 ->get();
 
@@ -187,9 +187,9 @@ class DashboardNotices
                 $oneOffAlerts[] = [
                     'budget_order' => $budgetOrder,
                     'id' => $category->id,
-                    'name' => $category->name,
+                    'name' => $category->category->name,
                     ...CategoryAppearance::fields($category),
-                    'category_name' => $category->name,
+                    'category_name' => $category->category->name,
                     'amount_minor_units' => $remainingMinorUnits,
                 ];
             }

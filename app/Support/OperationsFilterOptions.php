@@ -41,23 +41,23 @@ class OperationsFilterOptions
             ->get();
 
         return array_values($categories
-            ->groupBy(fn (BudgetLine $category): string => $category->type->value."\0".$category->name)
+            ->groupBy(fn (BudgetLine $category): int => $category->category_id)
             ->map(function (Collection $group): BudgetLine {
                 $category = $group
                     ->sortByDesc(fn (BudgetLine $item): int => $item->budget->year)
                     ->first();
 
                 if (! $category instanceof BudgetLine) {
-                    throw new RuntimeException('A BudgetLine name-type group was empty.');
+                    throw new RuntimeException('A BudgetLine group of one Category was empty.');
                 }
 
                 return $category;
             })
-            ->sortBy(fn (BudgetLine $category): string => ($category->type === CategoryType::Income ? '0' : '1').$category->name)
+            ->sortBy(fn (BudgetLine $category): string => ($category->hasType(CategoryType::Income) ? '0' : '1').$category->category->name)
             ->values()
             ->map(fn (BudgetLine $category): array => [
-                'name' => $category->name,
-                'type' => $category->type->value,
+                'name' => $category->category->name,
+                'type' => $category->category->type->value,
                 ...CategoryAppearance::fields($category),
             ])
             ->all());

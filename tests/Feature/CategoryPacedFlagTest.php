@@ -31,7 +31,7 @@ class CategoryPacedFlagTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Groceries',
             'is_paced' => true,
@@ -47,8 +47,8 @@ class CategoryPacedFlagTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->patch(route('categories.update', $category), $this->categoryFields([
-                'name' => $category->name,
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
+                'name' => $category->category->name,
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 'is_paced' => '0',
@@ -76,7 +76,7 @@ class CategoryPacedFlagTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Vacation',
             'is_paced' => false,
@@ -107,8 +107,8 @@ class CategoryPacedFlagTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('budget'))
-            ->patch(route('categories.update', $category), $this->categoryFields([
-                'name' => $category->name,
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
+                'name' => $category->category->name,
                 'type' => CategoryType::Income->value,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 'is_paced' => '0',
@@ -123,10 +123,12 @@ class CategoryPacedFlagTest extends TestCase
         BudgetLine::factory()->for($budget)->income()->create(['name' => 'Salary']);
         BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Paced expense',
+            'sort_order' => 0,
             'is_paced' => true,
         ]);
         BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'One-off expense',
+            'sort_order' => 1,
             'is_paced' => false,
         ]);
 
@@ -163,12 +165,12 @@ class CategoryPacedFlagTest extends TestCase
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $targetBudget->id,
             'name' => 'Paced',
             'is_paced' => true,
         ]);
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $targetBudget->id,
             'name' => 'One-off',
             'is_paced' => false,
@@ -186,8 +188,8 @@ class CategoryPacedFlagTest extends TestCase
 
         $this->actingAs($user)
             ->from(route('budget'))
-            ->patch(route('categories.update', $category), $this->categoryFields([
-                'name' => $category->name,
+            ->patch(route('categories.update', [$category->budget_id, $category->category_id]), $this->categoryFields([
+                'name' => $category->category->name,
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 'is_paced' => '0',
@@ -239,7 +241,7 @@ class CategoryPacedFlagTest extends TestCase
 
         $restoredCategory = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
-            ->where('name', 'One-off')
+            ->whereHas('category', fn ($query) => $query->where('name', 'One-off'))
             ->firstOrFail();
 
         $this->assertFalse($restoredCategory->is_paced);
@@ -266,7 +268,7 @@ class CategoryPacedFlagTest extends TestCase
 
         $restoredCategory = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
-            ->where('name', 'Legacy')
+            ->whereHas('category', fn ($query) => $query->where('name', 'Legacy'))
             ->firstOrFail();
 
         $this->assertTrue($restoredCategory->is_paced);

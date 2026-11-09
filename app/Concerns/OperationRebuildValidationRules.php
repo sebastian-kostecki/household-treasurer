@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
+use App\Models\Category;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -131,7 +132,7 @@ trait OperationRebuildValidationRules
                 'required',
                 'integer',
                 Rule::exists('budget_lines', 'id')
-                    ->where('type', CategoryType::Income->value)
+                    ->where(fn ($query) => $query->whereIn('category_id', Category::query()->where('type', CategoryType::Income->value)->select('id')))
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
                         $query->whereIn(
@@ -175,7 +176,7 @@ trait OperationRebuildValidationRules
                 'required',
                 'integer',
                 Rule::exists('budget_lines', 'id')
-                    ->where('type', CategoryType::Expense->value)
+                    ->where(fn ($query) => $query->whereIn('category_id', Category::query()->where('type', CategoryType::Expense->value)->select('id')))
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
                         $query->whereIn(
@@ -383,7 +384,7 @@ trait OperationRebuildValidationRules
                 return;
             }
 
-            if ($category->type !== $categoryType) {
+            if ($category->category->type !== $categoryType) {
                 $validator->errors()->add(
                     'category_id',
                     __('The selected category is invalid.'),

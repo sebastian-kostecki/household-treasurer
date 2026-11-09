@@ -244,6 +244,7 @@ async function onDragEnd(): Promise<void> {
                     <BudgetCategoryRowComponent
                         v-show="matchesNameFilter(category)"
                         :category="category"
+                        :budget-id="budgetId"
                         :category-type="categoryType"
                         :phase="phase"
                         :show-handle="canDrag"
@@ -360,6 +361,7 @@ async function onDragEnd(): Promise<void> {
                     v-for="category in filteredArchivedCategories"
                     :key="category.id"
                     :category="category"
+                    :budget-id="budgetId"
                     :category-type="categoryType"
                     :phase="phase"
                     :show-handle="false"

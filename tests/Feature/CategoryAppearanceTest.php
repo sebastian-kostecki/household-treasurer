@@ -31,7 +31,7 @@ class CategoryAppearanceTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('budget_lines', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Transport',
             'icon' => 'car',

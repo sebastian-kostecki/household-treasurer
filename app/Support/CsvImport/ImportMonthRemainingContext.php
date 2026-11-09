@@ -34,7 +34,7 @@ class ImportMonthRemainingContext
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['budgetLines' => fn ($query) => $query->where('type', CategoryType::Expense)])
+            ->with(['budgetLines' => fn ($query) => $query->ofType(CategoryType::Expense)])
             ->orderBy('year')
             ->get();
 

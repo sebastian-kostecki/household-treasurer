@@ -14,6 +14,7 @@ use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
+use App\Support\CategoryList\CategoryTypeChange;
 use App\Support\SelectedBudgetYear;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
@@ -62,6 +63,9 @@ class BudgetController extends Controller
             );
 
         $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
+        $typeLockedIds = CategoryTypeChange::lockedIds(
+            array_values($categories->pluck('category_id')->map(fn ($id): int => (int) $id)->all()),
+        );
 
         return Inertia::render('Budget', [
             'budget' => [
@@ -73,14 +77,14 @@ class BudgetController extends Controller
                 'can_reorder' => $budget->isDraft() || $budget->isExecution(),
             ],
             'incomeCategories' => $categories
-                ->where('type', CategoryType::Income)
+                ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Income))
                 ->values()
-                ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
                 ->all(),
             'expenseCategories' => $categories
-                ->where('type', CategoryType::Expense)
+                ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Expense))
                 ->values()
-                ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
                 ->all(),
             'planSummary' => $planSummary,
             'incomeTotals' => $planSummary['income'],
@@ -171,6 +175,7 @@ class BudgetController extends Controller
     }
 
     /**
+     * @param  list<int>  $typeLockedIds  list Category ids whose type cannot change
      * @return array{
      *     id: int,
      *     name: string,
@@ -193,13 +198,14 @@ class BudgetController extends Controller
      *     can_align_current_plan: bool,
      * }
      */
-    private function categoryPayload(BudgetLine $category, Budget $budget): array
+    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds): array
     {
-        $currentPlanMinorUnits = $category->planned_amount_minor_units;
-        $executionMinorUnits = $category->execution_minor_units;
+        $category = $line->category;
+        $currentPlanMinorUnits = $line->planned_amount_minor_units;
+        $executionMinorUnits = $line->execution_minor_units;
         $initialPlanMinorUnits = $budget->isExecution()
-            ? $category->initial_plan_minor_units
-            : $category->planned_amount_minor_units;
+            ? $line->initial_plan_minor_units
+            : $line->planned_amount_minor_units;
         $remainingMinorUnits = CategoryExecutionMetrics::remainingMinorUnits(
             $currentPlanMinorUnits,
             $executionMinorUnits,
@@ -208,11 +214,11 @@ class BudgetController extends Controller
         return [
             'id' => $category->id,
             'name' => $category->name,
-            ...CategoryAppearance::fields($category),
+            ...CategoryAppearance::fields($line),
             'type' => $category->type->value,
-            'is_paced' => $category->is_paced,
-            'month_item_kind' => $category->month_item_kind->value,
-            'planned_amount_minor_units' => $category->planned_amount_minor_units,
+            'is_paced' => $line->is_paced,
+            'month_item_kind' => $line->month_item_kind->value,
+            'planned_amount_minor_units' => $line->planned_amount_minor_units,
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,
             'execution_minor_units' => $executionMinorUnits,
@@ -223,14 +229,14 @@ class BudgetController extends Controller
             ),
             'is_over_limit' => $category->type === CategoryType::Expense
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
-            'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $category->isArchived(),
-            'can_delete' => $budget->isDraft() && ! $category->isArchived(),
-            'can_change_type' => $budget->isDraft() && ! $category->isArchived(),
-            'is_archived' => $category->isArchived(),
-            'can_archive' => $budget->isExecution() && ! $category->isArchived(),
+            'can_edit' => ($budget->isDraft() || $budget->isExecution()) && ! $line->isArchived(),
+            'can_delete' => $budget->isDraft() && ! $line->isArchived(),
+            'can_change_type' => ! $line->isArchived() && ! in_array($category->id, $typeLockedIds, true),
+            'is_archived' => $line->isArchived(),
+            'can_archive' => $budget->isExecution() && ! $line->isArchived() && ! $category->isArchived(),
             'can_restore' => $category->isArchived(),
             'can_align_current_plan' => $budget->isExecution()
-                && ! $category->isArchived()
+                && ! $line->isArchived()
                 && $remainingMinorUnits !== 0,
         ];
     }

@@ -31,8 +31,8 @@ class HandEntryMonthRemainingInputs
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
-                ->where('type', CategoryType::Expense)
-                ->orderBy('sort_order'),
+                ->ofType(CategoryType::Expense)
+                ->ordered(),
             ])
             ->orderBy('year')
             ->get();
