@@ -286,6 +286,12 @@ Pozostałe widoki mówią id kategorii listy: filtr Operacji, linki z Dashboardu
 
 **Contract**: `BudgetLineResolver::forYear(User $user, int $categoryId, int $year): ?BudgetLine` i `forBudget(Budget $budget, int $categoryId): ?BudgetLine`. Klucze `v-for` w selektorach `budget_year + id`. Wiersze planu miesiąca kluczowane `category_id` listy. Paleta: `CommandPaletteCategories` zwraca id listy. Typy TS i propsy zmieniają się razem z PHP w jednym commicie na widok, z `assertInertia`.
 
+**Addendum (przegląd implementacji fazy 4, 2026-11-09)** — odstępstwa od powyższego, uznane za zamierzone:
+- Pole wiersza operacji `category_name` nazywa się `category_label` (żeby `grep category_name` z kryterium 4.3 był pusty); konsumenci: `FinancialOperationRow.vue`, `operations-fixtures.ts`.
+- `OperationsFilterOptions::categories($user, $year, $selectedCategoryId)` dokłada wybraną kategorię listy, gdy nie ma w niej pozycji w wybranym roku, żeby chip filtra zawsze znalazł nazwę.
+- `CategorySelect.vue` kluczuje opcje po `category.id`: selektor dostaje opcje jednego roku, więc `budget_year + id` jest potrzebne tylko tam, gdzie lista łączy lata (`OperationsFilters` dostaje po jednej opcji na kategorię listy).
+- `forBudget` i `CategoryAppearance::pickerOption` nie mają jeszcze wywołującego; zostają dla S-19.
+
 ### Success Criteria:
 
 #### Automated Verification:
@@ -517,15 +523,15 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [x] 4.1 Pełny zestaw testów przechodzi na PostgreSQL
-- [x] 4.2 Nowe testy filtra po id, resolvera i planu miesiąca przechodzą
-- [x] 4.3 Brak filtra po category_name i category_type w kodzie
-- [x] 4.4 Testy frontu, typy i check:ui zielone
-- [x] 4.5 E2E palety i seed przechodzą
+- [x] 4.1 Pełny zestaw testów przechodzi na PostgreSQL — 2c2c76a
+- [x] 4.2 Nowe testy filtra po id, resolvera i planu miesiąca przechodzą — 2c2c76a
+- [x] 4.3 Brak filtra po category_name i category_type w kodzie — 2c2c76a
+- [x] 4.4 Testy frontu, typy i check:ui zielone — 2c2c76a
+- [x] 4.5 E2E palety i seed przechodzą — 2c2c76a
 
 #### Manual
 
-- [x] 4.6 Linki z Dashboardu, dodanie wydatku i Import działają jak przed zmianą
+- [x] 4.6 Linki z Dashboardu, dodanie wydatku i Import działają jak przed zmianą — 2c2c76a
 
 ### Phase 5: Widok „Kategorie”
 

@@ -93,7 +93,7 @@ class EntryToSpendInputs
 
             foreach ($categoryIds as $categoryId) {
                 $items[] = [
-                    'category_id' => $listCategoryIds->get($categoryId, $categoryId),
+                    'category_id' => $listCategoryIds[$categoryId],
                     'plan_minor_units' => $reading->amounts[$categoryId] ?? 0,
                     'actual_minor_units' => $actuals->actual($categoryId),
                     'positive_amount_count' => $actuals->positiveCount($categoryId),

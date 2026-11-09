@@ -1,7 +1,7 @@
 ---
 change_id: category-list-after-migration
 title: Category list after migration
-status: implementing
+status: impl_reviewed
 created: 2026-11-09
 updated: 2026-11-09
 archived_at: null
