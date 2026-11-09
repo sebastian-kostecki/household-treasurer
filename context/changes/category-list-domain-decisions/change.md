@@ -1,7 +1,7 @@
 ---
 change_id: category-list-domain-decisions
 title: Category list domain decisions
-status: implemented
+status: impl_reviewed
 created: 2026-11-09
 updated: 2026-11-09
 archived_at: null
