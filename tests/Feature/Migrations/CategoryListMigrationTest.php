@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\RestoreUserData;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -407,4 +409,69 @@ test('down restores the old shape with names from the list and keeps what was ad
     categoryListMigrationArtisan('migrate');
 
     expect(categoryListMigrationSnapshot('budget_lines', 'budget_line_id'))->toBe($amountsBefore);
+});
+
+test('the same old shape gives the same list and line assignments through the migration and through the restore of a v5 snapshot', function () {
+    $fixture = json_decode(file_get_contents(base_path('tests/Fixtures/snapshots/v5-category-list.json')), true, flags: JSON_THROW_ON_ERROR);
+
+    // The migration path: the fixture's old shape written with the query builder.
+    $userId = categoryListMigrationUser('migrated@example.test');
+    $budgetIds = [];
+
+    foreach ($fixture['budgets'] as $budget) {
+        $budgetIds[$budget['id']] = categoryListMigrationBudget($userId, $budget['year'], $budget['phase']);
+    }
+
+    $migratedLineIds = [];
+
+    foreach ($fixture['categories'] as $row) {
+        $migratedLineIds[] = categoryListMigrationOldRecord($budgetIds[$row['budget_id']], $row['name'], [
+            'icon' => $row['icon'],
+            'color' => $row['color'],
+            'sort_order' => $row['sort_order'],
+            'type' => $row['type'],
+            'archived_at' => $row['archived_at'] === null ? null : CarbonImmutable::parse($row['archived_at'])->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    categoryListMigrationArtisan('migrate');
+
+    // The restore path: the same fixture as a v5 snapshot.
+    $restoredUser = User::factory()->create();
+    app(RestoreUserData::class)->handle($restoredUser, base_path('tests/Fixtures/snapshots/v5-category-list.json'));
+
+    $shape = function (int $ownerId, array $lineIds): array {
+        $list = DB::table('categories')->where('user_id', $ownerId)->orderBy('type')->orderBy('name_key')->get();
+        $lines = DB::table('budget_lines')
+            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
+            ->join('categories', 'categories.id', '=', 'budget_lines.category_id')
+            ->whereIn('budget_lines.id', $lineIds)
+            ->orderBy('budget_lines.id')
+            ->get(['budgets.year', 'categories.name', 'categories.name_key']);
+
+        return [
+            'list' => $list->map(fn (object $category): array => [
+                'name' => $category->name,
+                'name_key' => $category->name_key,
+                'type' => $category->type,
+                'icon' => $category->icon,
+                'color' => $category->color,
+                'sort_order' => $category->sort_order,
+                'archived' => $category->archived_at !== null,
+            ])->all(),
+            'lines' => $lines->map(fn (object $line): array => [$line->year, $line->name, $line->name_key])->all(),
+        ];
+    };
+
+    $restoredLineIds = DB::table('budget_lines')
+        ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
+        ->where('budgets.user_id', $restoredUser->id)
+        ->pluck('budget_lines.id')
+        ->all();
+
+    $migrated = $shape($userId, $migratedLineIds);
+    $restored = $shape($restoredUser->id, $restoredLineIds);
+
+    expect($migrated['list'])->toHaveCount(5)
+        ->and($restored)->toBe($migrated);
 });

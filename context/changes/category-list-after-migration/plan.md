@@ -476,28 +476,28 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [x] 1.1 Test migracji przechodzi na PostgreSQL
-- [x] 1.2 Testy konwersji i klucza nazwy przechodzą
-- [x] 1.3 Pełna bramka na PostgreSQL zielona
-- [x] 1.4 Sloppy bez nowych znalezisk i Pint czysty
-- [x] 1.5 Brak wywołań Category::factory()->for($budget) w testach
+- [x] 1.1 Test migracji przechodzi na PostgreSQL — bbf49ba
+- [x] 1.2 Testy konwersji i klucza nazwy przechodzą — bbf49ba
+- [x] 1.3 Pełna bramka na PostgreSQL zielona — bbf49ba
+- [x] 1.4 Sloppy bez nowych znalezisk i Pint czysty — bbf49ba
+- [x] 1.5 Brak wywołań Category::factory()->for($budget) w testach — bbf49ba
 
 #### Manual
 
-- [x] 1.6 Dev po migracji pokazuje te same kwoty Budżetu, planu i Dashboardu
-- [x] 1.7 ADR-0065 jest jasny bez ADR-0063
+- [x] 1.6 Dev po migracji pokazuje te same kwoty Budżetu, planu i Dashboardu — bbf49ba
+- [x] 1.7 ADR-0065 jest jasny bez ADR-0063 — bbf49ba
 
 ### Phase 2: Snapshot v6
 
 #### Automated
 
-- [ ] 2.1 Testy snapshotu przechodzą na PostgreSQL
-- [ ] 2.2 Test parytetu migracja = restore v5 przechodzi
-- [ ] 2.3 Pełna bramka zielona
+- [x] 2.1 Testy snapshotu przechodzą na PostgreSQL
+- [x] 2.2 Test parytetu migracja = restore v5 przechodzi
+- [x] 2.3 Pełna bramka zielona
 
 #### Manual
 
-- [ ] 2.4 user:backup na devie daje v6, a restore oddaje te same kwoty
+- [x] 2.4 user:backup na devie daje v6, a restore oddaje te same kwoty
 
 ### Phase 3: Lista jako źródło prawdy
 

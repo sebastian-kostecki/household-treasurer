@@ -13,6 +13,7 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\User;
+use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\LegacyCategoryConversion;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
@@ -26,14 +27,21 @@ class RestoreUserData
     public function handle(User $targetUser, string $path): void
     {
         $snapshot = $this->readSnapshot($path);
+        $isCurrentFormat = $snapshot['version'] === BackupUserData::SNAPSHOT_VERSION;
 
-        DB::transaction(function () use ($targetUser, $snapshot): void {
+        if (! $isCurrentFormat) {
+            $snapshot = $this->withBudgetLineKeys($snapshot);
+        }
+
+        DB::transaction(function () use ($targetUser, $snapshot, $isCurrentFormat): void {
             $this->resetUserData->handle($targetUser);
 
             $accountIdMap = $this->restoreAccounts($targetUser, $snapshot['accounts']);
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
-            $categoryIdMap = $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
+            $categoryIdMap = $isCurrentFormat
+                ? $this->restoreBudgetLines($targetUser, $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap)
+                : $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
             $this->restoreMonthPlans($snapshot['month_plans'] ?? [], $budgetIdMap, $categoryIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
             $this->restoreOwnTransfers($targetUser, $snapshot['own_transfers'], $accountIdMap);
@@ -79,7 +87,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -89,16 +97,20 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('budget_lines', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
         }
 
         return $snapshot;
@@ -180,6 +192,151 @@ class RestoreUserData
         }
 
         return $budgetIdMap;
+    }
+
+    /**
+     * Snapshots 1 to 5 name the Budget Line of an operation or Month Plan item
+     * `category_id`; the restore below reads `budget_line_id` only.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function withBudgetLineKeys(array $snapshot): array
+    {
+        $rename = function (array $row): array {
+            if (array_key_exists('category_id', $row)) {
+                $row['budget_line_id'] = $row['category_id'];
+                unset($row['category_id']);
+            }
+
+            return $row;
+        };
+
+        $snapshot['financial_operations'] = array_map($rename, $snapshot['financial_operations']);
+        $snapshot['month_plans'] = array_map(function (array $monthPlan) use ($rename): array {
+            $monthPlan['items'] = array_map($rename, $monthPlan['items'] ?? []);
+
+            return $monthPlan;
+        }, $snapshot['month_plans'] ?? []);
+
+        return $snapshot;
+    }
+
+    /**
+     * Snapshot 6: the User's Category list and the Budget Lines pointing at it.
+     * Until the description columns leave `budget_lines` (phase 3) the list
+     * Category's description is copied onto the line as well.
+     *
+     * @param  list<array<string, mixed>>  $categories
+     * @param  list<array<string, mixed>>  $budgetLines
+     * @param  array<int, int>  $budgetIdMap
+     * @return array<int, int> snapshot Budget Line id => restored Budget Line id
+     */
+    private function restoreBudgetLines(User $targetUser, array $categories, array $budgetLines, array $budgetIdMap): array
+    {
+        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $categories);
+        $lineIdMap = [];
+        $seenInBudget = [];
+        $snapshotLineKeys = [];
+        $rows = [];
+
+        foreach ($budgetLines as $lineData) {
+            $budgetId = $budgetIdMap[$lineData['budget_id']] ?? null;
+
+            if ($budgetId === null) {
+                throw new UserSnapshotException("Snapshot references unknown budget id {$lineData['budget_id']}.");
+            }
+
+            $listCategory = $listCategories[$lineData['category_id']] ?? null;
+
+            if ($listCategory === null) {
+                throw new UserSnapshotException("Snapshot references unknown category id {$lineData['category_id']}.");
+            }
+
+            if (isset($lineData['type']) && $lineData['type'] !== $listCategory->type->value) {
+                throw new UserSnapshotException("Snapshot budget line {$lineData['id']} has a type different from its category.");
+            }
+
+            if (isset($seenInBudget[$budgetId][$listCategory->id])) {
+                throw new UserSnapshotException('Snapshot contains two budget lines of one category in one budget.');
+            }
+
+            $seenInBudget[$budgetId][$listCategory->id] = true;
+
+            $rows[] = [
+                'budget_id' => $budgetId,
+                'category_id' => $listCategory->id,
+                'name' => $listCategory->name,
+                'icon' => $listCategory->icon,
+                'color' => $listCategory->color,
+                'sort_order' => $listCategory->sort_order,
+                'type' => $listCategory->type->value,
+                'is_paced' => $this->restoredCategoryIsPaced([...$lineData, 'type' => $listCategory->type->value]),
+                'month_item_kind' => $this->restoredCategoryMonthItemKind([...$lineData, 'type' => $listCategory->type->value])->value,
+                'planned_amount_minor_units' => $lineData['planned_amount_minor_units'],
+                'initial_plan_minor_units' => $lineData['initial_plan_minor_units'],
+                'execution_minor_units' => $lineData['execution_minor_units'],
+                'archived_at' => isset($lineData['archived_at']) ? Carbon::parse($lineData['archived_at']) : null,
+                'created_at' => isset($lineData['created_at']) ? Carbon::parse($lineData['created_at']) : now(),
+                'updated_at' => isset($lineData['updated_at']) ? Carbon::parse($lineData['updated_at']) : now(),
+            ];
+            $snapshotLineKeys[$lineData['id']] = $budgetId.':'.$listCategory->id;
+        }
+
+        BudgetLine::query()->insert($rows);
+
+        $restoredIds = [];
+
+        foreach (BudgetLine::query()->whereIn('budget_id', array_values($budgetIdMap))->get(['id', 'budget_id', 'category_id']) as $line) {
+            $restoredIds[$line->budget_id.':'.$line->category_id] = $line->id;
+        }
+
+        foreach ($snapshotLineKeys as $snapshotId => $key) {
+            $lineIdMap[$snapshotId] = $restoredIds[$key];
+        }
+
+        return $lineIdMap;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $categories
+     * @return array<int, Category> snapshot Category id => restored Category
+     */
+    private function restoreCategoryListFromSnapshot(User $targetUser, array $categories): array
+    {
+        $restored = [];
+        $seenKeys = [];
+
+        foreach ($categories as $categoryData) {
+            $type = CategoryType::tryFrom((string) $categoryData['type']);
+
+            if ($type === null) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has an invalid type.");
+            }
+
+            $uniqueKey = $type->value."\0".CategoryNameKey::of((string) $categoryData['name']);
+
+            if (isset($seenKeys[$uniqueKey])) {
+                throw new UserSnapshotException("Snapshot contains the category \"{$categoryData['name']}\" twice.");
+            }
+
+            $seenKeys[$uniqueKey] = true;
+
+            $category = $targetUser->categories()->create([
+                'name' => $categoryData['name'],
+                'icon' => $categoryData['icon'],
+                'color' => $categoryData['color'],
+                'sort_order' => $categoryData['sort_order'],
+                'type' => $type,
+                'archived_at' => isset($categoryData['archived_at']) ? Carbon::parse($categoryData['archived_at']) : null,
+                'created_at' => isset($categoryData['created_at']) ? Carbon::parse($categoryData['created_at']) : now(),
+                'updated_at' => isset($categoryData['updated_at']) ? Carbon::parse($categoryData['updated_at']) : now(),
+            ]);
+
+            $restored[$categoryData['id']] = $category;
+        }
+
+        return $restored;
     }
 
     /**
@@ -341,14 +498,14 @@ class RestoreUserData
             $seenCategories = [];
 
             foreach ($monthPlanData['items'] ?? [] as $itemData) {
-                if (! isset($itemData['category_id'], $itemData['approved_amount_minor_units'], $itemData['current_amount_minor_units'])) {
+                if (! isset($itemData['budget_line_id'], $itemData['approved_amount_minor_units'], $itemData['current_amount_minor_units'])) {
                     throw new UserSnapshotException('Snapshot month plan item is missing a required key.');
                 }
 
-                $categoryId = $categoryIdMap[$itemData['category_id']] ?? null;
+                $categoryId = $categoryIdMap[$itemData['budget_line_id']] ?? null;
 
                 if ($categoryId === null) {
-                    throw new UserSnapshotException("Snapshot references unknown category id {$itemData['category_id']}.");
+                    throw new UserSnapshotException("Snapshot references unknown category id {$itemData['budget_line_id']}.");
                 }
 
                 if (isset($seenCategories[$categoryId])) {
@@ -385,7 +542,7 @@ class RestoreUserData
     ): void {
         foreach ($operations as $operationData) {
             $accountId = $accountIdMap[$operationData['account_id']] ?? null;
-            $categoryId = $categoryIdMap[$operationData['category_id']] ?? null;
+            $categoryId = $categoryIdMap[$operationData['budget_line_id']] ?? null;
             $budgetId = $budgetIdMap[$operationData['budget_id']] ?? null;
 
             if ($accountId === null || $categoryId === null || $budgetId === null) {

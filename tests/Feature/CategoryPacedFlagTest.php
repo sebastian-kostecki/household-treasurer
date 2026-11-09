@@ -232,7 +232,7 @@ class CategoryPacedFlagTest extends TestCase
         $path = app(BackupUserData::class)->handle($user);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertFalse($snapshot['categories'][0]['is_paced']);
+        $this->assertFalse($snapshot['budget_lines'][0]['is_paced']);
 
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
@@ -258,7 +258,7 @@ class CategoryPacedFlagTest extends TestCase
 
         $path = app(BackupUserData::class)->handle($user);
         $snapshot = json_decode(file_get_contents($path), true);
-        unset($snapshot['categories'][0]['is_paced']);
+        unset($snapshot['budget_lines'][0]['is_paced']);
         file_put_contents($path, json_encode($snapshot));
 
         $targetUser = User::factory()->create();

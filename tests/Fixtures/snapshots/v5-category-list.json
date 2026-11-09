@@ -1,0 +1,218 @@
+{
+    "version": 5,
+    "source": {
+        "user_id": 900,
+        "email": "fixture@example.test"
+    },
+    "created_at": "2026-11-09T10:00:00+00:00",
+    "first_run_checklist_dismissed_at": null,
+    "accounts": [
+        {
+            "id": 1,
+            "name": "ROR",
+            "type": "bank",
+            "bank": null,
+            "opening_date": "2025-01-01",
+            "opening_balance_minor_units": 0,
+            "current_balance_minor_units": -250000,
+            "archived_at": null
+        }
+    ],
+    "term_deposits": [],
+    "budgets": [
+        {
+            "id": 10,
+            "year": 2026,
+            "phase": "execution"
+        },
+        {
+            "id": 11,
+            "year": 2027,
+            "phase": "draft"
+        },
+        {
+            "id": 12,
+            "year": 2025,
+            "phase": "execution"
+        }
+    ],
+    "categories": [
+        {
+            "id": 101,
+            "budget_id": 10,
+            "name": "Rozrywka",
+            "icon": "film",
+            "color": "#aa0000",
+            "sort_order": 1,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 300001,
+            "initial_plan_minor_units": 299999,
+            "execution_minor_units": 111111,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 102,
+            "budget_id": 10,
+            "name": "Rozrywka",
+            "icon": "film",
+            "color": "#aa0000",
+            "sort_order": 2,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 50000,
+            "initial_plan_minor_units": 50000,
+            "execution_minor_units": 4000,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 103,
+            "budget_id": 11,
+            "name": "Rozrywka",
+            "icon": "popcorn",
+            "color": "#bb0000",
+            "sort_order": 1,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 310000,
+            "initial_plan_minor_units": 0,
+            "execution_minor_units": 0,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 104,
+            "budget_id": 11,
+            "name": "Rozrywka",
+            "icon": "popcorn",
+            "color": "#bb0000",
+            "sort_order": 2,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 50000,
+            "initial_plan_minor_units": 0,
+            "execution_minor_units": 0,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 105,
+            "budget_id": 12,
+            "name": "Wakacje",
+            "icon": "sun",
+            "color": "#00aa00",
+            "sort_order": 5,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 200000,
+            "initial_plan_minor_units": 200000,
+            "execution_minor_units": 199999,
+            "archived_at": "2025-09-09T10:00:00+00:00",
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 106,
+            "budget_id": 10,
+            "name": "  ZDROWIE ",
+            "icon": "heart",
+            "color": "#111111",
+            "sort_order": 3,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 80000,
+            "initial_plan_minor_units": 80000,
+            "execution_minor_units": 45000,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 107,
+            "budget_id": 11,
+            "name": "Zdrowie",
+            "icon": "pill",
+            "color": "#222222",
+            "sort_order": 7,
+            "type": "expense",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 85000,
+            "initial_plan_minor_units": 0,
+            "execution_minor_units": 0,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 108,
+            "budget_id": 10,
+            "name": "Pensja",
+            "icon": "wallet",
+            "color": "#00bb00",
+            "sort_order": 0,
+            "type": "income",
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 10200000,
+            "initial_plan_minor_units": 10200000,
+            "execution_minor_units": 8500000,
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        }
+    ],
+    "financial_operations": [
+        {
+            "id": 1,
+            "type": "expense",
+            "account_id": 1,
+            "category_id": 101,
+            "budget_id": 10,
+            "operation_date": "2026-03-01",
+            "amount_minor_units": 111111,
+            "description": "Kino"
+        },
+        {
+            "id": 2,
+            "type": "income",
+            "account_id": 1,
+            "category_id": 108,
+            "budget_id": 10,
+            "operation_date": "2026-03-02",
+            "amount_minor_units": 8500000,
+            "description": "Wypłata"
+        }
+    ],
+    "own_transfers": [],
+    "capital_movements": [],
+    "month_plans": [
+        {
+            "id": 1,
+            "budget_id": 10,
+            "month": 12,
+            "approved_at": "2026-11-30T10:00:00+00:00",
+            "approved_set_aside_minor_units": 0,
+            "current_set_aside_minor_units": 0,
+            "items": [
+                {
+                    "category_id": 101,
+                    "approved_amount_minor_units": 25000,
+                    "current_amount_minor_units": 27000
+                }
+            ]
+        }
+    ]
+}

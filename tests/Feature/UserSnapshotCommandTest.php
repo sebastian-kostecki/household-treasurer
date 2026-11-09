@@ -43,9 +43,12 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(5, $snapshot['version']);
+        $this->assertSame(6, $snapshot['version']);
         $this->assertSame([], $snapshot['month_plans']);
-        $this->assertSame('running', $snapshot['categories'][0]['month_item_kind']);
+        $this->assertSame('running', $snapshot['budget_lines'][0]['month_item_kind']);
+        $this->assertSame($snapshot['categories'][0]['id'], $snapshot['budget_lines'][0]['category_id']);
+        $this->assertArrayNotHasKey('name', $snapshot['budget_lines'][0]);
+        $this->assertArrayNotHasKey('planned_amount_minor_units', $snapshot['categories'][0]);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
         $this->assertSame($user->email, $snapshot['source']['email']);
         $this->assertCount(2, $snapshot['accounts']);
@@ -54,6 +57,7 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame('2027-01-01', $snapshot['term_deposits'][0]['end_date']);
         $this->assertCount(1, $snapshot['budgets']);
         $this->assertCount(1, $snapshot['categories']);
+        $this->assertCount(1, $snapshot['budget_lines']);
         $this->assertCount(1, $snapshot['financial_operations']);
         $this->assertCount(1, $snapshot['own_transfers']);
         $this->assertCount(1, $snapshot['capital_movements']);
@@ -148,8 +152,7 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser = User::factory()->create();
         $path = app(BackupUserData::class)->handle($sourceUser);
 
-        $snapshot = json_decode(file_get_contents($path), true);
-        $snapshot['version'] = 1;
+        $snapshot = $this->asLegacySnapshot(json_decode(file_get_contents($path), true), 1);
         unset($snapshot['term_deposits'], $snapshot['capital_movements']);
 
         Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
@@ -174,8 +177,7 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser = User::factory()->create();
         $path = app(BackupUserData::class)->handle($sourceUser);
 
-        $snapshot = json_decode(file_get_contents($path), true);
-        $snapshot['version'] = 3;
+        $snapshot = $this->asLegacySnapshot(json_decode(file_get_contents($path), true), 3);
         unset($snapshot['term_deposits'][0]['bank'], $snapshot['term_deposits'][0]['end_date']);
 
         Storage::disk('local')->makeDirectory(BackupUserData::SNAPSHOT_DIRECTORY);
@@ -220,7 +222,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(5, $snapshot['version']);
+        $this->assertSame(6, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -262,8 +264,7 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser = User::factory()->create();
         $path = app(BackupUserData::class)->handle($sourceUser);
 
-        $snapshot = json_decode(file_get_contents($path), true);
-        $snapshot['version'] = 4;
+        $snapshot = $this->asLegacySnapshot(json_decode(file_get_contents($path), true), 4);
         unset($snapshot['month_plans']);
         unset($snapshot['categories'][0]['month_item_kind']);
 
@@ -301,7 +302,7 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser = User::factory()->create();
         $path = app(BackupUserData::class)->handle($sourceUser);
 
-        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot = $this->asLegacySnapshot(json_decode(file_get_contents($path), true), 5);
         unset(
             $snapshot['month_plans'][0]['approved_set_aside_minor_units'],
             $snapshot['month_plans'][0]['current_set_aside_minor_units'],
@@ -332,7 +333,7 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser = User::factory()->create();
         $path = app(BackupUserData::class)->handle($sourceUser);
 
-        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot = $this->asLegacySnapshot(json_decode(file_get_contents($path), true), 5);
         unset($snapshot['month_plans']);
 
         $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-v5.json');
@@ -387,7 +388,7 @@ class UserSnapshotCommandTest extends TestCase
                 return $snapshot;
             },
             'category of another budget' => function (array $snapshot) use ($otherCategory): array {
-                $snapshot['month_plans'][0]['items'][0]['category_id'] = $otherCategory->id;
+                $snapshot['month_plans'][0]['items'][0]['budget_line_id'] = $otherCategory->id;
 
                 return $snapshot;
             },
@@ -516,6 +517,237 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame($restoredAccount->id, $restoredOperation->account_id);
         $this->assertSame($restoredCategory->id, $restoredOperation->budget_line_id);
         $this->assertSame($restoredBudget->id, $restoredOperation->budget_id);
+    }
+
+    public function test_restore_command_rejects_v6_snapshot_without_budget_lines(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $targetUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset($snapshot['budget_lines']);
+
+        $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-v6.json');
+        file_put_contents($brokenPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $brokenPath,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('budget_lines', Artisan::output());
+        $this->assertSame(0, $targetUser->accounts()->count());
+    }
+
+    public function test_restore_command_rejects_malformed_v6_budget_lines(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Food']);
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $valid = json_decode(file_get_contents($path), true);
+
+        $mutations = [
+            'unknown category' => function (array $snapshot): array {
+                $snapshot['budget_lines'][0]['category_id'] = 999999;
+
+                return $snapshot;
+            },
+            'category of another type' => function (array $snapshot): array {
+                $snapshot['budget_lines'][0]['type'] = 'income';
+
+                return $snapshot;
+            },
+            'two lines of one category in one budget' => function (array $snapshot): array {
+                $snapshot['budget_lines'][] = [...$snapshot['budget_lines'][0], 'id' => 999999];
+
+                return $snapshot;
+            },
+            'unknown budget' => function (array $snapshot): array {
+                $snapshot['budget_lines'][0]['budget_id'] = 999999;
+
+                return $snapshot;
+            },
+        ];
+
+        foreach ($mutations as $label => $mutate) {
+            $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-lines.json');
+            file_put_contents($brokenPath, json_encode($mutate($valid), JSON_THROW_ON_ERROR));
+            $targetUser = User::factory()->create();
+
+            $exitCode = Artisan::call('user:restore', [
+                'user' => $targetUser->email,
+                'path' => $brokenPath,
+                '--force' => true,
+            ]);
+
+            $this->assertSame(1, $exitCode, $label);
+            $this->assertSame(0, $targetUser->categories()->count(), $label);
+            $this->assertSame(0, $targetUser->budgets()->count(), $label);
+        }
+    }
+
+    public function test_snapshot_v6_round_trips_the_category_list_and_its_budget_lines(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget2026 = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $budget2027 = Budget::factory()->for($sourceUser)->create(['year' => 2027]);
+        $line2026 = BudgetLine::factory()->for($budget2026)->expense()->create([
+            'name' => 'Rozrywka',
+            'planned_amount_minor_units' => 300001,
+            'initial_plan_minor_units' => 299999,
+            'execution_minor_units' => 111111,
+        ]);
+        $line2027 = BudgetLine::factory()->for($budget2027)->expense()->create([
+            'name' => 'Rozrywka',
+            'category_id' => $line2026->category_id,
+            'planned_amount_minor_units' => 310000,
+            'initial_plan_minor_units' => 0,
+            'execution_minor_units' => 0,
+        ]);
+        $archived = BudgetLine::factory()->for($budget2026)->expense()->archived()->create(['name' => 'Wakacje']);
+        $archived->category->update(['archived_at' => '2026-09-09 10:00:00']);
+        $line2026->category->update(['name' => 'Rozrywka i kultura', 'icon' => 'film']);
+        $account = Account::factory()->for($sourceUser)->create();
+        FinancialOperation::factory()->for($sourceUser)->create([
+            'account_id' => $account->id,
+            'budget_id' => $budget2026->id,
+            'budget_line_id' => $line2026->id,
+            'amount_minor_units' => 111111,
+        ]);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertCount(2, $snapshot['categories']);
+        $this->assertCount(3, $snapshot['budget_lines']);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $list = $targetUser->categories()->orderBy('name')->get()->keyBy('name');
+        $this->assertSame(['Rozrywka i kultura', 'Wakacje'], $list->keys()->all());
+        $this->assertSame('film', $list['Rozrywka i kultura']->icon);
+        $this->assertSame('rozrywka i kultura', $list['Rozrywka i kultura']->name_key);
+        $this->assertNull($list['Rozrywka i kultura']->archived_at);
+        $this->assertSame('2026-09-09 10:00:00', $list['Wakacje']->archived_at->format('Y-m-d H:i:s'));
+
+        $restoredLines = BudgetLine::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->with('budget')
+            ->get();
+        $restored2026 = $restoredLines->first(fn (BudgetLine $line): bool => $line->budget->year === 2026 && $line->category_id === $list['Rozrywka i kultura']->id);
+        $restored2027 = $restoredLines->first(fn (BudgetLine $line): bool => $line->budget->year === 2027);
+
+        $this->assertCount(3, $restoredLines);
+        $this->assertSame($list['Rozrywka i kultura']->id, $restored2027->category_id);
+        $this->assertSame(300001, $restored2026->planned_amount_minor_units);
+        $this->assertSame(299999, $restored2026->initial_plan_minor_units);
+        $this->assertSame(111111, $restored2026->execution_minor_units);
+        $this->assertSame(310000, $restored2027->planned_amount_minor_units);
+        $this->assertSame('Rozrywka i kultura', $restored2026->name);
+        $this->assertSame($restored2026->id, $targetUser->financialOperations()->firstOrFail()->budget_line_id);
+        $this->assertNotSame($line2027->id, $restored2027->id);
+    }
+
+    public function test_restore_command_restores_the_v5_fixture_through_the_legacy_conversion(): void
+    {
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => base_path('tests/Fixtures/snapshots/v5-category-list.json'),
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+
+        $list = $targetUser->categories()->get()->keyBy('name');
+
+        $this->assertEqualsCanonicalizing(
+            ['Pensja', 'Rozrywka', 'Rozrywka (2)', 'Wakacje', 'Zdrowie'],
+            $list->keys()->all(),
+        );
+        $this->assertSame('zdrowie', $list['Zdrowie']->name_key);
+        $this->assertSame('pill', $list['Zdrowie']->icon);
+        $this->assertSame('income', $list['Pensja']->type->value);
+        $this->assertNotNull($list['Wakacje']->archived_at);
+        $this->assertNull($list['Rozrywka']->archived_at);
+        $this->assertNull($list['Rozrywka (2)']->archived_at);
+        $this->assertNull($list['Zdrowie']->archived_at);
+
+        $lines = BudgetLine::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->with('budget')
+            ->orderBy('id')
+            ->get();
+
+        $this->assertSame(
+            ['2026:Rozrywka', '2026:Rozrywka (2)', '2027:Rozrywka', '2027:Rozrywka (2)', '2025:Wakacje', '2026:Zdrowie', '2027:Zdrowie', '2026:Pensja'],
+            $lines->map(fn (BudgetLine $line): string => $line->budget->year.':'.$list->firstWhere('id', $line->category_id)->name)->all(),
+        );
+        $this->assertSame(111111, $lines[0]->execution_minor_units);
+        $this->assertSame(8500000, $lines[7]->execution_minor_units);
+
+        $operations = $targetUser->financialOperations()->orderBy('id')->get();
+
+        $this->assertSame($lines[0]->id, $operations[0]->budget_line_id);
+        $this->assertSame($lines[7]->id, $operations[1]->budget_line_id);
+        $this->assertSame($lines[0]->id, MonthPlan::query()->firstOrFail()->items()->firstOrFail()->budget_line_id);
+    }
+
+    /**
+     * Turns a snapshot written by the current code into the shape of versions
+     * 1 to 5: Budget Lines carry the Category description, and operations and
+     * Month Plan items name their line `category_id`.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function asLegacySnapshot(array $snapshot, int $version): array
+    {
+        $categories = collect($snapshot['categories'])->keyBy('id');
+
+        $snapshot['categories'] = array_map(function (array $line) use ($categories): array {
+            $category = $categories[$line['category_id']];
+            unset($line['category_id']);
+
+            return [
+                ...$line,
+                'name' => $category['name'],
+                'icon' => $category['icon'],
+                'color' => $category['color'],
+                'sort_order' => $category['sort_order'],
+                'type' => $category['type'],
+            ];
+        }, $snapshot['budget_lines']);
+        unset($snapshot['budget_lines']);
+
+        $rename = function (array $row): array {
+            $row['category_id'] = $row['budget_line_id'];
+            unset($row['budget_line_id']);
+
+            return $row;
+        };
+
+        $snapshot['financial_operations'] = array_map($rename, $snapshot['financial_operations']);
+        $snapshot['month_plans'] = array_map(function (array $monthPlan) use ($rename): array {
+            $monthPlan['items'] = array_map($rename, $monthPlan['items']);
+
+            return $monthPlan;
+        }, $snapshot['month_plans']);
+        $snapshot['version'] = $version;
+
+        return $snapshot;
     }
 
     private function createUserWithDomainData(): User
