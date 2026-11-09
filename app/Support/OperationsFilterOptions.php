@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Models\Account;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -31,9 +31,9 @@ class OperationsFilterOptions
      */
     public static function categories(User $user, ?int $year): array
     {
-        $categories = Category::query()
-            ->select('categories.*')
-            ->join('budgets', 'budgets.id', '=', 'categories.budget_id')
+        $categories = BudgetLine::query()
+            ->select('budget_lines.*')
+            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
             ->where('budgets.user_id', $user->id)
             ->when($year !== null, fn ($query) => $query->where('budgets.year', $year))
             ->whereHas('financialOperations', fn ($query) => $query->where('user_id', $user->id))
@@ -41,21 +41,21 @@ class OperationsFilterOptions
             ->get();
 
         return array_values($categories
-            ->groupBy(fn (Category $category): string => $category->type->value."\0".$category->name)
-            ->map(function (Collection $group): Category {
+            ->groupBy(fn (BudgetLine $category): string => $category->type->value."\0".$category->name)
+            ->map(function (Collection $group): BudgetLine {
                 $category = $group
-                    ->sortByDesc(fn (Category $item): int => $item->budget->year)
+                    ->sortByDesc(fn (BudgetLine $item): int => $item->budget->year)
                     ->first();
 
-                if (! $category instanceof Category) {
-                    throw new RuntimeException('A Category name-type group was empty.');
+                if (! $category instanceof BudgetLine) {
+                    throw new RuntimeException('A BudgetLine name-type group was empty.');
                 }
 
                 return $category;
             })
-            ->sortBy(fn (Category $category): string => ($category->type === CategoryType::Income ? '0' : '1').$category->name)
+            ->sortBy(fn (BudgetLine $category): string => ($category->type === CategoryType::Income ? '0' : '1').$category->name)
             ->values()
-            ->map(fn (Category $category): array => [
+            ->map(fn (BudgetLine $category): array => [
                 'name' => $category->name,
                 'type' => $category->type->value,
                 ...CategoryAppearance::fields($category),

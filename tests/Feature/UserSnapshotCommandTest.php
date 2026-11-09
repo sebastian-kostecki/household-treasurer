@@ -10,8 +10,8 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\MonthItemKind;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -91,6 +91,31 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertNotEquals(
             $sourceUser->accounts()->pluck('id')->all(),
             $restoredAccountIds,
+        );
+    }
+
+    public function test_restore_replaces_the_category_list_of_a_user_who_already_has_one(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $targetUser = User::factory()->create();
+        $targetBudget = Budget::factory()->for($targetUser)->create();
+        BudgetLine::factory()->for($targetBudget)->income()->create(['name' => 'Salary']);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $path,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(['Salary'], $targetUser->categories()->pluck('name')->all());
+        $this->assertSame(1, $targetUser->budgets()->count());
+        $this->assertSame(
+            $targetUser->categories()->firstOrFail()->id,
+            BudgetLine::query()->whereIn('budget_id', $targetUser->budgets()->select('id'))->firstOrFail()->category_id,
         );
     }
 
@@ -175,8 +200,8 @@ class UserSnapshotCommandTest extends TestCase
 
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
-        $billCategory = Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
-        $runningCategory = Category::factory()->for($budget)->expense()->create(['name' => 'Food']);
+        $billCategory = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $runningCategory = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Food']);
         $monthPlan = MonthPlan::factory()->for($budget)->create([
             'month' => 3,
             'approved_at' => '2026-03-02 10:00:00',
@@ -202,14 +227,14 @@ class UserSnapshotCommandTest extends TestCase
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
 
-        $restoredBill = Category::query()
+        $restoredBill = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->where('name', 'Rent')
             ->firstOrFail();
         $restoredPlan = MonthPlan::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->firstOrFail();
-        $restoredItem = $restoredPlan->items()->where('category_id', $restoredBill->id)->firstOrFail();
+        $restoredItem = $restoredPlan->items()->where('budget_line_id', $restoredBill->id)->firstOrFail();
 
         $this->assertSame(MonthItemKind::Bill, $restoredBill->month_item_kind);
         $this->assertSame(3, $restoredPlan->month);
@@ -229,7 +254,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $category = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
         MonthPlanItem::factory()
             ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
             ->for($category)
@@ -252,7 +277,7 @@ class UserSnapshotCommandTest extends TestCase
             '--force' => true,
         ]);
 
-        $restoredCategory = Category::query()
+        $restoredCategory = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->firstOrFail();
 
@@ -331,8 +356,8 @@ class UserSnapshotCommandTest extends TestCase
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
         $otherBudget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2025]);
-        $category = Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
-        $otherCategory = Category::factory()->for($otherBudget)->expense()->create(['name' => 'Food']);
+        $category = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $otherCategory = BudgetLine::factory()->for($otherBudget)->expense()->create(['name' => 'Food']);
         MonthPlanItem::factory()
             ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
             ->for($category)
@@ -461,7 +486,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $sourceAccount = $sourceUser->accounts()->orderBy('id')->first();
         $sourceBudget = $sourceUser->budgets()->first();
-        $sourceCategory = Category::query()->where('budget_id', $sourceBudget->id)->first();
+        $sourceCategory = BudgetLine::query()->where('budget_id', $sourceBudget->id)->first();
         $sourceOperation = $sourceUser->financialOperations()->first();
         $sourceTransfer = $sourceUser->ownTransfers()->first();
 
@@ -471,7 +496,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $restoredAccount = $targetUser->accounts()->where('name', $sourceAccount->name)->firstOrFail();
         $restoredBudget = $targetUser->budgets()->where('year', $sourceBudget->year)->firstOrFail();
-        $restoredCategory = Category::query()->where('budget_id', $restoredBudget->id)->where('name', $sourceCategory->name)->firstOrFail();
+        $restoredCategory = BudgetLine::query()->where('budget_id', $restoredBudget->id)->where('name', $sourceCategory->name)->firstOrFail();
         $restoredOperation = $targetUser->financialOperations()->where('description', $sourceOperation->description)->firstOrFail();
         $restoredTransfer = $targetUser->ownTransfers()->where('description', $sourceTransfer->description)->firstOrFail();
 
@@ -489,7 +514,7 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame($sourceTransfer->source_raw_statement_description, $restoredTransfer->source_raw_statement_description);
         $this->assertSame($sourceTransfer->destination_raw_statement_description, $restoredTransfer->destination_raw_statement_description);
         $this->assertSame($restoredAccount->id, $restoredOperation->account_id);
-        $this->assertSame($restoredCategory->id, $restoredOperation->category_id);
+        $this->assertSame($restoredCategory->id, $restoredOperation->budget_line_id);
         $this->assertSame($restoredBudget->id, $restoredOperation->budget_id);
     }
 
@@ -512,7 +537,7 @@ class UserSnapshotCommandTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Execution,
         ]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'execution_minor_units' => 150000,
         ]);
@@ -520,7 +545,7 @@ class UserSnapshotCommandTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'account_id' => $sourceAccount->id,
             'budget_id' => $budget->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'description' => 'Paycheck',
             'raw_statement_description' => 'ACME PAYROLL',
             'import_identity_account_id' => $sourceAccount->id,

@@ -10,11 +10,15 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryMonthItemKindRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
@@ -38,7 +42,29 @@ class CategoryController extends Controller
             : MonthItemKind::Running->value;
         $attributes['sort_order'] = $this->nextSortOrder($budget, $type);
 
-        $budget->categories()->create($attributes);
+        DB::transaction(function () use ($request, $budget, $attributes, $type): void {
+            $category = Category::query()->firstOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'type' => $type->value,
+                    'name_key' => CategoryNameKey::of($attributes['name']),
+                ],
+                [
+                    'name' => CategoryNameKey::trim($attributes['name']),
+                    'icon' => $attributes['icon'],
+                    'color' => $attributes['color'],
+                    'sort_order' => $attributes['sort_order'],
+                ],
+            );
+
+            if ($budget->budgetLines()->where('category_id', $category->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'name' => __('This category is already in the budget.'),
+                ]);
+            }
+
+            $budget->budgetLines()->create([...$attributes, 'category_id' => $category->id]);
+        });
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -48,7 +74,7 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
+    public function update(UpdateCategoryRequest $request, BudgetLine $category): RedirectResponse
     {
         $updatableFields = [
             'name',
@@ -73,14 +99,14 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, Category $category): RedirectResponse
+    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, BudgetLine $category): RedirectResponse
     {
         $category->update($request->safe()->only(['month_item_kind']));
 
         return back();
     }
 
-    public function destroy(Request $request, Category $category): RedirectResponse
+    public function destroy(Request $request, BudgetLine $category): RedirectResponse
     {
         $this->authorize('delete', $category);
 
@@ -94,7 +120,7 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function archive(Request $request, Category $category): RedirectResponse
+    public function archive(Request $request, BudgetLine $category): RedirectResponse
     {
         $this->authorize('archive', $category);
 
@@ -108,7 +134,7 @@ class CategoryController extends Controller
         return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 
-    public function restore(Request $request, Category $category): RedirectResponse
+    public function restore(Request $request, BudgetLine $category): RedirectResponse
     {
         $this->authorize('restore', $category);
 
@@ -122,7 +148,7 @@ class CategoryController extends Controller
         return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 
-    public function alignCurrentPlan(Request $request, Category $category): RedirectResponse
+    public function alignCurrentPlan(Request $request, BudgetLine $category): RedirectResponse
     {
         $this->authorize('alignCurrentPlan', $category);
 
@@ -156,7 +182,7 @@ class CategoryController extends Controller
 
     private function nextSortOrder(Budget $budget, CategoryType $type): int
     {
-        $maxSortOrder = $budget->categories()
+        $maxSortOrder = $budget->budgetLines()
             ->where('type', $type)
             ->max('sort_order');
 

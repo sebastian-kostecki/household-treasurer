@@ -4,8 +4,8 @@ use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -23,7 +23,7 @@ it('seeds a demo household with first-run conditions and consistent balances', f
         ->and($user->first_run_checklist_dismissed_at)->not->toBeNull()
         ->and($user->accounts()->count())->toBeGreaterThanOrEqual(1)
         ->and($user->budgets()->count())->toBeGreaterThanOrEqual(1)
-        ->and(Category::query()->whereHas('budget', fn ($query) => $query->where('user_id', $user->id))->count())
+        ->and(BudgetLine::query()->whereHas('budget', fn ($query) => $query->where('user_id', $user->id))->count())
         ->toBeGreaterThanOrEqual(1)
         ->and($user->budgets()->where('phase', BudgetPhase::Execution)->exists())->toBeTrue()
         ->and($user->financialOperations()->exists())->toBeTrue()
@@ -43,10 +43,10 @@ it('seeds a demo household with first-run conditions and consistent balances', f
 
     $budgetIds = $user->budgets()->pluck('id');
 
-    Category::query()
+    BudgetLine::query()
         ->whereIn('budget_id', $budgetIds)
         ->get()
-        ->each(function (Category $category): void {
+        ->each(function (BudgetLine $category): void {
             expect($category->execution_minor_units)
                 ->toBe(expectedCategoryExecution($category));
         });
@@ -119,9 +119,9 @@ function expectedTermDepositBalance(TermDeposit $termDeposit): int
     return $balance;
 }
 
-function expectedCategoryExecution(Category $category): int
+function expectedCategoryExecution(BudgetLine $category): int
 {
     return (int) FinancialOperation::query()
-        ->where('category_id', $category->id)
+        ->where('budget_line_id', $category->id)
         ->sum('amount_minor_units');
 }

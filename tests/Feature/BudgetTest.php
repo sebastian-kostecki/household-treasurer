@@ -6,7 +6,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -84,7 +84,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Salary',
             'type' => CategoryType::Income->value,
@@ -105,7 +105,7 @@ class BudgetTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'type' => CategoryType::Expense->value,
             'planned_amount_minor_units' => 120000,
@@ -131,7 +131,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Old name',
             'planned_amount_minor_units' => 10000,
         ]);
@@ -145,7 +145,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $category->id,
             'name' => 'New name',
             'type' => CategoryType::Expense->value,
@@ -157,21 +157,21 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->create();
+        $category = BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->delete(route('categories.destroy', $category))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('budget_lines', ['id' => $category->id]);
     }
 
     public function test_user_can_delete_draft_budget(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->delete(route('budgets.destroy', $budget))
@@ -179,14 +179,14 @@ class BudgetTest extends TestCase
             ->assertRedirect(route('budget'));
 
         $this->assertDatabaseMissing('budgets', ['id' => $budget->id]);
-        $this->assertDatabaseCount('categories', 0);
+        $this->assertDatabaseCount('budget_lines', 0);
     }
 
     public function test_budget_page_lists_categories_for_selected_year(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 300000,
         ]);
@@ -270,7 +270,7 @@ class BudgetTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->create();
-        $category = Category::factory()->for($budget)->create();
+        $category = BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($otherUser)
             ->post(route('categories.store', $budget), $this->categoryFields([
@@ -301,7 +301,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
@@ -316,10 +316,10 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 300000,
         ]);
 
@@ -338,10 +338,10 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $income = Category::factory()->for($budget)->income()->create([
+        $income = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
         ]);
-        $expense = Category::factory()->for($budget)->expense()->create([
+        $expense = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 300000,
         ]);
 
@@ -349,13 +349,13 @@ class BudgetTest extends TestCase
             ->post(route('budgets.start-execution', $budget))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $income->id,
             'initial_plan_minor_units' => 500000,
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $expense->id,
             'initial_plan_minor_units' => 300000,
             'planned_amount_minor_units' => 300000,
@@ -367,7 +367,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->post(route('budgets.start-execution', $budget))
@@ -392,10 +392,10 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 100000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
         ]);
         Account::factory()->for($user)->create([
@@ -419,10 +419,10 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 100000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
         ]);
         Account::factory()->for($user)->create([
@@ -444,10 +444,10 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 100000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
         ]);
 
@@ -466,7 +466,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
         ]);
@@ -491,13 +491,13 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Food',
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 80000,
@@ -521,7 +521,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Misc',
             'planned_amount_minor_units' => 0,
             'initial_plan_minor_units' => 0,
@@ -559,7 +559,7 @@ class BudgetTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->create();
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($otherUser)
             ->post(route('budgets.start-execution', $budget))
@@ -570,7 +570,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->post(route('budgets.start-execution', $budget));
@@ -588,12 +588,12 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $income = Category::factory()->for($budget)->income()->create([
+        $income = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
         ]);
-        $expense = Category::factory()->for($budget)->expense()->create([
+        $expense = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'planned_amount_minor_units' => 300000,
             'initial_plan_minor_units' => 300000,
@@ -617,11 +617,11 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $income->id,
             'planned_amount_minor_units' => 750000,
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $expense->id,
             'planned_amount_minor_units' => 200000,
         ]);
@@ -631,7 +631,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
@@ -646,7 +646,7 @@ class BudgetTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $category->id,
             'planned_amount_minor_units' => 750000,
             'initial_plan_minor_units' => 500000,
@@ -668,7 +668,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Bonus',
             'type' => CategoryType::Income->value,
@@ -690,7 +690,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
@@ -705,7 +705,7 @@ class BudgetTest extends TestCase
             ]))
             ->assertSessionHasErrors('type');
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $category->id,
             'type' => CategoryType::Income->value,
             'planned_amount_minor_units' => 500000,
@@ -716,7 +716,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->create([
+        $category = BudgetLine::factory()->for($budget)->create([
             'initial_plan_minor_units' => 10000,
         ]);
 
@@ -724,7 +724,7 @@ class BudgetTest extends TestCase
             ->delete(route('categories.destroy', $category))
             ->assertForbidden();
 
-        $this->assertDatabaseHas('categories', ['id' => $category->id]);
+        $this->assertDatabaseHas('budget_lines', ['id' => $category->id]);
     }
 
     public function test_user_cannot_change_current_plan_on_another_users_budget(): void
@@ -732,7 +732,7 @@ class BudgetTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
         ]);
@@ -753,12 +753,12 @@ class BudgetTest extends TestCase
             ]))
             ->assertForbidden();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $category->id,
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
         ]);
-        $this->assertDatabaseMissing('categories', [
+        $this->assertDatabaseMissing('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Stolen',
         ]);
@@ -768,7 +768,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
@@ -815,12 +815,12 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 80000,
             'execution_minor_units' => 120000,
@@ -848,12 +848,12 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->archived()->create([
+        BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'planned_amount_minor_units' => 50000,
             'initial_plan_minor_units' => 50000,
             'execution_minor_units' => 10000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 30000,
             'initial_plan_minor_units' => 30000,
             'execution_minor_units' => 5000,
@@ -873,12 +873,12 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->archived()->create([
+        BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'planned_amount_minor_units' => 50000,
             'initial_plan_minor_units' => 50000,
             'execution_minor_units' => 10000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 30000,
             'initial_plan_minor_units' => 30000,
             'execution_minor_units' => 5000,
@@ -929,12 +929,12 @@ class BudgetTest extends TestCase
         $otherUser = User::factory()->create();
 
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 100000,
         ]);
 
         $otherBudget = Budget::factory()->for($otherUser)->create(['year' => 2026]);
-        Category::factory()->for($otherBudget)->income()->create([
+        BudgetLine::factory()->for($otherBudget)->income()->create([
             'planned_amount_minor_units' => 900000,
         ]);
 
@@ -952,9 +952,9 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $copyableBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($copyableBudget)->create();
+        BudgetLine::factory()->for($copyableBudget)->create();
         $archivedOnlyBudget = Budget::factory()->for($user)->create(['year' => 2024]);
-        Category::factory()->for($archivedOnlyBudget)->archived()->create();
+        BudgetLine::factory()->for($archivedOnlyBudget)->archived()->create();
         Budget::factory()->for($user)->create(['year' => 2026]);
 
         $this->actingAs($user)
@@ -971,11 +971,11 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        $archivedCategory = Category::factory()->for($sourceBudget)->expense()->archived()->create([
+        $archivedCategory = BudgetLine::factory()->for($sourceBudget)->expense()->archived()->create([
             'name' => 'Archived',
             'sort_order' => 0,
         ]);
-        $income = Category::factory()->for($sourceBudget)->income()->create([
+        $income = BudgetLine::factory()->for($sourceBudget)->income()->create([
             'name' => 'Salary',
             'icon' => 'wallet',
             'color' => '#228be6',
@@ -984,7 +984,7 @@ class BudgetTest extends TestCase
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]);
-        $expense = Category::factory()->for($sourceBudget)->expense()->create([
+        $expense = BudgetLine::factory()->for($sourceBudget)->expense()->create([
             'name' => 'Groceries',
             'icon' => 'shopping-cart',
             'color' => '#40c057',
@@ -1006,9 +1006,9 @@ class BudgetTest extends TestCase
 
         $this->assertSame(BudgetPhase::Draft, $targetBudget->phase);
         $this->assertDatabaseCount('budgets', 2);
-        $this->assertDatabaseCount('categories', 5);
-        $this->assertSame(2, Category::query()->where('budget_id', $targetBudget->id)->count());
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseCount('budget_lines', 5);
+        $this->assertSame(2, BudgetLine::query()->where('budget_id', $targetBudget->id)->count());
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Salary',
             'type' => CategoryType::Income->value,
@@ -1020,7 +1020,7 @@ class BudgetTest extends TestCase
             'execution_minor_units' => 0,
             'archived_at' => null,
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Groceries',
             'type' => CategoryType::Expense->value,
@@ -1031,23 +1031,23 @@ class BudgetTest extends TestCase
             'initial_plan_minor_units' => 0,
             'execution_minor_units' => 0,
         ]);
-        $this->assertDatabaseMissing('categories', [
+        $this->assertDatabaseMissing('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Archived',
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $income->id,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'id' => $archivedCategory->id,
             'budget_id' => $sourceBudget->id,
         ]);
 
-        $copiedCategories = Category::query()->where('budget_id', $targetBudget->id)->get();
+        $copiedCategories = BudgetLine::query()->where('budget_id', $targetBudget->id)->get();
         $this->assertTrue($copiedCategories->every(
-            fn (Category $category): bool => $category->id !== $income->id && $category->id !== $expense->id,
+            fn (BudgetLine $category): bool => $category->id !== $income->id && $category->id !== $expense->id,
         ));
     }
 
@@ -1055,7 +1055,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->create();
+        BudgetLine::factory()->for($sourceBudget)->create();
 
         $this->actingAs($user)
             ->post(route('budgets.store'), ['year' => 2026])
@@ -1065,16 +1065,16 @@ class BudgetTest extends TestCase
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
         $this->assertSame(BudgetPhase::Draft, $targetBudget->phase);
-        $this->assertDatabaseCount('categories', 1);
-        $this->assertDatabaseHas('categories', ['budget_id' => $sourceBudget->id]);
-        $this->assertDatabaseMissing('categories', ['budget_id' => $targetBudget->id]);
+        $this->assertDatabaseCount('budget_lines', 1);
+        $this->assertDatabaseHas('budget_lines', ['budget_id' => $sourceBudget->id]);
+        $this->assertDatabaseMissing('budget_lines', ['budget_id' => $targetBudget->id]);
     }
 
     public function test_gap_year_copy_uses_newest_earlier_copyable_budget(): void
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2024]);
-        Category::factory()->for($sourceBudget)->income()->create([
+        BudgetLine::factory()->for($sourceBudget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 300000,
         ]);
@@ -1089,7 +1089,7 @@ class BudgetTest extends TestCase
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Salary',
             'planned_amount_minor_units' => 300000,
@@ -1100,7 +1100,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $futureBudget = Budget::factory()->for($user)->create(['year' => 2027]);
-        Category::factory()->for($futureBudget)->create();
+        BudgetLine::factory()->for($futureBudget)->create();
 
         $this->actingAs($user)
             ->from(route('budget'))
@@ -1117,7 +1117,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($sourceBudget)->create();
+        BudgetLine::factory()->for($sourceBudget)->create();
 
         $this->actingAs($user)
             ->from(route('budget'))
@@ -1135,7 +1135,7 @@ class BudgetTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $sourceBudget = Budget::factory()->for($owner)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->create();
+        BudgetLine::factory()->for($sourceBudget)->create();
 
         $this->actingAs($otherUser)
             ->from(route('budget'))
@@ -1152,7 +1152,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->archived()->create();
+        BudgetLine::factory()->for($sourceBudget)->archived()->create();
 
         $this->actingAs($user)
             ->from(route('budget'))
@@ -1184,7 +1184,7 @@ class BudgetTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->create();
+        BudgetLine::factory()->for($sourceBudget)->create();
         Budget::factory()->for($user)->create(['year' => 2026]);
 
         $this->actingAs($user)
@@ -1196,7 +1196,7 @@ class BudgetTest extends TestCase
             ->assertSessionHasErrors('year');
 
         $this->assertDatabaseCount('budgets', 2);
-        $this->assertDatabaseCount('categories', 1);
+        $this->assertDatabaseCount('budget_lines', 1);
     }
 
     public function test_budget_page_does_not_send_month_readings(): void
@@ -1205,7 +1205,7 @@ class BudgetTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create();
+        BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])

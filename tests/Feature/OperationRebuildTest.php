@@ -6,8 +6,8 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -35,7 +35,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -100,7 +100,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -215,7 +215,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
         $movement = CapitalMovement::factory()->for($user)->create([
@@ -245,7 +245,7 @@ class OperationRebuildTest extends TestCase
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income->value,
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'budget_line_id' => $incomeCategory->id,
             'amount_minor_units' => 20000,
             'description' => 'Actually salary',
         ]);
@@ -275,7 +275,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 0,
         ]);
         $movement = CapitalMovement::factory()->for($user)->create([
@@ -386,7 +386,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
 
         $operation = FinancialOperation::factory()
             ->for($user)
@@ -436,7 +436,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
 
         $movement = CapitalMovement::factory()->for($user)->create([
             'account_id' => $account->id,
@@ -482,7 +482,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
         $movement = CapitalMovement::factory()->for($user)->create([
             'account_id' => $account->id,
             'term_deposit_id' => $termDeposit->id,
@@ -516,7 +516,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
         $movement = CapitalMovement::factory()->for($user)->create([
             'account_id' => $account->id,
             'term_deposit_id' => $termDeposit->id,
@@ -550,7 +550,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
         $operation = FinancialOperation::factory()
             ->for($user)
             ->for($account)
@@ -588,8 +588,8 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
@@ -642,7 +642,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))

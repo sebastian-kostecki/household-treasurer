@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -15,7 +15,7 @@ class ReorderCategories
      */
     public function handle(Budget $budget, CategoryType $type, array $categoryIds): void
     {
-        $activeCategoryIds = $budget->categories()
+        $activeCategoryIds = $budget->budgetLines()
             ->where('type', $type)
             ->whereNull('archived_at')
             ->ordered()
@@ -41,7 +41,7 @@ class ReorderCategories
 
         DB::transaction(function () use ($categoryIds): void {
             foreach ($categoryIds as $index => $categoryId) {
-                Category::query()
+                BudgetLine::query()
                     ->whereKey($categoryId)
                     ->update(['sort_order' => $index]);
             }

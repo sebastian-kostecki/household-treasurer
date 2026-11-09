@@ -75,7 +75,7 @@ class ImportCategorySuggester
     private function loadHistory(User $user): \Generator
     {
         $operations = $user->financialOperations()
-            ->join('categories', 'categories.id', '=', 'financial_operations.category_id')
+            ->join('budget_lines', 'budget_lines.id', '=', 'financial_operations.budget_line_id')
             ->whereNotNull('financial_operations.raw_statement_description')
             ->where('financial_operations.description', '<>', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
             ->select([
@@ -84,7 +84,7 @@ class ImportCategorySuggester
                 'financial_operations.operation_date',
                 'financial_operations.description',
                 'financial_operations.counterparty',
-                'categories.name as category_name',
+                'budget_lines.name as category_name',
             ])
             ->toBase()
             ->cursor();

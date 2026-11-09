@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Concerns\CategoryValidationRules;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -17,7 +17,7 @@ class UpdateCategoryRequest extends FormRequest
     {
         $category = $this->route('category');
 
-        if (! $category instanceof Category) {
+        if (! $category instanceof BudgetLine) {
             return false;
         }
 
@@ -32,7 +32,7 @@ class UpdateCategoryRequest extends FormRequest
         $rules = $this->updateCategoryRules();
         $category = $this->route('category');
 
-        if ($category instanceof Category && $category->budget->isExecution()) {
+        if ($category instanceof BudgetLine && $category->budget->isExecution()) {
             $rules['type'] = ['required', Rule::in([$category->type->value])];
         }
 
@@ -45,11 +45,11 @@ class UpdateCategoryRequest extends FormRequest
 
         $this->withPacedFlagValidation(
             $validator,
-            $category instanceof Category ? $category : null,
+            $category instanceof BudgetLine ? $category : null,
         );
         $this->withMonthItemKindValidation(
             $validator,
-            $category instanceof Category ? $category : null,
+            $category instanceof BudgetLine ? $category : null,
         );
     }
 }

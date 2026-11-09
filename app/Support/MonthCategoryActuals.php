@@ -37,8 +37,8 @@ class MonthCategoryActuals
             ->where('budget_id', $budget->id)
             ->where('operation_date', '>=', $firstDay->toDateString())
             ->where('operation_date', '<', $afterLastDay->toDateString())
-            ->groupBy('category_id', 'operation_date')
-            ->selectRaw('category_id, operation_date, SUM(amount_minor_units) as actual_total, SUM(CASE WHEN amount_minor_units > 0 THEN 1 ELSE 0 END) as positive_count')
+            ->groupBy('budget_line_id', 'operation_date')
+            ->selectRaw('budget_line_id, operation_date, SUM(amount_minor_units) as actual_total, SUM(CASE WHEN amount_minor_units > 0 THEN 1 ELSE 0 END) as positive_count')
             ->get();
 
         $byMonth = array_fill_keys($months, []);
@@ -50,7 +50,7 @@ class MonthCategoryActuals
                 continue;
             }
 
-            $categoryId = (int) $row->getAttribute('category_id');
+            $categoryId = (int) $row->getAttribute('budget_line_id');
             $byMonth[$month][$categoryId] ??= ['actual' => 0, 'positive_count' => 0];
             $byMonth[$month][$categoryId]['actual'] += (int) $row->getAttribute('actual_total');
             $byMonth[$month][$categoryId]['positive_count'] += (int) $row->getAttribute('positive_count');

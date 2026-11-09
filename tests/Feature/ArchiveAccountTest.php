@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -23,7 +23,7 @@ class ArchiveAccountTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
@@ -168,7 +168,7 @@ class ArchiveAccountTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',

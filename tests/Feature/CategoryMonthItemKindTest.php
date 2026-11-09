@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -29,7 +29,7 @@ class CategoryMonthItemKindTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Groceries',
             'month_item_kind' => 'running',
@@ -50,7 +50,7 @@ class CategoryMonthItemKindTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Rent',
             'month_item_kind' => 'bill',
@@ -70,7 +70,7 @@ class CategoryMonthItemKindTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Salary',
             'month_item_kind' => 'running',
@@ -81,7 +81,7 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->expense()->create();
+        $category = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)
             ->patch(route('categories.update', $category), $this->categoryFields([
@@ -116,7 +116,7 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('budget'))
@@ -143,7 +143,7 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->archived()->create();
+        $category = BudgetLine::factory()->for($budget)->expense()->archived()->create();
 
         $this->actingAs($user)
             ->from(route('budget'))
@@ -162,7 +162,7 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create();
+        $category = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)
             ->from(route('month-plan'))
@@ -177,8 +177,8 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $income = Category::factory()->for($budget)->income()->create();
-        $archived = Category::factory()->for($budget)->expense()->archived()->create();
+        $income = BudgetLine::factory()->for($budget)->income()->create();
+        $archived = BudgetLine::factory()->for($budget)->expense()->archived()->create();
 
         $this->actingAs($user)
             ->from(route('month-plan'))
@@ -198,7 +198,7 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create();
+        $category = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)
             ->from(route('month-plan'))
@@ -214,9 +214,9 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['name' => 'Salary']);
-        Category::factory()->for($budget)->expense()->create(['name' => 'Food']);
-        Category::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Salary']);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Food']);
+        BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
@@ -233,8 +233,8 @@ class CategoryMonthItemKindTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->expense()->create(['name' => 'Food']);
-        Category::factory()->for($sourceBudget)->bill()->create(['name' => 'Rent']);
+        BudgetLine::factory()->for($sourceBudget)->expense()->create(['name' => 'Food']);
+        BudgetLine::factory()->for($sourceBudget)->bill()->create(['name' => 'Rent']);
 
         $this->actingAs($user)
             ->post(route('budgets.store'), [
@@ -245,12 +245,12 @@ class CategoryMonthItemKindTest extends TestCase
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Food',
             'month_item_kind' => 'running',
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Rent',
             'month_item_kind' => 'bill',

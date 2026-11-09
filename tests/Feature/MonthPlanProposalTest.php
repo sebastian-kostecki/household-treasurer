@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
@@ -182,7 +182,7 @@ class MonthPlanProposalTest extends TestCase
 
         $budget = $this->budget(2027);
         $food = $this->food($budget);
-        $gym = Category::factory()->for($budget)->expense()->create(['name' => 'Siłownia', 'planned_amount_minor_units' => 120_000]);
+        $gym = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Siłownia', 'planned_amount_minor_units' => 120_000]);
 
         $january = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
 
@@ -269,7 +269,7 @@ class MonthPlanProposalTest extends TestCase
     public function test_one_off_category_is_proposed_as_zero(): void
     {
         $budget = $this->budget(2026);
-        $vacation = Category::factory()->for($budget)->oneOff()->create(['planned_amount_minor_units' => 600_000]);
+        $vacation = BudgetLine::factory()->for($budget)->oneOff()->create(['planned_amount_minor_units' => 600_000]);
 
         $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
 
@@ -282,7 +282,7 @@ class MonthPlanProposalTest extends TestCase
         $budget = $this->budget(2026);
         $food = $this->food($budget);
         $this->approve($budget, 11, [$food->id => 9_000]);
-        $cinema = Category::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 120_000]);
+        $cinema = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 120_000]);
 
         $december = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 20))->reading(12);
 
@@ -339,9 +339,9 @@ class MonthPlanProposalTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
-    private function food(Budget $budget, array $attributes = []): Category
+    private function food(Budget $budget, array $attributes = []): BudgetLine
     {
-        return Category::factory()->for($budget)->expense()->create($attributes + [
+        return BudgetLine::factory()->for($budget)->expense()->create($attributes + [
             'name' => 'Jedzenie',
             'planned_amount_minor_units' => 100_001,
         ]);
@@ -361,7 +361,7 @@ class MonthPlanProposalTest extends TestCase
         foreach ($amounts as $categoryId => $amount) {
             MonthPlanItem::factory()->create([
                 'month_plan_id' => $plan->id,
-                'category_id' => $categoryId,
+                'budget_line_id' => $categoryId,
                 'approved_amount_minor_units' => $amount,
                 'current_amount_minor_units' => $amount,
             ]);

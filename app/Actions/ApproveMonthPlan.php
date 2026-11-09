@@ -67,7 +67,7 @@ class ApproveMonthPlan
                 foreach ($amounts as $categoryId => $amount) {
                     MonthPlanItem::query()->create([
                         'month_plan_id' => $plan->id,
-                        'category_id' => $categoryId,
+                        'budget_line_id' => $categoryId,
                         'approved_amount_minor_units' => $amount,
                         'current_amount_minor_units' => $amount,
                     ]);

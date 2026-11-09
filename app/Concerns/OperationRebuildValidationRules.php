@@ -6,8 +6,8 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -130,7 +130,7 @@ trait OperationRebuildValidationRules
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')
+                Rule::exists('budget_lines', 'id')
                     ->where('type', CategoryType::Income->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
@@ -174,7 +174,7 @@ trait OperationRebuildValidationRules
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')
+                Rule::exists('budget_lines', 'id')
                     ->where('type', CategoryType::Expense->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
@@ -366,7 +366,7 @@ trait OperationRebuildValidationRules
                 );
             }
 
-            $category = Category::query()->with('budget')->find((int) $categoryId);
+            $category = BudgetLine::query()->with('budget')->find((int) $categoryId);
 
             if ($category === null) {
                 return;

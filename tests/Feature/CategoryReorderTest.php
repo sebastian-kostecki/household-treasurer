@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -19,11 +19,11 @@ class CategoryReorderTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $first = Category::factory()->for($budget)->income()->create([
+        $first = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 0,
         ]);
-        $second = Category::factory()->for($budget)->income()->create([
+        $second = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Bonus',
             'sort_order' => 1,
         ]);
@@ -43,11 +43,11 @@ class CategoryReorderTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Food',
             'sort_order' => 0,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Transport',
             'sort_order' => 1,
         ]);
@@ -60,7 +60,7 @@ class CategoryReorderTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Health',
             'sort_order' => 2,
@@ -71,11 +71,11 @@ class CategoryReorderTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $first = Category::factory()->for($budget)->income()->create([
+        $first = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Zebra',
             'sort_order' => 0,
         ]);
-        $second = Category::factory()->for($budget)->income()->create([
+        $second = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Alpha',
             'sort_order' => 1,
         ]);
@@ -94,10 +94,10 @@ class CategoryReorderTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $active = Category::factory()->for($budget)->income()->create([
+        $active = BudgetLine::factory()->for($budget)->income()->create([
             'sort_order' => 0,
         ]);
-        $archived = Category::factory()->for($budget)->income()->archived()->create([
+        $archived = BudgetLine::factory()->for($budget)->income()->archived()->create([
             'sort_order' => 1,
         ]);
 
@@ -125,7 +125,7 @@ class CategoryReorderTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->create();
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'sort_order' => 0,
         ]);
 
@@ -143,10 +143,10 @@ class CategoryReorderTest extends TestCase
         $budget = Budget::factory()->for($user)->create([
             'phase' => BudgetPhase::Execution,
         ]);
-        $first = Category::factory()->for($budget)->expense()->create([
+        $first = BudgetLine::factory()->for($budget)->expense()->create([
             'sort_order' => 0,
         ]);
-        $second = Category::factory()->for($budget)->expense()->create([
+        $second = BudgetLine::factory()->for($budget)->expense()->create([
             'sort_order' => 1,
         ]);
 

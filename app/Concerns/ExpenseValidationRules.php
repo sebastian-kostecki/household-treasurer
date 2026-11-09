@@ -5,7 +5,7 @@ namespace App\Concerns;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -42,7 +42,7 @@ trait ExpenseValidationRules
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')
+                Rule::exists('budget_lines', 'id')
                     ->where('type', CategoryType::Expense->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
@@ -83,7 +83,7 @@ trait ExpenseValidationRules
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')
+                Rule::exists('budget_lines', 'id')
                     ->where('type', CategoryType::Income->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($userId): void {
@@ -120,7 +120,7 @@ trait ExpenseValidationRules
                 );
             }
 
-            $category = Category::query()->with('budget')->find((int) $categoryId);
+            $category = BudgetLine::query()->with('budget')->find((int) $categoryId);
 
             if ($category === null) {
                 return;

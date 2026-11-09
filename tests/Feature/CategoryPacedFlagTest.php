@@ -6,7 +6,7 @@ use App\Actions\BackupUserData;
 use App\Actions\RestoreUserData;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +31,7 @@ class CategoryPacedFlagTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Groceries',
             'is_paced' => true,
@@ -42,7 +42,7 @@ class CategoryPacedFlagTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'is_paced' => true,
         ]);
 
@@ -76,7 +76,7 @@ class CategoryPacedFlagTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $budget->id,
             'name' => 'Vacation',
             'is_paced' => false,
@@ -103,7 +103,7 @@ class CategoryPacedFlagTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('budget'))
@@ -120,12 +120,12 @@ class CategoryPacedFlagTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['name' => 'Salary']);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Salary']);
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Paced expense',
             'is_paced' => true,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'One-off expense',
             'is_paced' => false,
         ]);
@@ -145,11 +145,11 @@ class CategoryPacedFlagTest extends TestCase
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        Category::factory()->for($sourceBudget)->expense()->create([
+        BudgetLine::factory()->for($sourceBudget)->expense()->create([
             'name' => 'Paced',
             'is_paced' => true,
         ]);
-        Category::factory()->for($sourceBudget)->expense()->create([
+        BudgetLine::factory()->for($sourceBudget)->expense()->create([
             'name' => 'One-off',
             'is_paced' => false,
         ]);
@@ -163,12 +163,12 @@ class CategoryPacedFlagTest extends TestCase
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'Paced',
             'is_paced' => true,
         ]);
-        $this->assertDatabaseHas('categories', [
+        $this->assertDatabaseHas('budget_lines', [
             'budget_id' => $targetBudget->id,
             'name' => 'One-off',
             'is_paced' => false,
@@ -179,7 +179,7 @@ class CategoryPacedFlagTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->archived()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'name' => 'Archived',
             'is_paced' => true,
         ]);
@@ -203,7 +203,7 @@ class CategoryPacedFlagTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->archived()->create([
+        BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'name' => 'Archived one-off',
             'is_paced' => false,
         ]);
@@ -224,7 +224,7 @@ class CategoryPacedFlagTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'One-off',
             'is_paced' => false,
         ]);
@@ -237,7 +237,7 @@ class CategoryPacedFlagTest extends TestCase
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
 
-        $restoredCategory = Category::query()
+        $restoredCategory = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->where('name', 'One-off')
             ->firstOrFail();
@@ -251,7 +251,7 @@ class CategoryPacedFlagTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Legacy',
             'is_paced' => true,
         ]);
@@ -264,7 +264,7 @@ class CategoryPacedFlagTest extends TestCase
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
 
-        $restoredCategory = Category::query()
+        $restoredCategory = BudgetLine::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->where('name', 'Legacy')
             ->firstOrFail();

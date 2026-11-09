@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use App\Concerns\CategoryValidationRules;
 use App\Enums\MonthItemKind;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,7 +18,7 @@ class UpdateCategoryMonthItemKindRequest extends FormRequest
     {
         $category = $this->route('category');
 
-        if (! $category instanceof Category) {
+        if (! $category instanceof BudgetLine) {
             return false;
         }
 
@@ -41,7 +41,7 @@ class UpdateCategoryMonthItemKindRequest extends FormRequest
 
         $this->withMonthItemKindValidation(
             $validator,
-            $category instanceof Category ? $category : null,
+            $category instanceof BudgetLine ? $category : null,
         );
     }
 }

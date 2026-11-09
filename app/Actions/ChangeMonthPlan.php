@@ -53,9 +53,9 @@ class ChangeMonthPlan
                     $plan->update(['current_set_aside_minor_units' => $setAsideMinorUnits]);
                 }
 
-                $items = $plan->items()->get()->keyBy('category_id');
+                $items = $plan->items()->get()->keyBy('budget_line_id');
 
-                $allowedIds = $budget->categories()
+                $allowedIds = $budget->budgetLines()
                     ->whereNull('archived_at')
                     ->pluck('id')
                     ->merge($items->keys())
@@ -82,7 +82,7 @@ class ChangeMonthPlan
                     if ($amount > 0) {
                         $joining[] = [
                             'month_plan_id' => $plan->id,
-                            'category_id' => $categoryId,
+                            'budget_line_id' => $categoryId,
                             'approved_amount_minor_units' => 0,
                             'current_amount_minor_units' => $amount,
                             'created_at' => $now,

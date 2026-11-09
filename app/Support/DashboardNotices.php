@@ -163,7 +163,7 @@ class DashboardNotices
         }
 
         if ($budget !== null && $budget->isExecution() && $today->year === $budget->year) {
-            $expenseCategories = $budget->categories()
+            $expenseCategories = $budget->budgetLines()
                 ->where('type', CategoryType::Expense)
                 ->ordered()
                 ->get();

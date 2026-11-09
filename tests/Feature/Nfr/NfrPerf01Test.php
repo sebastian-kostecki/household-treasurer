@@ -6,7 +6,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +89,7 @@ class NfrPerf01Test extends TestCase
      * @return array{
      *     user: User,
      *     account: Account,
-     *     expenseCategory: Category,
+     *     expenseCategory: BudgetLine,
      * }
      */
     private function seedPerformanceDataset(): array
@@ -107,8 +107,8 @@ class NfrPerf01Test extends TestCase
             'phase' => BudgetPhase::Execution,
         ]);
 
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 5_000_000,
             'execution_minor_units' => 0,
         ]);
@@ -145,7 +145,7 @@ class NfrPerf01Test extends TestCase
     private function insertFinancialOperations(
         User $user,
         Account $account,
-        Category $category,
+        BudgetLine $category,
         Budget $budget,
         int $count,
     ): void {

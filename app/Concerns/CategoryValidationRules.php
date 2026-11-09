@@ -4,7 +4,7 @@ namespace App\Concerns;
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Support\Categories\CategoryColors;
 use App\Support\Categories\CategoryIcons;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -37,7 +37,7 @@ trait CategoryValidationRules
         return $this->storeCategoryRules();
     }
 
-    protected function withPacedFlagValidation(Validator $validator, ?Category $category = null): void
+    protected function withPacedFlagValidation(Validator $validator, ?BudgetLine $category = null): void
     {
         $validator->after(function (Validator $validator) use ($category): void {
             if (! array_key_exists('is_paced', $this->all())) {
@@ -58,7 +58,7 @@ trait CategoryValidationRules
         });
     }
 
-    protected function withMonthItemKindValidation(Validator $validator, ?Category $category = null): void
+    protected function withMonthItemKindValidation(Validator $validator, ?BudgetLine $category = null): void
     {
         $validator->after(function (Validator $validator) use ($category): void {
             if (! array_key_exists('month_item_kind', $this->all())) {

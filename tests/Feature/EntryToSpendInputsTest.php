@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -75,7 +75,7 @@ class EntryToSpendInputsTest extends TestCase
         ]);
         MonthPlanItem::factory()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $food->id,
+            'budget_line_id' => $food->id,
             'approved_amount_minor_units' => 7_000,
             'current_amount_minor_units' => 7_000,
         ]);
@@ -112,7 +112,7 @@ class EntryToSpendInputsTest extends TestCase
     {
         $budget = $this->budget(2026);
         $food = $this->food($budget);
-        $oneOff = Category::factory()->for($budget)->oneOff()->create();
+        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create();
         $this->approve($budget, 11, [$food->id => 5_000]);
         $this->operation($budget, $oneOff, '2026-11-03', 2_000);
 
@@ -127,9 +127,9 @@ class EntryToSpendInputsTest extends TestCase
     public function test_categories_include_archived_ones_and_income_has_no_kind(): void
     {
         $budget = $this->budget(2026);
-        $bill = Category::factory()->for($budget)->bill()->create();
-        $archived = Category::factory()->for($budget)->expense()->archived()->create();
-        $salary = Category::factory()->for($budget)->income()->create();
+        $bill = BudgetLine::factory()->for($budget)->bill()->create();
+        $archived = BudgetLine::factory()->for($budget)->expense()->archived()->create();
+        $salary = BudgetLine::factory()->for($budget)->income()->create();
 
         $categories = EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['budgets'][0]['categories'];
         $byId = array_column($categories, null, 'id');
@@ -196,20 +196,20 @@ class EntryToSpendInputsTest extends TestCase
         return Budget::factory()->for($this->user)->execution()->create(['year' => $year]);
     }
 
-    private function food(Budget $budget): Category
+    private function food(Budget $budget): BudgetLine
     {
-        return Category::factory()->for($budget)->expense()->create([
+        return BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Jedzenie',
             'planned_amount_minor_units' => 100_001,
         ]);
     }
 
-    private function operation(Budget $budget, Category $category, string $date, int $amount): void
+    private function operation(Budget $budget, BudgetLine $category, string $date, int $amount): void
     {
         FinancialOperation::factory()->for($this->user)->for($budget)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $this->account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,
         ]);
@@ -225,7 +225,7 @@ class EntryToSpendInputsTest extends TestCase
         foreach ($amounts as $categoryId => $amount) {
             MonthPlanItem::factory()->create([
                 'month_plan_id' => $plan->id,
-                'category_id' => $categoryId,
+                'budget_line_id' => $categoryId,
                 'approved_amount_minor_units' => $amount,
                 'current_amount_minor_units' => $amount,
             ]);

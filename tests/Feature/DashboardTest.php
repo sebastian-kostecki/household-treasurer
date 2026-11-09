@@ -9,7 +9,7 @@ use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -239,13 +239,13 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Food',
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 80000,
@@ -288,7 +288,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Bonus',
             'planned_amount_minor_units' => 120000,
             'initial_plan_minor_units' => 0,
@@ -311,7 +311,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Misc',
             'planned_amount_minor_units' => 0,
             'initial_plan_minor_units' => 0,
@@ -335,25 +335,25 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->archived()->create([
+        BudgetLine::factory()->for($budget)->income()->archived()->create([
             'name' => 'Old income',
             'planned_amount_minor_units' => 200000,
             'initial_plan_minor_units' => 200000,
             'execution_minor_units' => 50000,
         ]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Active income',
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 100000,
             'execution_minor_units' => 25000,
         ]);
-        Category::factory()->for($budget)->expense()->archived()->create([
+        BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'name' => 'Old category',
             'planned_amount_minor_units' => 50000,
             'initial_plan_minor_units' => 50000,
             'execution_minor_units' => 10000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Active category',
             'planned_amount_minor_units' => 30000,
             'initial_plan_minor_units' => 30000,
@@ -383,11 +383,11 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->archived()->create([
+        BudgetLine::factory()->for($budget)->income()->archived()->create([
             'planned_amount_minor_units' => 100000,
             'execution_minor_units' => 50000,
         ]);
-        Category::factory()->for($budget)->expense()->archived()->create([
+        BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'planned_amount_minor_units' => 80000,
             'execution_minor_units' => 20000,
         ]);
@@ -413,7 +413,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100_000,
         ]);
 
@@ -436,10 +436,10 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 300000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 450000,
         ]);
 
@@ -460,11 +460,11 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 400000,
             'initial_plan_minor_units' => 0,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 250000,
             'initial_plan_minor_units' => 0,
         ]);
@@ -491,7 +491,7 @@ class DashboardTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Food',
             'planned_amount_minor_units' => 50000,
             'initial_plan_minor_units' => 50000,
@@ -538,7 +538,7 @@ class DashboardTest extends TestCase
         ]);
 
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'My income',
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 100000,
@@ -546,7 +546,7 @@ class DashboardTest extends TestCase
         ]);
 
         $otherBudget = Budget::factory()->for($otherUser)->execution()->create(['year' => 2026]);
-        Category::factory()->for($otherBudget)->income()->create([
+        BudgetLine::factory()->for($otherBudget)->income()->create([
             'name' => 'Their income',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
@@ -574,7 +574,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->withDismissedFirstRunChecklist()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Account::factory()->for($user)->create();
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->get(route('dashboard'))
@@ -602,7 +602,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         Account::factory()->for($user)->create();
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->post(route('dashboard.first-run-checklist.dismiss'))
@@ -637,11 +637,11 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         Budget::factory()->for($user)->execution()->create(['year' => 2025]);
         $currentYearBudget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($currentYearBudget)->expense()->create([
+        BudgetLine::factory()->for($currentYearBudget)->expense()->create([
             'name' => 'Groceries',
             'planned_amount_minor_units' => 120_000,
         ]);
-        Category::factory()->for($currentYearBudget)->income()->create([
+        BudgetLine::factory()->for($currentYearBudget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 500_000,
         ]);
@@ -688,10 +688,10 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 400_000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 250_000,
         ]);
 
@@ -719,14 +719,14 @@ class DashboardTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $groceries->id,
+            'budget_line_id' => $groceries->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-09-10',
             'amount_minor_units' => 40_000,
@@ -752,7 +752,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -773,7 +773,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->oneOff()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -792,7 +792,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->oneOff()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -814,13 +814,13 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500_000,
         ]);
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 9]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $salary->id,
+            'budget_line_id' => $salary->id,
             'approved_amount_minor_units' => 500_000,
             'current_amount_minor_units' => 500_000,
         ]);
@@ -840,7 +840,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Insurance',
             'planned_amount_minor_units' => 50_000,
         ]);
@@ -861,7 +861,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->withDismissedFirstRunChecklist()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $account = Account::factory()->for($user)->create();
-        Category::factory()->for($budget)->create();
+        BudgetLine::factory()->for($budget)->create();
 
         $this->actingAs($user)
             ->get(route('dashboard'))
@@ -896,11 +896,11 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'icon' => 'shopping-cart',
             'color' => '#fa5252',
@@ -977,23 +977,23 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'icon' => 'shopping-cart',
             'color' => '#fa5252',
             'sort_order' => 2,
         ]);
-        $rent = Category::factory()->for($budget)->bill()->create([
+        $rent = BudgetLine::factory()->for($budget)->bill()->create([
             'name' => 'Rent',
             'icon' => 'home',
             'color' => '#228be6',
             'sort_order' => 3,
         ]);
-        $utilities = Category::factory()->for($budget)->expense()->create([
+        $utilities = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Utilities',
             'sort_order' => 4,
         ]);
@@ -1056,11 +1056,11 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $insurance = Category::factory()->for($budget)->oneOff()->create([
+        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Insurance',
             'icon' => 'shield',
             'color' => '#228be6',
@@ -1110,11 +1110,11 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $old = Category::factory()->for($budget)->expense()->archived()->create([
+        $old = BudgetLine::factory()->for($budget)->expense()->archived()->create([
             'name' => 'Old category',
             'sort_order' => 2,
         ]);
@@ -1142,19 +1142,19 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $laterTie = Category::factory()->for($budget)->expense()->create([
+        $laterTie = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Later tie',
             'sort_order' => 3,
         ]);
-        $worse = Category::factory()->for($budget)->expense()->create([
+        $worse = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Worse',
             'sort_order' => 2,
         ]);
-        $earlierTie = Category::factory()->for($budget)->expense()->create([
+        $earlierTie = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Earlier tie',
             'sort_order' => 1,
         ]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 4,
         ]);
@@ -1191,12 +1191,12 @@ class DashboardTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'planned_amount_minor_units' => 2_400_000,
             'sort_order' => 1,
         ]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'planned_amount_minor_units' => 1_200_000,
             'sort_order' => 2,
@@ -1247,15 +1247,15 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'sort_order' => 2,
         ]);
-        $fuel = Category::factory()->for($budget)->expense()->create([
+        $fuel = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Fuel',
             'sort_order' => 3,
         ]);
@@ -1297,7 +1297,7 @@ class DashboardTest extends TestCase
 
         MonthPlanItem::query()
             ->where('month_plan_id', $plan->id)
-            ->whereIn('category_id', [$groceries->id, $fuel->id])
+            ->whereIn('budget_line_id', [$groceries->id, $fuel->id])
             ->update(['current_amount_minor_units' => 0]);
 
         $this->actingAs($user)
@@ -1318,7 +1318,7 @@ class DashboardTest extends TestCase
             'name' => 'Overdrawn',
         ]);
         $draftBudget = Budget::factory()->for($draftUser)->create(['year' => 2026]);
-        Category::factory()->for($draftBudget)->expense()->create([
+        BudgetLine::factory()->for($draftBudget)->expense()->create([
             'planned_amount_minor_units' => 120_000,
             'execution_minor_units' => 150_000,
         ]);
@@ -1338,7 +1338,7 @@ class DashboardTest extends TestCase
             'name' => 'Negative lokata',
         ]);
         $pastBudget = Budget::factory()->for($otherYearUser)->execution()->create(['year' => 2025]);
-        $groceries = Category::factory()->for($pastBudget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($pastBudget)->expense()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
         $this->recordOperation($otherYearUser, $account, $pastBudget, $groceries, '2025-09-10', 400_000);
@@ -1392,7 +1392,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $insurance = Category::factory()->for($budget)->oneOff()->create([
+        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Insurance',
             'icon' => 'shield',
             'color' => '#228be6',
@@ -1429,11 +1429,11 @@ class DashboardTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $salary = Category::factory()->for($budget)->income()->create([
+        $salary = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $rent = Category::factory()->for($budget)->bill()->create([
+        $rent = BudgetLine::factory()->for($budget)->bill()->create([
             'name' => 'Rent',
             'planned_amount_minor_units' => 120_000,
             'execution_minor_units' => 150_000,
@@ -1470,12 +1470,12 @@ class DashboardTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'planned_amount_minor_units' => 1_200_000,
             'sort_order' => 1,
         ]);
-        $oneOff = Category::factory()->for($budget)->oneOff()->create([
+        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Insurance',
             'planned_amount_minor_units' => 50_000,
             'execution_minor_units' => 80_000,
@@ -1520,7 +1520,7 @@ class DashboardTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $groceries = Category::factory()->for($budget)->expense()->create([
+        $groceries = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
         ]);
         Budget::factory()->for($user)->execution()->create(['year' => 2025]);
@@ -1528,7 +1528,7 @@ class DashboardTest extends TestCase
         $operation = FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $groceries->id,
+            'budget_line_id' => $groceries->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-09-10',
             'amount_minor_units' => 10_000,
@@ -1555,28 +1555,28 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'sort_order' => 1,
             'planned_amount_minor_units' => 100_000,
             'initial_plan_minor_units' => 100_000,
             'execution_minor_units' => 10_000,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Rent',
             'sort_order' => 2,
             'planned_amount_minor_units' => 10_000,
             'initial_plan_minor_units' => 10_000,
             'execution_minor_units' => 50_000,
         ]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 1,
             'planned_amount_minor_units' => 100_000,
             'initial_plan_minor_units' => 100_000,
             'execution_minor_units' => 10_000,
         ]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Bonus',
             'sort_order' => 2,
             'planned_amount_minor_units' => 10_000,
@@ -1605,7 +1605,7 @@ class DashboardTest extends TestCase
         foreach ($amounts as $categoryId => $amount) {
             MonthPlanItem::query()->create([
                 'month_plan_id' => $plan->id,
-                'category_id' => $categoryId,
+                'budget_line_id' => $categoryId,
                 'approved_amount_minor_units' => $amount,
                 'current_amount_minor_units' => $amount,
             ]);
@@ -1618,7 +1618,7 @@ class DashboardTest extends TestCase
         User $user,
         Account $account,
         Budget $budget,
-        Category $category,
+        BudgetLine $category,
         string $date,
         int $amount,
     ): FinancialOperation {
@@ -1627,7 +1627,7 @@ class DashboardTest extends TestCase
                 ? FinancialOperationType::Income
                 : FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,

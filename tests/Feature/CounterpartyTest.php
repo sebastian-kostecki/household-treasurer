@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -201,7 +201,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $operation = FinancialOperation::factory()
             ->for($user)
@@ -261,7 +261,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()
             ->for($user)
@@ -308,7 +308,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()
             ->for($owner)
@@ -412,7 +412,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $operation = FinancialOperation::factory()
             ->for($owner)
@@ -442,7 +442,7 @@ class CounterpartyTest extends TestCase
     }
 
     /**
-     * @return array{0: User, 1: Account, 2: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine}
      */
     private function createIncomeFixture(): array
     {
@@ -451,13 +451,13 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         return [$user, $account, $category];
     }
 
     /**
-     * @return array{0: User, 1: Account, 2: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine}
      */
     private function createExpenseFixture(): array
     {
@@ -468,7 +468,7 @@ class CounterpartyTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);

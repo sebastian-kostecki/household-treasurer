@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +131,7 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = Category::query()
+            $category = BudgetLine::query()
                 ->with('budget')
                 ->whereKey($validated['category_id'])
                 ->whereNull('archived_at')
@@ -141,7 +141,7 @@ class ManageFinancialOperation
             $operation = $user->financialOperations()->create([
                 'type' => $type,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $category->budget_id,
                 'operation_date' => $validated['operation_date'],
                 'amount_minor_units' => $validated['amount_minor_units'],
@@ -185,7 +185,7 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = Category::query()
+            $category = BudgetLine::query()
                 ->with('budget')
                 ->whereKey($validated['category_id'])
                 ->whereNull('archived_at')
@@ -195,7 +195,7 @@ class ManageFinancialOperation
             $operation->update([
                 'type' => $expectedType,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $category->budget_id,
                 'operation_date' => $validated['operation_date'],
                 'amount_minor_units' => $validated['amount_minor_units'],
@@ -216,8 +216,8 @@ class ManageFinancialOperation
             ->lockForUpdate()
             ->firstOrFail();
 
-        $category = Category::query()
-            ->whereKey($operation->category_id)
+        $category = BudgetLine::query()
+            ->whereKey($operation->budget_line_id)
             ->lockForUpdate()
             ->firstOrFail();
 
@@ -233,7 +233,7 @@ class ManageFinancialOperation
     private function applyEffect(
         FinancialOperationType $type,
         Account $account,
-        Category $category,
+        BudgetLine $category,
         int $amountMinorUnits,
     ): void {
         if ($type === FinancialOperationType::Income) {

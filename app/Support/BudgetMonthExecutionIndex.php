@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Enums\FinancialOperationType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use Illuminate\Support\Collection;
 
@@ -16,7 +16,7 @@ class BudgetMonthExecutionIndex
     private array $executionByCategoryAndMonth = [];
 
     /**
-     * @param  Collection<int, Category>  $expenseCategories
+     * @param  Collection<int, BudgetLine>  $expenseCategories
      */
     public function __construct(
         private readonly Collection $expenseCategories,
@@ -27,7 +27,7 @@ class BudgetMonthExecutionIndex
     }
 
     /**
-     * @param  Collection<int, Category>  $expenseCategories
+     * @param  Collection<int, BudgetLine>  $expenseCategories
      */
     public static function forBudget(Budget $budget, Collection $expenseCategories): self
     {
@@ -51,21 +51,21 @@ class BudgetMonthExecutionIndex
     }
 
     /**
-     * @param  Collection<int, Category>  $pacedCategories
+     * @param  Collection<int, BudgetLine>  $pacedCategories
      */
     public function pacedExecutionInMonth(Collection $pacedCategories, int $month): int
     {
         return $pacedCategories
-            ->sum(fn (Category $category): int => $this->executionInMonth($category->id, $month));
+            ->sum(fn (BudgetLine $category): int => $this->executionInMonth($category->id, $month));
     }
 
     /**
-     * @param  Collection<int, Category>  $pacedCategories
+     * @param  Collection<int, BudgetLine>  $pacedCategories
      */
     public function pacedExecutionBeforeMonth(Collection $pacedCategories, int $month): int
     {
         return $pacedCategories
-            ->sum(fn (Category $category): int => $this->executionBeforeMonth($category->id, $month));
+            ->sum(fn (BudgetLine $category): int => $this->executionBeforeMonth($category->id, $month));
     }
 
     private function buildIndex(): void
@@ -79,13 +79,13 @@ class BudgetMonthExecutionIndex
         $operations = FinancialOperation::query()
             ->where('budget_id', $this->budgetId)
             ->where('type', FinancialOperationType::Expense)
-            ->whereIn('category_id', $categoryIds)
+            ->whereIn('budget_line_id', $categoryIds)
             ->whereYear('operation_date', $this->budgetYear)
-            ->get(['category_id', 'operation_date', 'amount_minor_units']);
+            ->get(['budget_line_id', 'operation_date', 'amount_minor_units']);
 
         foreach ($operations as $operation) {
             $month = $operation->operation_date->month;
-            $categoryId = $operation->category_id;
+            $categoryId = $operation->budget_line_id;
 
             $this->executionByCategoryAndMonth[$categoryId][$month] = ($this->executionByCategoryAndMonth[$categoryId][$month] ?? 0)
                 + $operation->amount_minor_units;

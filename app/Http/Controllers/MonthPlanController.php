@@ -8,7 +8,7 @@ use App\Enums\CategoryType;
 use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
@@ -169,14 +169,14 @@ class MonthPlanController extends Controller
         if ($canChange) {
             $knownIds = $categories->pluck('id')->all();
 
-            $joinCandidateIds = $budget->categories
+            $joinCandidateIds = $budget->budgetLines
                 ->whereNull('archived_at')
                 ->whereNotIn('id', $knownIds)
                 ->pluck('id')
                 ->all();
 
             if ($joinCandidateIds !== []) {
-                $categories = $budget->categories()
+                $categories = $budget->budgetLines()
                     ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
                     ->ordered()
                     ->get();
@@ -267,7 +267,7 @@ class MonthPlanController extends Controller
      *     year_comparison: YearComparison|null,
      * }
      */
-    private function itemRow(Category $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
+    private function itemRow(BudgetLine $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
     {
         $isExpense = $category->type === CategoryType::Expense;
         $isOneOff = $isExpense && ! $category->is_paced;

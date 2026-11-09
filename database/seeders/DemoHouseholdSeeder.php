@@ -12,6 +12,7 @@ use App\Enums\Bank;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Models\Account;
+use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
@@ -71,9 +72,9 @@ class DemoHouseholdSeeder extends Seeder
 
         $budget = app(CreateBudget::class)->handle($user, $year);
 
-        $categories = $this->createCategories($budget->id);
+        $categories = $this->createCategories($user, $budget->id);
 
-        app(StartBudgetExecution::class)->handle($budget->fresh(['categories']));
+        app(StartBudgetExecution::class)->handle($budget->fresh(['budgetLines']));
 
         $operations = app(ManageFinancialOperation::class);
         $ownTransfers = app(ManageOwnTransfer::class);
@@ -244,9 +245,9 @@ class DemoHouseholdSeeder extends Seeder
     }
 
     /**
-     * @return array<string, Category>
+     * @return array<string, BudgetLine>
      */
-    private function createCategories(int $budgetId): array
+    private function createCategories(User $user, int $budgetId): array
     {
         $definitions = [
             ['name' => 'Pensja', 'type' => CategoryType::Income, 'icon' => 'briefcase', 'color' => '#10b981', 'planned_amount_minor_units' => 10_200_000],
@@ -262,8 +263,18 @@ class DemoHouseholdSeeder extends Seeder
         $categories = [];
 
         foreach ($definitions as $index => $definition) {
-            $categories[$definition['name']] = Category::query()->create([
+            $category = Category::query()->create([
+                'user_id' => $user->id,
+                'name' => $definition['name'],
+                'icon' => $definition['icon'],
+                'color' => $definition['color'],
+                'sort_order' => $index,
+                'type' => $definition['type'],
+            ]);
+
+            $categories[$definition['name']] = BudgetLine::query()->create([
                 'budget_id' => $budgetId,
+                'category_id' => $category->id,
                 'name' => $definition['name'],
                 'icon' => $definition['icon'],
                 'color' => $definition['color'],

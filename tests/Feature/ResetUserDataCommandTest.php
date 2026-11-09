@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -28,11 +28,11 @@ class ResetUserDataCommandTest extends TestCase
 
         $account = Account::factory()->for($user)->create();
         $budget = Budget::factory()->for($user)->create();
-        $category = Category::factory()->for($budget)->create();
+        $category = BudgetLine::factory()->for($budget)->create();
         $operation = FinancialOperation::factory()->for($user)->create([
             'account_id' => $account->id,
             'budget_id' => $budget->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
         ]);
         $ownTransfer = OwnTransfer::factory()->for($user)->create([
             'source_account_id' => $account->id,
@@ -46,6 +46,7 @@ class ResetUserDataCommandTest extends TestCase
 
         $otherAccount = Account::factory()->for($otherUser)->create();
         $otherBudget = Budget::factory()->for($otherUser)->create();
+        $otherLine = BudgetLine::factory()->for($otherBudget)->create();
 
         DB::table('sessions')->insert([
             'id' => 'session-for-target-user',
@@ -68,7 +69,9 @@ class ResetUserDataCommandTest extends TestCase
         $this->assertDatabaseMissing('own_transfers', ['id' => $ownTransfer->id]);
         $this->assertDatabaseMissing('capital_movements', ['id' => $capitalMovement->id]);
         $this->assertDatabaseMissing('term_deposits', ['id' => $termDeposit->id]);
-        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('budget_lines', ['id' => $category->id]);
+        $this->assertDatabaseMissing('categories', ['user_id' => $user->id]);
+        $this->assertDatabaseHas('categories', ['id' => $otherLine->category_id]);
         $this->assertDatabaseMissing('budgets', ['id' => $budget->id]);
         $this->assertDatabaseMissing('accounts', ['id' => $account->id]);
         $this->assertDatabaseMissing('sessions', ['id' => 'session-for-target-user']);

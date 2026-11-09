@@ -5,7 +5,7 @@ namespace App\Support;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\MonthPlan;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -19,9 +19,9 @@ class MonthPlanProposal
 
     /**
      * @param  array<int, MonthPlan>  $plansByMonth
-     * @param  Collection<int, Category>  $categories
+     * @param  Collection<int, BudgetLine>  $categories
      * @param  array<int, MonthPlan>|null  $previousPlansByMonth
-     * @param  Collection<int, Category>|null  $previousCategories
+     * @param  Collection<int, BudgetLine>|null  $previousCategories
      */
     private function __construct(
         private readonly Budget $budget,
@@ -39,23 +39,23 @@ class MonthPlanProposal
      */
     public static function forBudget(Budget $budget, CarbonImmutable $today): self
     {
-        $budget->load(['monthPlans.items', 'categories']);
+        $budget->load(['monthPlans.items', 'budgetLines']);
 
         $previousBudget = Budget::query()
             ->where('user_id', $budget->user_id)
             ->where('year', $budget->year - 1)
             ->where('phase', BudgetPhase::Execution)
-            ->with(['monthPlans.items', 'categories'])
+            ->with(['monthPlans.items', 'budgetLines'])
             ->first();
 
         return new self(
             $budget,
             $today,
             $budget->monthPlans->keyBy('month')->all(),
-            $budget->categories->keyBy('id'),
+            $budget->budgetLines->keyBy('id'),
             $previousBudget,
             $previousBudget?->monthPlans->keyBy('month')->all(),
-            $previousBudget?->categories->keyBy('id'),
+            $previousBudget?->budgetLines->keyBy('id'),
         );
     }
 
@@ -121,8 +121,8 @@ class MonthPlanProposal
             $approvedAmounts = [];
 
             foreach ($plan->items as $item) {
-                $amounts[$item->category_id] = $item->current_amount_minor_units;
-                $approvedAmounts[$item->category_id] = $item->approved_amount_minor_units;
+                $amounts[$item->budget_line_id] = $item->current_amount_minor_units;
+                $approvedAmounts[$item->budget_line_id] = $item->approved_amount_minor_units;
             }
 
             return new MonthPlanReading('approved', $plan->approved_at, $amounts, $plan->current_set_aside_minor_units, $approvedAmounts, $plan->approved_set_aside_minor_units);
@@ -169,7 +169,7 @@ class MonthPlanProposal
         return $source->state === 'none' ? null : $source;
     }
 
-    private function proposedAmount(Category $category, int $month, ?MonthPlanReading $source): int
+    private function proposedAmount(BudgetLine $category, int $month, ?MonthPlanReading $source): int
     {
         if ($category->type === CategoryType::Expense && ! $category->is_paced) {
             return 0;
@@ -192,13 +192,13 @@ class MonthPlanProposal
         return $source->amounts[$matched->id] ?? 0;
     }
 
-    private function matchPreviousCategory(Category $category): ?Category
+    private function matchPreviousCategory(BudgetLine $category): ?BudgetLine
     {
         $candidates = ($this->previousCategories ?? collect())
-            ->filter(fn (Category $candidate): bool => $candidate->name === $category->name
+            ->filter(fn (BudgetLine $candidate): bool => $candidate->name === $category->name
                 && $candidate->type === $category->type);
 
-        $active = $candidates->filter(fn (Category $candidate): bool => $candidate->archived_at === null);
+        $active = $candidates->filter(fn (BudgetLine $candidate): bool => $candidate->archived_at === null);
 
         if ($active->count() === 1) {
             return $active->first();

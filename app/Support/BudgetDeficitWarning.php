@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 class BudgetDeficitWarning
 {
     /**
-     * @param  Collection<int, Category>  $categories
+     * @param  Collection<int, BudgetLine>  $categories
      * @return array{
      *     planned_deficit_minor_units: int,
      *     liquidity_at_year_start_minor_units: int,

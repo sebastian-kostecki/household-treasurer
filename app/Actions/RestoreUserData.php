@@ -9,10 +9,13 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Enums\MonthItemKind;
+use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\User;
+use App\Support\CategoryList\LegacyCategoryConversion;
 use App\Support\UserSnapshot\UserSnapshotException;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -30,7 +33,7 @@ class RestoreUserData
             $accountIdMap = $this->restoreAccounts($targetUser, $snapshot['accounts']);
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
-            $categoryIdMap = $this->restoreCategories($snapshot['categories'], $budgetIdMap);
+            $categoryIdMap = $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
             $this->restoreMonthPlans($snapshot['month_plans'] ?? [], $budgetIdMap, $categoryIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
             $this->restoreOwnTransfers($targetUser, $snapshot['own_transfers'], $accountIdMap);
@@ -180,12 +183,19 @@ class RestoreUserData
     }
 
     /**
+     * Snapshots 1 to 5 hold the old per-Budget Category records (now Budget
+     * Lines). The User's Category list is made from them by the same class as
+     * the data migration (ADR-0063, steps (a) to (d)), then the lines are
+     * restored pointing at it.
+     *
+     * @param  list<array<string, mixed>>  $budgets
      * @param  list<array<string, mixed>>  $categories
      * @param  array<int, int>  $budgetIdMap
      * @return array<int, int>
      */
-    private function restoreCategories(array $categories, array $budgetIdMap): array
+    private function restoreCategories(User $targetUser, array $budgets, array $categories, array $budgetIdMap): array
     {
+        $listCategoryIds = $this->restoreCategoryList($targetUser, $budgets, $categories, $budgetIdMap);
         $categoryIdMap = [];
 
         foreach ($categories as $categoryData) {
@@ -195,8 +205,9 @@ class RestoreUserData
                 throw new UserSnapshotException("Snapshot references unknown budget id {$categoryData['budget_id']}.");
             }
 
-            $category = Category::query()->create([
+            $category = BudgetLine::query()->create([
                 'budget_id' => $budgetId,
+                'category_id' => $listCategoryIds[$categoryData['id']],
                 'name' => $categoryData['name'],
                 'icon' => $categoryData['icon'],
                 'color' => $categoryData['color'],
@@ -216,6 +227,75 @@ class RestoreUserData
         }
 
         return $categoryIdMap;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $budgets
+     * @param  list<array<string, mixed>>  $categories
+     * @param  array<int, int>  $budgetIdMap
+     * @return array<int, int> snapshot Budget Line id => id of its list Category
+     */
+    private function restoreCategoryList(User $targetUser, array $budgets, array $categories, array $budgetIdMap): array
+    {
+        foreach ($categories as $categoryData) {
+            if (! isset($budgetIdMap[$categoryData['budget_id']])) {
+                throw new UserSnapshotException("Snapshot references unknown budget id {$categoryData['budget_id']}.");
+            }
+        }
+
+        $conversion = LegacyCategoryConversion::convert(
+            array_map(fn (array $budget): array => [
+                'id' => (int) $budget['id'],
+                'year' => (int) $budget['year'],
+                'phase' => (string) $budget['phase'],
+            ], $budgets),
+            array_map(fn (array $category): array => [
+                'id' => (int) $category['id'],
+                'budget_id' => (int) $category['budget_id'],
+                'name' => (string) $category['name'],
+                'icon' => (string) $category['icon'],
+                'color' => (string) $category['color'],
+                'sort_order' => (int) $category['sort_order'],
+                'type' => (string) $category['type'],
+                'archived_at' => isset($category['archived_at']) ? (string) $category['archived_at'] : null,
+            ], $categories),
+            CarbonImmutable::now(),
+        );
+
+        $now = now();
+
+        Category::query()->insert(array_map(fn (array $category): array => [
+            'user_id' => $targetUser->id,
+            'name' => $category['name'],
+            'name_key' => $category['name_key'],
+            'icon' => $category['icon'],
+            'color' => $category['color'],
+            'sort_order' => $category['sort_order'],
+            'type' => $category['type'],
+            'archived_at' => $category['archived_at']?->format('Y-m-d H:i:s'),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $conversion['categories']));
+
+        $idsByKey = [];
+
+        foreach ($targetUser->categories()->get(['id', 'type', 'name_key']) as $listCategory) {
+            $idsByKey[$listCategory->type->value."\0".$listCategory->name_key] = $listCategory->id;
+        }
+
+        $listIds = [];
+
+        foreach ($conversion['categories'] as $category) {
+            $listIds[$category['key']] = $idsByKey[$category['type']."\0".$category['name_key']];
+        }
+
+        $lineCategoryIds = [];
+
+        foreach ($conversion['lineCategory'] as $lineId => $key) {
+            $lineCategoryIds[$lineId] = $listIds[$key];
+        }
+
+        return $lineCategoryIds;
     }
 
     /**
@@ -277,12 +357,12 @@ class RestoreUserData
 
                 $seenCategories[$categoryId] = true;
 
-                if (Category::query()->whereKey($categoryId)->value('budget_id') !== $budgetId) {
+                if (BudgetLine::query()->whereKey($categoryId)->value('budget_id') !== $budgetId) {
                     throw new UserSnapshotException('Snapshot month plan item references a category of another budget.');
                 }
 
                 $monthPlan->items()->create([
-                    'category_id' => $categoryId,
+                    'budget_line_id' => $categoryId,
                     'approved_amount_minor_units' => $itemData['approved_amount_minor_units'],
                     'current_amount_minor_units' => $itemData['current_amount_minor_units'],
                 ]);
@@ -315,7 +395,7 @@ class RestoreUserData
             $targetUser->financialOperations()->create([
                 'type' => FinancialOperationType::from($operationData['type']),
                 'account_id' => $accountId,
-                'category_id' => $categoryId,
+                'budget_line_id' => $categoryId,
                 'budget_id' => $budgetId,
                 'operation_date' => $operationData['operation_date'],
                 'amount_minor_units' => $operationData['amount_minor_units'],

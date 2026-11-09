@@ -5,7 +5,7 @@ namespace App\Support;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
@@ -108,8 +108,8 @@ class EntryToSpendInputs
 
         return [
             'year' => $budget->year,
-            'categories' => array_values($budget->categories
-                ->map(fn (Category $category): array => [
+            'categories' => array_values($budget->budgetLines
+                ->map(fn (BudgetLine $category): array => [
                     'id' => $category->id,
                     'type' => $category->type->value,
                     'month_item_kind' => $category->type === CategoryType::Income

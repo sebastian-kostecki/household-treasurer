@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property int $user_id
  * @property FinancialOperationType $type
  * @property int $account_id
- * @property int $category_id
+ * @property int $budget_line_id
  * @property int $budget_id
  * @property Carbon $operation_date
  * @property int $amount_minor_units
@@ -33,7 +33,7 @@ use Illuminate\Support\Carbon;
     'user_id',
     'type',
     'account_id',
-    'category_id',
+    'budget_line_id',
     'budget_id',
     'operation_date',
     'amount_minor_units',
@@ -81,11 +81,11 @@ class FinancialOperation extends Model
     }
 
     /**
-     * @return BelongsTo<Category, $this>
+     * @return BelongsTo<BudgetLine, $this>
      */
-    public function category(): BelongsTo
+    public function budgetLine(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(BudgetLine::class);
     }
 
     /**

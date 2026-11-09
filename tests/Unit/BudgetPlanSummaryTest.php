@@ -3,7 +3,7 @@
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Support\BudgetPlanSummary;
 
 test('empty type totals use zeros and null percent complete', function () {
@@ -29,13 +29,13 @@ test('empty collection returns empty type totals', function () {
 test('for type sums initial plan current plan execution remaining and percent', function () {
     $budget = new Budget(['phase' => BudgetPhase::Execution]);
     $categories = collect([
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Income,
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]),
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Income,
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 100000,
@@ -55,13 +55,13 @@ test('for type sums initial plan current plan execution remaining and percent', 
 test('draft budget uses current plan as initial plan sum', function () {
     $budget = new Budget(['phase' => BudgetPhase::Draft]);
     $categories = collect([
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Income,
             'planned_amount_minor_units' => 300000,
             'initial_plan_minor_units' => 0,
             'execution_minor_units' => 0,
         ]),
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Expense,
             'planned_amount_minor_units' => 200000,
             'initial_plan_minor_units' => 0,
@@ -79,7 +79,7 @@ test('draft budget uses current plan as initial plan sum', function () {
 test('percent complete is null when section current plan is zero', function () {
     $budget = new Budget(['phase' => BudgetPhase::Execution]);
     $categories = collect([
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Expense,
             'planned_amount_minor_units' => 0,
             'initial_plan_minor_units' => 0,
@@ -93,13 +93,13 @@ test('percent complete is null when section current plan is zero', function () {
 test('planned balance is income current plan minus expense current plan', function () {
     $budget = new Budget(['phase' => BudgetPhase::Execution]);
     $categories = collect([
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Income,
             'planned_amount_minor_units' => 400000,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 0,
         ]),
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Expense,
             'planned_amount_minor_units' => 550000,
             'initial_plan_minor_units' => 500000,
@@ -113,13 +113,13 @@ test('planned balance is income current plan minus expense current plan', functi
 test('for type ignores categories of the other type', function () {
     $budget = new Budget(['phase' => BudgetPhase::Execution]);
     $categories = collect([
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Income,
             'planned_amount_minor_units' => 400000,
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 100000,
         ]),
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Expense,
             'planned_amount_minor_units' => 250000,
             'initial_plan_minor_units' => 250000,
@@ -134,13 +134,13 @@ test('for type ignores categories of the other type', function () {
 test('collection sums include every category passed in', function () {
     $budget = new Budget(['phase' => BudgetPhase::Execution]);
     $categories = collect([
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Expense,
             'planned_amount_minor_units' => 50000,
             'initial_plan_minor_units' => 50000,
             'execution_minor_units' => 10000,
         ]),
-        new Category([
+        new BudgetLine([
             'type' => CategoryType::Expense,
             'planned_amount_minor_units' => 30000,
             'initial_plan_minor_units' => 30000,

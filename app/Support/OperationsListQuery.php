@@ -139,7 +139,7 @@ class OperationsListQuery
         if ($this->categoryName !== null && $this->categoryType !== null) {
             $type = CategoryType::from($this->categoryType);
 
-            $query->whereHas('category', function (Builder $category) use ($type): void {
+            $query->whereHas('budgetLine', function (Builder $category) use ($type): void {
                 $category
                     ->where('name', $this->categoryName)
                     ->where('type', $type);

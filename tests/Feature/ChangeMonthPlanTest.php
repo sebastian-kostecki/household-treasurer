@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\ChangeMonthPlan;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
@@ -23,11 +23,11 @@ class ChangeMonthPlanTest extends TestCase
 
     private Budget $budget;
 
-    private Category $salary;
+    private BudgetLine $salary;
 
-    private Category $rent;
+    private BudgetLine $rent;
 
-    private Category $food;
+    private BudgetLine $food;
 
     protected function setUp(): void
     {
@@ -37,9 +37,9 @@ class ChangeMonthPlanTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->budget = Budget::factory()->for($this->user)->execution()->create(['year' => 2026]);
-        $this->salary = Category::factory()->for($this->budget)->income()->create(['name' => 'Pensja']);
-        $this->rent = Category::factory()->for($this->budget)->bill()->create(['name' => 'Czynsz']);
-        $this->food = Category::factory()->for($this->budget)->expense()->create(['name' => 'Jedzenie']);
+        $this->salary = BudgetLine::factory()->for($this->budget)->income()->create(['name' => 'Pensja']);
+        $this->rent = BudgetLine::factory()->for($this->budget)->bill()->create(['name' => 'Czynsz']);
+        $this->food = BudgetLine::factory()->for($this->budget)->expense()->create(['name' => 'Jedzenie']);
     }
 
     public function test_it_changes_current_amounts_and_joins_a_new_category(): void
@@ -49,7 +49,7 @@ class ChangeMonthPlanTest extends TestCase
             $this->rent->id => 100_000,
             $this->food->id => 150_000,
         ]);
-        $wedding = Category::factory()->for($this->budget)->expense()->create(['name' => 'Wesele']);
+        $wedding = BudgetLine::factory()->for($this->budget)->expense()->create(['name' => 'Wesele']);
 
         $this->change(6, [$this->food->id => 180_000, $wedding->id => 50_000]);
 
@@ -104,7 +104,7 @@ class ChangeMonthPlanTest extends TestCase
 
         $this->change(6, [$this->food->id => 0]);
 
-        $this->assertDatabaseMissing('month_plan_items', ['category_id' => $this->food->id]);
+        $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $this->food->id]);
         $this->actingAs($this->user)
             ->withSession(['budget_year' => 2026])
             ->get(route('month-plan', ['month' => 6]))
@@ -168,7 +168,7 @@ class ChangeMonthPlanTest extends TestCase
     public function test_it_rejects_a_category_of_another_budget_without_saving_anything(): void
     {
         $plan = $this->approvedPlan(6, [$this->food->id => 100]);
-        $foreign = Category::factory()->for(Budget::factory()->execution())->expense()->create();
+        $foreign = BudgetLine::factory()->for(Budget::factory()->execution())->expense()->create();
 
         $this->assertItemsError(fn () => $this->change(6, [$this->food->id => 5, $foreign->id => 1]));
         $this->assertItem($plan, $this->food, 100, 100);
@@ -177,10 +177,10 @@ class ChangeMonthPlanTest extends TestCase
     public function test_it_rejects_an_archived_category_without_an_item(): void
     {
         $this->approvedPlan(6, [$this->food->id => 100]);
-        $archived = Category::factory()->for($this->budget)->expense()->archived()->create();
+        $archived = BudgetLine::factory()->for($this->budget)->expense()->archived()->create();
 
         $this->assertItemsError(fn () => $this->change(6, [$archived->id => 10]));
-        $this->assertDatabaseMissing('month_plan_items', ['category_id' => $archived->id]);
+        $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $archived->id]);
     }
 
     public function test_route_changes_the_plan_and_redirects_to_the_month(): void
@@ -263,7 +263,7 @@ class ChangeMonthPlanTest extends TestCase
         foreach ($amounts as $categoryId => $amount) {
             MonthPlanItem::query()->create([
                 'month_plan_id' => $plan->id,
-                'category_id' => $categoryId,
+                'budget_line_id' => $categoryId,
                 'approved_amount_minor_units' => $amount,
                 'current_amount_minor_units' => $amount,
             ]);
@@ -285,11 +285,11 @@ class ChangeMonthPlanTest extends TestCase
         );
     }
 
-    private function assertItem(MonthPlan $plan, Category $category, int $approved, int $current): void
+    private function assertItem(MonthPlan $plan, BudgetLine $category, int $approved, int $current): void
     {
         $this->assertDatabaseHas('month_plan_items', [
             'month_plan_id' => $plan->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'approved_amount_minor_units' => $approved,
             'current_amount_minor_units' => $current,
         ]);
@@ -298,7 +298,7 @@ class ChangeMonthPlanTest extends TestCase
     private function currentSum(MonthPlan $plan, bool $income): int
     {
         return (int) $plan->items()
-            ->whereHas('category', fn ($query) => $query->where('type', $income ? 'income' : 'expense'))
+            ->whereHas('budgetLine', fn ($query) => $query->where('type', $income ? 'income' : 'expense'))
             ->sum('current_amount_minor_units');
     }
 

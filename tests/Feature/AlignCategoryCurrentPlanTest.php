@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -17,7 +17,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
             'execution_minor_units' => 320000,
@@ -39,7 +39,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 200000,
             'initial_plan_minor_units' => 200000,
             'execution_minor_units' => 75000,
@@ -61,7 +61,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 100000,
             'execution_minor_units' => 150000,
@@ -82,7 +82,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'initial_plan_minor_units' => 100000,
             'execution_minor_units' => -25000,
@@ -104,7 +104,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 100000,
         ]);
@@ -120,7 +120,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->archived()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->archived()->create([
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
             'execution_minor_units' => 100000,
@@ -138,7 +138,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
             'execution_minor_units' => 100000,
@@ -155,13 +155,13 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Open',
             'planned_amount_minor_units' => 500000,
             'initial_plan_minor_units' => 500000,
             'execution_minor_units' => 100000,
         ]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Closed',
             'planned_amount_minor_units' => 200000,
             'initial_plan_minor_units' => 200000,
@@ -184,7 +184,7 @@ class AlignCategoryCurrentPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create([
+        BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 100000,
         ]);

@@ -4,8 +4,8 @@ namespace App\Actions;
 
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\OwnTransfer;
@@ -46,7 +46,7 @@ class BackupUserData
                 ->get()
                 ->map(fn ($budget): array => $this->serializeBudget($budget))
                 ->all(),
-            'categories' => Category::query()
+            'categories' => BudgetLine::query()
                 ->whereIn('budget_id', $budgetIds)
                 ->orderBy('id')
                 ->get()
@@ -143,7 +143,7 @@ class BackupUserData
     /**
      * @return array<string, mixed>
      */
-    private function serializeCategory(Category $category): array
+    private function serializeCategory(BudgetLine $category): array
     {
         return [
             'id' => $category->id,
@@ -178,7 +178,7 @@ class BackupUserData
             'current_set_aside_minor_units' => $monthPlan->current_set_aside_minor_units,
             'items' => $monthPlan->items
                 ->map(fn ($item): array => [
-                    'category_id' => $item->category_id,
+                    'category_id' => $item->budget_line_id,
                     'approved_amount_minor_units' => $item->approved_amount_minor_units,
                     'current_amount_minor_units' => $item->current_amount_minor_units,
                 ])
@@ -195,7 +195,7 @@ class BackupUserData
             'id' => $operation->id,
             'type' => $operation->type->value,
             'account_id' => $operation->account_id,
-            'category_id' => $operation->category_id,
+            'category_id' => $operation->budget_line_id,
             'budget_id' => $operation->budget_id,
             'operation_date' => $operation->operation_date->toDateString(),
             'amount_minor_units' => $operation->amount_minor_units,

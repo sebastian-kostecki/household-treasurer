@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\ApproveMonthPlan;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\MonthPlan;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -23,8 +23,8 @@ class ApproveMonthPlanTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
-        $salary = Category::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 9_600_000]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
+        $salary = BudgetLine::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 9_600_000]);
 
         $plan = $this->approve($budget, 11, [$food->id => 9_000, $salary->id => 800_000]);
 
@@ -32,13 +32,13 @@ class ApproveMonthPlanTest extends TestCase
         $this->assertNotNull($plan->approved_at);
         $this->assertDatabaseHas('month_plan_items', [
             'month_plan_id' => $plan->id,
-            'category_id' => $food->id,
+            'budget_line_id' => $food->id,
             'approved_amount_minor_units' => 9_000,
             'current_amount_minor_units' => 9_000,
         ]);
         $this->assertDatabaseHas('month_plan_items', [
             'month_plan_id' => $plan->id,
-            'category_id' => $salary->id,
+            'budget_line_id' => $salary->id,
             'approved_amount_minor_units' => 800_000,
             'current_amount_minor_units' => 800_000,
         ]);
@@ -47,7 +47,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_stores_a_set_aside_in_both_columns(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $plan = $this->approve($budget, 11, [$food->id => 1], 50_000);
 
@@ -63,7 +63,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_stores_a_draw_in_both_columns(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $plan = $this->approve($budget, 11, [$food->id => 1], -30_000);
 
@@ -77,7 +77,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_does_not_change_the_annual_plan(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
 
         $this->approve($budget, 11, [$food->id => 9_000]);
 
@@ -87,7 +87,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_accepts_the_current_and_a_future_month(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->approve($budget, 11, [$food->id => 1]);
         $this->approve($budget, 12, [$food->id => 2]);
@@ -98,7 +98,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_rejects_a_month_while_the_previous_month_is_only_a_proposal(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->assertItemsError(fn () => $this->approve($budget, 12, [$food->id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
@@ -107,7 +107,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_rejects_a_past_month(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->assertItemsError(fn () => $this->approve($budget, 10, [$food->id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
@@ -123,13 +123,13 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_rejects_approving_the_same_month_twice(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->approve($budget, 11, [$food->id => 1]);
 
         $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->id => 5]));
         $this->assertDatabaseHas('month_plan_items', [
-            'category_id' => $food->id,
+            'budget_line_id' => $food->id,
             'approved_amount_minor_units' => 1,
         ]);
     }
@@ -137,7 +137,7 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_rejects_a_draft_budget(): void
     {
         $budget = Budget::factory()->for(User::factory())->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->expectException(AuthorizationException::class);
 
@@ -159,8 +159,8 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_rejects_an_incomplete_category_set(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
-        Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
@@ -169,8 +169,8 @@ class ApproveMonthPlanTest extends TestCase
     public function test_it_rejects_an_excess_category_set(): void
     {
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
-        $foreign = Category::factory()->for(Budget::factory()->execution())->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $foreign = BudgetLine::factory()->for(Budget::factory()->execution())->expense()->create();
 
         $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->id => 1, $foreign->id => 1]));
         $this->assertDatabaseCount('month_plan_items', 0);
@@ -182,8 +182,8 @@ class ApproveMonthPlanTest extends TestCase
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $otherBudget = Budget::factory()->for($otherUser)->execution()->create(['year' => 2026]);
-        $food = Category::factory()->for($budget)->expense()->create();
-        $otherFood = Category::factory()->for($otherBudget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $otherFood = BudgetLine::factory()->for($otherBudget)->expense()->create();
 
         $plan = $this->approve($budget, 11, [$food->id => 1]);
         $otherPlan = $this->approve($otherBudget, 11, [$otherFood->id => 1]);

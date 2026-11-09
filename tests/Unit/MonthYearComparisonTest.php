@@ -2,7 +2,7 @@
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Support\MonthYearComparison;
 
 function comparisonCategory(
@@ -10,8 +10,8 @@ function comparisonCategory(
     ?MonthItemKind $kind,
     int $annualPlan,
     int $execution,
-): Category {
-    return (new Category)->forceFill([
+): BudgetLine {
+    return (new BudgetLine)->forceFill([
         'type' => $type,
         'month_item_kind' => $kind ?? MonthItemKind::Running,
         'planned_amount_minor_units' => $annualPlan,

@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -34,12 +34,12 @@ class MonthSummaryTest extends TestCase
 
     public function test_totals_compare_approved_final_and_actual(): void
     {
-        $salary = Category::factory()->for($this->budget)->income()->create();
-        $rent = Category::factory()->for($this->budget)->bill()->create();
-        $food = Category::factory()->for($this->budget)->expense()->create();
-        $bill = Category::factory()->for($this->budget)->bill()->create();
-        $joinedLater = Category::factory()->for($this->budget)->expense()->create();
-        $outside = Category::factory()->for($this->budget)->expense()->create();
+        $salary = BudgetLine::factory()->for($this->budget)->income()->create();
+        $rent = BudgetLine::factory()->for($this->budget)->bill()->create();
+        $food = BudgetLine::factory()->for($this->budget)->expense()->create();
+        $bill = BudgetLine::factory()->for($this->budget)->bill()->create();
+        $joinedLater = BudgetLine::factory()->for($this->budget)->expense()->create();
+        $outside = BudgetLine::factory()->for($this->budget)->expense()->create();
 
         $plan = MonthPlan::factory()->for($this->budget)->create(['month' => 3]);
         $this->item($plan, $salary, 500_000, 500_000);
@@ -75,7 +75,7 @@ class MonthSummaryTest extends TestCase
 
     public function test_set_aside_difference_is_month_result_minus_final(): void
     {
-        $salary = Category::factory()->for($this->budget)->income()->create();
+        $salary = BudgetLine::factory()->for($this->budget)->income()->create();
         $plan = MonthPlan::factory()->for($this->budget)->create([
             'month' => 3,
             'approved_set_aside_minor_units' => 100_000,
@@ -94,7 +94,7 @@ class MonthSummaryTest extends TestCase
 
     public function test_draw_difference_uses_the_signed_final_amount(): void
     {
-        $salary = Category::factory()->for($this->budget)->income()->create();
+        $salary = BudgetLine::factory()->for($this->budget)->income()->create();
         MonthPlan::factory()->for($this->budget)->create([
             'month' => 3,
             'approved_set_aside_minor_units' => -40_000,
@@ -152,21 +152,21 @@ class MonthSummaryTest extends TestCase
         return MonthToSpend::forMonth($this->budget->fresh(), $month, CarbonImmutable::today('UTC'));
     }
 
-    private function item(MonthPlan $plan, Category $category, int $approved, int $current): void
+    private function item(MonthPlan $plan, BudgetLine $category, int $approved, int $current): void
     {
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'approved_amount_minor_units' => $approved,
             'current_amount_minor_units' => $current,
         ]);
     }
 
-    private function operation(Category $category, FinancialOperationType $type, string $date, int $amount): void
+    private function operation(BudgetLine $category, FinancialOperationType $type, string $date, int $amount): void
     {
         FinancialOperation::factory()->for($this->user)->for($this->budget)->create([
             'type' => $type,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,
         ]);

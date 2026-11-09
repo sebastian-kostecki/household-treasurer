@@ -5,7 +5,7 @@ namespace App\Support\CsvImport;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -47,7 +47,7 @@ class FinancialOperationImportValidator
                 );
             }
 
-            $category = Category::query()->with('budget')->find($data['category_id']);
+            $category = BudgetLine::query()->with('budget')->find($data['category_id']);
 
             if ($category === null) {
                 return;
@@ -125,7 +125,7 @@ class FinancialOperationImportValidator
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')
+                Rule::exists('budget_lines', 'id')
                     ->where('type', CategoryType::Income->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($user): void {
@@ -157,7 +157,7 @@ class FinancialOperationImportValidator
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('categories', 'id')
+                Rule::exists('budget_lines', 'id')
                     ->where('type', CategoryType::Expense->value)
                     ->whereNull('archived_at')
                     ->where(function ($query) use ($user): void {

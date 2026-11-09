@@ -30,7 +30,7 @@ class HandEntryMonthRemainingInputs
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
+            ->with(['budgetLines' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
                 ->orderBy('sort_order'),
             ])
@@ -40,7 +40,7 @@ class HandEntryMonthRemainingInputs
         $payloadBudgets = [];
 
         foreach ($budgets as $budget) {
-            $expenseCategories = $budget->categories;
+            $expenseCategories = $budget->budgetLines;
             $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $expenseCategories);
             $categories = [];
 

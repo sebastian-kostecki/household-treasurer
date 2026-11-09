@@ -8,7 +8,7 @@ use App\Enums\CategoryType;
 use App\Http\Requests\SelectBudgetYearRequest;
 use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
@@ -48,7 +48,7 @@ class BudgetController extends Controller
             ]);
         }
 
-        $allCategories = $budget->categories()
+        $allCategories = $budget->budgetLines()
             ->ordered()
             ->get();
 
@@ -58,7 +58,7 @@ class BudgetController extends Controller
         $categories = $showArchived
             ? $allCategories
             : $allCategories->filter(
-                fn (Category $category): bool => ! $category->isArchived(),
+                fn (BudgetLine $category): bool => ! $category->isArchived(),
             );
 
         $planSummary = BudgetPlanSummary::forBudget($budget, $categories);
@@ -75,12 +75,12 @@ class BudgetController extends Controller
             'incomeCategories' => $categories
                 ->where('type', CategoryType::Income)
                 ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
                 ->all(),
             'expenseCategories' => $categories
                 ->where('type', CategoryType::Expense)
                 ->values()
-                ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
                 ->all(),
             'planSummary' => $planSummary,
             'incomeTotals' => $planSummary['income'],
@@ -193,7 +193,7 @@ class BudgetController extends Controller
      *     can_align_current_plan: bool,
      * }
      */
-    private function categoryPayload(Category $category, Budget $budget): array
+    private function categoryPayload(BudgetLine $category, Budget $budget): array
     {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;

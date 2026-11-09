@@ -6,7 +6,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,7 +39,7 @@ class IncomeTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);
@@ -59,7 +59,7 @@ class IncomeTest extends TestCase
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income->value,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'amount_minor_units' => 250000,
             'description' => 'March salary',
@@ -105,7 +105,7 @@ class IncomeTest extends TestCase
             'opening_date' => '2026-03-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))
@@ -133,7 +133,7 @@ class IncomeTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Draft,
         ]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))
@@ -155,7 +155,7 @@ class IncomeTest extends TestCase
 
         [$user, $account] = $this->createAccountFixture();
         $otherYearBudget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
-        $category = Category::factory()->for($otherYearBudget)->income()->create();
+        $category = BudgetLine::factory()->for($otherYearBudget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))
@@ -181,7 +181,7 @@ class IncomeTest extends TestCase
             'archived_at' => now(),
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))
@@ -206,7 +206,7 @@ class IncomeTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'archived_at' => now(),
         ]);
 
@@ -235,7 +235,7 @@ class IncomeTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -279,7 +279,7 @@ class IncomeTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($otherUser)
             ->post(route('incomes.store'), [
@@ -371,7 +371,7 @@ class IncomeTest extends TestCase
     }
 
     /**
-     * @return array{0: User, 1: Account, 2: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine}
      */
     private function createIncomeFixtureForUser(User $user): array
     {
@@ -379,13 +379,13 @@ class IncomeTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         return [$user, $account, $category];
     }
 
     /**
-     * @return array{0: User, 1: Account, 2: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine}
      */
     private function createIncomeFixture(): array
     {

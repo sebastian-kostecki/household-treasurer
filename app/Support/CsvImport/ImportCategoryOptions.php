@@ -5,7 +5,7 @@ namespace App\Support\CsvImport;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\CategoryAppearance;
 
@@ -23,14 +23,14 @@ class ImportCategoryOptions
         return $user
             ->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
+            ->with(['budgetLines' => fn ($query) => $query
                 ->where('type', CategoryType::Income)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),
@@ -48,14 +48,14 @@ class ImportCategoryOptions
         return $user
             ->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
+            ->with(['budgetLines' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),

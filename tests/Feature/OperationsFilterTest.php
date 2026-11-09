@@ -10,8 +10,8 @@ use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -376,7 +376,7 @@ class OperationsFilterTest extends TestCase
             'year' => 2027,
             'phase' => BudgetPhase::Draft,
         ]);
-        Category::factory()->for($draft)->expense()->create([
+        BudgetLine::factory()->for($draft)->expense()->create([
             'name' => 'Groceries',
             'icon' => 'star',
             'color' => '#333333',
@@ -921,7 +921,7 @@ class OperationsFilterTest extends TestCase
                 'year' => $year,
             ]);
 
-        $category = Category::factory()->for($budget)->create([
+        $category = BudgetLine::factory()->for($budget)->create([
             'name' => $categoryName,
             'type' => $categoryType,
             'icon' => $attributes['category_icon'] ?? 'tag',
@@ -937,7 +937,7 @@ class OperationsFilterTest extends TestCase
             'user_id' => $user->id,
             'type' => $operationType,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'operation_date' => $attributes['operation_date'],
             'description' => $attributes['description'] ?? 'Entry',

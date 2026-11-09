@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -24,7 +24,7 @@ class OperationsRowRecipeTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
         ]);
 
@@ -32,7 +32,7 @@ class OperationsRowRecipeTest extends TestCase
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'description' => 'March payment',
             'counterparty' => 'Acme Corp',
@@ -60,13 +60,13 @@ class OperationsRowRecipeTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()->create([
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'description' => 'Manual entry',
             'counterparty' => null,

@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Enums\BudgetPhase;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -28,14 +28,15 @@ class CreateBudget
 
     private function copyCategories(Budget $targetBudget, int $sourceBudgetId): void
     {
-        $sourceCategories = Category::query()
+        $sourceCategories = BudgetLine::query()
             ->where('budget_id', $sourceBudgetId)
             ->whereNull('archived_at')
             ->ordered()
             ->get();
 
         foreach ($sourceCategories as $sourceCategory) {
-            $targetBudget->categories()->create([
+            $targetBudget->budgetLines()->create([
+                'category_id' => $sourceCategory->category_id,
                 'name' => $sourceCategory->name,
                 'type' => $sourceCategory->type,
                 'icon' => $sourceCategory->icon,

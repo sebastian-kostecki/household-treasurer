@@ -6,7 +6,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +27,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -77,7 +77,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -112,7 +112,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);
@@ -155,7 +155,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -189,7 +189,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'execution_minor_units' => 30000,
         ]);
@@ -233,8 +233,8 @@ class FinancialOperationEditDeleteTest extends TestCase
         ]);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
-        $category2026 = Category::factory()->for($budget2026)->income()->create();
-        $category2025 = Category::factory()->for($budget2025)->income()->create();
+        $category2026 = BudgetLine::factory()->for($budget2026)->income()->create();
+        $category2025 = BudgetLine::factory()->for($budget2025)->income()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
@@ -269,7 +269,7 @@ class FinancialOperationEditDeleteTest extends TestCase
         $category2026->refresh();
         $category2025->refresh();
 
-        $this->assertSame($category2025->id, $operation->category_id);
+        $this->assertSame($category2025->id, $operation->budget_line_id);
         $this->assertSame($budget2025->id, $operation->budget_id);
         $this->assertSame(0, $category2026->execution_minor_units);
         $this->assertSame(10000, $category2025->execution_minor_units);
@@ -288,8 +288,8 @@ class FinancialOperationEditDeleteTest extends TestCase
             'year' => 2027,
             'phase' => BudgetPhase::Draft,
         ]);
-        $category2026 = Category::factory()->for($budget2026)->expense()->create();
-        $category2027 = Category::factory()->for($budget2027)->expense()->create();
+        $category2026 = BudgetLine::factory()->for($budget2026)->expense()->create();
+        $category2027 = BudgetLine::factory()->for($budget2027)->expense()->create();
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
@@ -323,8 +323,8 @@ class FinancialOperationEditDeleteTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
@@ -383,8 +383,8 @@ class FinancialOperationEditDeleteTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
@@ -418,7 +418,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'execution_minor_units' => 30000,
         ]);
@@ -451,7 +451,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'opening_date' => '2026-03-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create();
+        $category = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-04-01',
@@ -489,7 +489,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             ])
             ->assertSessionHasErrors('account_id');
 
-        $archivedCategory = Category::factory()->for($budget)->expense()->create([
+        $archivedCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'archived_at' => now(),
         ]);
 

@@ -8,8 +8,8 @@ use App\Enums\OperationsListSection;
 use App\Http\Requests\IndexOperationsRequest;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -41,7 +41,7 @@ class OperationsController extends Controller
         }
 
         $operations = $operationsQuery
-            ->with(['account:id,name,type,bank', 'category:id,name,icon,color'])
+            ->with(['account:id,name,type,bank', 'budgetLine:id,name,icon,color'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
@@ -55,10 +55,10 @@ class OperationsController extends Controller
                 'type' => $operation->type->value,
                 'amount_minor_units' => $operation->amount_minor_units,
                 'account_id' => $operation->account_id,
-                'category_id' => $operation->category_id,
-                'category_name' => $operation->category->name,
-                'category_icon' => $operation->category->icon,
-                'category_color' => $operation->category->color,
+                'category_id' => $operation->budget_line_id,
+                'category_name' => $operation->budgetLine->name,
+                'category_icon' => $operation->budgetLine->icon,
+                'category_color' => $operation->budgetLine->color,
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 
@@ -149,14 +149,14 @@ class OperationsController extends Controller
 
         $incomeCategories = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
+            ->with(['budgetLines' => fn ($query) => $query
                 ->where('type', CategoryType::Income)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),
@@ -166,14 +166,14 @@ class OperationsController extends Controller
 
         $expenseCategories = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
+            ->with(['budgetLines' => fn ($query) => $query
                 ->where('type', CategoryType::Expense)
                 ->whereNull('archived_at')
                 ->ordered(),
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
+            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 ...CategoryAppearance::fields($category),

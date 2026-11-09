@@ -6,8 +6,8 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -188,7 +188,7 @@ CSV;
         $expenseCategory->update(['name' => 'Zakupy']);
         FinancialOperation::factory()->for($user)->for($account)->create([
             'type' => FinancialOperationType::Expense,
-            'category_id' => $expenseCategory->id,
+            'budget_line_id' => $expenseCategory->id,
             'budget_id' => $expenseCategory->budget_id,
             'operation_date' => '2026-02-10',
             'amount_minor_units' => 1000,
@@ -1320,7 +1320,7 @@ CSV;
 
         $this->assertDatabaseHas('financial_operations', [
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'budget_line_id' => $incomeCategory->id,
             'type' => FinancialOperationType::Income->value,
             'amount_minor_units' => 2500,
             'description' => 'Maturity return',
@@ -2563,7 +2563,7 @@ CSV;
             'opening_date' => '2026-01-01',
         ]);
         $otherBudget = Budget::factory()->for($otherUser)->execution()->create(['year' => 2026]);
-        $otherCategory = Category::factory()->for($otherBudget)->income()->create();
+        $otherCategory = BudgetLine::factory()->for($otherBudget)->income()->create();
 
         FinancialOperation::factory()
             ->for($otherUser)
@@ -4032,7 +4032,7 @@ CSV);
 
     /**
      * @param  array<string, mixed>  $accountAttributes
-     * @return array{0: User, 1: Account, 2: Category, 3: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine, 3: BudgetLine}
      */
     private function createImportFixture(array $accountAttributes = []): array
     {
@@ -4043,11 +4043,11 @@ CSV);
             'current_balance_minor_units' => 100000,
         ], $accountAttributes));
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);

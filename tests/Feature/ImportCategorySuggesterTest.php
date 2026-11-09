@@ -4,7 +4,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CsvImport\ImportCategorySuggester;
@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 
 function suggesterRecordHistory(
     User $user,
-    Category $category,
+    BudgetLine $category,
     string $description,
     ?string $rawStatementDescription = 'RAW',
     FinancialOperationType $type = FinancialOperationType::Expense,
@@ -24,7 +24,7 @@ function suggesterRecordHistory(
     FinancialOperation::factory()->for($user)->create([
         'type' => $type,
         'account_id' => Account::factory()->for($user),
-        'category_id' => $category->id,
+        'budget_line_id' => $category->id,
         'budget_id' => $category->budget_id,
         'operation_date' => '2025-05-10',
         'amount_minor_units' => $amountMinorUnits,
@@ -63,8 +63,8 @@ function suggesterBudgets(User $user): array
 test('history from the 2025 budget maps to the category of the same name and type in 2026', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    $current = Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    $current = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA 4521')))
@@ -74,8 +74,9 @@ test('history from the 2025 budget maps to the category of the same name and typ
 test('two categories with the same name in the target budget give null', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    Category::factory()->for($budget2026)->expense()->count(2)->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA')))->toBe(['income' => null, 'expense' => null]);
@@ -84,8 +85,8 @@ test('two categories with the same name in the target budget give null', functio
 test('an archived target category gives null', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    Category::factory()->for($budget2026)->expense()->archived()->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->archived()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA')))->toBe(['income' => null, 'expense' => null]);
@@ -94,8 +95,8 @@ test('an archived target category gives null', function () {
 test('a draft budget or a missing budget in the row year gives null', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
 
     $budget2026->update(['phase' => BudgetPhase::Draft]);
@@ -108,9 +109,9 @@ test('history of another user is ignored', function () {
     $user = User::factory()->create();
     $other = User::factory()->create();
     [, $budget2026] = suggesterBudgets($user);
-    Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     [$otherBudget2025] = suggesterBudgets($other);
-    $otherCategory = Category::factory()->for($otherBudget2025)->expense()->create(['name' => 'Zakupy']);
+    $otherCategory = BudgetLine::factory()->for($otherBudget2025)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($other, $otherCategory, 'BIEDRONKA WARSZAWA');
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA')))->toBe(['income' => null, 'expense' => null]);
@@ -119,8 +120,8 @@ test('history of another user is ignored', function () {
 test('manual entries and saved operations without a description are not history', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA', null);
     suggesterRecordHistory($user, $old, ImportRowFields::EMPTY_DESCRIPTION_FALLBACK);
 
@@ -132,8 +133,8 @@ test('manual entries and saved operations without a description are not history'
 test('a refund saved as an expense teaches the expense suggestion', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    $current = Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    $current = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'ZWROT ALLEGRO', amountMinorUnits: -2_500);
 
     expect(suggesterFor($user, suggesterRow('ZWROT ALLEGRO')))
@@ -143,8 +144,8 @@ test('a refund saved as an expense teaches the expense suggestion', function () 
 test('invalid rows and rows without a description get both suggestions null', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $old = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    $old = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA', valid: false)))->toBe(['income' => null, 'expense' => null])
@@ -155,10 +156,10 @@ test('invalid rows and rows without a description get both suggestions null', fu
 test('income and expense are computed independently in one row', function () {
     $user = User::factory()->create();
     [$budget2025, $budget2026] = suggesterBudgets($user);
-    $oldExpense = Category::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
-    $oldIncome = Category::factory()->for($budget2025)->income()->create(['name' => 'Sprzedaż']);
-    $currentExpense = Category::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
-    $currentIncome = Category::factory()->for($budget2026)->income()->create(['name' => 'Sprzedaż']);
+    $oldExpense = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+    $oldIncome = BudgetLine::factory()->for($budget2025)->income()->create(['name' => 'Sprzedaż']);
+    $currentExpense = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zakupy']);
+    $currentIncome = BudgetLine::factory()->for($budget2026)->income()->create(['name' => 'Sprzedaż']);
     suggesterRecordHistory($user, $oldExpense, 'ALLEGRO PACZKA');
     suggesterRecordHistory($user, $oldIncome, 'ALLEGRO PACZKA', type: FinancialOperationType::Income);
 

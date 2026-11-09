@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,8 +23,8 @@ class CommandPaletteCategoriesTest extends TestCase
         $user = User::factory()->create();
         $budget2025 = Budget::factory()->for($user)->create(['year' => 2025]);
         $budget2026 = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->expense()->for($budget2025)->create(['name' => 'Stara', 'execution_minor_units' => 100]);
-        Category::factory()->expense()->for($budget2026)->create([
+        BudgetLine::factory()->expense()->for($budget2025)->create(['name' => 'Stara', 'execution_minor_units' => 100]);
+        BudgetLine::factory()->expense()->for($budget2026)->create([
             'name' => 'Dom',
             'icon' => 'house',
             'color' => '#3b82f6',
@@ -39,7 +39,7 @@ class CommandPaletteCategoriesTest extends TestCase
                 'budget_year' => 2026,
                 'categories' => [
                     [
-                        'id' => Category::query()->where('name', 'Dom')->value('id'),
+                        'id' => BudgetLine::query()->where('name', 'Dom')->value('id'),
                         'name' => 'Dom',
                         'type' => 'expense',
                         'icon' => 'house',
@@ -55,8 +55,8 @@ class CommandPaletteCategoriesTest extends TestCase
         $user = User::factory()->create();
         $oldest = Budget::factory()->for($user)->create(['year' => 2025]);
         $newest = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->expense()->for($oldest)->create(['name' => 'Najstarsza']);
-        Category::factory()->expense()->for($newest)->create(['name' => 'Najnowsza']);
+        BudgetLine::factory()->expense()->for($oldest)->create(['name' => 'Najstarsza']);
+        BudgetLine::factory()->expense()->for($newest)->create(['name' => 'Najnowsza']);
 
         $this->actingAs($user)
             ->getJson(route('command-palette.categories'))
@@ -70,10 +70,10 @@ class CommandPaletteCategoriesTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->expense()->for($budget)->create(['name' => 'Aktywna']);
-        Category::factory()->expense()->archived()->for($budget)->create(['name' => 'Zarchiwizowana']);
+        BudgetLine::factory()->expense()->for($budget)->create(['name' => 'Aktywna']);
+        BudgetLine::factory()->expense()->archived()->for($budget)->create(['name' => 'Zarchiwizowana']);
         $otherBudget = Budget::factory()->for(User::factory()->create())->create(['year' => 2026]);
-        Category::factory()->expense()->for($otherBudget)->create(['name' => 'Cudza']);
+        BudgetLine::factory()->expense()->for($otherBudget)->create(['name' => 'Cudza']);
 
         $this->actingAs($user)
             ->getJson(route('command-palette.categories'))
@@ -86,10 +86,10 @@ class CommandPaletteCategoriesTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        Category::factory()->income()->for($budget)->create(['name' => 'Pensja', 'sort_order' => 0]);
-        Category::factory()->expense()->for($budget)->create(['name' => 'Drugi', 'sort_order' => 2]);
-        Category::factory()->expense()->for($budget)->create(['name' => 'Pierwszy', 'sort_order' => 1]);
-        Category::factory()->income()->for($budget)->create(['name' => 'Premia', 'sort_order' => 1]);
+        BudgetLine::factory()->income()->for($budget)->create(['name' => 'Pensja', 'sort_order' => 0]);
+        BudgetLine::factory()->expense()->for($budget)->create(['name' => 'Drugi', 'sort_order' => 2]);
+        BudgetLine::factory()->expense()->for($budget)->create(['name' => 'Pierwszy', 'sort_order' => 1]);
+        BudgetLine::factory()->income()->for($budget)->create(['name' => 'Premia', 'sort_order' => 1]);
 
         $response = $this->actingAs($user)
             ->getJson(route('command-palette.categories'))

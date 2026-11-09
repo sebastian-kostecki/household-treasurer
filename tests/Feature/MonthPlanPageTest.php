@@ -6,7 +6,7 @@ use App\Actions\ManageFinancialOperation;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -277,13 +277,13 @@ class MonthPlanPageTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['salary']->id,
+            'budget_line_id' => $categories['salary']->id,
             'approved_amount_minor_units' => 500_000,
             'current_amount_minor_units' => 500_000,
         ]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['rent']->id,
+            'budget_line_id' => $categories['rent']->id,
             'approved_amount_minor_units' => 100_000,
             'current_amount_minor_units' => 100_000,
         ]);
@@ -322,7 +322,7 @@ class MonthPlanPageTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['salary']->id,
+            'budget_line_id' => $categories['salary']->id,
             'approved_amount_minor_units' => 500_000,
             'current_amount_minor_units' => 500_000,
         ]);
@@ -345,7 +345,7 @@ class MonthPlanPageTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['food']->id,
+            'budget_line_id' => $categories['food']->id,
             'approved_amount_minor_units' => 100_000,
             'current_amount_minor_units' => 100_000,
         ]);
@@ -415,7 +415,7 @@ class MonthPlanPageTest extends TestCase
     public function test_archived_category_with_an_operation_appears_outside_the_plan(): void
     {
         [$user, $budget] = $this->canonicalBudget();
-        $archived = Category::factory()->for($budget)->expense()->create([
+        $archived = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Stara',
             'sort_order' => 10,
             'archived_at' => '2026-05-01',
@@ -454,7 +454,7 @@ class MonthPlanPageTest extends TestCase
             );
 
         MonthPlanItem::query()
-            ->where('category_id', $categories['food']->id)
+            ->where('budget_line_id', $categories['food']->id)
             ->update(['current_amount_minor_units' => 180_000]);
 
         $this->actingAs($user)
@@ -472,8 +472,8 @@ class MonthPlanPageTest extends TestCase
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
         $this->approveJune($user, $budget, $categories);
-        Category::factory()->for($budget)->expense()->create(['name' => 'Wesele', 'sort_order' => 10]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Wesele', 'sort_order' => 10]);
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Archiwalna',
             'sort_order' => 11,
             'archived_at' => '2026-05-01',
@@ -512,7 +512,7 @@ class MonthPlanPageTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 7]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['salary']->id,
+            'budget_line_id' => $categories['salary']->id,
             'approved_amount_minor_units' => 500_000,
             'current_amount_minor_units' => 500_000,
         ]);
@@ -568,7 +568,7 @@ class MonthPlanPageTest extends TestCase
 
         $this->assertDatabaseHas('month_plans', ['budget_id' => $budget->id, 'month' => 6]);
         $this->assertDatabaseHas('month_plan_items', [
-            'category_id' => $categories['rent']->id,
+            'budget_line_id' => $categories['rent']->id,
             'approved_amount_minor_units' => 210_000,
             'current_amount_minor_units' => 210_000,
         ]);
@@ -587,7 +587,7 @@ class MonthPlanPageTest extends TestCase
     public function test_approval_in_a_month_with_an_outside_the_plan_row_sends_only_plan_items(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
-        $archived = Category::factory()->for($budget)->expense()->create([
+        $archived = BudgetLine::factory()->for($budget)->expense()->create([
             'sort_order' => 10,
             'archived_at' => '2026-05-01',
         ]);
@@ -603,7 +603,7 @@ class MonthPlanPageTest extends TestCase
             ->assertRedirect(route('month-plan', ['month' => 6]));
 
         $this->assertDatabaseCount('month_plan_items', 5);
-        $this->assertDatabaseMissing('month_plan_items', ['category_id' => $archived->id]);
+        $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $archived->id]);
     }
 
     public function test_approval_rejects_a_duplicated_category(): void
@@ -765,7 +765,7 @@ class MonthPlanPageTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['salary']->id,
+            'budget_line_id' => $categories['salary']->id,
             'approved_amount_minor_units' => 500_000,
             'current_amount_minor_units' => 500_000,
         ]);
@@ -855,7 +855,7 @@ class MonthPlanPageTest extends TestCase
     public function test_settled_flag_covers_income_inflow_and_a_bill_with_only_a_refund(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
-        $internet = Category::factory()->for($budget)->bill()->create([
+        $internet = BudgetLine::factory()->for($budget)->bill()->create([
             'name' => 'Internet', 'sort_order' => 4, 'planned_amount_minor_units' => 600_000,
         ]);
         $this->operation($user, $budget, $categories['salary'], '2026-06-10', 820_000);
@@ -901,10 +901,10 @@ class MonthPlanPageTest extends TestCase
     public function test_one_off_without_plan_and_operations_is_idle(): void
     {
         [$user, $budget] = $this->canonicalBudget();
-        Category::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Wakacje', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
         ]);
-        $refunded = Category::factory()->for($budget)->oneOff()->create([
+        $refunded = BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Zwrot', 'sort_order' => 5, 'planned_amount_minor_units' => 0,
         ]);
         $this->operation($user, $budget, $refunded, '2026-06-06', -5_000);
@@ -925,13 +925,13 @@ class MonthPlanPageTest extends TestCase
     public function test_one_off_with_an_approved_plan_amount_is_not_idle(): void
     {
         [$user, $budget] = $this->canonicalBudget();
-        $holiday = Category::factory()->for($budget)->oneOff()->create([
+        $holiday = BudgetLine::factory()->for($budget)->oneOff()->create([
             'name' => 'Wakacje', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
         ]);
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $holiday->id,
+            'budget_line_id' => $holiday->id,
             'approved_amount_minor_units' => 200_000,
             'current_amount_minor_units' => 200_000,
         ]);
@@ -1007,20 +1007,20 @@ class MonthPlanPageTest extends TestCase
     public function test_current_approved_month_counts_the_current_amount_and_candidates_enter_the_totals(): void
     {
         [$user, $budget, $categories] = $this->novemberBudget();
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Wesele', 'sort_order' => 10, 'planned_amount_minor_units' => 600_000,
         ]);
 
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 11]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['salary']->id,
+            'budget_line_id' => $categories['salary']->id,
             'approved_amount_minor_units' => 500_000,
             'current_amount_minor_units' => 500_000,
         ]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['food']->id,
+            'budget_line_id' => $categories['food']->id,
             'approved_amount_minor_units' => 150_000,
             'current_amount_minor_units' => 180_000,
         ]);
@@ -1053,7 +1053,7 @@ class MonthPlanPageTest extends TestCase
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $account = Account::factory()->for($user)->create();
-        $food = Category::factory()->for($budget)->expense()->create([
+        $food = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Jedzenie', 'sort_order' => 0, 'planned_amount_minor_units' => 1_800_000,
         ]);
 
@@ -1098,7 +1098,7 @@ class MonthPlanPageTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['food']->id,
+            'budget_line_id' => $categories['food']->id,
             'approved_amount_minor_units' => 150_000,
             'current_amount_minor_units' => 150_000,
         ]);
@@ -1119,13 +1119,13 @@ class MonthPlanPageTest extends TestCase
         $this->travelTo('2026-11-15');
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
-        $food = Category::factory()->for($budget)->expense()->create([
+        $food = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Jedzenie', 'sort_order' => 1, 'planned_amount_minor_units' => 1_800_000,
         ]);
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 12]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $food->id,
+            'budget_line_id' => $food->id,
             'approved_amount_minor_units' => 150_000,
             'current_amount_minor_units' => 150_000,
         ]);
@@ -1166,7 +1166,7 @@ class MonthPlanPageTest extends TestCase
     }
 
     /**
-     * @param  array<string, Category>  $categories
+     * @param  array<string, BudgetLine>  $categories
      */
     private function approveJune(User $user, Budget $budget, array $categories): void
     {
@@ -1180,7 +1180,7 @@ class MonthPlanPageTest extends TestCase
     }
 
     /**
-     * @return array{0: User, 1: Budget, 2: array<string, Category>}
+     * @return array{0: User, 1: Budget, 2: array<string, BudgetLine>}
      */
     private function canonicalBudget(): array
     {
@@ -1188,19 +1188,19 @@ class MonthPlanPageTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
 
         $categories = [
-            'salary' => Category::factory()->for($budget)->income()->create([
+            'salary' => BudgetLine::factory()->for($budget)->income()->create([
                 'name' => 'Pensja', 'sort_order' => 0, 'planned_amount_minor_units' => 9_600_000,
             ]),
-            'rent' => Category::factory()->for($budget)->bill()->create([
+            'rent' => BudgetLine::factory()->for($budget)->bill()->create([
                 'name' => 'Czynsz', 'sort_order' => 0, 'planned_amount_minor_units' => 2_400_000,
             ]),
-            'food' => Category::factory()->for($budget)->expense()->create([
+            'food' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Jedzenie', 'sort_order' => 1, 'planned_amount_minor_units' => 1_800_000,
             ]),
-            'fuel' => Category::factory()->for($budget)->expense()->create([
+            'fuel' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Paliwo', 'sort_order' => 2, 'planned_amount_minor_units' => 480_000,
             ]),
-            'gift' => Category::factory()->for($budget)->oneOff()->create([
+            'gift' => BudgetLine::factory()->for($budget)->oneOff()->create([
                 'name' => 'Prezent', 'sort_order' => 3, 'planned_amount_minor_units' => 100_000,
             ]),
         ];
@@ -1216,7 +1216,7 @@ class MonthPlanPageTest extends TestCase
     /**
      * The canonical budget on 2026-11-15, with execution counters set to match the operations.
      *
-     * @return array{0: User, 1: Budget, 2: array<string, Category>}
+     * @return array{0: User, 1: Budget, 2: array<string, BudgetLine>}
      */
     private function novemberBudget(): array
     {
@@ -1232,11 +1232,11 @@ class MonthPlanPageTest extends TestCase
         return [$user, $budget, $categories];
     }
 
-    private function operation(User $user, Budget $budget, Category $category, string $date, int $amount): void
+    private function operation(User $user, Budget $budget, BudgetLine $category, string $date, int $amount): void
     {
         FinancialOperation::factory()->for($user)->for($budget)->create([
             'type' => FinancialOperationType::Expense,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,
         ]);
@@ -1245,7 +1245,7 @@ class MonthPlanPageTest extends TestCase
     /**
      * Proposed plan items of the canonical budget for June (average of the annual plan).
      *
-     * @param  array<string, Category>  $categories
+     * @param  array<string, BudgetLine>  $categories
      * @param  array<string, int>  $overrides  amounts by category key
      * @return list<array{category_id: int, amount_minor_units: int}>
      */

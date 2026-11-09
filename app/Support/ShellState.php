@@ -52,7 +52,7 @@ class ShellState
     private static function copyableBudgetSourcesForUser(User $user): array
     {
         return array_values($user->budgets()
-            ->whereHas('categories', fn ($query) => $query->whereNull('archived_at'))
+            ->whereHas('budgetLines', fn ($query) => $query->whereNull('archived_at'))
             ->orderBy('year')
             ->get(['id', 'year'])
             ->map(fn (Budget $budget): array => [
@@ -110,7 +110,7 @@ class ShellState
             return false;
         }
 
-        return $user->budgets()->whereHas('categories')->exists();
+        return $user->budgets()->whereHas('budgetLines')->exists();
     }
 
     private static function userHasExecutionBudget(?User $user): bool
