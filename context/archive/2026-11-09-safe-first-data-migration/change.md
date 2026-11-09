@@ -1,10 +1,10 @@
 ---
 change_id: safe-first-data-migration
 title: Safe first data migration
-status: impl_reviewed
+status: archived
 created: 2026-11-09
 updated: 2026-11-09
-archived_at: null
+archived_at: 2026-11-09T11:30:21Z
 ---
 
 ## Notes
