@@ -306,30 +306,30 @@ Nie dotyczy tej zmiany, bo dane się nie zmieniają. Wycofanie to revert commit�
 
 #### Automated
 
-- [x] 1.1 ADR istnieje i numer 0063 jest jedyny
-- [x] 1.2 ADR-0063 powołuje się na każdy zmieniany ADR
-- [x] 1.3 Każdy zmieniany ADR odsyła do ADR-0063, a jego dotychczasowe akapity są nietknięte
+- [x] 1.1 ADR istnieje i numer 0063 jest jedyny — 629f76d
+- [x] 1.2 ADR-0063 powołuje się na każdy zmieniany ADR — 629f76d
+- [x] 1.3 Każdy zmieniany ADR odsyła do ADR-0063, a jego dotychczasowe akapity są nietknięte — 629f76d
 
 #### Manual
 
-- [x] 1.4 ADR-0063 zawiera każdy punkt z Contract i nie przeczy PRD v3
-- [x] 1.5 Przykład z deva przeliczony według kroków a–f daje oczekiwaną listę bez zmiany kwot
-- [x] 1.6 Czytelnik każdego z sześciu starych ADR-ów widzi, która klauzula przestała obowiązywać
+- [x] 1.4 ADR-0063 zawiera każdy punkt z Contract i nie przeczy PRD v3 — 629f76d
+- [x] 1.5 Przykład z deva przeliczony według kroków a–f daje oczekiwaną listę bez zmiany kwot — 629f76d
+- [x] 1.6 Czytelnik każdego z sześciu starych ADR-ów widzi, która klauzula przestała obowiązywać — 629f76d
 
 ### Phase 2: Słownik
 
 #### Automated
 
-- [ ] 2.1 Nowe terminy mają wpis
-- [ ] 2.2 Predykaty są zapisane dosłownie w obu dokumentach
-- [ ] 2.3 Stara zasada zniknęła ze słownika
+- [x] 2.1 Nowe terminy mają wpis
+- [x] 2.2 Predykaty są zapisane dosłownie w obu dokumentach
+- [x] 2.3 Stara zasada zniknęła ze słownika
 - [ ] 2.4 Diff obejmuje tylko dokumenty tej zmiany
 
 #### Manual
 
-- [ ] 2.5 Przypadek „Domeny” daje oczekiwane pozycje
-- [ ] 2.6 Przypadki nazw z wpisu Category dają oczekiwany wynik
-- [ ] 2.7 Przypadki zmiany typu dają oczekiwany wynik
-- [ ] 2.8 Przypadki usuwania dają oczekiwany wynik
-- [ ] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0063
-- [ ] 2.10 Słownik nie urósł poza zakres zmiany
+- [x] 2.5 Przypadek „Domeny” daje oczekiwane pozycje
+- [x] 2.6 Przypadki nazw z wpisu Category dają oczekiwany wynik
+- [x] 2.7 Przypadki zmiany typu dają oczekiwany wynik
+- [x] 2.8 Przypadki usuwania dają oczekiwany wynik
+- [x] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0063
+- [x] 2.10 Słownik nie urósł poza zakres zmiany
