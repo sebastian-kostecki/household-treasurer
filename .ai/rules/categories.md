@@ -3,6 +3,9 @@ paths:
     - 'app/Actions/*Budget*.php'
     - 'app/Actions/*Categor*.php'
     - 'app/Models/Category*.php'
+    - 'app/Models/BudgetLine.php'
+    - 'app/Support/BudgetLineResolver.php'
+    - 'app/Support/CategoryList/**/*.php'
     - 'app/Support/MonthPlanProposal.php'
     - 'app/Support/Operations*.php'
     - 'app/Support/CsvImport/ImportCategory*.php'
@@ -16,18 +19,16 @@ paths:
 
 ## A Category belongs to the User for all years; the year's record is a Budget Line
 
-ADR-0063 is decided but the code does not implement it yet: a Category still belongs to one Budget. The glossary calls the yearly record a Budget Line, so do not write „per-Budget” anything. Until S-18, years are linked by name and type in six places, and new code does not add a seventh; S-18 replaces them with a join by id.
+A Category is a row of the User's list (`categories`: `user_id`, `name`, `name_key`, `icon`, `color`, `sort_order`, `type`, `archived_at`; ADR-0063). Its record in one Budget is a Budget Line (`budget_lines`: `budget_id`, `category_id`, Initial Plan, Current Plan, Execution, the Paced / One-off flag, the Month Item Kind, `archived_at`; `unique(budget_id, category_id)`). Financial Operations and Month Plan items point at the Budget Line (`budget_line_id`, ADR-0065). The glossary calls the yearly record a Budget Line, so do not write „per-Budget” anything.
 
-- `app/Actions/CreateBudget.php:29-51` copies the previous Budget's Categories as new records;
-- `app/Support/MonthPlanProposal.php:198` matches the previous year's Category by name and type;
-- `app/Support/OperationsListQuery.php:144-145` filters Operations by `category_name` and `category_type`, fed by the request input `app/Http/Requests/IndexOperationsRequest.php:29-30`;
-- `app/Support/OperationsFilterOptions.php:44` groups the filter options by type and name;
-- `app/Support/CsvImport/ImportCategorySuggester.php:87,112,122-124` finds the target Category by year, type and name;
-- `app/Support/CsvImport/ImportCategorySuggestionModel.php:61,133-160` counts votes per type and name.
+- On the HTTP boundary and in Inertia props `category_id` is always the id of the list Category. The server finds the Budget Line itself with `app/Support/BudgetLineResolver.php`: `forYear()` for the year of an operation's date, `forBudget()` for a Month Plan. A missing, archived or not-in-execution line gives the same errors as before.
+- Years are linked by the Category id, never by name and type: not in Create Budget, the January proposal, the Operations filter and its options, the Import suggestions, nor the Dashboard and palette links. New code does not add a join by name.
+- Name, icon, colour, type and order are written on the list Category (all years at once); plan and flags on the Budget Line. Read the description through `$line->category` with eager loading or a join (Sloppy flags a query in a loop).
+- A Category type does not change once it has a Financial Operation in any year or a Budget Line in a Budget in execution: `app/Support/CategoryList/CategoryTypeChange.php`.
 
-## The name key is compared only in the migration, the snapshot conversion and the list's uniqueness
+## `CategoryNameKey` is the only comparison of names
 
-The name key is the name trimmed and case-insensitive (Unicode); diacritics count (ADR-0063, „Names”). Comparing by name stays in three places: the migration steps, the conversion of snapshots v1–v5 (ADR-0063, „Migration and snapshot”), and the uniqueness of (name key, type) on the list, archived Categories included. Everything else uses the Category id.
+`App\Support\CategoryList\CategoryNameKey::of()` is the name trimmed and lower-cased (Unicode); diacritics count (ADR-0063, „Names”). It is stored in `categories.name_key` (PostgreSQL `lower()` depends on the collation, so the key is computed in PHP) and backs `unique(user_id, type, name_key)`, archived Categories included. Create, rename and type change go through it (`CreateCategory`, `UpdateCategory`), and so do the frozen migration and snapshot conversion (`LegacyCategoryConversion`). Nothing else compares names; a new place that needs „the same Category” uses the id.
 
 ## Archive has two levels, and the year's plan lives on the Budget Line
 

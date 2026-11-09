@@ -537,28 +537,28 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [x] 5.1 Test feature widoku i izolacji przechodzi
-- [x] 5.2 check:ui, testy frontu i typy zielone
-- [x] 5.3 E2E widoku i skrótów przechodzą
-- [x] 5.4 Pełna bramka zielona
+- [x] 5.1 Test feature widoku i izolacji przechodzi — a3f57d3
+- [x] 5.2 check:ui, testy frontu i typy zielone — a3f57d3
+- [x] 5.3 E2E widoku i skrótów przechodzą — a3f57d3
+- [x] 5.4 Pełna bramka zielona — a3f57d3
 
 #### Manual
 
-- [x] 5.5 Widok pokazuje archiwum i lata, czytelny na telefonie i w ciemnym motywie
-- [x] 5.6 Kitchen sink pokazuje wszystkie stany
+- [x] 5.5 Widok pokazuje archiwum i lata, czytelny na telefonie i w ciemnym motywie — a3f57d3
+- [x] 5.6 Kitchen sink pokazuje wszystkie stany — a3f57d3
 
 ### Phase 6: Zabezpieczenia wdrożenia
 
 #### Automated
 
-- [ ] 6.1 Test komendy liczb kontrolnych przechodzi na PostgreSQL
-- [ ] 6.2 Skrypty wdrożenia przechodzą bash -n
-- [ ] 6.3 Indeks reguł aktualny
-- [ ] 6.4 Pełna bramka zielona
+- [x] 6.1 Test komendy liczb kontrolnych przechodzi na PostgreSQL
+- [x] 6.2 Skrypty wdrożenia przechodzą bash -n
+- [x] 6.3 Indeks reguł aktualny
+- [x] 6.4 Pełna bramka zielona
 
 #### Manual
 
-- [ ] 6.5 Kroki README dają się wykonać bez domysłów
+- [x] 6.5 Kroki README dają się wykonać bez domysłów
 
 ### Phase 7: Próba na kopii produkcji
 
