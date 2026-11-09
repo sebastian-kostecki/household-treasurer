@@ -137,6 +137,8 @@ Decyzja: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-pro
 4. **Pełna kopia instancji** (`backup:run`, baza i `storage/app`) przed migracją. Błąd kopii przerywa wdrożenie.
 5. `migrate --force`, potem cache konfiguracji, tras i widoków.
 
+Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `deploy.sh` biegnie jeszcze starą wersją. Jeśli w logu brakuje „Backing up the instance before migrations…”, uruchom `scripts/deploy.sh` drugi raz.
+
 #### Gdzie leży kopia
 
 Na hoście: `${BACKUP_HOST_DIR}/Household Treasurer/RRRR-MM-DD-GG-MM-SS.zip` (czas UTC, w nazwie katalogu jest spacja, więc ścieżkę podawaj w cudzysłowie). W kontenerze: `/var/www/html/storage/app/backups/Household Treasurer/…`. Archiwum jest szyfrowane hasłem `BACKUP_ARCHIVE_PASSWORD`.
