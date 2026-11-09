@@ -68,10 +68,9 @@ describe('noticePresentation', () => {
             severity: 'exceeded',
             kind: 'month_item_over_plan',
             id: 3,
-            name: 'Pozycja planu',
+            name: 'Zakupy',
             icon: 'shopping-cart',
             color: 'blue',
-            category_name: 'Zakupy',
             amount_minor_units: -5000,
         };
 
@@ -87,10 +86,9 @@ describe('noticePresentation', () => {
             severity: 'exceeded',
             kind: 'one_off_over_limit',
             id: 4,
-            name: 'Wakacje',
+            name: 'Podróże',
             icon: 'plane',
             color: 'green',
-            category_name: 'Podróże',
             amount_minor_units: -7000,
         };
 

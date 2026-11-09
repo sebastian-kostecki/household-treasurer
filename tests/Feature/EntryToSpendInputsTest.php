@@ -45,7 +45,7 @@ class EntryToSpendInputsTest extends TestCase
         $this->assertCount(1, $months);
         $this->assertSame(11, $months[0]['month']);
         $this->assertSame([[
-            'category_id' => $food->id,
+            'category_id' => $food->category_id,
             'plan_minor_units' => 8_333,
             'actual_minor_units' => 3_000,
             'positive_amount_count' => 1,
@@ -119,9 +119,9 @@ class EntryToSpendInputsTest extends TestCase
         $items = EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['budgets'][0]['months'][0]['items'];
         $byCategory = array_column($items, null, 'category_id');
 
-        $this->assertSame(0, $byCategory[$oneOff->id]['plan_minor_units']);
-        $this->assertSame(2_000, $byCategory[$oneOff->id]['actual_minor_units']);
-        $this->assertSame(5_000, $byCategory[$food->id]['plan_minor_units']);
+        $this->assertSame(0, $byCategory[$oneOff->category_id]['plan_minor_units']);
+        $this->assertSame(2_000, $byCategory[$oneOff->category_id]['actual_minor_units']);
+        $this->assertSame(5_000, $byCategory[$food->category_id]['plan_minor_units']);
     }
 
     public function test_categories_include_archived_ones_and_income_has_no_kind(): void
@@ -135,9 +135,9 @@ class EntryToSpendInputsTest extends TestCase
         $byId = array_column($categories, null, 'id');
 
         $this->assertCount(3, $categories);
-        $this->assertSame(['id' => $bill->id, 'type' => 'expense', 'month_item_kind' => 'bill'], $byId[$bill->id]);
-        $this->assertSame('running', $byId[$archived->id]['month_item_kind']);
-        $this->assertSame(['id' => $salary->id, 'type' => 'income', 'month_item_kind' => null], $byId[$salary->id]);
+        $this->assertSame(['id' => $bill->category_id, 'type' => 'expense', 'month_item_kind' => 'bill'], $byId[$bill->category_id]);
+        $this->assertSame('running', $byId[$archived->category_id]['month_item_kind']);
+        $this->assertSame(['id' => $salary->category_id, 'type' => 'income', 'month_item_kind' => null], $byId[$salary->category_id]);
     }
 
     public function test_budget_outside_execution_is_skipped(): void

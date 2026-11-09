@@ -24,8 +24,7 @@ export type OperationsListSection =
 type ChipFilters = {
     q: string | null;
     year: number | null;
-    category_name: string | null;
-    category_type: string | null;
+    category_id: number | null;
     account_id: number | null;
     term_deposit_id: number | null;
     date_from: string | null;
@@ -33,6 +32,7 @@ type ChipFilters = {
 };
 
 type ChipCategory = {
+    id: number;
     name: string;
     type: 'income' | 'expense';
     icon: string;
@@ -70,18 +70,13 @@ type FilterChip = {
 };
 
 const selectedCategory = computed(() => {
-    if (
-        props.filters.category_type === null ||
-        props.filters.category_name === null
-    ) {
+    if (props.filters.category_id === null) {
         return null;
     }
 
     return (
         props.categories.find(
-            (category) =>
-                category.type === props.filters.category_type &&
-                category.name === props.filters.category_name,
+            (category) => category.id === props.filters.category_id,
         ) ?? null
     );
 });
@@ -169,11 +164,8 @@ const chips = computed((): FilterChip[] => {
             removeLabel: removeAriaLabel(selectedCategory.value.name),
             category: selectedCategory.value,
         });
-    } else if (
-        props.filters.category_name !== null &&
-        props.filters.category_type !== null
-    ) {
-        const label = props.filters.category_name;
+    } else if (props.filters.category_id !== null) {
+        const label = String(props.filters.category_id);
         items.push({
             key: 'category',
             label,

@@ -238,7 +238,7 @@ class DashboardController extends Controller
             : $category->planned_amount_minor_units;
 
         return [
-            'id' => $category->id,
+            'id' => $category->category_id,
             'name' => $category->category->name,
             ...CategoryAppearance::fields($category),
             'initial_plan_minor_units' => $initialPlanMinorUnits,

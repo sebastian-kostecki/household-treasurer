@@ -207,7 +207,9 @@ CSV;
             ->get(route('operations.import.preview'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('rows.0.category_suggestion.expense', $expenseCategory->id)
+                ->where('rows.0.category_suggestion.expense', $expenseCategory->category_id)
+                ->where('expenseCategories.0.id', $expenseCategory->category_id)
+                ->where('expenseCategories.0.budget_year', 2026)
                 ->where('rows.0.category_suggestion.income', null)
                 ->where('rows.1.category_suggestion.expense', null)
                 ->where('rows.1.category_suggestion.income', null),
@@ -421,7 +423,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -454,7 +456,7 @@ CSV);
                         'index' => 1,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -520,19 +522,19 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                     [
                         'index' => 2,
                         'selected' => true,
                         'type' => 'refund',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ])
@@ -597,13 +599,13 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ])
@@ -659,7 +661,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -687,7 +689,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -702,7 +704,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -952,7 +954,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
@@ -964,7 +966,7 @@ CSV;
                         'index' => 2,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ])
@@ -1001,7 +1003,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
@@ -1300,7 +1302,7 @@ CSV;
                         'type' => 'capital_movement',
                         'term_deposit_id' => $termDeposit->id,
                         'interest_amount_minor_units' => 2500,
-                        'interest_category_id' => $incomeCategory->id,
+                        'interest_category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -1372,7 +1374,7 @@ CSV;
                         'type' => 'capital_movement',
                         'term_deposit_id' => $termDeposit->id,
                         'interest_amount_minor_units' => 2500,
-                        'interest_category_id' => $incomeCategory->id,
+                        'interest_category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -1410,7 +1412,7 @@ CSV;
                         'type' => 'capital_movement',
                         'term_deposit_id' => $termDeposit->id,
                         'interest_amount_minor_units' => 2500,
-                        'interest_category_id' => $incomeCategory->id,
+                        'interest_category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -1449,7 +1451,7 @@ CSV;
                         'type' => 'capital_movement',
                         'term_deposit_id' => $termDeposit->id,
                         'interest_amount_minor_units' => 2500,
-                        'interest_category_id' => $incomeCategory->id,
+                        'interest_category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -1490,7 +1492,7 @@ CSV;
                         'type' => 'capital_movement',
                         'term_deposit_id' => $termDeposit->id,
                         'interest_amount_minor_units' => 500,
-                        'interest_category_id' => $incomeCategory->id,
+                        'interest_category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -1528,7 +1530,7 @@ CSV;
                         'type' => 'capital_movement',
                         'term_deposit_id' => $termDeposit->id,
                         'interest_amount_minor_units' => 15000,
-                        'interest_category_id' => $incomeCategory->id,
+                        'interest_category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -1948,7 +1950,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ])
@@ -2147,7 +2149,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -2233,7 +2235,7 @@ CSV;
                 'description' => 'Edited description',
                 'counterparty' => 'Edited counterparty',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -2265,13 +2267,13 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -2295,13 +2297,13 @@ CSV;
                         'index' => 0,
                         'selected' => false,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
                         'selected' => false,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ])
@@ -2334,7 +2336,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2348,13 +2350,13 @@ CSV;
                         'index' => 0,
                         'selected' => false,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                     [
                         'index' => 1,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ])
@@ -2382,7 +2384,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2397,7 +2399,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -2425,7 +2427,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2526,7 +2528,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2540,7 +2542,7 @@ CSV;
                 'description' => 'Edited salary',
                 'counterparty' => 'Edited counterparty',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
             ]);
 
         $this->previewCsv($user, $account, $csv);
@@ -2622,7 +2624,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2700,7 +2702,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2739,7 +2741,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2814,7 +2816,7 @@ CSV;
                 'counterparty' => 'Acme Corp',
                 'raw_statement_description' => 'Should not persist',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
             ])
             ->assertSessionHasErrors('raw_statement_description');
 
@@ -2833,7 +2835,7 @@ CSV;
                 'amount_minor_units' => 250000,
                 'description' => 'Manual income',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'import_identity_digest' => 'forged-digest',
             ])
             ->assertSessionHasErrors('import_identity_digest');
@@ -2867,7 +2869,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -2914,7 +2916,7 @@ CSV;
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ]);
@@ -2954,7 +2956,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -2999,7 +3001,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3071,7 +3073,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3088,7 +3090,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -3119,7 +3121,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3500,7 +3502,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'income',
-                        'category_id' => $incomeCategory->id,
+                        'category_id' => $incomeCategory->category_id,
                     ],
                 ],
             ])
@@ -3550,7 +3552,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3736,7 +3738,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3753,7 +3755,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3800,7 +3802,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3817,7 +3819,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3880,7 +3882,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -3946,7 +3948,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);
@@ -4012,7 +4014,7 @@ CSV);
                         'index' => 0,
                         'selected' => true,
                         'type' => 'expense',
-                        'category_id' => $expenseCategory->id,
+                        'category_id' => $expenseCategory->category_id,
                     ],
                 ],
             ]);

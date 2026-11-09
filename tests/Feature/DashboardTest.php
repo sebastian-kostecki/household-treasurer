@@ -504,7 +504,7 @@ class DashboardTest extends TestCase
                 'amount_minor_units' => 20000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -927,11 +927,10 @@ class DashboardTest extends TestCase
                     [
                         'kind' => 'month_item_over_plan',
                         'severity' => 'exceeded',
-                        'id' => $groceries->id,
+                        'id' => $groceries->category_id,
                         'name' => 'Groceries',
                         'icon' => 'shopping-cart',
                         'color' => '#fa5252',
-                        'category_name' => 'Groceries',
                         'amount_minor_units' => -100_000,
                     ],
                     [
@@ -1016,21 +1015,19 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices.0', [
                     'kind' => 'month_item_over_plan',
                     'severity' => 'exceeded',
-                    'id' => $groceries->id,
+                    'id' => $groceries->category_id,
                     'name' => 'Groceries',
                     'icon' => 'shopping-cart',
                     'color' => '#fa5252',
-                    'category_name' => 'Groceries',
                     'amount_minor_units' => -100_000,
                 ])
                 ->where('dashboardNotices.1', [
                     'kind' => 'month_item_over_plan',
                     'severity' => 'exceeded',
-                    'id' => $rent->id,
+                    'id' => $rent->category_id,
                     'name' => 'Rent',
                     'icon' => 'home',
                     'color' => '#228be6',
-                    'category_name' => 'Rent',
                     'amount_minor_units' => -30_000,
                 ])
                 ->where('dashboardNotices.2.kind', 'month_pace_ahead'),
@@ -1044,7 +1041,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('dashboardNotices', 4)
                 ->where('dashboardNotices.2.kind', 'month_item_over_plan')
-                ->where('dashboardNotices.2.id', $utilities->id)
+                ->where('dashboardNotices.2.id', $utilities->category_id)
                 ->where('dashboardNotices.2.amount_minor_units', -1),
             );
     }
@@ -1082,21 +1079,19 @@ class DashboardTest extends TestCase
                     [
                         'kind' => 'month_item_over_plan',
                         'severity' => 'exceeded',
-                        'id' => $insurance->id,
+                        'id' => $insurance->category_id,
                         'name' => 'Insurance',
                         'icon' => 'shield',
                         'color' => '#228be6',
-                        'category_name' => 'Insurance',
                         'amount_minor_units' => -300_000,
                     ],
                     [
                         'kind' => 'one_off_over_limit',
                         'severity' => 'exceeded',
-                        'id' => $insurance->id,
+                        'id' => $insurance->category_id,
                         'name' => 'Insurance',
                         'icon' => 'shield',
                         'color' => '#228be6',
-                        'category_name' => 'Insurance',
                         'amount_minor_units' => -100_000,
                     ],
                 ]),
@@ -1177,11 +1172,11 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('dashboardNotices', 4)
                 ->where('dashboardNotices.0.kind', 'month_item_over_plan')
-                ->where('dashboardNotices.0.id', $worse->id)
+                ->where('dashboardNotices.0.id', $worse->category_id)
                 ->where('dashboardNotices.0.amount_minor_units', -50_000)
-                ->where('dashboardNotices.1.id', $earlierTie->id)
+                ->where('dashboardNotices.1.id', $earlierTie->category_id)
                 ->where('dashboardNotices.1.amount_minor_units', -40_000)
-                ->where('dashboardNotices.2.id', $laterTie->id)
+                ->where('dashboardNotices.2.id', $laterTie->category_id)
                 ->where('dashboardNotices.2.amount_minor_units', -40_000)
                 ->where('dashboardNotices.3.kind', 'month_pace_ahead'),
             );
@@ -1409,11 +1404,10 @@ class DashboardTest extends TestCase
                     [
                         'kind' => 'one_off_over_limit',
                         'severity' => 'exceeded',
-                        'id' => $insurance->id,
+                        'id' => $insurance->category_id,
                         'name' => 'Insurance',
                         'icon' => 'shield',
                         'color' => '#228be6',
-                        'category_name' => 'Insurance',
                         'amount_minor_units' => -20_000,
                     ],
                 ]),
@@ -1451,7 +1445,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('dashboardNotices', 1)
                 ->where('dashboardNotices.0.kind', 'month_item_over_plan')
-                ->where('dashboardNotices.0.id', $rent->id),
+                ->where('dashboardNotices.0.id', $rent->category_id),
             );
     }
 
@@ -1495,10 +1489,10 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices.2.kind', 'month_to_spend_negative')
                 ->where('dashboardNotices.2.amount_minor_units', -150_000)
                 ->where('dashboardNotices.3.kind', 'month_item_over_plan')
-                ->where('dashboardNotices.3.id', $groceries->id)
+                ->where('dashboardNotices.3.id', $groceries->category_id)
                 ->where('dashboardNotices.3.amount_minor_units', -50_000)
                 ->where('dashboardNotices.4.kind', 'one_off_over_limit')
-                ->where('dashboardNotices.4.id', $oneOff->id)
+                ->where('dashboardNotices.4.id', $oneOff->category_id)
                 ->where('dashboardNotices.5.kind', 'month_plan_not_approved')
                 ->where('dashboardNotices.6.kind', 'month_pace_ahead')
                 ->where('dashboardNotices.0.severity', 'exceeded')
@@ -1537,8 +1531,7 @@ class DashboardTest extends TestCase
         $this->actingAs($user)
             ->withSession(['budget_year' => 2025])
             ->get(route('operations', [
-                'category_name' => 'Groceries',
-                'category_type' => CategoryType::Expense->value,
+                'category_id' => $groceries->category_id,
                 'date_from' => '2026-09-01',
                 'date_to' => '2026-09-30',
             ]))

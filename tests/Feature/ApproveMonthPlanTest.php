@@ -26,7 +26,7 @@ class ApproveMonthPlanTest extends TestCase
         $food = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
         $salary = BudgetLine::factory()->for($budget)->income()->create(['planned_amount_minor_units' => 9_600_000]);
 
-        $plan = $this->approve($budget, 11, [$food->id => 9_000, $salary->id => 800_000]);
+        $plan = $this->approve($budget, 11, [$food->category_id => 9_000, $salary->category_id => 800_000]);
 
         $this->assertSame(11, $plan->month);
         $this->assertNotNull($plan->approved_at);
@@ -49,7 +49,7 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create();
 
-        $plan = $this->approve($budget, 11, [$food->id => 1], 50_000);
+        $plan = $this->approve($budget, 11, [$food->category_id => 1], 50_000);
 
         $this->assertSame(50_000, $plan->approved_set_aside_minor_units);
         $this->assertSame(50_000, $plan->current_set_aside_minor_units);
@@ -65,7 +65,7 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create();
 
-        $plan = $this->approve($budget, 11, [$food->id => 1], -30_000);
+        $plan = $this->approve($budget, 11, [$food->category_id => 1], -30_000);
 
         $this->assertDatabaseHas('month_plans', [
             'id' => $plan->id,
@@ -79,7 +79,7 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 100_001]);
 
-        $this->approve($budget, 11, [$food->id => 9_000]);
+        $this->approve($budget, 11, [$food->category_id => 9_000]);
 
         $this->assertSame(100_001, $food->refresh()->planned_amount_minor_units);
     }
@@ -89,8 +89,8 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create();
 
-        $this->approve($budget, 11, [$food->id => 1]);
-        $this->approve($budget, 12, [$food->id => 2]);
+        $this->approve($budget, 11, [$food->category_id => 1]);
+        $this->approve($budget, 12, [$food->category_id => 2]);
 
         $this->assertSame(2, MonthPlan::query()->where('budget_id', $budget->id)->count());
     }
@@ -100,7 +100,7 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create();
 
-        $this->assertItemsError(fn () => $this->approve($budget, 12, [$food->id => 1]));
+        $this->assertItemsError(fn () => $this->approve($budget, 12, [$food->category_id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
     }
 
@@ -109,7 +109,7 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create();
 
-        $this->assertItemsError(fn () => $this->approve($budget, 10, [$food->id => 1]));
+        $this->assertItemsError(fn () => $this->approve($budget, 10, [$food->category_id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
     }
 
@@ -125,9 +125,9 @@ class ApproveMonthPlanTest extends TestCase
         $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
         $food = BudgetLine::factory()->for($budget)->expense()->create();
 
-        $this->approve($budget, 11, [$food->id => 1]);
+        $this->approve($budget, 11, [$food->category_id => 1]);
 
-        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->id => 5]));
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 5]));
         $this->assertDatabaseHas('month_plan_items', [
             'budget_line_id' => $food->id,
             'approved_amount_minor_units' => 1,
@@ -141,7 +141,7 @@ class ApproveMonthPlanTest extends TestCase
 
         $this->expectException(AuthorizationException::class);
 
-        $this->approve($budget, 11, [$food->id => 1]);
+        $this->approve($budget, 11, [$food->category_id => 1]);
     }
 
     public function test_policy_allows_only_the_owner_of_an_execution_budget(): void
@@ -162,7 +162,7 @@ class ApproveMonthPlanTest extends TestCase
         $food = BudgetLine::factory()->for($budget)->expense()->create();
         BudgetLine::factory()->for($budget)->expense()->create();
 
-        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->id => 1]));
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 1]));
         $this->assertDatabaseCount('month_plans', 0);
     }
 
@@ -172,7 +172,7 @@ class ApproveMonthPlanTest extends TestCase
         $food = BudgetLine::factory()->for($budget)->expense()->create();
         $foreign = BudgetLine::factory()->for(Budget::factory()->execution())->expense()->create();
 
-        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->id => 1, $foreign->id => 1]));
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 1, $foreign->category_id => 1]));
         $this->assertDatabaseCount('month_plan_items', 0);
     }
 
@@ -185,8 +185,8 @@ class ApproveMonthPlanTest extends TestCase
         $food = BudgetLine::factory()->for($budget)->expense()->create();
         $otherFood = BudgetLine::factory()->for($otherBudget)->expense()->create();
 
-        $plan = $this->approve($budget, 11, [$food->id => 1]);
-        $otherPlan = $this->approve($otherBudget, 11, [$otherFood->id => 1]);
+        $plan = $this->approve($budget, 11, [$food->category_id => 1]);
+        $otherPlan = $this->approve($otherBudget, 11, [$otherFood->category_id => 1]);
 
         Artisan::call('user:reset-data', [
             'user' => $user->email,

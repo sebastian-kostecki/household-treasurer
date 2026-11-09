@@ -44,8 +44,8 @@ class ImportCategorySuggester
 
             return $this->withSuggestion(
                 $row,
-                $incomeCategoryId === null ? null : ($lineIds[$year][$incomeCategoryId] ?? null),
-                $expenseCategoryId === null ? null : ($lineIds[$year][$expenseCategoryId] ?? null),
+                $incomeCategoryId !== null && isset($lineIds[$year][$incomeCategoryId]) ? $incomeCategoryId : null,
+                $expenseCategoryId !== null && isset($lineIds[$year][$expenseCategoryId]) ? $expenseCategoryId : null,
             );
         }, $rows);
     }

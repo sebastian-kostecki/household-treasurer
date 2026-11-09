@@ -55,8 +55,8 @@ class OperationsController extends Controller
                 'type' => $operation->type->value,
                 'amount_minor_units' => $operation->amount_minor_units,
                 'account_id' => $operation->account_id,
-                'category_id' => $operation->budget_line_id,
-                'category_name' => $operation->budgetLine->category->name,
+                'category_id' => $operation->budgetLine->category_id,
+                'category_label' => $operation->budgetLine->category->name,
                 'category_icon' => $operation->budgetLine->category->icon,
                 'category_color' => $operation->budgetLine->category->color,
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
@@ -157,7 +157,7 @@ class OperationsController extends Controller
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->id,
+                'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
@@ -174,7 +174,7 @@ class OperationsController extends Controller
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->id,
+                'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
@@ -204,7 +204,7 @@ class OperationsController extends Controller
             'operationDaySums' => (object) $operationDaySums,
             'sectionTotals' => $sectionTotals,
             'filterYears' => OperationsFilterOptions::years($user),
-            'filterCategories' => OperationsFilterOptions::categories($user, $filters->year),
+            'filterCategories' => OperationsFilterOptions::categories($user, $filters->year, $filters->categoryId),
             'filterAccounts' => OperationsFilterOptions::accounts($user),
             'filterTermDeposits' => OperationsFilterOptions::termDeposits($user),
         ]);

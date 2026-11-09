@@ -68,7 +68,7 @@ test('history from the 2025 budget maps to the category of the same name and typ
     suggesterRecordHistory($user, $old, 'BIEDRONKA WARSZAWA');
 
     expect(suggesterFor($user, suggesterRow('BIEDRONKA 4521')))
-        ->toBe(['income' => null, 'expense' => $current->id]);
+        ->toBe(['income' => null, 'expense' => $current->category_id]);
 });
 
 test('a winner without a line in the budget of the row year gives null and does not fall through to the next candidate', function () {
@@ -112,9 +112,9 @@ test('without name variants the vote by list category gives what a vote by name 
 
     // The old rule: vote per exact name, then the one line of that name in the row year (none: no suggestion).
     $byName = fn (string $description): ?int => match (true) {
-        str_contains($description, 'BIEDRONKA') => $lines2026['Zakupy']->id,
-        str_contains($description, 'ORLEN') => $lines2026['Paliwo']->id,
-        str_contains($description, 'KINO') => $lines2026['Rozrywka']->id,
+        str_contains($description, 'BIEDRONKA') => $lines2026['Zakupy']->category_id,
+        str_contains($description, 'ORLEN') => $lines2026['Paliwo']->category_id,
+        str_contains($description, 'KINO') => $lines2026['Rozrywka']->category_id,
         default => null,
     };
 
@@ -179,7 +179,7 @@ test('a refund saved as an expense teaches the expense suggestion', function () 
     suggesterRecordHistory($user, $old, 'ZWROT ALLEGRO', amountMinorUnits: -2_500);
 
     expect(suggesterFor($user, suggesterRow('ZWROT ALLEGRO')))
-        ->toBe(['income' => null, 'expense' => $current->id]);
+        ->toBe(['income' => null, 'expense' => $current->category_id]);
 });
 
 test('invalid rows and rows without a description get both suggestions null', function () {
@@ -205,5 +205,5 @@ test('income and expense are computed independently in one row', function () {
     suggesterRecordHistory($user, $oldIncome, 'ALLEGRO PACZKA', type: FinancialOperationType::Income);
 
     expect(suggesterFor($user, suggesterRow('ALLEGRO PACZKA')))
-        ->toBe(['income' => $currentIncome->id, 'expense' => $currentExpense->id]);
+        ->toBe(['income' => $currentIncome->category_id, 'expense' => $currentExpense->category_id]);
 });

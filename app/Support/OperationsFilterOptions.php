@@ -2,9 +2,9 @@
 
 namespace App\Support;
 
-use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -27,9 +27,9 @@ class OperationsFilterOptions
     }
 
     /**
-     * @return list<array{name: string, type: string, icon: string, color: string}>
+     * @return list<array{id: int, name: string, type: string, icon: string, color: string}>
      */
-    public static function categories(User $user, ?int $year): array
+    public static function categories(User $user, ?int $year, ?int $selectedCategoryId = null): array
     {
         $categories = BudgetLine::query()
             ->select('budget_lines.*')
@@ -40,7 +40,11 @@ class OperationsFilterOptions
             ->with('budget:id,year')
             ->get();
 
-        return array_values($categories
+        $selected = $selectedCategoryId === null || $categories->contains('category_id', $selectedCategoryId)
+            ? null
+            : Category::query()->where('user_id', $user->id)->find($selectedCategoryId);
+
+        $options = array_values($categories
             ->groupBy(fn (BudgetLine $category): int => $category->category_id)
             ->map(function (Collection $group): BudgetLine {
                 $category = $group
@@ -53,14 +57,27 @@ class OperationsFilterOptions
 
                 return $category;
             })
-            ->sortBy(fn (BudgetLine $category): string => ($category->hasType(CategoryType::Income) ? '0' : '1').$category->category->name)
-            ->values()
             ->map(fn (BudgetLine $category): array => [
+                'id' => $category->category_id,
                 'name' => $category->category->name,
                 'type' => $category->category->type->value,
                 ...CategoryAppearance::fields($category),
             ])
             ->all());
+
+        if ($selected instanceof Category) {
+            $options[] = [
+                'id' => $selected->id,
+                'name' => $selected->name,
+                'type' => $selected->type->value,
+                'icon' => $selected->icon,
+                'color' => $selected->color,
+            ];
+        }
+
+        usort($options, fn (array $a, array $b): int => [$a['type'] === 'income' ? 0 : 1, $a['name']] <=> [$b['type'] === 'income' ? 0 : 1, $b['name']]);
+
+        return $options;
     }
 
     /**

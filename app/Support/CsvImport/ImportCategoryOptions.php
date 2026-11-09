@@ -31,7 +31,7 @@ class ImportCategoryOptions
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->id,
+                'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
@@ -56,7 +56,7 @@ class ImportCategoryOptions
             ->orderBy('year')
             ->get()
             ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->id,
+                'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,

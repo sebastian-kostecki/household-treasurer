@@ -44,7 +44,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Misclassified lokata return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -109,7 +109,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Misclassified lokata funding',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -235,7 +235,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Actually salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
             'convert_to_income' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -295,7 +295,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Actually groceries',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
             'convert_to_expense' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -457,7 +457,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Actually salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
             'convert_to_income' => true,
         ])->assertSessionHasNoErrors();
 
@@ -496,7 +496,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertSessionHasErrors('convert_to_income');
@@ -530,7 +530,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
                 'convert_to_expense' => true,
             ])
             ->assertSessionHasErrors('convert_to_expense');
@@ -570,7 +570,7 @@ class OperationRebuildTest extends TestCase
                 'direction' => CapitalMovementDirection::FromTermDeposit->value,
                 'convert_to_capital_movement' => true,
                 'interest_amount_minor_units' => 5000,
-                'interest_category_id' => $incomeCategory->id,
+                'interest_category_id' => $incomeCategory->category_id,
             ])
             ->assertSessionHasErrors('interest_amount_minor_units');
     }
@@ -596,7 +596,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Income',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $income = FinancialOperation::query()->firstOrFail();
@@ -624,7 +624,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 20000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertForbidden();
@@ -651,7 +651,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 20000,
                 'description' => 'Attempt',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'term_deposit_id' => $termDeposit->id,
                 'direction' => CapitalMovementDirection::FromTermDeposit->value,
                 'convert_to_capital_movement' => true,

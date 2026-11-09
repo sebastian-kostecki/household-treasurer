@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Budget;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
+use App\Support\BudgetLineResolver;
 use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -15,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 class ApproveMonthPlan
 {
     /**
-     * @param  array<int, int>  $amounts  category id => amount in minor units
+     * @param  array<int, int>  $amounts  list category id => amount in minor units
      * @param  int  $setAsideMinorUnits  signed: positive is set aside, negative is a draw
      */
     public function handle(Budget $budget, int $month, array $amounts, int $setAsideMinorUnits, CarbonImmutable $today): MonthPlan
@@ -45,6 +46,12 @@ class ApproveMonthPlan
                     throw $this->invalid(__('Approve the previous month plan first.'));
                 }
 
+                $amounts = (new BudgetLineResolver)->amountsByLine($budget, $amounts);
+
+                if ($amounts === null) {
+                    throw $this->invalid(__('The month plan items are invalid.'));
+                }
+
                 $submittedIds = array_keys($amounts);
                 $expectedIds = array_keys($reading->amounts);
                 sort($submittedIds);
@@ -64,10 +71,10 @@ class ApproveMonthPlan
                     'current_set_aside_minor_units' => $setAsideMinorUnits,
                 ]);
 
-                foreach ($amounts as $categoryId => $amount) {
+                foreach ($amounts as $lineId => $amount) {
                     MonthPlanItem::query()->create([
                         'month_plan_id' => $plan->id,
-                        'budget_line_id' => $categoryId,
+                        'budget_line_id' => $lineId,
                         'approved_amount_minor_units' => $amount,
                         'current_amount_minor_units' => $amount,
                     ]);

@@ -50,7 +50,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 250000,
                 'description' => 'March salary',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -89,7 +89,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Future income',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('operation_date');
 
@@ -114,7 +114,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Too early',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('operation_date');
 
@@ -142,7 +142,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Draft budget income',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -164,7 +164,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Wrong year',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -190,7 +190,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Archived account',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('account_id');
 
@@ -217,7 +217,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Archived category',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -244,7 +244,7 @@ class IncomeTest extends TestCase
             'amount_minor_units' => 50000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $account->refresh();
@@ -287,7 +287,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Stolen income',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors(['account_id', 'category_id']);
 
@@ -307,7 +307,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => 0,
                 'description' => 'Zero income',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('amount_minor_units');
 
@@ -318,7 +318,7 @@ class IncomeTest extends TestCase
                 'amount_minor_units' => -100,
                 'description' => 'Negative income',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('amount_minor_units');
 
@@ -338,7 +338,7 @@ class IncomeTest extends TestCase
             'amount_minor_units' => 10000,
             'description' => 'Owner salary',
             'account_id' => $ownerAccount->id,
-            'category_id' => $ownerCategory->id,
+            'category_id' => $ownerCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($otherUser)
@@ -360,7 +360,7 @@ class IncomeTest extends TestCase
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($user)

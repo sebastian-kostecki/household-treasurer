@@ -7,6 +7,9 @@ use App\Models\Account;
 use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\BudgetLineResolver;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ManageFinancialOperation
@@ -131,12 +134,7 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = BudgetLine::query()
-                ->with('budget')
-                ->whereKey($validated['category_id'])
-                ->whereNull('archived_at')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $category = $this->lockLine($user, $validated['category_id'], $validated['operation_date']);
 
             $operation = $user->financialOperations()->create([
                 'type' => $type,
@@ -185,12 +183,7 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = BudgetLine::query()
-                ->with('budget')
-                ->whereKey($validated['category_id'])
-                ->whereNull('archived_at')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $category = $this->lockLine($operation->user, $validated['category_id'], $validated['operation_date']);
 
             $operation->update([
                 'type' => $expectedType,
@@ -207,6 +200,26 @@ class ManageFinancialOperation
 
             return $operation->refresh();
         });
+    }
+
+    /**
+     * The not archived Budget Line of the list Category in the Budget of the
+     * operation's year, locked for the update of its Execution.
+     */
+    private function lockLine(User $user, int $categoryId, string $operationDate): BudgetLine
+    {
+        $line = (new BudgetLineResolver)->forYear($user, $categoryId, Carbon::parse($operationDate)->year);
+
+        if ($line === null) {
+            throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
+        }
+
+        return BudgetLine::query()
+            ->with('budget')
+            ->whereKey($line->id)
+            ->whereNull('archived_at')
+            ->lockForUpdate()
+            ->firstOrFail();
     }
 
     private function revertEffect(FinancialOperation $operation): void

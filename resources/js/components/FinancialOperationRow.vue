@@ -15,7 +15,7 @@ import { computed } from 'vue';
 export type FinancialOperationRowData = IncomeFormOperation &
     ExpenseFormOperation & {
         type: 'income' | 'expense';
-        category_name: string;
+        category_label: string;
         category_icon: string;
         category_color: string;
         counterparty: string | null;
@@ -65,7 +65,7 @@ const detail = computed(() =>
 
         <div class="operations-cell-category">
             <CategoryChip
-                :name="operation.category_name"
+                :name="operation.category_label"
                 :icon="operation.category_icon"
                 :color="operation.category_color"
             />

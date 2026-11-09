@@ -387,7 +387,7 @@ function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     router.patch(
         CategoryController.updateMonthItemKind.url({
             budget: props.budget?.id ?? 0,
-            category: row.list_category_id,
+            category: row.category_id,
         }),
         { month_item_kind: kind },
         {

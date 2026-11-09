@@ -17,7 +17,7 @@ class OperationsRowRecipeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_operations_index_exposes_category_name_counterparty_and_raw_statement_description(): void
+    public function test_operations_index_exposes_category_label_counterparty_and_raw_statement_description(): void
     {
         $user = User::factory()->create();
         $account = Account::factory()->for($user)->create([
@@ -45,7 +45,7 @@ class OperationsRowRecipeTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Operations')
                 ->has('operations.data', 1)
-                ->where('operations.data.0.category_name', 'Salary')
+                ->where('operations.data.0.category_label', 'Salary')
                 ->where('operations.data.0.category_icon', 'tag')
                 ->where('operations.data.0.category_color', '#868e96')
                 ->where('operations.data.0.counterparty', 'Acme Corp')

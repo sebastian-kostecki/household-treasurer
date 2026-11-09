@@ -68,7 +68,7 @@ class MonthPlanPageTest extends TestCase
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 4)
                 ->where('monthPlan.income_items.0.name', 'Pensja')
-                ->where('monthPlan.income_items.0.list_category_id', BudgetLine::query()->whereKey($user->budgets()->first()->budgetLines()->ofType(CategoryType::Income)->value('id'))->value('category_id'))
+                ->where('monthPlan.income_items.0.category_id', BudgetLine::query()->whereKey($user->budgets()->first()->budgetLines()->ofType(CategoryType::Income)->value('id'))->value('category_id'))
                 ->where('monthPlan.income_items.0.type', 'income')
                 ->where('monthPlan.income_items.0.month_item_kind', null)
                 ->where('monthPlan.income_items.0.plan_minor_units', 800_000)
@@ -538,7 +538,7 @@ class MonthPlanPageTest extends TestCase
             ->withSession(['budget_year' => 2026])
             ->patch(route('month-plans.update', ['budget' => $budget, 'month' => 6]), [
                 'items' => [
-                    ['category_id' => $categories['food']->id, 'amount_minor_units' => 180_000],
+                    ['category_id' => $categories['food']->category_id, 'amount_minor_units' => 180_000],
                 ],
             ])
             ->assertSessionHasNoErrors()
@@ -1071,7 +1071,7 @@ class MonthPlanPageTest extends TestCase
                 'amount_minor_units' => $amount,
                 'description' => 'Zakupy',
                 'account_id' => $account->id,
-                'category_id' => $food->id,
+                'category_id' => $food->category_id,
             ]);
         }
 
@@ -1265,7 +1265,7 @@ class MonthPlanPageTest extends TestCase
 
         foreach ($proposed as $key => $amount) {
             $items[] = [
-                'category_id' => $categories[$key]->id,
+                'category_id' => $categories[$key]->category_id,
                 'amount_minor_units' => $overrides[$key] ?? $amount,
             ];
         }

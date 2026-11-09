@@ -46,14 +46,14 @@ test('operations page includes hand entry month remaining inputs', function () {
             ->where('handEntryMonthRemaining.budgets.0.year', 2026)
             ->where('handEntryMonthRemaining.budgets.0.is_draft', false)
             ->has('handEntryMonthRemaining.budgets.0.categories', 1)
-            ->where('handEntryMonthRemaining.budgets.0.categories.0.id', $category->id)
+            ->where('handEntryMonthRemaining.budgets.0.categories.0.id', $category->category_id)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.is_paced', true)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.planned_amount_minor_units', 120_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.1', 25_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.3', 10_000)
             ->has('entryToSpend.budgets', 1)
             ->where('entryToSpend.budgets.0.year', 2026)
-            ->where('entryToSpend.budgets.0.categories.0.id', $category->id)
+            ->where('entryToSpend.budgets.0.categories.0.id', $category->category_id)
             ->where('entryToSpend.budgets.0.months.0.month', 6),
         );
 });
@@ -78,8 +78,8 @@ test('hand entry month remaining inputs include archived paced categories for po
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('handEntryMonthRemaining.budgets.0.categories', 2)
-            ->where('handEntryMonthRemaining.budgets.0.categories.0.id', $activeCategory->id)
-            ->where('handEntryMonthRemaining.budgets.0.categories.1.id', $archivedCategory->id),
+            ->where('handEntryMonthRemaining.budgets.0.categories.0.id', $activeCategory->category_id)
+            ->where('handEntryMonthRemaining.budgets.0.categories.1.id', $archivedCategory->category_id),
         );
 });
 
@@ -119,7 +119,7 @@ test('expense exceeding month remaining is still saved', function () {
             'amount_minor_units' => 50_000,
             'description' => 'Over month remaining',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('operations'));

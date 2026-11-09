@@ -29,7 +29,7 @@ class CategoryAppearance
     public static function pickerOption(BudgetLine $category): array
     {
         return [
-            'id' => $category->id,
+            'id' => $category->category_id,
             'name' => $category->category->name,
             'icon' => $category->category->icon,
             'color' => $category->category->color,

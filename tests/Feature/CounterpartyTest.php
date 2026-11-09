@@ -30,7 +30,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'March salary',
                 'counterparty' => 'Acme Corp',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -54,7 +54,7 @@ class CounterpartyTest extends TestCase
                 'amount_minor_units' => 250000,
                 'description' => 'March salary',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -78,7 +78,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Groceries',
                 'counterparty' => 'Biedronka',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -102,7 +102,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Refund for shoes',
                 'counterparty' => 'CCC',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -128,7 +128,7 @@ class CounterpartyTest extends TestCase
                 'amount_minor_units' => 10000,
                 'counterparty' => 'Acme Corp',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('description');
 
@@ -147,7 +147,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Salary',
             'counterparty' => 'Acme Corp',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -158,7 +158,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Salary',
             'counterparty' => '',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->assertNull($operation->refresh()->counterparty);
@@ -175,7 +175,7 @@ class CounterpartyTest extends TestCase
             'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -186,7 +186,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Groceries',
             'counterparty' => 'Lidl',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->assertSame('Lidl', $operation->refresh()->counterparty);
@@ -343,7 +343,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Groceries',
             'counterparty' => 'Biedronka',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -354,7 +354,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Groceries',
             'counterparty' => '',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->assertNull($operation->refresh()->counterparty);
@@ -374,7 +374,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Salary',
                 'counterparty' => str_repeat('a', 256),
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('counterparty');
 
@@ -434,7 +434,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Stolen edit',
                 'counterparty' => 'Hacked payer',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertForbidden();
 

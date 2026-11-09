@@ -245,7 +245,6 @@ class MonthPlanController extends Controller
      * @param  'past'|'current'|'future'  $timing
      * @return array{
      *     category_id: int,
-     *     list_category_id: int,
      *     name: string,
      *     icon: string,
      *     color: string,
@@ -278,8 +277,7 @@ class MonthPlanController extends Controller
         $hasPositiveAmount = $amounts['has_positive_amount'];
 
         return [
-            'category_id' => $category->id,
-            'list_category_id' => $category->category_id,
+            'category_id' => $category->category_id,
             'name' => $category->category->name,
             ...CategoryAppearance::fields($category),
             'type' => $category->category->type->value,

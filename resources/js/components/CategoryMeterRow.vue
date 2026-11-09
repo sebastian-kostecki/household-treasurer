@@ -25,11 +25,7 @@ const t = useTranslations();
 
 const href = computed(() =>
     operations({
-        query: categoryOperationsQuery(
-            props.category,
-            props.categoryType,
-            props.budgetYear,
-        ),
+        query: categoryOperationsQuery(props.category, props.budgetYear),
     }),
 );
 

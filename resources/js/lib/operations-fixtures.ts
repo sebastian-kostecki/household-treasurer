@@ -64,7 +64,7 @@ export const incomeOperation: FinancialOperationRowData = {
     operation_date: '2026-11-04',
     amount_minor_units: 850000,
     description: 'Wynagrodzenie',
-    category_name: 'Wynagrodzenie',
+    category_label: 'Wynagrodzenie',
 };
 
 export const expenseOperation: FinancialOperationRowData = {
@@ -74,7 +74,7 @@ export const expenseOperation: FinancialOperationRowData = {
     operation_date: '2026-11-04',
     amount_minor_units: 12345,
     description: 'Zakupy spożywcze',
-    category_name: 'Jedzenie',
+    category_label: 'Jedzenie',
 };
 
 export const refundOperation: FinancialOperationRowData = {
@@ -84,7 +84,7 @@ export const refundOperation: FinancialOperationRowData = {
     operation_date: '2026-11-04',
     amount_minor_units: -4500,
     description: 'Zwrot zamówienia',
-    category_name: 'Zakupy',
+    category_label: 'Zakupy',
 };
 
 export const bankDescriptionOperation: FinancialOperationRowData = {
@@ -94,7 +94,7 @@ export const bankDescriptionOperation: FinancialOperationRowData = {
     operation_date: '2026-11-03',
     amount_minor_units: 6990,
     description: 'Abonament telefoniczny',
-    category_name: 'Rachunki',
+    category_label: 'Rachunki',
     raw_statement_description:
         'PLATNOSC KARTA 30.10.2026 OPERATOR TELEKOMUNIKACYJNY SA WARSZAWA PL',
 };
@@ -107,7 +107,7 @@ export const counterpartyOperation: FinancialOperationRowData = {
     amount_minor_units: 24999,
     description: 'Faktura październik',
     counterparty: 'Sklep Techniczny Sp. z o.o.',
-    category_name: 'Dom',
+    category_label: 'Dom',
 };
 
 export const cashOperation: FinancialOperationRowData = {
@@ -119,7 +119,7 @@ export const cashOperation: FinancialOperationRowData = {
     operation_date: '2026-11-03',
     amount_minor_units: 1850,
     description: 'Bułki i kawa',
-    category_name: 'Jedzenie',
+    category_label: 'Jedzenie',
 };
 
 export const bankWithoutLogoOperation: FinancialOperationRowData = {
@@ -131,7 +131,7 @@ export const bankWithoutLogoOperation: FinancialOperationRowData = {
     operation_date: '2026-11-03',
     amount_minor_units: 4200,
     description: 'Opłata za konto',
-    category_name: 'Rachunki',
+    category_label: 'Rachunki',
 };
 
 export const otherBankArchivedOperation: FinancialOperationRowData = {
@@ -143,7 +143,7 @@ export const otherBankArchivedOperation: FinancialOperationRowData = {
     operation_date: '2026-11-03',
     amount_minor_units: 1000,
     description: 'Opłata za przedszkole',
-    category_name: 'Rachunki',
+    category_label: 'Rachunki',
 };
 
 /** Dzień z dodatnią sumą (dochód, zwrot, wydatek), potem dzień z ujemną. */
@@ -256,12 +256,19 @@ export const searchFiltersFixture: OperationsListFilters = {
 
 export const filterCategoriesFixture: OperationsFilterCategory[] = [
     {
+        id: 1,
         name: 'Wynagrodzenie',
         type: 'income',
         icon: 'banknote',
         color: '#0d9488',
     },
-    { name: 'Jedzenie', type: 'expense', icon: 'utensils', color: '#0d9488' },
+    {
+        id: 2,
+        name: 'Jedzenie',
+        type: 'expense',
+        icon: 'utensils',
+        color: '#0d9488',
+    },
 ];
 
 export const filterAccountsFixture: OperationsFilterAccount[] = [

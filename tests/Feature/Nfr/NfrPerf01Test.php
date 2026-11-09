@@ -77,7 +77,7 @@ class NfrPerf01Test extends TestCase
                     'amount_minor_units' => 25000,
                     'description' => 'Performance test expense',
                     'account_id' => $fixture['account']->id,
-                    'category_id' => $fixture['expenseCategory']->id,
+                    'category_id' => $fixture['expenseCategory']->category_id,
                 ])
                 ->assertSessionHasNoErrors()
                 ->assertRedirect(route('operations')),
@@ -157,7 +157,7 @@ class NfrPerf01Test extends TestCase
                 'user_id' => $user->id,
                 'type' => FinancialOperationType::Income->value,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
                 'budget_id' => $budget->id,
                 'operation_date' => '2026-03-01',
                 'amount_minor_units' => 1000 + ($index % 100),

@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -112,7 +113,7 @@ class OperationsFilterTest extends TestCase
             );
     }
 
-    public function test_category_filter_matches_name_and_type_across_years(): void
+    public function test_category_filter_joins_the_years_by_category_id(): void
     {
         $user = User::factory()->create();
         $older = $this->addOperation($user, [
@@ -139,8 +140,7 @@ class OperationsFilterTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('operations', [
-                'category_name' => 'Groceries',
-                'category_type' => 'expense',
+                'category_id' => $this->listCategoryIdOf($newer),
             ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -150,31 +150,79 @@ class OperationsFilterTest extends TestCase
             );
     }
 
-    public function test_category_rename_splits_the_name_and_type_query(): void
+    public function test_category_rename_does_not_split_the_history(): void
     {
         $user = User::factory()->create();
-        $kept = $this->addOperation($user, [
+        $older = $this->addOperation($user, [
             'year' => 2025,
             'category_name' => 'Groceries',
             'category_type' => CategoryType::Expense,
             'operation_date' => '2025-06-01',
         ]);
-        $this->addOperation($user, [
+        $newer = $this->addOperation($user, [
             'year' => 2026,
-            'category_name' => 'Food',
+            'category_name' => 'Groceries',
             'category_type' => CategoryType::Expense,
             'operation_date' => '2026-06-01',
         ]);
+        $category = $older->budgetLine->category;
+        $category->update(['name' => 'Food']);
 
         $this->actingAs($user)
-            ->get(route('operations', [
-                'category_name' => 'Groceries',
-                'category_type' => 'expense',
-            ]))
+            ->get(route('operations', ['category_id' => $category->id]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('operations.data', 1)
-                ->where('operations.data.0.id', $kept->id),
+                ->has('operations.data', 2)
+                ->where('operations.data.0.id', $newer->id)
+                ->where('operations.data.1.id', $older->id)
+                ->where('operations.data.0.category_label', 'Food')
+                ->where('filterCategories.0.id', $category->id)
+                ->where('filterCategories.0.name', 'Food'),
+            );
+    }
+
+    public function test_category_filter_ignores_the_old_name_and_type_parameters(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'category_name' => 'Groceries',
+            'category_type' => CategoryType::Expense,
+            'operation_date' => '2026-03-01',
+        ]);
+        $this->addOperation($user, [
+            'category_name' => 'Salary',
+            'category_type' => CategoryType::Income,
+            'operation_date' => '2026-03-02',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['category_name' => 'Groceries', 'category_type' => 'expense']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 2)
+                ->where('filtersActive', false)
+                ->where('filters.category_id', null),
+            );
+    }
+
+    public function test_category_filter_option_carries_a_selected_category_without_operations(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'category_name' => 'Groceries',
+            'category_type' => CategoryType::Expense,
+            'operation_date' => '2026-03-01',
+        ]);
+        $unused = BudgetLine::factory()->for(Budget::query()->where('user_id', $user->id)->firstOrFail())->expense()->create(['name' => 'Unused']);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['category_id' => $unused->category_id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 0)
+                ->has('filterCategories', 2)
+                ->where('filterCategories.1.id', $unused->category_id)
+                ->where('filterCategories.1.name', 'Unused'),
             );
     }
 
@@ -194,8 +242,7 @@ class OperationsFilterTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('operations', [
-                'category_name' => 'Other',
-                'category_type' => 'expense',
+                'category_id' => $this->listCategoryIdOf($expense),
             ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -301,8 +348,7 @@ class OperationsFilterTest extends TestCase
         $this->actingAs($user)
             ->get(route('operations', [
                 'q' => 'Biedronka',
-                'category_name' => 'Groceries',
-                'category_type' => 'expense',
+                'category_id' => $this->listCategoryIdOf($match),
             ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -387,6 +433,7 @@ class OperationsFilterTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->has('filterCategories', 1)
+                ->where('filterCategories.0.id', Category::query()->where('user_id', $user->id)->where('name', 'Groceries')->value('id'))
                 ->where('filterCategories.0.name', 'Groceries')
                 ->where('filterCategories.0.type', 'expense')
                 ->where('filterCategories.0.icon', 'tag')
@@ -549,16 +596,17 @@ class OperationsFilterTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_category_name_without_type_is_rejected(): void
+    public function test_category_filter_rejects_another_users_category(): void
     {
         $user = User::factory()->create();
+        $foreign = $this->addOperation(User::factory()->create(), ['operation_date' => '2026-03-01']);
         $this->addOperation($user, ['operation_date' => '2026-03-01']);
 
         $this->actingAs($user)
             ->from(route('operations'))
-            ->get(route('operations', ['category_name' => 'Groceries']))
+            ->get(route('operations', ['category_id' => $this->listCategoryIdOf($foreign)]))
             ->assertRedirect(route('operations'))
-            ->assertSessionHasErrors('category_type');
+            ->assertSessionHasErrors('category_id');
     }
 
     public function test_term_deposit_filter_shows_that_holdings_capital_movements(): void
@@ -636,7 +684,7 @@ class OperationsFilterTest extends TestCase
             'term_deposit' => $termDeposit,
             'movement_date' => '2026-03-01',
         ]);
-        $this->addOperation($user, [
+        $operation = $this->addOperation($user, [
             'year' => 2026,
             'category_name' => 'Groceries',
             'category_type' => CategoryType::Expense,
@@ -653,8 +701,7 @@ class OperationsFilterTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('operations', [
-                'category_name' => 'Groceries',
-                'category_type' => 'expense',
+                'category_id' => $this->listCategoryIdOf($operation),
             ]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
@@ -899,6 +946,11 @@ class OperationsFilterTest extends TestCase
                 ->has('capitalMovements.data', 1)
                 ->where('capitalMovements.data.0.id', $kept->id),
             );
+    }
+
+    private function listCategoryIdOf(FinancialOperation $operation): int
+    {
+        return $operation->budgetLine->category_id;
     }
 
     /**

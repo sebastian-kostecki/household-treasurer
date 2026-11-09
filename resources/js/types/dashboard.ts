@@ -38,7 +38,6 @@ export type DashboardNotice = {
           name: string;
           icon: string;
           color: string;
-          category_name: string;
           amount_minor_units: number;
       }
     | {
@@ -58,7 +57,6 @@ export type DashboardNotice = {
           name: string;
           icon: string;
           color: string;
-          category_name: string;
           amount_minor_units: number;
       }
 );

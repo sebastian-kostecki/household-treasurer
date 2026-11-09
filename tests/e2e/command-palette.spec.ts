@@ -51,8 +51,9 @@ test('a category goes to Operations filtered by the category and the year', asyn
 
     await expect(page).toHaveURL(/\/operations\?/);
     const query = new URL(page.url()).searchParams;
-    expect(query.get('category_name')).toBe('Żywność');
-    expect(query.get('category_type')).toBe('expense');
+    expect(query.get('category_id')).toMatch(/^\d+$/);
+    expect(query.get('category_name')).toBeNull();
+    expect(query.get('category_type')).toBeNull();
     expect(query.get('date_from')).toMatch(/^\d{4}-01-01$/);
     expect(query.get('date_to')).toMatch(/^\d{4}-12-31$/);
 });

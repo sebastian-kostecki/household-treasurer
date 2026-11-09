@@ -39,7 +39,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return parked as income',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -56,7 +56,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
             'convert_to_expense_refund' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -98,7 +98,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => -15000,
             'description' => 'Refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -108,7 +108,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Actually salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
             'convert_to_income' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -160,7 +160,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
             'convert_to_expense_refund' => true,
         ])->assertSessionHasNoErrors();
 
@@ -193,7 +193,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -205,7 +205,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Shop return',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory2025->id,
+                'category_id' => $expenseCategory2025->category_id,
                 'convert_to_expense_refund' => true,
             ])
             ->assertSessionHasErrors('category_id');
@@ -236,7 +236,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -248,7 +248,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Shop return',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
             ])
             ->assertSessionHasErrors('category_id');
     }
@@ -270,7 +270,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -282,7 +282,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertSessionHasErrors('convert_to_income');
@@ -306,7 +306,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($owner)->post(route('expenses.store'), [
@@ -314,7 +314,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => -10000,
             'description' => 'Refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $income = FinancialOperation::query()->where('type', FinancialOperationType::Income)->firstOrFail();
@@ -326,7 +326,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
                 'convert_to_expense_refund' => true,
             ])
             ->assertForbidden();
@@ -337,7 +337,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertForbidden();
@@ -361,7 +361,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Refund attempt',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
                 'convert_to_expense_refund' => true,
             ])
             ->assertSessionHasErrors('convert_to_expense_refund');

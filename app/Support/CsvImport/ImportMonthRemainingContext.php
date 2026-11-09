@@ -67,13 +67,13 @@ class ImportMonthRemainingContext
         $executionByCategoryAndMonth = [];
 
         foreach ($categories as $category) {
-            $executionByCategoryAndMonth[$category->id] = [];
+            $executionByCategoryAndMonth[$category->category_id] = [];
 
             for ($month = 1; $month <= 12; $month++) {
                 $execution = $executionIndex->executionInMonth($category->id, $month);
 
                 if ($execution !== 0) {
-                    $executionByCategoryAndMonth[$category->id][$month] = $execution;
+                    $executionByCategoryAndMonth[$category->category_id][$month] = $execution;
                 }
             }
         }
@@ -84,7 +84,7 @@ class ImportMonthRemainingContext
             'is_draft' => $budget->isDraft(),
             'categories' => array_values($categories
                 ->map(fn (BudgetLine $category): array => [
-                    'id' => $category->id,
+                    'id' => $category->category_id,
                     'is_paced' => $category->is_paced,
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 ])

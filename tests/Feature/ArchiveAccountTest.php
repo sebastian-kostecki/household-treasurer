@@ -30,7 +30,7 @@ class ArchiveAccountTest extends TestCase
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($user)
@@ -175,7 +175,7 @@ class ArchiveAccountTest extends TestCase
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($user)

@@ -4,9 +4,7 @@ namespace App\Concerns;
 
 use App\Enums\CategoryType;
 use App\Models\Account;
-use App\Models\Budget;
-use App\Models\BudgetLine;
-use App\Models\Category;
+use App\Support\BudgetLineResolver;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -43,15 +41,10 @@ trait ExpenseValidationRules
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('budget_lines', 'id')
-                    ->where(fn ($query) => $query->whereIn('category_id', Category::query()->where('type', CategoryType::Expense->value)->select('id')))
-                    ->whereNull('archived_at')
-                    ->where(function ($query) use ($userId): void {
-                        $query->whereIn(
-                            'budget_id',
-                            Budget::query()->select('id')->where('user_id', $userId),
-                        );
-                    }),
+                Rule::exists('categories', 'id')
+                    ->where('user_id', $userId)
+                    ->where('type', CategoryType::Expense->value)
+                    ->whereNull('archived_at'),
             ],
         ];
     }
@@ -84,15 +77,10 @@ trait ExpenseValidationRules
             'category_id' => [
                 'required',
                 'integer',
-                Rule::exists('budget_lines', 'id')
-                    ->where(fn ($query) => $query->whereIn('category_id', Category::query()->where('type', CategoryType::Income->value)->select('id')))
-                    ->whereNull('archived_at')
-                    ->where(function ($query) use ($userId): void {
-                        $query->whereIn(
-                            'budget_id',
-                            Budget::query()->select('id')->where('user_id', $userId),
-                        );
-                    }),
+                Rule::exists('categories', 'id')
+                    ->where('user_id', $userId)
+                    ->where('type', CategoryType::Income->value)
+                    ->whereNull('archived_at'),
             ],
         ];
     }
@@ -121,27 +109,14 @@ trait ExpenseValidationRules
                 );
             }
 
-            $category = BudgetLine::query()->with('budget')->find((int) $categoryId);
+            $category = (new BudgetLineResolver)->forYear($this->user(), (int) $categoryId, Carbon::parse($operationDate)->year);
 
-            if ($category === null) {
-                return;
-            }
-
-            $operationYear = Carbon::parse($operationDate)->year;
-
-            if ($category->budget->user_id !== $this->user()?->id) {
+            if ($category === null || $category->isArchived()) {
                 $validator->errors()->add(
                     'category_id',
-                    __('The selected category is invalid.'),
-                );
-
-                return;
-            }
-
-            if ($category->budget->year !== $operationYear) {
-                $validator->errors()->add(
-                    'category_id',
-                    __('The selected category does not belong to the budget for this operation year.'),
+                    $category === null
+                        ? __('The selected category does not belong to the budget for this operation year.')
+                        : __('The selected category is invalid.'),
                 );
 
                 return;

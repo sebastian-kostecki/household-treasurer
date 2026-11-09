@@ -503,29 +503,29 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Automated
 
-- [x] 3.1 Testy strony Budżet, kategorii i archiwum przechodzą na PostgreSQL
-- [x] 3.2 Nowe testy zachowania według ADR-0063 przechodzą
-- [x] 3.3 Test migracji z usunięciem kolumn i down() przechodzi na PostgreSQL
-- [x] 3.4 Pełna bramka zielona
+- [x] 3.1 Testy strony Budżet, kategorii i archiwum przechodzą na PostgreSQL — 6b034e1
+- [x] 3.2 Nowe testy zachowania według ADR-0063 przechodzą — 6b034e1
+- [x] 3.3 Test migracji z usunięciem kolumn i down() przechodzi na PostgreSQL — 6b034e1
+- [x] 3.4 Pełna bramka zielona — 6b034e1
 
 #### Manual
 
-- [x] 3.5 Zmiana nazwy, dodanie, archiwum i przywrócenie działają między 2026 a szkicem 2027
-- [x] 3.6 Kitchen sink Budżetu pokazuje nowe komunikaty
+- [x] 3.5 Zmiana nazwy, dodanie, archiwum i przywrócenie działają między 2026 a szkicem 2027 — 6b034e1
+- [x] 3.6 Kitchen sink Budżetu pokazuje nowe komunikaty — 6b034e1
 
 ### Phase 4: Granica HTTP po id listy
 
 #### Automated
 
-- [ ] 4.1 Pełny zestaw testów przechodzi na PostgreSQL
-- [ ] 4.2 Nowe testy filtra po id, resolvera i planu miesiąca przechodzą
-- [ ] 4.3 Brak filtra po category_name i category_type w kodzie
-- [ ] 4.4 Testy frontu, typy i check:ui zielone
-- [ ] 4.5 E2E palety i seed przechodzą
+- [x] 4.1 Pełny zestaw testów przechodzi na PostgreSQL
+- [x] 4.2 Nowe testy filtra po id, resolvera i planu miesiąca przechodzą
+- [x] 4.3 Brak filtra po category_name i category_type w kodzie
+- [x] 4.4 Testy frontu, typy i check:ui zielone
+- [x] 4.5 E2E palety i seed przechodzą
 
 #### Manual
 
-- [ ] 4.6 Linki z Dashboardu, dodanie wydatku i Import działają jak przed zmianą
+- [x] 4.6 Linki z Dashboardu, dodanie wydatku i Import działają jak przed zmianą
 
 ### Phase 5: Widok „Kategorie”
 

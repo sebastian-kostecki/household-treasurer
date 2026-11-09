@@ -52,7 +52,7 @@ class ChangeMonthPlanTest extends TestCase
         ]);
         $wedding = BudgetLine::factory()->for($this->budget)->expense()->create(['name' => 'Wesele']);
 
-        $this->change(6, [$this->food->id => 180_000, $wedding->id => 50_000]);
+        $this->change(6, [$this->food->category_id => 180_000, $wedding->category_id => 50_000]);
 
         $this->assertItem($plan, $this->food, 150_000, 180_000);
         $this->assertItem($plan, $wedding, 0, 50_000);
@@ -91,7 +91,7 @@ class ChangeMonthPlanTest extends TestCase
             $this->food->id => 150_000,
         ]);
 
-        $this->change(6, [$this->food->id => 180_000]);
+        $this->change(6, [$this->food->category_id => 180_000]);
 
         $reading = MonthPlanProposal::forBudget($this->budget, CarbonImmutable::today('UTC'))->reading(7);
 
@@ -103,7 +103,7 @@ class ChangeMonthPlanTest extends TestCase
     {
         $this->approvedPlan(6, [$this->salary->id => 500_000]);
 
-        $this->change(6, [$this->food->id => 0]);
+        $this->change(6, [$this->food->category_id => 0]);
 
         $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $this->food->id]);
         $this->actingAs($this->user)
@@ -111,7 +111,7 @@ class ChangeMonthPlanTest extends TestCase
             ->get(route('month-plan', ['month' => 6]))
             ->assertInertia(fn (Assert $page) => $page
                 ->where('monthPlan.expense_items', fn ($items) => collect($items)
-                    ->contains(fn ($row) => $row['category_id'] === $this->food->id
+                    ->contains(fn ($row) => $row['category_id'] === $this->food->category_id
                         && $row['in_plan'] === false
                         && $row['is_join_candidate'] === true)),
             );
@@ -122,7 +122,7 @@ class ChangeMonthPlanTest extends TestCase
         $this->approvedPlan(6, [$this->food->id => 1]);
         $plan = $this->approvedPlan(7, [$this->food->id => 100]);
 
-        $this->change(7, [$this->food->id => 250]);
+        $this->change(7, [$this->food->category_id => 250]);
 
         $this->assertItem($plan, $this->food, 100, 250);
     }
@@ -132,7 +132,7 @@ class ChangeMonthPlanTest extends TestCase
         $this->approvedPlan(6, [$this->food->id => 1]);
         $later = $this->approvedPlan(7, [$this->food->id => 100]);
 
-        $this->change(6, [$this->food->id => 999]);
+        $this->change(6, [$this->food->category_id => 999]);
 
         $this->assertItem($later, $this->food, 100, 100);
     }
@@ -142,7 +142,7 @@ class ChangeMonthPlanTest extends TestCase
         $plan = $this->approvedPlan(6, [$this->food->id => 100]);
         $this->food->update(['archived_at' => now()]);
 
-        $this->change(6, [$this->food->id => 40]);
+        $this->change(6, [$this->food->category_id => 40]);
 
         $this->assertItem($plan, $this->food, 100, 40);
     }
@@ -151,13 +151,13 @@ class ChangeMonthPlanTest extends TestCase
     {
         $plan = $this->approvedPlan(5, [$this->food->id => 100]);
 
-        $this->assertItemsError(fn () => $this->change(5, [$this->food->id => 1]));
+        $this->assertItemsError(fn () => $this->change(5, [$this->food->category_id => 1]));
         $this->assertItem($plan, $this->food, 100, 100);
     }
 
     public function test_it_rejects_a_month_without_an_approved_plan(): void
     {
-        $this->assertItemsError(fn () => $this->change(6, [$this->food->id => 1]));
+        $this->assertItemsError(fn () => $this->change(6, [$this->food->category_id => 1]));
         $this->assertDatabaseCount('month_plan_items', 0);
     }
 
@@ -171,7 +171,7 @@ class ChangeMonthPlanTest extends TestCase
         $plan = $this->approvedPlan(6, [$this->food->id => 100]);
         $foreign = BudgetLine::factory()->for(Budget::factory()->execution())->expense()->create();
 
-        $this->assertItemsError(fn () => $this->change(6, [$this->food->id => 5, $foreign->id => 1]));
+        $this->assertItemsError(fn () => $this->change(6, [$this->food->category_id => 5, $foreign->category_id => 1]));
         $this->assertItem($plan, $this->food, 100, 100);
     }
 
@@ -180,8 +180,26 @@ class ChangeMonthPlanTest extends TestCase
         $this->approvedPlan(6, [$this->food->id => 100]);
         $archived = BudgetLine::factory()->for($this->budget)->expense()->archived()->create();
 
-        $this->assertItemsError(fn () => $this->change(6, [$archived->id => 10]));
+        $this->assertItemsError(fn () => $this->change(6, [$archived->category_id => 10]));
         $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $archived->id]);
+    }
+
+    public function test_route_rejects_a_category_with_no_line_in_the_budget(): void
+    {
+        $plan = $this->approvedPlan(6, [$this->food->id => 100]);
+        $previous = Budget::factory()->for($this->user)->execution()->create(['year' => 2025]);
+        $outside = BudgetLine::factory()->for($previous)->expense()->create(['name' => 'Tylko 2025']);
+
+        $this->actingAs($this->user)
+            ->from(route('month-plan'))
+            ->patch(route('month-plans.update', ['budget' => $this->budget, 'month' => 6]), [
+                'items' => [['category_id' => $outside->category_id, 'amount_minor_units' => 70]],
+            ])
+            ->assertRedirect(route('month-plan'))
+            ->assertSessionHasErrors('items');
+
+        $this->assertItem($plan, $this->food, 100, 100);
+        $this->assertDatabaseCount('month_plan_items', 1);
     }
 
     public function test_route_changes_the_plan_and_redirects_to_the_month(): void
@@ -190,7 +208,7 @@ class ChangeMonthPlanTest extends TestCase
 
         $this->actingAs($this->user)
             ->patch(route('month-plans.update', ['budget' => $this->budget, 'month' => 6]), [
-                'items' => [['category_id' => $this->food->id, 'amount_minor_units' => 70]],
+                'items' => [['category_id' => $this->food->category_id, 'amount_minor_units' => 70]],
             ])
             ->assertRedirect(route('month-plan', ['month' => 6]))
             ->assertSessionHasNoErrors();
@@ -202,7 +220,7 @@ class ChangeMonthPlanTest extends TestCase
     {
         $this->approvedPlan(6, [$this->food->id => 100]);
         $draft = Budget::factory()->for($this->user)->create(['year' => 2027]);
-        $payload = ['items' => [['category_id' => $this->food->id, 'amount_minor_units' => 70]]];
+        $payload = ['items' => [['category_id' => $this->food->category_id, 'amount_minor_units' => 70]]];
 
         $this->actingAs(User::factory()->create())
             ->patch(route('month-plans.update', ['budget' => $this->budget, 'month' => 6]), $payload)
@@ -215,7 +233,7 @@ class ChangeMonthPlanTest extends TestCase
     public function test_route_rejects_a_past_month_and_a_month_without_an_approved_plan(): void
     {
         $past = $this->approvedPlan(5, [$this->food->id => 100]);
-        $payload = ['items' => [['category_id' => $this->food->id, 'amount_minor_units' => 70]]];
+        $payload = ['items' => [['category_id' => $this->food->category_id, 'amount_minor_units' => 70]]];
 
         foreach ([5, 6] as $month) {
             $this->actingAs($this->user)
@@ -234,7 +252,7 @@ class ChangeMonthPlanTest extends TestCase
         $plan = $this->approvedPlan(6, [$this->food->id => 100]);
         $url = route('month-plans.update', ['budget' => $this->budget, 'month' => 6]);
         $row = fn (int $amount, ?int $id = null): array => [
-            'category_id' => $id ?? $this->food->id,
+            'category_id' => $id ?? $this->food->category_id,
             'amount_minor_units' => $amount,
         ];
 

@@ -22,12 +22,11 @@ const groceries: DashboardCategory = {
 };
 
 describe('categoryOperationsQuery', () => {
-    it('filters operations by an expense category over the whole year', () => {
-        expect(categoryOperationsQuery(groceries, 'expense', 2026)).toEqual({
+    it('filters operations by the list category id over the whole year', () => {
+        expect(categoryOperationsQuery(groceries, 2026)).toEqual({
             q: undefined,
             year: undefined,
-            category_name: 'Zakupy spożywcze',
-            category_type: 'expense',
+            category_id: 1,
             account_id: undefined,
             term_deposit_id: undefined,
             date_from: '2026-01-01',
@@ -36,15 +35,10 @@ describe('categoryOperationsQuery', () => {
         });
     });
 
-    it('filters operations by an income category', () => {
-        const query = categoryOperationsQuery(
-            { ...groceries, name: 'Wynagrodzenie' },
-            'income',
-            2025,
-        );
+    it('carries the id of any category, income included', () => {
+        const query = categoryOperationsQuery({ ...groceries, id: 7 }, 2025);
 
-        expect(query.category_type).toBe('income');
-        expect(query.category_name).toBe('Wynagrodzenie');
+        expect(query.category_id).toBe(7);
         expect(query.date_from).toBe('2025-01-01');
         expect(query.date_to).toBe('2025-12-31');
     });

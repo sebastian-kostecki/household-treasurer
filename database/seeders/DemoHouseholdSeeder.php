@@ -89,7 +89,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Pensja',
                 'counterparty' => 'Pracodawca Sp. z o.o.',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Pensja']->id,
+                'category_id' => $categories['Pensja']->category_id,
             ]);
         }
 
@@ -99,7 +99,7 @@ class DemoHouseholdSeeder extends Seeder
             'description' => 'Odsetki od rachunku',
             'counterparty' => 'mBank',
             'account_id' => $eKonto->id,
-            'category_id' => $categories['Odsetki']->id,
+            'category_id' => $categories['Odsetki']->category_id,
         ]);
 
         $expenses = [
@@ -109,7 +109,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Zakupy spożywcze',
                 'counterparty' => 'Biedronka',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Żywność']->id,
+                'category_id' => $categories['Żywność']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 30),
@@ -117,7 +117,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Zakupy spożywcze',
                 'counterparty' => 'Biedronka',
                 'account_id' => $gotowka->id,
-                'category_id' => $categories['Żywność']->id,
+                'category_id' => $categories['Żywność']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 12),
@@ -125,7 +125,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Zakupy spożywcze',
                 'counterparty' => 'Lidl',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Żywność']->id,
+                'category_id' => $categories['Żywność']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 40),
@@ -133,7 +133,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Czynsz',
                 'counterparty' => 'Wspólnota mieszkaniowa',
                 'account_id' => $kontoBnp->id,
-                'category_id' => $categories['Mieszkanie']->id,
+                'category_id' => $categories['Mieszkanie']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 10),
@@ -141,7 +141,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Czynsz',
                 'counterparty' => 'Wspólnota mieszkaniowa',
                 'account_id' => $kontoBnp->id,
-                'category_id' => $categories['Mieszkanie']->id,
+                'category_id' => $categories['Mieszkanie']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 25),
@@ -149,7 +149,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Paliwo',
                 'counterparty' => 'Orlen',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Transport']->id,
+                'category_id' => $categories['Transport']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 8),
@@ -157,7 +157,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Bilet komunikacji miejskiej',
                 'counterparty' => 'MPK',
                 'account_id' => $gotowka->id,
-                'category_id' => $categories['Transport']->id,
+                'category_id' => $categories['Transport']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 18),
@@ -165,7 +165,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Apteka',
                 'counterparty' => 'DOZ',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Zdrowie']->id,
+                'category_id' => $categories['Zdrowie']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 5),
@@ -173,7 +173,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Subskrypcja',
                 'counterparty' => 'Netflix',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Rozrywka']->id,
+                'category_id' => $categories['Rozrywka']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 3),
@@ -181,7 +181,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Kawiarnia',
                 'counterparty' => 'Starbucks',
                 'account_id' => $gotowka->id,
-                'category_id' => $categories['Rozrywka']->id,
+                'category_id' => $categories['Rozrywka']->category_id,
             ],
             [
                 'operation_date' => $this->pastDateInYear($year, 15),
@@ -189,7 +189,7 @@ class DemoHouseholdSeeder extends Seeder
                 'description' => 'Przesyłka kurierska',
                 'counterparty' => 'InPost',
                 'account_id' => $eKonto->id,
-                'category_id' => $categories['Inne']->id,
+                'category_id' => $categories['Inne']->category_id,
             ],
         ];
 

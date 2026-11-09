@@ -33,7 +33,7 @@ class CommandPaletteCategories
 
         return array_values($categories
             ->map(fn (BudgetLine $category): array => [
-                'id' => $category->id,
+                'id' => $category->category_id,
                 'name' => $category->category->name,
                 'type' => $category->category->type->value,
                 ...CategoryAppearance::fields($category),
