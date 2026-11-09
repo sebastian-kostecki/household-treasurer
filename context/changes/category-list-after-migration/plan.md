@@ -564,8 +564,8 @@ Opis kategorii idzie przez złączenie albo eager loading; każdy czytelnik prze
 
 #### Manual
 
-- [x] 7.1 Liczby kontrolne po migracji i po down() zgodne z liczbami przed — 1242336
-- [x] 7.2 Budżet 2026 i operacje na kopii produkcji bez zmian — 1242336
-- [x] 7.3 Lista po migracji przejrzana i zaakceptowana — 1242336
-- [x] 7.4 Kroki Przywrócenie produkcji przeszły w restore_trial — 1242336
-- [x] 7.5 migration-trial.md zapisany i zaakceptowany przed wdrożeniem — 1242336
+- [ ] 7.1 Liczby kontrolne po migracji i po down() zgodne z liczbami przed
+- [ ] 7.2 Budżet 2026 i operacje na kopii produkcji bez zmian
+- [ ] 7.3 Lista po migracji przejrzana i zaakceptowana
+- [ ] 7.4 Kroki Przywrócenie produkcji przeszły w restore_trial
+- [ ] 7.5 migration-trial.md zapisany i zaakceptowany przed wdrożeniem

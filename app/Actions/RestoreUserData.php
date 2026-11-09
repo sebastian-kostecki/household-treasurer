@@ -251,10 +251,6 @@ class RestoreUserData
                 throw new UserSnapshotException("Snapshot references unknown category id {$lineData['category_id']}.");
             }
 
-            if (isset($lineData['type']) && $lineData['type'] !== $listCategory->type->value) {
-                throw new UserSnapshotException("Snapshot budget line {$lineData['id']} has a type different from its category.");
-            }
-
             if (isset($seenInBudget[$budgetId][$listCategory->id])) {
                 throw new UserSnapshotException('Snapshot contains two budget lines of one category in one budget.');
             }
@@ -529,6 +525,11 @@ class RestoreUserData
         array $categoryIdMap,
         array $budgetIdMap,
     ): void {
+        $budgetOfLine = BudgetLine::query()
+            ->whereIn('id', array_values($categoryIdMap))
+            ->pluck('budget_id', 'id')
+            ->map(fn ($budgetId): int => (int) $budgetId);
+
         foreach ($operations as $operationData) {
             $accountId = $accountIdMap[$operationData['account_id']] ?? null;
             $categoryId = $categoryIdMap[$operationData['budget_line_id']] ?? null;
@@ -536,6 +537,10 @@ class RestoreUserData
 
             if ($accountId === null || $categoryId === null || $budgetId === null) {
                 throw new UserSnapshotException('Snapshot references unknown financial operation relations.');
+            }
+
+            if ($budgetOfLine->get($categoryId) !== $budgetId) {
+                throw new UserSnapshotException('Snapshot financial operation references a budget line of another budget.');
             }
 
             $targetUser->financialOperations()->create([

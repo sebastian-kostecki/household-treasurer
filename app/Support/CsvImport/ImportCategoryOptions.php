@@ -10,8 +10,9 @@ use App\Models\User;
 use App\Support\CategoryAppearance;
 
 /**
- * Categories an Import preview row may be classified with: active categories of
- * the user's Budgets in execution, one list per type.
+ * Categories an Import preview row may be classified with: lines of the user's
+ * Budgets in execution open for choice (line and list Category not archived),
+ * one list per type.
  */
 class ImportCategoryOptions
 {
@@ -25,7 +26,7 @@ class ImportCategoryOptions
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Income)
-                ->whereNull('archived_at')
+                ->openForChoice()
                 ->ordered(),
             ])
             ->orderBy('year')
@@ -50,7 +51,7 @@ class ImportCategoryOptions
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Expense)
-                ->whereNull('archived_at')
+                ->openForChoice()
                 ->ordered(),
             ])
             ->orderBy('year')

@@ -89,6 +89,20 @@ class BudgetLine extends Model
     }
 
     /**
+     * Lines open for choice: neither the line nor its list Category is
+     * archived (ADR-0063, „Global archive”: the list archive decides choice).
+     *
+     * @param  Builder<BudgetLine>  $query
+     * @return Builder<BudgetLine>
+     */
+    public function scopeOpenForChoice(Builder $query): Builder
+    {
+        return $query
+            ->whereNull('budget_lines.archived_at')
+            ->whereHas('category', fn (Builder $category) => $category->whereNull('archived_at'));
+    }
+
+    /**
      * Order of ADR-0063: the list order of the Category, then its name
      * key, then the line id; archived lines last, as before.
      *

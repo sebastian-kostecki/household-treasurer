@@ -27,15 +27,16 @@ class CreateBudget
     }
 
     /**
-     * The new Budget gets a Budget Line for each active line of the source
-     * Budget (the same list Category, Current Plan as the plan, the flags of the
+     * The new Budget gets a Budget Line for each line of the source Budget
+     * open for choice, so a Category archived on the list is not carried over
+     * (the same list Category, Current Plan as the plan, the flags of the
      * source line, Initial Plan and Execution 0). No Category record is copied.
      */
     private function copyCategories(Budget $targetBudget, int $sourceBudgetId): void
     {
         $sourceLines = BudgetLine::query()
             ->where('budget_id', $sourceBudgetId)
-            ->whereNull('archived_at')
+            ->openForChoice()
             ->ordered()
             ->get();
 

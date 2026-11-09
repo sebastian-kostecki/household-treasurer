@@ -10,6 +10,7 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\CsvImport\ImportCategoryOptions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -287,6 +288,65 @@ class CategoryListBudgetPageTest extends TestCase
         $this->assertNotNull($line2027->fresh()->archived_at);
         $this->assertNull($line2026->fresh()->archived_at);
         $this->assertFalse($draft2028->budgetLines()->exists());
+    }
+
+    public function test_a_category_archived_on_the_list_leaves_the_choice_where_its_line_stays_active(): void
+    {
+        $this->travelTo('2027-03-10 12:00:00');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $budget2027 = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        $line2026 = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Rekolekcje']);
+        BudgetLine::factory()->for($budget2027)->expense()->create(['category_id' => $line2026->category_id]);
+        $other = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Inna']);
+
+        $this->actingAs($user)
+            ->post(route('categories.archive', $line2026->category_id))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($line2026->fresh()->archived_at);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories', fn ($options) => collect($options)->pluck('id')->all() === [$other->category_id]));
+
+        $this->assertSame([$other->category_id], array_column(ImportCategoryOptions::expense($user), 'id'));
+
+        $this->actingAs($user)
+            ->post(route('expenses.store'), [
+                'operation_date' => '2026-12-15',
+                'amount_minor_units' => 10_000,
+                'description' => 'Na zarchiwizowaną kategorię',
+                'account_id' => $account->id,
+                'category_id' => $line2026->category_id,
+            ])
+            ->assertSessionHasErrors('category_id');
+
+        $this->actingAs($user)
+            ->post(route('budgets.store'), ['year' => 2028, 'source_budget_id' => $budget2026->id])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(
+            [$other->category_id],
+            Budget::query()->where('user_id', $user->id)->where('year', 2028)->sole()->budgetLines()->pluck('category_id')->all(),
+        );
+    }
+
+    public function test_a_source_budget_with_only_list_archived_categories_is_refused(): void
+    {
+        $this->travelTo('2027-03-10 12:00:00');
+
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $line2026 = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Rekolekcje']);
+        $line2026->category->update(['archived_at' => now()]);
+
+        $this->actingAs($user)
+            ->post(route('budgets.store'), ['year' => 2028, 'source_budget_id' => $budget2026->id])
+            ->assertSessionHasErrors('source_budget_id');
     }
 
     public function test_restoring_clears_the_line_of_the_current_year_and_adds_plan_zero_lines_to_drafts(): void

@@ -70,7 +70,7 @@ class StoreBudgetRequest extends FormRequest
                 return;
             }
 
-            if (! $sourceBudget->budgetLines()->whereNull('archived_at')->exists()) {
+            if (! $sourceBudget->budgetLines()->openForChoice()->exists()) {
                 $validator->errors()->add('source_budget_id', __('The selected source budget is invalid.'));
             }
         });

@@ -560,11 +560,6 @@ class UserSnapshotCommandTest extends TestCase
 
                 return $snapshot;
             },
-            'category of another type' => function (array $snapshot): array {
-                $snapshot['budget_lines'][0]['type'] = 'income';
-
-                return $snapshot;
-            },
             'two lines of one category in one budget' => function (array $snapshot): array {
                 $snapshot['budget_lines'][] = [...$snapshot['budget_lines'][0], 'id' => 999999];
 
@@ -592,6 +587,40 @@ class UserSnapshotCommandTest extends TestCase
             $this->assertSame(0, $targetUser->categories()->count(), $label);
             $this->assertSame(0, $targetUser->budgets()->count(), $label);
         }
+    }
+
+    public function test_restore_command_rejects_an_operation_whose_budget_line_belongs_to_another_budget(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $account = Account::factory()->for($sourceUser)->create();
+        $budget2026 = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $budget2027 = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2027]);
+        $line2026 = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Food']);
+        BudgetLine::factory()->for($budget2027)->expense()->create(['category_id' => $line2026->category_id]);
+        FinancialOperation::factory()->for($sourceUser)->create([
+            'account_id' => $account->id,
+            'budget_id' => $budget2026->id,
+            'budget_line_id' => $line2026->id,
+        ]);
+
+        $snapshot = json_decode(file_get_contents(app(BackupUserData::class)->handle($sourceUser)), true);
+        $snapshot['financial_operations'][0]['budget_id'] = $budget2027->id;
+        $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-operation.json');
+        file_put_contents($brokenPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $brokenPath,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('another budget', Artisan::output());
+        $this->assertSame(0, $targetUser->budgets()->count());
+        $this->assertSame(0, $targetUser->financialOperations()->count());
     }
 
     public function test_snapshot_v6_round_trips_the_category_list_and_its_budget_lines(): void

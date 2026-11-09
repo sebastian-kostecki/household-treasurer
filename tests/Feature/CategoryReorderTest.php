@@ -39,6 +39,31 @@ class CategoryReorderTest extends TestCase
         $this->assertSame(0, $second->category->fresh()->sort_order);
     }
 
+    public function test_reorder_renumbers_the_whole_list_and_keeps_categories_outside_the_budget_in_place(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $draft2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+        $first = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Jedzenie', 'sort_order' => 0]);
+        $only2027 = BudgetLine::factory()->for($draft2027)->expense()->create(['name' => 'Domeny', 'sort_order' => 1]);
+        $second = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Transport', 'sort_order' => 2]);
+        $third = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 3]);
+        $archived = BudgetLine::factory()->for($budget2026)->expense()->archived()->create(['name' => 'Wakacje', 'sort_order' => 4]);
+
+        $this->actingAs($user)
+            ->patchJson(route('categories.reorder', $budget2026), [
+                'type' => CategoryType::Expense->value,
+                'category_ids' => [$third->category_id, $first->category_id, $second->category_id],
+            ])
+            ->assertNoContent();
+
+        $this->assertSame(
+            [$third->category_id, $only2027->category_id, $first->category_id, $second->category_id, $archived->category_id],
+            $user->categories()->orderBy('sort_order')->pluck('id')->all(),
+        );
+        $this->assertSame([0, 1, 2, 3, 4], $user->categories()->orderBy('sort_order')->pluck('sort_order')->all());
+    }
+
     public function test_new_category_is_appended_to_the_end_of_its_type(): void
     {
         $user = User::factory()->create();

@@ -23,43 +23,60 @@ production_pull_latest() {
 # The functions below run `docker compose` through $COMPOSE, which scripts/deploy.sh sets
 # before it calls them.
 
-production_app_is_running() {
-    [[ -n "$(${COMPOSE:?} ps --status running --quiet app)" ]]
-}
-
 # Ids of all users, one per line. Read straight from PostgreSQL because the code in a
 # running (old) container may predate `user:backup --all`. Empty when the schema has no
-# `users` table yet.
+# `users` table yet. A psql error fails the call (`sh -e`, ON_ERROR_STOP), so it never
+# reads as "no users".
 production_user_ids() {
-    $COMPOSE exec -T pgsql sh -c '
-        if [ -n "$(psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT to_regclass('"'"'public.users'"'"')")" ]; then
-            psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT id FROM users ORDER BY id"
+    $COMPOSE exec -T pgsql sh -ec '
+        users_table="$(psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT to_regclass('"'"'public.users'"'"')")"
+        if [ -n "$users_table" ]; then
+            psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT id FROM users ORDER BY id"
         fi
     '
 }
 
-# Before `up -d`: the OLD container still holds the old code and the old schema, so a
-# snapshot of every user made here is a v5 snapshot (the fallback after a rollback), and
-# `artisan down` writes the maintenance file into the bind-mounted `storage`, which
-# survives `up -d`. The new code must not serve a request on the old schema.
+# Before `up -d`: the OLD container still holds the old code and the old schema.
+# `artisan down` goes first and writes the maintenance file into the bind-mounted
+# `storage`, which survives `up -d`, so nothing is written between the snapshots and the
+# migration and the new code never serves a request on the old schema. Then a snapshot
+# of every user (v5, the fallback after a rollback); artisan commands run in maintenance
+# mode. Each assignment from a command substitution stands on its own line, so a failing
+# `docker compose` or psql stops the deployment (set -e) instead of reading as empty.
+# Only an absent app container counts as a first deployment; a stopped one stops the
+# deployment unless DEPLOY_WITHOUT_USER_SNAPSHOTS=1 (README, "Wdrożenie").
 # Sets MAINTENANCE_STARTED=1 when it put the application in maintenance mode.
 production_prepare_running_instance() {
-    if ! production_app_is_running; then
-        echo "==> No running app container (first deployment): skipping user:backup and artisan down on the old container."
+    local running_app any_app user_ids user_id snapshot_count=0
+
+    running_app="$(${COMPOSE:?} ps --status running --quiet app)"
+
+    if [[ -z "${running_app}" ]]; then
+        any_app="$(${COMPOSE} ps --all --quiet app)"
+
+        if [[ -n "${any_app}" && "${DEPLOY_WITHOUT_USER_SNAPSHOTS:-0}" != "1" ]]; then
+            echo "ERROR: The app container exists but is not running, so user:backup cannot snapshot the users with the old code." >&2
+            echo "Start it (${COMPOSE} start app) and run scripts/deploy.sh again, or set DEPLOY_WITHOUT_USER_SNAPSHOTS=1 to deploy with the instance backup only." >&2
+            exit 1
+        fi
+
+        echo "==> No running app container (first deployment or DEPLOY_WITHOUT_USER_SNAPSHOTS=1): skipping artisan down and user:backup on the old container."
         return 0
     fi
 
-    local user_ids user_id
+    # Read before `down`: a psql error stops the deployment with the old code still serving.
     user_ids="$(production_user_ids)"
-
-    echo "==> Snapshotting every user with the running (old) code..."
-    for user_id in ${user_ids}; do
-        $COMPOSE exec -T -u sail app php artisan user:backup "${user_id}"
-    done
 
     echo "==> Entering maintenance mode in the old container..."
     $COMPOSE exec -T -u sail app php artisan down
     MAINTENANCE_STARTED=1
+
+    echo "==> Snapshotting every user with the running (old) code..."
+    for user_id in ${user_ids}; do
+        $COMPOSE exec -T -u sail app php artisan user:backup "${user_id}"
+        snapshot_count=$((snapshot_count + 1))
+    done
+    echo "==> Snapshotted ${snapshot_count} user(s)."
 }
 
 # After `up -d` on a first deployment there was no old container to put in maintenance

@@ -134,7 +134,7 @@ Decyzja: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-pro
 
 1. `git pull --ff-only origin main` i budowa obrazu `app`.
 2. Przygotowanie katalogu kopii `BACKUP_HOST_DIR` (wartość z powłoki, inaczej z `.env.prod`, inaczej `/storage/household-treasurer-backups`).
-3. **Snapshot każdego użytkownika i tryb serwisowy w starym kontenerze**, jeszcze przed `up -d`: `user:backup` dla każdego id z tabeli `users` (lista z `psql`), potem `artisan down`. Plik trybu serwisowego leży w `storage` (bind-mount), więc przetrwa `up -d`, a nowy kod nie obsłuży żądania na starym schemacie. Pierwsze wdrożenie bez działającego kontenera pomija ten krok z komunikatem, a `artisan down` idzie zaraz po `up -d`.
+3. **Tryb serwisowy i snapshot każdego użytkownika w starym kontenerze**, jeszcze przed `up -d`: lista id z tabeli `users` (z `psql`), `artisan down`, potem `user:backup` dla każdego id (log: „Snapshotted N user(s).”). Plik trybu serwisowego leży w `storage` (bind-mount), więc przetrwa `up -d`, a nowy kod nie obsłuży żądania na starym schemacie. Błąd `psql` albo `docker compose` przerywa wdrożenie. Krok pomija tylko pierwsze wdrożenie, gdy kontenera `app` w ogóle nie ma (wtedy `artisan down` idzie zaraz po `up -d`). Kontener zatrzymany zatrzymuje skrypt: uruchom go (`docker compose --env-file .env.prod -f docker-compose.prod.yml start app`) i powtórz; gdy nie da się go uruchomić, `DEPLOY_WITHOUT_USER_SNAPSHOTS=1 scripts/deploy.sh` wdraża bez snapshotów, z samą kopią instancji z kroku 6.
 4. `up -d` i naprawa uprawnień `storage`.
 5. **Liczby kontrolne „przed”** (nowy kod na starym schemacie) do `storage/app/private/control-numbers/<RRRRMMDD-GGMMSS>-before.json` (czas UTC).
 6. **Pełna kopia instancji** (`backup:run`, baza i `storage/app`) przed migracją. Błąd kopii przerywa wdrożenie.
@@ -150,7 +150,7 @@ Migracje S-18 dzielą dawne `categories` na listę użytkownika i pozycje budże
 
 1. Zmiana jest na `main`, a próba na kopii produkcji zatwierdzona (`context/changes/category-list-after-migration/migration-trial.md`).
 2. Na serwerze: `git pull --ff-only origin main`. Dopiero potem skrypt. Bez tego migracja przejdzie starym `deploy.sh` bez snapshotów, trybu serwisowego i liczb kontrolnych.
-3. `scripts/deploy.sh`. Log musi pokazać kolejno: snapshoty użytkowników, tryb serwisowy, liczby „przed”, kopię instancji, migracje, „Control numbers match” i wyjście z trybu serwisowego.
+3. `scripts/deploy.sh`. Log musi pokazać kolejno: tryb serwisowy, snapshoty użytkowników („Snapshotted N user(s).” z N równym liczbie użytkowników), liczby „przed”, kopię instancji, migracje, „Control numbers match” i wyjście z trybu serwisowego.
 4. Sprawdź `/up`, Budżet 2026, plan miesiąca i widok „Kategorie”. Zachowaj plik `…-before.json` poza serwerem: jest wzorcem do porównań przy wycofaniu.
 
 Snapshoty sprzed migracji (wersja 5) leżą w `storage/app/private/user-snapshots/`; są zapasem, gdyby wycofanie nie wystarczyło.
@@ -179,7 +179,7 @@ Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a licz
 Dla dni pracy na nowym schemacie przywrócenie kopii nie wchodzi w grę (traci wszystko po czasie archiwum). Migracje S-18 mają prawdziwy `down()` (test na PostgreSQL), więc wycofanie idzie przez `migrate:rollback` **nowym kodem**:
 
 1. `scripts/artisan.sh down` (jeśli aplikacja nie jest już w trybie serwisowym).
-2. `scripts/artisan.sh migrate:rollback --force`. Ostatnia partia to trzy migracje S-18; wyjście ma wymienić dokładnie: `drop_legacy_category_columns_from_budget_lines`, `backfill_category_list` i `expand_categories_into_category_list_and_budget_lines`. Nowa kategoria i operacja dodane po wdrożeniu zostają: pozycje stają się zwykłymi rekordami swoich budżetów, nazwy wracają z pisownią listy i sufiksem „(k)” (np. „Rozrywka (2)”).
+2. `scripts/artisan.sh migrate:rollback --force`. Ostatnia partia to trzy migracje S-18; wyjście ma wymienić dokładnie: `drop_legacy_category_columns_from_budget_lines`, `backfill_category_list` i `expand_categories_into_category_list_and_budget_lines`. Nowa kategoria i operacja dodane po wdrożeniu zostają: pozycje stają się zwykłymi rekordami swoich budżetów, nazwy wracają z pisownią listy i sufiksem „(k)” (np. „Rozrywka (2)”). Nie przeżywa tylko to, co nie wisi na żadnej pozycji: kategoria listy bez pozycji (np. utworzona po wdrożeniu i zarchiwizowana, bo archiwum zdjęło jej pozycje ze szkiców) znika, a archiwum samej listy wraca do stanu pozycji (pozycja aktywna = rekord aktywny). Operacje i kwoty się nie zmieniają.
 3. Jeśli od wdrożenia nic nie dopisano: `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<znacznik>-before.json` ma dać zero różnic. Po dopisanych operacjach różnią się tylko ich sumy i liczniki.
 4. Lokalnie na `main`: `git revert` zmian S-18 i `git push origin main`.
 5. Na serwerze: `git pull --ff-only origin main`, dopiero potem `scripts/deploy.sh` (jak przy pierwszym wdrożeniu, bo skrypt aktualizuje się sam).

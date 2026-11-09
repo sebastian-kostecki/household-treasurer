@@ -151,7 +151,7 @@ class OperationsController extends Controller
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Income)
-                ->whereNull('archived_at')
+                ->openForChoice()
                 ->ordered(),
             ])
             ->orderBy('year')
@@ -168,7 +168,7 @@ class OperationsController extends Controller
             ->where('phase', BudgetPhase::Execution)
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Expense)
-                ->whereNull('archived_at')
+                ->openForChoice()
                 ->ordered(),
             ])
             ->orderBy('year')
