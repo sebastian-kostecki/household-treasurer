@@ -329,30 +329,30 @@ Zmiana nie migruje danych. Pierwsze archiwum bez właściciela powstaje przy wdr
 
 #### Automated
 
-- [x] 1.1 Test opcji dumpa przechodzi na SQLite i na PostgreSQL
-- [x] 1.2 Składnia skryptu jest poprawna: `bash -n scripts/deploy.sh`
-- [x] 1.3 Kopia stoi przed migracją (`backup:run` z `-u sail`, bez `--only-db`, przed `migrate --force`)
-- [x] 1.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
-- [x] 1.5 Pełna bramka przechodzi: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Test opcji dumpa przechodzi na SQLite i na PostgreSQL — 9be0aff
+- [x] 1.2 Składnia skryptu jest poprawna: `bash -n scripts/deploy.sh` — 9be0aff
+- [x] 1.3 Kopia stoi przed migracją (`backup:run` z `-u sail`, bez `--only-db`, przed `migrate --force`) — 9be0aff
+- [x] 1.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent` — 9be0aff
+- [x] 1.5 Pełna bramka przechodzi: `composer ci:check` i `vendor/bin/sloppy ci` — 9be0aff
 
 #### Manual
 
-- [x] 1.6 Lokalny dump nie zawiera `OWNER TO` ani `GRANT`
-- [x] 1.7 README „Wdrożenie i przywracanie” i ADR-0064 przeczytane i zaakceptowane
+- [x] 1.6 Lokalny dump nie zawiera `OWNER TO` ani `GRANT` — 9be0aff
+- [x] 1.7 README „Wdrożenie i przywracanie” i ADR-0064 przeczytane i zaakceptowane — 9be0aff
 
 ### Phase 2: Reguły agenta
 
 #### Automated
 
-- [ ] 2.1 Indeks wygenerowany i zawiera obie reguły
-- [ ] 2.2 Każdy glob z `categories.md` trafia w istniejący plik
-- [ ] 2.3 Reguły nie używają zakazanych terminów
-- [ ] 2.4 Pełna bramka przechodzi: `composer ci:check`
+- [x] 2.1 Indeks wygenerowany i zawiera obie reguły
+- [x] 2.2 Każdy glob z `categories.md` trafia w istniejący plik
+- [x] 2.3 Reguły nie używają zakazanych terminów
+- [x] 2.4 Pełna bramka przechodzi: `composer ci:check`
 
 #### Manual
 
-- [ ] 2.5 Nowa sesja ładuje `migrations.md` i `categories.md` przy odczycie pasujących plików
-- [ ] 2.6 Treść trzech reguł zgodna z ADR-0063 i decyzjami planu
+- [x] 2.5 Nowa sesja ładuje `migrations.md` i `categories.md` przy odczycie pasujących plików
+- [x] 2.6 Treść trzech reguł zgodna z ADR-0063 i decyzjami planu
 
 ### Phase 3: Próba przywracania (ręczna)
 
