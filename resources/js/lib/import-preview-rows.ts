@@ -14,10 +14,12 @@ export type ImportRow = {
     raw_statement_description: string | null;
     amount_minor_units: number | null;
     valid: boolean;
+    /** Code of `ImportRowInvalidReason`; an unknown value is shown as received. */
     invalid_reason: string | null;
     import_duplicate: boolean;
     import_pair_candidate: boolean;
     pair_candidates: PairCandidate[];
+    category_suggestion?: { income: number | null; expense: number | null };
 };
 
 export type CategoryRow = {
@@ -66,7 +68,65 @@ export function emptySelection(row: ImportRow): RowSelection {
     };
 }
 
-export function initialSelection(row: ImportRow): RowSelection {
+export function suggestedCategoryId(
+    row: ImportRow,
+    type: RowSelection['type'],
+    incomeCategories: CategoryRow[],
+    expenseCategories: CategoryRow[],
+): number | '' {
+    const suggestion = row.category_suggestion;
+
+    if (suggestion === undefined) {
+        return '';
+    }
+
+    let suggestedId: number | null;
+
+    if (type === 'income') {
+        suggestedId = suggestion.income;
+    } else if (type === 'expense' || type === 'refund') {
+        suggestedId = suggestion.expense;
+    } else {
+        return '';
+    }
+
+    if (suggestedId === null) {
+        return '';
+    }
+
+    const isAvailable = categoriesForRow(
+        row,
+        type,
+        incomeCategories,
+        expenseCategories,
+    ).some((category) => category.id === suggestedId);
+
+    return isAvailable ? suggestedId : '';
+}
+
+export function showsCategorySuggestion(
+    row: ImportRow,
+    selection: RowSelection,
+    incomeCategories: CategoryRow[],
+    expenseCategories: CategoryRow[],
+): boolean {
+    return (
+        selection.category_id !== '' &&
+        selection.category_id ===
+            suggestedCategoryId(
+                row,
+                selection.type,
+                incomeCategories,
+                expenseCategories,
+            )
+    );
+}
+
+export function initialSelection(
+    row: ImportRow,
+    incomeCategories: CategoryRow[],
+    expenseCategories: CategoryRow[],
+): RowSelection {
     const uniqueCandidate = uniquePairCandidate(row.pair_candidates);
 
     if (uniqueCandidate !== null) {
@@ -83,11 +143,19 @@ export function initialSelection(row: ImportRow): RowSelection {
         };
     }
 
+    const type = locksTypeToOwnTransfer(row.pair_candidates)
+        ? 'own_transfer'
+        : defaultRowType(row);
+
     return {
         ...emptySelection(row),
-        type: locksTypeToOwnTransfer(row.pair_candidates)
-            ? 'own_transfer'
-            : defaultRowType(row),
+        type,
+        category_id: suggestedCategoryId(
+            row,
+            type,
+            incomeCategories,
+            expenseCategories,
+        ),
     };
 }
 
@@ -209,14 +277,6 @@ export function wouldMakeAccountNegative(
     return accountBalanceMinorUnits + signedAmount < 0;
 }
 
-export function rowAmountClass(row: ImportRow): string {
-    if ((row.amount_minor_units ?? 0) < 0) {
-        return 'text-destructive';
-    }
-
-    return 'text-success';
-}
-
 export function descriptionVariant(
     type: RowSelection['type'],
 ): 'income' | 'expense' | 'refund' | 'transfer' {
@@ -249,4 +309,22 @@ export function rowSelectionValid(
     }
 
     return selection.category_id !== '';
+}
+
+export type ImportRowNoteKind =
+    | 'invalidReason'
+    | 'pairReason'
+    | 'negativeBalance'
+    | 'toSpend'
+    | 'categoryMonthRemaining'
+    | 'poolMonthRemaining';
+
+/**
+ * Whether the row renders its notes block. The record type forces every note
+ * kind to be listed, so a new alert cannot silently stay outside the block.
+ */
+export function importRowHasNotes(
+    flags: Record<ImportRowNoteKind, boolean>,
+): boolean {
+    return Object.values(flags).some(Boolean);
 }

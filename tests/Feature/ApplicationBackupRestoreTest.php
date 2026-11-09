@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Backup\Tasks\Backup\DbDumperFactory;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -165,6 +166,15 @@ class ApplicationBackupRestoreTest extends TestCase
         ])->assertFailed();
 
         unlink($path);
+    }
+
+    public function test_postgresql_dump_command_omits_owner_and_privileges(): void
+    {
+        $command = DbDumperFactory::createFromConnection('pgsql')
+            ->getDumpCommand(storage_path('app/testing/database.sql'));
+
+        $this->assertStringContainsString('--no-owner', $command);
+        $this->assertStringContainsString('--no-privileges', $command);
     }
 
     /**

@@ -1,7 +1,7 @@
 ---
 project: Household Treasurer
-checked_at: 2026-11-01T18:49:10+01:00
-health_status: critical-issues
+checked_at: 2026-11-08T14:20:00+01:00
+health_status: needs-attention
 context_type: brownfield
 language_family: multi
 stack_assessment_available: true
@@ -13,18 +13,18 @@ checks_run:
     - ci_cd
     - configuration
 audit_findings:
-    critical: 5
-    high: 8
-    moderate: 10
+    critical: 0
+    high: 0
+    moderate: 0
     low: 0
 test_runner_detected: true
 ci_provider: GitHub Actions
-recommended_fixes: 12
+recommended_fixes: 10
 ---
 
-Po tym raporcie wykonano wszystkie poprawki od 1 do 10 i włączono alerty Dependabota. Nadpisanie `tinypool` z poprawki 2 usunięto, bo zastąpiła je migracja `vite-plus` do 1.4.0. Stan audytu po nich: Composer 0 podatności, npm 0 podatności. Otwarte zostają tylko pozycje z kolejnych lekcji. Polecenie z poprawki 4 zastąpiono uruchomieniem obrazu Sail na worktree, bo daje PHP 8.5. Reszta raportu opisuje stan sprzed poprawek.
+Raport zastępuje wersję z 2026-11-04 pod prd-v2 (commit `932aa8d`). Ocenia stan projektu przed zmianą z `context/foundation/prd-v3.md` (zarządzanie kategoriami) i łączy ustalenia z `context/foundation/stack-assessment.md` z 2026-11-08.
 
-Sposób sprawdzenia: projekt nie został zmieniony. Testy, analiza i próby poprawek działały na tymczasowych kopiach worktree, uruchamianych przez host CLI (PHP 8.4.1, Node 24.21). Sail nie nadawał się do tego, bo montuje główny checkout, a ten jest na gałęzi `development`. Wyniki na PHP 8.5 i PostgreSQL pochodzą z CI (patrz sekcja CI/CD).
+Jak sprawdzono: kod projektu nie został zmieniony. W worktree `prd-categories` (`d998364`) wykonano `npm ci` i `npm run build`. Audyty i kontrola nieaktualnych pakietów działały na hoście (PHP 8.4.1, Node 24.21, Composer 2.8.12). Pełna bramka `composer ci:check` działała w obrazie `sail-8.5/app` (PHP 8.5) na tymczasowym PostgreSQL 18, bo stos Sail był wtedy wyłączony; kontener usunięto po przebiegu. Sloppy działał na hoście. Testy E2E działały na stosie Sail po jego uruchomieniu, z danymi logowania E2E z `.env` głównego checkoutu przekazanymi tylko w zmiennych środowiskowych. Historia CI pochodzi z `gh run list` i logów zadań.
 
 ## Dependency Health
 
@@ -33,308 +33,266 @@ Sposób sprawdzenia: projekt nie został zmieniony. Testy, analiza i próby popr
 Status: present (`composer.lock`, `package-lock.json`)
 Package manager: composer, npm
 
-`pnpm-workspace.yaml` jest pozostałością bez pliku blokady pnpm. Wpływa jednak na narzędzia (patrz poprawka 6).
-
 ### Security Audit
 
-**Composer**
+Tool: `composer audit --format json --locked`, `npm audit --json`
+Summary: 0 CRITICAL, 0 HIGH, 0 MODERATE, 0 LOW
+Direct vs transitive: brak ustaleń w obu drzewach
 
-Tool: `composer audit --locked --format json`
-Summary: 0 CRITICAL, 5 HIGH, 3 MODERATE, 0 LOW
-Direct vs transitive: 4 bezpośrednie (`phpoffice/phpspreadsheet`), 4 przechodnie. Wszystkie w zależnościach produkcyjnych.
-
-**npm**
-
-Tool: `npm audit --json`
-Summary: 5 CRITICAL, 3 HIGH, 7 MODERATE, 0 LOW
-Direct vs transitive: 4 bezpośrednie (`concurrently`, `vite-plus`, `vite`, `vue-tsc`), 11 przechodnich.
-
-Narzędzia liczą inaczej: Composer podaje liczbę advisory, a npm liczbę pakietów, także tych objętych tylko pośrednio. 5 CRITICAL w npm ma 2 źródła: `shell-quote` i `tinypool`. Tryb `--omit=dev` zgłasza 2 HIGH (`vite`, `source-map-js`), ale obraz produkcyjny kopiuje tylko `public/build`, bez `node_modules`. Podatności npm dotyczą więc dewelopmentu i builda, a podatności Composera działającej aplikacji.
-
-#### CRITICAL findings
-
-- **shell-quote** 1.9.0 (przez `concurrently` 10.0.5) — GHSA-pqg4-j6r4-53mv: wstrzyknięcie polecenia w `quote()`. Fix: `npm audit fix`.
-- **tinypool** 2.1.0 (przez `oxfmt` i `vite-plus` 0.3.0) — GHSA-5gmw-xhrv-c9v3, GHSA-85c8-ppgw-ccpr: prototype pollution prowadzące do RCE. Fix: nadpisanie do 2.2.0 albo `vite-plus` 1.x.
-
-#### HIGH findings
-
-- **phpoffice/phpspreadsheet** 5.9.0 — CVE-2026-108357, CVE-2026-108358: obejście XmlScannera dające XXE i DoS. Osiągalne po zalogowaniu przez Import XLSX (`IOFactory::load` w `BnpParibasXlsxParser`). Fix: update to 5.10.0.
-- **phpoffice/phpspreadsheet** 5.9.0 — CVE-2026-108359: DoS w czytniku ODS. Reguła `mimes:xlsx` ogranicza dostęp do tej ścieżki. Fix: update to 5.10.0.
-- **symfony/http-foundation** 8.1.6 — CVE-2026-108082: ReDoS w `HeaderUtils::split()` przez nagłówek `Cache-Control`. Według advisory nie wymaga logowania. Fix: update to 8.1.10.
-- **league/commonmark** 2.10.1 — GHSA-3q6v-r5mr-hxv8: DoS w rozszerzeniu tabel. W `app`, `routes` i `resources/views` nie ma wywołań Markdownu. Fix: update to 2.10.7.
-- **vite** 8.2.2 — zestaw advisory serwera deweloperskiego i `launch-editor`, m.in. GHSA-9jrq-w75r-8gcw, GHSA-rq7h-c2jc-7f22. Ma znaczenie, bo `vite.config.ts` ustawia `server.host: '0.0.0.0'`. Fix: update to 8.3.5.
-- **source-map-js** 1.2.1 — GHSA-68fv-2mgg-jv7q: DoS pętli zdarzeń. Fix: `npm audit fix`.
-- **brace-expansion** 2.1.4 — GHSA-q2hr-2g5m-vwhr, GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p: DoS. Fix: `npm audit fix`.
-
-#### MODERATE findings
-
-- **phpoffice/phpspreadsheet** 5.9.0 — CVE-2026-108360: obejście listy dozwolonych adresów (SSRF) w `Drawing::setPath`.
-- **symfony/mime** 8.1.6 — CVE-2026-45070: wstrzyknięcie nagłówka e-mail.
-- **league/commonmark** 2.10.1 — GHSA-97jj-33gv-5xf9: obejście `DisallowedRawHtml`.
-- **vitest**, **@vitest/mocker**, **@vitest/browser**, **@vitest/browser-preview**: wstrzyknięcie kodu przez mocki, tylko przez `vite-plus` 0.3.0.
-- **vue-tsc**, **@vue/language-core**, **minimatch**: DoS w `minimatch`, usuwany przez `vue-tsc` 3.
+Composer: 0 podatności, 0 porzuconych pakietów. npm: 0 podatności w 304 zależnościach. CI uruchamia `composer audit --locked` i ten krok działa: 2026-11-07 zatrzymał dwa przebiegi na `333e9b2` przez trzy porady dla `symfony/serializer` (m.in. CVE-2026-118515), a kolejne commity je usunęły. `npm audit` nie ma w potoku; npm pilnuje tylko Dependabot (`.github/dependabot.yml`, co tydzień, 5-dniowy `cooldown`).
 
 ### Outdated Dependencies
 
-Packages with major version gaps: 5
+Packages with major version gaps: 3 (bezpośrednie, npm). Composer: brak luk w wersjach głównych.
 
-- **@types/node**: 22.20.1 → 26.6.6 (4 major versions behind). Trzymaj się linii Node z CI, czyli 24.
-- **@vueuse/core**: 12.8.2 → 15.0.0 (3 major versions behind)
-- **typescript**: 5.9.3 → 7.0.2 (2 major versions behind)
-- **vite-plus**: 0.3.0 → 1.4.0 (1 major version behind)
-- **vue-tsc**: 2.2.12 → 3.3.14 (1 major version behind)
+- **typescript**: 5.9.3 → 7.0.2 (2 wersje główne). TypeScript 7 to natywny kompilator; `vue-tsc` 3.3.14 jest najnowszy i nie deklaruje jego obsługi. Do prd-v3 zostań na 5.9.
+- **@vueuse/core**: 12.8.2 → 15.0.0 (3 wersje główne).
+- **@laravel/passkeys**: 0.2.0 → 0.4.1. Pakiet 0.x, zmiana minor może łamać API.
 
-`vuedraggable` pomijam: `npm outdated` podaje 2.24.3 jako najnowszą wersję, ale to linia Vue 2. Composer nie ma luk wersji głównych. 12 bezpośrednich pakietów ma aktualizacje zgodne z semver, m.in. `laravel/framework` 13.30.1 → 13.39.0 i `pestphp/pest` 5.1.4 → 5.3.5.
+`@types/node` 24.19 wobec 26.6 to świadomy wybór: typy odpowiadają Node 24 z `.nvmrc` i `engines`. Pomijam `vuedraggable` (`latest` w npm to linia 2.x dla Vue 2) i pakiety natywne `*-win32-*`.
+
+Od poprzedniego raportu zaktualizowano Inertię (klient i serwer 3.11 / 3.7, znów zgodne), `vite-plus` 1.5.0 razem z aliasem `vite` i `overrides.vite`, `@laravel/vite-plugin-wayfinder` 0.1.11 i `@types/node` do `^24`. Do zrobienia zostały łatki: `vue` 3.5.45, `tailwindcss` 4.3.5, `@lucide/vue` 1.70, `tailwind-merge` 3.7, `laravel-vite-plugin` 3.2.1, `phpoffice/phpspreadsheet` 5.11, `spatie/laravel-backup` 10.4.
 
 ## Test Suite
 
-Test runner: Pest 5.1.4 (PHPUnit 13.3)
-Tests found: 619 tests w 64 plikach
-Test execution: passing (617 zaliczonych, 2 pominięte, 4984 asercje, około 30 s na SQLite)
+Test runner: Pest 5.3 (PHPUnit 13.4), Vitest 5.1 przez `vp test`, Playwright 1.65
+Tests found: 971 testów PHP (7318 asercji), 448 testów JS w 40 plikach, 24 testy E2E w 9 plikach
+Test execution: passing
 
-Configuration: `phpunit.xml`, `phpunit.nfr.xml`
-Framework: Pest 5.1 + `pest-plugin-laravel`
+Configuration: `phpunit.xml` (domyślnie SQLite w pamięci), `phpunit.nfr.xml` (PostgreSQL, grupa `nfr`), sekcja `test` w `vite.config.ts`, `playwright.config.ts` z `scripts/e2e-server.sh`
+Framework: Pest 5.3, PHPUnit 13.4, Vitest 5.1 (`vite-plus` 1.5.0), Playwright 1.65
 
-- Testy pomijają się warunkowo, gdy funkcja Fortify jest wyłączona (`skipUnlessFortifyHas`). Nie ustalono, które 2 testy były pominięte.
-- PostgreSQL: `BudgetMonthRemainingTest` przechodzi z hosta na bazie `testing` (12 z 12).
-- Grupa `nfr` jest wykluczona z domyślnego uruchomienia, więc CI nie sprawdza wymagań wydajnościowych.
-- Pozostałe bramki z CI uruchomione lokalnie: Pint czysty, PHPStan bez błędów, `vue-tsc` bez błędów, `vp check` pada na formatowaniu jednego pliku (poprawka 3). Po tej poprawce formatowanie i lint przechodzą bez ostrzeżeń.
-- Frontend nie ma testów, a `tests/` nie ma testów `arch()`. `vp test` jest dostępne w zainstalowanej wersji, ale nie jest skonfigurowane.
+Wynik `composer ci:check` w obrazie Sail na PostgreSQL 18:
+
+| Krok                   | Wynik                                              |
+| ---------------------- | -------------------------------------------------- |
+| `npm run check` (`vp`) | ✓ format 299 plików, lint 266 plików, 0 uwag       |
+| `npm run check:ui`     | ✓                                                  |
+| `npm run types:check`  | ✓ `vue-tsc`                                        |
+| `npm test`             | ✓ 448/448 w 40 plikach                             |
+| Pint                   | ✓ 368 plików                                       |
+| PHPStan (poziom 7)     | ✓ 0 błędów, 243 pliki                              |
+| `php artisan test`     | ✓ 969 passed, 2 skipped (161 s)                    |
+| `vendor/bin/sloppy ci` | ✓ 216 plików, 0 ustaleń (osobno, na hoście)        |
+| `npx playwright test`  | ✓ 24/24 (1,2 min, na stosie Sail)                  |
+
+Pominięte testy dotyczą rejestracji, którą Fortify ma wyłączoną. Niestabilny test z poprzedniego raportu (`OwnTransferTest`, losowa data otwarcia konta) jest naprawiony w `6080320`: `AccountFactory` losuje datę z lat 2000–2020. Jedyna porażka bramki testów w ostatnich 30 przebiegach CI (2026-11-04 09:20, `1d49286`) była właśnie tym testem i poprzedza poprawkę.
+
+Dla prd-v3: nie ma jeszcze żadnego testu migracji (`tests/Feature/Migrations` nie istnieje), a `phpunit.xml` domyślnie używa SQLite. Pierwsza migracja danych nie ma wzorca, na którym agent mógłby się oprzeć (poprawka 3).
 
 ## CI/CD
 
 Provider: GitHub Actions
-Configuration: `.github/workflows/tests.yml`
+Configuration: `.github/workflows/tests.yml` (+ `.github/dependabot.yml`)
 
-| Stage      | Status | Notes                                                       |
-| ---------- | ------ | ----------------------------------------------------------- |
-| Lint       | ✓      | `vp check`, Pint przez `composer ci:check`                  |
-| Test       | ✓      | Pest na PostgreSQL 18 i PHP 8.5                             |
-| Build      | ✓      | `npm run build`                                             |
-| Type check | ✓      | PHPStan poziom 7, `vue-tsc`                                 |
-| Security   | ✗      | Brak audytu w CI. Dependabot obejmuje tylko GitHub Actions. |
+| Stage      | Status | Notes                                                                        |
+| ---------- | ------ | ---------------------------------------------------------------------------- |
+| Lint       | ✓      | `vp check` (lint + format), Pint, skaner literałów UI, Sloppy                 |
+| Test       | ✓      | Pest na PostgreSQL 18 i PHP 8.5, Vitest przez `vp test`; **bez Playwright**   |
+| Build      | ✓      | `npm run build` (generuje też Wayfinder)                                      |
+| Type check | ✓      | PHPStan poziom 7, `vue-tsc`                                                  |
+| Security   | ✓      | `composer audit --locked`, Dependabot; brak `npm audit` w potoku             |
 
-Ostatni przebieg na `main` po pushu (`da18968`, 2026-09-24) zakończył się sukcesem. Od tego commita kod aplikacji, testy i pliki zależności się nie zmieniły, więc ten wynik dalej dotyczy tej gałęzi. Akcje są przypięte do SHA, a checkout ma `persist-credentials: false`.
+Wykonane poprawki z poprzedniego raportu: cache Composera przez `actions/cache`, `node-version-file: .nvmrc`, `runs-on: ubuntu-24.04`, push na `development` uruchamia CI. Akcje są przypięte do SHA, `permissions: contents: read`, `persist-credentials: false`.
 
-API GitHuba zgłasza wyłączone alerty Dependabota. Nowe advisory od września nie trafiają więc do repozytorium żadną drogą.
+Historia: w ostatnich 30 przebiegach 4 porażki, wszystkie z realnych powodów, żadna niestabilna: Sloppy (7 ustaleń, `fc80578`), dwa razy `composer audit` (`symfony/serializer`, `333e9b2`) i test `OwnTransferTest` sprzed poprawki fabryki. Ostatnie 15 przebiegów jest zielonych.
+
+Wdrożenie jest ręczne (`scripts/deploy.sh`). Linia 36 robi `php artisan migrate --force` bez kopii bazy. Kopia `backup:run` (spatie/laravel-backup) działa z harmonogramu codziennie o 03:00 do `BACKUP_HOST_DIR`, więc przywrócenie po nieudanej migracji cofa do 24 godzin zmian (poprawka 1).
 
 ## Configuration
 
-Obecne i poprawne: `.editorconfig`, `.gitignore`, `.env.example`, `tsconfig.json` ze `strict: true`, Pint, formatowanie i lint przez `vp`. Git nie śledzi plików `.env` ani arkusza budżetu. Sprawdzono nazwy plików, a nie ich treść, więc to nie jest skan sekretów.
-
 ### High severity
 
-- **`vite.config.ts` / `context/foundation/shape-notes.md`** — `vp check` obejmuje `context/` i odrzuca formatowanie tego pliku, a CI uruchamia ten krok jako pierwszy w `composer ci:check`. Fix: poprawka 3.
-- **`AGENTS.md`, sekcje „Test database” i „Project facts”** — polecenia nie działają z worktree. Fix: poprawka 4.
+- **`scripts/deploy.sh` bez kopii bazy przed migracją** — prd-v3 zaczyna się od scalenia kategorii z kilku budżetów, a takiej migracji nie da się odwrócić przez `down()`. Fix: poprawka 1.
 
 ### Medium severity
 
-- **`.github/dependabot.yml`** — brak ekosystemów `composer` i `npm`. Fix: poprawka 5.
-- **`pnpm-workspace.yaml`** — plik sprawia, że `vp migrate` przełącza projekt na pnpm. Fix: poprawka 6.
-- **`composer.json`** — `php: ^8.3`, a zablokowane pakiety wymagają 8.4.1. Fix: poprawka 6.
+- **Brak wpisów kompensacyjnych z oceny stosu** — `.ai/rules/migrations.md` i `.ai/rules/categories.md` nie istnieją, a `.ai/rules/snapshot.md` nie ma sekcji o konwersji starszych snapshotów. Fix: poprawka 2.
+- **`phpstan.neon` bez `tests/`, brak testów architektury** — bez zmian od poprzedniego raportu. Fix: poprawka 4.
 
 ### Low severity
 
-- **`composer.json`, `package.json`** — `laravel/chisel` i `concurrently` nie mają żadnych odwołań w kodzie. Fix: poprawka 10.
-- **`.docs/tech-stack.md`** — błędnie twierdzi, że Laravel 13 wymaga PHP 8.5 i że testy idą na PostgreSQL, a o Vite+ nie wspomina. Fix: poprawka 10.
-- **`phpstan.neon`** — `tests/` poza analizą. Na razie bez zmian: uruchomienie na `tests/` daje 109 błędów, a widoczna próbka to same `TestCall::…()`, czyli brak typowania Pesta, nie błędy w testach.
+- **Świeży worktree ma puste `E2E_USERNAME` / `E2E_PASSWORD`** — hook `EnterWorktree` kopiuje `.env` z `.env.example`, więc `npx playwright test` pada w setupie logowania. Fix: poprawka 6.
+- **`phpunit.xml` z domyślnym SQLite** — skompensowane twardą regułą w `AGENTS.md`, ale bez wzorca testu migracji. Fix: poprawka 3.
+- **Zdublowany numer ADR 0008, luka 0025–0028** — 57 plików z numerami do 0062. Ocena stosu podaje „62 ADR”, co nie zgadza się z liczbą plików. Fix: poprawka 9.
+- **Earmark opisany w PRD i słowniku, nieobecny w `app/`** — twarda reguła „Docs describe more than the code” go nie wymienia. Fix: poprawka 10.
+
+Obecne: `.editorconfig`, `.gitignore`, `.env.example`, `.env.prod.example`, `.nvmrc` (24) i `engines.node >= 24`, `tsconfig.json` z `strict: true`, `pint.json`, formatowanie i lint przez `vp`, `CLAUDE.md` (teraz w Gicie) z `@AGENTS.md`, `AGENTS.md`, 17 reguł w `.ai/rules`, `context/foundation/glossary.md`.
 
 ## Stack Assessment Cross-Reference
 
-Stack assessment: context/foundation/stack-assessment.md
+Stack assessment: `context/foundation/stack-assessment.md` (2026-11-08)
 Agent readiness (from stack-assess): ready-with-compensation
 
-| Quality Gate Gap           | Health-Check Finding                                                                               | Status              |
-| -------------------------- | -------------------------------------------------------------------------------------------------- | ------------------- |
-| Vite+: dane treningowe     | `vite-plus` 0.3.0 ma 3 CRITICAL, a wersja 1.x wymaga migracji. Reguła „Frontend toolchain” obecna. | Reinforced          |
-| Vite+: dokumentacja        | Wersja 1.4.0 ma inny formatter i wymaga `vp migrate`. Różnica wersji realnie kosztuje.             | Reinforced          |
-| Wayfinder: dane treningowe | Brak podatności, reguła w `AGENTS.md`, wygenerowane pliki działają. Sam krok trwa 83 s na hoście.  | Mitigated           |
-| Wayfinder: dokumentacja    | Reguła wskazuje wzorzec z istniejących stron i lokalny skill.                                      | Mitigated           |
-| Granica PHP ↔ Vue          | `vue-tsc` czysty, reguła „Inertia props contract” obecna. Nadal nic nie sprawdza zgodności stron.  | Partially mitigated |
+| Quality Gate Gap / ryzyko                                         | Health-Check Finding                                                                                              | Status            |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Vite+: dane treningowe ✗                                          | `.ai/rules/frontend-toolchain.md` obecna; `vp check` i `vp test` przechodzą; `vite-plus`, `vite` i `overrides` na 1.5.0 | Mitigated     |
+| Wayfinder: dane treningowe ✗, dokumentacja ~                      | `.ai/rules/wayfinder.md` obecna; build i `vue-tsc` przechodzą; wtyczka 0.1.11                                    | Mitigated         |
+| Granica PHP ↔ Vue ~                                               | `.ai/rules/inertia-props.md` i twarda reguła; Inertia klient 3.11 / serwer 3.7, oba najnowsze                     | Mitigated         |
+| Świeżość wersji (Laravel 13, Inertia 3, Pest 5)                   | `CLAUDE.md` w Gicie importuje `@AGENTS.md`; Boost MCP w tej sesji działał                                         | Mitigated         |
+| Ryzyko: pierwsza migracja danych (bez reguły)                     | Brak `.ai/rules/migrations.md` i `tests/Feature/Migrations`; lokalnie domyślny SQLite                             | Open              |
+| Ryzyko: wdrożenie migruje bez kopii bazy                          | Potwierdzone w `deploy.sh:36`; kopia tylko z harmonogramu o 03:00                                                 | Reinforced        |
+| Ryzyko: łączenie lat po nazwie i typie                            | Brak `.ai/rules/categories.md`                                                                                    | Open              |
+| Ryzyko: rytm zamiast dwóch flag (expand, switch, contract)        | Reguła z oceny stosu niewdrożona; pary kalkulatorów PHP/TS mają testy i przechodzą                                | Partly mitigated  |
+| Ryzyko: snapshot w nowym formacie                                 | `.ai/rules/snapshot.md` bez sekcji o konwersji starszych wersji                                                   | Open              |
+| Ryzyko: wykresy                                                   | `.ai/rules/reports.md` obecna; brak biblioteki wykresów, decyzja w `/10x-plan`                                     | Mitigated         |
+| Do sprawdzenia: `tests/` poza PHPStan, brak `arch()`              | Potwierdzone                                                                                                     | Open (medium)     |
+| Do sprawdzenia: brak automatycznego wdrożenia                     | Potwierdzone; CI nie wdraża                                                                                       | Category B        |
+| Do sprawdzenia: zdublowany ADR 0008                               | Potwierdzone; następny wolny numer to 0063                                                                        | Open (low)        |
+| Do sprawdzenia: Earmark w PRD, nieobecny w kodzie                 | Potwierdzone (`grep -rli earmark app` pusty)                                                                      | Open (low)        |
 
-Wpisy kompensacyjne z oceny stosu są już w `AGENTS.md`. Świeży worktree przygotowany według sekcji „Fresh checkout or worktree” działa. Jedyny wyjątek to polecenia Sail, które ocena oznaczyła jako nieuruchomione: z worktree kończą się błędem (poprawka 4).
-
-Pozycje przekazane do sprawdzenia:
-
-- `vite-plus` względem 1.x: największy problem, poprawki 2 i 7.
-- `php: ^8.3`, `laravel/chisel`, `pnpm-workspace.yaml`, `.docs/tech-stack.md`: potwierdzone, poprawki 6 i 10. `pnpm-workspace.yaml` szkodzi bardziej, niż zakładała ocena.
-- Brak testów frontendu i `arch()`: potwierdzone, poprawka 8.
-- `tests/` poza PHPStanem: potwierdzone, patrz sekcja Configuration.
-- Brak automatycznego wdrożenia i zaszyte ścieżki MCP: potwierdzone, kolejne lekcje.
+Ocena stosu wydała werdykt `ready-with-compensation`, ale żaden z trzech zalecanych wpisów nie jest jeszcze w repozytorium. To główna luka tego raportu: kompensacja istnieje tylko jako tekst w ocenie i agent jej nie zobaczy, bo reguły ładują się z `.ai/rules`, a nie z `stack-assessment.md`.
 
 ## Recommended Fixes
 
 ### Fix before agent work (Category A)
 
-### 1. Zaktualizuj podatne pakiety w obrębie obecnych wersji
+### 1. Kopia bazy przed migracją w `deploy.sh`
 
-**Impact**: usuwa całe ryzyko w działającej aplikacji, w tym XXE w Imporcie, oraz wszystkie HIGH w narzędziach. Agent dotyka Importu w FR-014, więc ta ścieżka nie powinna zostać podatna.
-**Severity**: critical
-**Effort**: quick (< 5 min)
-**Fix**:
-
-```bash
-composer update phpoffice/phpspreadsheet league/commonmark symfony/http-foundation symfony/mime --with-dependencies --no-interaction
-npm audit fix
-```
-
-Sprawdzone na kopii: `composer audit` czysty, npm schodzi do 3 CRITICAL, 0 HIGH, 7 MODERATE, 619 testów bez zmian. Composer aktualizuje 20 pakietów.
-
-### 2. Nadpisz `tinypool` do czasu migracji `vite-plus`
-
-**Impact**: usuwa pozostałe 3 CRITICAL bez migracji narzędzi. To osłona tymczasowa, którą usuwa poprawka 7.
-**Severity**: critical
-**Effort**: quick (< 5 min)
-**Fix**:
-
-```bash
-npm pkg set overrides.tinypool=2.2.0
-npm install
-```
-
-Sprawdzone na kopii: 0 CRITICAL, 1 HIGH (`vite-plus`), 7 MODERATE, a formatter i lint działają. Pełnego builda z tym nadpisaniem nie uruchamiano.
-
-### 3. Napraw czerwony `vp check`
-
-**Impact**: następny PR z tej gałęzi nie przejdzie CI, bo krok pada przed testami. Agent zobaczy błąd niezwiązany ze swoją zmianą.
+**Impact**: Scalenie kategorii z kilku budżetów to pierwsza nieodwracalna migracja w projekcie. Jeśli zepsuje dane na produkcji, jedyną drogą jest kopia z 03:00, więc znikną zmiany z całego dnia, a agent nie ma jak tego naprawić po fakcie.
 **Severity**: high
 **Effort**: quick (< 5 min)
 **Fix**:
 
-Dodaj `'context/**'` do `fmt.ignorePatterns` w `vite.config.ts`. Kolejne artefakty w `context/` nie będą wtedy blokować CI. Jeśli te pliki mają być formatowane, uruchom zamiast tego `npm run check:fix`.
+W `scripts/deploy.sh`, przed linią 36 (`Running migrations`), dodaj kopię samej bazy do katalogu kopii:
 
-Sprawdzone na kopii: po dodaniu wzorca `npm run check` przechodzi w całości.
-
-### 4. Popraw polecenia dla worktree w `AGENTS.md`
-
-**Impact**: agenci pracują w worktree, a tam `docker compose exec` kończy się błędem `service "laravel.test" is not running`. `docker exec` do działającego kontenera przetestowałby kod głównego checkoutu, czyli gałęzi `development`, a nie zmianę agenta.
-**Severity**: high
-**Effort**: quick (< 5 min)
-**Fix**:
-
-Dopisz do sekcji „Test database”:
-
-```markdown
-In a worktree, the running Sail stack serves the main checkout, not your code. After the fresh-checkout steps, run tests from the host against Sail's PostgreSQL:
-
-`DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=testing DB_USERNAME=sail DB_PASSWORD=password php artisan test --compact <path>`
+```bash
+echo "==> Backing up the database before migrations..."
+$COMPOSE exec -T app php artisan backup:run --only-db --disable-notifications
 ```
 
-Sprawdzone na kopii: `BudgetMonthRemainingTest`, 12 z 12 na PostgreSQL.
+`set -euo pipefail` zatrzyma wdrożenie, gdy kopia się nie uda. W planie prd-v3 opisz przywrócenie z tego pliku (`BACKUP_HOST_DIR`) i sprawdź je raz na kopii lokalnej.
 
-### 5. Włącz stały nadzór nad zależnościami
+### 2. Wpisy kompensacyjne z oceny stosu
 
-**Impact**: podatności pojawiły się w ciągu ostatnich tygodni, a nic ich nie zgłosiło. Bez tego kolejne wyjdą dopiero przy ręcznym audycie.
+**Impact**: Bez reguł agent użyje modeli Eloquent w migracji, sprawdzi ją na SQLite, napisze `down()`, który udaje rozdzielenie kategorii, zostawi łączenie po nazwie w części z sześciu plików i usunie flagi `is_paced` / `month_item_kind` jednym krokiem.
 **Severity**: medium
 **Effort**: moderate (15–30 min)
 **Fix**:
 
-Dodaj do `updates` w `.github/dependabot.yml`:
-
-```yaml
-- package-ecosystem: 'composer'
-  directory: '/'
-  schedule:
-      interval: 'weekly'
-  cooldown:
-      default-days: 5
-- package-ecosystem: 'npm'
-  directory: '/'
-  schedule:
-      interval: 'weekly'
-  cooldown:
-      default-days: 5
-```
-
-Włącz alerty w Settings → Advanced Security → Dependabot alerts. Po poprawkach 1 i 2 dodaj krok CI `composer audit --locked`.
-
-### 6. Usuń `pnpm-workspace.yaml` i popraw wymaganie PHP
-
-**Impact**: narzędzia odczytują ten plik jako deklarację pnpm, choć projekt używa npm. `php: ^8.3` obiecuje wersję, na której zablokowane pakiety się nie zainstalują.
-**Severity**: medium
-**Effort**: quick (< 5 min)
-**Fix**:
+Skopiuj trzy wpisy z `context/foundation/stack-assessment.md` → „Recommended Instruction File Additions”: utwórz `.ai/rules/migrations.md` i `.ai/rules/categories.md`, dopisz sekcję „An older snapshot is converted, not just defaulted” na końcu `.ai/rules/snapshot.md`, dodaj dwa wiersze do `.ai/rules/index.md`, potem:
 
 ```bash
-git rm pnpm-workspace.yaml
+php artisan boost:index-rules
 ```
 
-Zmień w `composer.json` wpis na `"php": "^8.4.1"`, a potem uruchom `composer update --lock`.
+Sprawdź, że reguła się ładuje: otwórz w nowej sesji dowolny plik z `database/migrations/` i zobacz, czy treść `migrations.md` trafia do kontekstu.
 
-### 7. Zmigruj `vite-plus` do 1.x jako osobną zmianę
+### 3. Wzorzec testu migracji na PostgreSQL
 
-**Impact**: zamyka ostatni HIGH i wszystkie MODERATE (kopia: 0 podatności npm) oraz wyrównuje wersję z dokumentacją, z której korzysta agent.
-**Severity**: high
+**Impact**: `tests/Feature/Migrations` nie istnieje, a lokalnie `php artisan test` działa na SQLite. Agent może oddać zieloną migrację, która na PostgreSQL działa inaczej (agregaty, `DISTINCT ON`, ograniczenia), i dowie się o tym dopiero w CI albo na produkcji.
+**Severity**: medium
+**Effort**: moderate (15–30 min)
+**Fix**:
+
+Pierwszy test migracji w prd-v3 niech zapisze wzorzec: plik w `tests/Feature/Migrations/`, który odpala się tylko na PostgreSQL i mówi o tym wprost, np.:
+
+```php
+beforeEach(function () {
+    if (DB::getDriverName() !== 'pgsql') {
+        $this->markTestSkipped('Data migrations are verified on PostgreSQL (AGENTS.md → Commands).');
+    }
+});
+```
+
+CI działa na PostgreSQL, więc tam test zawsze się uruchomi. Lokalnie uruchamiaj go poleceniem z `AGENTS.md` → Commands (worktree: `docker run ... sail-8.5/app artisan test --compact tests/Feature/Migrations`).
+
+### 4. Testy poza PHPStan i brak testów architektury
+
+**Impact**: prd-v3 przepisze wiele testów (rytm zamiast flag w około 50 plikach). Żadna bramka nie sprawdza w nich typów, a konwencje (`Actions` zapisują, `Support` czyta, brak `float` w kodzie kwot) są tylko w dokumentach.
+**Severity**: medium
 **Effort**: significant (> 1 hour)
 **Fix**:
 
-Najpierw wykonaj poprawkę 6. Próba na kopii pokazała:
+Dodaj osobny `phpstan.tests.neon` z `paths: [tests/]` na `level: 5` (lub z baseline) i krok w `composer.json` → `types:check`. Potem `tests/Arch/ArchTest.php` z regułami, które `AGENTS.md` już opisuje, np.:
 
-- `npm install -D --save-exact vite-plus@1.4.0` pada na konflikcie z opcjonalnym peerem `@vitest/browser-playwright`. Przechodzi z `--legacy-peer-deps`, a to samo trzeba by rozwiązać dla `npm ci` w CI.
-- Build wymaga `npx vp migrate --no-interactive --no-agent --no-hooks`.
-- Przy obecnym `pnpm-workspace.yaml` migracja przeszła na pnpm i wpisała `catalog:` do `package.json`. Build przeszedł, ale `vue-tsc` zgłosił błędy typu `page.props.auth is of type unknown`.
-- Formatter 1.x oznacza też pliki w `.agents/` i `.cursor/skills/`.
+```php
+arch()->preset()->php();
+arch()->expect('App\Http\Requests')->toExtend('Illuminate\Foundation\Http\FormRequest');
+arch()->expect('App\Policies')->toHaveSuffix('Policy');
+```
 
-Migracji bez `pnpm-workspace.yaml` nie sprawdzono.
+Uruchom je na obecnym kodzie, zanim dodasz je do bramki; gotowe presety, np. `preset()->laravel()`, mogą zgłosić istniejący kod.
 
-### 8. Dodaj testy logiki miesiąca po stronie TypeScript
+### 5. E2E poza CI
 
-**Impact**: FR-014 zmienia ostrzeżenia oparte na kopii TS, która nie ma testów. Agent może rozjechać obie wersje reguły i nic tego nie wykryje.
-**Severity**: medium
+**Impact**: 24 testy Playwright przechodzą lokalnie, ale CI ich nie uruchamia. prd-v3 dodaje widok „Kategorie” i raporty, a zmiana kategorii dotyka Operacji, Importu i planu miesiąca. Agent dowie się o złamanym przepływie w przeglądarce tylko wtedy, gdy sam uruchomi E2E.
+**Severity**: low
+**Effort**: significant (> 1 hour)
+**Fix**:
+
+Na teraz: w planie prd-v3 dopisz `npx playwright test` do weryfikacji każdej fazy, która zmienia widoki. Później: osobny job w `tests.yml`, który uruchamia `php artisan serve` na bazie usługi `pgsql` (`scripts/e2e-server.sh` wymaga sieci Sail, więc w CI potrzebny jest inny `webServer.command`, np. przez zmienną `CI`), tworzy użytkownika `artisan user:create` i przekazuje `E2E_USERNAME` / `E2E_PASSWORD` z sekretów.
+
+### 6. Dane logowania E2E w świeżym worktree
+
+**Impact**: Każdy worktree startuje z `.env` z `.env.example`, więc `npx playwright test` pada w `auth.setup.ts`. Agent widzi czerwony E2E bez związku ze swoją zmianą.
+**Severity**: low
+**Effort**: quick (< 5 min)
+**Fix**:
+
+W skrypcie hooka `EnterWorktree` (`.claude/settings.json`) po skopiowaniu `.env` przepisz wiersze `E2E_USERNAME` i `E2E_PASSWORD` z `.env` głównego checkoutu, np. `grep -E '^E2E_(USERNAME|PASSWORD)=' "$MAIN/.env" >> .env` (z usunięciem pustych wierszy z `.env.example`). Albo dopisz ten krok do `context/foundation/agents/worktree-preview.md`.
+
+### 7. `npm audit` poza potokiem
+
+**Impact**: Podatność w zależności npm zatrzyma dziś tylko Dependabot, raz w tygodniu i z 5-dniowym opóźnieniem. Composer ma blokadę w CI, npm nie.
+**Severity**: low
+**Effort**: quick (< 5 min)
+**Fix**:
+
+W `.github/workflows/tests.yml` po kroku `Install Node dependencies` dodaj:
+
+```yaml
+- name: Audit Node dependencies
+  run: npm audit --audit-level=high
+```
+
+### 8. Łatki i pakiety z luką w wersji głównej
+
+**Impact**: Łatki nie blokują agenta. Luki major (`@vueuse/core` 12 → 15, `@laravel/passkeys` 0.2 → 0.4) to osobna praca z łamaniem API; lepiej nie mieszać ich z prd-v3.
+**Severity**: low
+**Effort**: quick (< 5 min) dla łatek, significant (> 1 hour) dla wersji głównych
+**Fix**:
+
+Teraz połącz otwarte PR-y Dependabota (`gh pr list --author app/dependabot`) albo:
+
+```bash
+npm update vue tailwindcss @tailwindcss/vite @lucide/vue tailwind-merge laravel-vite-plugin
+composer update phpoffice/phpspreadsheet spatie/laravel-backup
+```
+
+Wersje główne po prd-v3, każdą osobno. `typescript` 7 dopiero wtedy, gdy `vue-tsc` go oficjalnie obsługuje.
+
+### 9. Zdublowany numer ADR 0008
+
+**Impact**: prd-v3 doda kilka ADR-ów (zastąpienie ADR-0014, zmiany ADR-0016, ADR-0033, ADR-0034). Odwołanie „ADR 0008” jest niejednoznaczne, a luka 0025–0028 sprawia, że liczba plików nie mówi, jaki numer jest wolny.
+**Severity**: low
 **Effort**: moderate (15–30 min)
 **Fix**:
 
-Decyzja należy do planu FR-014. Jeśli kopia TS zostaje:
+Zmień numer jednego z plików 0008 (`0008-cross-import-own-transfer-pair.md`, `0008-user-domain-snapshots-via-artisan.md`) na 0063 przez `git mv` i popraw odwołania (`grep -rn "0008" AGENTS.md .ai context`). Nowe ADR z prd-v3 numeruj od 0064. Albo zostaw numery i dopisz wyjaśnienie w `context/foundation/adr`. Przy okazji popraw w `stack-assessment.md` liczbę ADR (57 plików, nie 62).
 
-```bash
-npm pkg set scripts.test="vp test"
-```
+### 10. Earmark poza listą terminów bez kodu
 
-Dodaj `resources/js/lib/month-remaining-calculator.test.ts` z przypadkami z `tests/Feature/BudgetMonthRemainingTest.php`, dopisz `npm test` do `ci:check` i zaktualizuj regułę „Frontend toolchain”. Tego kroku nie sprawdzono na kopii.
-
-### 9. Zaktualizuj `vue-tsc` do wersji 3
-
-**Impact**: usuwa 3 MODERATE z jednego narzędzia, które agent uruchamia przy każdej zmianie frontendu.
+**Impact**: PRD i słownik opisują Earmark, a w `app/` go nie ma. Twarda reguła „Docs describe more than the code” wymienia Agendę, Cash Expectation, Reserve i Year Close, ale nie Earmark, więc agent może budować na nieistniejącym module.
 **Severity**: low
 **Effort**: quick (< 5 min)
 **Fix**:
 
-```bash
-npm install -D vue-tsc@3
-```
-
-Sprawdzone na kopii: `npm run types:check` bez błędów.
-
-### 10. Usuń pozostałości
-
-**Impact**: nieużywane pakiety zwiększają powierzchnię audytu, a nieprawdziwe zdania w dokumentacji wprowadzają agenta w błąd.
-**Severity**: low
-**Effort**: quick (< 5 min)
-**Fix**:
-
-```bash
-composer remove laravel/chisel
-npm uninstall concurrently
-```
-
-W `.docs/tech-stack.md` popraw linię 8 (PHP 8.5 to wybór projektu, a nie wymóg Laravela), linię 39 (domyślne testy idą na SQLite, PostgreSQL w CI) i dopisz Vite+. Usunięcia pakietów nie sprawdzono na kopii.
+W `AGENTS.md` (linia 10) dopisz Earmark do listy: „Agenda, Cash Expectation, Earmark, Reserve and Year Close are not on `main`.”
 
 ### Addressed in upcoming lessons (Category B)
 
-### Boost MCP tylko dla Cursora
-
-**Lesson**: [Agent Onboarding: Agents.md, AI Rules i feedback loops (M1L4)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l4)
-**What you'll do there**: uporządkujesz dostęp agentów do narzędzi, w tym brak `.mcp.json` oraz zaszyte ścieżki w `.cursor/mcp.json` i `.ai/mcp/mcp.json`. Do tego czasu sekcja „When Boost tools are not available” w `AGENTS.md` wystarcza.
-
-### Ręczne wdrożenie
+### Brak automatycznego wdrożenia
 
 **Lesson**: [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5)
-**What you'll do there**: zdecydujesz, czy `scripts/deploy.sh` ma zostać ręczny, czy przejść do potoku CI/CD. CI już dziś pokrywa lint, testy, build i typy.
+**What you'll do there**: połączysz CI z wdrożeniem, które dziś działa ręcznie przez `scripts/deploy.sh` i `docker-compose.prod.yml`; kopia przed migracją (poprawka 1) przejdzie wtedy do potoku wdrożenia.
+
+`CLAUDE.md` z poprzedniego raportu jest już w Gicie i importuje `@AGENTS.md`, więc ten punkt jest zamknięty.
 
 ## Summary
 
-Health status: critical-issues
+Health status: needs-attention
 
-Status wynika z reguły: audyt zgłasza CRITICAL, więc raport nie może być łagodniejszy. Realne ryzyko jest mniejsze, niż sugeruje ta etykieta, bo wszystkie 5 CRITICAL to narzędzia dewelopera, a główny problem aplikacji to HIGH w PhpSpreadsheet na ścieżce Importu. Fundament jest mocny: 619 testów, PHPStan poziom 7, TypeScript strict i pełne CI. Poprawki 1 i 2 zajmują kilka minut i sprowadzają projekt do 0 CRITICAL oraz 1 HIGH, czyli do statusu `needs-attention`.
+Projekt jest w bardzo dobrym stanie technicznym. Audyty Composera i npm są czyste, wszystkie bramki przechodzą na PostgreSQL i PHP 8.5 (969 testów PHP, 448 testów JS, 24 testy E2E, PHPStan i Sloppy bez uwag), a wszystkie poprawki CI z poprzedniego raportu są wykonane. Porażki CI z ostatnich dni to realne problemy wykryte przez bramki, a nie niestabilne testy. Werdykt nie wynika ze stanu kodu, tylko z gotowości na prd-v3. Wdrożenie migruje bez świeżej kopii bazy, a kompensacja z oceny stosu (reguły migracji danych, tożsamości kategorii i konwersji snapshotu) jest jeszcze tylko tekstem w `stack-assessment.md`, więc agent jej nie zobaczy.
 
-Next step: wykonaj poprawki 1–4, potem przejdź do onboardingu agentów (M1L4). Poprawkę 7 zaplanuj jako osobną zmianę.
+Next step: wykonaj poprawki 1 i 2 (razem około pół godziny), poprawkę 3 zostaw pierwszej fazie planu prd-v3, potem przejdź do onboardingu agentów i `/10x-plan`.

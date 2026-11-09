@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTermDepositRequest;
 use App\Http\Requests\UpdateTermDepositRequest;
 use App\Models\TermDeposit;
 use App\Support\AccountIdentity;
+use App\Support\TotalFunds;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ class TermDepositController extends Controller
 
         return Inertia::render('TermDeposits', [
             'termDeposits' => $termDeposits,
+            'total_funds_minor_units' => TotalFunds::forUser($request->user()),
             'term_deposits_total_minor_units' => (int) $allTermDeposits->sum('current_balance_minor_units'),
             'archived_term_deposits_total_minor_units' => (int) $archivedTermDeposits->sum('current_balance_minor_units'),
             'archived_term_deposits_count' => $archivedTermDeposits->count(),

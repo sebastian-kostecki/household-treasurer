@@ -4,12 +4,19 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dev\AccountsKitchenSinkController;
+use App\Http\Controllers\Dev\AuthKitchenSinkController;
 use App\Http\Controllers\Dev\DashboardKitchenSinkController;
+use App\Http\Controllers\Dev\DialogsKitchenSinkController;
+use App\Http\Controllers\Dev\ImportPreviewKitchenSinkController;
+use App\Http\Controllers\Dev\ImportStartKitchenSinkController;
+use App\Http\Controllers\Dev\SettingsKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
+use App\Http\Controllers\Dev\WelcomeKitchenSinkController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthPlanController;
@@ -23,7 +30,14 @@ Route::inertia('/', 'Welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('dev/ui/dashboard', [DashboardKitchenSinkController::class, 'show'])->name('dev.ui.dashboard');
+    Route::get('dev/ui/auth', [AuthKitchenSinkController::class, 'show'])->name('dev.ui.auth');
+    Route::get('dev/ui/welcome', [WelcomeKitchenSinkController::class, 'show'])->name('dev.ui.welcome');
     Route::get('dev/ui/accounts', [AccountsKitchenSinkController::class, 'show'])->name('dev.ui.accounts');
+    Route::get('dev/ui/import', [ImportStartKitchenSinkController::class, 'show'])->name('dev.ui.import');
+    Route::get('dev/import-preview', [ImportPreviewKitchenSinkController::class, 'show'])->name('dev.import-preview');
+    Route::get('dev/ui/dialogs', [DialogsKitchenSinkController::class, 'show'])->name('dev.ui.dialogs');
+    Route::post('dev/ui/dialogs/validate', [DialogsKitchenSinkController::class, 'validate'])->name('dev.ui.dialogs.validate');
+    Route::get('dev/ui/settings', [SettingsKitchenSinkController::class, 'show'])->name('dev.ui.settings');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');
     Route::get('dev/ui/term-deposits', [TermDepositsKitchenSinkController::class, 'show'])->name('dev.ui.term-deposits');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])
@@ -38,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('budgets/{budget}', [BudgetController::class, 'destroy'])->name('budgets.destroy');
     Route::post('budgets/{budget}/start-execution', [BudgetController::class, 'startExecution'])->name('budgets.start-execution');
     Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
+    Route::get('command-palette/categories', CommandPaletteCategoryController::class)->name('command-palette.categories');
     Route::get('month-plan', [MonthPlanController::class, 'show'])->name('month-plan');
     if (app()->environment('local')) {
         Route::inertia('dev/month-plan', 'dev/MonthPlanSink');

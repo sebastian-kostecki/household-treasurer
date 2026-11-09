@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 use Tests\TestCase;
 
@@ -53,6 +54,24 @@ class PasswordResetTest extends TestCase
 
             return true;
         });
+    }
+
+    public function test_reset_password_screen_passes_email_from_the_link(): void
+    {
+        $this->get(route('password.reset', ['token' => 'token', 'email' => 'a@example.com']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/ResetPassword')
+                ->where('email', 'a@example.com'));
+    }
+
+    public function test_reset_password_screen_passes_null_email_without_the_query(): void
+    {
+        $this->get(route('password.reset', ['token' => 'token']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/ResetPassword')
+                ->where('email', null));
     }
 
     public function test_password_can_be_reset_with_valid_token()

@@ -46,7 +46,6 @@ class MonthPlanController extends Controller
                 'budget' => null,
                 'viewedMonth' => null,
                 'viewedMonthTiming' => null,
-                'currentMonth' => null,
                 'monthPlan' => null,
             ]);
         }
@@ -69,7 +68,6 @@ class MonthPlanController extends Controller
             ],
             'viewedMonth' => $viewedMonth,
             'viewedMonthTiming' => $timing,
-            'currentMonth' => $today->year === $budget->year ? $today->month : null,
             'monthPlan' => $budget->isExecution()
                 ? $this->monthPlanPayload($request->user(), $budget, $viewedMonth, $timing, $today)
                 : null,
@@ -140,6 +138,9 @@ class MonthPlanController extends Controller
      *     can_approve: bool,
      *     can_change: bool,
      *     to_spend_minor_units: int|null,
+     *     to_spend_income_minor_units: int|null,
+     *     to_spend_expense_minor_units: int|null,
+     *     month_states: list<'summary'|'approved'|'proposal'|null>,
      *     set_aside_minor_units: int,
      *     spendable_liquidity_minor_units: int|null,
      *     month_pace: array{as_of: string, elapsed_day: int, days_in_month: int, pool_plan_minor_units: int, pool_actual_minor_units: int, percent: int|null, is_ahead: bool}|null,
@@ -158,6 +159,7 @@ class MonthPlanController extends Controller
     {
         $toSpend = MonthToSpend::forMonth($budget, $month, $today);
         $reading = $toSpend->reading;
+        $breakdown = $toSpend->toSpendBreakdown();
 
         $canChange = $reading->state === 'approved' && $timing !== 'past';
 
@@ -206,7 +208,10 @@ class MonthPlanController extends Controller
                 && $timing !== 'past'
                 && ! $toSpend->proposal->isBlockedByPreviousMonth($month),
             'can_change' => $canChange,
-            'to_spend_minor_units' => $toSpend->toSpendMinorUnits(),
+            'to_spend_minor_units' => $breakdown['to_spend_minor_units'] ?? null,
+            'to_spend_income_minor_units' => $breakdown['income_minor_units'] ?? null,
+            'to_spend_expense_minor_units' => $breakdown['expense_minor_units'] ?? null,
+            'month_states' => $toSpend->proposal->monthStates(),
             'set_aside_minor_units' => $reading->setAsideMinorUnits,
             'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
                 ? SpendableLiquidity::forUser($user)

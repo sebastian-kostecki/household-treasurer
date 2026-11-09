@@ -9,12 +9,16 @@
 
 @theme inline {
     --font-sans:
-        Geist, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        Inter, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
+    --radius-xl: calc(var(--radius) + 2px);
+
+    --shadow-dialog: var(--dialog-shadow);
 
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -28,6 +32,10 @@
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
 
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-brand-text: var(--brand-text);
+
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
 
@@ -39,17 +47,23 @@
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-soft: var(--destructive-soft);
 
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
 
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
+    --color-warning-soft: var(--warning-soft);
 
     --color-refund: var(--refund);
     --color-transfer: var(--transfer);
+    --color-pair: var(--pair);
 
     --color-border: var(--border);
+    --color-border-soft: var(--border-soft);
+    --color-track: var(--track);
+    --color-scrim: var(--scrim);
     --color-input: var(--input);
     --color-ring: var(--ring);
 
@@ -59,13 +73,14 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
-    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
     --color-sidebar: var(--sidebar-background);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
     --color-sidebar-accent: var(--sidebar-accent);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-strong: var(--sidebar-strong);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 }
@@ -92,94 +107,137 @@
     body,
     html {
         --font-sans:
-            'Geist', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+            Inter, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+            'Segoe UI Symbol', 'Noto Color Emoji';
     }
 }
 
 :root {
-    --background: hsl(0 0% 96.5%);
-    --foreground: hsl(0 0% 3.9%);
-    --card: hsl(0 0% 100%);
-    --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsl(0 0% 100%);
-    --popover-foreground: hsl(0 0% 3.9%);
-    --primary: hsl(189 85% 28%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 96.1%);
-    --secondary-foreground: hsl(189 85% 22%);
-    --muted: hsl(0 0% 96.1%);
-    --muted-foreground: hsl(0 0% 45.1%);
-    --accent: hsl(189 30% 94%);
-    --accent-foreground: hsl(189 85% 22%);
-    --destructive: hsl(0 72.2% 50.6%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --success: hsl(142 71% 35%);
-    --success-foreground: hsl(0 0% 98%);
-    --warning: hsl(26 90.5% 37.1%);
-    --warning-foreground: hsl(0 0% 98%);
-    --refund: hsl(26 90.5% 37.1%);
-    --transfer: hsl(224 76.3% 48%);
-    --border: hsl(0 0% 90%);
-    --input: hsl(0 0% 91%);
-    --ring: hsl(189 85% 28%);
+    --background: #edf0f4;
+    --foreground: #0f1b2d;
+    --card: #ffffff;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: #0f1b2d;
+    --primary-foreground: #ffffff;
+    --brand: #5fd4c4;
+    --brand-foreground: #062a26;
+    --brand-text: #0b6a7b;
+    --secondary: #f3f5f8;
+    --secondary-foreground: var(--foreground);
+    --muted: #e9edf2;
+    --muted-foreground: #4f5d71;
+    --accent: #dcf2ee;
+    --accent-foreground: var(--brand-text);
+    --destructive: #c0262d;
+    --destructive-soft: #fde8e9;
+    --destructive-foreground: #ffffff;
+    --success: #1f6b3a;
+    --success-foreground: #ffffff;
+    --warning: #a14f00;
+    --warning-soft: #fff1e0;
+    --warning-foreground: #ffffff;
+    --refund: var(--warning);
+    --transfer: #2f5fbf;
+    --pair: #3b9fd8;
+    --track: #e2e7ee;
+    --border: #d7dde6;
+    --border-soft: #e9edf2;
+    --input: var(--border);
+    --ring: #0b6a7b;
+    --scrim: rgba(15, 27, 45, 0.45);
+    --dialog-shadow: 0 24px 60px rgba(15, 27, 45, 0.25);
     --chart-1: hsl(189 85% 28%);
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
-    --radius: 0.75rem;
-    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(189 85% 28%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(189 30% 94%);
-    --sidebar-accent-foreground: hsl(189 85% 22%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(189 85% 28%);
+    --radius: 10px;
+    --control-height: 32px;
+    --control-height-sm: 26px;
+    --control-height-lg: 36px;
+    --landing-width: 1120px;
+    --landing-bar-height: 56px;
+    --brand-mark-size: 26px;
+    --row-height: 34px;
+    --field-height: 34px;
+    --dialog-width: 460px;
+    --form-panel-width: 640px;
+    --aside-width: clamp(18.75rem, 22vw, 26rem);
+    --sidebar-panel-width: 224px;
+    --command-palette-width: 520px;
+    --settings-nav-width: 200px;
+    --settings-content-width: 640px;
+    --auth-aside-width: 440px;
+    --auth-card-width: 400px;
+    --dialog-pad-x: 18px;
+    --dialog-pad-y: 16px;
+    /* Height read by Input, SelectTrigger and .native-select; .form-field sets it to --field-height (ADR-0040). */
+    --control-h: var(--control-height);
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
+    --sidebar-background: #0f1b2d;
+    --sidebar-foreground: #9eacc0;
+    --sidebar-strong: #e8edf4;
+    --sidebar-accent: #18273d;
+    --sidebar-accent-foreground: var(--sidebar-strong);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--brand-foreground);
+    --sidebar-border: #26364f;
+    --sidebar-ring: var(--brand);
 }
 
 .dark {
-    --background: hsl(0 0% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(0 0% 7%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(0 0% 7%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(189 70% 40%);
-    --primary-foreground: hsl(0 0% 98%);
-    --secondary: hsl(0 0% 14.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(0 0% 16.08%);
-    --muted-foreground: hsl(0 0% 63.9%);
-    --accent: hsl(189 30% 15%);
-    --accent-foreground: hsl(189 70% 70%);
-    --destructive: hsl(0 84% 60%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --success: hsl(142 60% 45%);
-    --success-foreground: hsl(0 0% 98%);
-    --warning: hsl(43 96% 56%);
-    --warning-foreground: hsl(0 0% 3.9%);
-    --refund: hsl(43 96% 56%);
-    --transfer: hsl(213 94% 68%);
-    --border: hsl(0 0% 14.9%);
-    --input: hsl(0 0% 14.9%);
-    --ring: hsl(189 70% 40%);
+    --background: #0a111c;
+    --foreground: #e6ecf3;
+    --card: #111a27;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: #e6ecf3;
+    --primary-foreground: #111a27;
+    --brand: #5fd4c4;
+    --brand-foreground: #062a26;
+    --brand-text: #6fdccd;
+    --secondary: #16202f;
+    --secondary-foreground: var(--foreground);
+    --muted: #19243a;
+    --muted-foreground: #95a3b7;
+    --accent: #0f2e2a;
+    --accent-foreground: var(--brand-text);
+    --destructive: #ff7a80;
+    --destructive-soft: #2d1416;
+    --destructive-foreground: #0a111c;
+    --success: #7fd69b;
+    --success-foreground: #0a111c;
+    --warning: #ffb35c;
+    --warning-soft: #2b1f10;
+    --warning-foreground: #0a111c;
+    --refund: var(--warning);
+    --transfer: #8fb3ff;
+    --pair: #5bb6ea;
+    --track: #223047;
+    --border: #223047;
+    --border-soft: #19243a;
+    --input: var(--border);
+    --ring: #5fd4c4;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --dialog-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     --chart-1: hsl(189 70% 40%);
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
-    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: .docs/design-system.md, "Sidebar". */
-    --sidebar-background: hsl(0 0% 7%);
-    --sidebar-foreground: hsl(0 0% 95.9%);
-    --sidebar-primary: hsl(189 70% 40%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(189 20% 15%);
-    --sidebar-accent-foreground: hsl(189 70% 70%);
-    --sidebar-border: hsl(0 0% 15.9%);
-    --sidebar-ring: hsl(189 70% 40%);
+    /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
+    --sidebar-background: #070c14;
+    --sidebar-foreground: #8b9ab0;
+    --sidebar-strong: #e6ecf3;
+    --sidebar-accent: #111a27;
+    --sidebar-accent-foreground: var(--sidebar-strong);
+    --sidebar-primary: var(--brand);
+    --sidebar-primary-foreground: var(--brand-foreground);
+    --sidebar-border: #1f2c40;
+    --sidebar-ring: var(--brand);
 }
 
 @layer base {
@@ -192,58 +250,739 @@
 }
 
 /**
- * Column caption: header cells and mobile captions above values.
- * Contract in `.docs/design-system.md` ("Listy i tabele"). Registered as a
- * utility (not a component class) so `@apply column-caption` works.
+ * Named typography styles and control sizes of the "Atrament" system
+ * (ADR-0037, table in `context/foundation/design-system.md`). Registered as utilities so
+ * `@apply table-header` works in the component classes below.
  */
-@utility column-caption {
-    @apply text-muted-foreground text-[11px] font-medium tracking-wider uppercase;
+@utility page-title {
+    @apply text-lg/6 font-semibold tracking-tight;
+    letter-spacing: -0.01em;
+}
+
+@utility display {
+    @apply text-4xl/10 font-semibold;
+    letter-spacing: -0.025em;
+}
+
+@utility heading {
+    @apply text-2xl/[30px] font-semibold;
+}
+
+@utility lead {
+    @apply text-[15px]/[22px];
+}
+
+@utility card-title {
+    @apply text-sm/5 font-semibold;
+}
+
+@utility section-title {
+    @apply text-[13px]/[18px] font-semibold;
+}
+
+@utility table-header {
+    @apply text-muted-foreground text-xs/4 font-semibold whitespace-nowrap;
+}
+
+@utility label-caps {
+    @apply text-[11px]/[14px] font-medium uppercase;
+    letter-spacing: 0.06em;
+}
+
+@utility meta {
+    @apply text-[11px]/[14px] font-normal;
+}
+
+@utility mark-label {
+    @apply font-mono text-[9px]/none font-semibold;
+}
+
+@utility brand-mark {
+    @apply flex items-center justify-center;
+    width: var(--brand-mark-size);
+    height: var(--brand-mark-size);
+}
+
+@utility kpi-lg {
+    @apply font-mono text-[26px]/8 font-medium;
+}
+
+@utility kpi {
+    @apply font-mono text-[22px]/7 font-medium;
+}
+
+@utility landing-kpi {
+    @apply font-mono text-[15px]/6 font-medium;
+}
+
+@utility amount {
+    @apply font-mono text-[13px]/[18px] font-medium tabular-nums;
+}
+
+@utility amount-sum {
+    @apply font-mono text-[13px]/[18px] font-semibold tabular-nums;
+}
+
+@utility dialog-title {
+    @apply text-[15px]/5 font-semibold;
+}
+
+@utility h-control {
+    height: var(--control-height);
+}
+
+@utility h-control-field {
+    height: var(--control-h);
+}
+
+@utility h-control-sm {
+    height: var(--control-height-sm);
+}
+
+@utility h-control-lg {
+    height: var(--control-height-lg);
+}
+
+@utility size-control {
+    width: var(--control-height);
+    height: var(--control-height);
+}
+
+@utility size-control-sm {
+    width: var(--control-height-sm);
+    height: var(--control-height-sm);
+}
+
+@utility min-w-control-sm {
+    min-width: var(--control-height-sm);
+}
+
+@utility min-h-row {
+    min-height: var(--row-height);
 }
 
 @layer components {
+    /* Entry screens (ADR-0056): dark panel next to a 400px card from lg, a bar with the mark below. */
+    .auth-shell {
+        @apply bg-background min-h-svh;
+    }
+
+    @media (min-width: 64rem) {
+        .auth-shell {
+            display: grid;
+            grid-template-columns: var(--auth-aside-width) minmax(0, 1fr);
+        }
+    }
+
+    .auth-aside {
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border flex items-center gap-3 border-b px-4 py-3;
+    }
+
+    .auth-aside :is(h1, h2, strong) {
+        @apply text-sidebar-strong;
+    }
+
+    @media (min-width: 64rem) {
+        .auth-aside {
+            @apply sticky top-0 h-svh flex-col items-stretch justify-between gap-8 border-r border-b-0 p-8;
+        }
+    }
+
+    .auth-pitch {
+        @apply hidden flex-col gap-3 lg:flex;
+    }
+
+    .auth-pitch h2 {
+        @apply heading;
+    }
+
+    .auth-pitch p {
+        @apply lead;
+    }
+
+    .auth-year {
+        @apply border-sidebar-border hidden flex-col gap-2 rounded-lg border p-4 text-xs/4 lg:flex;
+    }
+
+    .auth-year-head {
+        @apply flex items-baseline justify-between gap-2;
+    }
+
+    .auth-year-head strong {
+        @apply tabular-nums;
+    }
+
+    .auth-months {
+        @apply grid grid-cols-12 gap-1;
+    }
+
+    .auth-months > * {
+        @apply bg-sidebar-accent h-2 rounded-xs;
+    }
+
+    .auth-months > [data-state='past'] {
+        @apply bg-sidebar-foreground;
+    }
+
+    .auth-months > [data-state='current'] {
+        @apply bg-brand;
+    }
+
+    .auth-points {
+        @apply hidden flex-col gap-2 text-[13px]/[18px] lg:flex;
+    }
+
+    .auth-points li {
+        @apply flex gap-2;
+    }
+
+    .auth-legal {
+        @apply meta hidden lg:block;
+    }
+
+    .auth-main {
+        @apply flex items-start justify-center px-4 py-8 lg:items-center lg:py-12;
+    }
+
+    .auth-card {
+        @apply bg-card text-card-foreground w-full max-w-(--auth-card-width) rounded-lg border;
+    }
+
+    .auth-card-head {
+        @apply flex flex-col gap-1.5 px-6 pt-6;
+    }
+
+    .auth-card-icon {
+        @apply bg-accent text-accent-foreground mb-2 flex size-9 items-center justify-center rounded-md;
+    }
+
+    .auth-card-body {
+        @apply flex flex-col gap-4 px-6 py-6;
+    }
+
+    .auth-card-foot {
+        @apply border-border text-muted-foreground flex items-center justify-center gap-1 border-t px-6 py-4 text-[13px]/[18px];
+    }
+
+    .auth-submit {
+        @apply h-control-field w-full justify-center;
+    }
+
+    .auth-or {
+        @apply text-muted-foreground flex items-center gap-3 text-xs/4;
+    }
+
+    .auth-or::before,
+    .auth-or::after {
+        @apply bg-border h-px flex-1 content-[''];
+    }
+
+    /* One-time code: 40x44 slots, mono 18/500, 8px apart, a dash after the third character (override of ui/input-otp without editing it). */
+    .auth-otp {
+        @apply flex items-center justify-center gap-2;
+    }
+
+    .auth-otp [data-slot='input-otp-slot'] {
+        @apply h-11! w-10! rounded-md! border! font-mono text-lg/6! font-medium;
+    }
+
+    .auth-otp [data-slot='input-otp-group'] {
+        @apply gap-2;
+    }
+
+    .auth-otp [data-slot='input-otp-separator'] {
+        @apply text-muted-foreground;
+    }
+
+    .auth-otp [data-slot='input-otp-separator'] svg {
+        @apply size-3;
+    }
+
+    /* Welcome page (ADR-0057): PageWelcome card of the design system. 36px buttons are the utility h-control-lg, not a class here. */
+    .landing-wrap {
+        @apply mx-auto w-full max-w-(--landing-width) px-4 sm:px-6;
+    }
+
+    .landing-bar {
+        @apply bg-card border-border sticky top-0 z-10 flex items-center border-b;
+        height: var(--landing-bar-height);
+    }
+
+    .landing-section {
+        @apply border-border border-t py-14;
+        scroll-margin-top: var(--landing-bar-height);
+    }
+
+    .landing-hero {
+        @apply grid items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:py-16;
+    }
+
+    .landing-hero-title {
+        @apply sm:display text-3xl/9 font-semibold;
+        letter-spacing: -0.025em;
+    }
+
+    .landing-points {
+        @apply text-muted-foreground flex flex-col gap-1.5 text-sm;
+    }
+
+    .landing-points li {
+        @apply flex items-center gap-2;
+    }
+
+    .landing-points svg {
+        @apply text-brand-text size-4 shrink-0;
+    }
+
+    .landing-grid {
+        @apply grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3;
+    }
+
+    .landing-feature {
+        @apply bg-card text-card-foreground border-border flex flex-col gap-1.5 rounded-lg border px-4 pt-4 pb-5;
+    }
+
+    .landing-icon {
+        @apply bg-accent text-accent-foreground mb-1 flex size-8 shrink-0 items-center justify-center rounded-md;
+    }
+
+    .landing-steps {
+        @apply bg-card text-card-foreground border-border grid grid-cols-1 overflow-hidden rounded-lg border md:auto-cols-fr md:grid-flow-col;
+    }
+
+    .landing-steps > li {
+        @apply border-border border-t p-4 first:border-t-0 md:border-t-0 md:border-l md:first:border-l-0;
+    }
+
+    .landing-step-no {
+        @apply label-caps text-muted-foreground block;
+    }
+
+    .landing-cta {
+        @apply bg-sidebar text-sidebar-foreground flex flex-col items-start justify-between gap-5 rounded-lg px-8 py-7 sm:flex-row sm:items-center;
+    }
+
+    .landing-cta :is(h2, h3) {
+        @apply text-sidebar-strong text-lg/6 font-semibold;
+    }
+
+    .landing-cta :focus-visible {
+        outline-color: var(--sidebar-ring);
+    }
+
+    .landing-foot {
+        @apply bg-card border-border border-t;
+    }
+
+    /* Application preview: a static, aria-hidden mock-up of the Dashboard built from its blocks. */
+    .landing-preview {
+        @apply bg-background border-border grid grid-cols-1 overflow-hidden rounded-lg border sm:grid-cols-[216px_minmax(0,1fr)];
+    }
+
+    .landing-preview-side {
+        @apply bg-sidebar text-sidebar-foreground border-sidebar-border hidden min-w-0 flex-col gap-2 border-r p-2 text-sm sm:flex;
+    }
+
+    .landing-preview-nav-item {
+        @apply flex h-8 items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm whitespace-nowrap [&>svg]:size-4 [&>svg]:shrink-0;
+    }
+
+    .landing-preview-nav-item[data-active='true'] {
+        @apply bg-sidebar-primary text-sidebar-primary-foreground font-semibold;
+    }
+
+    .landing-preview-main {
+        @apply flex min-w-0 flex-col gap-2.5 p-3;
+    }
+
+    .landing-preview .stat-panel-metric {
+        @apply px-3 py-3;
+    }
+
+    .landing-preview-row {
+        @apply border-border-soft grid items-center gap-x-3 border-b px-3 py-1.5 text-sm;
+        grid-template-columns: minmax(0, 1fr) 74px 104px;
+    }
+
+    @media (min-width: 40rem) {
+        .landing-preview-row {
+            grid-template-columns: minmax(0, 1fr) 74px 74px 104px;
+        }
+    }
+
+    .landing-preview-row-plan {
+        @apply hidden text-right sm:block;
+    }
+
+    /* Year switcher in the sidebar (ADR-0055): three segments per row, the selected year on sidebar-strong. */
+    .sidebar-year-segments {
+        @apply grid grid-cols-3 gap-1;
+    }
+
+    /* Shortcut marker: the key a view or action answers to (mono, outlined in the current colour). */
+    .kbd {
+        @apply ml-auto inline-flex min-w-5 items-center justify-center rounded-xs border border-current px-1 font-mono text-[11px]/4 font-medium;
+    }
+
+    /* Shortcut line above the user in the sidebar footer. */
+    .sidebar-hint {
+        @apply text-sidebar-foreground px-2 text-[11px]/4;
+    }
+
+    /* "Szukaj i przejdź" button: sidebar-accent at rest, like the search field of the pattern. */
+    .sidebar-search {
+        @apply bg-sidebar-accent text-sidebar-foreground;
+    }
+
+    .sidebar-year-segment {
+        @apply h-control-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ring-sidebar-ring rounded-md px-2 text-xs/4 font-medium tabular-nums outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
+    }
+
+    .sidebar-year-segment[aria-pressed='true'] {
+        @apply bg-sidebar-strong text-sidebar font-semibold;
+    }
+
+    /* Command palette (ADR-0055): sidebar colours on the local DialogContent; the `!` beats its card utilities. */
+    .command-palette {
+        @apply bg-sidebar! text-sidebar-strong! border-sidebar-border! shadow-dialog top-[20vh]! translate-y-0! gap-0! overflow-hidden! rounded-xl! p-0!;
+        max-width: min(
+            var(--command-palette-width),
+            calc(100% - 2rem)
+        ) !important;
+    }
+
+    .command-palette-root {
+        @apply text-sidebar-strong bg-transparent!;
+    }
+
+    .command-palette-search {
+        @apply border-sidebar-border relative border-b;
+    }
+
+    .command-palette-search [data-slot='command-input-wrapper'] {
+        @apply border-b-0 pr-14;
+    }
+
+    .command-palette-search [data-slot='command-input'] {
+        @apply placeholder:text-sidebar-foreground;
+    }
+
+    .command-palette-search [data-slot='command-input-wrapper'] svg {
+        @apply text-sidebar-foreground opacity-100;
+    }
+
+    .command-palette-esc {
+        @apply text-sidebar-foreground absolute top-1/2 right-3 -translate-y-1/2;
+    }
+
+    .command-palette-list [data-slot='command-group-heading'] {
+        @apply text-sidebar-foreground!;
+    }
+
+    .command-palette-list [data-slot='command-group'] {
+        @apply text-sidebar-strong;
+    }
+
+    .command-palette-item {
+        @apply data-highlighted:bg-sidebar-accent! data-highlighted:text-sidebar-accent-foreground! ring-sidebar-ring [&_svg:not([class*='text-'])]:text-sidebar-foreground rounded-md data-highlighted:ring-2;
+    }
+
+    .command-palette-item .kbd {
+        @apply text-sidebar-foreground;
+    }
+
+    .command-palette-item .meta {
+        @apply text-sidebar-foreground;
+    }
+
+    .command-palette-amount {
+        @apply ml-auto tabular-nums;
+    }
+
+    .command-palette-state {
+        @apply text-sidebar-foreground px-2 py-1.5 text-sm;
+    }
+
+    .command-palette-list [data-slot='command-empty'] {
+        @apply text-sidebar-foreground;
+    }
+
     .native-select {
-        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex h-9 w-full min-w-0 rounded-xl border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50;
+        @apply border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 focus-visible:outline-ring focus-visible:aria-invalid:border-destructive aria-invalid:border-destructive h-control-field flex w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm transition-[color,box-shadow] outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-solid disabled:cursor-not-allowed disabled:opacity-50;
     }
 
+    /* Field anatomy (Atrament Field/README, ADR-0040): label, control, hint, error; sets the field height read by Input, SelectTrigger and .native-select. */
+    .form-field {
+        --control-h: var(--field-height);
+        @apply flex flex-col gap-[5px];
+    }
+
+    .form-field-label {
+        @apply text-xs/4 font-medium;
+    }
+
+    .form-field-unit {
+        @apply text-muted-foreground pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs;
+    }
+
+    /* Blok podglądu „przed → po” w dialogu formularza (ADR-0041). */
+    .form-preview {
+        @apply bg-background flex flex-col gap-1.5 rounded-md px-3 py-2.5;
+    }
+
+    .form-preview-label {
+        @apply text-muted-foreground text-xs/4;
+    }
+
+    .form-preview-value {
+        @apply font-semibold tabular-nums;
+    }
+
+    .form-preview-hint {
+        @apply text-muted-foreground text-xs/4;
+    }
+
+    .form-preview-warning {
+        @apply text-warning text-xs/4;
+    }
+
+    /* Panel formularza na stronie (ADR-0048): karta z nagłówkiem, treścią i stopką z główną akcją. */
+    .form-panel {
+        @apply bg-card text-card-foreground w-full max-w-(--form-panel-width) rounded-lg border;
+    }
+
+    .form-panel-header {
+        @apply flex flex-col gap-1 px-4 pt-4;
+    }
+
+    .form-panel-body {
+        @apply flex flex-col gap-4 p-4;
+    }
+
+    .form-panel-footer {
+        @apply flex items-center justify-end gap-2 border-t px-4 py-3;
+    }
+
+    .form-preview-list {
+        @apply text-muted-foreground list-inside list-disc space-y-1 text-xs/4;
+    }
+
+    .form-check-row {
+        @apply flex items-center gap-2 text-sm;
+    }
+
+    /* Grupa pól bez własnej ramki (ADR-0048): legenda jako section-title. */
+    .form-fieldset {
+        @apply m-0 flex min-w-0 flex-col gap-4 border-0 p-0;
+    }
+
+    /* A rendered legend is not a flex item, so the fieldset gap does not reach it. */
+    .form-fieldset > legend {
+        @apply mb-4;
+    }
+
+    /* Rząd dwóch pól (np. Kwota | Data); jedna kolumna w oknie węższym niż 390 px. */
+    .form-field-row {
+        @apply grid grid-cols-2 gap-4;
+    }
+
+    @media (width < 390px) {
+        .form-field-row {
+            @apply grid-cols-1;
+        }
+    }
+
+    /* Tekst tylko do odczytu w dialogu (np. opis z wyciągu), nie textarea readonly. */
+    .form-readonly-text {
+        @apply bg-muted rounded-md px-3 py-2 text-sm break-words whitespace-pre-line;
+    }
+
+    /* Komórka planu na zwykłym <input> (mockup Atrament → Plan miesiąca, ADR-0042). */
+    .cell-input {
+        @apply amount border-input bg-card focus-visible:outline-ring aria-invalid:border-destructive h-7 w-full rounded-sm border px-2 text-right outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
+    /* Pas edycji planu: przyklejony do dołu widoku (ADR-0042). */
+    .month-plan-editbar {
+        @apply bg-primary text-primary-foreground sticky bottom-0 z-10 flex flex-wrap items-center gap-3 rounded-lg px-4 py-2;
+    }
+
+    /* Kropka stanu miesiąca pod etykietą w pasku miesięcy. */
+    .month-strip-dot {
+        @apply size-1 rounded-full;
+    }
+
+    .month-strip-dot-summary {
+        @apply bg-muted-foreground;
+    }
+
+    .month-strip-dot-approved {
+        @apply bg-brand-text;
+    }
+
+    .month-strip-dot-proposal {
+        @apply bg-warning;
+    }
+
+    /**
+     * Panel podsumowania minionego miesiąca, jeden markup na każdej szerokości.
+     * Poniżej `sm` wiersz to etykieta na całą szerokość i siatka 2×2 kwot z
+     * podpisami; od `sm` etykieta i 4 kolumny kwot pod wierszem nagłówków.
+     */
+    .month-plan-summary-grid {
+        @apply grid items-baseline gap-x-3 gap-y-2;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @variant sm {
+            grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    .month-plan-summary-label {
+        @apply col-span-2 sm:col-span-1;
+    }
+
+    .month-plan-summary-head {
+        @apply hidden sm:grid;
+    }
+
+    .month-plan-summary-cell {
+        @apply text-left sm:text-right;
+    }
+
+    /** CategoryChip `lg` (ADR-0060): the tile as tall as the name (20px) with its caption (14px). */
+    .category-chip-lg {
+        @apply size-9 rounded-lg;
+    }
+
+    /**
+     * Month plan table: one markup on every width. Below `xl` a row is three
+     * lines (name + status, kind, then approved / plan / actual / deviation);
+     * from `xl` it is one line of seven columns (Kategoria, Rodzaj,
+     * Zatwierdzony, Plan, Faktycznie, Odchylenie, Status).
+     */
     .month-plan-grid {
-        @apply grid gap-x-3;
-        grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;
+        @apply grid w-full gap-x-3;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-areas:
+            'category category category status'
+            'kind kind kind kind'
+            'approved plan actual deviation';
     }
 
-    @variant sm {
-        .month-plan-grid {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem;
-        }
-
-        .month-plan-grid-kind {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
-        }
+    .month-plan-grid-no-kind {
+        grid-template-areas:
+            'category category category status'
+            'approved plan actual deviation';
     }
 
-    @variant lg {
-        .month-plan-grid {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem;
-        }
-
-        .month-plan-grid-kind {
-            grid-template-columns: minmax(0, 1fr) 9rem 9rem 9rem 9rem;
+    @variant xl {
+        .month-plan-grid,
+        .month-plan-grid-no-kind {
+            grid-template-columns: minmax(0, 1fr) 9rem 7rem 8rem 7rem 7rem 8rem;
+            grid-template-areas: 'category kind approved plan actual deviation status';
         }
     }
 
-    .column-header {
-        @apply column-caption;
+    .month-plan-cell-category {
+        grid-area: category;
+        @apply min-w-0;
     }
 
-    .section-label {
-        @apply text-muted-foreground text-xs font-medium tracking-wider uppercase;
+    .month-plan-cell-kind {
+        grid-area: kind;
+        @apply min-w-0;
+    }
+
+    .month-plan-cell-approved {
+        grid-area: approved;
+        @apply flex min-w-0 flex-wrap items-baseline justify-end gap-x-1.5 text-right;
+    }
+
+    .month-plan-cell-plan {
+        grid-area: plan;
+        @apply min-w-0 text-right;
+    }
+
+    .month-plan-cell-actual {
+        grid-area: actual;
+        @apply flex min-w-0 flex-wrap items-baseline justify-end gap-x-1.5 text-right;
+    }
+
+    /* Action icon with a 24 px hit area (WCAG 2.5.8); the negative margin keeps the caption line height (ADR-0062). */
+    .month-plan-match-actual {
+        @apply -m-1 inline-flex size-6 shrink-0 items-center justify-center self-center rounded-sm;
+    }
+
+    .month-plan-cell-deviation {
+        grid-area: deviation;
+        @apply text-right;
+    }
+
+    .month-plan-cell-status {
+        grid-area: status;
+        @apply min-w-0 justify-self-end text-right;
+    }
+
+    .month-plan-header-row {
+        @apply table-header border-border-soft hidden items-center border-b px-4 py-2;
+    }
+
+    @variant xl {
+        .month-plan-header-row {
+            @apply grid;
+        }
+    }
+
+    .month-plan-row {
+        @apply border-border-soft hover:bg-secondary min-h-row items-center gap-y-1 border-b px-4 py-2 transition-colors;
+    }
+
+    .month-plan-group-row {
+        @apply bg-muted section-title border-border-soft border-b px-4 py-2;
+    }
+
+    .month-plan-total-row {
+        @apply meta border-border-soft flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b px-4 py-2;
+    }
+
+    .month-plan-idle-row {
+        @apply border-border-soft border-b px-4 py-1;
+    }
+
+    .month-plan-footer {
+        @apply px-4 py-3;
     }
 
     .segmented-control {
-        @apply border-border/60 bg-muted/40 inline-flex gap-1 rounded-xl border p-1;
+        @apply bg-background inline-flex gap-1 rounded-lg border p-1;
+    }
+
+    .segmented-control-block {
+        @apply flex w-full;
+        height: var(--field-height);
+    }
+
+    .segmented-control-block .segmented-control-item {
+        @apply h-full flex-1;
     }
 
     .segmented-control-item {
-        @apply text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring/50 inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50;
+        @apply text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-ring inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-transparent px-2 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid disabled:pointer-events-none disabled:opacity-50;
+    }
+
+    /* Zakładki sekcji na szarej podłodze: bez obwódki i tła kontenera, aktywna zakładka to karta. */
+    .segmented-control-tabs {
+        @apply gap-0.5 border-0 bg-transparent p-0;
+    }
+
+    /* Licznik przy zakładce (README Tabs); w aktywnej zakładce w kolorze tekstu. */
+    .segmented-control-count {
+        @apply text-muted-foreground font-mono tabular-nums;
+    }
+
+    .segmented-control-item[data-state='on'] .segmented-control-count {
+        @apply text-foreground;
     }
 
     .segmented-control[data-tone='primary']
@@ -265,11 +1004,11 @@
     }
 
     .list-surface-table thead th {
-        @apply column-caption pb-2.5 text-left;
+        @apply table-header pb-2.5 text-left;
     }
 
     .list-surface-table tbody tr {
-        @apply border-border/60 hover:bg-foreground/[0.03] border-b transition-colors last:border-b-0;
+        @apply border-border/60 hover:bg-secondary border-b transition-colors last:border-b-0;
     }
 
     .list-surface-table tbody td {
@@ -333,7 +1072,8 @@
         grid-template-areas:
             'handle category category actions'
             'handle opening current .'
-            'handle execution remaining .';
+            'handle execution remaining .'
+            'handle meter meter meter';
     }
 
     .budget-category-grid-no-handle {
@@ -341,22 +1081,28 @@
         grid-template-areas:
             'category category actions'
             'opening current .'
-            'execution remaining .';
+            'execution remaining .'
+            'meter meter meter';
     }
 
-    @variant md {
+    @variant xl {
         .budget-category-grid {
-            @apply items-center;
-            grid-template-columns: 2.5rem minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
-            grid-template-areas: 'handle category opening current execution remaining actions';
+            @apply items-center gap-x-3;
+            grid-template-columns:
+                2.5rem minmax(0, 3fr) repeat(4, minmax(6.5rem, 1fr))
+                minmax(6rem, 1.5fr) 4.5rem;
+            grid-template-areas: 'handle category opening current execution remaining meter actions';
         }
 
         .budget-category-grid-no-handle {
-            grid-template-columns: minmax(0, 1fr) repeat(4, 8rem) 4.5rem;
-            grid-template-areas: 'category opening current execution remaining actions';
+            grid-template-columns:
+                minmax(0, 3fr) repeat(4, minmax(6.5rem, 1fr))
+                minmax(6rem, 1.5fr) 4.5rem;
+            grid-template-areas: 'category opening current execution remaining meter actions';
         }
     }
 
+    /* Szkic: jedna kwota planu; kolumna typu tylko od md. */
     .budget-category-grid-draft {
         @apply items-center;
         grid-template-columns: 2.5rem minmax(0, 1fr) 8rem 4.5rem;
@@ -368,22 +1114,167 @@
         grid-template-areas: 'category plan actions';
     }
 
-    .budget-category-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+    @variant md {
+        .budget-category-grid-draft {
+            grid-template-columns: 2.5rem minmax(0, 1fr) 7rem 8rem 4.5rem;
+            grid-template-areas: 'handle category kind plan actions';
+        }
+
+        .budget-category-grid-draft.budget-category-grid-no-handle {
+            grid-template-columns: minmax(0, 1fr) 7rem 8rem 4.5rem;
+            grid-template-areas: 'category kind plan actions';
+        }
     }
 
-    .budget-category-header-row {
-        @apply column-caption border-border/60 hidden border-b pb-2.5;
+    /**
+     * Accounts table: below `md` a row is two lines (name + balance, then type +
+     * actions); from `md` it is one line of columns.
+     */
+    .accounts-grid {
+        @apply grid items-center gap-x-4;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            'name balance'
+            'type actions';
     }
 
     @variant md {
+        .accounts-grid {
+            grid-template-columns: minmax(0, 1fr) 180px 150px 96px;
+            grid-template-areas: 'name type balance actions';
+        }
+    }
+
+    .accounts-header-row {
+        @apply table-header border-border-soft hidden border-b px-4 py-2;
+    }
+
+    @variant md {
+        .accounts-header-row {
+            @apply grid;
+        }
+    }
+
+    .accounts-row {
+        @apply border-border-soft hover:bg-secondary min-h-row gap-y-1 border-b px-4 py-2 text-sm transition-colors last:border-b-0;
+    }
+
+    .accounts-row-archived {
+        @apply text-muted-foreground;
+    }
+
+    .accounts-cell-name {
+        grid-area: name;
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .accounts-cell-type {
+        grid-area: type;
+        @apply min-w-0;
+    }
+
+    .accounts-cell-balance {
+        grid-area: balance;
+        @apply text-right;
+    }
+
+    .accounts-cell-actions {
+        grid-area: actions;
+        @apply flex justify-end gap-1;
+    }
+
+    /**
+     * Term deposits table: below `xl` a row is two lines (name + balance, then
+     * bank + end date + actions); from `xl` it is one line of columns. The fixed
+     * columns need ~610 px, so next to the sidebar the name column only gets
+     * room from `xl` (ADR-0051).
+     */
+    .term-deposits-grid {
+        @apply grid items-center gap-x-4;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            'name name balance'
+            'bank end actions';
+    }
+
+    @variant xl {
+        .term-deposits-grid {
+            grid-template-columns: minmax(0, 1fr) 150px 150px 150px 96px;
+            grid-template-areas: 'name bank end balance actions';
+        }
+    }
+
+    .term-deposits-header-row {
+        @apply table-header border-border-soft hidden border-b px-4 py-2;
+    }
+
+    @variant xl {
+        .term-deposits-header-row {
+            @apply grid;
+        }
+    }
+
+    .term-deposits-row {
+        @apply border-border-soft hover:bg-secondary min-h-row gap-y-1 border-b px-4 py-2 text-sm transition-colors last:border-b-0;
+    }
+
+    .term-deposits-row-archived {
+        @apply text-muted-foreground;
+    }
+
+    .term-deposits-cell-name {
+        grid-area: name;
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .term-deposits-cell-bank {
+        grid-area: bank;
+        @apply min-w-0;
+    }
+
+    .term-deposits-cell-end {
+        grid-area: end;
+        @apply text-left;
+    }
+
+    @variant xl {
+        .term-deposits-cell-end {
+            @apply text-right;
+        }
+    }
+
+    .term-deposits-cell-balance {
+        grid-area: balance;
+        @apply text-right;
+    }
+
+    .term-deposits-cell-actions {
+        grid-area: actions;
+        @apply flex justify-end gap-1;
+    }
+
+    .budget-category-row {
+        @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+    }
+
+    .budget-category-header-row {
+        @apply table-header border-border/60 hidden border-b px-4 py-2.5;
+    }
+
+    @variant md {
+        .budget-category-header-row.budget-category-grid-draft {
+            @apply grid;
+        }
+    }
+
+    @variant xl {
         .budget-category-header-row {
             @apply grid;
         }
     }
 
     .budget-category-totals-row {
-        @apply border-border/60 bg-foreground/[0.02] border-t py-3 text-sm;
+        @apply border-border/60 bg-muted border-t py-3 text-sm;
     }
 
     .budget-category-cell-handle {
@@ -398,6 +1289,16 @@
     .budget-category-cell-plan {
         grid-area: plan;
         @apply text-right tabular-nums;
+    }
+
+    .budget-category-cell-kind {
+        grid-area: kind;
+        @apply hidden md:block;
+    }
+
+    .budget-category-cell-meter {
+        grid-area: meter;
+        @apply min-w-0;
     }
 
     .budget-category-cell-initial {
@@ -425,107 +1326,109 @@
         @apply text-right;
     }
 
-    /**
-     * Scrolls only from `md`; on a phone the list flows with the page. Sticky
-     * head and totals keep their hairline via inset shadows, because a border
-     * on a sticky element scrolls away with the rows.
-     */
-    @variant md {
-        .budget-category-scroll {
-            @apply max-h-[min(32rem,70vh)] overflow-auto overscroll-contain;
-        }
-
-        .budget-category-scroll .budget-category-header-row {
-            @apply bg-card sticky top-0 z-10;
-            box-shadow: inset 0 -1px 0
-                color-mix(in srgb, var(--border) 60%, transparent);
-        }
-
-        .budget-category-scroll .budget-category-totals-row {
-            @apply sticky bottom-0 z-10;
-            background-color: var(--card);
-            background-image: linear-gradient(
-                color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
-                color-mix(in srgb, var(--foreground) 2%, transparent) 100%
-            );
-            box-shadow: inset 0 1px 0
-                color-mix(in srgb, var(--border) 60%, transparent);
-        }
-    }
-
     .operations-grid {
         @apply grid w-full gap-x-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
-            'date amount'
-            'description description'
-            'category account'
-            'actions actions';
+            'description amount'
+            'category actions';
     }
 
     .operations-grid-transfer {
         grid-template-areas:
-            'date amount'
-            'description description'
-            'account account'
-            'actions actions';
+            'description amount'
+            'account actions';
     }
 
     @variant md {
         .operations-grid {
             align-items: center;
-            grid-template-columns: 6.5rem minmax(
-                    0,
-                    1fr
-                ) 13rem 9.5rem 7rem 4.5rem;
-            grid-template-areas: 'date description category account amount actions';
+            grid-template-columns: minmax(0, 1fr) 14rem 9rem 2rem;
+            grid-template-areas: 'description category amount actions';
         }
 
         .operations-grid-transfer {
-            grid-template-columns: 6.5rem minmax(0, 1fr) 18rem 7rem 4.5rem;
-            grid-template-areas: 'date description account amount actions';
+            grid-template-columns: minmax(0, 1fr) 18rem 9rem 2rem;
+            grid-template-areas: 'description account amount actions';
         }
     }
 
-    /* Wiersz posiadań na Dashboardzie (konta i lokaty). */
+    /* Wiersz posiadań na Dashboardzie (konta i lokaty): separator `border-soft`, wiersze sięgają krawędzi panelu. */
     .dashboard-holdings-row {
-        @apply hover:bg-foreground/[0.03] flex items-center justify-between gap-x-4 gap-y-2 py-3 transition-colors;
+        @apply border-border-soft hover:bg-secondary flex items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-3 transition-colors;
     }
 
-    /* Wiersz listy Kont i Lokat (znak, nazwa, kwota, akcje; zawija się na telefonie). */
-    .holdings-list-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b py-3 transition-colors last:border-b-0;
+    /* Stopka panelu posiadań: etykieta i suma widocznych wierszy. */
+    .dashboard-holdings-footer {
+        @apply flex flex-col gap-1;
+    }
+
+    .dashboard-holdings-footer-total {
+        @apply flex items-center justify-between gap-x-4;
+    }
+
+    .dashboard-holdings-footer-label {
+        @apply text-sm font-semibold;
+    }
+
+    /* Mały link „Wszystkie →” w nagłówku panelu posiadań. */
+    .dashboard-holdings-link {
+        @apply text-muted-foreground hover:text-foreground focus-visible:outline-ring inline-flex items-center gap-1 rounded-md text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
     }
 
     /**
-     * Nagłówek kolumn i wiersz listy Operacji. Muszą stać PO `.operations-grid`
-     * (oba ustawiają `display`), a `display: grid` nagłówka wraca dopiero od `md`.
+     * Wiersz listy Operacji (bez nagłówka kolumn). Panel jest `flush`, więc wiersz
+     * sięga krawędzi karty i sam niesie poziomy odstęp. Stoi PO `.operations-grid`.
      */
-    .operations-header-row {
-        @apply column-caption border-border/60 hidden border-b pb-2.5;
+    .operations-row {
+        @apply border-border/60 hover:bg-secondary gap-y-3 border-b px-4 py-3 text-sm transition-colors last:border-b-0;
     }
 
-    .operations-row {
-        @apply border-border/60 hover:bg-foreground/[0.03] gap-y-3 border-b py-3 text-sm transition-colors last:border-b-0;
+    /**
+     * Wiersz dnia: ta sama siatka co wiersze, etykieta na szerokość kolumn
+     * przed kwotą, suma dnia w kolumnie kwoty. Stoi PO `.operations-grid`.
+     */
+    .operations-day-row {
+        @apply bg-muted text-muted-foreground min-h-row border-b px-4 py-1.5 text-xs;
+        grid-template-areas: 'label amount';
+    }
+
+    .operations-day-label {
+        grid-area: label;
+        @apply first-letter:uppercase;
     }
 
     @variant md {
-        .operations-header-row {
-            @apply grid;
-        }
-
         .operations-row {
             @apply gap-y-0;
         }
+
+        .operations-day-row {
+            grid-template-areas: 'label label amount actions';
+        }
     }
 
-    /* Stany listy Operacji: link paginacji, wyzwalacz dymka, lista w trakcie ładowania. */
+    /* Paginacja list: strzałki i numery stron w wysokości `control-sm`; aktywna strona jak aktywna zakładka. */
     .pagination-link {
-        @apply focus-visible:ring-ring/50 inline-flex min-w-8 items-center justify-center rounded-lg px-2.5 py-1 text-xs transition-colors outline-none focus-visible:ring-[3px];
+        @apply h-control-sm min-w-control-sm text-muted-foreground focus-visible:outline-ring inline-flex items-center justify-center rounded-md border border-transparent px-2 font-mono text-xs tabular-nums transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
     }
+
+    a.pagination-link:hover {
+        @apply bg-secondary text-foreground;
+    }
+
+    .pagination-link[aria-current='page'] {
+        @apply bg-card text-foreground border-border font-medium;
+    }
+
+    .pagination-link[aria-disabled='true'] {
+        @apply text-muted-foreground/50 pointer-events-none;
+    }
+
+    /* Wyzwalacz dymka, lista w trakcie ładowania. */
 
     .operations-raw-trigger {
-        @apply focus-visible:ring-ring/50 rounded-lg outline-none focus-visible:ring-[3px];
+        @apply focus-visible:outline-ring rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
     }
 
     .operations-list {
@@ -534,10 +1437,6 @@
 
     .operations-list[aria-busy='true'] {
         @apply opacity-60 delay-200;
-    }
-
-    .operations-cell-date {
-        grid-area: date;
     }
 
     .operations-cell-description {
@@ -557,7 +1456,7 @@
 
     .operations-cell-amount {
         grid-area: amount;
-        @apply text-right font-medium tabular-nums;
+        @apply amount text-right;
     }
 
     .operations-cell-actions {
@@ -589,7 +1488,7 @@
     @variant xl {
         .import-preview-grid {
             align-items: start;
-            grid-template-columns: 2rem 6rem minmax(
+            grid-template-columns: 4.5rem 6rem minmax(
                     9rem,
                     1fr
                 ) 6.5rem 9rem 13.5rem 8.5rem;
@@ -599,6 +1498,10 @@
 
     .import-preview-cell-select {
         grid-area: select;
+    }
+
+    .import-preview-select-check {
+        @apply size-6 rounded-md;
     }
 
     .import-preview-cell-date {
@@ -612,7 +1515,7 @@
 
     .import-preview-cell-amount {
         grid-area: amount;
-        @apply text-right font-medium tabular-nums;
+        @apply amount text-right;
     }
 
     .import-preview-cell-type {
@@ -630,57 +1533,121 @@
         @apply min-w-0;
     }
 
+    /**
+     * Nagłówek kolumn i wiersz listy importu. Nagłówek musi stać PO
+     * `.import-preview-grid` i jego wariantach (wszystkie ustawiają `display`
+     * albo kolumny), a `display: grid` wraca dopiero od `xl`. Modyfikatory
+     * tintu stoją po `.import-preview-row`.
+     */
+    .import-preview-header-row {
+        @apply table-header border-border/60 hidden border-b px-4 py-2.5;
+    }
+
+    @variant xl {
+        .import-preview-header-row {
+            display: grid;
+        }
+    }
+
+    .import-preview-row {
+        @apply border-border-soft hover:bg-secondary border-b px-4 py-3 transition-colors last:border-b-0;
+    }
+
+    .import-preview-row-duplicate {
+        @apply bg-warning/10;
+    }
+
+    .import-preview-row-pair {
+        @apply bg-pair/10;
+    }
+
+    /*
+     * Tabele realizacji budżetu na Dashboardzie (Dochody, Wydatki): jedna
+     * siatka dla nagłówka kolumn, wiersza kategorii i wiersza sumy. Na
+     * telefonie wiersz to dwie linie (kategoria i pozostało, potem miernik
+     * z procentem i znacznikiem „przekroczono”), a od 38rem szerokości samej
+     * tabeli (kontener `.category-meter-table`, ADR-0050) jedna linia kolumn.
+     */
+    .category-meter-header-row,
+    .category-meter-sum-row,
     .category-meter-row {
-        @apply grid w-full items-center gap-x-3 gap-y-1.5 py-2.5;
+        @apply border-border-soft grid items-center gap-x-3 gap-y-1.5 border-b px-4;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'category remaining'
-            'bar percent';
+            'meter meter';
     }
 
-    @variant md {
+    /* Tabela realizacji przełącza się na pięć kolumn po szerokości własnej karty, nie okna. Próg 38rem (608 px) mieści kolumnę Dashboardu przy oknie 1280 px (ok. 676 px przy sidebarze 224 px); węższa karta (okno 1024 px, telefon) zostaje w układzie piętrowym. Od ADR-0061 kolumny rosną wagami `fr`, nie stałymi maksimami: kwoty zostają na 5rem przy progu, a miernik bierze wolne miejsce. Kategoria ma minimum 8rem i skraca nazwę wielokropkiem, miernik minimum 9rem, a znacznik „przekroczono” zawija się pod pasek i procent. */
+    .category-meter-table {
+        container-type: inline-size;
+    }
+
+    @container (min-width: 38rem) {
+        .category-meter-header-row,
+        .category-meter-sum-row,
         .category-meter-row {
-            min-height: 2.75rem;
             grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(3rem, 1fr)
-                3.25rem;
-            grid-template-areas: 'category plan execution remaining bar percent';
+                minmax(8rem, 1.4fr)
+                repeat(3, minmax(5rem, 0.5fr))
+                minmax(9rem, 1.2fr);
+            grid-template-areas: 'category plan execution remaining meter';
         }
     }
 
     .category-meter-header-row {
-        @apply grid items-center gap-x-3 pb-2;
-        grid-template-columns: minmax(0, 1fr) auto;
+        @apply table-header hidden py-2;
     }
 
-    @variant md {
+    @container (min-width: 38rem) {
         .category-meter-header-row {
-            grid-template-columns:
-                minmax(0, 1.4fr)
-                5.75rem
-                5.75rem
-                5.75rem
-                minmax(3rem, 1fr)
-                3.25rem;
+            @apply grid;
         }
+    }
+
+    /* Wiersz sumy typu (Suma dochodów / Suma wydatków) na końcu tabeli; kwoty w stylu `amount-sum`. */
+    .category-meter-sum-row {
+        @apply bg-muted min-h-row border-t py-2 text-sm font-semibold;
+    }
+
+    .category-meter-sum-row:last-child {
+        @apply border-b-0;
+    }
+
+    /* Poprzedni wiersz kategorii ma już dolną kreskę: jedna linia, nie dwie. */
+    .category-meter-row + .category-meter-sum-row {
+        @apply border-t-0;
+    }
+
+    .category-meter-row {
+        @apply min-h-row py-2.5 text-sm;
+    }
+
+    /* Wiersz kategorii jako link: hover i fokus przez nazwaną klasę (klasa z @layer components nie nadpisze utility z wariantem). */
+    .category-meter-row-link {
+        @apply hover:bg-secondary focus-visible:outline-ring transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid;
     }
 
     .category-meter-cell-category {
         grid-area: category;
+        @apply min-w-0;
     }
 
     .category-meter-cell-plan {
         grid-area: plan;
-        @apply text-right;
+        @apply hidden text-right;
     }
 
     .category-meter-cell-execution {
         grid-area: execution;
-        @apply text-right;
+        @apply hidden text-right;
+    }
+
+    @container (min-width: 38rem) {
+        .category-meter-cell-plan,
+        .category-meter-cell-execution {
+            @apply block;
+        }
     }
 
     .category-meter-cell-remaining {
@@ -688,12 +1655,197 @@
         @apply text-right;
     }
 
-    .category-meter-cell-bar {
-        grid-area: bar;
-        @apply min-w-0 overflow-visible;
+    .category-meter-cell-meter {
+        grid-area: meter;
+        @apply flex min-w-0 items-center gap-2;
     }
 
-    .category-meter-cell-percent {
-        grid-area: percent;
+    /* Układ strony Dashboardu: jedna kolumna, od lg główna treść i panel boczny. */
+    .dashboard-grid {
+        @apply grid gap-4;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    @variant lg {
+        .dashboard-grid {
+            grid-template-columns: minmax(0, 1fr) var(--aside-width);
+        }
+    }
+
+    /* Pasek dni miesiąca w miarze „Do wydania”: komórka na dzień, minione w `foreground`. */
+    .month-days {
+        @apply flex gap-0.5;
+    }
+
+    .month-days-day {
+        @apply bg-track h-0.5 min-w-0 flex-1;
+    }
+
+    .month-days-day-past {
+        @apply bg-foreground;
+    }
+
+    /* Karta ostrzeżenia Dashboardu; waga tylko w kafelku ikony. */
+    .dashboard-notice {
+        @apply bg-card text-card-foreground hover:border-muted-foreground flex items-center gap-3 rounded-md border px-3 py-2.5 text-left;
+    }
+
+    .dashboard-notice[aria-busy='true'] {
+        @apply cursor-wait;
+    }
+
+    .dashboard-notice-icon {
+        @apply flex size-6 shrink-0 items-center justify-center rounded-md;
+    }
+
+    /* Dwie linie przy lewej krawędzi: rodzaj i tożsamość; wartość po prawej. */
+    .dashboard-notice-body {
+        @apply flex min-w-0 flex-1 flex-col items-start text-left;
+    }
+
+    .dashboard-notice-kind {
+        @apply w-full truncate;
+    }
+
+    .dashboard-notice-identity {
+        @apply text-foreground flex w-full min-w-0 items-center gap-1.5 text-sm font-medium;
+    }
+
+    .dashboard-notice-value {
+        @apply shrink-0 whitespace-nowrap;
+    }
+
+    .dashboard-notice-icon-exceeded {
+        @apply bg-destructive-soft text-destructive;
+    }
+
+    .dashboard-notice-icon-warning {
+        @apply bg-warning-soft text-warning;
+    }
+
+    /* Panel sekcji ustawień (SettingsPanel): nagłówek, treść, stopka z akcjami. */
+    .settings-panel {
+        @apply bg-card text-card-foreground rounded-lg border;
+    }
+
+    .settings-panel-head {
+        @apply flex flex-col gap-0.5 border-b px-4 py-3;
+    }
+
+    .settings-panel-title {
+        @apply section-title;
+    }
+
+    .settings-panel-description {
+        @apply meta text-muted-foreground;
+    }
+
+    .settings-panel-body {
+        @apply flex flex-col gap-4 px-4 py-4;
+    }
+
+    .settings-panel-foot {
+        @apply flex items-center justify-end gap-2 border-t px-4 py-3;
+    }
+
+    /* Układ ustawień: od lg podmenu z lewej, treść w kolumnie o stałej szerokości. */
+    .settings-layout {
+        @apply flex flex-col gap-4;
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: var(--settings-nav-width) minmax(
+                    0,
+                    var(--settings-content-width)
+                );
+            align-items: start;
+        }
+    }
+
+    .settings-subnav {
+        @apply flex flex-wrap gap-1;
+
+        @variant lg {
+            @apply flex-col gap-0.5;
+        }
+    }
+
+    .settings-subnav-link {
+        @apply text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-ring rounded-md px-3 py-1.5 text-sm font-medium outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
+    .settings-subnav-link[aria-current='page'] {
+        @apply bg-card text-foreground;
+        box-shadow: 0 0 0 1px var(--border);
+    }
+
+    .settings-content {
+        @apply flex flex-col gap-4 md:gap-5;
+    }
+
+    /* Panel miar (StatPanel): miary rozdzielone liniami, od md w jednym rzędzie. */
+    .stat-panel {
+        @apply grid;
+    }
+
+    /* Etykieta miary i znacznik obok niej w jednej linii; etykieta się zwija, znacznik nie. */
+    .stat-panel-label {
+        @apply flex min-w-0 flex-wrap items-center gap-x-2;
+    }
+
+    .stat-panel-label-text {
+        @apply min-w-0;
+    }
+
+    /* Jedna linia pod paskiem dni: podpis i link do planu miesiąca. */
+    .stat-panel-footer-line {
+        @apply flex flex-wrap items-center gap-x-1;
+    }
+
+    /* Dashboard: pierwsza miara („Do wydania”) szersza, żeby etykieta i znacznik stały w jednej linii. */
+    @variant md {
+        .dashboard-stat-panel .stat-panel {
+            grid-template-columns: minmax(0, 1.5fr);
+        }
+    }
+
+    .stat-panel-metric {
+        @apply border-border min-w-0 space-y-1 border-t px-5 py-4 first:border-t-0;
+    }
+
+    @variant md {
+        .stat-panel {
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(0, 1fr);
+        }
+
+        .stat-panel-metric {
+            @apply border-t-0 border-l first:border-l-0;
+        }
+    }
+
+    .execution-meter {
+        @apply flex w-full items-center gap-x-3;
+    }
+
+    .execution-meter-track {
+        @apply bg-track relative h-1.5 min-w-0 flex-1 overflow-visible rounded-full;
+    }
+
+    .execution-meter-percent {
+        @apply ml-auto w-13 shrink-0 text-right text-sm font-medium tabular-nums;
+    }
+
+    /* W tabeli realizacji tor zajmuje wolną szerokość komórki (minimum 3.5rem, ADR-0061), a procent stoi tuż za nim jako mała cyfra tabelaryczna. */
+    .category-meter-cell-meter .execution-meter {
+        @apply min-w-0 flex-1 gap-x-2;
+    }
+
+    .category-meter-cell-meter .execution-meter-track {
+        @apply min-w-14 flex-1;
+    }
+
+    .category-meter-cell-meter .execution-meter-percent {
+        @apply ml-0 w-auto min-w-9 text-left font-mono text-xs;
     }
 }

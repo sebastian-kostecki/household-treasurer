@@ -1,0 +1,13 @@
+# Atrament i morski tokens with Inter and JetBrains Mono
+
+The colour and type tokens follow the "C · Atrament i morski" design system chosen on 2026-11-05 (artifact https://claude.ai/artifact/9gJSdtfpFgUAa8oEMgR4HA, `project/tokens.json` sha256 `dde5b6328d7a4da2dbbf3d604166e643b0ede6c459b6f86ddec940864a6dbdaf`). `primary` is ink (`#0f1b2d` light, `#e6ecf3` dark) and means action; mint `brand` (`#5fd4c4`) means identity and navigation, never status; `brand-text` (`#0b6a7b` light, `#6fdccd` dark) carries links and thin strokes. `brand-text` is not the teal of ADR-0001 (`#0b7285`). Nine roles are new (`brand`, `brand-foreground`, `brand-text`, `warning-soft`, `destructive-soft`, `track`, `border-soft`, `scrim`, `sidebar-strong`), and `--radius` is 10px. The sidebar is navy in both themes, sits flush against the content (no `variant="inset"`), and its active item uses `sidebar-primary`.
+
+Measured contrast: text pairs reach at least 5.03:1 in light and 6.05:1 in dark, and `ring` reaches 6.25:1 and 9.74:1. `border` and `input` on `card` reach 1.37:1 and 1.32:1, up from 1.25 and 1.24, so they are decorative lines, not 3:1 control boundaries. UI type is Inter (400/500/600, `latin` + `latin-ext`) and `--font-mono` is JetBrains Mono, both via Bunny Fonts. JetBrains Mono is loaded without preload and is meant for amounts, which move to it view by view; until then amounts keep `tabular-nums` on Inter.
+
+This supersedes in part ADR-0001 (teal `primary`), ADR-0003 (teal as brand and action colour, no ink primary) and ADR-0023 (Geist, no second monospace family). Points 3, 5, 7 and 8 of the system README (card radius and border recipe, 32px controls, `column-caption` replaced by `table-header`, expense colour in Operations, day rows) are out of scope and need separate ADRs. We rejected keeping the teal `primary` (white text on it is 3.27:1 in dark), Google Fonts (the project already loads faces from Bunny through `bunny()`), and Geist with `tnum` instead of a mono face for amounts.
+
+Points 3 and 5 of the system README are settled by ADR-0037.
+
+Points 7 and 8 (expense colour in Operations, day rows) are settled by ADR-0038.
+
+Superseded in part by ADR-0042 (`brand` for document state and the approval action).

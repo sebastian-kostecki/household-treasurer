@@ -1,9 +1,67 @@
-import type { DashboardNotice } from '@/components/DashboardNotices.vue';
 import type { AccountBank } from '@/lib/account-identity';
 import type {
     DashboardCategory,
     DashboardTypeTotals,
 } from '@/lib/dashboard-categories';
+import type { MonthPace } from '@/types/month-plan';
+
+export type DashboardNoticeSeverity = 'exceeded' | 'warning';
+
+export type DashboardNotice = {
+    severity: DashboardNoticeSeverity;
+} & (
+    | {
+          kind: 'negative_account';
+          id: number;
+          name: string;
+          type: 'bank' | 'cash';
+          bank: AccountBank | null;
+          mark_url: string | null;
+          amount_minor_units: number;
+      }
+    | {
+          kind: 'negative_term_deposit';
+          id: number;
+          name: string;
+          bank: AccountBank;
+          mark_url: string | null;
+          amount_minor_units: number;
+      }
+    | {
+          kind: 'month_to_spend_negative';
+          month: number;
+          amount_minor_units: number;
+      }
+    | {
+          kind: 'month_item_over_plan';
+          id: number;
+          name: string;
+          icon: string;
+          color: string;
+          category_name: string;
+          amount_minor_units: number;
+      }
+    | {
+          kind: 'month_plan_not_approved';
+          month: number;
+      }
+    | {
+          kind: 'month_pace_ahead';
+          month: number;
+          percent: number;
+          elapsed_day: number;
+          days_in_month: number;
+      }
+    | {
+          kind: 'one_off_over_limit';
+          id: number;
+          name: string;
+          icon: string;
+          color: string;
+          category_name: string;
+          amount_minor_units: number;
+      }
+);
 
 export type AccountSummary = {
     id: number;
@@ -56,6 +114,7 @@ export type DashboardPageProps = {
         state: 'proposal' | 'approved';
         to_spend_minor_units: number;
     } | null;
+    month_pace: MonthPace | null;
     current_month: number | null;
     planSummary: PlanSummary | null;
 };

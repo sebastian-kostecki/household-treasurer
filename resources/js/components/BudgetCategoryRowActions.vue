@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
 import {
     AlignHorizontalJustifyCenter,
     Archive,
@@ -10,18 +9,9 @@ import {
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
-import BudgetCategoryAlignPlanAction from '@/components/BudgetCategoryAlignPlanAction.vue';
 import type { BudgetCategoryRow } from '@/components/BudgetCategoryList.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -125,97 +115,41 @@ function openDeleteDialog(): void {
             </DropdownMenuContent>
         </DropdownMenu>
 
-        <BudgetCategoryAlignPlanAction
+        <ConfirmActionDialog
             v-model:open="alignDialogOpen"
-            :category="category"
+            :form="CategoryController.alignCurrentPlan.form(category)"
+            :title="t.budget.align_current_plan_confirm_title"
+            :description="t.budget.align_current_plan_confirm_body"
+            :confirm-label="t.budget.align_current_plan"
+            :cancel-label="t.budget.cancel"
         />
 
-        <Dialog v-model:open="archiveDialogOpen">
-            <DialogContent>
-                <Form
-                    v-bind="CategoryController.archive.form(category)"
-                    v-slot="{ processing }"
-                >
-                    <DialogHeader>
-                        <DialogTitle>
-                            {{ t.budget.archive_confirm_title }}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {{ t.budget.archive_confirm_body }}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter class="gap-2">
-                        <DialogClose as-child>
-                            <Button type="button" variant="secondary">
-                                {{ t.budget.cancel }}
-                            </Button>
-                        </DialogClose>
-                        <Button type="submit" :disabled="processing">
-                            {{ t.budget.archive }}
-                        </Button>
-                    </DialogFooter>
-                </Form>
-            </DialogContent>
-        </Dialog>
+        <ConfirmActionDialog
+            v-model:open="archiveDialogOpen"
+            :form="CategoryController.archive.form(category)"
+            :title="t.budget.archive_confirm_title"
+            :description="t.budget.archive_confirm_body"
+            :confirm-label="t.budget.archive"
+            :cancel-label="t.budget.cancel"
+        />
 
-        <Dialog v-model:open="restoreDialogOpen">
-            <DialogContent>
-                <Form
-                    v-bind="CategoryController.restore.form(category)"
-                    v-slot="{ processing }"
-                >
-                    <DialogHeader>
-                        <DialogTitle>
-                            {{ t.budget.restore_confirm_title }}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {{ t.budget.restore_confirm_body }}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter class="gap-2">
-                        <DialogClose as-child>
-                            <Button type="button" variant="secondary">
-                                {{ t.budget.cancel }}
-                            </Button>
-                        </DialogClose>
-                        <Button type="submit" :disabled="processing">
-                            {{ t.budget.restore }}
-                        </Button>
-                    </DialogFooter>
-                </Form>
-            </DialogContent>
-        </Dialog>
+        <ConfirmActionDialog
+            v-model:open="restoreDialogOpen"
+            :form="CategoryController.restore.form(category)"
+            :title="t.budget.restore_confirm_title"
+            :description="t.budget.restore_confirm_body"
+            :confirm-label="t.budget.restore"
+            :cancel-label="t.budget.cancel"
+        />
 
-        <Dialog v-model:open="deleteDialogOpen">
-            <DialogContent>
-                <Form
-                    v-bind="CategoryController.destroy.form(category)"
-                    v-slot="{ processing }"
-                >
-                    <DialogHeader>
-                        <DialogTitle>
-                            {{ t.budget.delete_category_confirm_title }}
-                        </DialogTitle>
-                        <DialogDescription>
-                            {{ t.budget.delete_category_confirm_body }}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter class="gap-2">
-                        <DialogClose as-child>
-                            <Button type="button" variant="secondary">
-                                {{ t.budget.cancel }}
-                            </Button>
-                        </DialogClose>
-                        <Button
-                            type="submit"
-                            variant="destructive"
-                            :disabled="processing"
-                        >
-                            {{ t.budget.delete }}
-                        </Button>
-                    </DialogFooter>
-                </Form>
-            </DialogContent>
-        </Dialog>
+        <ConfirmActionDialog
+            v-model:open="deleteDialogOpen"
+            :form="CategoryController.destroy.form(category)"
+            destructive
+            :title="t.budget.delete_category_confirm_title"
+            :description="t.budget.delete_category_confirm_body"
+            :confirm-label="t.budget.delete"
+            :cancel-label="t.budget.cancel"
+        />
     </div>
 </template>

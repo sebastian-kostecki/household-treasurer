@@ -20,13 +20,13 @@ enum Bank: string
         return match ($this) {
             self::Alior => '/marks/alior.svg',
             self::BnpParibas => '/marks/bnp-paribas.jpg',
-            self::Ing => '/marks/ing.svg',
+            self::Ing => null,
             self::LokatyFacto => '/marks/lokaty-facto.svg',
             self::Mbank => '/marks/mbank.jpg',
-            self::Pekao => '/marks/pekao.svg',
+            self::Pekao => null,
             self::PkoBp => '/marks/pko-bp.svg',
             self::Revolut => '/marks/revolut.svg',
-            self::Santander => '/marks/santander.svg',
+            self::Santander => null,
             self::Other => null,
         };
     }

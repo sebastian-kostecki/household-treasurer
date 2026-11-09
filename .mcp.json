@@ -1,8 +1,8 @@
 {
     "mcpServers": {
         "laravel-boost": {
-            "command": "php",
-            "args": ["artisan", "boost:mcp"],
+            "command": "bash",
+            "args": [".claude/hooks/boost-mcp.sh"],
             "env": {
                 "DB_HOST": "127.0.0.1"
             }

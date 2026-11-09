@@ -8,18 +8,32 @@ const props = withDefaults(
         name: string;
         icon: string;
         color: string;
-        size?: 'sm' | 'md';
+        /** `lg`: the tile is as tall as the name with its `subtitle` caption. */
+        size?: 'sm' | 'md' | 'lg';
         showName?: boolean;
+        /** Name size; defaults to `xs` for `sm` and `sm` for `md`. */
+        textSize?: 'xs' | 'sm';
     }>(),
     {
         size: 'md',
         showName: true,
+        textSize: undefined,
     },
 );
 
-const tileSizeClass = computed(() =>
-    props.size === 'sm' ? 'size-6' : 'size-8',
+const nameSizeClass = computed(() =>
+    (props.textSize ?? (props.size === 'sm' ? 'xs' : 'sm')) === 'xs'
+        ? 'text-xs'
+        : '',
 );
+
+const tileSizeClass = computed(() => {
+    if (props.size === 'lg') {
+        return 'category-chip-lg';
+    }
+
+    return props.size === 'sm' ? 'size-6' : 'size-8';
+});
 
 const tileRadiusClass = computed(() =>
     props.size === 'sm' ? 'rounded-md' : 'rounded-lg',
@@ -42,10 +56,22 @@ const tileStyle = computed(() => categoryTileStyle(props.color));
         >
             <CategoryIcon :name="icon" :class="iconSizeClass" />
         </span>
+        <span v-if="showName && size === 'lg'" class="flex min-w-0 flex-col">
+            <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <span
+                    class="truncate text-sm font-medium"
+                    :class="nameSizeClass"
+                >
+                    {{ name }}
+                </span>
+                <slot name="badges" />
+            </span>
+            <slot name="subtitle" />
+        </span>
         <span
-            v-if="showName"
+            v-else-if="showName"
             class="truncate text-sm font-medium"
-            :class="size === 'sm' ? 'text-xs' : ''"
+            :class="nameSizeClass"
         >
             {{ name }}
         </span>

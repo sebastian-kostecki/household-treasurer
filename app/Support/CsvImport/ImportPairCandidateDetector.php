@@ -2,9 +2,11 @@
 
 namespace App\Support\CsvImport;
 
+use App\Models\Account;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -31,10 +33,12 @@ class ImportPairCandidateDetector
      *         id: int,
      *         account_id: int,
      *         account_name: string,
+     *         account_type: string,
+     *         account_bank: string|null,
+     *         account_mark_url: string|null,
      *         date: string,
      *         description: string,
      *         converts_financial_operation: bool,
-     *         reason: string,
      *     }>,
      *     ...
      * }>
@@ -112,10 +116,12 @@ class ImportPairCandidateDetector
      *     id: int,
      *     account_id: int,
      *     account_name: string,
+     *     account_type: string,
+     *     account_bank: string|null,
+     *     account_mark_url: string|null,
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }>
      */
     public function matchCandidatesForRow(
@@ -172,10 +178,12 @@ class ImportPairCandidateDetector
      *     id: int,
      *     account_id: int,
      *     account_name: string,
+     *     account_type: string,
+     *     account_bank: string|null,
+     *     account_mark_url: string|null,
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }
      */
     private function financialOperationToCandidate(FinancialOperation $operation): array
@@ -184,14 +192,10 @@ class ImportPairCandidateDetector
             'kind' => 'financial_operation',
             'id' => $operation->id,
             'account_id' => (int) $operation->import_identity_account_id,
-            'account_name' => $operation->account->name,
+            ...$this->candidateAccountFields($operation->account),
             'date' => $operation->import_identity_date->toDateString(),
             'description' => $operation->description,
             'converts_financial_operation' => true,
-            'reason' => (string) __(':account (:date): existing income or expense will become this own transfer.', [
-                'account' => $operation->account->name,
-                'date' => $operation->import_identity_date->toDateString(),
-            ]),
         ];
     }
 
@@ -201,10 +205,12 @@ class ImportPairCandidateDetector
      *     id: int,
      *     account_id: int,
      *     account_name: string,
+     *     account_type: string,
+     *     account_bank: string|null,
+     *     account_mark_url: string|null,
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }
      */
     private function ownTransferToCandidate(OwnTransfer $transfer): array
@@ -223,14 +229,30 @@ class ImportPairCandidateDetector
             'kind' => 'own_transfer',
             'id' => $transfer->id,
             'account_id' => $identity['account_id'],
-            'account_name' => $account->name,
+            ...$this->candidateAccountFields($account),
             'date' => $identity['date'],
             'description' => $transfer->description,
             'converts_financial_operation' => false,
-            'reason' => (string) __(':account (:date): a second import identity will attach to the existing own transfer.', [
-                'account' => $account->name,
-                'date' => $identity['date'],
-            ]),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     account_name: string,
+     *     account_type: string,
+     *     account_bank: string|null,
+     *     account_mark_url: string|null,
+     * }
+     */
+    private function candidateAccountFields(Account $account): array
+    {
+        $identity = AccountIdentity::payload($account);
+
+        return [
+            'account_name' => $identity['name'],
+            'account_type' => $identity['type'],
+            'account_bank' => $identity['bank'],
+            'account_mark_url' => $identity['mark_url'],
         ];
     }
 
@@ -310,7 +332,7 @@ class ImportPairCandidateDetector
             ->whereNotNull('import_identity_digest')
             ->where('import_identity_account_id', '!=', $previewAccountId)
             ->whereIn('import_identity_amount_minor_units', $oppositeAmountsMinorUnits)
-            ->with('account:id,name')
+            ->with('account:id,name,type,bank')
             ->get();
     }
 
@@ -351,7 +373,7 @@ class ImportPairCandidateDetector
                         ->whereIn('destination_import_identity_amount_minor_units', $oppositeAmountsMinorUnits);
                 });
             })
-            ->with(['sourceAccount:id,name', 'destinationAccount:id,name'])
+            ->with(['sourceAccount:id,name,type,bank', 'destinationAccount:id,name,type,bank'])
             ->get();
     }
 
@@ -376,10 +398,12 @@ class ImportPairCandidateDetector
      *         id: int,
      *         account_id: int,
      *         account_name: string,
+     *         account_type: string,
+     *         account_bank: string|null,
+     *         account_mark_url: string|null,
      *         date: string,
      *         description: string,
      *         converts_financial_operation: bool,
-     *         reason: string,
      *     }>,
      *     ...
      * }
@@ -403,10 +427,12 @@ class ImportPairCandidateDetector
      *     id: int,
      *     account_id: int,
      *     account_name: string,
+     *     account_type: string,
+     *     account_bank: string|null,
+     *     account_mark_url: string|null,
      *     date: string,
      *     description: string,
      *     converts_financial_operation: bool,
-     *     reason: string,
      * }>  $pairCandidates
      * @return array{
      *     operation_date: string,
@@ -420,10 +446,12 @@ class ImportPairCandidateDetector
      *         id: int,
      *         account_id: int,
      *         account_name: string,
+     *         account_type: string,
+     *         account_bank: string|null,
+     *         account_mark_url: string|null,
      *         date: string,
      *         description: string,
      *         converts_financial_operation: bool,
-     *         reason: string,
      *     }>,
      *     ...
      * }

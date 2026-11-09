@@ -12,7 +12,9 @@ use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\AccountIdentity;
 use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\CsvImport\ImportRowFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -70,6 +72,40 @@ CSV;
                 ->has('monthRemainingContext.budgets', 1)
                 ->has('entryToSpend.budgets', 1)
                 ->where('entryToSpend.budgets.0.year', 2026),
+            );
+    }
+
+    public function test_has_header_zero_keeps_the_first_line_as_an_operation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+2026-03-15;Salary;2500,00
+2026-03-16;Groceries;-45,50
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => '0',
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.valid', true)
+                ->where('rows.0.amount_minor_units', 250000)
+                ->where('rows.1.amount_minor_units', -4550),
             );
     }
 
@@ -144,6 +180,70 @@ CSV;
             );
     }
 
+    public function test_preview_rows_carry_category_suggestions_from_import_history(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        $expenseCategory->update(['name' => 'Zakupy']);
+        FinancialOperation::factory()->for($user)->for($account)->create([
+            'type' => FinancialOperationType::Expense,
+            'category_id' => $expenseCategory->id,
+            'budget_id' => $expenseCategory->budget_id,
+            'operation_date' => '2026-02-10',
+            'amount_minor_units' => 1000,
+            'description' => 'BIEDRONKA WARSZAWA',
+            'raw_statement_description' => 'PLATNOSC KARTA BIEDRONKA WARSZAWA',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,Biedronka 4521,-45.50
+2026-03-16,Nowy sklep,-12.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.category_suggestion.expense', $expenseCategory->id)
+                ->where('rows.0.category_suggestion.income', null)
+                ->where('rows.1.category_suggestion.expense', null)
+                ->where('rows.1.category_suggestion.income', null),
+            );
+    }
+
+    public function test_header_only_file_gives_empty_preview_without_error(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = "date,description,amount\n";
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('OperationsImportPreview')
+                ->has('rows', 0),
+            );
+    }
+
     public function test_amounts_with_pln_and_zl_suffixes_parse_to_minor_units(): void
     {
         $this->travelTo('2026-06-01');
@@ -209,7 +309,7 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 1)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('Only PLN amounts are supported.')),
+                ->where('rows.0.invalid_reason', 'foreign_currency'),
             );
     }
 
@@ -247,9 +347,46 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('rows', 3)
                 ->where('rows.0.valid', false)
-                ->where('rows.0.invalid_reason', __('The operation date cannot be in the future.'))
+                ->where('rows.0.invalid_reason', 'future_date')
                 ->where('rows.1.valid', false)
                 ->where('rows.2.valid', false),
+            );
+    }
+
+    public function test_row_with_empty_description_gets_generic_description_and_stays_valid(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,,-12.50
+2026-03-16,   ,-7.00
+CSV;
+
+        $this->actingAs($user)
+            ->post(route('operations.import.preview.store'), [
+                'file' => UploadedFile::fake()->createWithContent('operations.csv', $csv),
+                'account_id' => $account->id,
+                'import_format' => 'other',
+                'has_header' => true,
+                'date_column' => 0,
+                'description_column' => 1,
+                'amount_layout' => 'signed',
+                'amount_column' => 2,
+            ])
+            ->assertRedirect(route('operations.import.preview'));
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 2)
+                ->where('rows.0.description', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
+                ->where('rows.0.raw_statement_description', null)
+                ->where('rows.0.valid', true)
+                ->where('rows.1.description', ImportRowFields::EMPTY_DESCRIPTION_FALLBACK)
+                ->where('rows.1.valid', true),
             );
     }
 
@@ -295,6 +432,59 @@ CSV;
             'description' => 'Salary',
             'amount_minor_units' => 250000,
         ]);
+    }
+
+    public function test_user_can_import_when_preview_contains_unselected_invalid_row_without_type(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, $incomeCategory] = $this->createImportFixture();
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-07-01,Future row,10.00
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    ['index' => 0, 'selected' => false],
+                    [
+                        'index' => 1,
+                        'selected' => true,
+                        'type' => 'income',
+                        'category_id' => $incomeCategory->id,
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('financial_operations', 1);
+    }
+
+    public function test_selected_row_without_type_fails_validation(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $this->previewCsv($user, $account, <<<'CSV'
+date,description,amount
+2026-07-01,Future row,10.00
+2026-03-15,Salary,2500.00
+CSV);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    ['index' => 0, 'selected' => false],
+                    ['index' => 1, 'selected' => true],
+                ],
+            ])
+            ->assertSessionHasErrors('rows.1.type');
+
+        $this->assertDatabaseCount('financial_operations', 0);
     }
 
     public function test_user_can_import_selected_valid_rows_atomically(): void
@@ -546,7 +736,8 @@ CSV;
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('rows.0.valid', true)
-                ->has('rows', 1),
+                ->has('rows', 1)
+                ->where('translations.operations.import_block_no_selection', 'Zaznacz co najmniej jeden wiersz do importu.'),
             );
     }
 
@@ -2694,7 +2885,13 @@ CSV);
                 ->where('rows.0.import_pair_candidate', true)
                 ->has('rows.0.pair_candidates', 1)
                 ->where('rows.0.pair_candidates.0.kind', 'financial_operation')
-                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id)
+                ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.account_type', $checking->type->value)
+                ->where('rows.0.pair_candidates.0.account_bank', $checking->bank?->value)
+                ->where('rows.0.pair_candidates.0.account_mark_url', AccountIdentity::markUrl($checking->bank))
+                ->where('rows.0.pair_candidates.0.date', '2026-03-15')
+                ->missing('rows.0.pair_candidates.0.reason'),
             );
     }
 
@@ -2991,7 +3188,13 @@ CSV);
                 ->where('rows.0.import_pair_candidate', true)
                 ->has('rows.0.pair_candidates', 1)
                 ->where('rows.0.pair_candidates.0.kind', 'own_transfer')
-                ->where('rows.0.pair_candidates.0.account_id', $checking->id),
+                ->where('rows.0.pair_candidates.0.account_id', $checking->id)
+                ->where('rows.0.pair_candidates.0.account_name', $checking->name)
+                ->where('rows.0.pair_candidates.0.account_type', $checking->type->value)
+                ->where('rows.0.pair_candidates.0.account_bank', $checking->bank?->value)
+                ->where('rows.0.pair_candidates.0.account_mark_url', AccountIdentity::markUrl($checking->bank))
+                ->where('rows.0.pair_candidates.0.date', '2026-03-15')
+                ->missing('rows.0.pair_candidates.0.reason'),
             );
     }
 

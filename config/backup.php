@@ -22,7 +22,7 @@ if ($offsiteEnabled) {
 return [
 
     'backup' => [
-        'name' => env('APP_NAME', 'laravel-backup'),
+        'name' => env('BACKUP_NAME', 'Household Treasurer'),
 
         'source' => [
             'files' => [
@@ -34,6 +34,7 @@ return [
                     storage_path('app/backups'),
                     storage_path('app/backup-temp'),
                     storage_path('app/framework'),
+                    storage_path('app/restore-trial'),
                 ],
 
                 'follow_links' => false,
@@ -129,7 +130,7 @@ return [
 
     'monitor_backups' => [
         [
-            'name' => env('APP_NAME', 'laravel-backup'),
+            'name' => env('BACKUP_NAME', 'Household Treasurer'),
             'disks' => $destinationDisks,
             'health_checks' => [
                 MaximumAgeInDays::class => 1,

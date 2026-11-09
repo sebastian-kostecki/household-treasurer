@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
+import AuthCardFooter from '@/components/AuthCardFooter.vue';
+import FormField from '@/components/FormField.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { login } from '@/routes';
@@ -17,6 +17,8 @@ setLayoutProps({
     description: t.auth.register.description,
 });
 
+// Registration is off (`Features::registration()`), so Wayfinder has no `register`
+// route yet; `action` stays a literal until it is enabled, then use its `.form()`.
 defineProps<{
     passwordRules: string;
 }>();
@@ -30,89 +32,87 @@ defineProps<{
         method="post"
         :reset-on-success="['password', 'password_confirmation']"
         v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
+        class="flex flex-col gap-4"
     >
-        <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="name">{{ t.auth.register.name }}</Label>
-                <Input
-                    id="name"
-                    type="text"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="name"
-                    name="name"
-                    :placeholder="t.auth.register.name"
-                />
-                <InputError :message="errors.name" />
-            </div>
+        <FormField
+            :label="t.auth.register.name"
+            :error="errors.name"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <Input
+                :id="id"
+                type="text"
+                name="name"
+                required
+                autofocus
+                autocomplete="name"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <div class="grid gap-2">
-                <Label for="email">{{ t.auth.register.email }}</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    required
-                    :tabindex="2"
-                    autocomplete="email"
-                    name="email"
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
+        <FormField
+            :label="t.auth.register.email"
+            :error="errors.email"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <Input
+                :id="id"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder="email@example.com"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <div class="grid gap-2">
-                <Label for="password">{{ t.auth.register.password }}</Label>
-                <PasswordInput
-                    id="password"
-                    required
-                    :tabindex="3"
-                    autocomplete="new-password"
-                    name="password"
-                    :placeholder="t.auth.register.password"
-                    :passwordrules="passwordRules"
-                />
-                <InputError :message="errors.password" />
-            </div>
+        <FormField
+            :label="t.auth.register.password"
+            :error="errors.password"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <PasswordInput
+                :id="id"
+                name="password"
+                required
+                autocomplete="new-password"
+                :passwordrules="passwordRules"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <div class="grid gap-2">
-                <Label for="password_confirmation">
-                    {{ t.auth.register.confirm_password }}
-                </Label>
-                <PasswordInput
-                    id="password_confirmation"
-                    required
-                    :tabindex="4"
-                    autocomplete="new-password"
-                    name="password_confirmation"
-                    :placeholder="t.auth.register.confirm_password"
-                    :passwordrules="passwordRules"
-                />
-                <InputError :message="errors.password_confirmation" />
-            </div>
+        <FormField
+            :label="t.auth.register.confirm_password"
+            :error="errors.password_confirmation"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <PasswordInput
+                :id="id"
+                name="password_confirmation"
+                required
+                autocomplete="new-password"
+                :passwordrules="passwordRules"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <Button
-                type="submit"
-                class="mt-2 w-full"
-                tabindex="5"
-                :disabled="processing"
-                data-test="register-user-button"
-            >
-                <Spinner v-if="processing" />
-                {{ t.auth.register.submit }}
-            </Button>
-        </div>
-
-        <div class="text-muted-foreground text-center text-sm">
-            {{ t.auth.register.has_account }}
-            <TextLink
-                :href="login()"
-                class="underline underline-offset-4"
-                :tabindex="6"
-            >
-                {{ t.auth.register.log_in }}
-            </TextLink>
-        </div>
+        <Button
+            type="submit"
+            class="auth-submit"
+            :disabled="processing"
+            data-test="register-user-button"
+        >
+            <Spinner v-if="processing" />
+            {{ t.auth.register.submit }}
+        </Button>
     </Form>
+
+    <AuthCardFooter>
+        <span>{{ t.auth.register.has_account }}</span>
+        <TextLink :href="login()">{{ t.auth.register.log_in }}</TextLink>
+    </AuthCardFooter>
 </template>

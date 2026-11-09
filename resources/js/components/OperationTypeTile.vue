@@ -27,13 +27,13 @@ const config = computed(() => {
             return {
                 icon: ArrowUpRight,
                 label: t.operations.type_expense,
-                className: 'bg-destructive/10 text-destructive',
+                className: 'bg-destructive-soft text-destructive',
             };
         case 'refund':
             return {
                 icon: RotateCcw,
                 label: t.operations.type_refund,
-                className: 'bg-refund/10 text-refund',
+                className: 'bg-warning-soft text-refund',
             };
         case 'transfer':
             return {
@@ -49,13 +49,13 @@ const config = computed(() => {
     <span
         :class="
             cn(
-                'inline-flex min-h-10 w-10 shrink-0 items-center justify-center self-stretch rounded-lg',
+                'size-control-sm inline-flex shrink-0 items-center justify-center rounded-md',
                 config.className,
             )
         "
         :title="config.label"
         :aria-label="config.label"
     >
-        <component :is="config.icon" class="size-5" aria-hidden="true" />
+        <component :is="config.icon" class="size-3.5" aria-hidden="true" />
     </span>
 </template>

@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
-import AccountIdentityBlock from '@/components/AccountIdentityBlock.vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
-import StatTile from '@/components/StatTile.vue';
+import StatPanel from '@/components/StatPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
+import { bankLabel } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatMoneyAmount } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
 import type { AccountRow, AccountsPageProps } from '@/types/accounts';
 
@@ -48,18 +49,44 @@ const filterQuery = computed(() =>
     props.show_archived ? { query: { show_archived: 1 } } : undefined,
 );
 
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.accounts,
-            href: accountsRoute(),
-        },
-    ],
-});
-
 function accountTypeLabel(type: AccountRow['type']): string {
     return type === 'bank' ? t.accounts.type_bank : t.accounts.type_cash;
 }
+
+function accountCaption(account: AccountRow): string | null {
+    if (account.type === 'cash') {
+        return t.accounts.cash_caption;
+    }
+
+    return account.bank === null ? null : bankLabel(t.accounts, account.bank);
+}
+
+function balanceToneClass(account: AccountRow): string {
+    if (!account.is_archived) {
+        return amountToneClass(account.current_balance_minor_units);
+    }
+
+    return account.current_balance_minor_units < 0
+        ? amountToneClass(account.current_balance_minor_units)
+        : '';
+}
+
+const metrics = computed(() => [
+    {
+        id: 'liquidity',
+        label: t.accounts.spendable_liquidity,
+        value: formatMoney(props.liquidity_total_minor_units),
+        caption: t.accounts.liquidity_caption,
+        toneClass: amountToneClass(props.liquidity_total_minor_units),
+    },
+    {
+        id: 'total-funds',
+        label: t.accounts.total_funds,
+        value: formatMoney(props.total_funds_minor_units),
+        caption: t.accounts.total_funds_caption,
+        toneClass: amountToneClass(props.total_funds_minor_units),
+    },
+]);
 
 function openEditDialog(account: AccountRow): void {
     editingAccount.value = account;
@@ -90,33 +117,36 @@ function toggleShowArchived(checked: boolean): void {
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <h1 class="text-lg font-semibold">{{ t.accounts.title }}</h1>
-            <Button @click="createDialogOpen = true">
-                {{ t.accounts.add }}
-            </Button>
+            <div class="space-y-1">
+                <h1 class="page-title">{{ t.accounts.title }}</h1>
+                <p class="text-muted-foreground text-sm">
+                    {{ t.accounts.list_description }}
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <div
+                    v-if="archived_accounts_count > 0 || show_archived"
+                    class="flex items-center gap-2"
+                >
+                    <Switch
+                        id="show-archived-accounts"
+                        v-model="showArchived"
+                        :disabled="isTogglingArchived"
+                    />
+                    <Label
+                        for="show-archived-accounts"
+                        class="text-muted-foreground text-sm"
+                    >
+                        {{ t.accounts.show_archived }}
+                    </Label>
+                </div>
+                <Button @click="createDialogOpen = true">
+                    {{ t.accounts.add }}
+                </Button>
+            </div>
         </div>
 
-        <StatTile
-            :label="t.accounts.spendable_liquidity"
-            :amount-minor-units="liquidity_total_minor_units"
-        />
-
-        <div
-            v-if="archived_accounts_count > 0 || show_archived"
-            class="flex items-center gap-2"
-        >
-            <Checkbox
-                id="show-archived-accounts"
-                v-model="showArchived"
-                :disabled="isTogglingArchived"
-            />
-            <Label
-                for="show-archived-accounts"
-                class="text-muted-foreground text-sm"
-            >
-                {{ t.accounts.show_archived }}
-            </Label>
-        </div>
+        <StatPanel :metrics="metrics" />
 
         <IndexEmptyState
             v-if="accounts.length === 0 && archived_accounts_count > 0"
@@ -130,7 +160,7 @@ function toggleShowArchived(checked: boolean): void {
                 >
                     {{ t.accounts.show_archived }}
                 </Button>
-                <Button variant="secondary" @click="createDialogOpen = true">
+                <Button variant="outline" @click="createDialogOpen = true">
                     {{ t.accounts.add }}
                 </Button>
             </template>
@@ -148,43 +178,58 @@ function toggleShowArchived(checked: boolean): void {
             </template>
         </IndexEmptyState>
 
-        <ListSurface v-else :description="t.accounts.list_description">
+        <ListSurface v-else flush>
+            <div class="accounts-grid accounts-header-row">
+                <div class="accounts-cell-name">{{ t.accounts.name }}</div>
+                <div class="accounts-cell-type">{{ t.accounts.type }}</div>
+                <div class="accounts-cell-balance">
+                    {{ t.accounts.current_balance }}
+                </div>
+                <div class="accounts-cell-actions">
+                    {{ t.accounts.actions }}
+                </div>
+            </div>
             <div
                 v-for="account in accounts"
                 :key="account.id"
-                class="holdings-list-row"
-                :class="account.is_archived ? 'opacity-60' : ''"
+                class="accounts-grid accounts-row"
+                :class="{ 'accounts-row-archived': account.is_archived }"
             >
-                <AccountIdentityBlock
-                    class="min-w-0 flex-1 basis-40"
-                    :name="account.name"
-                    :type="account.type"
-                    :bank="account.bank"
-                    :mark_url="account.mark_url"
-                >
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p class="font-medium">{{ account.name }}</p>
-                        <Badge v-if="account.is_archived" variant="secondary">
-                            {{ t.accounts.archived_badge }}
-                        </Badge>
+                <div class="accounts-cell-name">
+                    <AccountAvatar
+                        size="md"
+                        :type="account.type"
+                        :bank="account.bank"
+                        :mark_url="account.mark_url"
+                    />
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p class="font-medium">{{ account.name }}</p>
+                            <Badge v-if="account.is_archived" variant="neutral">
+                                {{ t.accounts.archived_badge }}
+                            </Badge>
+                        </div>
+                        <p
+                            v-if="accountCaption(account)"
+                            class="meta text-muted-foreground"
+                        >
+                            {{ accountCaption(account) }}
+                        </p>
                     </div>
-                    <p class="text-muted-foreground text-sm">
-                        {{ accountTypeLabel(account.type) }}
-                    </p>
-                </AccountIdentityBlock>
+                </div>
 
-                <p
-                    class="shrink-0 font-medium tabular-nums"
-                    :class="
-                        amountToneClass(account.current_balance_minor_units)
-                    "
-                >
-                    {{ formatMoney(account.current_balance_minor_units) }}
+                <p class="accounts-cell-type">
+                    {{ accountTypeLabel(account.type) }}
                 </p>
 
-                <div
-                    class="flex w-full flex-wrap gap-1 sm:w-auto sm:justify-end"
+                <p
+                    class="accounts-cell-balance amount"
+                    :class="balanceToneClass(account)"
                 >
+                    {{ formatMoneyAmount(account.current_balance_minor_units) }}
+                </p>
+
+                <div class="accounts-cell-actions">
                     <IconAction
                         v-if="!account.is_archived"
                         :icon="Pencil"
@@ -249,6 +294,11 @@ function toggleShowArchived(checked: boolean): void {
                     </ConfirmActionDialog>
                 </div>
             </div>
+            <template #footer>
+                <p class="meta text-muted-foreground">
+                    {{ t.common.amounts_in_zl }}
+                </p>
+            </template>
         </ListSurface>
     </div>
 

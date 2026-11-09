@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import {
-    ArrowLeftRight,
-    CalendarDays,
-    Landmark,
-    LayoutGrid,
-    PiggyBank,
-    Wallet,
-} from '@lucide/vue';
+import { Search } from '@lucide/vue';
+import { onMounted, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import BudgetYearSwitcher from '@/components/BudgetYearSwitcher.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -22,11 +16,11 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
+import { openCommandPalette } from '@/composables/useCommandPalette';
+import { useAppViews } from '@/composables/useAppViews';
 import { useTranslations } from '@/composables/useTranslations';
-import { index as accounts } from '@/routes/accounts';
-import { index as termDeposits } from '@/routes/term-deposits';
-import { budget, dashboard, monthPlan, operations } from '@/routes';
-import type { NavItem } from '@/types';
+import { paletteShortcutLabel } from '@/lib/command-palette-items';
+import { dashboard } from '@/routes';
 
 type Props = {
     budgetYears: number[];
@@ -36,43 +30,22 @@ type Props = {
 defineProps<Props>();
 
 const t = useTranslations();
+const views = useAppViews();
 
-const mainNavItems: NavItem[] = [
-    {
-        title: t.nav.dashboard,
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: t.nav.budget,
-        href: budget(),
-        icon: PiggyBank,
-    },
-    {
-        title: t.nav.month_plan,
-        href: monthPlan(),
-        icon: CalendarDays,
-    },
-    {
-        title: t.nav.accounts,
-        href: accounts(),
-        icon: Wallet,
-    },
-    {
-        title: t.nav.term_deposits,
-        href: termDeposits(),
-        icon: Landmark,
-    },
-    {
-        title: t.nav.operations,
-        href: operations(),
-        icon: ArrowLeftRight,
-    },
-];
+const paletteShortcut = ref<'⌘K' | 'Ctrl+K'>('Ctrl+K');
+
+onMounted(() => {
+    paletteShortcut.value = paletteShortcutLabel(navigator.platform);
+});
+
+const shortcutsHint = t.shell.shortcuts_hint.replace(
+    ':last',
+    String(views.length),
+);
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="offcanvas" variant="sidebar">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -80,6 +53,19 @@ const mainNavItems: NavItem[] = [
                         <Link :href="dashboard()">
                             <AppLogo />
                         </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton
+                        class="sidebar-search"
+                        aria-keyshortcuts="Control+K Meta+K"
+                        @click="openCommandPalette"
+                    >
+                        <Search />
+                        <span>{{ t.shell.search_and_go }}</span>
+                        <kbd class="kbd" aria-hidden="true">{{
+                            paletteShortcut
+                        }}</kbd>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
@@ -90,13 +76,13 @@ const mainNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" :label="t.nav.menu" />
+            <NavMain :items="views" :label="t.nav.menu" />
         </SidebarContent>
 
         <SidebarFooter>
             <SidebarSeparator />
+            <p class="sidebar-hint">{{ shortcutsHint }}</p>
             <NavUser />
         </SidebarFooter>
     </Sidebar>
-    <slot />
 </template>

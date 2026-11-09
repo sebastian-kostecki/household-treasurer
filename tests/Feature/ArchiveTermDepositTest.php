@@ -147,6 +147,10 @@ class ArchiveTermDepositTest extends TestCase
     public function test_archived_totals_are_exposed_regardless_of_show_archived_filter(): void
     {
         $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'current_balance_minor_units' => 200000,
+            'opening_balance_minor_units' => 200000,
+        ]);
         TermDeposit::factory()->for($user)->create([
             'current_balance_minor_units' => 100000,
             'opening_balance_minor_units' => 100000,
@@ -162,6 +166,7 @@ class ArchiveTermDepositTest extends TestCase
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->where('term_deposits_total_minor_units', 150000)
+                    ->where('total_funds_minor_units', 350000)
                     ->where('archived_term_deposits_total_minor_units', 50000)
                     ->where('archived_term_deposits_count', 1),
                 );

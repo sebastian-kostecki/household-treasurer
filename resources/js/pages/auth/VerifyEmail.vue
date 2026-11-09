@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, setLayoutProps, usePage } from '@inertiajs/vue3';
+import { CircleCheck, Mail } from '@lucide/vue';
+import AuthCardFooter from '@/components/AuthCardFooter.vue';
 import TextLink from '@/components/TextLink.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { useTranslations } from '@/composables/useTranslations';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 
-defineOptions({
-    layout: {
-        title: 'Email verification',
-        description:
-            'Please verify your email address by clicking on the link we just emailed to you.',
-    },
+const t = useTranslations();
+const email = usePage().props.auth.user.email;
+
+setLayoutProps({
+    title: t.auth.verify_email.title,
+    description: t.auth.verify_email.description,
+    icon: Mail,
 });
 
 defineProps<{
@@ -20,28 +25,33 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Email verification" />
+    <Head :title="t.auth.verify_email.title" />
 
-    <div
-        v-if="status === 'verification-link-sent'"
-        class="text-success mb-4 text-center text-sm font-medium"
-    >
-        A new verification link has been sent to the email address you provided
-        during registration.
-    </div>
+    <Alert v-if="status === 'verification-link-sent'" variant="ok">
+        <CircleCheck />
+        <AlertTitle>{{ t.auth.verify_email.sent_title }}</AlertTitle>
+        <AlertDescription>{{
+            t.auth.verify_email.sent_body.replace(':email', email)
+        }}</AlertDescription>
+    </Alert>
 
-    <Form
-        v-bind="send.form()"
-        class="space-y-6 text-center"
-        v-slot="{ processing }"
-    >
-        <Button :disabled="processing" variant="secondary">
+    <Form v-bind="send.form()" v-slot="{ processing }">
+        <Button
+            type="submit"
+            variant="outline"
+            class="auth-submit"
+            :disabled="processing"
+            data-test="resend-verification-button"
+        >
             <Spinner v-if="processing" />
-            Resend verification email
+            {{ t.auth.verify_email.resend }}
         </Button>
-
-        <TextLink :href="logout()" as="button" class="mx-auto block text-sm">
-            Log out
-        </TextLink>
     </Form>
+
+    <AuthCardFooter>
+        <span>{{ t.auth.verify_email.wrong_address }}</span>
+        <TextLink :href="logout()" as="button">
+            {{ t.auth.verify_email.logout }}
+        </TextLink>
+    </AuthCardFooter>
 </template>

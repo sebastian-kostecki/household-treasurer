@@ -54,7 +54,7 @@ const overdrawn = account({
     id: 4,
     name: 'Karta kredytowa',
     bank: 'ing',
-    mark_url: '/marks/ing.svg',
+    mark_url: null,
     current_balance_minor_units: -35075,
     is_negative: true,
     can_delete: false,
@@ -65,7 +65,7 @@ const archivedBank = account({
     id: 5,
     name: 'Stare konto Pekao',
     bank: 'pekao',
-    mark_url: '/marks/pekao.svg',
+    mark_url: null,
     is_archived: true,
     can_delete: false,
     can_restore: true,
@@ -81,6 +81,47 @@ const archivedCash = account({
     can_restore: true,
 });
 
+const archivedNegative = account({
+    id: 9,
+    name: 'Zamknięta karta Pekao',
+    bank: 'pekao',
+    mark_url: null,
+    current_balance_minor_units: -12000,
+    is_negative: true,
+    is_archived: true,
+    can_delete: false,
+    can_restore: true,
+});
+
+const archivedPositive = account({
+    id: 10,
+    name: 'Stare konto Revolut',
+    bank: 'revolut',
+    mark_url: '/marks/revolut.svg',
+    current_balance_minor_units: 8000,
+    is_archived: true,
+    can_delete: false,
+    can_restore: true,
+});
+
+const longNameBank = account({
+    id: 11,
+    name: 'Wspólne konto rodzinne na wydatki bieżące, rachunki i opłaty za przedszkole',
+    bank: 'bnp_paribas',
+    mark_url: '/marks/bnp-paribas.jpg',
+    current_balance_minor_units: 1234567,
+    can_delete: false,
+    can_archive: true,
+});
+
+const longNameCash = account({
+    id: 12,
+    name: 'Gotówka w kopercie na nieprzewidziane wydatki domowe i drobne naprawy',
+    type: 'cash',
+    bank: null,
+    current_balance_minor_units: 4550,
+});
+
 export const accountsScenarios: AccountsScenario[] = [
     {
         key: 'default',
@@ -88,6 +129,7 @@ export const accountsScenarios: AccountsScenario[] = [
         props: {
             accounts: [mbank, otherBank, cash, overdrawn],
             liquidity_total_minor_units: 221975,
+            total_funds_minor_units: 1221975,
             show_archived: false,
             archived_accounts_count: 0,
         },
@@ -98,6 +140,7 @@ export const accountsScenarios: AccountsScenario[] = [
         props: {
             accounts: [mbank, cash, archivedBank, archivedCash],
             liquidity_total_minor_units: 257050,
+            total_funds_minor_units: 257050,
             show_archived: true,
             archived_accounts_count: 2,
         },
@@ -116,6 +159,7 @@ export const accountsScenarios: AccountsScenario[] = [
                 }),
             ],
             liquidity_total_minor_units: 0,
+            total_funds_minor_units: 0,
             show_archived: false,
             archived_accounts_count: 0,
         },
@@ -126,6 +170,7 @@ export const accountsScenarios: AccountsScenario[] = [
         props: {
             accounts: [overdrawn],
             liquidity_total_minor_units: -35075,
+            total_funds_minor_units: -35075,
             show_archived: false,
             archived_accounts_count: 0,
         },
@@ -136,6 +181,7 @@ export const accountsScenarios: AccountsScenario[] = [
         props: {
             accounts: [],
             liquidity_total_minor_units: 0,
+            total_funds_minor_units: 0,
             show_archived: false,
             archived_accounts_count: 0,
         },
@@ -146,8 +192,31 @@ export const accountsScenarios: AccountsScenario[] = [
         props: {
             accounts: [],
             liquidity_total_minor_units: 52000,
+            total_funds_minor_units: 52000,
             show_archived: false,
             archived_accounts_count: 2,
+        },
+    },
+    {
+        key: 'archived-negative',
+        title: 'archived-negative — zarchiwizowane z ujemnym saldem (czerwone) obok dodatniego (bez tonu)',
+        props: {
+            accounts: [mbank, archivedNegative, archivedPositive],
+            liquidity_total_minor_units: 241050,
+            total_funds_minor_units: 241050,
+            show_archived: true,
+            archived_accounts_count: 2,
+        },
+    },
+    {
+        key: 'long-names',
+        title: 'long-names — długa nazwa konta i najdłuższa nazwa banku, zawijanie przy 390 px',
+        props: {
+            accounts: [longNameBank, longNameCash],
+            liquidity_total_minor_units: 1239117,
+            total_funds_minor_units: 1239117,
+            show_archived: false,
+            archived_accounts_count: 0,
         },
     },
 ];

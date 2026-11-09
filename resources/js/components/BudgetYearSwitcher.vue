@@ -1,30 +1,16 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { CalendarDays, CalendarPlus, ChevronsUpDown } from '@lucide/vue';
-import { nextTick, onUnmounted, ref } from 'vue';
+import { computed, onUnmounted, ref, useId } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
-import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
-} from '@/components/ui/sidebar';
+import { SidebarGroupLabel } from '@/components/ui/sidebar';
+import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
+import { budgetYearSegments } from '@/lib/budget-year-segments';
+import type { BudgetYearSegment } from '@/lib/budget-year-segments';
 
 type Props = {
     budgetYears: number[];
@@ -34,11 +20,19 @@ type Props = {
 const props = defineProps<Props>();
 
 const t = useTranslations();
-const { isMobile, state } = useSidebar();
-const createDialogOpen = ref(false);
+const createBudgetDialog = useCreateBudgetDialog();
+const labelId = useId();
 const pending = ref(false);
 
 defineExpose({ pending });
+
+const segments = computed(() =>
+    budgetYearSegments(
+        props.budgetYears,
+        props.budgetYear,
+        new Date().getFullYear(),
+    ),
+);
 
 const stopListeningForYearSelectionFailure =
     listenForBudgetYearSelectionFailure(
@@ -48,22 +42,28 @@ const stopListeningForYearSelectionFailure =
 
 onUnmounted(stopListeningForYearSelectionFailure);
 
-function openCreateDialog(): void {
-    void nextTick(() => {
-        createDialogOpen.value = true;
-    });
+function addBudgetLabel(year: number): string {
+    return t.shell.add_budget_for_year.replace(':year', String(year));
 }
 
-function selectYear(value: unknown): void {
-    const year = Number(value);
+function activate(segment: BudgetYearSegment): void {
+    if (pending.value) {
+        return;
+    }
 
-    if (Number.isNaN(year) || year === props.budgetYear || pending.value) {
+    if (segment.kind === 'create') {
+        createBudgetDialog.openForYear(segment.year);
+
+        return;
+    }
+
+    if (segment.year === props.budgetYear) {
         return;
     }
 
     router.post(
         BudgetController.selectYear().url,
-        { year },
+        { year: segment.year },
         {
             onStart: () => {
                 pending.value = true;
@@ -80,97 +80,35 @@ function selectYear(value: unknown): void {
 </script>
 
 <template>
-    <SidebarMenu>
-        <SidebarMenuItem v-if="budgetYears.length === 0">
-            <SidebarMenuButton
-                size="lg"
-                :tooltip="t.shell.add_budget_year"
-                @click="createDialogOpen = true"
+    <div>
+        <SidebarGroupLabel :id="labelId">
+            {{ t.shell.budget_year }}
+        </SidebarGroupLabel>
+        <div
+            role="group"
+            class="sidebar-year-segments"
+            :aria-labelledby="labelId"
+            :aria-busy="pending"
+        >
+            <button
+                v-for="segment in segments"
+                :key="`${segment.kind}-${segment.year}`"
+                type="button"
+                class="sidebar-year-segment"
+                :aria-pressed="
+                    segment.kind === 'select' ? segment.selected : undefined
+                "
+                :aria-label="
+                    segment.kind === 'create'
+                        ? addBudgetLabel(segment.year)
+                        : undefined
+                "
+                :aria-disabled="pending"
+                @click="activate(segment)"
             >
-                <div
-                    class="bg-sidebar-accent text-sidebar-accent-foreground flex size-8 shrink-0 items-center justify-center rounded-md"
-                >
-                    <CalendarPlus class="size-4" />
-                </div>
-                <div class="grid flex-1 text-left text-sm leading-tight">
-                    <span class="text-sidebar-foreground/80 truncate text-xs">
-                        {{ t.shell.no_budget_year }}
-                    </span>
-                    <span class="truncate font-semibold">
-                        {{ t.shell.add_budget_year }}
-                    </span>
-                </div>
-            </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem v-else>
-            <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                    <SidebarMenuButton
-                        size="lg"
-                        class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                        :tooltip="`${t.shell.budget_year}: ${budgetYear}`"
-                        :aria-disabled="pending"
-                        :aria-busy="pending"
-                    >
-                        <div
-                            class="bg-sidebar-accent text-sidebar-accent-foreground flex size-8 shrink-0 items-center justify-center rounded-md"
-                        >
-                            <CalendarDays class="size-4" />
-                        </div>
-                        <div
-                            class="grid flex-1 text-left text-sm leading-tight"
-                        >
-                            <span
-                                class="text-sidebar-foreground/80 truncate text-xs"
-                            >
-                                {{ t.shell.budget_year }}
-                            </span>
-                            <span class="truncate font-semibold tabular-nums">
-                                {{ budgetYear }}
-                            </span>
-                        </div>
-                        <ChevronsUpDown class="ml-auto size-4" />
-                    </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    class="w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                    :side="
-                        !isMobile && state === 'collapsed' ? 'right' : 'bottom'
-                    "
-                    align="start"
-                    :side-offset="4"
-                >
-                    <DropdownMenuLabel>
-                        {{ t.shell.select_year }}
-                    </DropdownMenuLabel>
-                    <DropdownMenuRadioGroup
-                        :model-value="String(budgetYear ?? '')"
-                        @update:model-value="selectYear"
-                    >
-                        <DropdownMenuRadioItem
-                            v-for="year in budgetYears"
-                            :key="year"
-                            :value="String(year)"
-                            class="tabular-nums"
-                        >
-                            {{ year }}
-                        </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem @select="openCreateDialog">
-                        <CalendarPlus />
-                        {{ t.shell.add_budget_year }}
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </SidebarMenuItem>
-        <CreateBudgetDialog
-            v-model:open="createDialogOpen"
-            :year-input-id="
-                budgetYears.length === 0
-                    ? 'shell-create-budget-year-empty'
-                    : 'shell-create-budget-year'
-            "
-        />
-    </SidebarMenu>
+                {{ segment.year
+                }}<template v-if="segment.kind === 'create'"> +</template>
+            </button>
+        </div>
+    </div>
 </template>

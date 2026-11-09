@@ -7,6 +7,12 @@ class ImportRowFields
     private const int MAX_FIELD_LENGTH = 255;
 
     /**
+     * Stored as the live description when the statement row carries no usable text
+     * (bank exports sometimes leave both the description and the counterparty empty).
+     */
+    public const string EMPTY_DESCRIPTION_FALLBACK = 'Brak opisu';
+
+    /**
      * @return array{
      *     counterparty: ?string,
      *     description: ?string,

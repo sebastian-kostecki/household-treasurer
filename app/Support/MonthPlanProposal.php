@@ -65,6 +65,30 @@ class MonthPlanProposal
     }
 
     /**
+     * The state of each month for the month strip, January first. An approved
+     * month before today is a summary.
+     *
+     * @return list<'summary'|'approved'|'proposal'|null>
+     */
+    public function monthStates(): array
+    {
+        $states = [];
+
+        for ($month = 1; $month <= 12; $month++) {
+            $state = $this->reading($month)->state;
+
+            $states[] = match (true) {
+                $state === 'approved' && $this->isPast($this->budget->year, $month) => 'summary',
+                $state === 'approved' => 'approved',
+                $state === 'proposal' => 'proposal',
+                default => null,
+            };
+        }
+
+        return $states;
+    }
+
+    /**
      * A month cannot be approved while the previous month of the same budget is still an
      * unapproved proposal (current or future). January has no previous month in the budget.
      */

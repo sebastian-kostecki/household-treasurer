@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import type { ComputedRef } from 'vue';
 import type { ShellState, UiTranslations } from '@/types/shell';
 
 export function useTranslations(): UiTranslations {
@@ -8,10 +9,10 @@ export function useTranslations(): UiTranslations {
     return page.props.translations as UiTranslations;
 }
 
-export function useShell(): ShellState {
+export function useShell(): ComputedRef<ShellState> {
     const page = usePage();
 
-    return page.props.shell as ShellState;
+    return computed(() => page.props.shell as ShellState);
 }
 
 export function useFirstRunChecklist() {
@@ -21,22 +22,22 @@ export function useFirstRunChecklist() {
         {
             key: 'hasAccount',
             labelKey: 'checklist_account' as const,
-            done: shell.firstRun.hasAccount,
+            done: shell.value.firstRun.hasAccount,
         },
         {
             key: 'hasBudget',
             labelKey: 'checklist_budget' as const,
-            done: shell.firstRun.hasBudget,
+            done: shell.value.firstRun.hasBudget,
         },
         {
             key: 'hasCategories',
             labelKey: 'checklist_categories' as const,
-            done: shell.firstRun.hasCategories,
+            done: shell.value.firstRun.hasCategories,
         },
         {
             key: 'executionStarted',
             labelKey: 'checklist_execution' as const,
-            done: shell.firstRun.executionStarted,
+            done: shell.value.firstRun.executionStarted,
         },
     ]);
 }

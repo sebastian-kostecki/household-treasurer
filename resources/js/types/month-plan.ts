@@ -1,5 +1,7 @@
 export type MonthItemKind = 'bill' | 'running';
 
+export type MonthStripState = 'summary' | 'approved' | 'proposal';
+
 export type MonthPace = {
     as_of: string;
     elapsed_day: number;
@@ -66,6 +68,9 @@ export type MonthPlanReading = {
     can_approve: boolean;
     can_change: boolean;
     to_spend_minor_units: number | null;
+    to_spend_income_minor_units: number | null;
+    to_spend_expense_minor_units: number | null;
+    month_states: (MonthStripState | null)[];
     set_aside_minor_units: number;
     spendable_liquidity_minor_units: number | null;
     month_pace: MonthPace | null;

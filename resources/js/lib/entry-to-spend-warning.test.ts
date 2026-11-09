@@ -2,6 +2,7 @@ import { expect, test } from 'vite-plus/test';
 import {
     handEntryToSpendChanges,
     monthHasPlan,
+    previewToSpendReadings,
     previewToSpendWarnings,
 } from './entry-to-spend-warning';
 import type {
@@ -382,5 +383,94 @@ test('a draw raises To Spend, so the same entry does not warn', () => {
 
     expect(
         previewToSpendWarnings(inputs, [change(GROCERIES, 350_000)]),
+    ).toEqual([]);
+});
+
+test('readings: adding in a month with a plan gives one reading', () => {
+    expect(
+        previewToSpendReadings(positiveInputs(), [change(GROCERIES, 200_000)]),
+    ).toEqual([
+        {
+            year: 2026,
+            month: 11,
+            beforeMinorUnits: 450_000,
+            afterMinorUnits: 340_000,
+        },
+    ]);
+});
+
+test('readings: an edit that changes nothing has before equal to after', () => {
+    expect(
+        previewToSpendReadings(positiveInputs(), [
+            change(GROCERIES, 60_000, 'remove'),
+            change(GROCERIES, 60_000, 'add'),
+        ]),
+    ).toEqual([
+        {
+            year: 2026,
+            month: 11,
+            beforeMinorUnits: 450_000,
+            afterMinorUnits: 450_000,
+        },
+    ]);
+});
+
+test('readings: moving a date from December to January gives two readings in order', () => {
+    const inputs: EntryToSpendInputs = {
+        budgets: [
+            {
+                year: 2025,
+                categories,
+                months: [
+                    {
+                        month: 12,
+                        set_aside_minor_units: 0,
+                        items: [
+                            item(SALARY, 120_000),
+                            item(ONE_TIME, 0, 20_000),
+                        ],
+                    },
+                ],
+            },
+            {
+                year: 2026,
+                categories,
+                months: [
+                    {
+                        month: 1,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 100_000)],
+                    },
+                ],
+            },
+        ],
+    };
+
+    expect(
+        previewToSpendReadings(inputs, [
+            change(ONE_TIME, 20_000, 'add', '2026-01-10'),
+            change(ONE_TIME, 20_000, 'remove', '2025-12-15'),
+        ]),
+    ).toEqual([
+        {
+            year: 2025,
+            month: 12,
+            beforeMinorUnits: 100_000,
+            afterMinorUnits: 120_000,
+        },
+        {
+            year: 2026,
+            month: 1,
+            beforeMinorUnits: 100_000,
+            afterMinorUnits: 80_000,
+        },
+    ]);
+});
+
+test('readings: a month without a plan gives no reading', () => {
+    expect(
+        previewToSpendReadings(positiveInputs(), [
+            change(GROCERIES, 9_000_000, 'add', '2026-10-10'),
+        ]),
     ).toEqual([]);
 });

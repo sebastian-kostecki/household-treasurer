@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue';
 import { computed } from 'vue';
+import AccountAvatar from '@/components/AccountAvatar.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountPickerOption } from '@/lib/account-identity';
 import { formatDate } from '@/lib/format';
 
 export type OperationsFilterChipKey =
@@ -37,11 +39,7 @@ type ChipCategory = {
     color: string;
 };
 
-type ChipAccount = {
-    id: number;
-    name: string;
-    is_archived: boolean;
-};
+type ChipAccount = AccountPickerOption & { is_archived: boolean };
 
 type ChipTermDeposit = {
     id: number;
@@ -68,6 +66,7 @@ type FilterChip = {
     label: string;
     removeLabel: string;
     category?: ChipCategory;
+    account?: ChipAccount;
 };
 
 const selectedCategory = computed(() => {
@@ -188,6 +187,7 @@ const chips = computed((): FilterChip[] => {
             key: 'account',
             label,
             removeLabel: removeAriaLabel(label),
+            account: selectedAccount.value,
         });
     } else if (props.filters.account_id !== null) {
         const label = String(props.filters.account_id);
@@ -248,46 +248,50 @@ const suppressedNote = computed(() => {
 </script>
 
 <template>
-    <div v-if="chips.length > 0" class="flex flex-col gap-2">
-        <div class="flex flex-wrap items-center gap-2">
-            <span
-                v-for="chip in chips"
-                :key="chip.key"
-                class="border-border/60 bg-background inline-flex max-w-full items-center gap-1.5 rounded-xl border py-1 pr-1 pl-2.5 text-sm"
-            >
-                <CategoryChip
-                    v-if="chip.category"
-                    :name="chip.category.name"
-                    :icon="chip.category.icon"
-                    :color="chip.category.color"
-                    size="sm"
+    <div v-if="chips.length > 0" class="flex flex-wrap items-center gap-2">
+        <span
+            v-for="chip in chips"
+            :key="chip.key"
+            class="bg-background h-control-sm inline-flex max-w-full items-center gap-1.5 rounded-full border pr-1 pl-2.5"
+        >
+            <CategoryChip
+                v-if="chip.category"
+                :name="chip.category.name"
+                :icon="chip.category.icon"
+                :color="chip.category.color"
+                size="sm"
+            />
+            <template v-else>
+                <AccountAvatar
+                    v-if="chip.account"
+                    size="xs"
+                    :type="chip.account.type"
+                    :bank="chip.account.bank"
+                    :mark_url="chip.account.mark_url"
                 />
-                <span v-else class="truncate">{{ chip.label }}</span>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    class="size-6 shrink-0"
-                    :aria-label="chip.removeLabel"
-                    @click="emit('remove', chip.key)"
-                >
-                    <X class="size-3.5" aria-hidden="true" />
-                </Button>
-            </span>
-
+                <span class="truncate text-xs font-medium">{{
+                    chip.label
+                }}</span>
+            </template>
             <Button
                 type="button"
-                size="sm"
                 variant="ghost"
-                @click="emit('clear')"
+                size="icon-sm"
+                class="shrink-0 rounded-full"
+                :aria-label="chip.removeLabel"
+                @click="emit('remove', chip.key)"
             >
-                {{ t.operations.filter_clear }}
+                <X class="size-3.5" aria-hidden="true" />
             </Button>
-        </div>
+        </span>
+
+        <Button type="button" size="sm" variant="ghost" @click="emit('clear')">
+            {{ t.operations.filter_clear }}
+        </Button>
 
         <p
             v-if="suppressedNote !== null"
-            class="text-muted-foreground text-xs"
+            class="meta text-muted-foreground order-last basis-full"
             aria-live="polite"
         >
             {{ suppressedNote }}

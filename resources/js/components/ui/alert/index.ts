@@ -15,6 +15,12 @@ export const alertVariants = cva(
           "text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90",
         warning:
           "text-warning bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-warning/90",
+        note:
+          "bg-warning-soft text-foreground border-transparent [&>svg]:text-warning *:data-[slot=alert-description]:text-foreground",
+        danger:
+          "bg-destructive-soft text-foreground border-transparent [&>svg]:text-destructive *:data-[slot=alert-title]:text-destructive *:data-[slot=alert-description]:text-foreground",
+        ok:
+          "bg-accent text-accent-foreground border-transparent [&>svg]:text-accent-foreground *:data-[slot=alert-title]:text-accent-foreground *:data-[slot=alert-description]:text-accent-foreground",
       },
     },
     defaultVariants: {

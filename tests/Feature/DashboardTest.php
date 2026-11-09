@@ -48,6 +48,7 @@ class DashboardTest extends TestCase
                 ->where('budget_year', 2026)
                 ->where('budget', null)
                 ->where('month_to_spend', null)
+                ->where('month_pace', null)
                 ->where('current_month', null)
                 ->where('planSummary', null)
                 ->where('incomeTotals', [
@@ -703,6 +704,7 @@ class DashboardTest extends TestCase
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
                 ->where('month_to_spend', null)
+                ->where('month_pace', null)
                 ->where('current_month', null)
                 ->where('planSummary.planned_balance_minor_units', 150_000),
             );
@@ -741,6 +743,46 @@ class DashboardTest extends TestCase
                     'to_spend_minor_units' => -40_000,
                 ])
                 ->missing('paced_pool_month_remaining_minor_units'),
+            );
+    }
+
+    public function test_dashboard_sends_month_pace_of_the_current_month_for_execution(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_pace.as_of', '2026-09-23')
+                ->where('month_pace.elapsed_day', 23)
+                ->where('month_pace.days_in_month', 30)
+                ->where('month_pace.percent', 0),
+            );
+    }
+
+    public function test_dashboard_month_pace_percent_is_null_when_the_pool_plan_is_not_positive(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        Category::factory()->for($budget)->oneOff()->create([
+            'planned_amount_minor_units' => 120_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('month_pace.elapsed_day', 23)
+                ->where('month_pace.percent', null),
             );
     }
 

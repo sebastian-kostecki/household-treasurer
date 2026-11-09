@@ -26,7 +26,7 @@ class AccountFactory extends Factory
             'name' => fake()->words(2, true),
             'type' => $type,
             'bank' => $type === AccountType::Bank ? Bank::Other : null,
-            'opening_date' => fake()->date(),
+            'opening_date' => fake()->dateTimeBetween('2000-01-01', '2020-12-31')->format('Y-m-d'),
             'opening_balance_minor_units' => $openingBalanceMinorUnits,
             'current_balance_minor_units' => $openingBalanceMinorUnits,
         ];

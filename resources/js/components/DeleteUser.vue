@@ -1,111 +1,87 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import type { Form } from '@inertiajs/vue3';
+import { Trash2, TriangleAlert } from '@lucide/vue';
 import { useTemplateRef } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import Heading from '@/components/Heading.vue';
-import InputError from '@/components/InputError.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
+import FormField from '@/components/FormField.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
+import SettingsPanel from '@/components/SettingsPanel.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { DialogTrigger } from '@/components/ui/dialog';
 import { useTranslations } from '@/composables/useTranslations';
+
+type FormBinding = InstanceType<typeof Form>['$props'];
+
+withDefaults(
+    defineProps<{
+        /** Overrides the Wayfinder binding; used only by the settings kitchen sink. */
+        form?: Pick<FormBinding, 'action' | 'method'>;
+    }>(),
+    {
+        form: () => ProfileController.destroy.form(),
+    },
+);
+
+/** Controlled from outside only by the settings kitchen sink. */
+const open = defineModel<boolean>('open', { default: false });
 
 const t = useTranslations();
 const passwordInput = useTemplateRef('passwordInput');
 </script>
 
 <template>
-    <div class="space-y-6">
-        <Heading
-            variant="small"
-            :title="t.settings.delete_account"
-            :description="t.settings.delete_account_description"
-        />
-        <div
-            class="border-destructive/20 bg-destructive/5 space-y-4 rounded-lg border p-4"
+    <SettingsPanel
+        :title="t.settings.delete_account"
+        :description="t.settings.delete_account_description"
+    >
+        <Alert variant="danger">
+            <TriangleAlert />
+            <AlertTitle>{{ t.settings.delete_warning }}</AlertTitle>
+            <AlertDescription>{{
+                t.settings.delete_warning_body
+            }}</AlertDescription>
+        </Alert>
+
+        <ConfirmActionDialog
+            v-model:open="open"
+            :form="form"
+            destructive
+            :title="t.settings.delete_confirm_title"
+            :description="t.settings.delete_confirm_body"
+            :confirm-label="t.settings.delete_account"
+            :cancel-label="t.settings.cancel"
+            @error="() => passwordInput?.focus()"
         >
-            <div class="text-destructive relative space-y-0.5">
-                <p class="font-medium">{{ t.settings.delete_warning }}</p>
-                <p class="text-sm">{{ t.settings.delete_warning_body }}</p>
-            </div>
-            <Dialog>
+            <template #trigger>
                 <DialogTrigger as-child>
                     <Button
-                        variant="destructive"
+                        variant="outline-destructive"
+                        class="self-start"
                         data-test="delete-user-button"
                     >
+                        <Trash2 />
                         {{ t.settings.delete_account }}
                     </Button>
                 </DialogTrigger>
-                <DialogContent>
-                    <Form
-                        v-bind="ProfileController.destroy.form()"
-                        reset-on-success
-                        @error="() => passwordInput?.focus()"
-                        :options="{
-                            preserveScroll: true,
-                        }"
-                        class="space-y-6"
-                        v-slot="{ errors, processing, reset, clearErrors }"
-                    >
-                        <DialogHeader class="space-y-3">
-                            <DialogTitle>
-                                {{ t.settings.delete_confirm_title }}
-                            </DialogTitle>
-                            <DialogDescription>
-                                {{ t.settings.delete_confirm_body }}
-                            </DialogDescription>
-                        </DialogHeader>
+            </template>
 
-                        <div class="grid gap-2">
-                            <Label for="password" class="sr-only">
-                                {{ t.auth.login.password }}
-                            </Label>
-                            <PasswordInput
-                                id="password"
-                                name="password"
-                                ref="passwordInput"
-                                :placeholder="t.auth.login.password"
-                            />
-                            <InputError :message="errors.password" />
-                        </div>
-
-                        <DialogFooter class="gap-2">
-                            <DialogClose as-child>
-                                <Button
-                                    variant="secondary"
-                                    @click="
-                                        () => {
-                                            clearErrors();
-                                            reset();
-                                        }
-                                    "
-                                >
-                                    {{ t.settings.cancel }}
-                                </Button>
-                            </DialogClose>
-
-                            <Button
-                                type="submit"
-                                variant="destructive"
-                                :disabled="processing"
-                                data-test="confirm-delete-user-button"
-                            >
-                                {{ t.settings.delete_account }}
-                            </Button>
-                        </DialogFooter>
-                    </Form>
-                </DialogContent>
-            </Dialog>
-        </div>
-    </div>
+            <FormField
+                id="delete-user-password"
+                :label="t.auth.login.password"
+                v-slot="{ id, describedBy, invalid, controlClass }"
+            >
+                <PasswordInput
+                    :id="id"
+                    ref="passwordInput"
+                    :class="controlClass"
+                    :aria-describedby="describedBy"
+                    :aria-invalid="invalid"
+                    name="password"
+                    autocomplete="current-password"
+                />
+            </FormField>
+        </ConfirmActionDialog>
+    </SettingsPanel>
 </template>

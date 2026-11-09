@@ -1,38 +1,37 @@
 <script setup lang="ts">
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
+import { ArrowLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
 import AccountSelect from '@/components/AccountSelect.vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
+import ImportColumnMapping from '@/components/ImportColumnMapping.vue';
+import ImportRecognizedFields from '@/components/ImportRecognizedFields.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    defaultColumnIndices,
+    formatForChosenFile,
+    importColumnLabels,
+} from '@/lib/import-start';
+import type { ImportFormat, ImportStartAccount } from '@/lib/import-start';
 import { operations as operationsRoute } from '@/routes';
-
-type AccountRow = AccountPickerOption & {
-    opening_date: string;
-};
-
-type ImportFormat = 'mbank' | 'bnp_paribas' | 'other';
+import { index as accountsIndex } from '@/routes/accounts';
 
 const { accounts } = defineProps<{
-    accounts: AccountRow[];
+    accounts: ImportStartAccount[];
 }>();
 
 const t = useTranslations();
 
 const selectedFile = ref<File | null>(null);
+const fileText = ref<string | null>(null);
+const fileReadError = ref<string | null>(null);
 const importFormat = ref<ImportFormat>('other');
+const formatChosenByUser = ref(false);
 const hasHeader = ref(true);
 const accountId = ref<number | ''>(accounts[0]?.id ?? '');
 const amountLayout = ref<'signed' | 'split'>('signed');
@@ -42,12 +41,34 @@ const counterpartyColumn = ref<number | ''>('');
 const amountColumn = ref<number | ''>('');
 const inflowColumn = ref<number | ''>('');
 const outflowColumn = ref<number | ''>('');
-const columnLabels = ref<string[]>([]);
 
 const isMbankFormat = computed(() => importFormat.value === 'mbank');
 const isBnpParibasFormat = computed(() => importFormat.value === 'bnp_paribas');
 const isNamedFormat = computed(
     () => isMbankFormat.value || isBnpParibasFormat.value,
+);
+
+const isXlsxFile = computed(
+    () => selectedFile.value?.name.toLowerCase().endsWith('.xlsx') ?? false,
+);
+
+// "Inny" maps columns from text, and the server takes only CSV for it.
+const fileError = computed<string | null>(
+    () =>
+        fileReadError.value ??
+        (importFormat.value === 'other' && isXlsxFile.value
+            ? t.operations.import_other_needs_csv
+            : null),
+);
+
+const columnLabels = computed<string[]>(() =>
+    fileText.value === null || isNamedFormat.value
+        ? []
+        : importColumnLabels(
+              fileText.value,
+              hasHeader.value,
+              t.operations.import_column,
+          ),
 );
 
 const canSubmit = computed(() => {
@@ -60,6 +81,7 @@ const canSubmit = computed(() => {
     }
 
     return (
+        columnLabels.value.length > 0 &&
         dateColumn.value !== '' &&
         descriptionColumn.value !== '' &&
         (amountLayout.value === 'signed'
@@ -68,125 +90,86 @@ const canSubmit = computed(() => {
     );
 });
 
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.operations,
-            href: operationsRoute(),
-        },
-        {
-            title: t.operations.import_title,
-            href: CsvImportController.create.url(),
-        },
-    ],
-});
-
-watch(selectedFile, async (file) => {
-    columnLabels.value = [];
-
-    if (file === null) {
-        dateColumn.value = '';
-        descriptionColumn.value = '';
-        counterpartyColumn.value = '';
-        amountColumn.value = '';
-        inflowColumn.value = '';
-        outflowColumn.value = '';
-
-        return;
-    }
-
-    if (file.name.toLowerCase().endsWith('.csv')) {
-        importFormat.value = 'mbank';
-    } else if (file.name.toLowerCase().endsWith('.xlsx')) {
-        importFormat.value = 'bnp_paribas';
-    }
-
-    if (isNamedFormat.value) {
-        return;
-    }
-
-    const text = await file.text();
-    const firstLine = text.split(/\r?\n/).find((line) => line.trim() !== '');
-
-    if (firstLine === undefined) {
-        return;
-    }
-
-    const delimiter =
-        firstLine.includes(';') && !firstLine.includes(',')
-            ? ';'
-            : firstLine.split(';').length > firstLine.split(',').length
-              ? ';'
-              : ',';
-
-    const cells = parseCsvLine(firstLine, delimiter);
-
-    columnLabels.value = hasHeader.value
-        ? cells.map((cell, index) =>
-              cell.trim() !== ''
-                  ? cell.trim()
-                  : `${t.operations.import_column} ${index + 1}`,
-          )
-        : cells.map((_, index) => `${t.operations.import_column} ${index + 1}`);
-
-    dateColumn.value = 0;
-    descriptionColumn.value = Math.min(1, columnLabels.value.length - 1);
+function resetColumns(): void {
+    dateColumn.value = '';
+    descriptionColumn.value = '';
     counterpartyColumn.value = '';
-    amountColumn.value = Math.min(2, columnLabels.value.length - 1);
-    inflowColumn.value = Math.min(2, columnLabels.value.length - 1);
-    outflowColumn.value = Math.min(3, columnLabels.value.length - 1);
+    amountColumn.value = '';
+    inflowColumn.value = '';
+    outflowColumn.value = '';
+}
+
+function applyDefaultColumns(count: number): void {
+    const indices = defaultColumnIndices(count);
+
+    dateColumn.value = indices.date;
+    descriptionColumn.value = indices.description;
+    counterpartyColumn.value = '';
+    amountColumn.value = indices.amount;
+    inflowColumn.value = indices.inflow;
+    outflowColumn.value = indices.outflow;
+}
+
+// Defaults are set only when a new file is loaded or the format becomes
+// "Inny"; toggling the header keeps the column count, so choices stay.
+watch(importFormat, (format) => {
+    if (format === 'other' && columnLabels.value.length > 0) {
+        applyDefaultColumns(columnLabels.value.length);
+    }
 });
 
-watch(importFormat, () => {
-    if (selectedFile.value === null || isNamedFormat.value) {
-        columnLabels.value = [];
+// The column labels come from the first non-empty line, so the head of the
+// file is enough; the server reads and limits the whole file.
+const FILE_HEAD_BYTES = 64 * 1024;
 
+async function loadFileText(file: File): Promise<void> {
+    const text = await file.slice(0, FILE_HEAD_BYTES).text();
+
+    // A later file was chosen while this one was loading.
+    if (selectedFile.value !== file) {
         return;
     }
 
-    const file = selectedFile.value;
-    selectedFile.value = null;
-    selectedFile.value = file;
-});
+    fileText.value = text;
 
-watch(hasHeader, () => {
-    if (selectedFile.value !== null && !isNamedFormat.value) {
-        const file = selectedFile.value;
-        selectedFile.value = null;
-        selectedFile.value = file;
+    if (importFormat.value === 'other') {
+        applyDefaultColumns(importColumnLabels(text, true, '').length);
     }
-});
-
-function parseCsvLine(line: string, delimiter: string): string[] {
-    const cells: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let index = 0; index < line.length; index++) {
-        const character = line[index];
-
-        if (character === '"') {
-            inQuotes = !inQuotes;
-            continue;
-        }
-
-        if (character === delimiter && !inQuotes) {
-            cells.push(current);
-            current = '';
-            continue;
-        }
-
-        current += character;
-    }
-
-    cells.push(current);
-
-    return cells;
 }
 
 function onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    selectedFile.value = input.files?.[0] ?? null;
+    const file = input.files?.[0] ?? null;
+
+    selectedFile.value = file;
+    fileText.value = null;
+    fileReadError.value = null;
+    resetColumns();
+
+    if (file === null) {
+        return;
+    }
+
+    importFormat.value = formatForChosenFile(
+        file.name,
+        importFormat.value,
+        formatChosenByUser.value,
+    );
+
+    if (!isXlsxFile.value) {
+        loadFileText(file).catch((error: unknown) => {
+            console.error(
+                new Error('Import: reading the chosen file failed', {
+                    cause: error,
+                }),
+            );
+
+            // A later file was chosen while this one was loading.
+            if (selectedFile.value === file) {
+                fileReadError.value = t.operations.import_file_read_failed;
+            }
+        });
+    }
 }
 </script>
 
@@ -196,23 +179,44 @@ function onFileChange(event: Event): void {
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-lg font-semibold">
+                <h1 class="page-title">
                     {{ t.operations.import_title }}
                 </h1>
-                <p class="text-muted-foreground text-sm">
+                <p class="meta text-muted-foreground">
                     {{ t.operations.import_step_mapping }}
                 </p>
             </div>
             <Button as-child variant="outline">
                 <Link :href="operationsRoute()">
+                    <ArrowLeft class="size-4" aria-hidden="true" />
                     {{ t.operations.import_back }}
                 </Link>
             </Button>
         </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle class="text-base">
+        <section v-if="accounts.length === 0" class="form-panel">
+            <IndexEmptyState
+                :title="t.operations.import_no_accounts"
+                :description="t.operations.import_no_accounts_description"
+            >
+                <template #actions>
+                    <Button as-child>
+                        <Link :href="accountsIndex()">
+                            {{ t.operations.import_open_accounts }}
+                        </Link>
+                    </Button>
+                </template>
+            </IndexEmptyState>
+        </section>
+
+        <Form
+            v-else
+            v-bind="CsvImportController.preview.form()"
+            v-slot="{ errors, processing }"
+            class="form-panel"
+        >
+            <div class="form-panel-header">
+                <h2 class="section-title">
                     {{
                         isMbankFormat
                             ? t.operations.import_format_title
@@ -220,8 +224,8 @@ function onFileChange(event: Event): void {
                               ? t.operations.import_bnp_paribas_title
                               : t.operations.import_mapping_title
                     }}
-                </CardTitle>
-                <CardDescription>
+                </h2>
+                <p class="meta text-muted-foreground">
                     {{
                         isMbankFormat
                             ? t.operations.import_mbank_description
@@ -229,349 +233,96 @@ function onFileChange(event: Event): void {
                               ? t.operations.import_bnp_paribas_description
                               : t.operations.import_mapping_description
                     }}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form
-                    v-bind="CsvImportController.preview.form()"
-                    v-slot="{ errors, processing }"
-                    class="space-y-6"
+                </p>
+            </div>
+
+            <div class="form-panel-body">
+                <FormField
+                    :label="t.operations.import_format"
+                    :error="errors.import_format"
+                    v-slot="{ id, describedBy, invalid }"
                 >
-                    <div class="grid gap-2">
-                        <Label for="import-format">
-                            {{ t.operations.import_format }}
-                        </Label>
-                        <select
-                            id="import-format"
-                            name="import_format"
-                            v-model="importFormat"
-                            class="native-select"
-                            required
-                        >
-                            <option value="mbank">
-                                {{ t.operations.import_format_mbank }}
-                            </option>
-                            <option value="bnp_paribas">
-                                {{ t.operations.import_format_bnp_paribas }}
-                            </option>
-                            <option value="other">
-                                {{ t.operations.import_format_other }}
-                            </option>
-                        </select>
-                        <InputError :message="errors.import_format" />
-                    </div>
-
-                    <div class="grid gap-2">
-                        <Label for="import-file">
-                            {{ t.operations.import_file }}
-                        </Label>
-                        <Input
-                            id="import-file"
-                            name="file"
-                            type="file"
-                            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                            required
-                            @change="onFileChange"
-                        />
-                        <InputError :message="errors.file" />
-                    </div>
-
-                    <div class="grid gap-2">
-                        <Label for="import-account">
-                            {{ t.operations.account }}
-                        </Label>
-                        <AccountSelect
-                            id="import-account"
-                            name="account_id"
-                            v-model="accountId"
-                            :accounts="accounts"
-                            :placeholder="t.operations.select_account"
-                            required
-                        />
-                        <InputError :message="errors.account_id" />
-                    </div>
-
-                    <div
-                        v-if="isMbankFormat"
-                        class="rounded-lg border p-4 text-sm"
+                    <select
+                        :id="id"
+                        name="import_format"
+                        v-model="importFormat"
+                        class="native-select"
+                        required
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                        @change="formatChosenByUser = true"
                     >
-                        <p class="font-medium">
-                            {{ t.operations.import_mbank_fields_title }}
-                        </p>
-                        <ul
-                            class="text-muted-foreground mt-2 list-inside list-disc space-y-1"
-                        >
-                            <li>{{ t.operations.import_mbank_field_date }}</li>
-                            <li>
-                                {{
-                                    t.operations.import_mbank_field_description
-                                }}
-                            </li>
-                            <li>
-                                {{ t.operations.import_mbank_field_amount }}
-                            </li>
-                        </ul>
-                    </div>
+                        <option value="mbank">
+                            {{ t.operations.import_format_mbank }}
+                        </option>
+                        <option value="bnp_paribas">
+                            {{ t.operations.import_format_bnp_paribas }}
+                        </option>
+                        <option value="other">
+                            {{ t.operations.import_format_other }}
+                        </option>
+                    </select>
+                </FormField>
 
-                    <div
-                        v-else-if="isBnpParibasFormat"
-                        class="rounded-lg border p-4 text-sm"
-                    >
-                        <p class="font-medium">
-                            {{ t.operations.import_bnp_paribas_fields_title }}
-                        </p>
-                        <ul
-                            class="text-muted-foreground mt-2 list-inside list-disc space-y-1"
-                        >
-                            <li>
-                                {{ t.operations.import_bnp_paribas_field_date }}
-                            </li>
-                            <li>
-                                {{
-                                    t.operations
-                                        .import_bnp_paribas_field_counterparty
-                                }}
-                            </li>
-                            <li>
-                                {{
-                                    t.operations
-                                        .import_bnp_paribas_field_description
-                                }}
-                            </li>
-                            <li>
-                                {{
-                                    t.operations.import_bnp_paribas_field_amount
-                                }}
-                            </li>
-                        </ul>
-                    </div>
+                <FormField
+                    :label="t.operations.import_file"
+                    :error="fileError ?? errors.file"
+                    v-slot="{ id, describedBy, invalid }"
+                >
+                    <Input
+                        :id="id"
+                        name="file"
+                        type="file"
+                        accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        required
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                        @change="onFileChange"
+                    />
+                </FormField>
 
-                    <template v-else>
-                        <div class="flex items-center gap-2">
-                            <Checkbox
-                                id="import-has-header"
-                                name="has_header"
-                                :checked="hasHeader"
-                                value="1"
-                                @update:checked="hasHeader = $event === true"
-                            />
-                            <Label for="import-has-header">
-                                {{ t.operations.import_has_header }}
-                            </Label>
-                        </div>
-                        <input
-                            v-if="!hasHeader"
-                            type="hidden"
-                            name="has_header"
-                            value="0"
-                        />
+                <FormField
+                    :label="t.operations.account"
+                    :error="errors.account_id"
+                    v-slot="{ id, describedBy, invalid }"
+                >
+                    <AccountSelect
+                        :id="id"
+                        name="account_id"
+                        v-model="accountId"
+                        :accounts="accounts"
+                        :placeholder="t.operations.select_account"
+                        :aria-describedby="describedBy"
+                        :aria-invalid="invalid"
+                    />
+                </FormField>
 
-                        <fieldset
-                            v-if="columnLabels.length > 0"
-                            class="grid gap-4 rounded-lg border p-4"
-                        >
-                            <legend class="px-1 text-sm font-medium">
-                                {{ t.operations.import_columns }}
-                            </legend>
+                <ImportRecognizedFields v-if="isMbankFormat" format="mbank" />
+                <ImportRecognizedFields
+                    v-else-if="isBnpParibasFormat"
+                    format="bnp_paribas"
+                />
+                <ImportColumnMapping
+                    v-else
+                    v-model:has-header="hasHeader"
+                    v-model:amount-layout="amountLayout"
+                    v-model:date-column="dateColumn"
+                    v-model:description-column="descriptionColumn"
+                    v-model:counterparty-column="counterpartyColumn"
+                    v-model:amount-column="amountColumn"
+                    v-model:inflow-column="inflowColumn"
+                    v-model:outflow-column="outflowColumn"
+                    :column-labels="columnLabels"
+                    :errors="errors"
+                />
+            </div>
 
-                            <div class="grid gap-2">
-                                <Label for="import-date-column">
-                                    {{ t.operations.date }}
-                                </Label>
-                                <select
-                                    id="import-date-column"
-                                    name="date_column"
-                                    v-model="dateColumn"
-                                    class="native-select"
-                                    required
-                                >
-                                    <option
-                                        v-for="(label, index) in columnLabels"
-                                        :key="`date-${index}`"
-                                        :value="index"
-                                    >
-                                        {{ label }}
-                                    </option>
-                                </select>
-                                <InputError :message="errors.date_column" />
-                            </div>
-
-                            <div class="grid gap-2">
-                                <Label for="import-description-column">
-                                    {{ t.operations.description }}
-                                </Label>
-                                <select
-                                    id="import-description-column"
-                                    name="description_column"
-                                    v-model="descriptionColumn"
-                                    class="native-select"
-                                    required
-                                >
-                                    <option
-                                        v-for="(label, index) in columnLabels"
-                                        :key="`description-${index}`"
-                                        :value="index"
-                                    >
-                                        {{ label }}
-                                    </option>
-                                </select>
-                                <InputError
-                                    :message="errors.description_column"
-                                />
-                            </div>
-
-                            <div class="grid gap-2">
-                                <Label for="import-counterparty-column">
-                                    {{ t.operations.counterparty }}
-                                    <span class="text-muted-foreground">
-                                        ({{
-                                            t.operations.import_optional_column
-                                        }})
-                                    </span>
-                                </Label>
-                                <select
-                                    id="import-counterparty-column"
-                                    name="counterparty_column"
-                                    v-model="counterpartyColumn"
-                                    class="native-select"
-                                >
-                                    <option value="">
-                                        {{ t.operations.import_no_column }}
-                                    </option>
-                                    <option
-                                        v-for="(label, index) in columnLabels"
-                                        :key="`counterparty-${index}`"
-                                        :value="index"
-                                    >
-                                        {{ label }}
-                                    </option>
-                                </select>
-                                <InputError
-                                    :message="errors.counterparty_column"
-                                />
-                            </div>
-
-                            <div class="grid gap-3">
-                                <Label>{{
-                                    t.operations.import_amount_layout
-                                }}</Label>
-                                <div class="flex flex-wrap gap-4">
-                                    <label
-                                        class="flex items-center gap-2 text-sm"
-                                    >
-                                        <input
-                                            v-model="amountLayout"
-                                            type="radio"
-                                            name="amount_layout"
-                                            value="signed"
-                                        />
-                                        {{ t.operations.import_amount_signed }}
-                                    </label>
-                                    <label
-                                        class="flex items-center gap-2 text-sm"
-                                    >
-                                        <input
-                                            v-model="amountLayout"
-                                            type="radio"
-                                            name="amount_layout"
-                                            value="split"
-                                        />
-                                        {{ t.operations.import_amount_split }}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div
-                                v-if="amountLayout === 'signed'"
-                                class="grid gap-2"
-                            >
-                                <Label for="import-amount-column">
-                                    {{ t.operations.amount }}
-                                </Label>
-                                <select
-                                    id="import-amount-column"
-                                    name="amount_column"
-                                    v-model="amountColumn"
-                                    class="native-select"
-                                    required
-                                >
-                                    <option
-                                        v-for="(label, index) in columnLabels"
-                                        :key="`amount-${index}`"
-                                        :value="index"
-                                    >
-                                        {{ label }}
-                                    </option>
-                                </select>
-                                <InputError :message="errors.amount_column" />
-                            </div>
-
-                            <template v-else>
-                                <div class="grid gap-2">
-                                    <Label for="import-inflow-column">
-                                        {{ t.operations.import_inflow_column }}
-                                    </Label>
-                                    <select
-                                        id="import-inflow-column"
-                                        name="inflow_column"
-                                        v-model="inflowColumn"
-                                        class="native-select"
-                                        required
-                                    >
-                                        <option
-                                            v-for="(
-                                                label, index
-                                            ) in columnLabels"
-                                            :key="`inflow-${index}`"
-                                            :value="index"
-                                        >
-                                            {{ label }}
-                                        </option>
-                                    </select>
-                                    <InputError
-                                        :message="errors.inflow_column"
-                                    />
-                                </div>
-
-                                <div class="grid gap-2">
-                                    <Label for="import-outflow-column">
-                                        {{ t.operations.import_outflow_column }}
-                                    </Label>
-                                    <select
-                                        id="import-outflow-column"
-                                        name="outflow_column"
-                                        v-model="outflowColumn"
-                                        class="native-select"
-                                        required
-                                    >
-                                        <option
-                                            v-for="(
-                                                label, index
-                                            ) in columnLabels"
-                                            :key="`outflow-${index}`"
-                                            :value="index"
-                                        >
-                                            {{ label }}
-                                        </option>
-                                    </select>
-                                    <InputError
-                                        :message="errors.outflow_column"
-                                    />
-                                </div>
-                            </template>
-                        </fieldset>
-                    </template>
-
-                    <div class="flex justify-end gap-2">
-                        <Button
-                            type="submit"
-                            :disabled="processing || !canSubmit"
-                        >
-                            {{ t.operations.import_preview }}
-                        </Button>
-                    </div>
-                </Form>
-            </CardContent>
-        </Card>
+            <div class="form-panel-footer">
+                <Button type="submit" :disabled="processing || !canSubmit">
+                    <Spinner v-if="processing" />
+                    {{ t.operations.import_preview }}
+                </Button>
+            </div>
+        </Form>
     </div>
 </template>

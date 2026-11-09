@@ -18,7 +18,6 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
-            sidebarOpen: boolean;
             shell: import('@/types/shell').ShellState;
             translations: import('@/types/shell').UiTranslations;
             [key: string]: unknown;

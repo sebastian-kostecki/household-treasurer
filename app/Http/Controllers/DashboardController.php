@@ -13,9 +13,11 @@ use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\DashboardNotices;
+use App\Support\MonthPace;
 use App\Support\MonthToSpend;
 use App\Support\ShellState;
 use App\Support\SpendableLiquidity;
+use App\Support\TotalFunds;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -53,13 +55,13 @@ class DashboardController extends Controller
             ->all();
 
         $spendableLiquidityMinorUnits = SpendableLiquidity::forUser($user);
-        $termDepositsTotalMinorUnits = (int) $user->termDeposits()->sum('current_balance_minor_units');
 
         $incomeCategories = [];
         $expenseCategories = [];
         $dashboardNotices = [];
         $monthToSpend = null;
         $monthToSpendReading = null;
+        $monthPace = null;
         $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
@@ -99,6 +101,7 @@ class DashboardController extends Controller
 
                 $currentMonth = $today->month;
                 $monthToSpendReading = MonthToSpend::forMonth($budget, $currentMonth, $today);
+                $monthPace = MonthPace::forMonth($monthToSpendReading, $budget->year, $currentMonth, $today);
                 $summary = $monthToSpendReading->summary();
 
                 if ($summary['state'] !== 'none') {
@@ -122,7 +125,7 @@ class DashboardController extends Controller
             'accounts' => $accounts,
             'termDeposits' => $termDeposits,
             'spendable_liquidity_minor_units' => $spendableLiquidityMinorUnits,
-            'total_funds_minor_units' => $spendableLiquidityMinorUnits + $termDepositsTotalMinorUnits,
+            'total_funds_minor_units' => TotalFunds::forUser($user),
             'budget_year' => $currentYear,
             'budget' => $budget === null ? null : [
                 'year' => $budget->year,
@@ -132,6 +135,7 @@ class DashboardController extends Controller
             'expenseCategories' => $expenseCategories,
             'dashboardNotices' => $dashboardNotices,
             'month_to_spend' => $monthToSpend,
+            'month_pace' => $monthPace,
             'current_month' => $currentMonth,
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,

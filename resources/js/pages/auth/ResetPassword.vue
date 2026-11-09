@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/FormField.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { update } from '@/routes/password';
@@ -19,11 +18,12 @@ setLayoutProps({
 
 const props = defineProps<{
     token: string;
-    email: string;
+    email: string | null;
     passwordRules: string;
 }>();
 
-const inputEmail = ref(props.email);
+const emailLocked = props.email !== null && props.email !== '';
+const inputEmail = ref(props.email ?? '');
 </script>
 
 <template>
@@ -31,65 +31,69 @@ const inputEmail = ref(props.email);
 
     <Form
         v-bind="update.form()"
-        :transform="(data) => ({ ...data, token, email })"
+        :transform="(data) => ({ ...data, token, email: inputEmail })"
         :reset-on-success="['password', 'password_confirmation']"
         v-slot="{ errors, processing }"
+        class="flex flex-col gap-4"
     >
-        <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="email">{{ t.auth.reset_password.email }}</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    autocomplete="email"
-                    v-model="inputEmail"
-                    class="mt-1 block w-full"
-                    readonly
-                />
-                <InputError :message="errors.email" class="mt-2" />
-            </div>
+        <FormField
+            :label="t.auth.reset_password.email"
+            :error="errors.email"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <Input
+                :id="id"
+                v-model="inputEmail"
+                type="email"
+                name="email"
+                autocomplete="email"
+                :autofocus="!emailLocked"
+                :readonly="emailLocked"
+                :class="emailLocked ? 'bg-muted text-muted-foreground' : ''"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <div class="grid gap-2">
-                <Label for="password">{{
-                    t.auth.reset_password.password
-                }}</Label>
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    autocomplete="new-password"
-                    class="mt-1 block w-full"
-                    autofocus
-                    :placeholder="t.auth.reset_password.password"
-                    :passwordrules="passwordRules"
-                />
-                <InputError :message="errors.password" />
-            </div>
+        <FormField
+            :label="t.auth.reset_password.password"
+            :error="errors.password"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <PasswordInput
+                :id="id"
+                name="password"
+                autocomplete="new-password"
+                :autofocus="emailLocked"
+                :passwordrules="passwordRules"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <div class="grid gap-2">
-                <Label for="password_confirmation">
-                    {{ t.auth.reset_password.confirm_password }}
-                </Label>
-                <PasswordInput
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    autocomplete="new-password"
-                    class="mt-1 block w-full"
-                    :placeholder="t.auth.reset_password.confirm_password"
-                    :passwordrules="passwordRules"
-                />
-                <InputError :message="errors.password_confirmation" />
-            </div>
+        <FormField
+            :label="t.auth.reset_password.confirm_password"
+            :error="errors.password_confirmation"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <PasswordInput
+                :id="id"
+                name="password_confirmation"
+                autocomplete="new-password"
+                :passwordrules="passwordRules"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-            <Button
-                type="submit"
-                class="mt-4 w-full"
-                :disabled="processing"
-                data-test="reset-password-button"
-            >
-                <Spinner v-if="processing" />
-                {{ t.auth.reset_password.submit }}
-            </Button>
-        </div>
+        <Button
+            type="submit"
+            class="auth-submit"
+            :disabled="processing"
+            data-test="reset-password-button"
+        >
+            <Spinner v-if="processing" />
+            {{ t.auth.reset_password.submit }}
+        </Button>
     </Form>
 </template>

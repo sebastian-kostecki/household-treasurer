@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3';
 import { ChevronDown, Search, SlidersHorizontal } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import AccountSelect from '@/components/AccountSelect.vue';
 import OperationsActiveFilterChips, {
     type OperationsFilterChipKey,
     type OperationsListSection,
@@ -17,6 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import type { AccountPickerOption } from '@/lib/account-identity';
+import { operationsListQuery } from '@/lib/operations-list-query';
 import { operations as operationsRoute } from '@/routes';
 
 export type OperationsListFilters = {
@@ -37,9 +40,7 @@ export type OperationsFilterCategory = {
     color: string;
 };
 
-export type OperationsFilterAccount = {
-    id: number;
-    name: string;
+export type OperationsFilterAccount = AccountPickerOption & {
     is_archived: boolean;
 };
 
@@ -56,6 +57,7 @@ const props = defineProps<{
     accounts: OperationsFilterAccount[];
     termDeposits: OperationsFilterTermDeposit[];
     suppressedSections: OperationsListSection[];
+    section: OperationsListSection;
 }>();
 
 const SEARCH_DEBOUNCE_MS = 500;
@@ -229,18 +231,7 @@ function currentSearch(): string | null {
 
 function visit(next: OperationsListFilters): void {
     router.get(
-        operationsRoute({
-            query: {
-                q: next.q ?? undefined,
-                year: next.year ?? undefined,
-                category_name: next.category_name ?? undefined,
-                category_type: next.category_type ?? undefined,
-                account_id: next.account_id ?? undefined,
-                term_deposit_id: next.term_deposit_id ?? undefined,
-                date_from: next.date_from ?? undefined,
-                date_to: next.date_to ?? undefined,
-            },
-        }),
+        operationsRoute({ query: operationsListQuery(next, props.section) }),
         {},
         {
             preserveState: true,
@@ -270,11 +261,6 @@ function onYearChange(event: Event): void {
 
 function onCategoryChange(event: Event): void {
     applyFilters(parseCategory((event.target as HTMLSelectElement).value));
-}
-
-function onAccountChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    applyFilters({ account_id: value === '' ? null : Number(value) });
 }
 
 function onTermDepositChange(event: Event): void {
@@ -373,20 +359,12 @@ function removeFilter(key: OperationsFilterChipKey): void {
             break;
     }
 }
-
-function accountLabel(account: OperationsFilterAccount): string {
-    if (!account.is_archived) {
-        return account.name;
-    }
-
-    return `${account.name} (${t.accounts.archived_badge})`;
-}
 </script>
 
 <template>
     <Collapsible
         v-model:open="panelOpen"
-        class="border-border/60 bg-card flex flex-col gap-3 rounded-2xl border p-4"
+        class="flex flex-col gap-3"
         :aria-busy="visiting"
     >
         <div
@@ -400,6 +378,7 @@ function accountLabel(account: OperationsFilterAccount): string {
                     aria-hidden="true"
                 />
                 <Input
+                    id="operations-search"
                     v-model="search"
                     type="search"
                     class="pr-9 pl-9"
@@ -413,7 +392,7 @@ function accountLabel(account: OperationsFilterAccount): string {
                 />
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <Button
                     type="button"
                     size="sm"
@@ -440,11 +419,7 @@ function accountLabel(account: OperationsFilterAccount): string {
                     >
                         <SlidersHorizontal class="size-4" aria-hidden="true" />
                         {{ t.operations.filters_toggle }}
-                        <Badge
-                            v-if="panelFilterCount > 0"
-                            variant="secondary"
-                            class="rounded-xl"
-                        >
+                        <Badge v-if="panelFilterCount > 0" variant="secondary">
                             {{ panelFilterCount }}
                         </Badge>
                         <ChevronDown
@@ -457,8 +432,19 @@ function accountLabel(account: OperationsFilterAccount): string {
             </div>
         </div>
 
+        <OperationsActiveFilterChips
+            v-if="showChips"
+            :filters="filters"
+            :categories="categories"
+            :accounts="accounts"
+            :term-deposits="termDeposits"
+            :suppressed-sections="suppressedSections"
+            @remove="removeFilter"
+            @clear="clearFilters"
+        />
+
         <CollapsibleContent
-            class="border-border/60 data-[state=open]:border-t data-[state=open]:pt-3"
+            class="data-[state=open]:border-t data-[state=open]:pt-3"
         >
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div v-if="years.length > 0" class="grid gap-1">
@@ -553,23 +539,18 @@ function accountLabel(account: OperationsFilterAccount): string {
                     >
                         {{ t.operations.filter_account }}
                     </Label>
-                    <select
+                    <AccountSelect
                         id="operations-filter-account"
-                        class="native-select"
-                        :value="filters.account_id ?? ''"
-                        @change="onAccountChange"
-                    >
-                        <option value="">
-                            {{ t.operations.filter_account_all }}
-                        </option>
-                        <option
-                            v-for="account in accounts"
-                            :key="account.id"
-                            :value="account.id"
-                        >
-                            {{ accountLabel(account) }}
-                        </option>
-                    </select>
+                        :model-value="filters.account_id ?? ''"
+                        :accounts="accounts"
+                        :all-option-label="t.operations.filter_account_all"
+                        :archived-suffix="t.accounts.archived_badge"
+                        @update:model-value="
+                            applyFilters({
+                                account_id: $event === '' ? null : $event,
+                            })
+                        "
+                    />
                 </div>
 
                 <div v-if="termDeposits.length > 0" class="grid gap-1">
@@ -623,17 +604,5 @@ function accountLabel(account: OperationsFilterAccount): string {
                 </div>
             </div>
         </CollapsibleContent>
-
-        <OperationsActiveFilterChips
-            v-if="showChips"
-            class="border-border/60 border-t pt-3"
-            :filters="filters"
-            :categories="categories"
-            :accounts="accounts"
-            :term-deposits="termDeposits"
-            :suppressed-sections="suppressedSections"
-            @remove="removeFilter"
-            @clear="clearFilters"
-        />
     </Collapsible>
 </template>

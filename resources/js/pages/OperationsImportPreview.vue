@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/vue3';
-import { AlertTriangle } from '@lucide/vue';
+import { Form, Head, Link } from '@inertiajs/vue3';
+import { AlertTriangle, ArrowLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import CsvImportController from '@/actions/App/Http/Controllers/CsvImportController';
+import ImportPreviewDuplicateAcknowledgement from '@/components/ImportPreviewDuplicateAcknowledgement.vue';
 import ImportPreviewRow from '@/components/ImportPreviewRow.vue';
+import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import ImportPreviewSubmitBar from '@/components/ImportPreviewSubmitBar.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/composables/useTranslations';
 import type { AccountPickerOption } from '@/lib/account-identity';
 import {
     monthHasPlan,
     type EntryToSpendInputs,
 } from '@/lib/entry-to-spend-warning';
+import {
+    duplicateAcknowledgementErrorText,
+    firstRowsError,
+} from '@/lib/import-preview-errors';
+import { importSubmitBlockReason } from '@/lib/import-submit-block';
 import { computeImportToSpendWarnings } from '@/lib/import-to-spend-warnings';
 import {
     consumedFirstLegKeys,
@@ -37,7 +36,6 @@ import {
 import {
     emptySelection,
     initialSelection,
-    rowSelectionValid,
     type CategoryRow,
     type ImportRow,
     type RowSelection,
@@ -72,7 +70,12 @@ const {
 const t = useTranslations();
 const duplicateWarningAcknowledged = ref(false);
 const selections = ref<Record<number, RowSelection>>(
-    Object.fromEntries(rows.map((row) => [row.index, initialSelection(row)])),
+    Object.fromEntries(
+        rows.map((row) => [
+            row.index,
+            initialSelection(row, incomeCategories, expenseCategories),
+        ]),
+    ),
 );
 
 const validRowCount = computed(() => rows.filter((row) => row.valid).length);
@@ -113,27 +116,29 @@ const selectedImportDuplicateCount = computed(
 const requiresDuplicateAcknowledgement = computed(
     () => selectedImportDuplicateCount.value > 0,
 );
-const canSubmit = computed(
-    () =>
-        (!requiresDuplicateAcknowledgement.value ||
-            duplicateWarningAcknowledged.value) &&
-        selectedRowCount.value > 0 &&
-        Object.entries(selections.value).every(([index, selection]) => {
-            if (!selection.selected) {
-                return true;
-            }
+watch(requiresDuplicateAcknowledgement, (required) => {
+    if (!required) {
+        duplicateWarningAcknowledged.value = false;
+    }
+});
+const blockReason = computed(() => {
+    const reason = importSubmitBlockReason(
+        rows,
+        selections.value,
+        termDeposits,
+        duplicateWarningAcknowledged.value,
+    );
 
-            const row = rows.find(
-                (candidate) => candidate.index === Number(index),
-            );
+    if (reason === null) {
+        return null;
+    }
 
-            if (row === undefined) {
-                return false;
-            }
+    const text = t.operations[reason.key];
 
-            return rowSelectionValid(row, selection, termDeposits);
-        }),
-);
+    return reason.key === 'import_block_incomplete_rows'
+        ? text.replace(':count', String(reason.count))
+        : text;
+});
 
 const monthNameTranslations = computed(() =>
     Object.fromEntries(
@@ -162,23 +167,6 @@ const toSpendWarnings = computed(() =>
     computeImportToSpendWarnings(rows, selections.value, entryToSpend),
 );
 
-setLayoutProps({
-    breadcrumbs: [
-        {
-            title: t.nav.operations,
-            href: operationsRoute(),
-        },
-        {
-            title: t.operations.import_title,
-            href: CsvImportController.create.url(),
-        },
-        {
-            title: t.operations.import_preview,
-            href: CsvImportController.showPreview.url(),
-        },
-    ],
-});
-
 function refreshPairSelections(): void {
     for (const row of rows) {
         const selection = selections.value[row.index];
@@ -201,180 +189,208 @@ watch(consumedFirstLegKeysSet, () => {
 </script>
 
 <template>
-    <Head :title="t.operations.import_preview" />
+    <Head :title="t.operations.import_title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-lg font-semibold">
-                    {{ t.operations.import_preview }}
+                <h1 class="page-title">
+                    {{ t.operations.import_title }}
                 </h1>
-                <p class="text-muted-foreground text-sm">
+                <p class="meta text-muted-foreground">
                     {{ t.operations.import_preview_description }}
                 </p>
             </div>
             <Button as-child variant="outline">
-                <Link :href="CsvImportController.create.url()">
+                <Link :href="operationsRoute()">
+                    <ArrowLeft class="size-4" aria-hidden="true" />
                     {{ t.operations.import_back }}
                 </Link>
             </Button>
         </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle class="text-base">
-                    {{ t.operations.import_summary_title }}
-                </CardTitle>
-                <CardDescription>
+        <ListSurface v-if="rows.length === 0">
+            <IndexEmptyState
+                :title="t.operations.import_preview_empty"
+                :description="t.operations.import_preview_empty_description"
+            >
+                <template #actions>
+                    <Button variant="outline" as-child>
+                        <Link :href="CsvImportController.create.url()">
+                            <ArrowLeft class="size-4" aria-hidden="true" />
+                            {{ t.operations.import_choose_other_file }}
+                        </Link>
+                    </Button>
+                </template>
+            </IndexEmptyState>
+        </ListSurface>
+
+        <template v-else>
+            <ListSurface class="gap-4">
+                <template #header>
+                    <div class="space-y-1">
+                        <h2 class="section-title">
+                            {{ t.operations.import_summary_title }}
+                        </h2>
+                        <p class="meta text-muted-foreground">
+                            {{
+                                t.operations.import_summary_description.replace(
+                                    ':account',
+                                    account.name,
+                                )
+                            }}
+                        </p>
+                    </div>
+                </template>
+
+                <div class="flex flex-wrap gap-2">
+                    <Badge variant="neutral">
+                        {{
+                            t.operations.import_valid_rows.replace(
+                                ':count',
+                                String(validRowCount),
+                            )
+                        }}
+                    </Badge>
+                    <Badge
+                        v-if="invalidRowCount > 0"
+                        variant="destructive-soft"
+                    >
+                        {{
+                            t.operations.import_invalid_rows.replace(
+                                ':count',
+                                String(invalidRowCount),
+                            )
+                        }}
+                    </Badge>
+                    <Badge v-if="duplicateRowCount > 0" variant="outline">
+                        {{
+                            t.operations.import_duplicate_rows.replace(
+                                ':count',
+                                String(duplicateRowCount),
+                            )
+                        }}
+                    </Badge>
+                    <Badge v-if="pairRowCount > 0" variant="outline">
+                        {{
+                            t.operations.import_pair_rows.replace(
+                                ':count',
+                                String(pairRowCount),
+                            )
+                        }}
+                    </Badge>
+                    <p class="meta text-muted-foreground w-full">
+                        {{ t.operations.import_duplicate_warning_body }}
+                    </p>
+                </div>
+            </ListSurface>
+
+            <Alert v-if="duplicateRowCount > 0" variant="warning">
+                <AlertTriangle class="size-4" />
+                <AlertTitle>{{
+                    t.operations.import_duplicate_warning_title
+                }}</AlertTitle>
+                <AlertDescription>
                     {{
-                        t.operations.import_summary_description.replace(
-                            ':account',
-                            account.name,
-                        )
-                    }}
-                </CardDescription>
-            </CardHeader>
-            <CardContent class="flex flex-wrap gap-2">
-                <Badge variant="secondary">
-                    {{
-                        t.operations.import_valid_rows.replace(
-                            ':count',
-                            String(validRowCount),
-                        )
-                    }}
-                </Badge>
-                <Badge v-if="invalidRowCount > 0" variant="destructive">
-                    {{
-                        t.operations.import_invalid_rows.replace(
-                            ':count',
-                            String(invalidRowCount),
-                        )
-                    }}
-                </Badge>
-                <Badge v-if="duplicateRowCount > 0" variant="outline">
-                    {{
-                        t.operations.import_duplicate_rows.replace(
+                        t.operations.import_duplicate_warning_found.replace(
                             ':count',
                             String(duplicateRowCount),
                         )
                     }}
-                </Badge>
-                <Badge v-if="pairRowCount > 0" variant="outline">
-                    {{
-                        t.operations.import_pair_rows.replace(
-                            ':count',
-                            String(pairRowCount),
-                        )
-                    }}
-                </Badge>
-            </CardContent>
-        </Card>
+                </AlertDescription>
+            </Alert>
 
-        <Alert>
-            <AlertTriangle class="size-4" />
-            <AlertTitle>{{
-                t.operations.import_duplicate_warning_title
-            }}</AlertTitle>
-            <AlertDescription>
-                {{ t.operations.import_duplicate_warning_body }}
-            </AlertDescription>
-        </Alert>
+            <Alert v-if="pairRowCount > 0" variant="warning">
+                <AlertTriangle class="size-4" />
+                <AlertTitle>{{
+                    t.operations.import_pair_warning_title
+                }}</AlertTitle>
+                <AlertDescription>
+                    {{ t.operations.import_pair_warning_body }}
+                </AlertDescription>
+            </Alert>
 
-        <Alert v-if="pairRowCount > 0">
-            <AlertTriangle class="size-4" />
-            <AlertTitle>{{
-                t.operations.import_pair_warning_title
-            }}</AlertTitle>
-            <AlertDescription>
-                {{ t.operations.import_pair_warning_body }}
-            </AlertDescription>
-        </Alert>
-
-        <Form
-            v-bind="CsvImportController.store.form()"
-            v-slot="{ errors, processing }"
-            class="space-y-4"
-        >
-            <ListSurface>
-                <div class="overflow-x-auto">
-                    <div
-                        class="import-preview-grid border-border/60 text-muted-foreground hidden border-b pb-2.5 text-[11px] font-medium tracking-wider uppercase xl:grid"
-                    >
-                        <span class="import-preview-cell-select">
-                            {{ t.operations.import_select }}
-                        </span>
-                        <span class="import-preview-cell-date">
-                            {{ t.operations.date }}
-                        </span>
-                        <span class="import-preview-cell-description">
-                            {{ t.operations.description }}
-                        </span>
-                        <span class="import-preview-cell-amount">
-                            {{ t.operations.amount }}
-                        </span>
-                        <span class="import-preview-cell-type">
-                            {{ t.operations.type }}
-                        </span>
-                        <span class="import-preview-cell-classification">
-                            {{ t.operations.import_classification }}
-                        </span>
-                        <span class="import-preview-cell-status">
-                            {{ t.operations.import_status }}
-                        </span>
-                    </div>
-
-                    <p
-                        v-if="rows.length === 0"
-                        class="text-muted-foreground py-6 text-center text-sm"
-                    >
-                        {{ t.operations.import_preview_empty }}
-                    </p>
-
-                    <ImportPreviewRow
-                        v-for="row in rows"
-                        :key="row.index"
-                        :row="row"
-                        v-model:selection="selections[row.index]"
-                        :account-balance-minor-units="
-                            account.current_balance_minor_units
-                        "
-                        :income-categories="incomeCategories"
-                        :expense-categories="expenseCategories"
-                        :other-accounts="otherAccounts"
-                        :term-deposits="termDeposits"
-                        :consumed-first-leg-keys="consumedFirstLegKeysSet"
-                        :month-remaining-warnings="
-                            monthHasPlan(entryToSpend, row.operation_date ?? '')
-                                ? undefined
-                                : monthRemainingWarnings[row.index]
-                        "
-                        :to-spend-warning="toSpendWarnings[row.index]"
-                    />
-                </div>
-            </ListSurface>
-
-            <div
-                v-if="requiresDuplicateAcknowledgement"
-                class="flex items-center gap-2"
+            <Form
+                v-bind="CsvImportController.store.form()"
+                v-slot="{ errors, processing }"
+                class="space-y-4"
             >
-                <Checkbox
-                    id="duplicate-warning"
-                    name="duplicate_warning_acknowledged"
-                    v-model="duplicateWarningAcknowledged"
-                    value="1"
-                />
-                <Label for="duplicate-warning">
-                    {{ t.operations.import_duplicate_acknowledge }}
-                </Label>
-            </div>
-            <InputError :message="errors.duplicate_warning_acknowledged" />
-            <InputError :message="errors.rows" />
+                <ListSurface flush>
+                    <div class="overflow-x-auto">
+                        <div
+                            class="import-preview-grid import-preview-header-row"
+                        >
+                            <span class="import-preview-cell-select">
+                                {{ t.operations.import_select }}
+                            </span>
+                            <span class="import-preview-cell-date">
+                                {{ t.operations.date }}
+                            </span>
+                            <span class="import-preview-cell-description">
+                                {{ t.operations.description }}
+                            </span>
+                            <span class="import-preview-cell-amount">
+                                {{ t.operations.amount }}
+                            </span>
+                            <span class="import-preview-cell-type">
+                                {{ t.operations.type }}
+                            </span>
+                            <span class="import-preview-cell-classification">
+                                {{ t.operations.import_classification }}
+                            </span>
+                            <span class="import-preview-cell-status">
+                                {{ t.operations.import_status }}
+                            </span>
+                        </div>
 
-            <div class="flex justify-end gap-2">
-                <Button type="submit" :disabled="processing || !canSubmit">
-                    {{ t.operations.import_confirm }}
-                </Button>
-            </div>
-        </Form>
+                        <ImportPreviewRow
+                            v-for="row in rows"
+                            :key="row.index"
+                            :row="row"
+                            v-model:selection="selections[row.index]"
+                            :account-balance-minor-units="
+                                account.current_balance_minor_units
+                            "
+                            :income-categories="incomeCategories"
+                            :expense-categories="expenseCategories"
+                            :other-accounts="otherAccounts"
+                            :term-deposits="termDeposits"
+                            :consumed-first-leg-keys="consumedFirstLegKeysSet"
+                            :month-remaining-warnings="
+                                monthHasPlan(
+                                    entryToSpend,
+                                    row.operation_date ?? '',
+                                )
+                                    ? undefined
+                                    : monthRemainingWarnings[row.index]
+                            "
+                            :to-spend-warning="toSpendWarnings[row.index]"
+                        />
+                    </div>
+                    <template #footer>
+                        <p class="meta text-muted-foreground">
+                            {{ t.common.amounts_in_zl }}
+                        </p>
+                    </template>
+                </ListSurface>
+
+                <ImportPreviewDuplicateAcknowledgement
+                    v-if="requiresDuplicateAcknowledgement"
+                    v-model="duplicateWarningAcknowledged"
+                    :error="
+                        duplicateAcknowledgementErrorText(
+                            errors.duplicate_warning_acknowledged,
+                            t.operations,
+                        )
+                    "
+                />
+                <InputError :message="firstRowsError(errors)" />
+
+                <ImportPreviewSubmitBar
+                    :reason="blockReason"
+                    :processing="processing"
+                />
+            </Form>
+        </template>
     </div>
 </template>

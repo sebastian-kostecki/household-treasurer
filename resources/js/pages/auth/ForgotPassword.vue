@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
+import { CircleCheck, Lock } from '@lucide/vue';
+import AuthCardFooter from '@/components/AuthCardFooter.vue';
+import FormField from '@/components/FormField.vue';
 import TextLink from '@/components/TextLink.vue';
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { login } from '@/routes';
@@ -15,6 +17,7 @@ const t = useTranslations();
 setLayoutProps({
     title: t.auth.forgot_password.title,
     description: t.auth.forgot_password.description,
+    icon: Lock,
 });
 
 defineProps<{
@@ -25,44 +28,45 @@ defineProps<{
 <template>
     <Head :title="t.auth.forgot_password.title" />
 
-    <div
-        v-if="status"
-        class="text-success mb-4 text-center text-sm font-medium"
+    <Alert v-if="status" variant="ok">
+        <CircleCheck />
+        <span>{{ status }}</span>
+    </Alert>
+
+    <Form
+        v-bind="email.form()"
+        v-slot="{ errors, processing }"
+        class="flex flex-col gap-4"
     >
-        {{ status }}
-    </div>
+        <FormField
+            :label="t.auth.forgot_password.email"
+            :error="errors.email"
+            v-slot="{ id, describedBy, invalid }"
+        >
+            <Input
+                :id="id"
+                type="email"
+                name="email"
+                autocomplete="email"
+                autofocus
+                placeholder="email@example.com"
+                :aria-describedby="describedBy"
+                :aria-invalid="invalid"
+            />
+        </FormField>
 
-    <div class="space-y-6">
-        <Form v-bind="email.form()" v-slot="{ errors, processing }">
-            <div class="grid gap-2">
-                <Label for="email">{{ t.auth.forgot_password.email }}</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    autocomplete="off"
-                    autofocus
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
+        <Button
+            type="submit"
+            class="auth-submit"
+            :disabled="processing"
+            data-test="email-password-reset-link-button"
+        >
+            <Spinner v-if="processing" />
+            {{ t.auth.forgot_password.submit }}
+        </Button>
+    </Form>
 
-            <div class="my-6 flex items-center justify-start">
-                <Button
-                    class="w-full"
-                    :disabled="processing"
-                    data-test="email-password-reset-link-button"
-                >
-                    <Spinner v-if="processing" />
-                    {{ t.auth.forgot_password.submit }}
-                </Button>
-            </div>
-        </Form>
-
-        <div class="text-muted-foreground text-center text-sm">
-            <TextLink :href="login()">{{
-                t.auth.forgot_password.back
-            }}</TextLink>
-        </div>
-    </div>
+    <AuthCardFooter>
+        <TextLink :href="login()">{{ t.auth.forgot_password.back }}</TextLink>
+    </AuthCardFooter>
 </template>
