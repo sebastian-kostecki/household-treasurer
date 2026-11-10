@@ -40,7 +40,7 @@ final class CategoryChoiceOptions
         $lines = BudgetLine::query()
             ->without('category')
             ->whereIn('budget_id', $budgets->modelKeys())
-            ->whereIn('category_id', $categories->modelKeys())
+            ->whereIn('category_id', array_values($categories->map(fn (Category $category): int => $category->id)->all()))
             ->get()
             ->groupBy('budget_id')
             ->map(fn (Collection $budgetLines): Collection => $budgetLines->keyBy('category_id'));
@@ -102,7 +102,7 @@ final class CategoryChoiceOptions
     {
         $budgets->loadMissing('budgetLines');
         $categories = self::activeCategories($user, CategoryType::Expense);
-        $flags = CategoryJoinFlags::forCategories($categories->modelKeys());
+        $flags = CategoryJoinFlags::forCategories(array_values($categories->map(fn (Category $category): int => $category->id)->all()));
         $entries = [];
 
         foreach ($budgets as $budget) {

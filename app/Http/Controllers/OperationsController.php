@@ -161,8 +161,8 @@ class OperationsController extends Controller
                 'name' => $row['category']->name,
                 ...CategoryAppearance::fields($row['category']),
                 'budget_year' => $row['budget_year'],
-                'planned_amount_minor_units' => $row['line']?->planned_amount_minor_units ?? 0,
-                'execution_minor_units' => $row['line']?->execution_minor_units ?? 0,
+                'planned_amount_minor_units' => $row['line']->planned_amount_minor_units ?? 0,
+                'execution_minor_units' => $row['line']->execution_minor_units ?? 0,
             ])
             ->values();
 

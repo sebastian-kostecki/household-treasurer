@@ -8,6 +8,7 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -504,6 +505,56 @@ class MonthPlanPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('monthPlan.can_change', false)
                 ->has('monthPlan.expense_items', 4),
+            );
+    }
+
+    public function test_a_list_category_without_a_line_is_a_join_row_with_the_shape_of_a_line_row(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->approveJune($user, $budget, $categories);
+        Category::factory()->for($user)->expense()->create(['name' => 'Domeny', 'sort_order' => 20]);
+        Category::factory()->for($user)->expense()->archived()->create(['name' => 'Stara', 'sort_order' => 21]);
+        $holiday = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Wakacje', 'sort_order' => 22]);
+        $holiday->category->update(['archived_at' => now()]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', function ($items) {
+                    $items = collect($items);
+                    $names = $items->pluck('name');
+                    $join = $items->firstWhere('name', 'Domeny');
+                    $line = $items->firstWhere('name', 'Jedzenie');
+
+                    return $names->contains('Domeny')
+                        && ! $names->contains('Stara')
+                        && ! $names->contains('Wakacje')
+                        && $join['is_join_candidate'] === true
+                        && $join['in_plan'] === false
+                        && $join['plan_minor_units'] === 0
+                        && $join['actual_minor_units'] === 0
+                        && $join['can_change_kind'] === false
+                        && array_keys($join) === array_keys($line);
+                })
+                ->where('monthPlan.to_spend_minor_units', 373_000),
+            );
+    }
+
+    public function test_an_editable_proposal_offers_list_categories_without_a_line_as_join_rows(): void
+    {
+        [$user] = $this->canonicalBudget();
+        Category::factory()->for($user)->expense()->create(['name' => 'Domeny', 'sort_order' => 20]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.can_approve', true)
+                ->where('monthPlan.expense_items', fn ($items) => collect($items)
+                    ->contains(fn ($row) => $row['name'] === 'Domeny' && $row['is_join_candidate'] === true))
+                ->where('monthPlan.to_spend_minor_units', 373_000),
             );
     }
 

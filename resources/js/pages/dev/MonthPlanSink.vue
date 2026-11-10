@@ -35,6 +35,7 @@ import {
     approvedNoPaceReading,
     approvedReading,
     futureProposalReading,
+    joinCandidateExpense,
     lockedKindExpense,
     negativeDrawReading,
     paidBill,
@@ -191,6 +192,23 @@ const tables = reactive<TableConfig[]>([
                     ...approvedReading.expense_items,
                 ]),
                 [runningExpense.category_id]: minorUnitsToMoneyInput(50_000),
+            },
+        },
+    ),
+    tableConfig(
+        'edit-join',
+        'Wiersz dołączenia (kategoria listy bez pozycji w budżecie, plan 0; z kwotą > 0 dołącza do planu)',
+        approvedReading,
+        {
+            editable: true,
+            expenseRows: [
+                ...splitRows(approvedReading).expenseRows,
+                joinCandidateExpense,
+            ],
+            amountInputs: {
+                ...inputsFor(approvedReading),
+                [joinCandidateExpense.category_id]:
+                    minorUnitsToMoneyInput(8_000),
             },
         },
     ),

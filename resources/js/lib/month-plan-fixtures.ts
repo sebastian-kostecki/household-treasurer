@@ -164,6 +164,21 @@ export const lockedKindExpense = item({
     can_change_kind: false,
 });
 
+/** A list category without a budget line: plan 0, joins the plan only with an amount above 0. */
+export const joinCandidateExpense = item({
+    category_id: 11,
+    name: 'Domeny',
+    in_plan: false,
+    is_join_candidate: true,
+    can_change_kind: false,
+    year_comparison: {
+        year_minor_units: 0,
+        annual_plan_minor_units: 0,
+        remaining_minor_units: 0,
+        is_over_year: false,
+    },
+});
+
 export const incomeRows: MonthPlanItem[] = [settledIncome, waitingIncome];
 
 export const expenseRows: MonthPlanItem[] = [

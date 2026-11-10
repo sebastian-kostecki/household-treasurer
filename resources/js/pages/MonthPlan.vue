@@ -55,10 +55,14 @@ const t = useTranslations();
 
 const isChanging = ref(false);
 
+/** Join rows show in change mode and in an editable proposal (ADR-0067). */
 function visibleRows(rows: MonthPlanItem[]): MonthPlanItem[] {
-    return isChanging.value
-        ? rows
-        : rows.filter((row) => !row.is_join_candidate);
+    const showsJoinRows =
+        isChanging.value ||
+        (props.monthPlan?.state === 'proposal' &&
+            props.monthPlan.can_approve === true);
+
+    return showsJoinRows ? rows : rows.filter((row) => !row.is_join_candidate);
 }
 
 const allRows = computed<MonthPlanItem[]>(() => [

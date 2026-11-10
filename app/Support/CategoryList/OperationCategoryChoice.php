@@ -36,13 +36,13 @@ final class OperationCategoryChoice
             ->first();
 
         if (! $category instanceof Category) {
-            return __('The selected category is invalid.');
+            return (string) __('The selected category is invalid.');
         }
 
         $budget = Budget::query()->where('user_id', $user->id)->where('year', $year)->first();
 
         if (! $budget instanceof Budget) {
-            return __('The selected category does not belong to the budget for this operation year.');
+            return (string) __('The selected category does not belong to the budget for this operation year.');
         }
 
         if (! $budget->isExecution()) {
@@ -53,14 +53,14 @@ final class OperationCategoryChoice
         $unchanged = $categoryId === $currentCategoryId;
 
         if (! $line instanceof BudgetLine) {
-            return $category->isArchived() ? __('The selected category does not belong to the budget for this operation year.') : null;
+            return $category->isArchived() ? (string) __('The selected category does not belong to the budget for this operation year.') : null;
         }
 
         if ($unchanged) {
             return null;
         }
 
-        return $line->isArchived() || $category->isArchived() ? __('The selected category is invalid.') : null;
+        return $line->isArchived() || $category->isArchived() ? (string) __('The selected category is invalid.') : null;
     }
 
     /**

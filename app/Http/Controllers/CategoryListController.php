@@ -60,7 +60,7 @@ class CategoryListController extends Controller
         $reorderListCategories->handle(
             $request->user(),
             CategoryType::from($validated['type']),
-            array_map('intval', $validated['category_ids']),
+            array_values(array_map('intval', $validated['category_ids'])),
         );
 
         return response()->noContent();

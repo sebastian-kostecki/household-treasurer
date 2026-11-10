@@ -19,6 +19,30 @@ class JoinBudgetAtFirstUse
 {
     public function __construct(private readonly BudgetLineResolver $resolver) {}
 
+    /**
+     * Joins the Categories of a Month Plan that have an amount above 0; an
+     * amount of 0 creates nothing.
+     *
+     * @param  array<int, int>  $amountsByCategory  list Category id => amount
+     * @return array<int, int> line id => amount
+     */
+    public function handleAmounts(Budget $budget, array $amountsByCategory): array
+    {
+        $positive = array_filter($amountsByCategory, fn (int $amount): bool => $amount > 0);
+
+        if ($positive === []) {
+            return [];
+        }
+
+        $amountsByLine = [];
+
+        foreach (Category::query()->whereIn('id', array_keys($positive))->get() as $category) {
+            $amountsByLine[$this->handle($budget, $category)->id] = $positive[$category->id];
+        }
+
+        return $amountsByLine;
+    }
+
     public function handle(Budget $budget, Category $category): BudgetLine
     {
         $existing = $this->resolver->forBudget($budget, $category->id);

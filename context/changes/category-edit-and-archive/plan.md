@@ -495,12 +495,12 @@ Jedna migracja dodająca nullable kolumnę z prawdziwym `down()`; bez zmiany dan
 
 #### Automated
 
-- [ ] 5.1 Testy zmiany, zatwierdzenia, strony i propozycji planu miesiąca oraz sinka przechodzą
-- [ ] 5.2 Te same testy przechodzą na PostgreSQL
-- [ ] 5.3 Pełna bramka composer ci:check i sloppy ci
-- [ ] 5.4 npm run build, types:check, test i check:ui przechodzą
+- [x] 5.1 Testy zmiany, zatwierdzenia, strony i propozycji planu miesiąca oraz sinka przechodzą
+- [x] 5.2 Te same testy przechodzą na PostgreSQL
+- [x] 5.3 Pełna bramka composer ci:check i sloppy ci
+- [x] 5.4 npm run build, types:check, test i check:ui przechodzą
 
 #### Manual
 
-- [ ] 5.5 Nowa kategoria jako wiersz dołączenia w zmianie planu, kwota zapisana i widoczna w Budżecie
-- [ ] 5.6 Do wydania miesięcy bez nowych kwot bez zmian
+- [x] 5.5 Nowa kategoria jako wiersz dołączenia w zmianie planu, kwota zapisana i widoczna w Budżecie
+- [x] 5.6 Do wydania miesięcy bez nowych kwot bez zmian

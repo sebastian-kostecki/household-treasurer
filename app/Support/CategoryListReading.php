@@ -33,7 +33,7 @@ class CategoryListReading
             ->orderBy('id')
             ->get();
 
-        $lockedIds = array_flip(CategoryTypeChange::lockedIds($categories->pluck('id')->all()));
+        $lockedIds = array_flip(CategoryTypeChange::lockedIds(array_values($categories->map(fn (Category $category): int => $category->id)->all())));
 
         $categories = $categories
             ->map(fn (Category $category): array => [

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\ApproveMonthPlan;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -42,6 +43,40 @@ class ApproveMonthPlanTest extends TestCase
             'approved_amount_minor_units' => 800_000,
             'current_amount_minor_units' => 800_000,
         ]);
+    }
+
+    public function test_it_joins_an_extra_category_with_an_amount_and_ignores_one_with_zero(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $domains = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $hosting = Category::factory()->for($user)->expense()->create(['name' => 'Hosting']);
+
+        $plan = $this->approve($budget, 11, [$food->category_id => 9_000, $domains->id => 80, $hosting->id => 0]);
+
+        $line = BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', $domains->id)->firstOrFail();
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertDatabaseHas('month_plan_items', [
+            'month_plan_id' => $plan->id,
+            'budget_line_id' => $line->id,
+            'approved_amount_minor_units' => 80,
+            'current_amount_minor_units' => 80,
+        ]);
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $hosting->id]);
+        $this->assertDatabaseCount('month_plan_items', 2);
+    }
+
+    public function test_it_rejects_an_archived_list_category_as_an_extra_item(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $archived = Category::factory()->for($user)->expense()->archived()->create();
+
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 1, $archived->id => 5]));
+        $this->assertDatabaseCount('month_plans', 0);
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $archived->id]);
     }
 
     public function test_it_stores_a_set_aside_in_both_columns(): void
