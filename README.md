@@ -148,7 +148,7 @@ Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `d
 
 Migracje S-18 dzielą dawne `categories` na listę użytkownika i pozycje budżetu (`budget_lines`) bez zmiany żadnej kwoty. Wykonaj je w tej kolejności:
 
-1. Zmiana jest na `main`, a próba na kopii produkcji zatwierdzona (`context/changes/category-list-after-migration/migration-trial.md`).
+1. Zmiana jest na `main`, a próba na kopii produkcji zatwierdzona (`context/archive/2026-11-09-category-list-after-migration/migration-trial.md`).
 2. Na serwerze: `git pull --ff-only origin main`. Dopiero potem skrypt. Bez tego migracja przejdzie starym `deploy.sh` bez snapshotów, trybu serwisowego i liczb kontrolnych.
 3. `scripts/deploy.sh`. Log musi pokazać kolejno: tryb serwisowy, snapshoty użytkowników („Snapshotted N user(s).” z N równym liczbie użytkowników), liczby „przed”, kopię instancji, migracje, „Control numbers match” i wyjście z trybu serwisowego.
 4. Sprawdź `/up`, Budżet 2026, plan miesiąca i widok „Kategorie”. Zachowaj plik `…-before.json` poza serwerem: jest wzorcem do porównań przy wycofaniu.
@@ -165,7 +165,7 @@ Gdy wdrożenie się nie powiodło albo coś psuje się zaraz po nim. Przywrócen
 
 #### Przywrócenie produkcji
 
-Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba F-04](context/archive/2026-11-09-safe-first-data-migration/restore-trial.md)). Kroki 3–4 przeszły w próbie S-18 na bazie testowej po migracji: powrót z kopii sprzed migracji dał liczby kontrolne bez różnic ([próba S-18](context/changes/category-list-after-migration/migration-trial.md)). Kroków 1, 2, 5 i 6 nie da się przećwiczyć lokalnie, bo dzieją się na serwerze.
+Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba F-04](context/archive/2026-11-09-safe-first-data-migration/restore-trial.md)). Kroki 3–4 przeszły w próbie S-18 na bazie testowej po migracji: powrót z kopii sprzed migracji dał liczby kontrolne bez różnic ([próba S-18](context/archive/2026-11-09-category-list-after-migration/migration-trial.md)). Kroków 1, 2, 5 i 6 nie da się przećwiczyć lokalnie, bo dzieją się na serwerze.
 
 1. `scripts/artisan.sh down` (tryb serwisowy).
 2. Lokalnie na `main`: `git revert` zmiany z migracją i `git push origin main`. Skrypt wdrożenia robi `git pull --ff-only origin main`, więc revert zrobiony tylko na VPS rozjedzie się z origin i zablokuje następne wdrożenie. Stary schemat nie działa z nowym kodem, więc kod musi wrócić razem z bazą. Na serwerze jeszcze nie rób `git pull`: kontener ma nadal nowy kod, a on zna `app:control-numbers`.
