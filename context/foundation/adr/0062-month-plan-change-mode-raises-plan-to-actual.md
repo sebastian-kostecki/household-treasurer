@@ -30,3 +30,5 @@ We rejected:
 - „over plan” against the Approved Month Plan with a stored raise trace (server changes without need);
 - the `accent` colour (ADR-0056 limits it to Alert/Badge `ok`);
 - a place in the „Plan” cell or a wider column (it squeezes the field, ADR-0060; it takes space from the category, ADR-0061).
+
+Amended by ADR-0066: the automatic raise on entering change mode and the button „Ustaw plan na wydatki” do not apply to an Irregular item.

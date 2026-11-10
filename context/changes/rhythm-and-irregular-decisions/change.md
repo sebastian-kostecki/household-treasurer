@@ -1,9 +1,9 @@
 ---
 change_id: rhythm-and-irregular-decisions
 title: Rhythm and irregular decisions
-status: new
+status: implementing
 created: 2026-11-09
-updated: 2026-11-09
+updated: 2026-11-10
 archived_at: null
 ---
 
