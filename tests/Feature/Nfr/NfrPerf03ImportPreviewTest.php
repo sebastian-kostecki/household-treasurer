@@ -155,7 +155,7 @@ class NfrPerf03ImportPreviewTest extends TestCase
                 'user_id' => $user->id,
                 'type' => FinancialOperationType::Expense->value,
                 'account_id' => $account->id,
-                'category_id' => $categoryIdsByYear[$year][$shop % self::CATEGORIES_COUNT],
+                'budget_line_id' => $categoryIdsByYear[$year][$shop % self::CATEGORIES_COUNT],
                 'budget_id' => $budgetIdsByYear[$year],
                 'operation_date' => $date,
                 'amount_minor_units' => 1000 + ($index % 100),

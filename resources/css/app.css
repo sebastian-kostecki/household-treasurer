@@ -148,7 +148,7 @@
     --ring: #0b6a7b;
     --scrim: rgba(15, 27, 45, 0.45);
     --dialog-shadow: 0 24px 60px rgba(15, 27, 45, 0.25);
-    --chart-1: hsl(189 85% 28%);
+    --chart-1: #0b6f8a;
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
@@ -223,7 +223,7 @@
     --ring: #5fd4c4;
     --scrim: rgba(0, 0, 0, 0.6);
     --dialog-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-    --chart-1: hsl(189 70% 40%);
+    --chart-1: #2fb4d4;
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
@@ -1402,6 +1402,58 @@
 
     .budget-category-group-hint {
         @apply meta text-muted-foreground pointer-events-none absolute inset-0 flex items-center py-2 pr-4 pl-10;
+    }
+
+    /**
+     * Period Report table (ADR-0070): one markup on every width, columns
+     * Kategoria | Kwota | Udział; income has no Udział column. A group is a
+     * `muted` band like in the Budget, its Categories stand indented.
+     */
+    .report-grid {
+        @apply grid w-full items-center gap-x-4;
+        grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto) 4.5rem;
+    }
+
+    .report-grid-no-share {
+        grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
+    }
+
+    /* Kitchen sink only: a phone-wide frame for the Reports scenarios. */
+    .report-phone-frame {
+        @apply mx-auto w-full;
+        max-width: 22rem;
+    }
+
+    .report-header-row {
+        @apply table-header border-border-soft border-b px-4 py-2;
+    }
+
+    .report-row {
+        @apply border-border-soft min-h-row border-b px-4 py-2 text-sm;
+    }
+
+    .report-group-row {
+        @apply bg-muted border-border/60 min-h-row border-b px-4 py-3 text-sm;
+    }
+
+    .report-row-nested {
+        @apply pl-10;
+    }
+
+    .report-total-row {
+        @apply min-h-row px-4 py-3 text-sm;
+    }
+
+    .report-cell-name {
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .report-cell-amount {
+        @apply amount text-right;
+    }
+
+    .report-cell-share {
+        @apply amount text-muted-foreground text-right;
     }
 
     .budget-category-header-row {

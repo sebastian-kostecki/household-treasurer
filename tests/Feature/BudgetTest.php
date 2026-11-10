@@ -289,6 +289,18 @@ class BudgetTest extends TestCase
             ->assertRedirect(route('month-plan'));
     }
 
+    public function test_select_year_with_reports_destination_redirects_to_reports(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'reports'])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('budget_year', 2025)
+            ->assertRedirect(route('reports'));
+    }
+
     public function test_select_year_rejects_an_unknown_destination(): void
     {
         $user = User::factory()->create();

@@ -145,11 +145,11 @@ class BudgetController extends Controller
 
         $request->session()->put('budget_year', $validated['year']);
 
-        if (($validated['destination'] ?? 'budget') === 'month-plan') {
-            return to_route('month-plan');
-        }
-
-        return to_route('budget');
+        return match ($validated['destination'] ?? 'budget') {
+            'month-plan' => to_route('month-plan'),
+            'reports' => to_route('reports'),
+            default => to_route('budget'),
+        };
     }
 
     public function startExecution(Request $request, Budget $budget, StartBudgetExecution $startBudgetExecution): RedirectResponse

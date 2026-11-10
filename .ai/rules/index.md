@@ -18,7 +18,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | resources/js/**/*.vue | .ai/rules/js.md |
 | database/migrations/**/*.php, tests/Feature/Migrations/** | .ai/rules/migrations.md |
 | app/Support/MonthRemainingCalculator.php, app/Support/ToSpendCalculator.php, app/Support/MonthItemDeviation.php, app/Support/MonthPaceCalculator.php, resources/js/lib/month-remaining-calculator*.ts, resources/js/lib/to-spend-calculator*.ts, resources/js/lib/month-item-deviation*.ts, resources/js/lib/month-pace-calculator*.ts, resources/js/lib/hand-entry-month-remaining-preview.ts, resources/js/lib/import-month-remaining-warnings.ts, resources/js/lib/entry-to-spend-warning*.ts, resources/js/lib/import-to-spend-warnings*.ts, tests/Unit/MonthRemainingCalculatorTest.php, tests/Unit/ToSpendCalculatorTest.php, tests/Unit/MonthItemDeviationTest.php, tests/Unit/MonthPaceCalculatorTest.php | .ai/rules/month-calculators.md |
-| app/Support/**/*.php, resources/js/pages/**/*.vue, resources/js/components/ui/chart/**, tests/Feature/Nfr/*.php | .ai/rules/reports.md |
+| app/Support/**/*.php, resources/js/pages/**/*.vue, resources/js/components/ui/chart/**, tests/Feature/Nfr/*.php, resources/js/components/Report*.vue, resources/js/lib/format-share*.ts, resources/js/lib/report-chart*.ts, resources/js/lib/reports-fixtures.ts, tests/Unit/ReportsHardcodedUiTest.php | .ai/rules/reports.md |
 | app/**/*.php, .sloppy-baseline.json | .ai/rules/sloppy.md |
 | app/Actions/BackupUserData.php, app/Actions/RestoreUserData.php, tests/Feature/UserSnapshotCommandTest.php, tests/Feature/ApplicationBackupRestoreTest.php | .ai/rules/snapshot.md |
 | app/Support/DashboardNotices.php | .ai/rules/support.md |

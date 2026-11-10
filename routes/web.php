@@ -16,6 +16,7 @@ use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\DialogsKitchenSinkController;
 use App\Http\Controllers\Dev\ImportPreviewKitchenSinkController;
 use App\Http\Controllers\Dev\ImportStartKitchenSinkController;
+use App\Http\Controllers\Dev\ReportsKitchenSinkController;
 use App\Http\Controllers\Dev\SettingsKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthPlanController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OwnTransferController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TermDepositController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dev/ui/dialogs', [DialogsKitchenSinkController::class, 'show'])->name('dev.ui.dialogs');
     Route::post('dev/ui/dialogs/validate', [DialogsKitchenSinkController::class, 'validate'])->name('dev.ui.dialogs.validate');
     Route::get('dev/ui/settings', [SettingsKitchenSinkController::class, 'show'])->name('dev.ui.settings');
+    Route::get('dev/ui/reports', [ReportsKitchenSinkController::class, 'show'])->name('dev.ui.reports');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');
     Route::get('dev/ui/term-deposits', [TermDepositsKitchenSinkController::class, 'show'])->name('dev.ui.term-deposits');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])
@@ -58,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
     Route::get('command-palette/categories', CommandPaletteCategoryController::class)->name('command-palette.categories');
     Route::get('month-plan', [MonthPlanController::class, 'show'])->name('month-plan');
+    Route::get('reports', [ReportController::class, 'show'])->name('reports');
     if (app()->environment('local')) {
         Route::inertia('dev/month-plan', 'dev/MonthPlanSink');
         Route::inertia('dev/operations', 'dev/OperationsSink');
