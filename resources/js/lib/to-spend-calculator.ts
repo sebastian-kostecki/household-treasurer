@@ -1,6 +1,9 @@
+import type { MonthRhythm } from '../types/month-plan';
+
 export type ToSpendItem = {
     type: 'income' | 'expense';
-    kind: 'bill' | 'running' | null;
+    /** The Rhythm of the item's Category in the month; null for an income. */
+    rhythm: MonthRhythm | null;
     plan: number;
     actual: number;
     hasPositiveAmount: boolean;
@@ -33,7 +36,7 @@ export function toSpendBreakdown(
             continue;
         }
 
-        if (item.kind === 'bill') {
+        if (item.rhythm === 'fixed_charge') {
             expenseMinorUnits += item.hasPositiveAmount
                 ? item.actual
                 : item.plan;

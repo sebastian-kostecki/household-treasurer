@@ -584,30 +584,30 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 #### Automated
 
-- [x] 3.1 Testy propozycji i strony planu przechodzą na PostgreSQL
-- [x] 3.2 Test literałów UI planu przechodzi
+- [x] 3.1 Testy propozycji i strony planu przechodzą na PostgreSQL — 8108d17
+- [x] 3.2 Test literałów UI planu przechodzi — 8108d17
 - [ ] 3.3 E2E przechodzi
-- [x] 3.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 3.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — 8108d17
 
 #### Manual
 
-- [x] 3.5 Grudzień 2026 na dev proponuje kwoty z rytmu, a listopad się nie zmienia
-- [x] 3.6 Stała opłata proponuje kwotę zapłaconą w poprzednim miesiącu
-- [x] 3.7 `/dev/month-plan` pokazuje nowe stany
+- [x] 3.5 Grudzień 2026 na dev proponuje kwoty z rytmu, a listopad się nie zmienia — 8108d17
+- [x] 3.6 Stała opłata proponuje kwotę zapłaconą w poprzednim miesiącu — 8108d17
+- [x] 3.7 `/dev/month-plan` pokazuje nowe stany — 8108d17
 
 ### Phase 4: Odczyty miesiąca z rytmu
 
 #### Automated
 
-- [ ] 4.1 Testy jednostkowe par przechodzą
-- [ ] 4.2 Testy odczytów miesiąca przechodzą na PostgreSQL
-- [ ] 4.3 E2E przechodzi
-- [ ] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Testy jednostkowe par przechodzą
+- [x] 4.2 Testy odczytów miesiąca przechodzą na PostgreSQL
+- [x] 4.3 E2E przechodzi
+- [x] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 4.5 „Do wydania” listopada 2026 na dev bez zmian
-- [ ] 4.6 Ostrzeżenie „do wydania” dla stałej opłaty działa jak dla rachunku
+- [x] 4.5 „Do wydania” listopada 2026 na dev bez zmian
+- [x] 4.6 Ostrzeżenie „do wydania” dla stałej opłaty działa jak dla rachunku
 
 ### Phase 5: Odczyty roku, „Pozostało w miesiącu” i strona Budżet
 

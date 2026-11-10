@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
@@ -89,6 +90,32 @@ class MonthToSpendTest extends TestCase
 
         $this->assertContains($archived->id, $toSpend->categories->pluck('id')->all());
         $this->assertSame(353_000, $toSpend->toSpendMinorUnits());
+    }
+
+    public function test_the_rhythm_of_each_month_decides_how_the_item_counts(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $subscription = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Abonament', 'planned_amount_minor_units' => 1_200_000,
+        ]);
+        $subscription->category->rhythms()->delete();
+        $subscription->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $subscription->category->rhythms()->create(['start_year' => 2026, 'start_month' => 6, 'rhythm' => Rhythm::FixedCharge]);
+
+        foreach ([5 => '2026-05-10', 6 => '2026-06-10'] as $month => $date) {
+            $plan = MonthPlan::factory()->for($budget)->create(['month' => $month]);
+            MonthPlanItem::query()->create([
+                'month_plan_id' => $plan->id,
+                'budget_line_id' => $subscription->id,
+                'approved_amount_minor_units' => 100_000,
+                'current_amount_minor_units' => 100_000,
+            ]);
+            $this->operation($user, $budget, $subscription, $date, 80_000);
+        }
+
+        $this->assertSame(-100_000, MonthToSpend::forMonth($budget, 5, $this->today)->toSpendMinorUnits());
+        $this->assertSame(-80_000, MonthToSpend::forMonth($budget, 6, $this->today)->toSpendMinorUnits());
     }
 
     /**

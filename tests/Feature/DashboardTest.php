@@ -1046,7 +1046,7 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_notices_one_off_over_plan_at_zero_and_over_limit(): void
+    public function test_dashboard_notices_an_even_annual_item_over_the_year_but_not_over_the_month_plan(): void
     {
         $this->travelTo('2026-09-23');
 
@@ -1076,15 +1076,6 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('dashboardNotices', [
-                    [
-                        'kind' => 'month_item_over_plan',
-                        'severity' => 'exceeded',
-                        'id' => $insurance->category_id,
-                        'name' => 'Insurance',
-                        'icon' => 'shield',
-                        'color' => '#228be6',
-                        'amount_minor_units' => -300_000,
-                    ],
                     [
                         'kind' => 'one_off_over_limit',
                         'severity' => 'exceeded',

@@ -72,7 +72,8 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.income_items.0.name', 'Pensja')
                 ->where('monthPlan.income_items.0.category_id', BudgetLine::query()->whereKey($user->budgets()->first()->budgetLines()->ofType(CategoryType::Income)->value('id'))->value('category_id'))
                 ->where('monthPlan.income_items.0.type', 'income')
-                ->where('monthPlan.income_items.0.month_item_kind', null)
+                ->missing('monthPlan.income_items.0.month_item_kind')
+                ->missing('monthPlan.income_items.0.is_one_off')
                 ->where('monthPlan.income_items.0.plan_minor_units', 800_000)
                 ->where('monthPlan.income_items.0.actual_minor_units', 0)
                 ->where('monthPlan.income_items.0.has_positive_amount', false)
@@ -80,7 +81,8 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.income_items.0.approved_minor_units', null)
                 ->where('monthPlan.income_items.0.is_join_candidate', false)
                 ->where('monthPlan.expense_items.0.name', 'Czynsz')
-                ->where('monthPlan.expense_items.0.month_item_kind', 'bill')
+                ->missing('monthPlan.expense_items.0.month_item_kind')
+                ->missing('monthPlan.expense_items.0.is_one_off')
                 ->where('monthPlan.expense_items.0.plan_minor_units', 200_000)
                 ->where('monthPlan.expense_items.0.actual_minor_units', 195_000)
                 ->where('monthPlan.expense_items.0.has_positive_amount', true)
@@ -89,10 +91,11 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.0.is_idle_even_annual', false)
                 ->where('monthPlan.income_items.0.rhythm', null)
                 ->missing('monthPlan.expense_items.0.can_change_kind')
-                ->where('monthPlan.expense_items.1.month_item_kind', 'running')
                 ->where('monthPlan.expense_items.1.rhythm', 'running')
                 ->where('monthPlan.expense_items.3.name', 'Prezent')
-                ->where('monthPlan.expense_items.3.is_one_off', true)
+                ->missing('monthPlan.expense_items.3.is_one_off')
+                ->where('monthPlan.expense_items.3.year_execution_minor_units', 0)
+                ->where('monthPlan.expense_items.3.current_plan_minor_units', 100_000)
                 ->where('monthPlan.expense_items.3.rhythm', 'even_annual')
                 ->where('monthPlan.expense_items.3.plan_minor_units', 8_333)
                 ->where('monthPlan.expense_items.3.actual_minor_units', 30_000),
@@ -902,9 +905,56 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.2.is_over_plan', true)
                 ->where('monthPlan.expense_items.3.name', 'Prezent')
                 ->where('monthPlan.expense_items.3.deviation_minor_units', 21_667)
-                ->where('monthPlan.expense_items.3.is_over_plan', true)
+                ->where('monthPlan.expense_items.3.is_over_plan', false)
                 ->where('monthPlan.expense_items.3.is_settled', false)
                 ->where('monthPlan.expense_items.3.is_idle_even_annual', false),
+            );
+    }
+
+    public function test_an_even_annual_row_is_over_plan_when_the_year_exceeds_the_current_plan(): void
+    {
+        [$user, , $categories] = $this->canonicalBudget();
+        $categories['gift']->update(['execution_minor_units' => 130_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.3.name', 'Prezent')
+                ->where('monthPlan.expense_items.3.year_execution_minor_units', 130_000)
+                ->where('monthPlan.expense_items.3.current_plan_minor_units', 100_000)
+                ->where('monthPlan.expense_items.3.is_over_plan', true),
+            );
+    }
+
+    public function test_the_rhythm_of_the_viewed_month_decides_the_settlement_reading_of_a_row(): void
+    {
+        [$user, , $categories] = $this->canonicalBudget();
+        $food = $categories['food'];
+        $food->category->rhythms()->delete();
+        $food->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $food->category->rhythms()->create(['start_year' => 2026, 'start_month' => 7, 'rhythm' => Rhythm::FixedCharge]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 7]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.1.name', 'Jedzenie')
+                ->where('monthPlan.expense_items.1.rhythm', 'fixed_charge')
+                ->where('monthPlan.expense_items.1.deviation_minor_units', null)
+                ->where('monthPlan.expense_items.1.is_settled', false),
+            );
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 6]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.1.rhythm', 'running')
+                ->where('monthPlan.expense_items.1.deviation_minor_units', -90_000)
+                ->where('monthPlan.expense_items.1.is_settled', false),
             );
     }
 

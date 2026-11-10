@@ -10,35 +10,35 @@ function canonicalItems(
     return [
         {
             type: 'income',
-            kind: null,
+            rhythm: null,
             plan: 800_000,
             actual: salaryActual,
             hasPositiveAmount: salaryActual > 0,
         },
         {
             type: 'expense',
-            kind: 'bill',
+            rhythm: 'fixed_charge',
             plan: 200_000,
             actual: rentActual,
             hasPositiveAmount: rentHasPositive,
         },
         {
             type: 'expense',
-            kind: 'running',
+            rhythm: 'running',
             plan: 150_000,
             actual: 60_000,
             hasPositiveAmount: true,
         },
         {
             type: 'expense',
-            kind: 'running',
+            rhythm: 'running',
             plan: 40_000,
             actual: 52_000,
             hasPositiveAmount: true,
         },
         {
             type: 'expense',
-            kind: 'running',
+            rhythm: 'running',
             plan: 0,
             actual: 30_000,
             hasPositiveAmount: true,
@@ -70,14 +70,14 @@ test('result can be negative', () => {
             [
                 {
                     type: 'income',
-                    kind: null,
+                    rhythm: null,
                     plan: 100_000,
                     actual: 0,
                     hasPositiveAmount: false,
                 },
                 {
                     type: 'expense',
-                    kind: 'running',
+                    rhythm: 'running',
                     plan: 20_000,
                     actual: 150_000,
                     hasPositiveAmount: true,
@@ -92,28 +92,28 @@ function setAsideExampleItems(): ToSpendItem[] {
     return [
         {
             type: 'income',
-            kind: null,
+            rhythm: null,
             plan: 600_000,
             actual: 0,
             hasPositiveAmount: false,
         },
         {
             type: 'expense',
-            kind: 'bill',
+            rhythm: 'fixed_charge',
             plan: 200_000,
             actual: 195_000,
             hasPositiveAmount: true,
         },
         {
             type: 'expense',
-            kind: 'running',
+            rhythm: 'running',
             plan: 150_000,
             actual: 40_000,
             hasPositiveAmount: true,
         },
         {
             type: 'expense',
-            kind: 'running',
+            rhythm: 'running',
             plan: 30_000,
             actual: 35_000,
             hasPositiveAmount: true,
@@ -149,14 +149,14 @@ test('breakdown counts a running item at the greater of plan and actual', () => 
         [
             {
                 type: 'expense',
-                kind: 'running',
+                rhythm: 'running',
                 plan: 150_000,
                 actual: 60_000,
                 hasPositiveAmount: true,
             },
             {
                 type: 'expense',
-                kind: 'running',
+                rhythm: 'running',
                 plan: 40_000,
                 actual: 52_000,
                 hasPositiveAmount: true,
@@ -188,3 +188,27 @@ test.each([50_000, -30_000])(
         ).toBe(breakdown.toSpendMinorUnits);
     },
 );
+
+test('an even annual item counts at the greater of plan and actual', () => {
+    const breakdown = toSpendBreakdown(
+        [
+            {
+                type: 'expense',
+                rhythm: 'even_annual',
+                plan: 19_833,
+                actual: 0,
+                hasPositiveAmount: false,
+            },
+            {
+                type: 'expense',
+                rhythm: 'even_annual',
+                plan: 0,
+                actual: 238_000,
+                hasPositiveAmount: true,
+            },
+        ],
+        0,
+    );
+
+    expect(breakdown.expenseMinorUnits).toBe(19_833 + 238_000);
+});

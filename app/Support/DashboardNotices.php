@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Enums\DashboardNoticeSeverity;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\TermDeposit;
@@ -125,12 +126,21 @@ class DashboardNotices
                     continue;
                 }
 
+                $rhythm = $monthReading->rhythmOf($category);
+
+                if ($rhythm === Rhythm::EvenAnnual) {
+                    continue;
+                }
+
                 $amounts = $monthReading->rowAmounts($category);
 
                 if (! MonthItemDeviation::isOverPlan(
                     $category->category->type,
+                    $rhythm,
                     $amounts['plan_minor_units'],
                     $amounts['actual_minor_units'],
+                    $category->execution_minor_units,
+                    $category->planned_amount_minor_units,
                 )) {
                     continue;
                 }

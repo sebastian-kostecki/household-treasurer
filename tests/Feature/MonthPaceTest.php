@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
@@ -83,6 +84,24 @@ class MonthPaceTest extends TestCase
 
         $this->assertSame(190_000, $pace['pool_plan_minor_units']);
         $this->assertSame(132_000, $pace['pool_actual_minor_units']);
+    }
+
+    public function test_a_rhythm_changed_in_june_enters_the_pool_in_june_not_before(): void
+    {
+        [, $budget, $categories] = $this->canonicalBudget();
+        $gift = $categories['gift']->category;
+        $gift->rhythms()->delete();
+        $gift->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::EvenAnnual]);
+        $gift->rhythms()->create(['start_year' => 2026, 'start_month' => 7, 'rhythm' => Rhythm::Running]);
+
+        $june = $this->pace($budget, 6);
+        $this->assertSame(190_000, $june['pool_plan_minor_units']);
+
+        $gift->rhythms()->delete();
+        $gift->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::EvenAnnual]);
+        $gift->rhythms()->create(['start_year' => 2026, 'start_month' => 6, 'rhythm' => Rhythm::Running]);
+
+        $this->assertSame(190_000 + 8_333, $this->pace($budget, 6)['pool_plan_minor_units']);
     }
 
     public function test_past_month_without_a_plan_has_no_pace(): void

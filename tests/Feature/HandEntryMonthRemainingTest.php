@@ -53,7 +53,11 @@ test('operations page includes hand entry month remaining inputs', function () {
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.3', 10_000)
             ->has('entryToSpend.budgets', 1)
             ->where('entryToSpend.budgets.0.year', 2026)
-            ->where('entryToSpend.budgets.0.categories.0.id', $category->category_id)
+            ->where('entryToSpend.budgets.0.categories.0', [
+                'id' => $category->category_id,
+                'type' => 'expense',
+                'rhythms' => array_fill_keys(range(1, 12), 'running'),
+            ])
             ->where('entryToSpend.budgets.0.months.0.month', 6),
         );
 });

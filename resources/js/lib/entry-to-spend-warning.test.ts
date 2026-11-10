@@ -12,16 +12,23 @@ import type {
     ToSpendEntryChange,
 } from './entry-to-spend-warning';
 
+import type { MonthRhythm } from '../types/month-plan';
 const SALARY = 1;
 const RENT = 2;
 const GROCERIES = 3;
 const ONE_TIME = 4;
 
+function allMonths(rhythm: MonthRhythm): Record<number, MonthRhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
 const categories: EntryToSpendCategory[] = [
-    { id: SALARY, type: 'income', month_item_kind: null },
-    { id: RENT, type: 'expense', month_item_kind: 'bill' },
-    { id: GROCERIES, type: 'expense', month_item_kind: 'running' },
-    { id: ONE_TIME, type: 'expense', month_item_kind: 'running' },
+    { id: SALARY, type: 'income', rhythms: null },
+    { id: RENT, type: 'expense', rhythms: allMonths('fixed_charge') },
+    { id: GROCERIES, type: 'expense', rhythms: allMonths('running') },
+    { id: ONE_TIME, type: 'expense', rhythms: allMonths('running') },
 ];
 
 function item(
@@ -473,4 +480,62 @@ test('readings: a month without a plan gives no reading', () => {
             change(GROCERIES, 9_000_000, 'add', '2026-10-10'),
         ]),
     ).toEqual([]);
+});
+
+test('the Rhythm of the operation month decides the To Spend rule', () => {
+    const CHANGED = 5;
+    const changedInNovember: Record<number, MonthRhythm> = Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [
+            index + 1,
+            index + 1 >= 11 ? 'fixed_charge' : 'running',
+        ]),
+    );
+    const planned = (month: number): EntryToSpendInputs => ({
+        budgets: [
+            {
+                year: 2026,
+                categories: [
+                    { id: SALARY, type: 'income', rhythms: null },
+                    {
+                        id: CHANGED,
+                        type: 'expense',
+                        rhythms: changedInNovember,
+                    },
+                ],
+                months: [
+                    {
+                        month,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 100_000), item(CHANGED, 80_000)],
+                    },
+                ],
+            },
+        ],
+    });
+
+    // Running keeps the plan of 80 000, a Fixed Charge counts at its payment.
+    expect(
+        previewToSpendReadings(planned(10), [
+            change(CHANGED, 20_000, 'add', '2026-10-10'),
+        ]),
+    ).toEqual([
+        {
+            year: 2026,
+            month: 10,
+            beforeMinorUnits: 20_000,
+            afterMinorUnits: 20_000,
+        },
+    ]);
+    expect(
+        previewToSpendReadings(planned(11), [
+            change(CHANGED, 20_000, 'add', '2026-11-10'),
+        ]),
+    ).toEqual([
+        {
+            year: 2026,
+            month: 11,
+            beforeMinorUnits: 20_000,
+            afterMinorUnits: 80_000,
+        },
+    ]);
 });

@@ -238,7 +238,11 @@ const tables = reactive<TableConfig[]>([
         'empty',
         'Pusta grupa (dochody i wydatki bez pozycji)',
         approvedReading,
-        { incomeRows: [], expenseRows: [], idleRows: [] },
+        {
+            incomeRows: [],
+            expenseRows: [],
+            idleRows: [],
+        },
     ),
 ]);
 
@@ -261,8 +265,10 @@ function readingOf(
 
     const item = {
         type: row.type,
-        kind: row.month_item_kind,
+        rhythm: row.rhythm,
         plan: fieldAmount,
+        yearExecution: row.year_execution_minor_units,
+        currentPlan: row.current_plan_minor_units,
         actual: row.actual_minor_units,
         hasPositiveAmount: row.has_positive_amount,
     };

@@ -463,7 +463,7 @@ class IncomeTest extends TestCase
 
         $before = collect($entryToSpend())->firstWhere('id', $refunds->id);
 
-        $this->assertSame(['id' => $refunds->id, 'type' => 'income', 'month_item_kind' => null], $before);
+        $this->assertSame(['id' => $refunds->id, 'type' => 'income', 'rhythms' => null], $before);
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-11-12',

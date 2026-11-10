@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 
 /**
  * The To Spend rule. `toSpendMinorUnits` and `breakdown` (the income and
@@ -17,7 +17,7 @@ class ToSpendCalculator
     /**
      * The signed set-aside (a draw is negative) is subtracted from the month's net.
      *
-     * @param  list<array{type: CategoryType, kind: MonthItemKind, plan: int, actual: int, has_positive_amount: bool}>  $items
+     * @param  list<array{type: CategoryType, rhythm: ?Rhythm, plan: int, actual: int, has_positive_amount: bool}>  $items
      */
     public static function toSpendMinorUnits(array $items, int $setAsideMinorUnits): int
     {
@@ -27,7 +27,7 @@ class ToSpendCalculator
     /**
      * The income and expense the To Spend number is built from, next to the number.
      *
-     * @param  list<array{type: CategoryType, kind: MonthItemKind, plan: int, actual: int, has_positive_amount: bool}>  $items
+     * @param  list<array{type: CategoryType, rhythm: ?Rhythm, plan: int, actual: int, has_positive_amount: bool}>  $items
      * @return array{income_minor_units: int, expense_minor_units: int, to_spend_minor_units: int}
      */
     public static function breakdown(array $items, int $setAsideMinorUnits): array
@@ -38,7 +38,7 @@ class ToSpendCalculator
         foreach ($items as $item) {
             $amount = self::itemMinorUnits(
                 $item['type'],
-                $item['kind'],
+                $item['rhythm'],
                 $item['plan'],
                 $item['actual'],
                 $item['has_positive_amount'],
@@ -60,20 +60,23 @@ class ToSpendCalculator
 
     /**
      * The amount one item counts with in its month, without the direction sign:
-     * an income or a Bill counts at plan until its first positive amount and at
-     * the actual amount after it, a Running item at the greater of plan and actual.
+     * an income or a Fixed Charge counts at plan until its first positive amount and at
+     * the actual amount after it, a Running or Even Annual item at the greater of plan
+     * and actual (ADR-0066).
+     *
+     * `$rhythm` is the Rhythm of the item's Category in the month; null for an income.
      *
      * Shared with the year comparison (MonthYearComparison), which has no copy in
      * resources/js/lib/to-spend-calculator.ts: the page reloads after a save.
      */
     public static function itemMinorUnits(
         CategoryType $type,
-        ?MonthItemKind $kind,
+        ?Rhythm $rhythm,
         int $plan,
         int $actual,
         bool $hasPositiveAmount,
     ): int {
-        if ($type === CategoryType::Income || $kind === MonthItemKind::Bill) {
+        if ($type === CategoryType::Income || $rhythm === Rhythm::FixedCharge) {
             return $hasPositiveAmount ? $actual : $plan;
         }
 

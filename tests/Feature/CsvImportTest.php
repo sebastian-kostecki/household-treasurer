@@ -73,7 +73,11 @@ CSV;
                 ->where('rows.1.amount_minor_units', -4550)
                 ->has('monthRemainingContext.budgets', 1)
                 ->has('entryToSpend.budgets', 1)
-                ->where('entryToSpend.budgets.0.year', 2026),
+                ->where('entryToSpend.budgets.0.year', 2026)
+                ->where('entryToSpend.budgets.0.categories', [
+                    ['id' => $incomeCategory->category_id, 'type' => 'income', 'rhythms' => null],
+                    ['id' => $expenseCategory->category_id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'running')],
+                ]),
             );
     }
 

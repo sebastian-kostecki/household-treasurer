@@ -6,6 +6,7 @@ use App\Actions\ManageFinancialOperation;
 use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -705,6 +706,8 @@ class ExpenseTest extends TestCase
         $oneOff = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
         $older = Budget::factory()->for($user)->create(['year' => 2025, 'phase' => BudgetPhase::Draft]);
         BudgetLine::factory()->for($older)->create(['category_id' => $oneOff->id, 'is_paced' => false, 'month_item_kind' => MonthItemKind::Bill]);
+        $oneOff->rhythms()->delete();
+        $oneOff->rhythms()->create(['start_year' => 2025, 'start_month' => 1, 'rhythm' => Rhythm::FixedCharge]);
 
         $handEntry = fn (): array => collect(HandEntryMonthRemainingInputs::forUser($user)['budgets'])
             ->firstWhere('year', 2026)['categories'];
@@ -724,7 +727,7 @@ class ExpenseTest extends TestCase
             'monthly_execution_minor_units' => array_fill(1, 12, 0),
         ], $handEntryBefore);
         $this->assertSame(['id' => $oneOff->id, 'is_paced' => false, 'planned_amount_minor_units' => 0], $importBefore);
-        $this->assertSame(['id' => $oneOff->id, 'type' => 'expense', 'month_item_kind' => 'bill'], $toSpendBefore);
+        $this->assertSame(['id' => $oneOff->id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge')], $toSpendBefore);
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-11-12',

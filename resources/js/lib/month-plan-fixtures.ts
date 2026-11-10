@@ -13,8 +13,6 @@ function item(overrides: Partial<MonthPlanItem>): MonthPlanItem {
         icon: 'wallet',
         color: '#4f46e5',
         type: 'expense',
-        month_item_kind: 'running',
-        is_one_off: false,
         is_archived: false,
         plan_minor_units: 0,
         actual_minor_units: 0,
@@ -25,6 +23,8 @@ function item(overrides: Partial<MonthPlanItem>): MonthPlanItem {
         is_settled: false,
         is_idle_even_annual: false,
         rhythm: 'running',
+        year_execution_minor_units: 0,
+        current_plan_minor_units: 0,
         even_annual_remaining: null,
         approved_minor_units: null,
         is_join_candidate: false,
@@ -52,7 +52,6 @@ export const runningExpense = item({
 export const paidBill = item({
     category_id: 2,
     name: 'Czynsz',
-    month_item_kind: 'bill',
     rhythm: 'fixed_charge',
     plan_minor_units: 150_000,
     actual_minor_units: 150_000,
@@ -72,7 +71,6 @@ export const settledIncome = item({
     category_id: 3,
     name: 'Wynagrodzenie',
     type: 'income',
-    month_item_kind: null,
     rhythm: null,
     plan_minor_units: 500_000,
     actual_minor_units: 500_000,
@@ -92,7 +90,6 @@ export const waitingIncome = item({
     category_id: 10,
     name: 'Premia',
     type: 'income',
-    month_item_kind: null,
     rhythm: null,
     plan_minor_units: 100_000,
     has_positive_amount: true,
@@ -102,7 +99,6 @@ export const waitingIncome = item({
 export const idleEvenAnnual = item({
     category_id: 4,
     name: 'Prezent urodzinowy',
-    is_one_off: true,
     rhythm: 'even_annual',
     is_idle_even_annual: true,
     plan_minor_units: 0,
@@ -116,7 +112,8 @@ export const idleEvenAnnual = item({
 export const evenAnnualLeft = item({
     category_id: 12,
     name: 'Rekolekcje',
-    is_one_off: true,
+    year_execution_minor_units: 100_000,
+    current_plan_minor_units: 238_000,
     rhythm: 'even_annual',
     plan_minor_units: 19_833,
     deviation_minor_units: 19_833,
@@ -137,7 +134,8 @@ export const evenAnnualLeft = item({
 export const evenAnnualUsedUp = item({
     category_id: 13,
     name: 'Ubezpieczenie samochodu',
-    is_one_off: true,
+    year_execution_minor_units: 54_100,
+    current_plan_minor_units: 54_100,
     rhythm: 'even_annual',
     plan_minor_units: 4_512,
     deviation_minor_units: 4_512,
@@ -155,7 +153,8 @@ export const evenAnnualUsedUp = item({
 export const evenAnnualOver = item({
     category_id: 14,
     name: 'Wakacje',
-    is_one_off: true,
+    year_execution_minor_units: 130_000,
+    current_plan_minor_units: 120_000,
     rhythm: 'even_annual',
     plan_minor_units: 10_000,
     actual_minor_units: 20_000,
@@ -179,7 +178,6 @@ export const evenAnnualOver = item({
 export const evenAnnualFutureLeft = item({
     category_id: 15,
     name: 'Prezenty świąteczne',
-    is_one_off: true,
     rhythm: 'even_annual',
     plan_minor_units: 25_000,
     even_annual_remaining: {
@@ -191,7 +189,6 @@ export const evenAnnualFutureLeft = item({
 export const evenAnnualFutureUsedUp = item({
     category_id: 16,
     name: 'Przegląd roczny',
-    is_one_off: true,
     rhythm: 'even_annual',
     plan_minor_units: 5_000,
     even_annual_remaining: { available_limit_minor_units: 0, months_left: 12 },
@@ -200,7 +197,6 @@ export const evenAnnualFutureUsedUp = item({
 export const evenAnnualFutureOver = item({
     category_id: 17,
     name: 'Naprawy',
-    is_one_off: true,
     rhythm: 'even_annual',
     plan_minor_units: 8_000,
     even_annual_remaining: {
@@ -232,6 +228,8 @@ export const outsidePlanExpense = item({
 export const overPlanExpense = item({
     category_id: 7,
     name: 'Paliwo',
+    year_execution_minor_units: 372_000,
+    current_plan_minor_units: 360_000,
     plan_minor_units: 30_000,
     actual_minor_units: 41_000,
     has_positive_amount: true,
@@ -258,7 +256,6 @@ export const longNameExpense = item({
 export const fixedChargeUnpaid = item({
     category_id: 9,
     name: 'Ubezpieczenie',
-    month_item_kind: 'bill',
     rhythm: 'fixed_charge',
     plan_minor_units: 25_000,
     has_positive_amount: true,

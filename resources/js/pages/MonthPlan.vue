@@ -287,7 +287,7 @@ const toSpendReading = computed<{
     return toSpendBreakdown(
         allRows.value.map((row) => ({
             type: row.type,
-            kind: row.month_item_kind,
+            rhythm: row.rhythm,
             plan: isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0,
             actual: row.actual_minor_units,
             hasPositiveAmount: row.has_positive_amount,
@@ -395,8 +395,10 @@ function rowReading(row: MonthPlanItem): {
 
     const item = {
         type: row.type,
-        kind: row.month_item_kind,
+        rhythm: row.rhythm,
         plan,
+        yearExecution: row.year_execution_minor_units,
+        currentPlan: row.current_plan_minor_units,
         actual: row.actual_minor_units,
         hasPositiveAmount: row.has_positive_amount,
     };

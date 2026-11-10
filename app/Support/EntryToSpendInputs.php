@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
@@ -20,7 +20,7 @@ class EntryToSpendInputs
      *         categories: list<array{
      *             id: int,
      *             type: string,
-     *             month_item_kind: string|null,
+     *             rhythms: array<int, string>|null,
      *         }>,
      *         months: list<array{
      *             month: int,
@@ -60,11 +60,11 @@ class EntryToSpendInputs
     }
 
     /**
-     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningExpenses  expense Categories that join the Budget at their first use: no plan item, Running or the flags of their newest line
-     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningIncomes  income Categories that join the Budget at their first use: no plan item and no Month Item Kind
+     * @param  list<array{category_id: int}>  $joiningExpenses  expense Categories that join the Budget at their first use: no plan item, their Rhythm by month
+     * @param  list<array{category_id: int}>  $joiningIncomes  income Categories that join the Budget at their first use: no plan item and no Rhythm
      * @return array{
      *     year: int,
-     *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
+     *     categories: list<array{id: int, type: string, rhythms: array<int, string>|null}>,
      *     months: list<array{
      *         month: int,
      *         set_aside_minor_units: int,
@@ -93,6 +93,12 @@ class EntryToSpendInputs
         $actualsByMonth = MonthCategoryActuals::forMonths($budget, array_keys($readings));
 
         $listCategoryIds = $budget->budgetLines->pluck('category_id', 'id');
+        $rhythms = CategoryRhythms::forCategoryIds([
+            ...$listCategoryIds->values()->all(),
+            ...array_column($joiningExpenses, 'category_id'),
+            ...array_column($joiningIncomes, 'category_id'),
+        ]);
+        $rhythmsOf = fn (int $categoryId): ?array => self::rhythmValues($rhythms, $categoryId, $budget->year);
         $months = [];
 
         foreach ($readings as $month => $reading) {
@@ -127,24 +133,34 @@ class EntryToSpendInputs
                     ->map(fn (BudgetLine $category): array => [
                         'id' => $category->category_id,
                         'type' => $category->category->type->value,
-                        'month_item_kind' => $category->hasType(CategoryType::Income)
-                            ? null
-                            : $category->month_item_kind->value,
+                        'rhythms' => $rhythmsOf($category->category_id),
                     ])
                     ->values()
                     ->all(),
                 ...array_map(fn (array $joining): array => [
                     'id' => $joining['category_id'],
                     'type' => CategoryType::Expense->value,
-                    'month_item_kind' => $joining['month_item_kind']->value,
+                    'rhythms' => $rhythmsOf($joining['category_id']),
                 ], $joiningExpenses),
                 ...array_map(fn (array $joining): array => [
                     'id' => $joining['category_id'],
                     'type' => CategoryType::Income->value,
-                    'month_item_kind' => null,
+                    'rhythms' => null,
                 ], $joiningIncomes),
             ],
             'months' => $months,
         ];
+    }
+
+    /**
+     * @return array<int, string>|null month 1..12 => Rhythm value; null for an income Category
+     */
+    private static function rhythmValues(CategoryRhythms $rhythms, int $categoryId, int $year): ?array
+    {
+        $byMonth = $rhythms->rhythmsInYear($categoryId, $year);
+
+        return $byMonth === null
+            ? null
+            : array_map(fn (Rhythm $rhythm): string => $rhythm->value, $byMonth);
     }
 }

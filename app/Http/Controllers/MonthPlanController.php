@@ -218,6 +218,8 @@ class MonthPlanController extends Controller
             ->openForChoice()
             ->whereNotIn('id', $knownIds)
             ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->values()
             ->all();
 
         if ($joinCandidateIds === []) {
@@ -229,13 +231,14 @@ class MonthPlanController extends Controller
                 ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
                 ->ordered()
                 ->get(),
-            $joinCandidateIds,
+            array_values($joinCandidateIds),
         ];
     }
 
     /**
      * @param  iterable<BudgetLine>  $categories
      * @param  list<int>  $joinCandidateIds
+     * @param  'past'|'current'|'future'  $timing
      * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
      */
     private function itemRows(iterable $categories, array $joinCandidateIds, MonthToSpend $toSpend, string $timing, int $month, CarbonImmutable $today): array

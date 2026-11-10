@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -124,7 +126,7 @@ class EntryToSpendInputsTest extends TestCase
         $this->assertSame(5_000, $byCategory[$food->category_id]['plan_minor_units']);
     }
 
-    public function test_categories_include_archived_ones_and_income_has_no_kind(): void
+    public function test_categories_include_archived_ones_and_income_has_no_rhythms(): void
     {
         $budget = $this->budget(2026);
         $bill = BudgetLine::factory()->for($budget)->bill()->create();
@@ -135,9 +137,9 @@ class EntryToSpendInputsTest extends TestCase
         $byId = array_column($categories, null, 'id');
 
         $this->assertCount(3, $categories);
-        $this->assertSame(['id' => $bill->category_id, 'type' => 'expense', 'month_item_kind' => 'bill'], $byId[$bill->category_id]);
-        $this->assertSame('running', $byId[$archived->category_id]['month_item_kind']);
-        $this->assertSame(['id' => $salary->category_id, 'type' => 'income', 'month_item_kind' => null], $byId[$salary->category_id]);
+        $this->assertSame(['id' => $bill->category_id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge')], $byId[$bill->category_id]);
+        $this->assertSame(array_fill_keys(range(1, 12), 'running'), $byId[$archived->category_id]['rhythms']);
+        $this->assertSame(['id' => $salary->category_id, 'type' => 'income', 'rhythms' => null], $byId[$salary->category_id]);
     }
 
     public function test_budget_outside_execution_is_skipped(): void
@@ -148,6 +150,25 @@ class EntryToSpendInputsTest extends TestCase
             ['budgets' => []],
             EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10)),
         );
+    }
+
+    public function test_rhythms_follow_the_history_of_the_category_by_month(): void
+    {
+        $budget = $this->budget(2026);
+        $food = $this->food($budget);
+        $food->category->rhythms()->delete();
+        $food->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $food->category->rhythms()->create(['start_year' => 2026, 'start_month' => 11, 'rhythm' => Rhythm::FixedCharge]);
+        $joining = Category::factory()->for($this->user)->expense()->create(['name' => 'Nowa']);
+
+        $categories = EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['budgets'][0]['categories'];
+        $byId = array_column($categories, null, 'id');
+
+        $this->assertSame(
+            array_replace(array_fill_keys(range(1, 12), 'running'), [11 => 'fixed_charge', 12 => 'fixed_charge']),
+            $byId[$food->category_id]['rhythms'],
+        );
+        $this->assertSame(array_fill_keys(range(1, 12), 'running'), $byId[$joining->id]['rhythms']);
     }
 
     public function test_query_count_does_not_grow_with_the_number_of_planned_months(): void
