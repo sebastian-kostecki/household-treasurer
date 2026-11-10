@@ -78,6 +78,7 @@
   - `ci:check` was rerun. Every non-PHP step passed (lint, check:ui, PHPStan, Vitest).
   - The PHP suite again failed in unrelated files: 13 in `CsvImportTest`/`MonthPlanPageTest`, a third different set. Both files pass alone (143 tests).
   - Cause: the `testing` database is shared with parallel jobs. The full PHP suite cannot be shown green until it runs alone.
+  - Update: after waiting until no other job used the Sail stack (60 s with no extra `sail-8.5/app` containers and no `testing` sessions), `composer ci:check` on PostgreSQL passed in full: 1056 passed, 2 skipped, exit 0. F4 is now fully FIXED.
 
 ### F5 — Concurrent duplicate submit ends in a 500 (predates this change)
 
@@ -111,6 +112,5 @@
 
 ## Triage summary
 
-- Fixed: F1, F2, F3, F6, F7 (5)
-- Fixed (partly): F4: E2E green; the full PHP suite is blocked by the shared `testing` database (1)
+- Fixed: F1, F2, F3, F4, F6, F7 (6); F4 after a full `ci:check` on a quiet database
 - Deferred: F5, see `follow-ups/review-fixes.md` (1)
