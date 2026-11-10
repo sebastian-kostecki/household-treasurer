@@ -106,6 +106,7 @@ const FILES = [
     'resources/js/components/BudgetCategoryList.vue',
     'resources/js/components/BudgetCategoryHeaderRow.vue',
     'resources/js/components/BudgetCategoryRow.vue',
+    'resources/js/components/BudgetCategoryGroupRow.vue',
     'resources/js/components/BudgetAmountCell.vue',
     'resources/js/components/BudgetEmptyState.vue',
     'resources/js/components/BudgetCategoryRowActions.vue',

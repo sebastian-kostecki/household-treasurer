@@ -19,6 +19,8 @@ const props = defineProps<{
     phase: 'draft' | 'execution';
     showHandle: boolean;
     yearElapsedPercent: number | null;
+    /** The row stands under a group row, indented. */
+    nested?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -67,6 +69,7 @@ const remainingLabel = computed(() =>
         :class="{
             'budget-category-grid-draft': isDraft,
             'budget-category-grid-no-handle': !showHandle,
+            'budget-category-row-nested': nested,
             'text-muted-foreground': isArchived,
         }"
     >

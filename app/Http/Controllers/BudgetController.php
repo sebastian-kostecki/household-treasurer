@@ -39,6 +39,8 @@ class BudgetController extends Controller
                 'budget' => null,
                 'incomeCategories' => [],
                 'expenseCategories' => [],
+                'incomeGroups' => [],
+                'expenseGroups' => [],
                 'planSummary' => null,
                 'incomeTotals' => BudgetPlanSummary::emptyTypeTotals(),
                 'expenseTotals' => BudgetPlanSummary::emptyTypeTotals(),
@@ -50,6 +52,7 @@ class BudgetController extends Controller
         }
 
         $allCategories = $budget->budgetLines()
+            ->with('category.group')
             ->ordered()
             ->get();
 
@@ -86,6 +89,8 @@ class BudgetController extends Controller
                 ->values()
                 ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
                 ->all(),
+            'incomeGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Income),
+            'expenseGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Expense),
             'planSummary' => $planSummary,
             'incomeTotals' => $planSummary['income'],
             'expenseTotals' => $planSummary['expense'],
@@ -175,6 +180,11 @@ class BudgetController extends Controller
     }
 
     /**
+     * One row of the Budget: the list Category (`id` is the Category id, not the
+     * line id) with the line's amounts. `group_id` and `sort_order` place it in
+     * the tree of the type (ADR-0066); the row of an archived line carries them
+     * too, but the archive section shows no groups.
+     *
      * @param  list<int>  $typeLockedIds  list Category ids whose type cannot change
      * @return array{
      *     id: int,
@@ -182,6 +192,10 @@ class BudgetController extends Controller
      *     icon: string,
      *     color: string,
      *     type: string,
+     *     is_paced: bool,
+     *     month_item_kind: string,
+     *     group_id: int|null,
+     *     sort_order: int,
      *     planned_amount_minor_units: int,
      *     initial_plan_minor_units: int,
      *     current_plan_minor_units: int,
@@ -216,6 +230,8 @@ class BudgetController extends Controller
             'name' => $category->name,
             ...CategoryAppearance::fields($line),
             'type' => $category->type->value,
+            'group_id' => $category->category_group_id,
+            'sort_order' => $category->sort_order,
             'is_paced' => $line->is_paced,
             'month_item_kind' => $line->month_item_kind->value,
             'planned_amount_minor_units' => $line->planned_amount_minor_units,

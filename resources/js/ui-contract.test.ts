@@ -16,6 +16,7 @@ const BUDGET_VIEW_FILES = [
     'components/BudgetCategoryList.vue',
     'components/BudgetCategoryHeaderRow.vue',
     'components/BudgetCategoryRow.vue',
+    'components/BudgetCategoryGroupRow.vue',
     'components/BudgetAmountCell.vue',
     'components/BudgetEmptyState.vue',
     'components/BudgetCategoryRowActions.vue',
@@ -451,6 +452,7 @@ const UNITLESS_TABLE_ROW_FILES = [
     'components/OperationsDayRow.vue',
     'components/MonthYearSummary.vue',
     'components/BudgetCategoryRow.vue',
+    'components/BudgetCategoryGroupRow.vue',
     'components/BudgetAmountCell.vue',
     'components/MonthPlanItemRow.vue',
 ];

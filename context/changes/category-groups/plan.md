@@ -437,30 +437,30 @@ Migracja tylko dodaje tabelę i kolumnę nullable, bez przenoszenia danych; licz
 
 #### Automated
 
-- [x] 3.1 Testy grup i widoku „Kategorie” przechodzą na PostgreSQL
-- [x] 3.2 Testy `category-tree.test.ts` przechodzą
-- [x] 3.3 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
-- [x] 3.4 E2E `tests/e2e/categories.spec.ts` przechodzi lokalnie
-- [x] 3.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 3.1 Testy grup i widoku „Kategorie” przechodzą na PostgreSQL — c452814
+- [x] 3.2 Testy `category-tree.test.ts` przechodzą — c452814
+- [x] 3.3 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą — c452814
+- [x] 3.4 E2E `tests/e2e/categories.spec.ts` przechodzi lokalnie — c452814
+- [x] 3.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — c452814
 
 #### Manual
 
-- [x] 3.6 Grupy, przeciąganie, „W górę / W dół” i usuwanie działają w „Kategoriach” na devie
-- [x] 3.7 Widok działa na telefonie i w ciemnym motywie
+- [x] 3.6 Grupy, przeciąganie, „W górę / W dół” i usuwanie działają w „Kategoriach” na devie — c452814
+- [x] 3.7 Widok działa na telefonie i w ciemnym motywie — c452814
 
 ### Phase 4: Budżet w grupach
 
 #### Automated
 
-- [ ] 4.1 Testy Budżetu i przeciągania przechodzą na PostgreSQL
-- [ ] 4.2 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
-- [ ] 4.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Testy Budżetu i przeciągania przechodzą na PostgreSQL
+- [x] 4.2 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
+- [x] 4.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 4.4 Budżet 2026 z grupami: zwijanie, „ponad plan”, „Razem” bez zmian
-- [ ] 4.5 Przeciągnięcie w Budżecie widać w „Kategoriach” i w szkicu 2027
-- [ ] 4.6 Szkic 2027 z grupami, telefon i ciemny motyw
+- [x] 4.4 Budżet 2026 z grupami: zwijanie, „ponad plan”, „Razem” bez zmian
+- [x] 4.5 Przeciągnięcie w Budżecie widać w „Kategoriach” i w szkicu 2027
+- [x] 4.6 Szkic 2027 z grupami, telefon i ciemny motyw
 
 ### Phase 5: Grupy w selektorze
 

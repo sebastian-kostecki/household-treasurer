@@ -5,6 +5,7 @@ import { computed, ref, watch } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import BudgetCategoryList, {
+    type BudgetCategoryGroup,
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
@@ -53,6 +54,8 @@ const props = defineProps<{
     budget: BudgetSummary | null;
     incomeCategories: BudgetCategoryRow[];
     expenseCategories: BudgetCategoryRow[];
+    incomeGroups: BudgetCategoryGroup[];
+    expenseGroups: BudgetCategoryGroup[];
     planSummary: PlanSummary | null;
     incomeTotals: DashboardTypeTotals;
     expenseTotals: DashboardTypeTotals;
@@ -250,6 +253,7 @@ function openDeleteBudgetDialog(): void {
                 <BudgetCategoryList
                     :title="t.budget.income_table"
                     :categories="incomeCategories"
+                    :groups="incomeGroups"
                     :budget-id="budget.id"
                     category-type="income"
                     :phase="budget.phase"
@@ -263,6 +267,7 @@ function openDeleteBudgetDialog(): void {
                 <BudgetCategoryList
                     :title="t.budget.expense_table"
                     :categories="expenseCategories"
+                    :groups="expenseGroups"
                     :budget-id="budget.id"
                     category-type="expense"
                     :phase="budget.phase"

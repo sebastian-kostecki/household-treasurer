@@ -4,86 +4,41 @@ namespace App\Actions;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use App\Models\BudgetLine;
 
 /**
- * Drag and drop on the Budget page sets the list order (ADR-0063). The order
- * belongs to the whole list of the type, across years, so the given list
- * Categories are placed in the order given into the slots they already hold
- * in the list, the other Categories of the type (only in other years, archived
- * lines) keep their place, and the whole list is renumbered 0 to n-1.
+ * Drag and drop on the Budget page (ADR-0063, ADR-0066). The Budget shows the
+ * active lines of one year and the groups of their Categories, so that is the
+ * set the submitted tree must be; `ReorderCategoryList` does the rest, the same
+ * as for „Kategorie”.
  */
 class ReorderCategories
 {
+    public function __construct(private readonly ReorderCategoryList $reorderCategoryList) {}
+
     /**
-     * @param  list<int>  $categoryIds  ids of list Categories
+     * @param  list<array{kind: 'group', id: int, category_ids: list<int>}|array{kind: 'category', id: int}>  $items
      */
-    public function handle(Budget $budget, CategoryType $type, array $categoryIds): void
+    public function handle(Budget $budget, CategoryType $type, array $items): void
     {
-        $activeCategoryIds = $budget->budgetLines()
+        $visibleCategories = $budget->budgetLines()
             ->whereNull('archived_at')
             ->ofType($type)
-            ->ordered()
-            ->pluck('category_id')
-            ->map(fn ($id): int => (int) $id)
-            ->all();
+            ->with('category')
+            ->get()
+            ->map(fn (BudgetLine $line) => $line->category);
 
-        $submittedIds = $categoryIds;
-        sort($submittedIds);
-        $expectedIds = $activeCategoryIds;
-        sort($expectedIds);
-
-        if ($submittedIds !== $expectedIds) {
-            throw ValidationException::withMessages([
-                'category_ids' => __('The category order is invalid.'),
-            ]);
-        }
-
-        DB::transaction(function () use ($budget, $type, $categoryIds): void {
-            $listOrder = $this->listOrder($budget, $type, $categoryIds);
-
-            $bindings = [];
-            foreach ($listOrder as $index => $categoryId) {
-                $bindings[] = $categoryId;
-                $bindings[] = $index;
-            }
-            $placeholders = implode(',', array_fill(0, count($listOrder), '?'));
-
-            DB::update(
-                'UPDATE categories SET sort_order = CASE id'
-                .str_repeat(' WHEN ? THEN CAST(? AS INTEGER)', count($listOrder))
-                .' END WHERE id IN ('.$placeholders.')',
-                [...$bindings, ...$listOrder],
-            );
-        });
-    }
-
-    /**
-     * The whole list of the type in its current order, with the slots of the
-     * given Categories refilled in the order given.
-     *
-     * @param  list<int>  $categoryIds
-     * @return list<int>
-     */
-    private function listOrder(Budget $budget, CategoryType $type, array $categoryIds): array
-    {
-        $submitted = array_flip($categoryIds);
-        $queue = $categoryIds;
-        $listOrder = [];
-
-        $currentOrder = $budget->user->categories()
-            ->where('type', $type->value)
-            ->orderBy('sort_order')
-            ->orderBy('name_key')
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->pluck('id');
-
-        foreach ($currentOrder as $id) {
-            $listOrder[] = isset($submitted[(int) $id]) ? (int) array_shift($queue) : (int) $id;
-        }
-
-        return $listOrder;
+        $this->reorderCategoryList->handle(
+            $budget->user,
+            $type,
+            $items,
+            array_values($visibleCategories->map(fn ($category): int => $category->id)->all()),
+            array_values($visibleCategories
+                ->pluck('category_group_id')
+                ->filter()
+                ->map(fn ($id): int => (int) $id)
+                ->unique()
+                ->all()),
+        );
     }
 }

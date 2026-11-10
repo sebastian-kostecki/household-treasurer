@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import BudgetCategoryList, {
+    type BudgetCategoryGroup,
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
@@ -25,6 +26,8 @@ function row(overrides: RowOverrides): BudgetCategoryRow {
     return {
         icon: 'tag',
         color: DEFAULT_CATEGORY_COLOR,
+        group_id: null,
+        sort_order: overrides.id,
         planned_amount_minor_units: 0,
         initial_plan_minor_units: 0,
         current_plan_minor_units: 0,
@@ -126,6 +129,28 @@ function totalsOf(
     };
 }
 
+function groupOf(
+    id: number,
+    name: string,
+    sortOrder: number,
+    rows: BudgetCategoryRow[],
+    isDraft: boolean,
+): BudgetCategoryGroup {
+    const members = rows.filter(
+        (category) => category.group_id === id && !category.is_archived,
+    );
+
+    return {
+        id,
+        name,
+        sort_order: sortOrder,
+        totals: totalsOf(members, isDraft),
+        has_over_limit_category: members.some(
+            (category) => category.type === 'expense' && category.is_over_limit,
+        ),
+    };
+}
+
 const draftIncome = [
     draftRow(101, 'Wynagrodzenie', 'income', 650000, 'banknote'),
     draftRow(102, 'Premia', 'income', 120000, 'coins'),
@@ -160,6 +185,140 @@ const executionExpense = [
             is_paced: false,
         },
     ),
+];
+
+// Budżet z grupami (ADR-0066): "Opłaty stałe" (Czynsz, Prąd), Jedzenie bez
+// grupy i "Zdrowie" (Apteka, Badania). Jedna sekwencja miejsc dla grup i kategorii.
+const groupedDraftExpense = [
+    draftRow(411, 'Czynsz', 'expense', 250000, 'building', {
+        month_item_kind: 'bill',
+        group_id: 41,
+        sort_order: 1,
+    }),
+    draftRow(412, 'Prąd', 'expense', 40000, 'tag', {
+        month_item_kind: 'bill',
+        group_id: 41,
+        sort_order: 2,
+    }),
+    draftRow(413, 'Jedzenie', 'expense', 180000, 'apple', { sort_order: 3 }),
+    draftRow(414, 'Apteka', 'expense', 120000, 'tag', {
+        group_id: 42,
+        sort_order: 5,
+    }),
+    draftRow(415, 'Badania', 'expense', 80000, 'tag', {
+        group_id: 42,
+        sort_order: 6,
+    }),
+];
+const groupedDraftExpenseGroups = [
+    groupOf(41, 'Opłaty stałe', 0, groupedDraftExpense, true),
+    groupOf(42, 'Zdrowie', 4, groupedDraftExpense, true),
+];
+
+// Zdrowie: Apteka 1 200 / 1 400 (ponad plan), Badania 800 / 300; grupa 2 000 /
+// 1 700, pozostało +300, a mimo to znacznik "ponad plan". Identyfikatory grup
+// są różne w każdej liście, bo id treści grupy trafia do DOM.
+function groupedExecutionExpenseFixture(base: number): {
+    rows: BudgetCategoryRow[];
+    groups: BudgetCategoryGroup[];
+} {
+    const fixed = base + 1;
+    const health = base + 2;
+    const rows = [
+        executionRow(
+            base + 11,
+            'Czynsz',
+            'expense',
+            250000,
+            250000,
+            250000,
+            'building',
+            {
+                group_id: fixed,
+                sort_order: 1,
+            },
+        ),
+        executionRow(base + 12, 'Prąd', 'expense', 40000, 40000, 31000, 'tag', {
+            group_id: fixed,
+            sort_order: 2,
+        }),
+        executionRow(
+            base + 13,
+            'Jedzenie',
+            'expense',
+            180000,
+            180000,
+            90000,
+            'apple',
+            {
+                sort_order: 3,
+            },
+        ),
+        executionRow(
+            base + 14,
+            'Apteka',
+            'expense',
+            120000,
+            120000,
+            140000,
+            'tag',
+            {
+                group_id: health,
+                sort_order: 5,
+            },
+        ),
+        executionRow(
+            base + 15,
+            'Badania',
+            'expense',
+            80000,
+            80000,
+            30000,
+            'tag',
+            {
+                group_id: health,
+                sort_order: 6,
+            },
+        ),
+    ];
+
+    return {
+        rows,
+        groups: [
+            groupOf(fixed, 'Opłaty stałe', 0, rows, false),
+            groupOf(health, 'Zdrowie', 4, rows, false),
+        ],
+    };
+}
+
+const groupedExecution = groupedExecutionExpenseFixture(500);
+const collapsedExecution = groupedExecutionExpenseFixture(600);
+const HEALTH_GROUP_COLLAPSED = 602;
+
+const groupedExecutionIncome = [
+    executionRow(
+        711,
+        'Wynagrodzenie',
+        'income',
+        650000,
+        650000,
+        650000,
+        'tag',
+        {
+            group_id: 701,
+            sort_order: 1,
+        },
+    ),
+    executionRow(712, 'Premia', 'income', 100000, 120000, 135000, 'coins', {
+        group_id: 701,
+        sort_order: 2,
+    }),
+    executionRow(713, 'Zwrot podatku', 'income', 80000, 60000, 20000, 'tag', {
+        sort_order: 3,
+    }),
+];
+const groupedExecutionIncomeGroups = [
+    groupOf(701, 'Praca', 0, groupedExecutionIncome, false),
 ];
 
 const withArchived = [
@@ -217,7 +376,7 @@ const noop = (): void => undefined;
 const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
-        where: 'Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa (bez kreski roku) i równomierna (z kreską). Szkic: kolumna „Typ”.',
+        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa (bez kreski roku) i równomierna (z kreską). Szkic: kolumna „Typ”.',
     },
     {
         state: 'hover',
@@ -279,6 +438,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.income_table"
                 :categories="draftIncome"
+                :groups="[]"
                 :budget-id="1"
                 category-type="income"
                 phase="draft"
@@ -291,6 +451,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="draftExpense"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"
@@ -310,6 +471,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.income_table"
                 :categories="executionIncome"
+                :groups="[]"
                 :budget-id="1"
                 category-type="income"
                 phase="execution"
@@ -330,10 +492,98 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="executionExpense"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="execution"
                 :totals="totalsOf(executionExpense, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-groups-draft">
+            <h2 id="ks-groups-draft" class="section-title">
+                Grupy w szkicu (wiersz grupy z kolumną planu: „Opłaty stałe”,
+                „Zdrowie”; „Jedzenie” bez grupy; przeciągnij kategorię do grupy:
+                prawdziwy PATCH)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="groupedDraftExpense"
+                :groups="groupedDraftExpenseGroups"
+                :budget-id="1"
+                category-type="expense"
+                phase="draft"
+                :totals="totalsOf(groupedDraftExpense, true)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="null"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-groups-exec">
+            <h2 id="ks-groups-exec" class="section-title">
+                Grupy w realizacji (wiersz grupy: początkowy, aktualny,
+                wykonanie, pozostało, miernik; „Zdrowie”: Apteka 1 200 / 1 400,
+                Badania 800 / 300, razem 2 000 / 1 700, pozostało +300, mimo to
+                „ponad plan”)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="groupedExecution.rows"
+                :groups="groupedExecution.groups"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(groupedExecution.rows, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section
+            class="flex flex-col gap-3"
+            aria-labelledby="ks-groups-collapsed"
+        >
+            <h2 id="ks-groups-collapsed" class="section-title">
+                Grupa zwinięta („Zdrowie” zwinięte, znacznik „ponad plan” widać
+                na wierszu grupy; przycisk z nazwą grupy rozwija i zwija)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="collapsedExecution.rows"
+                :groups="collapsedExecution.groups"
+                :initial-collapsed-group-ids="[HEALTH_GROUP_COLLAPSED]"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(collapsedExecution.rows, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-groups-income">
+            <h2 id="ks-groups-income" class="section-title">
+                Grupa przychodów w realizacji („Praca”: bez znacznika „ponad
+                plan”, nadwyżka dochodu nie jest przekroczeniem)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.income_table"
+                :categories="groupedExecutionIncome"
+                :groups="groupedExecutionIncomeGroups"
+                :budget-id="1"
+                category-type="income"
+                phase="execution"
+                :totals="totalsOf(groupedExecutionIncome, false)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
                 :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
@@ -349,6 +599,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="withArchived"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="execution"
@@ -367,6 +618,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="[]"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"
@@ -389,6 +641,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="manyCategories"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"
@@ -407,6 +660,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="draftExpense"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"

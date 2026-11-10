@@ -22,14 +22,20 @@ class ReorderCategoriesRequest extends FormRequest
     }
 
     /**
+     * `items` is the visible tree of the Budget: groups with the ids of their
+     * Categories and Categories without a group, in order.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'type' => ['required', Rule::enum(CategoryType::class)],
-            'category_ids' => ['required', 'array'],
-            'category_ids.*' => ['required', 'integer', 'distinct'],
+            'items' => ['present', 'array'],
+            'items.*.kind' => ['required', Rule::in(['group', 'category'])],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.category_ids' => ['present_if:items.*.kind,group', 'array'],
+            'items.*.category_ids.*' => ['required', 'integer'],
         ];
     }
 }
