@@ -463,17 +463,17 @@ Jedna migracja dodająca nullable kolumnę z prawdziwym `down()`; bez zmiany dan
 
 #### Automated
 
-- [x] 3.1 npm run build i types:check przechodzą
-- [x] 3.2 npm run check i check:ui przechodzą
-- [x] 3.3 npm run test przechodzi
-- [x] 3.4 CategoriesHardcodedUiTest i CategoriesKitchenSinkTest przechodzą
-- [x] 3.5 E2E categories.spec.ts przechodzi lokalnie
+- [x] 3.1 npm run build i types:check przechodzą — 5f5fc0e
+- [x] 3.2 npm run check i check:ui przechodzą — 5f5fc0e
+- [x] 3.3 npm run test przechodzi — 5f5fc0e
+- [x] 3.4 CategoriesHardcodedUiTest i CategoriesKitchenSinkTest przechodzą — 5f5fc0e
+- [x] 3.5 E2E categories.spec.ts przechodzi lokalnie — 5f5fc0e
 
 #### Manual
 
-- [x] 3.6 Kitchen sinki Kategorii i dialogów pokazują wszystkie stany w obu motywach
-- [x] 3.7 Przeciąganie działa myszą i na telefonie, kolejność zostaje po odświeżeniu
-- [x] 3.8 Wiersz z opisem i akcjami mieści się na telefonie bez poziomego przewijania
+- [x] 3.6 Kitchen sinki Kategorii i dialogów pokazują wszystkie stany w obu motywach — 5f5fc0e
+- [x] 3.7 Przeciąganie działa myszą i na telefonie, kolejność zostaje po odświeżeniu — 5f5fc0e
+- [x] 3.8 Wiersz z opisem i akcjami mieści się na telefonie bez poziomego przewijania — 5f5fc0e
 
 ### Phase 4: Wybór w operacjach i Imporcie
 
