@@ -474,6 +474,9 @@ const CATEGORIES_VIEW_FILES = [
     'pages/dev/CategoriesKitchenSink.vue',
     'components/CategoryListRow.vue',
     'components/CategoryArchiveSection.vue',
+    'components/CategoryGroupRow.vue',
+    'components/CategoryGroupFormDialog.vue',
+    'components/CategoryGroupPicker.vue',
 ];
 
 describe('the Categories view follows the Atrament surface blocks', () => {

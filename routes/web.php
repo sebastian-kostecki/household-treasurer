@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryGroupController;
 use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
@@ -67,6 +68,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('month')
         ->name('month-plans.update');
     Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('categories/groups', [CategoryGroupController::class, 'store'])->name('category-groups.store');
+    Route::patch('categories/groups/{categoryGroup}', [CategoryGroupController::class, 'update'])->name('category-groups.update');
+    Route::delete('categories/groups/{categoryGroup}', [CategoryGroupController::class, 'destroy'])->name('category-groups.destroy');
+    Route::patch('categories/reorder', [CategoryGroupController::class, 'reorder'])->name('categories.reorder-list');
+    Route::patch('categories/{category}/group', [CategoryGroupController::class, 'assign'])->name('categories.group');
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::patch('budgets/{budget}/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');

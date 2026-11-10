@@ -426,27 +426,27 @@ Migracja tylko dodaje tabelę i kolumnę nullable, bez przenoszenia danych; licz
 
 #### Automated
 
-- [x] 2.1 Testy snapshotu przechodzą na PostgreSQL
-- [x] 2.2 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Testy snapshotu przechodzą na PostgreSQL — a674b07
+- [x] 2.2 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — a674b07
 
 #### Manual
 
-- [x] 2.3 `user:backup` i `user:restore` na devie odtwarzają grupę i przynależność
+- [x] 2.3 `user:backup` i `user:restore` na devie odtwarzają grupę i przynależność — a674b07
 
 ### Phase 3: Grupy w „Kategoriach”
 
 #### Automated
 
-- [ ] 3.1 Testy grup i widoku „Kategorie” przechodzą na PostgreSQL
-- [ ] 3.2 Testy `category-tree.test.ts` przechodzą
-- [ ] 3.3 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
-- [ ] 3.4 E2E `tests/e2e/categories.spec.ts` przechodzi lokalnie
-- [ ] 3.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 3.1 Testy grup i widoku „Kategorie” przechodzą na PostgreSQL
+- [x] 3.2 Testy `category-tree.test.ts` przechodzą
+- [x] 3.3 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
+- [x] 3.4 E2E `tests/e2e/categories.spec.ts` przechodzi lokalnie
+- [x] 3.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 3.6 Grupy, przeciąganie, „W górę / W dół” i usuwanie działają w „Kategoriach” na devie
-- [ ] 3.7 Widok działa na telefonie i w ciemnym motywie
+- [x] 3.6 Grupy, przeciąganie, „W górę / W dół” i usuwanie działają w „Kategoriach” na devie
+- [x] 3.7 Widok działa na telefonie i w ciemnym motywie
 
 ### Phase 4: Budżet w grupach
 

@@ -1267,7 +1267,7 @@
 
     @variant md {
         .categories-grid {
-            grid-template-columns: minmax(0, 1fr) 220px 120px;
+            grid-template-columns: minmax(0, 1fr) 220px auto;
             grid-template-areas: 'name years link';
         }
     }
@@ -1302,7 +1302,55 @@
 
     .categories-cell-link {
         grid-area: link;
-        @apply flex justify-end;
+        @apply flex items-center justify-end gap-2;
+    }
+
+    /**
+     * Category Groups in „Kategorie” (ADR-0066): the group row is a `muted`
+     * band like `.month-plan-group-row`, its Categories stand indented under it
+     * (`.categories-row-nested`); an empty group keeps a drop zone with a hint.
+     * The drag handle shows from `md`; below it the "Grupa…" menu does the job.
+     */
+    .categories-group-row {
+        @apply bg-muted border-border-soft min-h-row flex items-center gap-2 border-b px-4 py-2;
+    }
+
+    .categories-group-name {
+        @apply section-title min-w-0 flex-1 truncate;
+    }
+
+    .categories-group-count {
+        @apply meta text-muted-foreground shrink-0;
+    }
+
+    .categories-row-nested {
+        @apply pl-10;
+    }
+
+    .categories-handle {
+        @apply text-muted-foreground hover:text-foreground hidden size-8 shrink-0 cursor-grab items-center justify-center rounded-md active:cursor-grabbing;
+    }
+
+    @variant md {
+        .categories-handle {
+            @apply flex;
+        }
+    }
+
+    .categories-ghost {
+        @apply bg-secondary;
+    }
+
+    .categories-group-body {
+        @apply relative;
+    }
+
+    .categories-group-items-empty {
+        @apply min-h-row;
+    }
+
+    .categories-group-hint {
+        @apply meta text-muted-foreground pointer-events-none absolute inset-0 flex items-center py-2 pr-4 pl-10;
     }
 
     .budget-category-row {

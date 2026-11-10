@@ -5,5 +5,13 @@
     "Existing category joined.": "Dołączono istniejącą kategorię.",
     "This category is in the archive. Restore it instead of creating a new one.": "Ta kategoria jest w archiwum. Przywróć ją zamiast tworzyć nową.",
     "A category with this name already exists.": "Kategoria o takiej nazwie już istnieje.",
-    "The type of this category cannot be changed.": "Typu tej kategorii nie można zmienić."
+    "The type of this category cannot be changed.": "Typu tej kategorii nie można zmienić.",
+    "A category group with this name already exists.": "Grupa o takiej nazwie już istnieje.",
+    "Category group created.": "Grupa dodana.",
+    "Category group renamed.": "Nazwa grupy zmieniona.",
+    "Category group deleted.": "Grupa usunięta.",
+    "Category group assigned.": "Przypisanie kategorii zapisane.",
+    "An archived category cannot be moved to a group.": "Zarchiwizowanej kategorii nie można przenieść do grupy.",
+    "The group must be of the same type as the category.": "Grupa musi być tego samego typu co kategoria.",
+    "The category order is invalid.": "Kolejność kategorii jest nieprawidłowa."
 }

@@ -111,3 +111,141 @@ test('an archived Category is in the collapsed archive with its date and the sec
     await page.goto('/categories');
     await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
 });
+
+// Category Groups (S-22, ADR-0066). Risk it protects: a group cannot be created,
+// "Grupa…" does not move a Category under the group, dragging a Category onto a
+// group does not save the membership, or deleting a group takes its Categories
+// with it. The tests create their own group and delete it at the end, through
+// the UI, so the demo household is left as it was.
+function groupBlock(page: Page, name: string) {
+    return page
+        .locator('[data-kind="group"]')
+        .filter({ has: page.getByRole('heading', { name, exact: true }) });
+}
+
+async function createGroup(page: Page, name: string) {
+    await page
+        .locator('[data-section="expense"]')
+        .getByRole('button', { name: 'Dodaj grupę' })
+        .click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Nazwa grupy').fill(name);
+    await dialog.getByRole('button', { name: 'Zapisz' }).click();
+
+    await expect(groupBlock(page, name)).toBeVisible();
+}
+
+async function deleteGroup(page: Page, name: string) {
+    // A success toast from the previous step can sit over the row's menu button,
+    // and hovering it keeps it open, so wait until it is gone before clicking.
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+
+    await groupBlock(page, name)
+        .getByRole('button', { name: `Więcej działań grupy ${name}` })
+        .click();
+    await page.getByRole('menuitem', { name: 'Usuń grupę' }).click();
+    await page
+        .getByRole('dialog')
+        .getByRole('button', { name: 'Usuń grupę' })
+        .click();
+
+    await expect(groupBlock(page, name)).toHaveCount(0);
+}
+
+test('a Category is put into a new group with "Grupa…" and stays when the group is deleted', async ({
+    page,
+}) => {
+    const group = 'Grupa E2E przypisanie';
+
+    await page.goto('/categories');
+    await createGroup(page, group);
+
+    try {
+        await categoryRow(page, 'Rozrywka')
+            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
+            .click();
+        await page.getByRole('menuitem', { name: group }).click();
+
+        await expect(
+            groupBlock(page, group).locator('[data-category-row]'),
+        ).toContainText('Rozrywka');
+    } finally {
+        await deleteGroup(page, group);
+    }
+
+    await expect(categoryRow(page, 'Rozrywka')).toHaveCount(1);
+    await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
+});
+
+test('dragging a Category onto an empty group saves the membership', async ({
+    page,
+}) => {
+    const group = 'Grupa E2E przeciąganie';
+
+    await page.goto('/categories');
+    await createGroup(page, group);
+
+    try {
+        const reorderSaved = page.waitForResponse(
+            (response) =>
+                response.url().endsWith('/categories/reorder') &&
+                response.request().method() === 'PATCH',
+        );
+
+        // SortableJS needs several dragover events, which `dragTo` (one move) does
+        // not send, so the pointer travels in steps. Passing the group header
+        // swaps the dragged row below it and the layout shifts up by one row, so
+        // the group body is measured again after the first leg of the move.
+        const handle = categoryRow(page, 'Rozrywka').locator('.drag-handle');
+        const body = groupBlock(page, group).locator('.categories-group-body');
+        const from = await handle.boundingBox();
+        const firstLeg = await body.boundingBox();
+        if (!from || !firstLeg) {
+            throw new Error(
+                'The drag handle or the group body is not on the page.',
+            );
+        }
+
+        await page.mouse.move(
+            from.x + from.width / 2,
+            from.y + from.height / 2,
+        );
+        await page.mouse.down();
+        await page.mouse.move(from.x + 5, from.y + 5, { steps: 5 });
+        await page.mouse.move(
+            firstLeg.x + firstLeg.width / 2,
+            firstLeg.y + firstLeg.height / 2,
+            { steps: 20 },
+        );
+
+        // The swap animates for 150 ms; measuring during it gives a stale box.
+        await page.waitForTimeout(300);
+        const secondLeg = await body.boundingBox();
+        if (!secondLeg) {
+            throw new Error('The group body disappeared during the drag.');
+        }
+        const centerX = secondLeg.x + secondLeg.width / 2;
+        const centerY = secondLeg.y + secondLeg.height / 2;
+        await page.mouse.move(centerX, centerY, { steps: 10 });
+        // A few small moves inside the empty list send the dragover events
+        // SortableJS needs to take the row into it.
+        await page.mouse.move(centerX + 12, centerY, { steps: 4 });
+        await page.mouse.move(centerX - 12, centerY, { steps: 4 });
+        await expect(
+            groupBlock(page, group).locator('.categories-ghost'),
+        ).toBeVisible();
+        await page.mouse.up();
+        expect((await reorderSaved).status()).toBe(204);
+
+        await page.reload();
+        await expect(
+            groupBlock(page, group).locator('[data-category-row]'),
+        ).toContainText('Rozrywka');
+    } catch (error) {
+        // A failed drag leaves the button down, which would block the cleanup.
+        await page.mouse.up();
+        throw error;
+    } finally {
+        await deleteGroup(page, group);
+    }
+});
