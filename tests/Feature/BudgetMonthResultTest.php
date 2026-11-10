@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\BudgetMonthResult;
@@ -27,14 +27,14 @@ class BudgetMonthResultTest extends TestCase
             'current_balance_minor_units' => 1_000_000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $income = Category::factory()->for($budget)->income()->create();
-        $paced = Category::factory()->for($budget)->expense()->create();
-        $oneOff = Category::factory()->for($budget)->oneOff()->create();
+        $income = BudgetLine::factory()->for($budget)->income()->create();
+        $paced = BudgetLine::factory()->for($budget)->expense()->create();
+        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create();
 
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Income,
             'account_id' => $account->id,
-            'category_id' => $income->id,
+            'budget_line_id' => $income->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-05',
             'amount_minor_units' => 50_000,
@@ -42,7 +42,7 @@ class BudgetMonthResultTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $paced->id,
+            'budget_line_id' => $paced->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-20',
             'amount_minor_units' => 10_000,
@@ -50,7 +50,7 @@ class BudgetMonthResultTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $oneOff->id,
+            'budget_line_id' => $oneOff->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-10',
             'amount_minor_units' => 8_000,
@@ -58,7 +58,7 @@ class BudgetMonthResultTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $paced->id,
+            'budget_line_id' => $paced->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-01-15',
             'amount_minor_units' => 25_000,
@@ -85,13 +85,13 @@ class BudgetMonthResultTest extends TestCase
             'current_balance_minor_units' => 1_000_000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $visible = Category::factory()->for($budget)->expense()->create();
-        $archived = Category::factory()->for($budget)->expense()->archived()->create();
+        $visible = BudgetLine::factory()->for($budget)->expense()->create();
+        $archived = BudgetLine::factory()->for($budget)->expense()->archived()->create();
 
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $visible->id,
+            'budget_line_id' => $visible->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-01-10',
             'amount_minor_units' => 4_000,
@@ -99,7 +99,7 @@ class BudgetMonthResultTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $archived->id,
+            'budget_line_id' => $archived->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-01-12',
             'amount_minor_units' => 6_000,
@@ -126,13 +126,13 @@ class BudgetMonthResultTest extends TestCase
             'current_balance_minor_units' => 1_000_000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $income = Category::factory()->for($budget)->income()->create();
-        $expense = Category::factory()->for($budget)->expense()->create();
+        $income = BudgetLine::factory()->for($budget)->income()->create();
+        $expense = BudgetLine::factory()->for($budget)->expense()->create();
 
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Income,
             'account_id' => $account->id,
-            'category_id' => $income->id,
+            'budget_line_id' => $income->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-01',
             'amount_minor_units' => 20_000,
@@ -140,7 +140,7 @@ class BudgetMonthResultTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $expense->id,
+            'budget_line_id' => $expense->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-02',
             'amount_minor_units' => 10_000,
@@ -148,7 +148,7 @@ class BudgetMonthResultTest extends TestCase
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Expense,
             'account_id' => $account->id,
-            'category_id' => $expense->id,
+            'budget_line_id' => $expense->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-03',
             'amount_minor_units' => -2_000,

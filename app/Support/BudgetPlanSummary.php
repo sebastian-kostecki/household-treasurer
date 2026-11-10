@@ -4,7 +4,7 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use Illuminate\Support\Collection;
 
 class BudgetPlanSummary
@@ -30,7 +30,7 @@ class BudgetPlanSummary
     }
 
     /**
-     * @param  Collection<int, Category>  $categories
+     * @param  Collection<int, BudgetLine>  $categories
      * @return array{
      *     income: array{
      *         initial_plan_minor_units: int,
@@ -62,7 +62,7 @@ class BudgetPlanSummary
     }
 
     /**
-     * @param  Collection<int, Category>  $categories
+     * @param  Collection<int, BudgetLine>  $categories
      * @return array{
      *     initial_plan_minor_units: int,
      *     current_plan_minor_units: int,
@@ -73,12 +73,12 @@ class BudgetPlanSummary
      */
     public static function forType(Budget $budget, Collection $categories, CategoryType $type): array
     {
-        $typeCategories = $categories->where('type', $type);
+        $typeCategories = $categories->filter(fn (BudgetLine $category): bool => $category->hasType($type));
 
         $currentPlanMinorUnits = (int) $typeCategories->sum('planned_amount_minor_units');
         $executionMinorUnits = (int) $typeCategories->sum('execution_minor_units');
         $initialPlanMinorUnits = (int) $typeCategories->sum(
-            fn (Category $category): int => $budget->isExecution()
+            fn (BudgetLine $category): int => $budget->isExecution()
                 ? $category->initial_plan_minor_units
                 : $category->planned_amount_minor_units,
         );

@@ -5,7 +5,7 @@ namespace App\Support\CsvImport;
 /**
  * Word-weight model behind Import category suggestions. Pure PHP, no database.
  *
- * A word weighs 1 / k², where k is the number of distinct (type, category name)
+ * A word weighs 1 / k², where k is the number of distinct (type, list category)
  * pairs it appeared with in the history, so card-payment noise weighs about 0
  * and a shop name seen with one category weighs 1.
  */
@@ -25,7 +25,7 @@ class ImportCategorySuggestionModel
      * @param  list<array{
      *     id: int,
      *     type: string,
-     *     category_name: string,
+     *     category_id: int,
      *     operation_date: string,
      *     tokens: array<string, true>,
      *     denominator: float,
@@ -41,7 +41,7 @@ class ImportCategorySuggestionModel
      * @param  iterable<array{
      *     id: int,
      *     type: 'income'|'expense',
-     *     category_name: string,
+     *     category_id: int,
      *     text: string,
      *     operation_date: string,
      * }>  $entries
@@ -58,7 +58,7 @@ class ImportCategorySuggestionModel
                 continue;
             }
 
-            $pair = $entry['type']."\0".$entry['category_name'];
+            $pair = $entry['type']."\0".$entry['category_id'];
 
             foreach ($tokens as $token) {
                 $pairsByToken[$token][$pair] = true;
@@ -67,7 +67,7 @@ class ImportCategorySuggestionModel
             $stored[] = [
                 'id' => $entry['id'],
                 'type' => $entry['type'],
-                'category_name' => $entry['category_name'],
+                'category_id' => $entry['category_id'],
                 'operation_date' => $entry['operation_date'],
                 'tokens' => array_fill_keys($tokens, true),
                 'denominator' => 0.0,
@@ -116,7 +116,7 @@ class ImportCategorySuggestionModel
     }
 
     /**
-     * @return list<array{category_name: string, score: float}>
+     * @return list<array{category_id: int, score: float}>
      */
     public function rank(string $type, string $text): array
     {
@@ -130,22 +130,22 @@ class ImportCategorySuggestionModel
         $votes = [];
 
         foreach ($neighbours as $neighbour) {
-            $name = $neighbour['category_name'];
-            $votes[$name] = ($votes[$name] ?? 0.0) + $neighbour['similarity'];
+            $categoryId = $neighbour['category_id'];
+            $votes[$categoryId] = ($votes[$categoryId] ?? 0.0) + $neighbour['similarity'];
         }
 
         arsort($votes);
 
         $ranked = [];
 
-        foreach ($votes as $name => $score) {
-            $ranked[] = ['category_name' => (string) $name, 'score' => $score];
+        foreach ($votes as $categoryId => $score) {
+            $ranked[] = ['category_id' => (int) $categoryId, 'score' => $score];
         }
 
         return $ranked;
     }
 
-    public function suggest(string $type, string $text): ?string
+    public function suggest(string $type, string $text): ?int
     {
         $ranked = $this->rank($type, $text);
 
@@ -157,7 +157,7 @@ class ImportCategorySuggestionModel
             return null;
         }
 
-        return $ranked[0]['category_name'];
+        return $ranked[0]['category_id'];
     }
 
     /**
@@ -165,7 +165,7 @@ class ImportCategorySuggestionModel
      * similarity itself still uses every token of the union.
      *
      * @param  list<string>  $rowTokens
-     * @return list<array{similarity: float, operation_date: string, id: int, category_name: string}>
+     * @return list<array{similarity: float, operation_date: string, id: int, category_id: int}>
      */
     private function neighbours(string $type, array $rowTokens): array
     {
@@ -207,7 +207,7 @@ class ImportCategorySuggestionModel
                 'similarity' => $similarity,
                 'operation_date' => $entry['operation_date'],
                 'id' => $entry['id'],
-                'category_name' => $entry['category_name'],
+                'category_id' => $entry['category_id'],
             ];
 
             if (count($best) === self::NEIGHBOURS && self::compareNeighbours($neighbour, $best[self::NEIGHBOURS - 1]) >= 0) {
@@ -225,8 +225,8 @@ class ImportCategorySuggestionModel
     /**
      * Orders neighbours by similarity, then operation date, then id, all descending.
      *
-     * @param  array{similarity: float, operation_date: string, id: int, category_name: string}  $a
-     * @param  array{similarity: float, operation_date: string, id: int, category_name: string}  $b
+     * @param  array{similarity: float, operation_date: string, id: int, category_id: int}  $a
+     * @param  array{similarity: float, operation_date: string, id: int, category_id: int}  $b
      */
     private static function compareNeighbours(array $a, array $b): int
     {

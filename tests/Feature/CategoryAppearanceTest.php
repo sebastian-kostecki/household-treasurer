@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\CategoryAppearance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,7 +31,7 @@ class CategoryAppearanceTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Transport',
             'icon' => 'car',
@@ -75,7 +75,7 @@ class CategoryAppearanceTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Groceries',
             'icon' => 'shopping-cart',
             'color' => '#ef4444',

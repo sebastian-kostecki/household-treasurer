@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
-use App\Models\Category;
+use App\Models\BudgetLine;
 
 /**
  * Year after the Month (context/foundation/glossary.md): Execution of a Category before the current
@@ -24,11 +24,11 @@ class MonthYearComparison
      * @param  array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}  $rowAmounts  as MonthToSpend::rowAmounts
      * @return YearComparison
      */
-    public static function forCategory(Category $category, array $rowAmounts): array
+    public static function forCategory(BudgetLine $category, array $rowAmounts): array
     {
         $before = $category->execution_minor_units - $rowAmounts['actual_minor_units'];
         $year = $before + ToSpendCalculator::itemMinorUnits(
-            $category->type,
+            $category->category->type,
             $category->month_item_kind,
             $rowAmounts['plan_minor_units'],
             $rowAmounts['actual_minor_units'],
@@ -36,7 +36,7 @@ class MonthYearComparison
         );
         $annual = $category->planned_amount_minor_units;
 
-        return self::result($category->type, $year, $annual);
+        return self::result($category->category->type, $year, $annual);
     }
 
     /**

@@ -113,11 +113,12 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | Komenda                      | Działanie                                                                                                                |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `user:create`                | Konto logowania                                                                                                          |
-| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 5)                                                                               |
+| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 6)                                                                               |
 | `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
 | `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
 | `demo:seed-household {user}` | Dane demo                                                                                                                |
 | `backup:restore {path}`      | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie) |
+| `app:control-numbers`        | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                  |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
 
@@ -133,13 +134,30 @@ Decyzja: [ADR-0064](context/foundation/adr/0064-instance-backup-before-every-pro
 
 1. `git pull --ff-only origin main` i budowa obrazu `app`.
 2. Przygotowanie katalogu kopii `BACKUP_HOST_DIR` (wartość z powłoki, inaczej z `.env.prod`, inaczej `/storage/household-treasurer-backups`).
-3. `up -d` i naprawa uprawnień `storage`.
-4. **Pełna kopia instancji** (`backup:run`, baza i `storage/app`) przed migracją. Błąd kopii przerywa wdrożenie.
-5. `migrate --force`, potem cache konfiguracji, tras i widoków.
+3. **Tryb serwisowy i snapshot każdego użytkownika w starym kontenerze**, jeszcze przed `up -d`: lista id z tabeli `users` (z `psql`), `artisan down`, potem `user:backup` dla każdego id (log: „Snapshotted N user(s).”). Plik trybu serwisowego leży w `storage` (bind-mount), więc przetrwa `up -d`, a nowy kod nie obsłuży żądania na starym schemacie. Błąd `psql` albo `docker compose` przerywa wdrożenie. Krok pomija tylko pierwsze wdrożenie, gdy kontenera `app` w ogóle nie ma (wtedy `artisan down` idzie zaraz po `up -d`). Kontener zatrzymany zatrzymuje skrypt: uruchom go (`docker compose --env-file .env.prod -f docker-compose.prod.yml start app`) i powtórz; gdy nie da się go uruchomić, `DEPLOY_WITHOUT_USER_SNAPSHOTS=1 scripts/deploy.sh` wdraża bez snapshotów, z samą kopią instancji z kroku 6.
+4. `up -d` i naprawa uprawnień `storage`.
+5. **Liczby kontrolne „przed”** (nowy kod na starym schemacie) do `storage/app/private/control-numbers/<RRRRMMDD-GGMMSS>-before.json` (czas UTC).
+6. **Pełna kopia instancji** (`backup:run`, baza i `storage/app`) przed migracją. Błąd kopii przerywa wdrożenie.
+7. `migrate --force`.
+8. **Liczby kontrolne „po”** (`…-after.json`) z `--compare` na plik „przed”. Różnica kończy skrypt błędem, a aplikacja **zostaje w trybie serwisowym** (zob. „Migracja przerwana w trakcie” niżej).
+9. `artisan up`, potem cache konfiguracji, tras i widoków.
+
+Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `deploy.sh` biegnie jeszcze starą wersją. Dlatego przed `scripts/deploy.sh` zawsze zrób na serwerze `git pull --ff-only origin main` (niżej: pierwsze wdrożenie S-18). Jeśli w logu brakuje „Snapshotting every user…” albo „Recording control numbers…”, wdrożenie poszło starym skryptem bez bramek.
+
+#### Pierwsze wdrożenie S-18 (lista kategorii i pozycje budżetu)
+
+Migracje S-18 dzielą dawne `categories` na listę użytkownika i pozycje budżetu (`budget_lines`) bez zmiany żadnej kwoty. Wykonaj je w tej kolejności:
+
+1. Zmiana jest na `main`, a próba na kopii produkcji zatwierdzona (`context/changes/category-list-after-migration/migration-trial.md`).
+2. Na serwerze: `git pull --ff-only origin main`. Dopiero potem skrypt. Bez tego migracja przejdzie starym `deploy.sh` bez snapshotów, trybu serwisowego i liczb kontrolnych.
+3. `scripts/deploy.sh`. Log musi pokazać kolejno: tryb serwisowy, snapshoty użytkowników („Snapshotted N user(s).” z N równym liczbie użytkowników), liczby „przed”, kopię instancji, migracje, „Control numbers match” i wyjście z trybu serwisowego.
+4. Sprawdź `/up`, Budżet 2026, plan miesiąca i widok „Kategorie”. Zachowaj plik `…-before.json` poza serwerem: jest wzorcem do porównań przy wycofaniu.
+
+Snapshoty sprzed migracji (wersja 5) leżą w `storage/app/private/user-snapshots/`; są zapasem, gdyby wycofanie nie wystarczyło.
 
 #### Gdzie leży kopia
 
-Na hoście: `${BACKUP_HOST_DIR}/Household Treasurer/RRRR-MM-DD-GG-MM-SS.zip` (czas UTC, w nazwie katalogu jest spacja, więc ścieżkę podawaj w cudzysłowie). W kontenerze: `/var/www/html/storage/app/backups/Household Treasurer/…`. Archiwum jest szyfrowane hasłem `BACKUP_ARCHIVE_PASSWORD`.
+Na hoście: `${BACKUP_HOST_DIR}/Household Treasurer/RRRR-MM-DD-GG-MM-SS.zip` (czas UTC, w nazwie katalogu jest spacja, więc ścieżkę podawaj w cudzysłowie). W kontenerze: `/var/www/html/storage/app/backups/Household Treasurer/…`. Archiwum jest szyfrowane hasłem `BACKUP_ARCHIVE_PASSWORD`, o ile jest ustawione; przy pustej zmiennej zip jest jawny (`config/backup.php`).
 
 #### Kiedy przywracać z kopii przed migracją
 
@@ -147,12 +165,37 @@ Gdy wdrożenie się nie powiodło albo coś psuje się zaraz po nim. Przywrócen
 
 #### Przywrócenie produkcji
 
+Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba F-04](context/archive/2026-11-09-safe-first-data-migration/restore-trial.md)). Kroki 3–4 przeszły w próbie S-18 na bazie testowej po migracji: powrót z kopii sprzed migracji dał liczby kontrolne bez różnic ([próba S-18](context/changes/category-list-after-migration/migration-trial.md)). Kroków 1, 2, 5 i 6 nie da się przećwiczyć lokalnie, bo dzieją się na serwerze.
+
 1. `scripts/artisan.sh down` (tryb serwisowy).
-2. Lokalnie na `main`: `git revert` zmiany z migracją i `git push origin main`. Skrypt wdrożenia robi `git pull --ff-only origin main`, więc revert zrobiony tylko na VPS rozjedzie się z origin i zablokuje następne wdrożenie. Stary schemat nie działa z nowym kodem, więc kod musi wrócić razem z bazą.
+2. Lokalnie na `main`: `git revert` zmiany z migracją i `git push origin main`. Skrypt wdrożenia robi `git pull --ff-only origin main`, więc revert zrobiony tylko na VPS rozjedzie się z origin i zablokuje następne wdrożenie. Stary schemat nie działa z nowym kodem, więc kod musi wrócić razem z bazą. Na serwerze jeszcze nie rób `git pull`: kontener ma nadal nowy kod, a on zna `app:control-numbers`.
 3. `scripts/artisan.sh backup:restore "/var/www/html/storage/app/backups/Household Treasurer/RRRR-MM-DD-GG-MM-SS.zip" --force`. Nieudany `backup:restore` zostawia pustą bazę (`DROP SCHEMA` jest poza transakcją `psql`), więc powtórz go z tego samego archiwum.
-4. `scripts/deploy.sh` (zrobi kolejną kopię, `migrate` nie ma nic do uruchomienia: przywrócona tabela `migrations` nie zna nowej migracji).
-5. `scripts/artisan.sh up`, sprawdź `/up`.
-6. Uruchom liczby kontrolne (niżej) i porównaj z wynikiem zapisanym przed wdrożeniem.
+4. `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<znacznik>-before.json`: ma wyjść bez różnic (plik „przed” z wdrożenia leży w `storage` na hoście, restore niczego tam nie usuwa). Różnica oznacza STOP.
+5. Na serwerze `git pull --ff-only origin main`, potem `scripts/deploy.sh` (zrobi kolejną kopię, `migrate` nie ma nic do uruchomienia: przywrócona tabela `migrations` nie zna nowej migracji). `git pull` przed skryptem jest konieczny: bez niego pobiegnie jeszcze `deploy.sh` z nowego kodu i `set -e` przerwie go na `app:control-numbers`, którego cofnięty kod nie zna.
+6. `scripts/artisan.sh up`, sprawdź `/up`.
+
+#### Wycofanie S-18 po wdrożeniu (bez utraty operacji)
+
+Dla dni pracy na nowym schemacie przywrócenie kopii nie wchodzi w grę (traci wszystko po czasie archiwum). Migracje S-18 mają prawdziwy `down()` (test na PostgreSQL), więc wycofanie idzie przez `migrate:rollback` **nowym kodem**:
+
+1. `scripts/artisan.sh down` (jeśli aplikacja nie jest już w trybie serwisowym).
+2. `scripts/artisan.sh migrate:rollback --force`. Ostatnia partia to trzy migracje S-18; wyjście ma wymienić dokładnie: `drop_legacy_category_columns_from_budget_lines`, `backfill_category_list` i `expand_categories_into_category_list_and_budget_lines`. Nowa kategoria i operacja dodane po wdrożeniu zostają: pozycje stają się zwykłymi rekordami swoich budżetów, nazwy wracają z pisownią listy i sufiksem „(k)” (np. „Rozrywka (2)”). Nie przeżywa tylko to, co nie wisi na żadnej pozycji: kategoria listy bez pozycji (np. utworzona po wdrożeniu i zarchiwizowana, bo archiwum zdjęło jej pozycje ze szkiców) znika, a archiwum samej listy wraca do stanu pozycji (pozycja aktywna = rekord aktywny). Operacje i kwoty się nie zmieniają.
+3. Jeśli od wdrożenia nic nie dopisano: `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<znacznik>-before.json` ma dać zero różnic. Po dopisanych operacjach różnią się tylko ich sumy i liczniki.
+4. Lokalnie na `main`: `git revert` zmian S-18 i `git push origin main`.
+5. Na serwerze: `git pull --ff-only origin main`, dopiero potem `scripts/deploy.sh` (jak przy pierwszym wdrożeniu, bo skrypt aktualizuje się sam).
+6. `scripts/artisan.sh up`, sprawdź `/up`.
+
+Kolejność jest istotna. Cofnięcie kodu przed `migrate:rollback` usuwa pliki migracji, a właśnie ich `down()` jest potrzebny. Pominięcie `git pull` przed skryptem uruchamia jeszcze `deploy.sh` z S-18: jego `user:backup` w kontenerze S-18 nie znajdzie `budget_lines`, a `app:control-numbers` nie ma w cofniętym kodzie, więc `set -e` przerwie wdrożenie.
+
+Snapshot wersji 6, zrobiony po wdrożeniu, nie wczyta się w starym kodzie (`user:restore` zna wtedy wersje 1–5). Drogą powrotu jest `down()`; snapshoty wersji 5 sprzed migracji są zapasem, a kopia instancji z kroku 6 `deploy.sh` ostatecznością (tracą zmiany po wdrożeniu).
+
+#### Migracja przerwana w trakcie
+
+Każda migracja ma własną transakcję. Gdy asercja w `backfill_category_list` rzuci wyjątek (np. operacja wskazuje pozycję innego budżetu), jej zmiany się cofają, ale `expand_categories_into_category_list_and_budget_lines` jest już zapisany w partii. `deploy.sh` kończy się błędem, a aplikacja **zostaje w trybie serwisowym** (to samo, gdy liczby „po” różnią się od „przed”). Nie uruchamiaj skryptu ponownie. Zrób:
+
+1. `scripts/artisan.sh migrate:rollback --force`: cofa tylko zapisane migracje partii (kod S-18 nadal jest w kontenerze, więc ich `down()` istnieje).
+2. `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<znacznik>-before.json`: aplikacja stała w trybie serwisowym, więc ma wyjść bez różnic. Różnica oznacza STOP i przywrócenie kopii instancji (zob. „Przywrócenie produkcji”).
+3. Cofnięcie kodu jak w „Wycofanie S-18”, kroki 4–6.
 
 #### Próba lokalna (bez nadpisania bazy deweloperskiej)
 
@@ -163,63 +206,24 @@ Gdy wdrożenie się nie powiodło albo coś psuje się zaraz po nim. Przywrócen
 3. `docker compose exec pgsql createdb -U sail restore_trial`.
 4. `docker compose exec laravel.test php artisan config:clear`, potem `docker compose exec -e DB_DATABASE=restore_trial laravel.test php artisan db:show`. **Polecenie musi pokazać `restore_trial`; jeśli nie, STOP.** Restore bierze bazę z konfiguracji, a przy `bootstrap/cache/config.php` zmienna `DB_DATABASE` jest ignorowana i `DROP SCHEMA` trafiłby w bazę deweloperską.
 5. `docker compose exec -e DB_DATABASE=restore_trial -e BACKUP_ARCHIVE_PASSWORD=… laravel.test php artisan backup:restore storage/app/restore-trial/<plik>.zip --force` (hasło tylko na czas polecenia, nie zapisuj go w `.env`).
-6. Uruchom liczby kontrolne w `restore_trial` i porównaj z produkcją.
+6. Zapisz liczby kontrolne w `restore_trial` (zob. „Liczby kontrolne”), a po migracji i po `migrate:rollback` porównaj je z zapisanymi.
 7. Sprzątanie: `rm -rf storage/app/private storage/app/public` (restore scala pliki i niczego nie usuwa), przywróć odłożone katalogi, usuń zip z `storage/app/restore-trial/` i bazę: `docker compose exec pgsql dropdb -U sail restore_trial`.
 
 Archiwa sprzed ADR-0064 zawierają `OWNER TO treasurer`: do wczytania lokalnie najpierw `CREATE ROLE treasurer;` w serwerze PostgreSQL.
 
 #### Liczby kontrolne
 
-Uruchom przed wdrożeniem zmiany z migracją danych na produkcji i zapisz wynik poza serwerem; po przywróceniu (produkcja albo `restore_trial`) uruchom te same zapytania i porównaj. Automatyczny zapis i zatrzymanie wdrożenia przy różnicy to zadanie S-18.
+Komenda `app:control-numbers` zastępuje dawne ręczne zapytania SQL. Czyta bazę przez `DB::table()` (bez modeli), więc działa na starym schemacie (`categories` z kwotami budżetu) i na nowym (`budget_lines`) i pod tymi samymi kluczami raportuje pozycje budżetu (stare `categories` = nowe `budget_lines`, to samo id). Nowa lista kategorii użytkownika trafia do sekcji `meta` i jest pomijana w porównaniu: to jedyna różnica, jaką migracja może wprowadzić.
+
+Zawartość: liczba wierszy tabel, największe id operacji, per budżet suma operacji, Initial Plan, Current Plan, wykonanie, odkładania planów miesiąca i kwoty ich pozycji; per pozycja budżetu (id) plan, wykonanie i suma operacji; suma przelewów własnych, ruchy kapitału per kierunek, salda otwarcia i bieżące kont i lokat. Tabele, których nie ma w schemacie, są pomijane.
 
 ```bash
-# produkcja: docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T pgsql psql -U <DB_USERNAME> -d <DB_DATABASE>
-# lokalnie:  docker compose exec -T pgsql psql -U sail -d restore_trial
+# wyświetl i zapisz
+scripts/artisan.sh app:control-numbers --output=storage/app/private/control-numbers/reczne-before.json
+# porównaj z wcześniejszym plikiem; kod wyjścia 1 przy dowolnej różnicy
+scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/reczne-before.json
 ```
 
-```sql
--- 1. Liczba wierszy tabel
-SELECT 'users' AS tabela, count(*) AS wiersze FROM users
-UNION ALL SELECT 'budgets', count(*) FROM budgets
-UNION ALL SELECT 'categories', count(*) FROM categories
-UNION ALL SELECT 'financial_operations', count(*) FROM financial_operations
-UNION ALL SELECT 'own_transfers', count(*) FROM own_transfers
-UNION ALL SELECT 'capital_movements', count(*) FROM capital_movements
-UNION ALL SELECT 'term_deposits', count(*) FROM term_deposits
-UNION ALL SELECT 'accounts', count(*) FROM accounts
-UNION ALL SELECT 'month_plans', count(*) FROM month_plans
-UNION ALL SELECT 'month_plan_items', count(*) FROM month_plan_items
-UNION ALL SELECT 'migrations', count(*) FROM migrations
-ORDER BY 1;
+Ścieżki względne liczą się od katalogu głównego aplikacji. `deploy.sh` robi to automatycznie: pliki `<RRRRMMDD-GGMMSS>-before.json` i `-after.json` leżą w `storage/app/private/control-numbers/`. Po wdrożeniu zachowaj kopię pliku „przed” poza serwerem.
 
--- 2. Największe id operacji
-SELECT max(id) AS max_financial_operation_id FROM financial_operations;
-
--- 3. Sumy per budżet
-SELECT b.id AS budget_id,
-       (SELECT coalesce(sum(amount_minor_units), 0) FROM financial_operations o WHERE o.budget_id = b.id) AS operations,
-       (SELECT coalesce(sum(initial_plan_minor_units), 0) FROM categories c WHERE c.budget_id = b.id) AS initial_plan,
-       (SELECT coalesce(sum(planned_amount_minor_units), 0) FROM categories c WHERE c.budget_id = b.id) AS planned,
-       (SELECT coalesce(sum(execution_minor_units), 0) FROM categories c WHERE c.budget_id = b.id) AS execution,
-       (SELECT coalesce(sum(approved_set_aside_minor_units), 0) FROM month_plans m WHERE m.budget_id = b.id) AS approved_set_aside,
-       (SELECT coalesce(sum(current_set_aside_minor_units), 0) FROM month_plans m WHERE m.budget_id = b.id) AS current_set_aside,
-       (SELECT coalesce(sum(i.approved_amount_minor_units), 0) FROM month_plan_items i JOIN month_plans m ON m.id = i.month_plan_id WHERE m.budget_id = b.id) AS items_approved,
-       (SELECT coalesce(sum(i.current_amount_minor_units), 0) FROM month_plan_items i JOIN month_plans m ON m.id = i.month_plan_id WHERE m.budget_id = b.id) AS items_current
-FROM budgets b
-ORDER BY b.id;
-
--- 4. Wykonanie per kategoria
-SELECT id AS category_id, budget_id, execution_minor_units FROM categories ORDER BY id;
-
--- 5. Przelewy własne i ruchy kapitału (per direction)
-SELECT 'own_transfers' AS zrodlo, NULL AS direction, coalesce(sum(amount_minor_units), 0) AS suma FROM own_transfers
-UNION ALL
-SELECT 'capital_movements', direction::text, sum(amount_minor_units) FROM capital_movements GROUP BY direction
-ORDER BY 1, 2;
-
--- 6. Salda kont i lokat
-SELECT 'accounts' AS zrodlo, id, opening_balance_minor_units, current_balance_minor_units FROM accounts
-UNION ALL
-SELECT 'term_deposits', id, opening_balance_minor_units, current_balance_minor_units FROM term_deposits
-ORDER BY 1, 2;
-```
+Lokalnie, w `restore_trial` (po `config:clear` i sprawdzeniu `db:show`, jak w próbie lokalnej): `docker compose exec -e DB_DATABASE=restore_trial laravel.test php artisan app:control-numbers --output=storage/app/restore-trial/before.json`, a po migracji i po `migrate:rollback` to samo z `--compare=storage/app/restore-trial/before.json`. Komendy nie ma na `main` sprzed S-18, więc próba biegnie na gałęzi S-18.

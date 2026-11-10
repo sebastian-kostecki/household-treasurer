@@ -22,6 +22,7 @@ import { useTranslations } from '@/composables/useTranslations';
 
 const props = defineProps<{
     category: BudgetCategoryRow;
+    budgetId: number;
 }>();
 
 const emit = defineEmits<{
@@ -117,7 +118,12 @@ function openDeleteDialog(): void {
 
         <ConfirmActionDialog
             v-model:open="alignDialogOpen"
-            :form="CategoryController.alignCurrentPlan.form(category)"
+            :form="
+                CategoryController.alignCurrentPlan.form({
+                    budget: budgetId,
+                    category: category.id,
+                })
+            "
             :title="t.budget.align_current_plan_confirm_title"
             :description="t.budget.align_current_plan_confirm_body"
             :confirm-label="t.budget.align_current_plan"
@@ -126,7 +132,7 @@ function openDeleteDialog(): void {
 
         <ConfirmActionDialog
             v-model:open="archiveDialogOpen"
-            :form="CategoryController.archive.form(category)"
+            :form="CategoryController.archive.form({ category: category.id })"
             :title="t.budget.archive_confirm_title"
             :description="t.budget.archive_confirm_body"
             :confirm-label="t.budget.archive"
@@ -135,7 +141,7 @@ function openDeleteDialog(): void {
 
         <ConfirmActionDialog
             v-model:open="restoreDialogOpen"
-            :form="CategoryController.restore.form(category)"
+            :form="CategoryController.restore.form({ category: category.id })"
             :title="t.budget.restore_confirm_title"
             :description="t.budget.restore_confirm_body"
             :confirm-label="t.budget.restore"
@@ -144,7 +150,12 @@ function openDeleteDialog(): void {
 
         <ConfirmActionDialog
             v-model:open="deleteDialogOpen"
-            :form="CategoryController.destroy.form(category)"
+            :form="
+                CategoryController.destroy.form({
+                    budget: budgetId,
+                    category: category.id,
+                })
+            "
             destructive
             :title="t.budget.delete_category_confirm_title"
             :description="t.budget.delete_category_confirm_body"

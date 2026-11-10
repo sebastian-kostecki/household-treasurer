@@ -4,11 +4,13 @@ import {
     Landmark,
     LayoutGrid,
     PiggyBank,
+    Tags,
     Wallet,
 } from '@lucide/vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { budget, dashboard, monthPlan, operations } from '@/routes';
 import { index as accounts } from '@/routes/accounts';
+import { index as categories } from '@/routes/categories';
 import { index as termDeposits } from '@/routes/term-deposits';
 import type { NavItem } from '@/types';
 
@@ -22,6 +24,7 @@ export function useAppViews(): NavItem[] {
     const views: Omit<NavItem, 'shortcut'>[] = [
         { title: t.nav.dashboard, href: dashboard(), icon: LayoutGrid },
         { title: t.nav.budget, href: budget(), icon: PiggyBank },
+        { title: t.nav.categories, href: categories(), icon: Tags },
         { title: t.nav.month_plan, href: monthPlan(), icon: CalendarDays },
         { title: t.nav.accounts, href: accounts(), icon: Wallet },
         { title: t.nav.term_deposits, href: termDeposits(), icon: Landmark },

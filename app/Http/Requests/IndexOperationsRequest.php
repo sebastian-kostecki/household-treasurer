@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\CategoryType;
 use App\Enums\OperationsListSection;
 use App\Support\OperationsListQuery;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -26,8 +25,11 @@ class IndexOperationsRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:255'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
-            'category_name' => ['nullable', 'string', 'max:255', 'required_with:category_type'],
-            'category_type' => ['nullable', 'required_with:category_name', Rule::enum(CategoryType::class)],
+            'category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')->where(fn ($query) => $query->where('user_id', $userId)),
+            ],
             'account_id' => [
                 'nullable',
                 'integer',
@@ -49,8 +51,7 @@ class IndexOperationsRequest extends FormRequest
         return OperationsListQuery::fromValidated($this->safe()->only([
             'q',
             'year',
-            'category_name',
-            'category_type',
+            'category_id',
             'account_id',
             'term_deposit_id',
             'date_from',
@@ -74,8 +75,7 @@ class IndexOperationsRequest extends FormRequest
         $this->merge([
             'q' => is_string($q) ? (trim($q) === '' ? null : trim($q)) : null,
             'year' => $this->blankToNull('year'),
-            'category_name' => $this->blankToNull('category_name'),
-            'category_type' => $this->blankToNull('category_type'),
+            'category_id' => $this->blankToNull('category_id'),
             'account_id' => $this->blankToNull('account_id'),
             'term_deposit_id' => $this->blankToNull('term_deposit_id'),
             'date_from' => $this->blankToNull('date_from'),

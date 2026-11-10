@@ -22,6 +22,7 @@ class ResetUserData
             }
 
             $user->budgets()->delete();
+            $user->categories()->delete();
             $user->termDeposits()->delete();
             $user->accounts()->delete();
 

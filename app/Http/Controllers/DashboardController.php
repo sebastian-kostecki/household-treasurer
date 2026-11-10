@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
@@ -71,14 +71,14 @@ class DashboardController extends Controller
         $yearElapsedPercent = null;
 
         if ($budget !== null) {
-            $allCategories = $budget->categories()
+            $allCategories = $budget->budgetLines()
                 ->ordered()
                 ->get();
             $visibleCategories = $allCategories->filter(
-                fn (Category $category): bool => ! $category->isArchived(),
+                fn (BudgetLine $category): bool => ! $category->isArchived(),
             );
             $visibleExpenseCategories = $visibleCategories
-                ->where('type', CategoryType::Expense)
+                ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Expense))
                 ->values();
             $asOf = YearElapsed::asOfDate($budget->year, $today);
             $yearElapsedAsOf = $asOf->toDateString();
@@ -90,13 +90,13 @@ class DashboardController extends Controller
 
             if ($budget->isExecution()) {
                 $incomeCategories = $visibleCategories
-                    ->where('type', CategoryType::Income)
+                    ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Income))
                     ->values()
-                    ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                    ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
                     ->all();
 
                 $expenseCategories = $visibleExpenseCategories
-                    ->map(fn (Category $category): array => $this->categoryPayload($category, $budget))
+                    ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
                     ->all();
 
                 $currentMonth = $today->month;
@@ -228,7 +228,7 @@ class DashboardController extends Controller
      * }
      */
     private function categoryPayload(
-        Category $category,
+        BudgetLine $category,
         Budget $budget,
     ): array {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
@@ -238,8 +238,8 @@ class DashboardController extends Controller
             : $category->planned_amount_minor_units;
 
         return [
-            'id' => $category->id,
-            'name' => $category->name,
+            'id' => $category->category_id,
+            'name' => $category->category->name,
             ...CategoryAppearance::fields($category),
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,
@@ -252,10 +252,10 @@ class DashboardController extends Controller
                 $currentPlanMinorUnits,
                 $executionMinorUnits,
             ),
-            'is_over_limit' => $category->type === CategoryType::Expense
+            'is_over_limit' => $category->hasType(CategoryType::Expense)
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
-            ...($category->type === CategoryType::Expense ? [
+            ...($category->hasType(CategoryType::Expense) ? [
                 'is_paced' => $category->is_paced,
             ] : []),
         ];

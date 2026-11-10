@@ -8,7 +8,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -33,13 +33,13 @@ class OperationsIdentityTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Execution,
         ]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()->create([
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'description' => 'Salary',
         ]);
@@ -118,13 +118,13 @@ class OperationsIdentityTest extends TestCase
                 'year' => 2026,
                 'phase' => BudgetPhase::Execution,
             ]);
-            $category = Category::factory()->for($budget)->income()->create();
+            $category = BudgetLine::factory()->for($budget)->income()->create();
 
             FinancialOperation::factory()->create([
                 'user_id' => $user->id,
                 'type' => FinancialOperationType::Income,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $budget->id,
                 'description' => 'Income',
             ]);
@@ -155,13 +155,13 @@ class OperationsIdentityTest extends TestCase
                 'year' => 2026,
                 'phase' => BudgetPhase::Execution,
             ]);
-            $category = Category::factory()->for($budget)->income()->create();
+            $category = BudgetLine::factory()->for($budget)->income()->create();
 
             FinancialOperation::factory()->create([
                 'user_id' => $user->id,
                 'type' => FinancialOperationType::Income,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $budget->id,
                 'description' => 'Income',
             ]);
@@ -190,13 +190,13 @@ class OperationsIdentityTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Execution,
         ]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()->create([
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'description' => 'Interest',
         ]);
@@ -229,13 +229,13 @@ class OperationsIdentityTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Execution,
         ]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()->create([
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income,
             'account_id' => $cashAccount->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-01',
             'description' => 'Cash income',
@@ -244,7 +244,7 @@ class OperationsIdentityTest extends TestCase
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income,
             'account_id' => $otherBankAccount->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'budget_id' => $budget->id,
             'operation_date' => '2026-03-02',
             'description' => 'Bank income',

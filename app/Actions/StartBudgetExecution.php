@@ -16,9 +16,9 @@ class StartBudgetExecution
         }
 
         DB::transaction(function () use ($budget): void {
-            $budget->load('categories');
+            $budget->load('budgetLines');
 
-            foreach ($budget->categories as $category) {
+            foreach ($budget->budgetLines as $category) {
                 $category->update([
                     'initial_plan_minor_units' => $category->planned_amount_minor_units,
                     'execution_minor_units' => 0,

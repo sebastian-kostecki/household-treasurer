@@ -4,8 +4,8 @@ use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -252,11 +252,11 @@ it('does not revalidate opening date when another field is patched', function ()
         'opening_date' => '2026-04-01',
     ]);
     $budget = Budget::factory()->for($user)->create();
-    $category = Category::factory()->for($budget)->income()->create();
+    $category = BudgetLine::factory()->for($budget)->income()->create();
     FinancialOperation::factory()->for($user)->create([
         'account_id' => $account->id,
         'budget_id' => $budget->id,
-        'category_id' => $category->id,
+        'budget_line_id' => $category->id,
         'operation_date' => '2026-03-01',
     ]);
 
@@ -286,11 +286,11 @@ it('rejects an opening date later than the earliest activity on the account', fu
         'opening_date' => '2026-01-01',
     ]);
     $budget = Budget::factory()->for($user)->create();
-    $category = Category::factory()->for($budget)->income()->create();
+    $category = BudgetLine::factory()->for($budget)->income()->create();
     FinancialOperation::factory()->for($user)->create([
         'account_id' => $account->id,
         'budget_id' => $budget->id,
-        'category_id' => $category->id,
+        'budget_line_id' => $category->id,
         'operation_date' => '2026-03-01',
     ]);
 
@@ -383,11 +383,11 @@ it('does not delete an account that has financial history', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
     $budget = Budget::factory()->for($user)->create();
-    $category = Category::factory()->for($budget)->income()->create();
+    $category = BudgetLine::factory()->for($budget)->income()->create();
     FinancialOperation::factory()->for($user)->create([
         'account_id' => $account->id,
         'budget_id' => $budget->id,
-        'category_id' => $category->id,
+        'budget_line_id' => $category->id,
     ]);
 
     $this->artisan('account:delete', [
@@ -416,11 +416,11 @@ it('archives an account that has financial history', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
     $budget = Budget::factory()->for($user)->create();
-    $category = Category::factory()->for($budget)->income()->create();
+    $category = BudgetLine::factory()->for($budget)->income()->create();
     FinancialOperation::factory()->for($user)->create([
         'account_id' => $account->id,
         'budget_id' => $budget->id,
-        'category_id' => $category->id,
+        'budget_line_id' => $category->id,
     ]);
 
     $this->artisan('account:archive', [

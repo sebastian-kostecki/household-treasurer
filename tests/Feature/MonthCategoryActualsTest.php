@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -23,7 +23,7 @@ class MonthCategoryActualsTest extends TestCase
     public function test_sums_net_of_refunds_and_flags_positive_amounts(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->operation($user, $budget, $account, $food, '2026-11-05', 10_000);
         $this->operation($user, $budget, $account, $food, '2026-11-20', -2_500);
@@ -38,7 +38,7 @@ class MonthCategoryActualsTest extends TestCase
     public function test_refund_only_category_has_no_positive_amount(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $rent = Category::factory()->for($budget)->bill()->create();
+        $rent = BudgetLine::factory()->for($budget)->bill()->create();
 
         $this->operation($user, $budget, $account, $rent, '2026-11-10', -10_000);
 
@@ -51,7 +51,7 @@ class MonthCategoryActualsTest extends TestCase
     public function test_positive_count_counts_positive_amounts_and_skips_refunds(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->operation($user, $budget, $account, $food, '2026-11-05', 10_000);
         $this->operation($user, $budget, $account, $food, '2026-11-06', 3_000);
@@ -66,10 +66,10 @@ class MonthCategoryActualsTest extends TestCase
     public function test_for_months_matches_for_month_with_a_single_query(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $food = Category::factory()->for($budget)->expense()->create();
-        $salary = Category::factory()->for($budget)->income()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $salary = BudgetLine::factory()->for($budget)->income()->create();
         $otherBudget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
-        $otherCategory = Category::factory()->for($otherBudget)->expense()->create();
+        $otherCategory = BudgetLine::factory()->for($otherBudget)->expense()->create();
 
         $this->operation($user, $budget, $account, $food, '2026-02-28', 1_000);
         $this->operation($user, $budget, $account, $food, '2026-03-01', 2_000);
@@ -120,7 +120,7 @@ class MonthCategoryActualsTest extends TestCase
     public function test_includes_month_boundaries_and_skips_other_months(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $food = Category::factory()->for($budget)->expense()->create();
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->operation($user, $budget, $account, $food, '2026-10-31', 1_000);
         $this->operation($user, $budget, $account, $food, '2026-11-01', 2_000);
@@ -133,7 +133,7 @@ class MonthCategoryActualsTest extends TestCase
     public function test_includes_income_categories(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $salary = Category::factory()->for($budget)->income()->create();
+        $salary = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->operation($user, $budget, $account, $salary, '2026-11-02', 780_000, FinancialOperationType::Income);
 
@@ -166,7 +166,7 @@ class MonthCategoryActualsTest extends TestCase
     {
         [$user, $budget, $account] = $this->setUpBudget();
         $otherBudget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
-        $otherCategory = Category::factory()->for($otherBudget)->expense()->create();
+        $otherCategory = BudgetLine::factory()->for($otherBudget)->expense()->create();
 
         $this->operation($user, $otherBudget, $account, $otherCategory, '2026-11-10', 5_000);
 
@@ -189,7 +189,7 @@ class MonthCategoryActualsTest extends TestCase
         User $user,
         Budget $budget,
         Account $account,
-        Category $category,
+        BudgetLine $category,
         string $date,
         int $amount,
         FinancialOperationType $type = FinancialOperationType::Expense,
@@ -197,7 +197,7 @@ class MonthCategoryActualsTest extends TestCase
         FinancialOperation::factory()->for($user)->for($budget)->create([
             'type' => $type,
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,
         ]);

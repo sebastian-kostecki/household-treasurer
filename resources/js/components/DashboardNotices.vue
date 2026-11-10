@@ -184,8 +184,7 @@ function noticeHref(notice: DashboardNotice) {
 
         return operationsRoute({
             query: {
-                category_name: notice.category_name,
-                category_type: 'expense',
+                category_id: notice.id,
                 date_from: range.date_from,
                 date_to: range.date_to,
             },
@@ -195,8 +194,7 @@ function noticeHref(notice: DashboardNotice) {
     if (notice.kind === 'one_off_over_limit') {
         return operationsRoute({
             query: {
-                category_name: notice.category_name,
-                category_type: 'expense',
+                category_id: notice.id,
                 date_from: `${props.budgetYear}-01-01`,
                 date_to: `${props.budgetYear}-12-31`,
             },

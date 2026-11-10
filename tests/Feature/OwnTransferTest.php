@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\BudgetPhase;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\OwnTransfer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -98,7 +98,7 @@ class OwnTransferTest extends TestCase
             'year' => 2026,
             'phase' => BudgetPhase::Execution,
         ]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 15000,
         ]);
         $source = Account::factory()->for($user)->create([

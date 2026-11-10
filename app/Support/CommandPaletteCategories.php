@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 
 class CommandPaletteCategories
@@ -21,19 +21,21 @@ class CommandPaletteCategories
             return [];
         }
 
-        $categories = Category::query()
+        $categories = BudgetLine::query()
             ->whereIn('budget_id', $user->budgets()->where('year', $year)->select('id'))
             ->whereNull('archived_at')
-            ->orderByRaw('CASE WHEN type = ? THEN 0 ELSE 1 END', [CategoryType::Expense->value])
+            ->orderByRaw(
+                '(SELECT CASE WHEN categories.type = ? THEN 0 ELSE 1 END FROM categories WHERE categories.id = budget_lines.category_id)',
+                [CategoryType::Expense->value],
+            )
             ->ordered()
-            ->orderBy('id')
             ->get();
 
         return array_values($categories
-            ->map(fn (Category $category): array => [
-                'id' => $category->id,
-                'name' => $category->name,
-                'type' => $category->type->value,
+            ->map(fn (BudgetLine $category): array => [
+                'id' => $category->category_id,
+                'name' => $category->category->name,
+                'type' => $category->category->type->value,
                 ...CategoryAppearance::fields($category),
                 'execution_minor_units' => $category->execution_minor_units,
             ])

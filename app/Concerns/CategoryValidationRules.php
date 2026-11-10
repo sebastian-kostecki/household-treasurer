@@ -4,6 +4,8 @@ namespace App\Concerns;
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
+use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Support\Categories\CategoryColors;
 use App\Support\Categories\CategoryIcons;
@@ -37,39 +39,47 @@ trait CategoryValidationRules
         return $this->storeCategoryRules();
     }
 
-    protected function withPacedFlagValidation(Validator $validator, ?Category $category = null): void
+    /**
+     * The Budget Line of the budget and the list Category in the route, or 404
+     * when the Category has no line in that Budget.
+     */
+    protected function routeBudgetLine(): BudgetLine
     {
-        $validator->after(function (Validator $validator) use ($category): void {
+        $budget = $this->route('budget');
+        $category = $this->route('category');
+
+        if (! $budget instanceof Budget || ! $category instanceof Category) {
+            abort(404);
+        }
+
+        return $budget->budgetLines()->where('category_id', $category->id)->firstOrFail();
+    }
+
+    /**
+     * The flags belong to expenses: `$type` is the type the request ends with
+     * (the Category's type when it is not changed).
+     */
+    protected function withPacedFlagValidation(Validator $validator, ?CategoryType $type, ?BudgetLine $line = null): void
+    {
+        $validator->after(function (Validator $validator) use ($type, $line): void {
             if (! array_key_exists('is_paced', $this->all())) {
                 return;
             }
 
-            $type = $category === null
-                ? CategoryType::tryFrom($this->input('type'))
-                : $category->type;
-
-            if ($type === CategoryType::Income) {
-                $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));
-            }
-
-            if ($category?->isArchived()) {
+            if ($type === CategoryType::Income || $line?->isArchived()) {
                 $validator->errors()->add('is_paced', __('validation.prohibited', ['attribute' => 'is_paced']));
             }
         });
     }
 
-    protected function withMonthItemKindValidation(Validator $validator, ?Category $category = null): void
+    protected function withMonthItemKindValidation(Validator $validator, ?CategoryType $type, ?BudgetLine $line = null): void
     {
-        $validator->after(function (Validator $validator) use ($category): void {
+        $validator->after(function (Validator $validator) use ($type, $line): void {
             if (! array_key_exists('month_item_kind', $this->all())) {
                 return;
             }
 
-            $type = $category === null
-                ? CategoryType::tryFrom((string) $this->input('type'))
-                : $category->type;
-
-            if ($type === CategoryType::Income || $category?->isArchived()) {
+            if ($type === CategoryType::Income || $line?->isArchived()) {
                 $validator->errors()->add('month_item_kind', __('validation.prohibited', ['attribute' => 'month_item_kind']));
             }
         });

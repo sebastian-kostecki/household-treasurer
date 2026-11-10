@@ -4,9 +4,12 @@ namespace App\Actions;
 
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\BudgetLineResolver;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ManageFinancialOperation
@@ -131,17 +134,12 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = Category::query()
-                ->with('budget')
-                ->whereKey($validated['category_id'])
-                ->whereNull('archived_at')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $category = $this->lockLine($user, $validated['category_id'], $validated['operation_date']);
 
             $operation = $user->financialOperations()->create([
                 'type' => $type,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $category->budget_id,
                 'operation_date' => $validated['operation_date'],
                 'amount_minor_units' => $validated['amount_minor_units'],
@@ -185,17 +183,12 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = Category::query()
-                ->with('budget')
-                ->whereKey($validated['category_id'])
-                ->whereNull('archived_at')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $category = $this->lockLine($operation->user, $validated['category_id'], $validated['operation_date']);
 
             $operation->update([
                 'type' => $expectedType,
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $category->budget_id,
                 'operation_date' => $validated['operation_date'],
                 'amount_minor_units' => $validated['amount_minor_units'],
@@ -209,6 +202,26 @@ class ManageFinancialOperation
         });
     }
 
+    /**
+     * The not archived Budget Line of the list Category in the Budget of the
+     * operation's year, locked for the update of its Execution.
+     */
+    private function lockLine(User $user, int $categoryId, string $operationDate): BudgetLine
+    {
+        $line = (new BudgetLineResolver)->forYear($user, $categoryId, Carbon::parse($operationDate)->year);
+
+        if ($line === null) {
+            throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
+        }
+
+        return BudgetLine::query()
+            ->with('budget')
+            ->whereKey($line->id)
+            ->whereNull('archived_at')
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
     private function revertEffect(FinancialOperation $operation): void
     {
         $account = Account::query()
@@ -216,8 +229,8 @@ class ManageFinancialOperation
             ->lockForUpdate()
             ->firstOrFail();
 
-        $category = Category::query()
-            ->whereKey($operation->category_id)
+        $category = BudgetLine::query()
+            ->whereKey($operation->budget_line_id)
             ->lockForUpdate()
             ->firstOrFail();
 
@@ -233,7 +246,7 @@ class ManageFinancialOperation
     private function applyEffect(
         FinancialOperationType $type,
         Account $account,
-        Category $category,
+        BudgetLine $category,
         int $amountMinorUnits,
     ): void {
         if ($type === FinancialOperationType::Income) {

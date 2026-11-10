@@ -3,11 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Concerns\CategoryValidationRules;
-use App\Models\Category;
+use App\Enums\CategoryType;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateCategoryRequest extends FormRequest
 {
@@ -15,41 +14,30 @@ class UpdateCategoryRequest extends FormRequest
 
     public function authorize(): bool
     {
-        $category = $this->route('category');
+        $line = $this->routeBudgetLine();
+        $user = $this->user();
 
-        if (! $category instanceof Category) {
-            return false;
-        }
-
-        return $this->user()?->can('update', $category) === true;
+        return $user?->can('update', $line) === true
+            && $user->can('update', $line->category) === true;
     }
 
     /**
+     * Whether the type may change and whether the new key is free is decided by
+     * `UpdateCategory`, which also holds the unique constraint as the last defence.
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-        $rules = $this->updateCategoryRules();
-        $category = $this->route('category');
-
-        if ($category instanceof Category && $category->budget->isExecution()) {
-            $rules['type'] = ['required', Rule::in([$category->type->value])];
-        }
-
-        return $rules;
+        return $this->updateCategoryRules();
     }
 
     public function withValidator(Validator $validator): void
     {
-        $category = $this->route('category');
+        $line = $this->routeBudgetLine();
+        $type = CategoryType::tryFrom((string) $this->input('type')) ?? $line->category->type;
 
-        $this->withPacedFlagValidation(
-            $validator,
-            $category instanceof Category ? $category : null,
-        );
-        $this->withMonthItemKindValidation(
-            $validator,
-            $category instanceof Category ? $category : null,
-        );
+        $this->withPacedFlagValidation($validator, $type, $line);
+        $this->withMonthItemKindValidation($validator, $type, $line);
     }
 }

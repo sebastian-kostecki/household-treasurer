@@ -5,7 +5,7 @@ namespace App\Support;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
@@ -79,6 +79,7 @@ class EntryToSpendInputs
 
         $actualsByMonth = MonthCategoryActuals::forMonths($budget, array_keys($readings));
 
+        $listCategoryIds = $budget->budgetLines->pluck('category_id', 'id');
         $months = [];
 
         foreach ($readings as $month => $reading) {
@@ -92,7 +93,7 @@ class EntryToSpendInputs
 
             foreach ($categoryIds as $categoryId) {
                 $items[] = [
-                    'category_id' => $categoryId,
+                    'category_id' => $listCategoryIds[$categoryId],
                     'plan_minor_units' => $reading->amounts[$categoryId] ?? 0,
                     'actual_minor_units' => $actuals->actual($categoryId),
                     'positive_amount_count' => $actuals->positiveCount($categoryId),
@@ -108,11 +109,11 @@ class EntryToSpendInputs
 
         return [
             'year' => $budget->year,
-            'categories' => array_values($budget->categories
-                ->map(fn (Category $category): array => [
-                    'id' => $category->id,
-                    'type' => $category->type->value,
-                    'month_item_kind' => $category->type === CategoryType::Income
+            'categories' => array_values($budget->budgetLines
+                ->map(fn (BudgetLine $category): array => [
+                    'id' => $category->category_id,
+                    'type' => $category->category->type->value,
+                    'month_item_kind' => $category->hasType(CategoryType::Income)
                         ? null
                         : $category->month_item_kind->value,
                 ])

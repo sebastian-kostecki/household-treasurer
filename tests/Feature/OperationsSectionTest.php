@@ -2,7 +2,7 @@
 
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -38,7 +38,7 @@ test('section is echoed, kept in pagination links and does not activate filters'
     FinancialOperation::factory()->count(51)->create([
         'user_id' => $user->id,
         'account_id' => Account::factory()->for($user)->create(['opening_date' => '2025-01-01'])->id,
-        'category_id' => Category::factory()->for($budget)->income()->create()->id,
+        'budget_line_id' => BudgetLine::factory()->for($budget)->income()->create()->id,
         'budget_id' => $budget->id,
     ]);
 

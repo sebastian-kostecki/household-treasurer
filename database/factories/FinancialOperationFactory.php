@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,7 +24,7 @@ class FinancialOperationFactory extends Factory
             'user_id' => User::factory(),
             'type' => FinancialOperationType::Income,
             'account_id' => Account::factory(),
-            'category_id' => Category::factory()->income(),
+            'budget_line_id' => BudgetLine::factory()->income(),
             'budget_id' => Budget::factory(),
             'operation_date' => fake()->date(),
             'amount_minor_units' => fake()->numberBetween(100, 500000),
@@ -43,7 +43,7 @@ class FinancialOperationFactory extends Factory
     {
         return $this->state(fn (): array => [
             'type' => FinancialOperationType::Expense,
-            'category_id' => Category::factory()->expense(),
+            'budget_line_id' => BudgetLine::factory()->expense(),
         ]);
     }
 }

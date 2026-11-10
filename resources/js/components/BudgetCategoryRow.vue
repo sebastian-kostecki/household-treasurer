@@ -14,6 +14,7 @@ import { showsYearElapsedMark } from '@/lib/dashboard-categories';
 
 const props = defineProps<{
     category: BudgetCategoryRow;
+    budgetId: number;
     categoryType: 'income' | 'expense';
     phase: 'draft' | 'execution';
     showHandle: boolean;
@@ -162,6 +163,7 @@ const remainingLabel = computed(() =>
         <BudgetCategoryRowActions
             class="budget-category-cell-actions"
             :category="category"
+            :budget-id="budgetId"
             @edit="emit('edit')"
         />
     </div>

@@ -6,7 +6,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +27,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -36,7 +36,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 50000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -51,7 +51,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 75000,
             'description' => 'Updated salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
 
@@ -77,7 +77,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -86,7 +86,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 40000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -112,7 +112,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);
@@ -122,7 +122,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -132,7 +132,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 30000,
             'description' => 'Updated groceries',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation->refresh();
@@ -155,7 +155,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -164,7 +164,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -189,7 +189,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'execution_minor_units' => 30000,
         ]);
@@ -199,7 +199,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => -10000,
             'description' => 'Refund',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -209,7 +209,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => -15000,
             'description' => 'Updated refund',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation->refresh();
@@ -233,15 +233,15 @@ class FinancialOperationEditDeleteTest extends TestCase
         ]);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
-        $category2026 = Category::factory()->for($budget2026)->income()->create();
-        $category2025 = Category::factory()->for($budget2025)->income()->create();
+        $category2026 = BudgetLine::factory()->for($budget2026)->income()->create();
+        $category2025 = BudgetLine::factory()->for($budget2025)->income()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category2026->id,
+            'category_id' => $category2026->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -253,7 +253,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Salary',
                 'account_id' => $account->id,
-                'category_id' => $category2026->id,
+                'category_id' => $category2026->category_id,
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -262,14 +262,14 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $category2025->id,
+            'category_id' => $category2025->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation->refresh();
         $category2026->refresh();
         $category2025->refresh();
 
-        $this->assertSame($category2025->id, $operation->category_id);
+        $this->assertSame($category2025->id, $operation->budget_line_id);
         $this->assertSame($budget2025->id, $operation->budget_id);
         $this->assertSame(0, $category2026->execution_minor_units);
         $this->assertSame(10000, $category2025->execution_minor_units);
@@ -288,15 +288,15 @@ class FinancialOperationEditDeleteTest extends TestCase
             'year' => 2027,
             'phase' => BudgetPhase::Draft,
         ]);
-        $category2026 = Category::factory()->for($budget2026)->expense()->create();
-        $category2027 = Category::factory()->for($budget2027)->expense()->create();
+        $category2026 = BudgetLine::factory()->for($budget2026)->expense()->create();
+        $category2027 = BudgetLine::factory()->for($budget2027)->expense()->create();
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 10000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $category2026->id,
+            'category_id' => $category2026->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -308,7 +308,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $category2027->id,
+                'category_id' => $category2027->category_id,
             ])
             ->assertSessionHasErrors('category_id');
     }
@@ -323,15 +323,15 @@ class FinancialOperationEditDeleteTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($owner)->post(route('expenses.store'), [
@@ -339,7 +339,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => 5000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $income = FinancialOperation::query()->where('type', FinancialOperationType::Income)->firstOrFail();
@@ -351,7 +351,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 1,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
             ])
             ->assertForbidden();
 
@@ -365,7 +365,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 1,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
             ])
             ->assertForbidden();
 
@@ -383,15 +383,15 @@ class FinancialOperationEditDeleteTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 10000,
             'description' => 'Salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $income = FinancialOperation::query()->firstOrFail();
@@ -402,7 +402,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 5000,
                 'description' => 'Wrong route',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
             ])
             ->assertForbidden();
     }
@@ -418,7 +418,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 100000,
             'execution_minor_units' => 30000,
         ]);
@@ -428,7 +428,7 @@ class FinancialOperationEditDeleteTest extends TestCase
             'amount_minor_units' => -10000,
             'description' => 'Refund',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -451,14 +451,14 @@ class FinancialOperationEditDeleteTest extends TestCase
             'opening_date' => '2026-03-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create();
+        $category = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-04-01',
             'amount_minor_units' => 10000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -470,7 +470,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('operation_date');
 
@@ -485,11 +485,11 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $archivedAccount->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('account_id');
 
-        $archivedCategory = Category::factory()->for($budget)->expense()->create([
+        $archivedCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'archived_at' => now(),
         ]);
 
@@ -500,7 +500,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $archivedCategory->id,
+                'category_id' => $archivedCategory->category_id,
             ])
             ->assertSessionHasErrors('category_id');
 
@@ -511,7 +511,7 @@ class FinancialOperationEditDeleteTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('operation_date');
     }

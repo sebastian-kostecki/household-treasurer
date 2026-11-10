@@ -5,7 +5,7 @@ namespace App\Support\CsvImport;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetMonthExecutionIndex;
 use Carbon\CarbonImmutable;
@@ -34,7 +34,7 @@ class ImportMonthRemainingContext
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query->where('type', CategoryType::Expense)])
+            ->with(['budgetLines' => fn ($query) => $query->ofType(CategoryType::Expense)])
             ->orderBy('year')
             ->get();
 
@@ -61,19 +61,19 @@ class ImportMonthRemainingContext
      */
     private static function budgetPayload(Budget $budget): array
     {
-        $categories = $budget->categories;
+        $categories = $budget->budgetLines;
         $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $categories);
 
         $executionByCategoryAndMonth = [];
 
         foreach ($categories as $category) {
-            $executionByCategoryAndMonth[$category->id] = [];
+            $executionByCategoryAndMonth[$category->category_id] = [];
 
             for ($month = 1; $month <= 12; $month++) {
                 $execution = $executionIndex->executionInMonth($category->id, $month);
 
                 if ($execution !== 0) {
-                    $executionByCategoryAndMonth[$category->id][$month] = $execution;
+                    $executionByCategoryAndMonth[$category->category_id][$month] = $execution;
                 }
             }
         }
@@ -83,8 +83,8 @@ class ImportMonthRemainingContext
             'year' => $budget->year,
             'is_draft' => $budget->isDraft(),
             'categories' => array_values($categories
-                ->map(fn (Category $category): array => [
-                    'id' => $category->id,
+                ->map(fn (BudgetLine $category): array => [
+                    'id' => $category->category_id,
                     'is_paced' => $category->is_paced,
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 ])

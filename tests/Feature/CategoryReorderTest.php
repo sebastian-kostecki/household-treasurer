@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -19,11 +19,11 @@ class CategoryReorderTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $first = Category::factory()->for($budget)->income()->create([
+        $first = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Salary',
             'sort_order' => 0,
         ]);
-        $second = Category::factory()->for($budget)->income()->create([
+        $second = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Bonus',
             'sort_order' => 1,
         ]);
@@ -31,23 +31,48 @@ class CategoryReorderTest extends TestCase
         $this->actingAs($user)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Income->value,
-                'category_ids' => [$second->id, $first->id],
+                'category_ids' => [$second->category_id, $first->category_id],
             ])
             ->assertNoContent();
 
-        $this->assertSame(1, $first->fresh()->sort_order);
-        $this->assertSame(0, $second->fresh()->sort_order);
+        $this->assertSame(1, $first->category->fresh()->sort_order);
+        $this->assertSame(0, $second->category->fresh()->sort_order);
+    }
+
+    public function test_reorder_renumbers_the_whole_list_and_keeps_categories_outside_the_budget_in_place(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $draft2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+        $first = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Jedzenie', 'sort_order' => 0]);
+        $only2027 = BudgetLine::factory()->for($draft2027)->expense()->create(['name' => 'Domeny', 'sort_order' => 1]);
+        $second = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Transport', 'sort_order' => 2]);
+        $third = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 3]);
+        $archived = BudgetLine::factory()->for($budget2026)->expense()->archived()->create(['name' => 'Wakacje', 'sort_order' => 4]);
+
+        $this->actingAs($user)
+            ->patchJson(route('categories.reorder', $budget2026), [
+                'type' => CategoryType::Expense->value,
+                'category_ids' => [$third->category_id, $first->category_id, $second->category_id],
+            ])
+            ->assertNoContent();
+
+        $this->assertSame(
+            [$third->category_id, $only2027->category_id, $first->category_id, $second->category_id, $archived->category_id],
+            $user->categories()->orderBy('sort_order')->pluck('id')->all(),
+        );
+        $this->assertSame([0, 1, 2, 3, 4], $user->categories()->orderBy('sort_order')->pluck('sort_order')->all());
     }
 
     public function test_new_category_is_appended_to_the_end_of_its_type(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Food',
             'sort_order' => 0,
         ]);
-        Category::factory()->for($budget)->expense()->create([
+        BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Transport',
             'sort_order' => 1,
         ]);
@@ -60,7 +85,7 @@ class CategoryReorderTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('categories', [
+        $this->assertBudgetLine([
             'budget_id' => $budget->id,
             'name' => 'Health',
             'sort_order' => 2,
@@ -71,11 +96,11 @@ class CategoryReorderTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $first = Category::factory()->for($budget)->income()->create([
+        $first = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Zebra',
             'sort_order' => 0,
         ]);
-        $second = Category::factory()->for($budget)->income()->create([
+        $second = BudgetLine::factory()->for($budget)->income()->create([
             'name' => 'Alpha',
             'sort_order' => 1,
         ]);
@@ -86,25 +111,25 @@ class CategoryReorderTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Budget')
-                ->where('incomeCategories.0.id', $first->id)
-                ->where('incomeCategories.1.id', $second->id));
+                ->where('incomeCategories.0.id', $first->category_id)
+                ->where('incomeCategories.1.id', $second->category_id));
     }
 
     public function test_reorder_rejects_archived_category_ids(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create();
-        $active = Category::factory()->for($budget)->income()->create([
+        $active = BudgetLine::factory()->for($budget)->income()->create([
             'sort_order' => 0,
         ]);
-        $archived = Category::factory()->for($budget)->income()->archived()->create([
+        $archived = BudgetLine::factory()->for($budget)->income()->archived()->create([
             'sort_order' => 1,
         ]);
 
         $this->actingAs($user)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Income->value,
-                'category_ids' => [$archived->id, $active->id],
+                'category_ids' => [$archived->category_id, $active->category_id],
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('category_ids');
@@ -125,14 +150,14 @@ class CategoryReorderTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->create();
-        $category = Category::factory()->for($budget)->income()->create([
+        $category = BudgetLine::factory()->for($budget)->income()->create([
             'sort_order' => 0,
         ]);
 
         $this->actingAs($otherUser)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Income->value,
-                'category_ids' => [$category->id],
+                'category_ids' => [$category->category_id],
             ])
             ->assertForbidden();
     }
@@ -143,17 +168,17 @@ class CategoryReorderTest extends TestCase
         $budget = Budget::factory()->for($user)->create([
             'phase' => BudgetPhase::Execution,
         ]);
-        $first = Category::factory()->for($budget)->expense()->create([
+        $first = BudgetLine::factory()->for($budget)->expense()->create([
             'sort_order' => 0,
         ]);
-        $second = Category::factory()->for($budget)->expense()->create([
+        $second = BudgetLine::factory()->for($budget)->expense()->create([
             'sort_order' => 1,
         ]);
 
         $this->actingAs($user)
             ->patchJson(route('categories.reorder', $budget), [
                 'type' => CategoryType::Expense->value,
-                'category_ids' => [$second->id, $first->id],
+                'category_ids' => [$second->category_id, $first->category_id],
             ])
             ->assertNoContent();
     }

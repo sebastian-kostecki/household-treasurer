@@ -30,9 +30,9 @@ class HandEntryMonthRemainingInputs
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
-                ->where('type', CategoryType::Expense)
-                ->orderBy('sort_order'),
+            ->with(['budgetLines' => fn ($query) => $query
+                ->ofType(CategoryType::Expense)
+                ->ordered(),
             ])
             ->orderBy('year')
             ->get();
@@ -40,7 +40,7 @@ class HandEntryMonthRemainingInputs
         $payloadBudgets = [];
 
         foreach ($budgets as $budget) {
-            $expenseCategories = $budget->categories;
+            $expenseCategories = $budget->budgetLines;
             $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $expenseCategories);
             $categories = [];
 
@@ -52,7 +52,7 @@ class HandEntryMonthRemainingInputs
                 }
 
                 $categories[] = [
-                    'id' => $category->id,
+                    'id' => $category->category_id,
                     'is_paced' => $category->is_paced,
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                     'monthly_execution_minor_units' => $monthlyExecution,

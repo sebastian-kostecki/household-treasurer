@@ -1,8 +1,8 @@
-import type { ImportRow, RowSelection } from '@/lib/import-preview-rows';
+import type { ImportRow, RowSelection } from './import-preview-rows';
 import {
     pacedMonthRemainingMinorUnits,
     pacedPoolMonthRemainingMinorUnits,
-} from '@/lib/month-remaining-calculator';
+} from './month-remaining-calculator';
 
 export type MonthRemainingBudgetContext = {
     id: number;
@@ -74,7 +74,12 @@ function pacedCategories(
 
 function isPacedExpenseSelection(
     selection: RowSelection,
-    expenseCategories: Array<{ id: number; is_paced: boolean }>,
+    year: number,
+    expenseCategories: Array<{
+        id: number;
+        budget_year: number;
+        is_paced: boolean;
+    }>,
 ): boolean {
     if (!selection.selected || selection.type !== 'expense') {
         return false;
@@ -85,7 +90,9 @@ function isPacedExpenseSelection(
     }
 
     const category = expenseCategories.find(
-        (candidate) => candidate.id === selection.category_id,
+        (candidate) =>
+            candidate.id === selection.category_id &&
+            candidate.budget_year === year,
     );
 
     return category?.is_paced === true;
@@ -133,7 +140,7 @@ export function computeImportMonthRemainingWarnings(
             continue;
         }
 
-        if (!isPacedExpenseSelection(selection, expenseCategories)) {
+        if (!isPacedExpenseSelection(selection, year, expenseCategories)) {
             continue;
         }
 

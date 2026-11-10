@@ -6,7 +6,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -88,7 +88,7 @@ class NfrPerf03ImportPreviewTest extends TestCase
             $budgetIdsByYear[$year] = $budget->id;
 
             foreach ($categoryNames as $index => $name) {
-                $categoryIdsByYear[$year][$index] = Category::factory()->for($budget)->expense()->create([
+                $categoryIdsByYear[$year][$index] = BudgetLine::factory()->for($budget)->expense()->create([
                     'name' => $name,
                 ])->id;
             }

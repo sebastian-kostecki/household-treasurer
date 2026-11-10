@@ -45,11 +45,11 @@ class Budget extends Model
     }
 
     /**
-     * @return HasMany<Category, $this>
+     * @return HasMany<BudgetLine, $this>
      */
-    public function categories(): HasMany
+    public function budgetLines(): HasMany
     {
-        return $this->hasMany(Category::class);
+        return $this->hasMany(BudgetLine::class);
     }
 
     /**

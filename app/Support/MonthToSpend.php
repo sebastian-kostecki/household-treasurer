@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
 final class MonthToSpend
 {
     /**
-     * @param  Collection<int, Category>  $categories  rows' categories in budget order
+     * @param  Collection<int, BudgetLine>  $categories  rows' categories in budget order
      */
     private function __construct(
         public readonly MonthPlanProposal $proposal,
@@ -40,7 +40,7 @@ final class MonthToSpend
             ...$actuals->categoryIds(),
         ]));
 
-        $categories = $budget->categories()
+        $categories = $budget->budgetLines()
             ->whereIn('id', $rowIds)
             ->ordered()
             ->get();
@@ -73,7 +73,7 @@ final class MonthToSpend
             $amounts = $this->rowAmounts($category);
 
             $items[] = [
-                'type' => $category->type,
+                'type' => $category->category->type,
                 'kind' => $category->month_item_kind,
                 'plan' => $amounts['plan_minor_units'],
                 'actual' => $amounts['actual_minor_units'],
@@ -90,7 +90,7 @@ final class MonthToSpend
      *
      * @return array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}
      */
-    public function rowAmounts(Category $category): array
+    public function rowAmounts(BudgetLine $category): array
     {
         return [
             'plan_minor_units' => $this->reading->amounts[$category->id] ?? 0,

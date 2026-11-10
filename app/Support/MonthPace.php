@@ -28,9 +28,9 @@ final class MonthPace
             $amounts = $toSpend->rowAmounts($category);
 
             $items[] = [
-                'type' => $category->type,
+                'type' => $category->category->type,
                 'kind' => $category->month_item_kind,
-                'is_one_off' => $category->type === CategoryType::Expense && ! $category->is_paced,
+                'is_one_off' => $category->hasType(CategoryType::Expense) && ! $category->is_paced,
                 'plan' => $amounts['plan_minor_units'],
                 'actual' => $amounts['actual_minor_units'],
             ];

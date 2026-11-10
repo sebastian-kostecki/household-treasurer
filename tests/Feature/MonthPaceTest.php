@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -51,13 +51,13 @@ class MonthPaceTest extends TestCase
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['food']->id,
+            'budget_line_id' => $categories['food']->id,
             'approved_amount_minor_units' => 150_000,
             'current_amount_minor_units' => 100_000,
         ]);
         MonthPlanItem::query()->create([
             'month_plan_id' => $plan->id,
-            'category_id' => $categories['fuel']->id,
+            'budget_line_id' => $categories['fuel']->id,
             'approved_amount_minor_units' => 40_000,
             'current_amount_minor_units' => 50_000,
         ]);
@@ -72,7 +72,7 @@ class MonthPaceTest extends TestCase
     public function test_archived_running_category_with_an_operation_raises_only_the_actual_sum(): void
     {
         [$user, $budget] = $this->canonicalBudget();
-        $archived = Category::factory()->for($budget)->expense()->create([
+        $archived = BudgetLine::factory()->for($budget)->expense()->create([
             'name' => 'Stara',
             'sort_order' => 10,
             'archived_at' => '2026-05-01',
@@ -103,7 +103,7 @@ class MonthPaceTest extends TestCase
     }
 
     /**
-     * @return array{0: User, 1: Budget, 2: array<string, Category>}
+     * @return array{0: User, 1: Budget, 2: array<string, BudgetLine>}
      */
     private function canonicalBudget(): array
     {
@@ -111,19 +111,19 @@ class MonthPaceTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
 
         $categories = [
-            'salary' => Category::factory()->for($budget)->income()->create([
+            'salary' => BudgetLine::factory()->for($budget)->income()->create([
                 'name' => 'Pensja', 'sort_order' => 0, 'planned_amount_minor_units' => 9_600_000,
             ]),
-            'rent' => Category::factory()->for($budget)->bill()->create([
+            'rent' => BudgetLine::factory()->for($budget)->bill()->create([
                 'name' => 'Czynsz', 'sort_order' => 0, 'planned_amount_minor_units' => 2_400_000,
             ]),
-            'food' => Category::factory()->for($budget)->expense()->create([
+            'food' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Jedzenie', 'sort_order' => 1, 'planned_amount_minor_units' => 1_800_000,
             ]),
-            'fuel' => Category::factory()->for($budget)->expense()->create([
+            'fuel' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Paliwo', 'sort_order' => 2, 'planned_amount_minor_units' => 480_000,
             ]),
-            'gift' => Category::factory()->for($budget)->oneOff()->create([
+            'gift' => BudgetLine::factory()->for($budget)->oneOff()->create([
                 'name' => 'Prezent', 'sort_order' => 3, 'planned_amount_minor_units' => 100_000,
             ]),
         ];
@@ -136,11 +136,11 @@ class MonthPaceTest extends TestCase
         return [$user, $budget, $categories];
     }
 
-    private function operation(User $user, Budget $budget, Category $category, string $date, int $amount): void
+    private function operation(User $user, Budget $budget, BudgetLine $category, string $date, int $amount): void
     {
         FinancialOperation::factory()->for($user)->for($budget)->create([
             'type' => FinancialOperationType::Expense,
-            'category_id' => $category->id,
+            'budget_line_id' => $category->id,
             'operation_date' => $date,
             'amount_minor_units' => $amount,
         ]);

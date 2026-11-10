@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $month_plan_id
- * @property int $category_id
+ * @property int $budget_line_id
  * @property int $approved_amount_minor_units
  * @property int $current_amount_minor_units
  * @property Carbon|null $created_at
@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'month_plan_id',
-    'category_id',
+    'budget_line_id',
     'approved_amount_minor_units',
     'current_amount_minor_units',
 ])]
@@ -49,10 +49,10 @@ class MonthPlanItem extends Model
     }
 
     /**
-     * @return BelongsTo<Category, $this>
+     * @return BelongsTo<BudgetLine, $this>
      */
-    public function category(): BelongsTo
+    public function budgetLine(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(BudgetLine::class);
     }
 }

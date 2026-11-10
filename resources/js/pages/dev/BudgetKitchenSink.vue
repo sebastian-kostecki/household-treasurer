@@ -6,6 +6,8 @@ import BudgetCategoryList, {
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
 import BudgetPlanSummaryStrip from '@/components/BudgetPlanSummaryStrip.vue';
+import InputError from '@/components/InputError.vue';
+import { Alert } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
@@ -468,6 +470,23 @@ const stateMatrix: { state: string; where: string }[] = [
                     {{ t.budget.show_archived }} (wyłączony)
                 </Label>
             </div>
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-messages">
+            <h2 id="ks-messages" class="section-title">
+                {{ t.budget.category_messages_title }}
+            </h2>
+            <Alert variant="ok" data-state="category-joined-existing">
+                {{ t.budget.category_joined_existing }}
+            </Alert>
+            <InputError
+                :message="t.budget.category_already_in_budget"
+                data-state="category-already-in-budget"
+            />
+            <InputError
+                :message="t.budget.category_in_archive_hint"
+                data-state="category-in-archive"
+            />
         </section>
 
         <section class="flex flex-col gap-3" aria-labelledby="ks-no-budget">

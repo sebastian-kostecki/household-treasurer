@@ -87,7 +87,10 @@ const formBinding = computed(() => {
 
     return props.mode === 'create'
         ? CategoryController.store.form(props.budgetId)
-        : CategoryController.update.form(props.category ?? { id: 0 });
+        : CategoryController.update.form({
+              budget: props.budgetId,
+              category: props.category?.id ?? 0,
+          });
 });
 
 const typeOptions = computed(() => [
@@ -191,6 +194,10 @@ function closeDialog(): void {
                         }}
                     </DialogDescription>
                 </DialogHeader>
+
+                <p v-if="mode === 'edit'" class="meta text-muted-foreground">
+                    {{ t.budget.edit_category_shared_note }}
+                </p>
 
                 <div
                     class="bg-background flex items-center gap-4 rounded-md p-4"

@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Support\CategoryList\CategoryNameKey;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,40 +13,44 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * An income or expense bucket of the User, one for all years (ADR-0063). The
+ * year's plan and Execution are on its Budget Lines.
+ *
  * @property int $id
- * @property int $budget_id
+ * @property int $user_id
  * @property string $name
+ * @property string $name_key
  * @property string $icon
  * @property string $color
  * @property int $sort_order
  * @property CategoryType $type
- * @property bool $is_paced
- * @property MonthItemKind $month_item_kind
- * @property int $planned_amount_minor_units
- * @property int $initial_plan_minor_units
- * @property int $execution_minor_units
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Fillable([
-    'budget_id',
+    'user_id',
     'name',
+    'name_key',
     'icon',
     'color',
     'sort_order',
     'type',
-    'is_paced',
-    'month_item_kind',
-    'planned_amount_minor_units',
-    'initial_plan_minor_units',
-    'execution_minor_units',
     'archived_at',
 ])]
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::saving(function (Category $category): void {
+            if ($category->isDirty('name') && ! $category->isDirty('name_key')) {
+                $category->name_key = CategoryNameKey::of($category->name);
+            }
+        });
+    }
 
     /**
      * @return array<string, string>
@@ -56,12 +59,7 @@ class Category extends Model
     {
         return [
             'type' => CategoryType::class,
-            'is_paced' => 'boolean',
-            'month_item_kind' => MonthItemKind::class,
             'sort_order' => 'integer',
-            'planned_amount_minor_units' => 'integer',
-            'initial_plan_minor_units' => 'integer',
-            'execution_minor_units' => 'integer',
             'archived_at' => 'datetime',
         ];
     }
@@ -72,29 +70,18 @@ class Category extends Model
     }
 
     /**
-     * @param  Builder<Category>  $query
-     * @return Builder<Category>
+     * @return BelongsTo<User, $this>
      */
-    public function scopeOrdered(Builder $query): Builder
+    public function user(): BelongsTo
     {
-        return $query
-            ->orderByRaw('CASE WHEN archived_at IS NULL THEN 0 ELSE 1 END')
-            ->orderBy('sort_order');
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * @return BelongsTo<Budget, $this>
+     * @return HasMany<BudgetLine, $this>
      */
-    public function budget(): BelongsTo
+    public function budgetLines(): HasMany
     {
-        return $this->belongsTo(Budget::class);
-    }
-
-    /**
-     * @return HasMany<FinancialOperation, $this>
-     */
-    public function financialOperations(): HasMany
-    {
-        return $this->hasMany(FinancialOperation::class);
+        return $this->hasMany(BudgetLine::class);
     }
 }

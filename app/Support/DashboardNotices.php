@@ -39,7 +39,6 @@ class DashboardNotices
      *     name: string,
      *     icon: string,
      *     color: string,
-     *     category_name: string,
      *     amount_minor_units: int,
      * }|array{
      *     kind: 'month_to_spend_negative',
@@ -129,7 +128,7 @@ class DashboardNotices
                 $amounts = $monthReading->rowAmounts($category);
 
                 if (! MonthItemDeviation::isOverPlan(
-                    $category->type,
+                    $category->category->type,
                     $amounts['plan_minor_units'],
                     $amounts['actual_minor_units'],
                 )) {
@@ -138,10 +137,9 @@ class DashboardNotices
 
                 $overPlanAlerts[] = [
                     'budget_order' => $budgetOrder,
-                    'id' => $category->id,
-                    'name' => $category->name,
+                    'id' => $category->category_id,
+                    'name' => $category->category->name,
                     ...CategoryAppearance::fields($category),
-                    'category_name' => $category->name,
                     'amount_minor_units' => $amounts['plan_minor_units'] - $amounts['actual_minor_units'],
                 ];
             }
@@ -156,15 +154,14 @@ class DashboardNotices
                     'name' => $alert['name'],
                     'icon' => $alert['icon'],
                     'color' => $alert['color'],
-                    'category_name' => $alert['category_name'],
                     'amount_minor_units' => $alert['amount_minor_units'],
                 ];
             }
         }
 
         if ($budget !== null && $budget->isExecution() && $today->year === $budget->year) {
-            $expenseCategories = $budget->categories()
-                ->where('type', CategoryType::Expense)
+            $expenseCategories = $budget->budgetLines()
+                ->ofType(CategoryType::Expense)
                 ->ordered()
                 ->get();
 
@@ -186,10 +183,9 @@ class DashboardNotices
 
                 $oneOffAlerts[] = [
                     'budget_order' => $budgetOrder,
-                    'id' => $category->id,
-                    'name' => $category->name,
+                    'id' => $category->category_id,
+                    'name' => $category->category->name,
                     ...CategoryAppearance::fields($category),
-                    'category_name' => $category->name,
                     'amount_minor_units' => $remainingMinorUnits,
                 ];
             }
@@ -204,7 +200,6 @@ class DashboardNotices
                     'name' => $alert['name'],
                     'icon' => $alert['icon'],
                     'color' => $alert['color'],
-                    'category_name' => $alert['category_name'],
                     'amount_minor_units' => $alert['amount_minor_units'],
                 ];
             }

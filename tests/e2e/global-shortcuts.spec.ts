@@ -20,6 +20,17 @@ test('a digit switches the view', async ({ page }) => {
     await pressUntilUrl(page, '2', /\/budget$/);
 });
 
+// Categories sits right after the Budget, so the later views move up by one:
+// the last view, Operations, is 7.
+test('the digit after the Budget opens Kategorie and the last digit Operations', async ({
+    page,
+}) => {
+    await page.goto('/dashboard');
+
+    await pressUntilUrl(page, '3', /\/categories$/);
+    await pressUntilUrl(page, '7', /\/operations$/);
+});
+
 test('a digit typed in the Operations search field stays in the field', async ({
     page,
 }) => {

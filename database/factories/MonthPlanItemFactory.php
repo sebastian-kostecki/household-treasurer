@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,7 +21,7 @@ class MonthPlanItemFactory extends Factory
 
         return [
             'month_plan_id' => MonthPlan::factory(),
-            'category_id' => Category::factory(),
+            'budget_line_id' => BudgetLine::factory(),
             'approved_amount_minor_units' => $amount,
             'current_amount_minor_units' => $amount,
         ];

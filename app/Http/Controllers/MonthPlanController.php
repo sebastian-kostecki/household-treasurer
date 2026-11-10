@@ -8,7 +8,7 @@ use App\Enums\CategoryType;
 use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
@@ -169,14 +169,14 @@ class MonthPlanController extends Controller
         if ($canChange) {
             $knownIds = $categories->pluck('id')->all();
 
-            $joinCandidateIds = $budget->categories
+            $joinCandidateIds = $budget->budgetLines
                 ->whereNull('archived_at')
                 ->whereNotIn('id', $knownIds)
                 ->pluck('id')
                 ->all();
 
             if ($joinCandidateIds !== []) {
-                $categories = $budget->categories()
+                $categories = $budget->budgetLines()
                     ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
                     ->ordered()
                     ->get();
@@ -194,7 +194,7 @@ class MonthPlanController extends Controller
                 in_array($category->id, $joinCandidateIds, true),
             );
 
-            if ($category->type === CategoryType::Income) {
+            if ($category->hasType(CategoryType::Income)) {
                 $incomeItems[] = $row;
             } else {
                 $expenseItems[] = $row;
@@ -267,9 +267,9 @@ class MonthPlanController extends Controller
      *     year_comparison: YearComparison|null,
      * }
      */
-    private function itemRow(Category $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
+    private function itemRow(BudgetLine $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
     {
-        $isExpense = $category->type === CategoryType::Expense;
+        $isExpense = $category->hasType(CategoryType::Expense);
         $isOneOff = $isExpense && ! $category->is_paced;
         $amounts = $toSpend->rowAmounts($category);
         $plan = $amounts['plan_minor_units'];
@@ -277,10 +277,10 @@ class MonthPlanController extends Controller
         $hasPositiveAmount = $amounts['has_positive_amount'];
 
         return [
-            'category_id' => $category->id,
-            'name' => $category->name,
+            'category_id' => $category->category_id,
+            'name' => $category->category->name,
             ...CategoryAppearance::fields($category),
-            'type' => $category->type->value,
+            'type' => $category->category->type->value,
             'month_item_kind' => $isExpense ? $category->month_item_kind->value : null,
             'is_one_off' => $isOneOff,
             'is_archived' => $category->isArchived(),
@@ -292,14 +292,14 @@ class MonthPlanController extends Controller
             'approved_minor_units' => $toSpend->reading->approvedAmounts[$category->id] ?? null,
             'is_join_candidate' => $isJoinCandidate,
             'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits(
-                $category->type,
+                $category->category->type,
                 $category->month_item_kind,
                 $plan,
                 $actual,
                 $hasPositiveAmount,
             ),
-            'is_over_plan' => MonthItemDeviation::isOverPlan($category->type, $plan, $actual),
-            'is_settled' => MonthItemDeviation::isSettled($category->type, $category->month_item_kind, $hasPositiveAmount),
+            'is_over_plan' => MonthItemDeviation::isOverPlan($category->category->type, $plan, $actual),
+            'is_settled' => MonthItemDeviation::isSettled($category->category->type, $category->month_item_kind, $hasPositiveAmount),
             'available_limit_minor_units' => $isOneOff
                 ? CategoryExecutionMetrics::remainingMinorUnits(
                     $category->planned_amount_minor_units,

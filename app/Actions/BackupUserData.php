@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\FinancialOperation;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 5;
+    public const SNAPSHOT_VERSION = 6;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -46,11 +47,16 @@ class BackupUserData
                 ->get()
                 ->map(fn ($budget): array => $this->serializeBudget($budget))
                 ->all(),
-            'categories' => Category::query()
-                ->whereIn('budget_id', $budgetIds)
+            'categories' => $user->categories()
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($category): array => $this->serializeCategory($category))
+                ->all(),
+            'budget_lines' => BudgetLine::query()
+                ->whereIn('budget_id', $budgetIds)
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($budgetLine): array => $this->serializeBudgetLine($budgetLine))
                 ->all(),
             'financial_operations' => $user->financialOperations()
                 ->orderBy('id')
@@ -147,20 +153,34 @@ class BackupUserData
     {
         return [
             'id' => $category->id,
-            'budget_id' => $category->budget_id,
             'name' => $category->name,
             'icon' => $category->icon,
             'color' => $category->color,
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
-            'is_paced' => $category->is_paced,
-            'month_item_kind' => $category->month_item_kind->value,
-            'planned_amount_minor_units' => $category->planned_amount_minor_units,
-            'initial_plan_minor_units' => $category->initial_plan_minor_units,
-            'execution_minor_units' => $category->execution_minor_units,
             'archived_at' => $category->archived_at?->toIso8601String(),
             'created_at' => $category->created_at?->toIso8601String(),
             'updated_at' => $category->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeBudgetLine(BudgetLine $budgetLine): array
+    {
+        return [
+            'id' => $budgetLine->id,
+            'budget_id' => $budgetLine->budget_id,
+            'category_id' => $budgetLine->category_id,
+            'is_paced' => $budgetLine->is_paced,
+            'month_item_kind' => $budgetLine->month_item_kind->value,
+            'planned_amount_minor_units' => $budgetLine->planned_amount_minor_units,
+            'initial_plan_minor_units' => $budgetLine->initial_plan_minor_units,
+            'execution_minor_units' => $budgetLine->execution_minor_units,
+            'archived_at' => $budgetLine->archived_at?->toIso8601String(),
+            'created_at' => $budgetLine->created_at?->toIso8601String(),
+            'updated_at' => $budgetLine->updated_at?->toIso8601String(),
         ];
     }
 
@@ -178,7 +198,7 @@ class BackupUserData
             'current_set_aside_minor_units' => $monthPlan->current_set_aside_minor_units,
             'items' => $monthPlan->items
                 ->map(fn ($item): array => [
-                    'category_id' => $item->category_id,
+                    'budget_line_id' => $item->budget_line_id,
                     'approved_amount_minor_units' => $item->approved_amount_minor_units,
                     'current_amount_minor_units' => $item->current_amount_minor_units,
                 ])
@@ -195,7 +215,7 @@ class BackupUserData
             'id' => $operation->id,
             'type' => $operation->type->value,
             'account_id' => $operation->account_id,
-            'category_id' => $operation->category_id,
+            'budget_line_id' => $operation->budget_line_id,
             'budget_id' => $operation->budget_id,
             'operation_date' => $operation->operation_date->toDateString(),
             'amount_minor_units' => $operation->amount_minor_units,

@@ -6,8 +6,8 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
-use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -35,7 +35,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -44,7 +44,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Misclassified lokata return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -100,7 +100,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 0,
         ]);
 
@@ -109,7 +109,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Misclassified lokata funding',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -215,7 +215,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
         $movement = CapitalMovement::factory()->for($user)->create([
@@ -235,7 +235,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Actually salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
             'convert_to_income' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -245,7 +245,7 @@ class OperationRebuildTest extends TestCase
             'user_id' => $user->id,
             'type' => FinancialOperationType::Income->value,
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'budget_line_id' => $incomeCategory->id,
             'amount_minor_units' => 20000,
             'description' => 'Actually salary',
         ]);
@@ -275,7 +275,7 @@ class OperationRebuildTest extends TestCase
             'current_balance_minor_units' => 50000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'execution_minor_units' => 0,
         ]);
         $movement = CapitalMovement::factory()->for($user)->create([
@@ -295,7 +295,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Actually groceries',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
             'convert_to_expense' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -386,7 +386,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
 
         $operation = FinancialOperation::factory()
             ->for($user)
@@ -436,7 +436,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
 
         $movement = CapitalMovement::factory()->for($user)->create([
             'account_id' => $account->id,
@@ -457,7 +457,7 @@ class OperationRebuildTest extends TestCase
             'amount_minor_units' => 20000,
             'description' => 'Actually salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
             'convert_to_income' => true,
         ])->assertSessionHasNoErrors();
 
@@ -482,7 +482,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
         $movement = CapitalMovement::factory()->for($user)->create([
             'account_id' => $account->id,
             'term_deposit_id' => $termDeposit->id,
@@ -496,7 +496,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertSessionHasErrors('convert_to_income');
@@ -516,7 +516,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
         $movement = CapitalMovement::factory()->for($user)->create([
             'account_id' => $account->id,
             'term_deposit_id' => $termDeposit->id,
@@ -530,7 +530,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
                 'convert_to_expense' => true,
             ])
             ->assertSessionHasErrors('convert_to_expense');
@@ -550,7 +550,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
         $operation = FinancialOperation::factory()
             ->for($user)
             ->for($account)
@@ -570,7 +570,7 @@ class OperationRebuildTest extends TestCase
                 'direction' => CapitalMovementDirection::FromTermDeposit->value,
                 'convert_to_capital_movement' => true,
                 'interest_amount_minor_units' => 5000,
-                'interest_category_id' => $incomeCategory->id,
+                'interest_category_id' => $incomeCategory->category_id,
             ])
             ->assertSessionHasErrors('interest_amount_minor_units');
     }
@@ -588,15 +588,15 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 20000,
             'description' => 'Income',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $income = FinancialOperation::query()->firstOrFail();
@@ -624,7 +624,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 20000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertForbidden();
@@ -642,7 +642,7 @@ class OperationRebuildTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))
@@ -651,7 +651,7 @@ class OperationRebuildTest extends TestCase
                 'amount_minor_units' => 20000,
                 'description' => 'Attempt',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'term_deposit_id' => $termDeposit->id,
                 'direction' => CapitalMovementDirection::FromTermDeposit->value,
                 'convert_to_capital_movement' => true,

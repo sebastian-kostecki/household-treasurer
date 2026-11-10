@@ -344,27 +344,27 @@ Zmiana nie migruje danych. Pierwsze archiwum bez właściciela powstaje przy wdr
 
 #### Automated
 
-- [x] 2.1 Indeks wygenerowany i zawiera obie reguły
-- [x] 2.2 Każdy glob z `categories.md` trafia w istniejący plik
-- [x] 2.3 Reguły nie używają zakazanych terminów
-- [x] 2.4 Pełna bramka przechodzi: `composer ci:check`
+- [x] 2.1 Indeks wygenerowany i zawiera obie reguły — 07c50a4
+- [x] 2.2 Każdy glob z `categories.md` trafia w istniejący plik — 07c50a4
+- [x] 2.3 Reguły nie używają zakazanych terminów — 07c50a4
+- [x] 2.4 Pełna bramka przechodzi: `composer ci:check` — 07c50a4
 
 #### Manual
 
-- [x] 2.5 Nowa sesja ładuje `migrations.md` i `categories.md` przy odczycie pasujących plików
-- [x] 2.6 Treść trzech reguł zgodna z ADR-0063 i decyzjami planu
+- [x] 2.5 Nowa sesja ładuje `migrations.md` i `categories.md` przy odczycie pasujących plików — 07c50a4
+- [x] 2.6 Treść trzech reguł zgodna z ADR-0063 i decyzjami planu — 07c50a4
 
 ### Phase 3: Próba przywracania (ręczna)
 
 #### Automated
 
-- [ ] 3.1 Wynik próby zapisany w `restore-trial.md`
-- [ ] 3.2 Po próbie nie zostało archiwum w repo
+- [x] 3.1 Wynik próby zapisany w `restore-trial.md` — 006e8dd
+- [x] 3.2 Po próbie nie zostało archiwum w repo — 006e8dd
 
 #### Manual
 
-- [ ] 3.3 Wdrożenie F-04 pokazało krok kopii, a w katalogu kopii jest nowe archiwum
-- [ ] 3.4 `backup:restore` do `restore_trial` bez roli `treasurer` zakończył się sukcesem
-- [ ] 3.5 Liczby kontrolne równe na produkcji i w `restore_trial`
-- [ ] 3.6 Lokalna baza deweloperska nie została nadpisana
-- [ ] 3.7 Archiwum, baza `restore_trial` i pliki z produkcji usunięte, lokalne `private/` i `public/` przywrócone
+- [x] 3.3 Wdrożenie F-04 pokazało krok kopii, a w katalogu kopii jest nowe archiwum — 006e8dd
+- [x] 3.4 `backup:restore` do `restore_trial` bez roli `treasurer` zakończył się sukcesem — 006e8dd
+- [x] 3.5 Liczby kontrolne równe na produkcji i w `restore_trial` — 006e8dd
+- [x] 3.6 Lokalna baza deweloperska nie została nadpisana — 006e8dd
+- [x] 3.7 Archiwum, baza `restore_trial` i pliki z produkcji usunięte, lokalne `private/` i `public/` przywrócone — 006e8dd

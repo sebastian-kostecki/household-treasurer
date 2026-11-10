@@ -25,8 +25,7 @@ import { operations as operationsRoute } from '@/routes';
 export type OperationsListFilters = {
     q: string | null;
     year: number | null;
-    category_name: string | null;
-    category_type: string | null;
+    category_id: number | null;
     account_id: number | null;
     term_deposit_id: number | null;
     date_from: string | null;
@@ -34,6 +33,7 @@ export type OperationsListFilters = {
 };
 
 export type OperationsFilterCategory = {
+    id: number;
     name: string;
     type: 'income' | 'expense';
     icon: string;
@@ -71,7 +71,7 @@ let skipSearchWatch = false;
 const hasPanelFilters = computed(
     () =>
         props.filters.year !== null ||
-        props.filters.category_name !== null ||
+        props.filters.category_id !== null ||
         props.filters.account_id !== null ||
         props.filters.term_deposit_id !== null ||
         props.filters.date_from !== null ||
@@ -87,19 +87,9 @@ const expenseCategories = computed(() =>
     props.categories.filter((category) => category.type === 'expense'),
 );
 
-const categoryValue = computed(() => {
-    if (
-        props.filters.category_type === null ||
-        props.filters.category_name === null
-    ) {
-        return '';
-    }
-
-    return serializeCategory(
-        props.filters.category_type,
-        props.filters.category_name,
-    );
-});
+const categoryValue = computed(() =>
+    props.filters.category_id === null ? '' : String(props.filters.category_id),
+);
 
 const thisMonthRange = computed(() => monthRange(0));
 const lastMonthRange = computed(() => monthRange(-1));
@@ -122,7 +112,7 @@ const panelFilterCount = computed(() => {
         count += 1;
     }
 
-    if (props.filters.category_name !== null) {
+    if (props.filters.category_id !== null) {
         count += 1;
     }
 
@@ -183,30 +173,6 @@ watch(search, (value) => {
     }, SEARCH_DEBOUNCE_MS);
 });
 
-function serializeCategory(type: string, name: string): string {
-    return `${type}\u001f${name}`;
-}
-
-function parseCategory(value: string): {
-    category_name: string | null;
-    category_type: string | null;
-} {
-    if (value === '') {
-        return { category_name: null, category_type: null };
-    }
-
-    const separator = value.indexOf('\u001f');
-
-    if (separator === -1) {
-        return { category_name: null, category_type: null };
-    }
-
-    return {
-        category_type: value.slice(0, separator),
-        category_name: value.slice(separator + 1),
-    };
-}
-
 function monthRange(offset: number): { from: string; to: string } {
     const now = new Date();
     const from = new Date(now.getFullYear(), now.getMonth() + offset, 1);
@@ -260,7 +226,8 @@ function onYearChange(event: Event): void {
 }
 
 function onCategoryChange(event: Event): void {
-    applyFilters(parseCategory((event.target as HTMLSelectElement).value));
+    const value = (event.target as HTMLSelectElement).value;
+    applyFilters({ category_id: value === '' ? null : Number(value) });
 }
 
 function onTermDepositChange(event: Event): void {
@@ -327,8 +294,7 @@ function clearFilters(): void {
     visit({
         q: null,
         year: null,
-        category_name: null,
-        category_type: null,
+        category_id: null,
         account_id: null,
         term_deposit_id: null,
         date_from: null,
@@ -346,7 +312,7 @@ function removeFilter(key: OperationsFilterChipKey): void {
             applyFilters({ year: null });
             break;
         case 'category':
-            applyFilters({ category_name: null, category_type: null });
+            applyFilters({ category_id: null });
             break;
         case 'account':
             applyFilters({ account_id: null });
@@ -491,18 +457,8 @@ function removeFilter(key: OperationsFilterChipKey): void {
                         >
                             <option
                                 v-for="category in incomeCategories"
-                                :key="
-                                    serializeCategory(
-                                        category.type,
-                                        category.name,
-                                    )
-                                "
-                                :value="
-                                    serializeCategory(
-                                        category.type,
-                                        category.name,
-                                    )
-                                "
+                                :key="category.id"
+                                :value="category.id"
                             >
                                 {{ category.name }}
                             </option>
@@ -513,18 +469,8 @@ function removeFilter(key: OperationsFilterChipKey): void {
                         >
                             <option
                                 v-for="category in expenseCategories"
-                                :key="
-                                    serializeCategory(
-                                        category.type,
-                                        category.name,
-                                    )
-                                "
-                                :value="
-                                    serializeCategory(
-                                        category.type,
-                                        category.name,
-                                    )
-                                "
+                                :key="category.id"
+                                :value="category.id"
                             >
                                 {{ category.name }}
                             </option>

@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Support\Categories\CategoryColors;
 use App\Support\Categories\CategoryIcons;
 
@@ -15,24 +15,24 @@ class CategoryAppearance
     /**
      * @return array{icon: string, color: string}
      */
-    public static function fields(Category $category): array
+    public static function fields(BudgetLine $category): array
     {
         return [
-            'icon' => $category->icon,
-            'color' => $category->color,
+            'icon' => $category->category->icon,
+            'color' => $category->category->color,
         ];
     }
 
     /**
      * @return array{id: int, name: string, icon: string, color: string}
      */
-    public static function pickerOption(Category $category): array
+    public static function pickerOption(BudgetLine $category): array
     {
         return [
-            'id' => $category->id,
-            'name' => $category->name,
-            'icon' => $category->icon,
-            'color' => $category->color,
+            'id' => $category->category_id,
+            'name' => $category->category->name,
+            'icon' => $category->category->icon,
+            'color' => $category->category->color,
         ];
     }
 

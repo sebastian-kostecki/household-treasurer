@@ -71,13 +71,13 @@ export function noticePresentation(
         case 'month_item_over_plan':
             return {
                 labelKey: 'over_plan',
-                identity: { type: 'name', name: notice.category_name },
+                identity: { type: 'name', name: notice.name },
                 value: { type: 'money', minorUnits: notice.amount_minor_units },
             };
         case 'one_off_over_limit':
             return {
                 labelKey: 'over_limit',
-                identity: { type: 'name', name: notice.category_name },
+                identity: { type: 'name', name: notice.name },
                 value: { type: 'money', minorUnits: notice.amount_minor_units },
             };
         case 'month_plan_not_approved':

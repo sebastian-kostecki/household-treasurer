@@ -2,8 +2,8 @@
 
 namespace App\Support;
 
-use App\Enums\CategoryType;
 use App\Models\Account;
+use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
@@ -27,40 +27,57 @@ class OperationsFilterOptions
     }
 
     /**
-     * @return list<array{name: string, type: string, icon: string, color: string}>
+     * @return list<array{id: int, name: string, type: string, icon: string, color: string}>
      */
-    public static function categories(User $user, ?int $year): array
+    public static function categories(User $user, ?int $year, ?int $selectedCategoryId = null): array
     {
-        $categories = Category::query()
-            ->select('categories.*')
-            ->join('budgets', 'budgets.id', '=', 'categories.budget_id')
+        $categories = BudgetLine::query()
+            ->select('budget_lines.*')
+            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
             ->where('budgets.user_id', $user->id)
             ->when($year !== null, fn ($query) => $query->where('budgets.year', $year))
             ->whereHas('financialOperations', fn ($query) => $query->where('user_id', $user->id))
             ->with('budget:id,year')
             ->get();
 
-        return array_values($categories
-            ->groupBy(fn (Category $category): string => $category->type->value."\0".$category->name)
-            ->map(function (Collection $group): Category {
+        $selected = $selectedCategoryId === null || $categories->contains('category_id', $selectedCategoryId)
+            ? null
+            : Category::query()->where('user_id', $user->id)->find($selectedCategoryId);
+
+        $options = array_values($categories
+            ->groupBy(fn (BudgetLine $category): int => $category->category_id)
+            ->map(function (Collection $group): BudgetLine {
                 $category = $group
-                    ->sortByDesc(fn (Category $item): int => $item->budget->year)
+                    ->sortByDesc(fn (BudgetLine $item): int => $item->budget->year)
                     ->first();
 
-                if (! $category instanceof Category) {
-                    throw new RuntimeException('A Category name-type group was empty.');
+                if (! $category instanceof BudgetLine) {
+                    throw new RuntimeException('A BudgetLine group of one Category was empty.');
                 }
 
                 return $category;
             })
-            ->sortBy(fn (Category $category): string => ($category->type === CategoryType::Income ? '0' : '1').$category->name)
-            ->values()
-            ->map(fn (Category $category): array => [
-                'name' => $category->name,
-                'type' => $category->type->value,
+            ->map(fn (BudgetLine $category): array => [
+                'id' => $category->category_id,
+                'name' => $category->category->name,
+                'type' => $category->category->type->value,
                 ...CategoryAppearance::fields($category),
             ])
             ->all());
+
+        if ($selected instanceof Category) {
+            $options[] = [
+                'id' => $selected->id,
+                'name' => $selected->name,
+                'type' => $selected->type->value,
+                'icon' => $selected->icon,
+                'color' => $selected->color,
+            ];
+        }
+
+        usort($options, fn (array $a, array $b): int => [$a['type'] === 'income' ? 0 : 1, $a['name']] <=> [$b['type'] === 'income' ? 0 : 1, $b['name']]);
+
+        return $options;
     }
 
     /**

@@ -385,7 +385,10 @@ function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
     kindPendingCategoryId.value = row.category_id;
 
     router.patch(
-        CategoryController.updateMonthItemKind.url(row.category_id),
+        CategoryController.updateMonthItemKind.url({
+            budget: props.budget?.id ?? 0,
+            category: row.category_id,
+        }),
         { month_item_kind: kind },
         {
             preserveState: true,

@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -17,10 +17,10 @@ class ArchiveCategoryTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.archive', $category))
+            ->post(route('categories.archive', $category->category_id))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -33,10 +33,10 @@ class ArchiveCategoryTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->archived()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->archived()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.restore', $category))
+            ->post(route('categories.restore', $category->category_id))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
 
@@ -49,10 +49,10 @@ class ArchiveCategoryTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.archive', $category))
+            ->post(route('categories.archive', $category->category_id))
             ->assertForbidden();
     }
 
@@ -61,14 +61,14 @@ class ArchiveCategoryTest extends TestCase
         $owner = User::factory()->create();
         $otherUser = User::factory()->create();
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->archived()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->archived()->create();
 
         $this->actingAs($otherUser)
-            ->post(route('categories.archive', $category))
+            ->post(route('categories.archive', $category->category_id))
             ->assertForbidden();
 
         $this->actingAs($otherUser)
-            ->post(route('categories.restore', $category))
+            ->post(route('categories.restore', $category->category_id))
             ->assertForbidden();
     }
 
@@ -76,8 +76,8 @@ class ArchiveCategoryTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['name' => 'Active']);
-        Category::factory()->for($budget)->income()->archived()->create(['name' => 'Archived']);
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Active']);
+        BudgetLine::factory()->for($budget)->income()->archived()->create(['name' => 'Archived']);
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
@@ -93,8 +93,8 @@ class ArchiveCategoryTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create(['name' => 'Active']);
-        Category::factory()->for($budget)->income()->archived()->create(['name' => 'Archived']);
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Active']);
+        BudgetLine::factory()->for($budget)->income()->archived()->create(['name' => 'Archived']);
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
@@ -112,7 +112,7 @@ class ArchiveCategoryTest extends TestCase
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        Category::factory()->for($budget)->income()->create();
+        BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])

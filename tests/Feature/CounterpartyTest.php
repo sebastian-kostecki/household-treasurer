@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
@@ -30,7 +30,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'March salary',
                 'counterparty' => 'Acme Corp',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -54,7 +54,7 @@ class CounterpartyTest extends TestCase
                 'amount_minor_units' => 250000,
                 'description' => 'March salary',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -78,7 +78,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Groceries',
                 'counterparty' => 'Biedronka',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -102,7 +102,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Refund for shoes',
                 'counterparty' => 'CCC',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasNoErrors();
 
@@ -128,7 +128,7 @@ class CounterpartyTest extends TestCase
                 'amount_minor_units' => 10000,
                 'counterparty' => 'Acme Corp',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('description');
 
@@ -147,7 +147,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Salary',
             'counterparty' => 'Acme Corp',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -158,7 +158,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Salary',
             'counterparty' => '',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->assertNull($operation->refresh()->counterparty);
@@ -175,7 +175,7 @@ class CounterpartyTest extends TestCase
             'amount_minor_units' => 25000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -186,7 +186,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Groceries',
             'counterparty' => 'Lidl',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->assertSame('Lidl', $operation->refresh()->counterparty);
@@ -201,7 +201,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $operation = FinancialOperation::factory()
             ->for($user)
@@ -261,7 +261,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()
             ->for($user)
@@ -308,7 +308,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         FinancialOperation::factory()
             ->for($owner)
@@ -343,7 +343,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Groceries',
             'counterparty' => 'Biedronka',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -354,7 +354,7 @@ class CounterpartyTest extends TestCase
             'description' => 'Groceries',
             'counterparty' => '',
             'account_id' => $account->id,
-            'category_id' => $category->id,
+            'category_id' => $category->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->assertNull($operation->refresh()->counterparty);
@@ -374,7 +374,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Salary',
                 'counterparty' => str_repeat('a', 256),
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertSessionHasErrors('counterparty');
 
@@ -412,7 +412,7 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $operation = FinancialOperation::factory()
             ->for($owner)
@@ -434,7 +434,7 @@ class CounterpartyTest extends TestCase
                 'description' => 'Stolen edit',
                 'counterparty' => 'Hacked payer',
                 'account_id' => $account->id,
-                'category_id' => $category->id,
+                'category_id' => $category->category_id,
             ])
             ->assertForbidden();
 
@@ -442,7 +442,7 @@ class CounterpartyTest extends TestCase
     }
 
     /**
-     * @return array{0: User, 1: Account, 2: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine}
      */
     private function createIncomeFixture(): array
     {
@@ -451,13 +451,13 @@ class CounterpartyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->income()->create();
+        $category = BudgetLine::factory()->for($budget)->income()->create();
 
         return [$user, $account, $category];
     }
 
     /**
-     * @return array{0: User, 1: Account, 2: Category}
+     * @return array{0: User, 1: Account, 2: BudgetLine}
      */
     private function createExpenseFixture(): array
     {
@@ -468,7 +468,7 @@ class CounterpartyTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = Category::factory()->for($budget)->expense()->create([
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 500000,
             'execution_minor_units' => 0,
         ]);

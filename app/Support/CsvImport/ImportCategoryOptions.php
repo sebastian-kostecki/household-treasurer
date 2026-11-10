@@ -5,13 +5,14 @@ namespace App\Support\CsvImport;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\CategoryAppearance;
 
 /**
- * Categories an Import preview row may be classified with: active categories of
- * the user's Budgets in execution, one list per type.
+ * Categories an Import preview row may be classified with: lines of the user's
+ * Budgets in execution open for choice (line and list Category not archived),
+ * one list per type.
  */
 class ImportCategoryOptions
 {
@@ -23,16 +24,16 @@ class ImportCategoryOptions
         return $user
             ->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
-                ->where('type', CategoryType::Income)
-                ->whereNull('archived_at')
+            ->with(['budgetLines' => fn ($query) => $query
+                ->ofType(CategoryType::Income)
+                ->openForChoice()
                 ->ordered(),
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
-                'id' => $category->id,
-                'name' => $category->name,
+            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
+                'id' => $category->category_id,
+                'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
             ]))
@@ -48,16 +49,16 @@ class ImportCategoryOptions
         return $user
             ->budgets()
             ->where('phase', BudgetPhase::Execution)
-            ->with(['categories' => fn ($query) => $query
-                ->where('type', CategoryType::Expense)
-                ->whereNull('archived_at')
+            ->with(['budgetLines' => fn ($query) => $query
+                ->ofType(CategoryType::Expense)
+                ->openForChoice()
                 ->ordered(),
             ])
             ->orderBy('year')
             ->get()
-            ->flatMap(fn (Budget $budget) => $budget->categories->map(fn (Category $category): array => [
-                'id' => $category->id,
-                'name' => $category->name,
+            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
+                'id' => $category->category_id,
+                'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
                 'budget_year' => $budget->year,
                 'is_paced' => $category->is_paced,

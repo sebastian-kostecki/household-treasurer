@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use App\Concerns\CategoryValidationRules;
 use App\Enums\MonthItemKind;
-use App\Models\Category;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -16,13 +15,7 @@ class UpdateCategoryMonthItemKindRequest extends FormRequest
 
     public function authorize(): bool
     {
-        $category = $this->route('category');
-
-        if (! $category instanceof Category) {
-            return false;
-        }
-
-        return $this->user()?->can('update', $category) === true;
+        return $this->user()?->can('update', $this->routeBudgetLine()) === true;
     }
 
     /**
@@ -37,11 +30,8 @@ class UpdateCategoryMonthItemKindRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        $category = $this->route('category');
+        $line = $this->routeBudgetLine();
 
-        $this->withMonthItemKindValidation(
-            $validator,
-            $category instanceof Category ? $category : null,
-        );
+        $this->withMonthItemKindValidation($validator, $line->category->type, $line);
     }
 }

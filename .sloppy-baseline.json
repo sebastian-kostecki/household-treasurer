@@ -1,9 +1,9 @@
 {
     "schema": 1,
     "tool": "sloppy",
-    "generated_at": "2026-11-02T11:04:42+00:00",
-    "score": 86,
-    "total": 26,
+    "generated_at": "2026-11-09T12:45:26+00:00",
+    "score": 88,
+    "total": 25,
     "entries": [
         {
             "id": "f5078d95d640409a",
@@ -12,14 +12,6 @@
             "fingerprint": "ImportFinancialOperations::handle",
             "count": 1,
             "message": "ImportFinancialOperations::handle() spans 226 lines with 63 statements, cyclomatic complexity 21, nesting depth 4 and 31 calls to 15 distinct collaborators."
-        },
-        {
-            "id": "6c6881086e59a1ab",
-            "rule": "SL101",
-            "file": "app/Http/Controllers/BudgetController.php",
-            "fingerprint": "BudgetController::show",
-            "count": 1,
-            "message": "BudgetController::show() spans 97 lines with 15 statements, cyclomatic complexity 5, nesting depth 1 and 39 calls to 24 distinct collaborators."
         },
         {
             "id": "e751351943e5adc7",
@@ -35,7 +27,7 @@
             "file": "app/Http/Controllers/DashboardController.php",
             "fingerprint": "DashboardController::show",
             "count": 1,
-            "message": "DashboardController::show() spans 117 lines with 41 statements, cyclomatic complexity 5, nesting depth 3 and 52 calls to 37 distinct collaborators."
+            "message": "DashboardController::show() spans 117 lines with 43 statements, cyclomatic complexity 5, nesting depth 3 and 49 calls to 40 distinct collaborators."
         },
         {
             "id": "9af33202d1d91a4d",
@@ -43,7 +35,7 @@
             "file": "app/Http/Controllers/OperationsController.php",
             "fingerprint": "OperationsController::index",
             "count": 1,
-            "message": "OperationsController::index() spans 166 lines with 22 statements, cyclomatic complexity 5, nesting depth 1 and 89 calls to 57 distinct collaborators."
+            "message": "OperationsController::index() spans 181 lines with 24 statements, cyclomatic complexity 6, nesting depth 1 and 98 calls to 60 distinct collaborators."
         },
         {
             "id": "8a6a69a7026d6555",
@@ -59,7 +51,7 @@
             "file": "app/Support/DashboardNotices.php",
             "fingerprint": "DashboardNotices::forDashboard",
             "count": 1,
-            "message": "DashboardNotices::forDashboard() spans 115 lines with 29 statements, cyclomatic complexity 17, nesting depth 3 and 17 calls to 12 distinct collaborators."
+            "message": "DashboardNotices::forDashboard() spans 173 lines with 45 statements, cyclomatic complexity 32, nesting depth 3 and 24 calls to 16 distinct collaborators."
         },
         {
             "id": "5749d04824bc28a6",
@@ -67,7 +59,7 @@
             "file": "app/Actions/RestoreUserData.php",
             "fingerprint": "RestoreUserData",
             "count": 1,
-            "message": "RestoreUserData spans 424 lines with 13 methods (3 public), 114 statements, 1 injected dependencies and talks to 27 distinct collaborators."
+            "message": "RestoreUserData spans 503 lines with 14 methods (3 public), 131 statements, 1 injected dependencies and talks to 32 distinct collaborators."
         },
         {
             "id": "5270fce116068850",
@@ -83,7 +75,7 @@
             "file": "app/Http/Controllers/CsvImportController.php",
             "fingerprint": "CsvImportController",
             "count": 1,
-            "message": "CsvImportController spans 538 lines with 13 methods (4 public), 128 statements and talks to 69 distinct collaborators."
+            "message": "CsvImportController spans 485 lines with 11 methods (4 public), 127 statements and talks to 54 distinct collaborators."
         },
         {
             "id": "59ee0f2b2b277cee",
@@ -91,7 +83,7 @@
             "file": "app/Support/CsvImport/ImportPairCandidateDetector.php",
             "fingerprint": "ImportPairCandidateDetector",
             "count": 1,
-            "message": "ImportPairCandidateDetector spans 429 lines with 11 methods (5 public), 68 statements and talks to 32 distinct collaborators."
+            "message": "ImportPairCandidateDetector spans 455 lines with 12 methods (5 public), 70 statements and talks to 33 distinct collaborators."
         },
         {
             "id": "9f91caf50c08ebe5",
@@ -166,28 +158,28 @@
             "message": "ApproveMonthPlan::handle() writes to MonthPlanItem inside a loop (query()->create())."
         },
         {
-            "id": "b7c87d3cc962b41f",
+            "id": "9f6695c4068c2d1d",
             "rule": "SL204",
             "file": "app/Actions/ReorderCategories.php",
-            "fingerprint": "ReorderCategories::handle:Category.query.whereKey.update",
+            "fingerprint": "ReorderCategories::handle:BudgetLine.query.whereKey.update",
             "count": 1,
-            "message": "ReorderCategories::handle() writes to Category inside a loop (query()->whereKey()->update())."
+            "message": "ReorderCategories::handle() writes to BudgetLine inside a loop (query()->whereKey()->update())."
         },
         {
-            "id": "3823bd9e54493526",
+            "id": "68dd99bdd18d4e5a",
             "rule": "SL204",
             "file": "app/Actions/RestoreUserData.php",
-            "fingerprint": "RestoreUserData::restoreCategories:Category.query.create",
+            "fingerprint": "RestoreUserData::restoreCategories:BudgetLine.query.create",
             "count": 1,
-            "message": "RestoreUserData::restoreCategories() writes to Category inside a loop (query()->create())."
+            "message": "RestoreUserData::restoreCategories() writes to BudgetLine inside a loop (query()->create())."
         },
         {
-            "id": "d1beda0a24f4de04",
+            "id": "ee81336ae71d0c95",
             "rule": "SL204",
             "file": "app/Actions/RestoreUserData.php",
-            "fingerprint": "RestoreUserData::restoreMonthPlans:Category.query.whereKey.value",
+            "fingerprint": "RestoreUserData::restoreMonthPlans:BudgetLine.query.whereKey.value",
             "count": 1,
-            "message": "RestoreUserData::restoreMonthPlans() queries Category inside a loop (query()->whereKey()->value())."
+            "message": "RestoreUserData::restoreMonthPlans() queries BudgetLine inside a loop (query()->whereKey()->value())."
         },
         {
             "id": "7c19778e5296e67c",

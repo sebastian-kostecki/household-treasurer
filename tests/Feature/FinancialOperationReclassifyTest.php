@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
-use App\Models\Category;
+use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,10 +26,10 @@ class FinancialOperationReclassifyTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 200000,
             'execution_minor_units' => 20000,
         ]);
@@ -39,7 +39,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return parked as income',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -56,7 +56,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
             'convert_to_expense_refund' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -68,7 +68,7 @@ class FinancialOperationReclassifyTest extends TestCase
 
         $this->assertSame(FinancialOperationType::Expense, $operation->type);
         $this->assertSame(-15000, $operation->amount_minor_units);
-        $this->assertSame($expenseCategory->id, $operation->category_id);
+        $this->assertSame($expenseCategory->id, $operation->budget_line_id);
         $this->assertSame(115000, $account->current_balance_minor_units);
         $this->assertSame(0, $incomeCategory->execution_minor_units);
         $this->assertSame(5000, $expenseCategory->execution_minor_units);
@@ -85,10 +85,10 @@ class FinancialOperationReclassifyTest extends TestCase
             'current_balance_minor_units' => 100000,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create([
             'execution_minor_units' => 0,
         ]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create([
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create([
             'planned_amount_minor_units' => 200000,
             'execution_minor_units' => 5000,
         ]);
@@ -98,7 +98,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => -15000,
             'description' => 'Refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -108,7 +108,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Actually salary',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
             'convert_to_income' => true,
         ])->assertSessionHasNoErrors()
             ->assertRedirect(route('operations'));
@@ -120,7 +120,7 @@ class FinancialOperationReclassifyTest extends TestCase
 
         $this->assertSame(FinancialOperationType::Income, $operation->type);
         $this->assertSame(15000, $operation->amount_minor_units);
-        $this->assertSame($incomeCategory->id, $operation->category_id);
+        $this->assertSame($incomeCategory->id, $operation->budget_line_id);
         $this->assertSame(115000, $account->current_balance_minor_units);
         $this->assertSame(15000, $incomeCategory->execution_minor_units);
         $this->assertSame(5000, $expenseCategory->execution_minor_units);
@@ -135,8 +135,8 @@ class FinancialOperationReclassifyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $operation = FinancialOperation::factory()
             ->for($user)
@@ -160,7 +160,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => 15000,
             'description' => 'Shop return refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
             'convert_to_expense_refund' => true,
         ])->assertSessionHasNoErrors();
 
@@ -183,17 +183,17 @@ class FinancialOperationReclassifyTest extends TestCase
         ]);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
-        $incomeCategory = Category::factory()->for($budget2026)->income()->create([
+        $incomeCategory = BudgetLine::factory()->for($budget2026)->income()->create([
             'execution_minor_units' => 0,
         ]);
-        $expenseCategory2025 = Category::factory()->for($budget2025)->expense()->create();
+        $expenseCategory2025 = BudgetLine::factory()->for($budget2025)->expense()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 15000,
             'description' => 'Shop return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -205,7 +205,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Shop return',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory2025->id,
+                'category_id' => $expenseCategory2025->category_id,
                 'convert_to_expense_refund' => true,
             ])
             ->assertSessionHasErrors('category_id');
@@ -215,7 +215,7 @@ class FinancialOperationReclassifyTest extends TestCase
 
         $this->assertSame(FinancialOperationType::Income, $operation->type);
         $this->assertSame(15000, $operation->amount_minor_units);
-        $this->assertSame($incomeCategory->id, $operation->category_id);
+        $this->assertSame($incomeCategory->id, $operation->budget_line_id);
         $this->assertSame(15000, $incomeCategory->execution_minor_units);
     }
 
@@ -228,15 +228,15 @@ class FinancialOperationReclassifyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 15000,
             'description' => 'Shop return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -248,7 +248,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Shop return',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
             ])
             ->assertSessionHasErrors('category_id');
     }
@@ -262,15 +262,15 @@ class FinancialOperationReclassifyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)->post(route('expenses.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 15000,
             'description' => 'Groceries',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $operation = FinancialOperation::query()->firstOrFail();
@@ -282,7 +282,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Groceries',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertSessionHasErrors('convert_to_income');
@@ -298,15 +298,15 @@ class FinancialOperationReclassifyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($owner)->execution()->create(['year' => 2026]);
-        $incomeCategory = Category::factory()->for($budget)->income()->create();
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $incomeCategory = BudgetLine::factory()->for($budget)->income()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($owner)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',
             'amount_minor_units' => 15000,
             'description' => 'Shop return',
             'account_id' => $account->id,
-            'category_id' => $incomeCategory->id,
+            'category_id' => $incomeCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs($owner)->post(route('expenses.store'), [
@@ -314,7 +314,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'amount_minor_units' => -10000,
             'description' => 'Refund',
             'account_id' => $account->id,
-            'category_id' => $expenseCategory->id,
+            'category_id' => $expenseCategory->category_id,
         ])->assertSessionHasNoErrors();
 
         $income = FinancialOperation::query()->where('type', FinancialOperationType::Income)->firstOrFail();
@@ -326,7 +326,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
                 'convert_to_expense_refund' => true,
             ])
             ->assertForbidden();
@@ -337,7 +337,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 10000,
                 'description' => 'Hack',
                 'account_id' => $account->id,
-                'category_id' => $incomeCategory->id,
+                'category_id' => $incomeCategory->category_id,
                 'convert_to_income' => true,
             ])
             ->assertForbidden();
@@ -352,7 +352,7 @@ class FinancialOperationReclassifyTest extends TestCase
             'opening_date' => '2026-01-01',
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $expenseCategory = Category::factory()->for($budget)->expense()->create();
+        $expenseCategory = BudgetLine::factory()->for($budget)->expense()->create();
 
         $this->actingAs($user)
             ->from(route('operations'))
@@ -361,7 +361,7 @@ class FinancialOperationReclassifyTest extends TestCase
                 'amount_minor_units' => 15000,
                 'description' => 'Refund attempt',
                 'account_id' => $account->id,
-                'category_id' => $expenseCategory->id,
+                'category_id' => $expenseCategory->category_id,
                 'convert_to_expense_refund' => true,
             ])
             ->assertSessionHasErrors('convert_to_expense_refund');

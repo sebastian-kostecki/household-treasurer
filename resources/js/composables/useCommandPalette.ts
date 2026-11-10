@@ -111,7 +111,6 @@ export function useCommandPalette(views: NavItem[]) {
                         operations({
                             query: categoryOperationsQuery(
                                 item.category,
-                                item.category.type,
                                 state.budgetYear,
                             ),
                         }),
