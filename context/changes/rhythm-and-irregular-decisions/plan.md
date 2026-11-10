@@ -291,30 +291,30 @@ Nie dotyczy tej zmiany, bo dane się nie zmieniają. Wycofanie to revert commit�
 
 #### Automated
 
-- [x] 1.1 ADR istnieje i numer 0066 jest jedyny
-- [x] 1.2 ADR-0066 powołuje się na każdy zmieniany ADR
-- [x] 1.3 Każdy zmieniany ADR odsyła do ADR-0066, a jego dotychczasowe akapity są nietknięte
+- [x] 1.1 ADR istnieje i numer 0066 jest jedyny — 43f498c
+- [x] 1.2 ADR-0066 powołuje się na każdy zmieniany ADR — 43f498c
+- [x] 1.3 Każdy zmieniany ADR odsyła do ADR-0066, a jego dotychczasowe akapity są nietknięte — 43f498c
 
 #### Manual
 
-- [x] 1.4 ADR-0066 zawiera każdy punkt z Contract i nie przeczy PRD v3 ani ADR-0063
-- [x] 1.5 Przykłady przeliczone według ADR-0066 dają oczekiwane liczby
-- [x] 1.6 Czytelnik każdego z siedmiu starych ADR-ów widzi, która klauzula przestała obowiązywać
+- [x] 1.4 ADR-0066 zawiera każdy punkt z Contract i nie przeczy PRD v3 ani ADR-0063 — 43f498c
+- [x] 1.5 Przykłady przeliczone według ADR-0066 dają oczekiwane liczby — 43f498c
+- [x] 1.6 Czytelnik każdego z siedmiu starych ADR-ów widzi, która klauzula przestała obowiązywać — 43f498c
 
 ### Phase 2: Słownik
 
 #### Automated
 
-- [ ] 2.1 Nowe terminy mają wpis
-- [ ] 2.2 Predykaty są zapisane dosłownie w obu dokumentach
-- [ ] 2.3 Stare sformułowania zniknęły ze słownika
-- [ ] 2.4 Polskie copy jest w słowniku
-- [ ] 2.5 Diff obejmuje tylko dokumenty tej zmiany
+- [x] 2.1 Nowe terminy mają wpis
+- [x] 2.2 Predykaty są zapisane dosłownie w obu dokumentach
+- [x] 2.3 Stare sformułowania zniknęły ze słownika
+- [x] 2.4 Polskie copy jest w słowniku
+- [x] 2.5 Diff obejmuje tylko dokumenty tej zmiany
 
 #### Manual
 
-- [ ] 2.6 US-02 przeliczony według wpisów słownika daje oczekiwane liczby
-- [ ] 2.7 Przypadki podniesienia planu i 31 grudnia dają te same liczby co w Fazie 1
-- [ ] 2.8 Przypadki rytmu dają oczekiwany wynik
-- [ ] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0066
-- [ ] 2.10 Słownik nie urósł poza zakres zmiany
+- [x] 2.6 US-02 przeliczony według wpisów słownika daje oczekiwane liczby
+- [x] 2.7 Przypadki podniesienia planu i 31 grudnia dają te same liczby co w Fazie 1
+- [x] 2.8 Przypadki rytmu dają oczekiwany wynik
+- [x] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0066
+- [x] 2.10 Słownik nie urósł poza zakres zmiany
