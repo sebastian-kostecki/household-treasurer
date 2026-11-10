@@ -104,11 +104,7 @@ class BudgetController extends Controller
     {
         $validated = $request->validated();
 
-        $budget = $createBudget->handle(
-            $request->user(),
-            $validated['year'],
-            $validated['source_budget_id'] ?? null,
-        );
+        $budget = $createBudget->handle($request->user(), $validated['year']);
 
         $request->session()->put('budget_year', $budget->year);
 

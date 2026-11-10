@@ -52,6 +52,8 @@ const states = [
     'category-list-name-archived',
     'category-list-saving',
     'budget-create',
+    'budget-create-no-source',
+    'budget-create-empty',
     'budget-errors',
     'confirm-plain',
     'confirm-destructive',
@@ -105,7 +107,9 @@ const labels: Record<SinkState, string> = {
     'category-list-name-archived':
         'Kategoria listy: nazwa zajęta przez archiwalną',
     'category-list-saving': 'Kategoria listy: zapis w toku',
-    'budget-create': 'Utwórz budżet',
+    'budget-create': 'Utwórz budżet: szkic z planem z poprzedniego roku',
+    'budget-create-no-source': 'Utwórz budżet: bez wcześniejszego budżetu',
+    'budget-create-empty': 'Utwórz budżet: pusta lista kategorii',
     'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
@@ -395,10 +399,30 @@ function setOpen(state: SinkState, value: boolean): void {
         />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"
+            :initial-year="2028"
+            :budget-years="[2026, 2027]"
+            :active-category-count="40"
             @update:open="setOpen('budget-create', $event)"
         />
         <CreateBudgetDialog
+            :open="isOpen('budget-create-no-source')"
+            :initial-year="2025"
+            :budget-years="[2026, 2027]"
+            :active-category-count="40"
+            @update:open="setOpen('budget-create-no-source', $event)"
+        />
+        <CreateBudgetDialog
+            :open="isOpen('budget-create-empty')"
+            :initial-year="2028"
+            :budget-years="[2026, 2027]"
+            :active-category-count="0"
+            @update:open="setOpen('budget-create-empty', $event)"
+        />
+        <CreateBudgetDialog
             :open="isOpen('budget-errors')"
+            :initial-year="2028"
+            :budget-years="[2026, 2027]"
+            :active-category-count="40"
             :form="validateForm"
             @update:open="setOpen('budget-errors', $event)"
         />

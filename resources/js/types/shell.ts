@@ -6,15 +6,10 @@ export type FirstRunState = {
     showChecklist: boolean;
 };
 
-export type CopyableBudgetSource = {
-    id: number;
-    year: number;
-};
-
 export type ShellState = {
     budgetYear: number | null;
     budgetYears: number[];
-    copyableBudgetSources: CopyableBudgetSource[];
+    activeCategoryCount: number;
     firstRun: FirstRunState;
 };
 
