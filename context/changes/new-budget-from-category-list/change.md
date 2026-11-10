@@ -1,7 +1,7 @@
 ---
 change_id: new-budget-from-category-list
 title: New budget from category list
-status: new
+status: implementing
 created: 2026-11-10
 updated: 2026-11-10
 archived_at: null
