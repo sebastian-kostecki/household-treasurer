@@ -294,30 +294,30 @@ Bez migracji i bez zmiany danych. Istniejący szkic 2027 na produkcji zostaje be
 
 #### Automated
 
-- [x] 2.1 Testy budżetu i flag przechodzą na PostgreSQL
-- [x] 2.2 Brak `sourceBudgetId` i `copyCategories` w `app`
-- [x] 2.3 Formatowanie Pint
-- [x] 2.4 Bramka `composer ci:check` i `sloppy ci`
+- [x] 2.1 Testy budżetu i flag przechodzą na PostgreSQL — bb4d44a
+- [x] 2.2 Brak `sourceBudgetId` i `copyCategories` w `app` — bb4d44a
+- [x] 2.3 Formatowanie Pint — bb4d44a
+- [x] 2.4 Bramka `composer ci:check` i `sloppy ci` — bb4d44a
 
 #### Manual
 
-- [x] 2.5 Budżet utworzony na devie ma wszystkie aktywne kategorie z planami ze źródła
+- [x] 2.5 Budżet utworzony na devie ma wszystkie aktywne kategorie z planami ze źródła — bb4d44a
 
 ### Phase 3: Okno „Nowy budżet”
 
 #### Automated
 
-- [ ] 3.1 Vitest funkcji zdania i kategorii
-- [ ] 3.2 Cały Vitest, w tym `ui-contract.test.ts`
-- [ ] 3.3 Typy po buildzie
-- [ ] 3.4 Bez literałów w widokach (`check:ui`)
-- [ ] 3.5 Lint i format (`npm run check`)
-- [ ] 3.6 Prop powłoki na PostgreSQL
-- [ ] 3.7 Brak starych nazw propu, pola i kluczy
-- [ ] 3.8 E2E okna
-- [ ] 3.9 Bramka `composer ci:check` i `sloppy ci`
+- [x] 3.1 Vitest funkcji zdania i kategorii
+- [x] 3.2 Cały Vitest, w tym `ui-contract.test.ts`
+- [x] 3.3 Typy po buildzie
+- [x] 3.4 Bez literałów w widokach (`check:ui`)
+- [x] 3.5 Lint i format (`npm run check`)
+- [x] 3.6 Prop powłoki na PostgreSQL
+- [x] 3.7 Brak starych nazw propu, pola i kluczy
+- [x] 3.8 E2E okna
+- [x] 3.9 Bramka `composer ci:check` i `sloppy ci`
 
 #### Manual
 
-- [ ] 3.10 Trzy warianty zdania w kitchen sinku, oba motywy, odmiana liczebnika
-- [ ] 3.11 Zdanie na devie zmienia się z rokiem, a utworzony budżet ma zapowiedzianą liczbę kategorii
+- [x] 3.10 Trzy warianty zdania w kitchen sinku, oba motywy, odmiana liczebnika
+- [x] 3.11 Zdanie na devie zmienia się z rokiem, a utworzony budżet ma zapowiedzianą liczbę kategorii

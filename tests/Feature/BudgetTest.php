@@ -950,22 +950,19 @@ class BudgetTest extends TestCase
             );
     }
 
-    public function test_shell_exposes_copyable_budget_sources(): void
+    public function test_shell_exposes_the_count_of_the_users_active_categories(): void
     {
         $user = User::factory()->create();
-        $copyableBudget = Budget::factory()->for($user)->create(['year' => 2025]);
-        BudgetLine::factory()->for($copyableBudget)->create();
-        $archivedOnlyBudget = Budget::factory()->for($user)->create(['year' => 2024]);
-        BudgetLine::factory()->for($archivedOnlyBudget)->archived()->create();
-        Budget::factory()->for($user)->create(['year' => 2026]);
+        Category::factory()->for($user)->expense()->count(2)->create();
+        Category::factory()->for($user)->income()->create();
+        Category::factory()->for($user)->expense()->archived()->create();
+        Category::factory()->for(User::factory()->create())->expense()->create();
 
         $this->actingAs($user)
             ->get(route('budget'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('shell.copyableBudgetSources', [
-                    ['id' => $copyableBudget->id, 'year' => 2025],
-                ]),
+                ->where('shell.activeCategoryCount', 3),
             );
     }
 
