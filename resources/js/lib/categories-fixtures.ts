@@ -1,6 +1,11 @@
 import { DEFAULT_CATEGORY_COLOR } from '@/lib/category-appearance';
 import type { CategoriesPageProps, CategoryListItem } from '@/types/categories';
 
+const categoryAppearanceOptions: CategoriesPageProps['categoryAppearanceOptions'] = {
+    icons: ['tag', 'wallet', 'percent', 'shopping-cart', 'film', 'plane'],
+    colors: [DEFAULT_CATEGORY_COLOR],
+};
+
 export type CategoriesScenario = {
     key: string;
     title: string;
@@ -22,7 +27,10 @@ function category(
         icon,
         color,
         type,
+        description: null,
         budget_years: budgetYears,
+        can_change_type: true,
+        can_delete: true,
         archived_at: archivedAt,
     };
 }
@@ -110,6 +118,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories,
             expenseCategories,
             archivedCategories: [],
+            categoryAppearanceOptions,
         },
     },
     {
@@ -119,6 +128,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories,
             expenseCategories,
             archivedCategories,
+            categoryAppearanceOptions,
         },
     },
     {
@@ -128,6 +138,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories,
             archivedCategories: [],
+            categoryAppearanceOptions,
         },
     },
     {
@@ -137,6 +148,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories: [],
             archivedCategories,
+            categoryAppearanceOptions,
         },
     },
     {
@@ -146,6 +158,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories: [],
             archivedCategories: [],
+            categoryAppearanceOptions,
         },
     },
 ];

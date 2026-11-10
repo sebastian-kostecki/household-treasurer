@@ -450,14 +450,14 @@ Jedna migracja dodająca nullable kolumnę z prawdziwym `down()`; bez zmiany dan
 
 #### Automated
 
-- [ ] 2.1 Testy zapisów listy, strony Kategorie, archiwum, Budżetu i kolejności przechodzą
-- [ ] 2.2 Te same testy przechodzą na PostgreSQL
-- [ ] 2.3 Sloppy bez nowych znalezisk
-- [ ] 2.4 npm run build i types:check przechodzą
+- [x] 2.1 Testy zapisów listy, strony Kategorie, archiwum, Budżetu i kolejności przechodzą
+- [x] 2.2 Te same testy przechodzą na PostgreSQL
+- [x] 2.3 Sloppy bez nowych znalezisk
+- [x] 2.4 npm run build i types:check przechodzą
 
 #### Manual
 
-- [ ] 2.5 Strona Budżet: dodanie, edycja, archiwum i przywracanie działają jak przed zmianą
+- [x] 2.5 Strona Budżet: dodanie, edycja, archiwum i przywracanie działają jak przed zmianą
 
 ### Phase 3: Widok „Kategorie”
 

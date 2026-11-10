@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use App\Enums\BudgetPhase;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryList\CategoryTypeChange;
 
 class CategoryPolicy
 {
@@ -15,9 +15,12 @@ class CategoryPolicy
 
     public function archive(User $user, Category $category): bool
     {
-        return $this->ownsCategory($user, $category)
-            && ! $category->isArchived()
-            && $category->budgetLines()->whereHas('budget', fn ($budget) => $budget->where('phase', BudgetPhase::Execution))->exists();
+        return $this->ownsCategory($user, $category) && ! $category->isArchived();
+    }
+
+    public function delete(User $user, Category $category): bool
+    {
+        return $this->ownsCategory($user, $category) && ! CategoryTypeChange::isLocked($category);
     }
 
     public function restore(User $user, Category $category): bool

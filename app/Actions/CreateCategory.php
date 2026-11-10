@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -71,18 +72,14 @@ class CreateCategory
         } catch (UniqueConstraintViolationException $exception) {
             report($exception);
 
-            throw ValidationException::withMessages([
-                'name' => __('A category with this name already exists.'),
-            ]);
+            throw CategoryNameGuard::constraintRefusal();
         }
     }
 
     private function assertCanJoin(Category $existing, Budget $budget): void
     {
         if ($existing->isArchived()) {
-            throw ValidationException::withMessages([
-                'name' => __('This category is in the archive. Restore it instead of creating a new one.'),
-            ]);
+            throw CategoryNameGuard::refusal($existing);
         }
 
         if (BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', $existing->id)->exists()) {

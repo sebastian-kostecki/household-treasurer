@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -20,6 +21,7 @@ class ArchiveCategoryTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->income()->create();
 
         $this->actingAs($user)
+            ->from(route('budget'))
             ->post(route('categories.archive', $category->category_id))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
@@ -36,6 +38,7 @@ class ArchiveCategoryTest extends TestCase
         $category = BudgetLine::factory()->for($budget)->income()->archived()->create();
 
         $this->actingAs($user)
+            ->from(route('budget'))
             ->post(route('categories.restore', $category->category_id))
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('budget'));
@@ -45,14 +48,33 @@ class ArchiveCategoryTest extends TestCase
         $this->assertNull($category->archived_at);
     }
 
-    public function test_user_cannot_archive_category_in_draft_budget(): void
+    public function test_user_can_archive_a_category_that_has_no_line_in_a_budget_in_execution(): void
     {
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $category = BudgetLine::factory()->for($budget)->income()->create();
+        $line = BudgetLine::factory()->for($budget)->income()->create();
+        $withoutLines = Category::factory()->for($user)->expense()->create();
 
         $this->actingAs($user)
-            ->post(route('categories.archive', $category->category_id))
+            ->post(route('categories.archive', $line->category_id))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->post(route('categories.archive', $withoutLines))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNotNull($line->category->fresh()->archived_at);
+        $this->assertNotNull($withoutLines->fresh()->archived_at);
+        $this->assertFalse($budget->budgetLines()->exists());
+    }
+
+    public function test_an_archived_category_cannot_be_archived_again(): void
+    {
+        $user = User::factory()->create();
+        $category = Category::factory()->for($user)->expense()->archived()->create();
+
+        $this->actingAs($user)
+            ->post(route('categories.archive', $category))
             ->assertForbidden();
     }
 

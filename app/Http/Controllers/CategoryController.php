@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\CategoryAppearance;
 use App\Support\CategoryListReading;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,10 @@ class CategoryController extends Controller
 
     public function index(Request $request): InertiaResponse
     {
-        return Inertia::render('Categories', CategoryListReading::forUser($request->user()));
+        return Inertia::render('Categories', [
+            ...CategoryListReading::forUser($request->user()),
+            'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
+        ]);
     }
 
     public function store(StoreCategoryRequest $request, Budget $budget, CreateCategory $createCategory): RedirectResponse
@@ -87,7 +91,7 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function archive(Request $request, Category $category, ArchiveCategory $archiveCategory): RedirectResponse
+    public function archive(Category $category, ArchiveCategory $archiveCategory): RedirectResponse
     {
         $this->authorize('archive', $category);
 
@@ -98,10 +102,10 @@ class CategoryController extends Controller
             'message' => __('Category archived.'),
         ]);
 
-        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return back();
     }
 
-    public function restore(Request $request, Category $category, RestoreCategory $restoreCategory): RedirectResponse
+    public function restore(Category $category, RestoreCategory $restoreCategory): RedirectResponse
     {
         $this->authorize('restore', $category);
 
@@ -112,7 +116,7 @@ class CategoryController extends Controller
             'message' => __('Category restored.'),
         ]);
 
-        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return back();
     }
 
     public function alignCurrentPlan(Request $request, Budget $budget, Category $category): RedirectResponse

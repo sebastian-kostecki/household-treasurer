@@ -6,19 +6,21 @@ use App\Enums\CategoryType;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryList\CategoryTypeChange;
 
 /**
  * The User's Category list for the „Kategorie” view (ADR-0063): active
  * Categories split by type, archived ones apart, each with the years in which it
- * has a Budget Line. No amounts. Two queries, whatever the number of Categories.
+ * has a Budget Line, with the description and what the row may do (ADR-0067). No
+ * amounts. A fixed number of queries, whatever the number of Categories.
  */
 class CategoryListReading
 {
     /**
      * @return array{
-     *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, budget_years: list<int>, archived_at: string|null}>,
-     *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, budget_years: list<int>, archived_at: string|null}>,
-     *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, budget_years: list<int>, archived_at: string|null}>
+     *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, description: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, description: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, description: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>
      * }
      */
     public static function forUser(User $user): array
@@ -29,14 +31,21 @@ class CategoryListReading
             ->orderBy('sort_order')
             ->orderBy('name_key')
             ->orderBy('id')
-            ->get()
+            ->get();
+
+        $lockedIds = array_flip(CategoryTypeChange::lockedIds($categories->pluck('id')->all()));
+
+        $categories = $categories
             ->map(fn (Category $category): array => [
                 'id' => $category->id,
                 'name' => $category->name,
                 'icon' => $category->icon,
                 'color' => $category->color,
                 'type' => $category->type->value,
+                'description' => $category->description,
                 'budget_years' => $yearsByCategory[$category->id] ?? [],
+                'can_change_type' => ! isset($lockedIds[$category->id]),
+                'can_delete' => ! isset($lockedIds[$category->id]),
                 'archived_at' => $category->archived_at?->toDateString(),
             ]);
 

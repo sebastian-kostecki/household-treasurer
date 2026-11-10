@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryListController;
 use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
@@ -73,6 +74,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('budgets/{budget}/categories/{category}/month-item-kind', [CategoryController::class, 'updateMonthItemKind'])->name('categories.month-item-kind');
     Route::delete('budgets/{budget}/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::post('budgets/{budget}/categories/{category}/align-current-plan', [CategoryController::class, 'alignCurrentPlan'])->name('categories.align-current-plan');
+    Route::post('categories', [CategoryListController::class, 'store'])->name('categories.list.store');
+    Route::patch('categories/reorder', [CategoryListController::class, 'reorder'])->name('categories.list.reorder');
+    Route::patch('categories/{category}', [CategoryListController::class, 'update'])->name('categories.list.update');
+    Route::delete('categories/{category}', [CategoryListController::class, 'destroy'])->name('categories.list.destroy');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
     Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);

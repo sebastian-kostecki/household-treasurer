@@ -32,6 +32,22 @@ trait CategoryValidationRules
     }
 
     /**
+     * The fields of the list Category, shared by „Kategorie” (ADR-0067).
+     *
+     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     */
+    protected function listCategoryRules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'icon' => ['required', 'string', Rule::in(CategoryIcons::values())],
+            'color' => ['required', 'string', Rule::in(CategoryColors::values())],
+            'type' => ['required', Rule::enum(CategoryType::class)],
+            'description' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    /**
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
     protected function updateCategoryRules(): array

@@ -2,17 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\CategoryAppearance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /**
- * The read-only „Kategorie” view (ADR-0063): the User's list Categories with the
- * years of their Budget Lines, no amounts.
+ * The „Kategorie” view (ADR-0063, ADR-0067): the User's list Categories with the
+ * years of their Budget Lines, the description and what a row may do, no amounts.
  */
 class CategoriesPageTest extends TestCase
 {
@@ -52,7 +55,10 @@ class CategoriesPageTest extends TestCase
                     'icon' => $salary->icon,
                     'color' => $salary->color,
                     'type' => 'income',
+                    'description' => null,
                     'budget_years' => [2026, 2027],
+                    'can_change_type' => false,
+                    'can_delete' => false,
                     'archived_at' => null,
                 ])
                 ->has('expenseCategories', 3)
@@ -64,7 +70,43 @@ class CategoriesPageTest extends TestCase
                 ->where('expenseCategories.1.budget_years', [2026, 2027])
                 ->where('expenseCategories.2.id', $withoutLines->id)
                 ->where('expenseCategories.2.budget_years', [])
-                ->where('archivedCategories', []),
+                ->where('archivedCategories', [])
+                ->where('categoryAppearanceOptions', CategoryAppearance::formOptions()),
+            );
+    }
+
+    public function test_each_category_carries_its_description_and_whether_its_type_and_deletion_are_free(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
+        $execution = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $draft = Budget::factory()->for($user)->create(['year' => 2027]);
+        $free = Category::factory()->for($user)->expense()->create(['name' => 'Domeny', 'description' => 'OVH, home.pl', 'sort_order' => 0]);
+        $inExecution = BudgetLine::factory()->for($execution)->expense()->create(['name' => 'Żywność', 'sort_order' => 1]);
+        $withOperation = BudgetLine::factory()->for($draft)->expense()->create(['name' => 'Stara', 'sort_order' => 2]);
+        $archivedWithHistory = BudgetLine::factory()->for($execution)->expense()->archived()->create(['name' => 'Wakacje', 'sort_order' => 3]);
+        $archivedWithHistory->category->update(['archived_at' => now()]);
+        FinancialOperation::factory()->for($user)->create([
+            'account_id' => $account->id,
+            'budget_line_id' => $withOperation->id,
+            'budget_id' => $draft->id,
+            'operation_date' => '2027-01-10',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.id', $free->id)
+                ->where('expenseCategories.0.description', 'OVH, home.pl')
+                ->where('expenseCategories.0.can_change_type', true)
+                ->where('expenseCategories.0.can_delete', true)
+                ->where('expenseCategories.1.id', $inExecution->category_id)
+                ->where('expenseCategories.1.can_change_type', false)
+                ->where('expenseCategories.1.can_delete', false)
+                ->where('expenseCategories.2.id', $withOperation->category_id)
+                ->where('expenseCategories.2.can_delete', false)
+                ->where('archivedCategories.0.id', $archivedWithHistory->category_id)
+                ->where('archivedCategories.0.can_delete', false),
             );
     }
 
