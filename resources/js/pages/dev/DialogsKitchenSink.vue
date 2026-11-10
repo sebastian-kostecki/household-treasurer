@@ -4,6 +4,7 @@ import { ref } from 'vue';
 import DialogsKitchenSinkController from '@/actions/App/Http/Controllers/Dev/DialogsKitchenSinkController';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
+import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import type { AccountFormAccount } from '@/types/accounts';
 import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
 import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
+import type { CategoryListItem } from '@/types/categories';
 import {
     dialogAccounts,
     dialogCapitalMovement,
@@ -43,6 +45,12 @@ const states = [
     'category-saving',
     'category-bad-amount',
     'category-month-item-kind',
+    'category-list-new',
+    'category-list-edit',
+    'category-list-locked',
+    'category-list-errors',
+    'category-list-name-archived',
+    'category-list-saving',
     'budget-create',
     'budget-errors',
     'confirm-plain',
@@ -90,6 +98,13 @@ const labels: Record<SinkState, string> = {
     'category-saving': 'Kategoria: zapis w toku',
     'category-bad-amount': 'Kategoria: zła kwota',
     'category-month-item-kind': 'Kategoria: rodzaj pozycji (wydatek)',
+    'category-list-new': 'Kategoria listy: nowa',
+    'category-list-edit': 'Kategoria listy: edycja z opisem',
+    'category-list-locked': 'Kategoria listy: typ zablokowany',
+    'category-list-errors': 'Kategoria listy: błędy pól',
+    'category-list-name-archived':
+        'Kategoria listy: nazwa zajęta przez archiwalną',
+    'category-list-saving': 'Kategoria listy: zapis w toku',
     'budget-create': 'Utwórz budżet',
     'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
@@ -163,6 +178,26 @@ const category: CategoryFormCategory = {
     month_item_kind: 'running',
 };
 
+const listCategory: CategoryListItem = {
+    id: 1,
+    name: 'Jedzenie',
+    icon: 'shopping-cart',
+    color: 'blue',
+    type: 'expense',
+    description:
+        'Zakupy spożywcze, chemia domowa i drobiazgi z osiedlowego sklepu.',
+    budget_years: [2026],
+    can_change_type: true,
+    can_delete: true,
+    archived_at: null,
+};
+
+const lockedListCategory: CategoryListItem = {
+    ...listCategory,
+    can_change_type: false,
+    can_delete: false,
+};
+
 /** An expense in a tight category on a low account: every warning fires at 900,00 zł. */
 const warningOperation = {
     ...dialogExpenseOperation,
@@ -191,6 +226,10 @@ const negativeDepositMovement = {
 
 const savingForm = DialogsKitchenSinkController.validate.form();
 const validateForm = DialogsKitchenSinkController.validate.form();
+/** Rejects the name the way the server does when an archived Category holds it. */
+const nameArchivedForm = DialogsKitchenSinkController.validate.form({
+    query: { error: 'name-archived' },
+});
 const plainForm = { action: '#', method: 'post' } as const;
 
 function initialState(): SinkState | null {
@@ -304,6 +343,55 @@ function setOpen(state: SinkState, value: boolean): void {
             default-type="expense"
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-month-item-kind', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-new')"
+            mode="create"
+            default-type="expense"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-list-new', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-edit')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-list-edit', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-locked')"
+            mode="edit"
+            default-type="expense"
+            :category="lockedListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-list-locked', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-errors')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :form="validateForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-list-errors', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-name-archived')"
+            mode="create"
+            default-type="expense"
+            :form="nameArchivedForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-list-name-archived', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-saving')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :form="savingForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            @update:open="setOpen('category-list-saving', $event)"
         />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"

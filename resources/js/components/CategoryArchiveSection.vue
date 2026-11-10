@@ -38,7 +38,9 @@ const open = ref(props.defaultOpen === true);
                 />
             </CollapsibleTrigger>
             <CollapsibleContent>
-                <div class="categories-grid categories-header-row">
+                <div
+                    class="categories-grid categories-grid-no-handle categories-header-row"
+                >
                     <div class="categories-cell-name">
                         {{ t.categories.name }}
                     </div>

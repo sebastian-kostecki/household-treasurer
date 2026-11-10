@@ -1,11 +1,11 @@
-// E2E test: the read-only „Kategorie” view (S-18).
+// E2E test: the „Kategorie” view (S-18, S-19).
 // Risk it protects: the list of Categories is not reachable from the menu, a
-// Category shows without the years of its Budget Lines, the archive section
-// does not open, or the link to Operations loses the Category id (and with it
-// the history of all years). The test user has the demo household
+// Category shows without the years of its Budget Lines, the link to Operations
+// loses the Category id (and with it the history of all years), or a write
+// from the list (create with a description, edit, archive, restore, delete)
+// does not work in the browser. The test user has the demo household
 // (demo:seed-household): a budget for the current year with the Category
-// "Rozrywka" and no archived Categories, so the archive test archives one
-// through the app's own endpoint and restores it at the end.
+// "Rozrywka"; the write flow creates its own Category and deletes it at the end.
 import { test, expect, type Page } from '@playwright/test';
 
 const currentYear = String(new Date().getFullYear());
@@ -14,38 +14,6 @@ function categoryRow(page: Page, name: string) {
     return page
         .locator('[data-category-row]')
         .filter({ has: page.getByText(name, { exact: true }) });
-}
-
-async function categoryIdOf(page: Page, name: string): Promise<string> {
-    const href = await page
-        .getByRole('link', {
-            name: `Operacje kategorii ${name}, wszystkie lata`,
-        })
-        .getAttribute('href');
-    const id = new URL(href ?? '', 'http://localhost').searchParams.get(
-        'category_id',
-    );
-
-    expect(id).toMatch(/^\d+$/);
-
-    return id as string;
-}
-
-// The CSRF token of the session travels in the XSRF-TOKEN cookie.
-async function post(page: Page, path: string) {
-    const cookies = await page.context().cookies();
-    const token = cookies.find((cookie) => cookie.name === 'XSRF-TOKEN');
-
-    expect(token).toBeDefined();
-
-    // The endpoints answer with a redirect to the Budget page; the test only
-    // needs the write, so it does not follow it.
-    const response = await page.request.post(path, {
-        headers: { 'X-XSRF-TOKEN': decodeURIComponent(token?.value ?? '') },
-        maxRedirects: 0,
-    });
-
-    expect(response.status()).toBe(302);
 }
 
 test('Kategorie opens from the menu and lists Rozrywka with the years of its lines', async ({
@@ -82,32 +50,64 @@ test('the link Operacje → leads to Operations filtered by the Category id over
     expect(query.get('year')).toBeNull();
 });
 
-test('an archived Category is in the collapsed archive with its date and the section opens', async ({
+test('a Category is created with a description, edited, archived, restored and deleted from the UI', async ({
     page,
 }) => {
-    await page.goto('/categories');
-    const id = await categoryIdOf(page, 'Rozrywka');
-
-    await post(page, `/categories/${id}/archive`);
-
-    try {
-        await page.goto('/categories');
-
-        await expect(categoryRow(page, 'Rozrywka')).toHaveCount(0);
-        const toggle = page.getByRole('button', { name: /^Archiwum \(\d+\)$/ });
-        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-
-        await toggle.click();
-
-        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-        await expect(categoryRow(page, 'Rozrywka')).toContainText(
-            /Zarchiwizowana \d{2}\.\d{2}\.\d{4}/,
-        );
-    } finally {
-        // Cleanup — asserted by `post`, so a failed restore turns the run red.
-        await post(page, `/categories/${id}/restore`);
-    }
+    const name = `E2E kategoria ${Date.now()}`;
+    const description = 'Opis dodany w teście przeglądarkowym';
+    const editedDescription = 'Opis po edycji';
 
     await page.goto('/categories');
-    await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
+
+    // Create in the Wydatki panel, with a description.
+    await page
+        .getByRole('button', { name: 'Dodaj kategorię: Wydatki' })
+        .click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Nazwa').fill(name);
+    await dialog.getByLabel('Opis').fill(description);
+    await dialog.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(dialog).toHaveCount(0);
+
+    const expensePanel = page.locator('[data-section="expense"]');
+    const row = expensePanel
+        .locator('[data-category-row]')
+        .filter({ has: page.getByText(name, { exact: true }) });
+    await expect(row).toContainText(description);
+
+    // Edit the description.
+    await row.getByRole('button', { name: 'Edytuj' }).click();
+    await dialog.getByLabel('Opis').fill(editedDescription);
+    await dialog.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(row).toContainText(editedDescription);
+    await expect(row).not.toContainText(description);
+
+    // Archive: the row leaves the panel and lands in the collapsed archive.
+    await row.getByRole('button', { name: 'Archiwizuj' }).click();
+    await dialog.getByRole('button', { name: 'Archiwizuj' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(row).toHaveCount(0);
+
+    const toggle = page.getByRole('button', { name: /^Archiwum \(\d+\)$/ });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    const archivedRow = page
+        .locator('[data-category-row]')
+        .filter({ has: page.getByText(name, { exact: true }) });
+    await expect(archivedRow).toContainText(
+        /Zarchiwizowana \d{2}\.\d{2}\.\d{4}/,
+    );
+
+    // Restore: back in the Wydatki panel.
+    await archivedRow.getByRole('button', { name: 'Przywróć' }).click();
+    await dialog.getByRole('button', { name: 'Przywróć' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(row).toContainText(editedDescription);
+
+    // Delete the fresh Category (no operations, so it can be deleted).
+    await row.getByRole('button', { name: 'Usuń' }).click();
+    await dialog.getByRole('button', { name: 'Usuń' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(row).toHaveCount(0);
 });

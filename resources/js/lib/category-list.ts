@@ -4,6 +4,9 @@ import {
     operationsListQuery,
 } from './operations-list-query';
 
+/** Limit opisu kategorii listy; ten sam co `max:500` w `listCategoryRules()`. */
+export const CATEGORY_DESCRIPTION_MAX_LENGTH = 500;
+
 /**
  * Cel linku „Operacje →” w widoku Kategorie: operacje tej kategorii listy we
  * wszystkich latach, więc bez zakresu dat ani roku.

@@ -1254,21 +1254,35 @@
     }
 
     /**
-     * Categories list: below `md` a row is two lines (the chip, then years +
-     * link); from `md` it is one line of columns. No amounts, so no money column.
+     * Categories list: below `md` a row is two lines (the chip with the actions,
+     * then years + link); from `md` it is one line of columns. No amounts, so no
+     * money column. An active row starts with the drag handle; the archive rows
+     * and their header (`-no-handle`) do not.
      */
     .categories-grid {
-        @apply grid items-center gap-x-4;
+        @apply grid items-center gap-x-3;
+        grid-template-columns: 2rem minmax(0, 1fr) auto;
+        grid-template-areas:
+            'handle name actions'
+            'handle years link';
+    }
+
+    .categories-grid-no-handle {
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
-            'name name'
+            'name actions'
             'years link';
     }
 
     @variant md {
         .categories-grid {
-            grid-template-columns: minmax(0, 1fr) 220px 120px;
-            grid-template-areas: 'name years link';
+            grid-template-columns: 2rem minmax(0, 1fr) 220px 120px 7rem;
+            grid-template-areas: 'handle name years link actions';
+        }
+
+        .categories-grid-no-handle {
+            grid-template-columns: minmax(0, 1fr) 220px 120px 7rem;
+            grid-template-areas: 'name years link actions';
         }
     }
 
@@ -1290,6 +1304,11 @@
         @apply text-muted-foreground;
     }
 
+    .categories-cell-handle {
+        grid-area: handle;
+        @apply flex items-center;
+    }
+
     .categories-cell-name {
         grid-area: name;
         @apply flex min-w-0 items-center gap-2;
@@ -1303,6 +1322,21 @@
     .categories-cell-link {
         grid-area: link;
         @apply flex justify-end;
+    }
+
+    .categories-cell-actions {
+        grid-area: actions;
+        @apply flex justify-end gap-1;
+    }
+
+    /** The row picked up by the drag handle (vuedraggable ghost). */
+    .categories-row-ghost {
+        @apply opacity-50;
+    }
+
+    /** One muted line under the chip name; the full text sits in `title`. */
+    .categories-description {
+        @apply meta text-muted-foreground block truncate;
     }
 
     .budget-category-row {

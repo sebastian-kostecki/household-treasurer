@@ -12,31 +12,31 @@ const Categories = defineAsyncComponent(() => import('@/pages/Categories.vue'));
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusz default poniżej: Badge „aktywnych” w tytule, sekcje Przychody i Wydatki z nagłówkiem kolumn (od md), lata pozycji w kolejności rosnącej, kreska z tekstem dla czytnika ekranu przy kategorii bez pozycji i link „Operacje →”. Scenariusze with-archive (zwinięte archiwum) i archive-open (rozwinięte, z datą archiwizacji pod nazwą), one-type-empty i only-archived.',
+        where: 'Scenariusz default poniżej: Badge „aktywnych” w tytule, sekcje Przychody i Wydatki z przyciskiem „Dodaj kategorię” w tytule i nagłówkiem kolumn (od md), uchwyt przeciągania i akcje „Edytuj”, „Archiwizuj”, „Usuń” w każdym wierszu, lata pozycji w kolejności rosnącej, kreska z tekstem dla czytnika ekranu przy kategorii bez pozycji i link „Operacje →”. Opis jako przygaszona druga linia pod nazwą: krótki (Wynagrodzenie) i długi, ucięty z pełnym tekstem w `title` (Żywność). „Usuń” tylko przy can_delete (Odsetki, Rekolekcje, Bez pozycji), reszta bez; typ zablokowany (can_change_type) w dialogu edycji Wynagrodzenia i Żywności (/dev/ui/dialogs). Scenariusze with-archive (zwinięte archiwum) i archive-open (rozwinięte: data archiwizacji pod nazwą, „Przywróć” i „Usuń” gdy can_delete, bez uchwytu i edycji), one-type-empty i only-archived.',
     },
     {
         state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): tło wiersza `secondary` i podkreślenie linku „Operacje →”.',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): tło wiersza `secondary`, kolor uchwytu `foreground`, tło ikon akcji i podkreślenie linku „Operacje →”.',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji po Tab: link „Operacje →” i przycisk rozwijający archiwum (pierścień `ring`).',
+        where: 'Zrzuty z działającej aplikacji po Tab: przyciski „Dodaj kategorię”, ikony akcji (obrys `ring`), link „Operacje →” i przycisk rozwijający archiwum; uchwyt przeciągania ma `tabindex=-1` (kolejność zmienia się myszą lub dotykiem).',
     },
     {
         state: 'disabled',
-        where: 'N/A: widok jest tylko do odczytu, nie ma przycisków ani pól do wyłączenia (edycja w Budżecie, S-19).',
+        where: 'Typ zablokowany w dialogu edycji (SegmentedControl wyłączony z podpowiedzią, /dev/ui/dialogs: Kategoria listy: typ zablokowany); przeciąganie wyłączone na czas zapisu kolejności (`reorderHttp.processing`); „Usuń” nie pojawia się, gdy nie można usunąć (can_delete wył. w default).',
     },
     {
         state: 'error',
-        where: 'N/A: widok nie ma formularzy ani żądań zapisu; błąd odczytu pokazuje strona błędu Inertii.',
+        where: 'Dialogi na /dev/ui/dialogs: Kategoria listy: błędy pól i nazwa zajęta przez kategorię z archiwum. Nieudane przeciągnięcie przywraca kolejność i pokazuje toast „Nie udało się zapisać kolejności”.',
     },
     {
         state: 'empty',
-        where: 'Scenariusz empty poniżej (użytkownik bez kategorii), one-type-empty (brak aktywnych przychodów) i only-archived (tylko archiwum).',
+        where: 'Scenariusz empty poniżej (użytkownik bez kategorii, z przyciskiem „Dodaj kategorię”), one-type-empty (brak aktywnych przychodów) i only-archived (tylko archiwum).',
     },
     {
         state: 'loading',
-        where: 'N/A: strona nie ma deferred props, więc nie ma szkieletu; wejście w widok to zwykła wizyta Inertii.',
+        where: 'Zapis w dialogach i potwierdzeniach (spinner na przycisku, blokada zamknięcia): /dev/ui/dialogs, stany „Kategoria listy: zapis w toku”. Sama strona nie ma deferred props, więc nie ma szkieletu.',
     },
 ];
 </script>

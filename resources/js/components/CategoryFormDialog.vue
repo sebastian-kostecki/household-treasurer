@@ -2,9 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
-import CategoryChip from '@/components/CategoryChip.vue';
-import CategoryColorPicker from '@/components/CategoryColorPicker.vue';
-import CategoryIconPicker from '@/components/CategoryIconPicker.vue';
+import CategoryAppearanceFields from '@/components/CategoryAppearanceFields.vue';
 import FormField from '@/components/FormField.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
@@ -93,29 +91,16 @@ const formBinding = computed(() => {
           });
 });
 
-const typeOptions = computed(() => [
-    { value: 'income' as const, label: t.budget.type_income },
-    { value: 'expense' as const, label: t.budget.type_expense },
-]);
-
 const monthItemKindOptions = computed(() => [
     { value: 'running' as const, label: t.budget.month_item_kind_running },
     { value: 'bill' as const, label: t.budget.month_item_kind_bill },
 ]);
 
-const previewName = computed(() => {
-    const trimmed = name.value.trim();
-
-    if (trimmed !== '') {
-        return trimmed;
-    }
-
-    if (props.mode === 'edit' && props.category) {
-        return props.category.name;
-    }
-
-    return t.budget.category_preview;
-});
+const previewFallbackName = computed(() =>
+    props.mode === 'edit' && props.category
+        ? props.category.name
+        : t.budget.category_preview,
+);
 
 watch(
     () => [props.open, props.mode, props.category, props.defaultType] as const,
@@ -199,90 +184,16 @@ function closeDialog(): void {
                     {{ t.budget.edit_category_shared_note }}
                 </p>
 
-                <div
-                    class="bg-background flex items-center gap-4 rounded-md p-4"
-                >
-                    <CategoryChip
-                        v-if="color"
-                        :name="previewName"
-                        :icon="icon"
-                        :color="color"
-                    />
-                    <p v-else class="text-muted-foreground text-sm">
-                        {{ t.budget.category_preview_hint }}
-                    </p>
-                </div>
-
-                <FormField
-                    id="category-name"
-                    :label="t.budget.name"
-                    :error="errors.name"
-                    v-slot="{ id, describedBy, invalid }"
-                >
-                    <Input
-                        :id="id"
-                        name="name"
-                        v-model="name"
-                        required
-                        autocomplete="off"
-                        :aria-describedby="describedBy"
-                        :aria-invalid="invalid"
-                    />
-                </FormField>
-
-                <FormField
-                    id="category-type"
-                    :label="t.budget.type"
-                    group
-                    :error="errors.type"
-                    v-slot="{ labelId, describedBy, invalid }"
-                >
-                    <SegmentedControl
-                        v-model="type"
-                        :options="typeOptions"
-                        :ariaLabelledby="labelId"
-                        :ariaDescribedby="describedBy"
-                        :ariaInvalid="invalid"
-                        name="type"
-                        block
-                        :disabled="lockType"
-                    />
-                </FormField>
-
-                <FormField
-                    id="category-color"
-                    :label="t.budget.category_color"
-                    group
-                    :error="errors.color"
-                    v-slot="{ labelId, describedBy, invalid }"
-                >
-                    <CategoryColorPicker
-                        :colors="categoryAppearanceOptions.colors"
-                        v-model="color"
-                        :aria-labelledby="labelId"
-                        :aria-describedby="describedBy"
-                        :aria-invalid="invalid"
-                    />
-                    <input type="hidden" name="color" :value="color ?? ''" />
-                </FormField>
-
-                <FormField
-                    id="category-icon"
-                    :label="t.budget.category_icon"
-                    group
-                    :error="errors.icon"
-                    v-slot="{ labelId, describedBy, invalid }"
-                >
-                    <CategoryIconPicker
-                        :icons="categoryAppearanceOptions.icons"
-                        v-model="icon"
-                        :color="color ?? DEFAULT_CATEGORY_COLOR"
-                        :aria-labelledby="labelId"
-                        :aria-describedby="describedBy"
-                        :aria-invalid="invalid"
-                    />
-                    <input type="hidden" name="icon" :value="icon" />
-                </FormField>
+                <CategoryAppearanceFields
+                    v-model:name="name"
+                    v-model:type="type"
+                    v-model:color="color"
+                    v-model:icon="icon"
+                    :category-appearance-options="categoryAppearanceOptions"
+                    :errors="errors"
+                    :fallback-name="previewFallbackName"
+                    :lock-type="lockType"
+                />
 
                 <FormField
                     id="category-planned-amount"
