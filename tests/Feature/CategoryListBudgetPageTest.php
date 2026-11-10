@@ -326,27 +326,13 @@ class CategoryListBudgetPageTest extends TestCase
             ->assertSessionHasErrors('category_id');
 
         $this->actingAs($user)
-            ->post(route('budgets.store'), ['year' => 2028, 'source_budget_id' => $budget2026->id])
+            ->post(route('budgets.store'), ['year' => 2028])
             ->assertSessionHasNoErrors();
 
         $this->assertSame(
             [$other->category_id],
             Budget::query()->where('user_id', $user->id)->where('year', 2028)->sole()->budgetLines()->pluck('category_id')->all(),
         );
-    }
-
-    public function test_a_source_budget_with_only_list_archived_categories_is_refused(): void
-    {
-        $this->travelTo('2027-03-10 12:00:00');
-
-        $user = User::factory()->create();
-        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $line2026 = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Rekolekcje']);
-        $line2026->category->update(['archived_at' => now()]);
-
-        $this->actingAs($user)
-            ->post(route('budgets.store'), ['year' => 2028, 'source_budget_id' => $budget2026->id])
-            ->assertSessionHasErrors('source_budget_id');
     }
 
     public function test_restoring_clears_the_line_of_the_current_year_and_adds_plan_zero_lines_to_drafts(): void
@@ -428,7 +414,7 @@ class CategoryListBudgetPageTest extends TestCase
                 ->where('expenseCategories.1.can_archive', false));
     }
 
-    public function test_a_new_budget_gets_lines_of_the_same_list_categories_without_copying_records(): void
+    public function test_a_new_budget_gets_lines_of_the_same_active_list_categories_without_copying_records(): void
     {
         $user = User::factory()->create();
         $source = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
@@ -443,7 +429,7 @@ class CategoryListBudgetPageTest extends TestCase
         BudgetLine::factory()->for($source)->expense()->archived()->create(['name' => 'Wakacje']);
 
         $this->actingAs($user)
-            ->post(route('budgets.store'), ['year' => 2027, 'source_budget_id' => $source->id])
+            ->post(route('budgets.store'), ['year' => 2027])
             ->assertSessionHasNoErrors();
 
         $line = Budget::query()->where('user_id', $user->id)->where('year', 2027)->sole()->budgetLines()->sole();

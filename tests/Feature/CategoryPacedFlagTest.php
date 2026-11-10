@@ -143,7 +143,7 @@ class CategoryPacedFlagTest extends TestCase
             );
     }
 
-    public function test_creating_budget_with_source_copies_paced_flag(): void
+    public function test_new_budget_carries_paced_flag_from_the_newest_earlier_budget(): void
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
@@ -157,10 +157,7 @@ class CategoryPacedFlagTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->post(route('budgets.store'), [
-                'year' => 2026,
-                'source_budget_id' => $sourceBudget->id,
-            ])
+            ->post(route('budgets.store'), ['year' => 2026])
             ->assertSessionHasNoErrors();
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();

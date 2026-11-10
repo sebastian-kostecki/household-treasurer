@@ -21,7 +21,7 @@ The named institution of a bank Account or Term Deposit: Alior, BNP Paribas, ING
 _Avoid_: Import format, Connector, Integration, BankAccount (as this field’s name)
 
 **Budget**:
-The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution. Year Close does not end execution: later Financial Operations dated in that year remain allowed.
+The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution. Year Close does not end execution: later Financial Operations dated in that year remain allowed. A new Budget gets a Budget Line for every active Category of the list, with the plan and the flags from the newest earlier Budget (a draft counts), and plan 0 with the default flags when there is none (ADR-0066).
 _Avoid_: Year, Period, Wallet
 
 **Initial Plan**:
@@ -81,7 +81,7 @@ The live amounts of a Month Plan after approval, editable during the month (like
 _Avoid_: „plan bieżący” (that is the copy of the annual Current Plan, `lang/pl/ui.php:121,163`), Current Plan (without „Month”)
 
 **Month Item Kind**:
-An attribute of an expense Category, held on its Budget Line until rhythm (F-05; ADR-0063): Bill or Running. Bill („rachunek”): after the first booked expense in the month on that Category (a Financial Operation with a positive amount) the actual amount, refunds netted, replaces the plan; a refund alone does not. Running („bieżąca”): the plan holds for the whole month and the greater of plan and actual counts. Defaults to Running. An income Category has none (income always counts like Bill). Independent of the Paced / One-off flag. A new Budget takes it from the Budget Line of that Category in the previous year, with the default when it has none. „Rachunek” here is a kind of item, not an Account („rachunek bankowy” in the UI).
+An attribute of an expense Category, held on its Budget Line until rhythm (F-05; ADR-0063): Bill or Running. Bill („rachunek”): after the first booked expense in the month on that Category (a Financial Operation with a positive amount) the actual amount, refunds netted, replaces the plan; a refund alone does not. Running („bieżąca”): the plan holds for the whole month and the greater of plan and actual counts. Defaults to Running. An income Category has none (income always counts like Bill). Independent of the Paced / One-off flag. A new Budget takes it from the Budget Line of that Category in the newest earlier Budget (ADR-0066), with the default when it has none. „Rachunek” here is a kind of item, not an Account („rachunek bankowy” in the UI).
 _Avoid_: Paced (for Running), One-off (for Bill), Account (for Bill), fixed / variable
 
 **To Spend**:

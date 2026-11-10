@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Enums\BudgetPhase;
-use App\Models\Budget;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -13,7 +12,7 @@ class ShellState
      * @return array{
      *     budgetYear: int|null,
      *     budgetYears: list<int>,
-     *     copyableBudgetSources: list<array{id: int, year: int}>,
+     *     activeCategoryCount: int,
      *     firstRun: array{
      *         hasAccount: bool,
      *         hasBudget: bool,
@@ -41,25 +40,9 @@ class ShellState
         return [
             'budgetYear' => $budgetYear,
             'budgetYears' => $budgetYears,
-            'copyableBudgetSources' => $user === null ? [] : self::copyableBudgetSourcesForUser($user),
+            'activeCategoryCount' => $user === null ? 0 : $user->categories()->whereNull('archived_at')->count(),
             'firstRun' => $firstRun,
         ];
-    }
-
-    /**
-     * @return list<array{id: int, year: int}>
-     */
-    private static function copyableBudgetSourcesForUser(User $user): array
-    {
-        return array_values($user->budgets()
-            ->whereHas('budgetLines', fn ($query) => $query->whereNull('archived_at'))
-            ->orderBy('year')
-            ->get(['id', 'year'])
-            ->map(fn (Budget $budget): array => [
-                'id' => $budget->id,
-                'year' => $budget->year,
-            ])
-            ->all());
     }
 
     /**
