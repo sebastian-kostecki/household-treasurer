@@ -50,24 +50,6 @@ class BudgetMonthExecutionIndex
         return $total;
     }
 
-    /**
-     * @param  Collection<int, BudgetLine>  $pacedCategories
-     */
-    public function pacedExecutionInMonth(Collection $pacedCategories, int $month): int
-    {
-        return $pacedCategories
-            ->sum(fn (BudgetLine $category): int => $this->executionInMonth($category->id, $month));
-    }
-
-    /**
-     * @param  Collection<int, BudgetLine>  $pacedCategories
-     */
-    public function pacedExecutionBeforeMonth(Collection $pacedCategories, int $month): int
-    {
-        return $pacedCategories
-            ->sum(fn (BudgetLine $category): int => $this->executionBeforeMonth($category->id, $month));
-    }
-
     private function buildIndex(): void
     {
         if ($this->expenseCategories->isEmpty()) {

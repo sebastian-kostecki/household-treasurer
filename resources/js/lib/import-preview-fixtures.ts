@@ -9,6 +9,7 @@ import type {
     MonthRemainingWarningState,
 } from './import-month-remaining-warnings';
 import type { PairCandidate } from './import-pair-selection';
+import type { PoolRhythm } from './month-remaining-calculator';
 import {
     emptySelection,
     type CategoryRow,
@@ -176,6 +177,12 @@ export const importPreviewEntryToSpend: EntryToSpendInputs = {
     budgets: [],
 };
 
+function everyMonth(rhythm: PoolRhythm): Record<number, PoolRhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
 export const incomeCategories: CategoryRow[] = [
     {
         id: 1,
@@ -183,7 +190,7 @@ export const incomeCategories: CategoryRow[] = [
         icon: 'briefcase',
         color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
-        is_paced: false,
+        rhythms: null,
     },
     {
         id: 2,
@@ -191,7 +198,7 @@ export const incomeCategories: CategoryRow[] = [
         icon: 'landmark',
         color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
-        is_paced: false,
+        rhythms: null,
     },
 ];
 
@@ -202,7 +209,7 @@ export const expenseCategories: CategoryRow[] = [
         icon: 'shopping-cart',
         color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
-        is_paced: true,
+        rhythms: everyMonth('running'),
     },
     {
         id: 12,
@@ -211,7 +218,7 @@ export const expenseCategories: CategoryRow[] = [
         color: DEFAULT_CATEGORY_COLOR,
         group: { id: 1, name: 'Mieszkanie' },
         budget_year: 2026,
-        is_paced: false,
+        rhythms: everyMonth('fixed_charge'),
     },
     {
         id: 13,
@@ -220,7 +227,7 @@ export const expenseCategories: CategoryRow[] = [
         color: DEFAULT_CATEGORY_COLOR,
         group: { id: 1, name: 'Mieszkanie' },
         budget_year: 2026,
-        is_paced: false,
+        rhythms: everyMonth('even_annual'),
     },
 ];
 

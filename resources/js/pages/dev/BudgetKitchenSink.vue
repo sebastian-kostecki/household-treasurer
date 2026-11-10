@@ -42,8 +42,7 @@ function row(overrides: RowOverrides): BudgetCategoryRow {
         can_archive: true,
         can_restore: false,
         can_align_current_plan: false,
-        is_paced: true,
-        month_item_kind: 'running',
+        rhythm: overrides.type === 'expense' ? 'running' : null,
         ...overrides,
     };
 }
@@ -157,7 +156,7 @@ const draftIncome = [
 ];
 const draftExpense = [
     draftRow(111, 'Czynsz', 'expense', 250000, 'building', {
-        month_item_kind: 'bill',
+        rhythm: 'fixed_charge',
     }),
     draftRow(112, 'Jedzenie', 'expense', 180000, 'apple'),
     draftRow(113, 'Transport', 'expense', 45000, 'bus'),
@@ -182,7 +181,7 @@ const executionExpense = [
         310000,
         'tag',
         {
-            is_paced: false,
+            rhythm: 'even_annual',
         },
     ),
 ];
@@ -191,12 +190,12 @@ const executionExpense = [
 // grupy i "Zdrowie" (Apteka, Badania). Jedna sekwencja miejsc dla grup i kategorii.
 const groupedDraftExpense = [
     draftRow(411, 'Czynsz', 'expense', 250000, 'building', {
-        month_item_kind: 'bill',
+        rhythm: 'fixed_charge',
         group_id: 41,
         sort_order: 1,
     }),
     draftRow(412, 'Prąd', 'expense', 40000, 'tag', {
-        month_item_kind: 'bill',
+        rhythm: 'fixed_charge',
         group_id: 41,
         sort_order: 2,
     }),
@@ -376,7 +375,7 @@ const noop = (): void => undefined;
 const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
-        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa (bez kreski roku) i równomierna (z kreską). Szkic: kolumna „Typ”.',
+        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, stała opłata, bieżąca i równomierna roczna (każda z kreską roku). Szkic: kolumna „Typ”.',
     },
     {
         state: 'hover',
@@ -487,7 +486,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <h2 id="ks-expense" class="section-title">
                 Realizacja wydatków (przekroczenie, plan zwiększony „Jedzenie” i
                 zmniejszony „Rozrywka”, bez zmiany „Czynsz”, równomierna z
-                kreską, jednorazowa „Remont łazienki” bez kreski)
+                kreską, równomierna roczna „Remont łazienki” z kreską)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"

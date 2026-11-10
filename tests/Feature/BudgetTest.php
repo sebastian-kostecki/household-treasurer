@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -144,6 +145,92 @@ class BudgetTest extends TestCase
             'type' => CategoryType::Expense->value,
             'planned_amount_minor_units' => 120000,
         ]);
+    }
+
+    public function test_budget_page_exposes_the_rhythm_of_the_viewed_month_for_expenses_only(): void
+    {
+        $this->travelTo('2026-11-10');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Salary']);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Rent', 'sort_order' => 0])
+            ->category->rhythms()->delete();
+        $rent = Category::query()->where('name', 'Rent')->firstOrFail();
+        $rent->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $rent->rhythms()->create(['start_year' => 2026, 'start_month' => 12, 'rhythm' => Rhythm::FixedCharge]);
+        BudgetLine::factory()->for($budget)->expense()->archived()->create(['name' => 'Archived', 'sort_order' => 1])
+            ->category->rhythms()->update(['rhythm' => Rhythm::EvenAnnual]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget', ['show_archived' => 1]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeCategories.0.rhythm', null)
+                ->where('expenseCategories.0.rhythm', 'running')
+                ->where('expenseCategories.1.rhythm', 'even_annual')
+                ->where('expenseCategories.1.is_archived', true)
+                ->missing('expenseCategories.0.is_paced')
+                ->missing('expenseCategories.0.month_item_kind'),
+            );
+    }
+
+    public function test_budget_page_reads_the_rhythm_of_december_for_a_past_budget(): void
+    {
+        $this->travelTo('2027-03-10');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $line = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Rent']);
+        $line->category->rhythms()->delete();
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 12, 'rhythm' => Rhythm::FixedCharge]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('expenseCategories.0.rhythm', 'fixed_charge'));
+    }
+
+    public function test_category_request_from_the_budget_page_no_longer_carries_the_flags(): void
+    {
+        $this->travelTo('2026-11-10');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $budget), $this->categoryFields([
+                'name' => 'Vacation',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 500000,
+                'is_paced' => false,
+                'month_item_kind' => 'bill',
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $line = $budget->budgetLines()->sole();
+        $category = $line->category;
+
+        $this->assertTrue($line->is_paced);
+        $this->assertSame(MonthItemKind::Running, $line->month_item_kind);
+        $this->assertSame(['running'], $category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', [$budget, $category->id]), $this->categoryFields([
+                'name' => 'Vacation',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 10,
+                'is_paced' => false,
+                'month_item_kind' => 'bill',
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertTrue($line->fresh()->is_paced);
+        $this->assertSame(MonthItemKind::Running, $line->fresh()->month_item_kind);
+        $this->assertSame(['running'], $category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
     }
 
     public function test_negative_planned_amount_is_rejected(): void
@@ -1221,7 +1308,7 @@ class BudgetTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->missing('viewedMonth')
-                ->missing('pacedPoolMonthRemainingMinorUnits')
+                ->missing('poolMonthRemainingMinorUnits')
                 ->missing('monthIncomeExecutionMinorUnits')
                 ->missing('monthExpenseExecutionMinorUnits')
                 ->missing('monthResultMinorUnits')

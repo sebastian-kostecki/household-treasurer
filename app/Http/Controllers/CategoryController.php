@@ -45,7 +45,7 @@ class CategoryController extends Controller
 
     public function store(StoreCategoryRequest $request, Budget $budget, CreateCategory $createCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int} $attributes */
         $attributes = $request->validated();
         $joinedExisting = $createCategory->handle($request->user(), $budget, $attributes);
 
@@ -59,7 +59,7 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Budget $budget, Category $category, UpdateCategory $updateCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int} $attributes */
         $attributes = $request->validated();
         $updateCategory->handle($this->lineOf($budget, $category), $attributes);
 

@@ -1182,6 +1182,61 @@ class UserSnapshotCommandTest extends TestCase
     /**
      * @return array<string, list<array{0: string, 1: int, 2: int}>> Category name => entries
      */
+    public function test_snapshot_round_trips_paced_flag(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'One-off',
+            'is_paced' => false,
+        ]);
+
+        $path = app(BackupUserData::class)->handle($user);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertFalse($snapshot['budget_lines'][0]['is_paced']);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restoredCategory = BudgetLine::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->whereHas('category', fn ($query) => $query->where('name', 'One-off'))
+            ->firstOrFail();
+
+        $this->assertFalse($restoredCategory->is_paced);
+    }
+
+    public function test_snapshot_missing_paced_flag_restores_expense_category_as_paced(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Legacy',
+            'is_paced' => true,
+        ]);
+
+        $path = app(BackupUserData::class)->handle($user);
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset($snapshot['budget_lines'][0]['is_paced']);
+        file_put_contents($path, json_encode($snapshot));
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restoredCategory = BudgetLine::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->whereHas('category', fn ($query) => $query->where('name', 'Legacy'))
+            ->firstOrFail();
+
+        $this->assertTrue($restoredCategory->is_paced);
+        $this->assertNotSame($category->id, $restoredCategory->id);
+    }
+
     private function rhythmsByName(User $user): array
     {
         $result = [];

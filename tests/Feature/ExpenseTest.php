@@ -722,11 +722,11 @@ class ExpenseTest extends TestCase
 
         $this->assertSame([
             'id' => $oneOff->id,
-            'is_paced' => false,
+            'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge'),
             'planned_amount_minor_units' => 0,
             'monthly_execution_minor_units' => array_fill(1, 12, 0),
         ], $handEntryBefore);
-        $this->assertSame(['id' => $oneOff->id, 'is_paced' => false, 'planned_amount_minor_units' => 0], $importBefore);
+        $this->assertSame(['id' => $oneOff->id, 'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge'), 'planned_amount_minor_units' => 0], $importBefore);
         $this->assertSame(['id' => $oneOff->id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge')], $toSpendBefore);
 
         $this->actingAs($user)->post(route('expenses.store'), [

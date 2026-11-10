@@ -52,7 +52,7 @@ export type DashboardNotice = {
           days_in_month: number;
       }
     | {
-          kind: 'one_off_over_limit';
+          kind: 'even_annual_over_limit';
           id: number;
           name: string;
           icon: string;

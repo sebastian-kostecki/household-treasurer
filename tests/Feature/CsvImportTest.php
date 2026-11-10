@@ -4206,10 +4206,10 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('expenseCategories', 2)
                 ->where('expenseCategories', fn ($options) => collect($options)->contains(
-                    fn ($option) => $option['id'] === $domains->id && $option['budget_year'] === 2026 && $option['is_paced'] === true,
+                    fn ($option) => $option['id'] === $domains->id && $option['budget_year'] === 2026 && $option['rhythms'] === array_fill_keys(range(1, 12), 'running'),
                 ))
                 ->where('monthRemainingContext.budgets.0.categories', fn ($categories) => collect($categories)->contains(
-                    fn ($entry) => $entry['id'] === $domains->id && $entry['planned_amount_minor_units'] === 0 && $entry['is_paced'] === true,
+                    fn ($entry) => $entry['id'] === $domains->id && $entry['planned_amount_minor_units'] === 0 && $entry['rhythms'] === array_fill_keys(range(1, 12), 'running'),
                 )),
             );
 

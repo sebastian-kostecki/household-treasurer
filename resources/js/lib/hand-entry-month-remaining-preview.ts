@@ -1,7 +1,9 @@
 import {
-    pacedMonthRemainingMinorUnits,
-    pacedPoolMonthRemainingMinorUnits,
+    isPoolRhythm,
+    poolCategoryMonthRemainingMinorUnits,
+    poolMonthRemainingMinorUnits,
     type MonthRemainingCalculatorOptions,
+    type PoolRhythm,
 } from '@/lib/month-remaining-calculator';
 
 export type HandEntryMonthRemainingPreviewEditedRecord = {
@@ -15,9 +17,11 @@ export type HandEntryMonthRemainingPreviewProposal = {
     category_id?: number;
 };
 
+export type MonthRemainingRhythm = PoolRhythm;
+
 export type HandEntryMonthRemainingCategory = {
     id: number;
-    is_paced: boolean;
+    rhythms: Record<number, MonthRemainingRhythm> | null;
     planned_amount_minor_units: number;
     monthly_execution_minor_units: Record<number, number>;
 };
@@ -189,7 +193,10 @@ export function previewHandEntryMonthRemainingWarnings(
         (category) => category.id === input.proposal.category_id,
     );
 
-    if (selectedCategory === undefined || !selectedCategory.is_paced) {
+    if (
+        selectedCategory === undefined ||
+        !isPoolRhythm(selectedCategory.rhythms?.[operationMonth])
+    ) {
         return {
             showOverMonthCategoryWarning: false,
             showOverMonthPoolWarning: false,
@@ -207,11 +214,11 @@ export function previewHandEntryMonthRemainingWarnings(
         input.handEntryMonthRemaining.today,
     );
 
-    const pacedCategories = budget.categories.filter(
-        (category) => category.is_paced,
+    const poolCategories = budget.categories.filter((category) =>
+        isPoolRhythm(category.rhythms?.[operationMonth]),
     );
 
-    const categoryAfterMonthRemaining = pacedMonthRemainingMinorUnits(
+    const categoryAfterMonthRemaining = poolCategoryMonthRemainingMinorUnits(
         calculatorOptions,
         selectedCategory.planned_amount_minor_units,
         executionBeforeMonth(
@@ -261,7 +268,7 @@ export function previewHandEntryMonthRemainingWarnings(
     let totalExecutionBeforeCurrentMonth = 0;
     let totalExecutionInCurrentMonth = 0;
 
-    for (const category of pacedCategories) {
+    for (const category of poolCategories) {
         totalCurrentPlan += category.planned_amount_minor_units;
         totalExecutionBeforeViewedMonth += executionBeforeMonth(
             budget.categories,
@@ -303,7 +310,7 @@ export function previewHandEntryMonthRemainingWarnings(
         );
     }
 
-    const poolAfterMonthRemaining = pacedPoolMonthRemainingMinorUnits(
+    const poolAfterMonthRemaining = poolMonthRemainingMinorUnits(
         calculatorOptions,
         totalCurrentPlan,
         totalExecutionBeforeViewedMonth,
@@ -311,7 +318,7 @@ export function previewHandEntryMonthRemainingWarnings(
         operationMonth,
         totalExecutionBeforeCurrentMonth,
         totalExecutionInCurrentMonth,
-        pacedCategories.length > 0,
+        poolCategories.length > 0,
     );
 
     return {

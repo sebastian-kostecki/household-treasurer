@@ -4,9 +4,7 @@ import { computed, ref, watch } from 'vue';
 import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import CategoryAppearanceFields from '@/components/CategoryAppearanceFields.vue';
 import FormField from '@/components/FormField.vue';
-import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -38,8 +36,6 @@ export type CategoryFormCategory = {
     color: string;
     type: 'income' | 'expense';
     planned_amount_minor_units: number;
-    is_paced: boolean;
-    month_item_kind: 'bill' | 'running';
 };
 
 const props = defineProps<{
@@ -67,8 +63,6 @@ const icon = ref(DEFAULT_CATEGORY_ICON);
 const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('income');
 const plannedAmountInput = ref('0,00');
-const isPaced = ref(true);
-const monthItemKind = ref<'bill' | 'running'>('running');
 const busy = ref(false);
 
 const plannedAmountMinorUnits = computed(() =>
@@ -90,11 +84,6 @@ const formBinding = computed(() => {
               category: props.category?.id ?? 0,
           });
 });
-
-const monthItemKindOptions = computed(() => [
-    { value: 'running' as const, label: t.budget.month_item_kind_running },
-    { value: 'bill' as const, label: t.budget.month_item_kind_bill },
-]);
 
 const previewFallbackName = computed(() =>
     props.mode === 'edit' && props.category
@@ -119,8 +108,6 @@ watch(
                 minorUnitsToMoneyInput(
                     props.category.planned_amount_minor_units,
                 );
-            isPaced.value = props.category.is_paced;
-            monthItemKind.value = props.category.month_item_kind;
 
             return;
         }
@@ -130,8 +117,6 @@ watch(
         color.value = DEFAULT_CATEGORY_COLOR;
         type.value = props.defaultType;
         plannedAmountInput.value = props.initialPlannedAmountInput ?? '0,00';
-        isPaced.value = true;
-        monthItemKind.value = 'running';
     },
     { immediate: true },
 );
@@ -223,46 +208,6 @@ function closeDialog(): void {
                         type="hidden"
                         name="planned_amount_minor_units"
                         :value="plannedAmountMinorUnits ?? 0"
-                    />
-                </FormField>
-
-                <FormField
-                    v-if="type === 'expense'"
-                    id="category-is-paced"
-                    :label="t.budget.paced_category"
-                    :hint="t.budget.paced_category_hint"
-                    :error="errors.is_paced"
-                    v-slot="{ id, describedBy }"
-                >
-                    <Checkbox
-                        :id="id"
-                        v-model="isPaced"
-                        :aria-describedby="describedBy"
-                    />
-                    <input
-                        type="hidden"
-                        name="is_paced"
-                        :value="isPaced ? '1' : '0'"
-                    />
-                </FormField>
-
-                <FormField
-                    v-if="type === 'expense'"
-                    id="category-month-item-kind"
-                    :label="t.budget.month_item_kind"
-                    group
-                    :hint="t.budget.month_item_kind_hint"
-                    :error="errors.month_item_kind"
-                    v-slot="{ labelId, describedBy, invalid }"
-                >
-                    <SegmentedControl
-                        v-model="monthItemKind"
-                        :options="monthItemKindOptions"
-                        :ariaLabelledby="labelId"
-                        :ariaDescribedby="describedBy"
-                        :ariaInvalid="invalid"
-                        name="month_item_kind"
-                        block
                     />
                 </FormField>
 

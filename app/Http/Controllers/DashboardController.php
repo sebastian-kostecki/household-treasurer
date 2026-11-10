@@ -12,6 +12,7 @@ use App\Support\AccountIdentity;
 use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
+use App\Support\CategoryRhythms;
 use App\Support\DashboardNotices;
 use App\Support\MonthPace;
 use App\Support\MonthToSpend;
@@ -89,17 +90,19 @@ class DashboardController extends Controller
             $expenseTotals = $planSummary['expense'];
 
             if ($budget->isExecution()) {
+                $currentMonth = $today->month;
+                $rhythms = CategoryRhythms::forCategoryIds($visibleExpenseCategories->pluck('category_id'));
+
                 $incomeCategories = $visibleCategories
                     ->filter(fn (BudgetLine $category): bool => $category->hasType(CategoryType::Income))
                     ->values()
-                    ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
+                    ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget, $rhythms, $currentMonth))
                     ->all();
 
                 $expenseCategories = $visibleExpenseCategories
-                    ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget))
+                    ->map(fn (BudgetLine $category): array => $this->categoryPayload($category, $budget, $rhythms, $currentMonth))
                     ->all();
 
-                $currentMonth = $today->month;
                 $monthToSpendReading = MonthToSpend::forMonth($budget, $currentMonth, $today);
                 $monthPace = MonthPace::forMonth($monthToSpendReading, $budget->year, $currentMonth, $today);
                 $summary = $monthToSpendReading->summary();
@@ -224,12 +227,14 @@ class DashboardController extends Controller
      *     percent_complete: int|null,
      *     is_over_limit: bool,
      *     is_archived: bool,
-     *     is_paced?: bool,
+     *     rhythm?: 'fixed_charge'|'running'|'even_annual'|null,
      * }
      */
     private function categoryPayload(
         BudgetLine $category,
         Budget $budget,
+        CategoryRhythms $rhythms,
+        int $currentMonth,
     ): array {
         $currentPlanMinorUnits = $category->planned_amount_minor_units;
         $executionMinorUnits = $category->execution_minor_units;
@@ -256,7 +261,7 @@ class DashboardController extends Controller
                 && CategoryExecutionMetrics::isOverLimit($currentPlanMinorUnits, $executionMinorUnits),
             'is_archived' => $category->isArchived(),
             ...($category->hasType(CategoryType::Expense) ? [
-                'is_paced' => $category->is_paced,
+                'rhythm' => $rhythms->rhythmIn($category->category_id, $budget->year, $currentMonth)?->value,
             ] : []),
         ];
     }

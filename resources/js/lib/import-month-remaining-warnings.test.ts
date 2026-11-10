@@ -8,6 +8,7 @@ import {
     type ImportRow,
     type RowSelection,
 } from './import-preview-rows';
+import type { PoolRhythm } from './month-remaining-calculator';
 
 const CATEGORY_ID = 7;
 
@@ -36,15 +37,21 @@ function selection(importRow: ImportRow): RowSelection {
     };
 }
 
-function context(year2026Paced: boolean): MonthRemainingContext {
-    const budget = (year: number, isPaced: boolean) => ({
+function everyMonth(rhythm: PoolRhythm): Record<number, PoolRhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
+function context(year2026Rhythm: PoolRhythm): MonthRemainingContext {
+    const budget = (year: number, rhythm: PoolRhythm) => ({
         id: year,
         year,
         is_draft: false,
         categories: [
             {
                 id: CATEGORY_ID,
-                is_paced: isPaced,
+                rhythms: everyMonth(rhythm),
                 planned_amount_minor_units: 10_000,
             },
         ],
@@ -53,41 +60,75 @@ function context(year2026Paced: boolean): MonthRemainingContext {
 
     return {
         today: '2027-03-15',
-        budgets: [budget(2026, year2026Paced), budget(2027, true)],
+        budgets: [budget(2026, year2026Rhythm), budget(2027, 'running')],
     };
 }
 
 describe('computeImportMonthRemainingWarnings', () => {
-    it('reads is_paced of the list category from the year of the row, not of the first year', () => {
+    it('reads the rhythm of the list category from the year of the row, not of the first year', () => {
         const importRow = row('2027-03-10');
         const expenseCategories = [
-            { id: CATEGORY_ID, budget_year: 2026, is_paced: false },
-            { id: CATEGORY_ID, budget_year: 2027, is_paced: true },
+            {
+                id: CATEGORY_ID,
+                budget_year: 2026,
+                rhythms: everyMonth('even_annual'),
+            },
+            {
+                id: CATEGORY_ID,
+                budget_year: 2027,
+                rhythms: everyMonth('running'),
+            },
         ];
 
         const warnings = computeImportMonthRemainingWarnings(
             [importRow],
             { 0: selection(importRow) },
             expenseCategories,
-            context(false),
+            context('even_annual'),
             {},
         );
 
         expect(warnings[0].showCategoryWarning).toBe(true);
     });
 
-    it('stays silent when the category of the row year is not paced', () => {
+    it('stays silent when the category of the row year is even annual', () => {
         const importRow = row('2026-03-10');
         const expenseCategories = [
-            { id: CATEGORY_ID, budget_year: 2026, is_paced: false },
-            { id: CATEGORY_ID, budget_year: 2027, is_paced: true },
+            {
+                id: CATEGORY_ID,
+                budget_year: 2026,
+                rhythms: everyMonth('even_annual'),
+            },
+            {
+                id: CATEGORY_ID,
+                budget_year: 2027,
+                rhythms: everyMonth('running'),
+            },
         ];
 
         const warnings = computeImportMonthRemainingWarnings(
             [importRow],
             { 0: selection(importRow) },
             expenseCategories,
-            context(false),
+            context('even_annual'),
+            {},
+        );
+
+        expect(warnings[0].showCategoryWarning).toBe(false);
+    });
+
+    it('warns for a fixed charge and takes the rhythm of the month of the row', () => {
+        const importRow = row('2027-03-10');
+        const rhythms = {
+            ...everyMonth('running'),
+            3: 'even_annual' as const,
+        };
+
+        const warnings = computeImportMonthRemainingWarnings(
+            [importRow],
+            { 0: selection(importRow) },
+            [{ id: CATEGORY_ID, budget_year: 2027, rhythms }],
+            context('fixed_charge'),
             {},
         );
 

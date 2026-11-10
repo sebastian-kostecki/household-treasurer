@@ -66,12 +66,14 @@ const expenseCategories = [
         180000,
         90000,
         {
-            is_paced: true,
+            rhythm: 'running',
         },
     ),
-    category(4, 'Dom', 'home', DEFAULT_CATEGORY_COLOR, 250000, 125000),
+    category(4, 'Dom', 'home', DEFAULT_CATEGORY_COLOR, 250000, 125000, {
+        rhythm: 'even_annual',
+    }),
     category(5, 'Transport', 'car', DEFAULT_CATEGORY_COLOR, 60000, 25000, {
-        is_paced: true,
+        rhythm: 'running',
     }),
 ];
 
@@ -250,7 +252,7 @@ const negativeProps: DashboardPageProps = {
             180000,
             230000,
             {
-                is_paced: true,
+                rhythm: 'running',
             },
         ),
         expenseCategories[1],
@@ -386,7 +388,7 @@ function manyCategories(
     startId: number,
     count: number,
     label: string,
-    paced: boolean,
+    isExpense: boolean,
 ): DashboardCategory[] {
     return Array.from({ length: count }, (_, index) =>
         category(
@@ -396,7 +398,9 @@ function manyCategories(
             DEFAULT_CATEGORY_COLOR,
             100000 + index * 10000,
             40000 + index * 5000,
-            { is_paced: paced && index % 2 === 0 },
+            isExpense
+                ? { rhythm: index % 2 === 0 ? 'running' : 'even_annual' }
+                : {},
         ),
     );
 }
@@ -429,11 +433,13 @@ const overrunProps = withCategories(incomeCategories, [
         DEFAULT_CATEGORY_COLOR,
         180000,
         230000,
-        { is_paced: true },
+        { rhythm: 'running' },
     ),
-    category(4, 'Dom', 'home', DEFAULT_CATEGORY_COLOR, 250000, 300000),
+    category(4, 'Dom', 'home', DEFAULT_CATEGORY_COLOR, 250000, 300000, {
+        rhythm: 'even_annual',
+    }),
     category(5, 'Transport', 'car', DEFAULT_CATEGORY_COLOR, 60000, 25000, {
-        is_paced: true,
+        rhythm: 'running',
     }),
 ]);
 
@@ -476,7 +482,7 @@ const allNoticeKindsProps: DashboardPageProps = {
         },
         {
             severity: 'exceeded',
-            kind: 'one_off_over_limit',
+            kind: 'even_annual_over_limit',
             id: 2,
             name: 'Transport',
             icon: 'car',

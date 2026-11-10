@@ -60,8 +60,7 @@ export type BudgetCategoryRow = {
     can_archive: boolean;
     can_restore: boolean;
     can_align_current_plan: boolean;
-    is_paced: boolean;
-    month_item_kind: 'bill' | 'running';
+    rhythm: 'fixed_charge' | 'running' | 'even_annual' | null;
 };
 
 /** A Category Group with at least one active line in the Budget (ADR-0069). */

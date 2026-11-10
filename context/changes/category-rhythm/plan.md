@@ -599,29 +599,29 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 #### Automated
 
-- [x] 4.1 Testy jednostkowe par przechodzą
-- [x] 4.2 Testy odczytów miesiąca przechodzą na PostgreSQL
-- [x] 4.3 E2E przechodzi
-- [x] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Testy jednostkowe par przechodzą — 2724382
+- [x] 4.2 Testy odczytów miesiąca przechodzą na PostgreSQL — 2724382
+- [x] 4.3 E2E przechodzi — 2724382
+- [x] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — 2724382
 
 #### Manual
 
-- [x] 4.5 „Do wydania” listopada 2026 na dev bez zmian
-- [x] 4.6 Ostrzeżenie „do wydania” dla stałej opłaty działa jak dla rachunku
+- [x] 4.5 „Do wydania” listopada 2026 na dev bez zmian — 2724382
+- [x] 4.6 Ostrzeżenie „do wydania” dla stałej opłaty działa jak dla rachunku — 2724382
 
 ### Phase 5: Odczyty roku, „Pozostało w miesiącu” i strona Budżet
 
 #### Automated
 
-- [ ] 5.1 Testy odczytów roku, Budżetu i „Pozostało w miesiącu” przechodzą na PostgreSQL
-- [ ] 5.2 Testy TS przechodzą
-- [ ] 5.3 E2E przechodzi
-- [ ] 5.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 5.1 Testy odczytów roku, Budżetu i „Pozostało w miesiącu” przechodzą na PostgreSQL
+- [x] 5.2 Testy TS przechodzą
+- [x] 5.3 E2E przechodzi
+- [x] 5.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 5.5 Dashboard i Budżet pokazują kreskę i etykiety rytmu, okno Budżetu bez flag
-- [ ] 5.6 Kitchen sinki Budżetu i Dashboardu pokazują nowe stany
+- [x] 5.5 Dashboard i Budżet pokazują kreskę i etykiety rytmu, okno Budżetu bez flag
+- [x] 5.6 Kitchen sinki Budżetu i Dashboardu pokazują nowe stany
 
 ### Phase 6: Usunięcie flag, dokumenty i próba na kopii produkcji
 

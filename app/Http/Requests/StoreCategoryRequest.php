@@ -3,10 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Concerns\CategoryValidationRules;
-use App\Enums\CategoryType;
 use App\Models\Budget;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCategoryRequest extends FormRequest
@@ -30,13 +28,5 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return $this->storeCategoryRules();
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $type = CategoryType::tryFrom((string) $this->input('type'));
-
-        $this->withPacedFlagValidation($validator, $type);
-        $this->withMonthItemKindValidation($validator, $type);
     }
 }

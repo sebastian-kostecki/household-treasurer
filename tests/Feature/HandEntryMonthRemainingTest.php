@@ -20,7 +20,6 @@ test('operations page includes hand entry month remaining inputs', function () {
     $category = BudgetLine::factory()->for($budget)->expense()->create([
         'planned_amount_minor_units' => 120_000,
         'execution_minor_units' => 35_000,
-        'is_paced' => true,
     ]);
 
     FinancialOperation::factory()->for($user)->for($budget)->create([
@@ -47,7 +46,7 @@ test('operations page includes hand entry month remaining inputs', function () {
             ->where('handEntryMonthRemaining.budgets.0.is_draft', false)
             ->has('handEntryMonthRemaining.budgets.0.categories', 1)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.id', $category->category_id)
-            ->where('handEntryMonthRemaining.budgets.0.categories.0.is_paced', true)
+            ->where('handEntryMonthRemaining.budgets.0.categories.0.rhythms', array_fill_keys(range(1, 12), 'running'))
             ->where('handEntryMonthRemaining.budgets.0.categories.0.planned_amount_minor_units', 120_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.1', 25_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.3', 10_000)
@@ -62,7 +61,7 @@ test('operations page includes hand entry month remaining inputs', function () {
         );
 });
 
-test('hand entry month remaining inputs include archived paced categories for pool math', function () {
+test('hand entry month remaining inputs include archived running categories for pool math', function () {
     $this->travelTo('2026-06-15');
 
     $user = User::factory()->create();
@@ -70,11 +69,9 @@ test('hand entry month remaining inputs include archived paced categories for po
     $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
     $activeCategory = BudgetLine::factory()->for($budget)->expense()->create([
         'planned_amount_minor_units' => 60_000,
-        'is_paced' => true,
     ]);
     $archivedCategory = BudgetLine::factory()->for($budget)->expense()->archived()->create([
         'planned_amount_minor_units' => 60_000,
-        'is_paced' => true,
     ]);
 
     $this->actingAs($user)
@@ -100,7 +97,6 @@ test('expense exceeding month remaining is still saved', function () {
     $category = BudgetLine::factory()->for($budget)->expense()->create([
         'planned_amount_minor_units' => 120_000,
         'execution_minor_units' => 35_000,
-        'is_paced' => true,
     ]);
 
     FinancialOperation::factory()->for($user)->for($budget)->for($account)->create([

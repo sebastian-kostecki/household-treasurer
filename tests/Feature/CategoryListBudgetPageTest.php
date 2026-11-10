@@ -63,7 +63,6 @@ class CategoryListBudgetPageTest extends TestCase
                 'name' => 'REKOLEKCJE',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 45_000,
-                'is_paced' => '0',
             ]))
             ->assertSessionHasNoErrors();
 
@@ -72,7 +71,7 @@ class CategoryListBudgetPageTest extends TestCase
         $joined = $draft2027->budgetLines()->where('category_id', $existing->category_id)->sole();
 
         $this->assertSame(45_000, $joined->planned_amount_minor_units);
-        $this->assertFalse($joined->is_paced);
+        $this->assertSame(1, $existing->category->rhythms()->count());
         $this->assertSame(1, $budget2026->budgetLines()->count());
     }
 

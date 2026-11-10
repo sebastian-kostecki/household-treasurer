@@ -4,6 +4,8 @@ import {
     operationsListQuery,
 } from './operations-list-query';
 
+export type DashboardRhythm = 'fixed_charge' | 'running' | 'even_annual';
+
 export type DashboardCategory = {
     id: number;
     name: string;
@@ -16,7 +18,7 @@ export type DashboardCategory = {
     percent_complete: number | null;
     is_over_limit: boolean;
     is_archived: boolean;
-    is_paced?: boolean;
+    rhythm?: DashboardRhythm | null;
 };
 
 export type DashboardTypeTotals = {
@@ -48,13 +50,14 @@ export function categoryOperationsQuery(
 
 export function showsYearElapsedMark(
     categoryType: 'income' | 'expense',
-    category: DashboardCategory,
+    rhythm: DashboardRhythm | null | undefined,
 ): boolean {
     if (categoryType === 'income') {
         return true;
     }
 
-    return category.is_paced === true;
+    // Every expense Rhythm has the mark; the irregular one (S-26) will not.
+    return rhythm !== null && rhythm !== undefined;
 }
 
 export function progressWidth(percentComplete: number | null): string {

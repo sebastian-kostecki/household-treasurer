@@ -45,7 +45,6 @@ const states = [
     'category-errors',
     'category-saving',
     'category-bad-amount',
-    'category-month-item-kind',
     'category-list-new',
     'category-list-edit',
     'category-list-locked',
@@ -105,7 +104,6 @@ const labels: Record<SinkState, string> = {
     'category-errors': 'Kategoria: błędy pól',
     'category-saving': 'Kategoria: zapis w toku',
     'category-bad-amount': 'Kategoria: zła kwota',
-    'category-month-item-kind': 'Kategoria: rodzaj pozycji (wydatek)',
     'category-list-new': 'Kategoria listy: nowa',
     'category-list-edit': 'Kategoria listy: edycja z opisem',
     'category-list-locked': 'Kategoria listy: typ zablokowany',
@@ -191,8 +189,6 @@ const category: CategoryFormCategory = {
     color: 'blue',
     type: 'expense',
     planned_amount_minor_units: 120000,
-    is_paced: true,
-    month_item_kind: 'running',
 };
 
 const listCategory: CategoryListItem = {
@@ -369,14 +365,6 @@ function setOpen(state: SinkState, value: boolean): void {
             initial-planned-amount-input="12,345"
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-bad-amount', $event)"
-        />
-        <CategoryFormDialog
-            :open="isOpen('category-month-item-kind')"
-            mode="create"
-            :budget-id="1"
-            default-type="expense"
-            :category-appearance-options="categoryAppearanceOptions"
-            @update:open="setOpen('category-month-item-kind', $event)"
         />
         <CategoryListFormDialog
             :open="isOpen('category-list-new')"

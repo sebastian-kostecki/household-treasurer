@@ -45,13 +45,18 @@ const kindLabel = computed(() => {
         return t.budget.kind_income;
     }
 
-    return props.category.month_item_kind === 'bill'
-        ? t.budget.kind_bill
-        : t.budget.kind_running;
+    switch (props.category.rhythm) {
+        case 'fixed_charge':
+            return t.budget.rhythm_fixed_charge;
+        case 'even_annual':
+            return t.budget.rhythm_even_annual;
+        default:
+            return t.budget.rhythm_running;
+    }
 });
 
 const meterYearElapsedPercent = computed(() =>
-    showsYearElapsedMark(props.categoryType, props.category)
+    showsYearElapsedMark(props.categoryType, props.category.rhythm)
         ? props.yearElapsedPercent
         : null,
 );

@@ -31,7 +31,7 @@ class CreateCategory
     ) {}
 
     /**
-     * @param  array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string}  $attributes
+     * @param  array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, ...}  $attributes
      * @return bool true when an existing list Category was joined, false when a new one was created
      */
     public function handle(User $user, Budget $budget, array $attributes): bool
@@ -40,13 +40,9 @@ class CreateCategory
         $name = CategoryNameKey::trim($attributes['name']);
         $nameKey = CategoryNameKey::of($name);
         $isExpense = $type === CategoryType::Expense;
-        $isPaced = $isExpense ? ($attributes['is_paced'] ?? true) : true;
-        $monthItemKind = $isExpense
-            ? MonthItemKind::from($attributes['month_item_kind'] ?? MonthItemKind::Running->value)
-            : MonthItemKind::Running;
 
         try {
-            return DB::transaction(function () use ($user, $budget, $attributes, $type, $name, $nameKey, $isPaced, $monthItemKind, $isExpense): bool {
+            return DB::transaction(function () use ($user, $budget, $attributes, $type, $name, $nameKey, $isExpense): bool {
                 $existing = Category::query()
                     ->where('user_id', $user->id)
                     ->where('type', $type->value)
@@ -62,8 +58,6 @@ class CreateCategory
 
                 $budget->budgetLines()->create([
                     'category_id' => $category->id,
-                    'is_paced' => $isPaced,
-                    'month_item_kind' => $monthItemKind,
                     'planned_amount_minor_units' => $attributes['planned_amount_minor_units'],
                     'initial_plan_minor_units' => 0,
                     'execution_minor_units' => 0,
@@ -74,7 +68,7 @@ class CreateCategory
                         $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::today('UTC'));
                     }
 
-                    $this->joinDraftBudgets->handle($category, $isPaced, $monthItemKind, $budget->id);
+                    $this->joinDraftBudgets->handle($category, true, MonthItemKind::Running, $budget->id);
                 }
 
                 return $existing !== null;

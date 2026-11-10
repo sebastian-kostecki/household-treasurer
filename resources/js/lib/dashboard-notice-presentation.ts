@@ -74,7 +74,7 @@ export function noticePresentation(
                 identity: { type: 'name', name: notice.name },
                 value: { type: 'money', minorUnits: notice.amount_minor_units },
             };
-        case 'one_off_over_limit':
+        case 'even_annual_over_limit':
             return {
                 labelKey: 'over_limit',
                 identity: { type: 'name', name: notice.name },

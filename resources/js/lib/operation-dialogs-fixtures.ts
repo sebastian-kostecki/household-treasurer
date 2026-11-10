@@ -197,7 +197,7 @@ export const dialogHandEntryMonthRemaining: HandEntryMonthRemainingInputs = {
             categories: [
                 {
                     id: 1,
-                    is_paced: true,
+                    rhythms: allMonths('running'),
                     planned_amount_minor_units: 120000,
                     monthly_execution_minor_units: {},
                 },
