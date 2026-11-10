@@ -196,6 +196,8 @@ Użytkownik zarządza grupami i przynależnością w widoku listy: dodaje, zmien
 - „W górę / W dół” liczy nowe drzewo na kliencie i wysyła `categories.reorder-list` (bez osobnej trasy)
 - `ReorderCategoryList::handle(User, CategoryType, items, visibleCategoryIds, visibleGroupIds)` jest wspólna z fazą 4
 
+**Addendum (impl-review F8, 2026-11-10):** `categories.reorder-list` nie przekierowuje z flashem, tylko odpowiada `204` jak `categories.reorder` Budżetu: widok zapisuje przez `useHttp` i sam przeładowuje propsy, a odrzucenie drzewa to `422` na `items`, obsłużone w `onError` (toast, przywrócenie kolejności). Pozostałe zapisy grup przekierowują do `categories.index` z flashem, jak w Intent.
+
 #### 2. Odczyt listy
 
 **File**: `app/Support/CategoryListReading.php`, `resources/js/types/categories.ts`

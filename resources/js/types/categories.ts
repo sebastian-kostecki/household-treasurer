@@ -17,6 +17,8 @@ export type CategoryGroupItem = {
     id: number;
     name: string;
     sort_order: number;
+    /** Archived Categories in the group; the view lists only active ones under it. */
+    archived_count: number;
 };
 
 export type CategoriesPageProps = {

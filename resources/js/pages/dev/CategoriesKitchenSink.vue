@@ -16,6 +16,7 @@ import {
     expenseGroups,
     groupedExpenseCategories,
 } from '@/lib/categories-fixtures';
+import { groupDeleteDescription } from '@/lib/category-list';
 
 const Categories = defineAsyncComponent(() => import('@/pages/Categories.vue'));
 
@@ -31,6 +32,16 @@ const createDialogOpen = ref(false);
 const renameDialogOpen = ref(false);
 const deleteDialogOpen = ref(false);
 const deleteEmptyDialogOpen = ref(false);
+const deleteArchivedOnlyDialogOpen = ref(false);
+
+const deleteCopy = {
+    group_delete_description: t.categories.group_delete_description,
+    group_delete_orphans_zero: t.categories.group_delete_orphans_zero,
+    group_delete_orphans_one: t.categories.group_delete_orphans_one,
+    group_delete_orphans_few: t.categories.group_delete_orphans_few,
+    group_delete_orphans_many: t.categories.group_delete_orphans_many,
+    group_delete_archived: t.categories.group_delete_archived,
+};
 
 const pickerCategory = groupedExpenseCategories[3];
 
@@ -49,7 +60,7 @@ const stateMatrix = [
     },
     {
         state: 'groups',
-        where: 'Scenariusz with-groups: wiersz grupy (tło `muted`, nazwa, liczba kategorii, menu ⋯), kategorie wcięte pod grupą, grupa rozwinięta z wieloma kategoriami (Opłaty stałe), pusta grupa z podpowiedzią i strefą upuszczenia (Podróże), kategorie bez grupy na poziomie typu. Sekcja „Okna i menu grup” poniżej: menu „Grupa…”, okno „Dodaj grupę”, „Zmień nazwę” z błędem nazwy po zapisie, potwierdzenie usunięcia (z liczbą kategorii, które zostaną bez grupy) i wiersz grupy z przyciskami W górę / W dół wyłączonymi na brzegach. Scenariusz only-empty-group: sekcja z samą pustą grupą.',
+        where: 'Scenariusz with-groups: wiersz grupy (tło `muted`, nazwa, liczba kategorii, menu ⋯), kategorie wcięte pod grupą, grupa rozwinięta z wieloma kategoriami (Opłaty stałe), pusta grupa z podpowiedzią i strefą upuszczenia (Podróże), kategorie bez grupy na poziomie typu. Sekcja „Okna i menu grup” poniżej: menu „Grupa…”, okno „Dodaj grupę”, „Zmień nazwę” z błędem nazwy po zapisie, potwierdzenie usunięcia (z liczbą kategorii, które zostaną bez grupy, także zarchiwizowanych; grupa z samymi zarchiwizowanymi nie jest „pusta”) i wiersz grupy z przyciskami W górę / W dół wyłączonymi na brzegach. Scenariusz only-empty-group: sekcja z samą pustą grupą.',
     },
     {
         state: 'disabled',
@@ -176,7 +187,15 @@ const stateMatrix = [
                     variant="outline"
                     @click="deleteDialogOpen = true"
                 >
-                    {{ t.categories.group_delete }} (5 kategorii)
+                    {{ t.categories.group_delete }} (5 kategorii i 1
+                    zarchiwizowana)
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="deleteArchivedOnlyDialogOpen = true"
+                >
+                    {{ t.categories.group_delete }} (tylko zarchiwizowane)
                 </Button>
                 <Button
                     type="button"
@@ -204,7 +223,7 @@ const stateMatrix = [
                 :form="plainForm"
                 destructive
                 :title="t.categories.group_delete_title"
-                :description="`${t.categories.group_delete_description} ${t.categories.group_delete_orphans_many.replace(':count', '5')}`"
+                :description="groupDeleteDescription(5, 1, deleteCopy)"
                 :confirm-label="t.categories.group_delete"
                 :cancel-label="t.categories.group_cancel"
             />
@@ -213,7 +232,16 @@ const stateMatrix = [
                 :form="plainForm"
                 destructive
                 :title="t.categories.group_delete_title"
-                :description="`${t.categories.group_delete_description} ${t.categories.group_delete_orphans_zero}`"
+                :description="groupDeleteDescription(0, 0, deleteCopy)"
+                :confirm-label="t.categories.group_delete"
+                :cancel-label="t.categories.group_cancel"
+            />
+            <ConfirmActionDialog
+                v-model:open="deleteArchivedOnlyDialogOpen"
+                :form="plainForm"
+                destructive
+                :title="t.categories.group_delete_title"
+                :description="groupDeleteDescription(0, 2, deleteCopy)"
                 :confirm-label="t.categories.group_delete"
                 :cancel-label="t.categories.group_cancel"
             />

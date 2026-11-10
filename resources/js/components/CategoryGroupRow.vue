@@ -21,7 +21,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTranslations } from '@/composables/useTranslations';
-import { activeCountForm } from '@/lib/category-list';
+import { activeCountForm, groupDeleteDescription } from '@/lib/category-list';
 import type { CategoryGroupItem } from '@/types/categories';
 
 const props = defineProps<{
@@ -50,18 +50,16 @@ const countLabel = computed(() =>
     ),
 );
 
-const deleteDescription = computed(() => {
-    const orphans =
-        props.count === 0
-            ? t.categories.group_delete_orphans_zero
-            : props.count === 1
-              ? t.categories.group_delete_orphans_one
-              : t.categories[
-                    `group_delete_orphans_${activeCountForm(props.count)}`
-                ].replace(':count', String(props.count));
-
-    return `${t.categories.group_delete_description} ${orphans}`;
-});
+const deleteDescription = computed(() =>
+    groupDeleteDescription(props.count, props.group.archived_count, {
+        group_delete_description: t.categories.group_delete_description,
+        group_delete_orphans_zero: t.categories.group_delete_orphans_zero,
+        group_delete_orphans_one: t.categories.group_delete_orphans_one,
+        group_delete_orphans_few: t.categories.group_delete_orphans_few,
+        group_delete_orphans_many: t.categories.group_delete_orphans_many,
+        group_delete_archived: t.categories.group_delete_archived,
+    }),
+);
 </script>
 
 <template>

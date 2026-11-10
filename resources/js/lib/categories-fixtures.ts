@@ -98,6 +98,7 @@ export const archivedCategories: CategoryListItem[] = [
         DEFAULT_CATEGORY_COLOR,
         [2026],
         '2026-09-09',
+        32,
     ),
     category(
         22,
@@ -112,11 +113,11 @@ export const archivedCategories: CategoryListItem[] = [
 
 /**
  * Kategorie z grupami (ADR-0066). Jeden ciąg miejsc na typ: grupa „Zdrowie”
- * (2 kategorie), grupa „Opłaty stałe” (5 kategorii), pusta grupa „Podróże”
- * oraz kategorie bez grupy na poziomie typu.
+ * (2 kategorie), grupa „Opłaty stałe” (5 kategorii i zarchiwizowane Wakacje),
+ * pusta grupa „Podróże” oraz kategorie bez grupy na poziomie typu.
  */
 export const incomeGroups: CategoryGroupItem[] = [
-    { id: 34, name: 'Pensje', sort_order: 0 },
+    { id: 34, name: 'Pensje', sort_order: 0, archived_count: 0 },
 ];
 
 export const groupedIncomeCategories: CategoryListItem[] = [
@@ -145,9 +146,9 @@ export const groupedIncomeCategories: CategoryListItem[] = [
 ];
 
 export const expenseGroups: CategoryGroupItem[] = [
-    { id: 31, name: 'Zdrowie', sort_order: 1 },
-    { id: 32, name: 'Opłaty stałe', sort_order: 4 },
-    { id: 33, name: 'Podróże', sort_order: 10 },
+    { id: 31, name: 'Zdrowie', sort_order: 1, archived_count: 0 },
+    { id: 32, name: 'Opłaty stałe', sort_order: 4, archived_count: 1 },
+    { id: 33, name: 'Podróże', sort_order: 10, archived_count: 0 },
 ];
 
 export const groupedExpenseCategories: CategoryListItem[] = [
@@ -304,7 +305,14 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories,
             archivedCategories: [],
-            incomeGroups: [{ id: 35, name: 'Pusta grupa', sort_order: 0 }],
+            incomeGroups: [
+                {
+                    id: 35,
+                    name: 'Pusta grupa',
+                    sort_order: 0,
+                    archived_count: 0,
+                },
+            ],
             expenseGroups: [],
         },
     },

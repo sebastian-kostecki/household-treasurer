@@ -66,9 +66,11 @@ function categoryGroupsMigrationCategory(int $userId, string $name, ?int $groupI
     ]);
 }
 
-test('the migration creates the table and a nullable membership column', function (): void {
+test('the migration creates the table and a nullable, indexed membership column', function (): void {
+    // PostgreSQL does not index a foreign key column on its own.
     expect(Schema::hasTable('category_groups'))->toBeTrue()
-        ->and(Schema::hasColumn('categories', 'category_group_id'))->toBeTrue();
+        ->and(Schema::hasColumn('categories', 'category_group_id'))->toBeTrue()
+        ->and(Schema::hasIndex('categories', ['category_group_id']))->toBeTrue();
 
     $userId = categoryGroupsMigrationUser();
 

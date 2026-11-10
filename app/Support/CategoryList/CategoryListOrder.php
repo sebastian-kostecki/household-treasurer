@@ -25,9 +25,15 @@ use InvalidArgumentException;
  * (group id => sort order; Category id => membership and sort order; every
  * Category of the input is in the result, even an unchanged one.)
  *
- * Tie rule, the same as `buildCategoryTree` on the client and, for Categories,
- * as `BudgetLine::scopeOrdered`: `sort_order`, then a group before a Category,
- * then `name_key` (byte order), then id. A Category whose group is unknown
+ * Tie rule: `sort_order`, then a group before a Category, then `name_key` (byte
+ * order, `strcmp`), then id. `buildCategoryTree` on the client and
+ * `BudgetLine::scopeOrdered` follow the same steps, but the readers
+ * (`scopeOrdered`, `CategoryListReading`) order `name_key` with the database
+ * collation, and the client keeps that order. So for a tie of `sort_order`
+ * whose `name_key`s differ in diacritics (e.g. „łazienka” and „media”), the
+ * page and this class can put the two rows in opposite order. That matters only
+ * before the first write of the type's order, which renumbers it 0 to n-1 and
+ * removes every tie. A Category whose group is unknown
  * counts as one without a group. The tree is built from (membership,
  * `sort_order`), so it is unambiguous even when the stored sequence has gaps or
  * ties (a type change does not renumber, the demo seeder numbers both types

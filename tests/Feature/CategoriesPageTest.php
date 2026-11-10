@@ -168,10 +168,10 @@ class CategoriesPageTest extends TestCase
         $this->actingAs($user)
             ->get(route('categories.index'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('incomeGroups', [['id' => $salary->id, 'name' => 'Pensje', 'sort_order' => 0]])
+                ->where('incomeGroups', [['id' => $salary->id, 'name' => 'Pensje', 'sort_order' => 0, 'archived_count' => 0]])
                 ->where('expenseGroups', [
-                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 1],
-                    ['id' => $fixed->id, 'name' => 'Opłaty', 'sort_order' => 3],
+                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 1, 'archived_count' => 0],
+                    ['id' => $fixed->id, 'name' => 'Opłaty', 'sort_order' => 3, 'archived_count' => 0],
                 ])
                 ->where('incomeCategories.0.id', $wage->id)
                 ->where('incomeCategories.0.group_id', $salary->id)
@@ -182,6 +182,30 @@ class CategoriesPageTest extends TestCase
                 ->where('expenseCategories.1.sort_order', 2)
                 ->where('expenseCategories.2.id', $rent->id)
                 ->where('expenseCategories.2.group_id', $fixed->id),
+            );
+    }
+
+    /**
+     * Deleting a group takes the group from its archived Categories too, so the
+     * confirmation needs their number; the view lists only active ones in a group.
+     */
+    public function test_a_group_counts_its_archived_categories(): void
+    {
+        $user = User::factory()->create();
+        $health = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $empty = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Podróże', 'sort_order' => 3]);
+        Category::factory()->for($user)->expense()->create(['name' => 'Apteka', 'sort_order' => 1, 'category_group_id' => $health->id]);
+        Category::factory()->for($user)->expense()->archived()->create(['name' => 'Badania', 'sort_order' => 2, 'category_group_id' => $health->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseGroups', [
+                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 0, 'archived_count' => 1],
+                    ['id' => $empty->id, 'name' => 'Podróże', 'sort_order' => 3, 'archived_count' => 0],
+                ])
+                ->count('expenseCategories', 1)
+                ->count('archivedCategories', 1),
             );
     }
 }

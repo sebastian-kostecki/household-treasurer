@@ -32,7 +32,7 @@ async function categoryIdOf(page: Page, name: string): Promise<string> {
 }
 
 // The CSRF token of the session travels in the XSRF-TOKEN cookie.
-async function post(page: Page, path: string) {
+async function post(page: Page, path: string, form?: Record<string, string>) {
     const cookies = await page.context().cookies();
     const token = cookies.find((cookie) => cookie.name === 'XSRF-TOKEN');
 
@@ -42,6 +42,7 @@ async function post(page: Page, path: string) {
     // needs the write, so it does not follow it.
     const response = await page.request.post(path, {
         headers: { 'X-XSRF-TOKEN': decodeURIComponent(token?.value ?? '') },
+        form,
         maxRedirects: 0,
     });
 
@@ -137,7 +138,9 @@ async function createGroup(page: Page, name: string) {
 
 async function deleteGroup(page: Page, name: string) {
     // A success toast from the previous step can sit over the row's menu button,
-    // and hovering it keeps it open, so wait until it is gone before clicking.
+    // and hovering it keeps it open, so the pointer leaves the toasts and the
+    // test waits until they are gone before clicking.
+    await page.mouse.move(0, 0);
     await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
 
     await groupBlock(page, name)
@@ -175,6 +178,108 @@ test('a Category is put into a new group with "Grupa…" and stays when the grou
 
     await expect(categoryRow(page, 'Rozrywka')).toHaveCount(1);
     await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
+});
+
+// Risk: the server rejects an order that no longer matches the list (a group
+// was added in another tab), answers 422, and the page undoes the move without
+// a word. The other tab is a direct request, so the rejection is the real one.
+test('an order rejected by the server shows an error and the saved order', async ({
+    page,
+}) => {
+    const group = 'Grupa E2E odrzucona kolejność';
+    const otherTabGroup = 'Grupa E2E z innej karty';
+
+    await page.goto('/categories');
+    await createGroup(page, group);
+    await post(page, '/categories/groups', {
+        type: 'expense',
+        name: otherTabGroup,
+    });
+
+    try {
+        await page.mouse.move(0, 0);
+        await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+
+        const reorderRejected = page.waitForResponse(
+            (response) =>
+                response.url().endsWith('/categories/reorder') &&
+                response.request().method() === 'PATCH',
+        );
+        await groupBlock(page, group)
+            .getByRole('button', { name: `Więcej działań grupy ${group}` })
+            .click();
+        await page.getByRole('menuitem', { name: 'W górę' }).click();
+        expect((await reorderRejected).status()).toBe(422);
+
+        await expect(
+            page.getByText(
+                'Nie udało się zapisać kolejności. Przywrócono poprzednią.',
+            ),
+        ).toBeVisible();
+        // The page shows the order the server holds, with the other tab's group.
+        await expect(groupBlock(page, otherTabGroup)).toBeVisible();
+    } finally {
+        await page.reload();
+        await deleteGroup(page, otherTabGroup);
+        await deleteGroup(page, group);
+    }
+});
+
+// Risk: a second "W górę / W dół" while the first save runs overwrites the
+// order the page restores when that save fails. The first save is held back,
+// so the second move happens while it is still running.
+test('a group move does not start while the previous save is running', async ({
+    page,
+}) => {
+    const group = 'Grupa E2E jeden zapis';
+    const sentOrders: string[] = [];
+    let releaseSave: () => void = () => {};
+    const saveHeld = new Promise<void>((resolve) => {
+        releaseSave = resolve;
+    });
+
+    await page.goto('/categories');
+    await createGroup(page, group);
+    await page.route('**/categories/reorder', async (route) => {
+        if (route.request().method() !== 'PATCH') {
+            return route.fallback();
+        }
+
+        sentOrders.push(route.request().postData() ?? '');
+        await saveHeld;
+        await route.continue();
+    });
+
+    try {
+        await page.mouse.move(0, 0);
+        await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+
+        const menuButton = groupBlock(page, group).getByRole('button', {
+            name: `Więcej działań grupy ${group}`,
+        });
+        await menuButton.click();
+        await page.getByRole('menuitem', { name: 'W górę' }).click();
+        await expect.poll(() => sentOrders.length).toBe(1);
+
+        await menuButton.click();
+        await page.getByRole('menuitem', { name: 'W dół' }).click();
+
+        const saved = page.waitForResponse(
+            (response) =>
+                response.url().endsWith('/categories/reorder') &&
+                response.request().method() === 'PATCH',
+        );
+        releaseSave();
+        expect((await saved).status()).toBe(204);
+        await page.waitForLoadState('networkidle');
+
+        expect(sentOrders).toHaveLength(1);
+    } finally {
+        releaseSave();
+        await page.unroute('**/categories/reorder');
+        await page.reload();
+        await deleteGroup(page, group);
+    }
 });
 
 test('dragging a Category onto an empty group saves the membership', async ({

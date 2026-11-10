@@ -32,6 +32,9 @@ return new class extends Migration
                 ->after('user_id')
                 ->constrained('category_groups')
                 ->nullOnDelete();
+
+            // PostgreSQL does not index a foreign key column on its own.
+            $table->index('category_group_id');
         });
     }
 

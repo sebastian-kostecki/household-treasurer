@@ -26,9 +26,13 @@ class CategoryListReading
      *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, budget_years: list<int>, archived_at: string|null}>,
      *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, budget_years: list<int>, archived_at: string|null}>,
      *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, budget_years: list<int>, archived_at: string|null}>,
-     *     incomeGroups: list<array{id: int, name: string, sort_order: int}>,
-     *     expenseGroups: list<array{id: int, name: string, sort_order: int}>
+     *     incomeGroups: list<array{id: int, name: string, sort_order: int, archived_count: int}>,
+     *     expenseGroups: list<array{id: int, name: string, sort_order: int, archived_count: int}>
      * }
+     *
+     * `archived_count` is the number of archived Categories in the group: the view
+     * lists only active ones under a group, and deleting the group takes it from
+     * the archived ones too.
      */
     public static function forUser(User $user): array
     {
@@ -64,26 +68,34 @@ class CategoryListReading
             ]);
 
         $active = $categories->filter(fn (array $category): bool => $category['archived_at'] === null);
+        $archived = $categories->filter(fn (array $category): bool => $category['archived_at'] !== null);
+        $archivedCountByGroup = $archived->whereNotNull('group_id')->countBy('group_id')->all();
 
         return [
             'incomeCategories' => array_values($active->where('type', CategoryType::Income->value)->all()),
             'expenseCategories' => array_values($active->where('type', CategoryType::Expense->value)->all()),
-            'archivedCategories' => array_values($categories->filter(fn (array $category): bool => $category['archived_at'] !== null)->all()),
-            'incomeGroups' => self::groupsOfType($groups->all(), CategoryType::Income),
-            'expenseGroups' => self::groupsOfType($groups->all(), CategoryType::Expense),
+            'archivedCategories' => array_values($archived->all()),
+            'incomeGroups' => self::groupsOfType($groups->all(), CategoryType::Income, $archivedCountByGroup),
+            'expenseGroups' => self::groupsOfType($groups->all(), CategoryType::Expense, $archivedCountByGroup),
         ];
     }
 
     /**
      * @param  array<int, array{id: int, name: string, type: string, sort_order: int}>  $groups
-     * @return list<array{id: int, name: string, sort_order: int}>
+     * @param  array<int, int>  $archivedCountByGroup
+     * @return list<array{id: int, name: string, sort_order: int, archived_count: int}>
      */
-    private static function groupsOfType(array $groups, CategoryType $type): array
+    private static function groupsOfType(array $groups, CategoryType $type, array $archivedCountByGroup): array
     {
         $result = [];
         foreach ($groups as $group) {
             if ($group['type'] === $type->value) {
-                $result[] = ['id' => $group['id'], 'name' => $group['name'], 'sort_order' => $group['sort_order']];
+                $result[] = [
+                    'id' => $group['id'],
+                    'name' => $group['name'],
+                    'sort_order' => $group['sort_order'],
+                    'archived_count' => $archivedCountByGroup[$group['id']] ?? 0,
+                ];
             }
         }
 

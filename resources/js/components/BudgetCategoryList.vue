@@ -259,7 +259,8 @@ function onChangeStart(): void {
 }
 
 // Saves the visible tree of the type; the server answers with the new order,
-// membership and group totals, so the page reloads those props afterwards.
+// membership and group totals, so the page reloads those props afterwards (also
+// after a rejection, so the view shows the order the server holds).
 async function saveTree(): Promise<void> {
     if (!canDrag.value) {
         return;
@@ -269,7 +270,18 @@ async function saveTree(): Promise<void> {
     reorderHttp.items = treeToReorderItems(tree.value);
 
     try {
-        await reorderHttp.patch(reorder.url(props.budgetId));
+        // A 422 (the tree no longer matches the Budget, e.g. changed in another
+        // tab) does not throw: useHttp passes it to onError and resolves.
+        await reorderHttp.patch(reorder.url(props.budgetId), {
+            onError: (errors) => {
+                console.error(
+                    'The server rejected the budget category order.',
+                    errors,
+                );
+                tree.value = treeBeforeChange.value;
+                toast.error(t.budget.reorder_failed);
+            },
+        });
     } catch (error) {
         console.error('Saving the budget category order failed.', error);
         tree.value = treeBeforeChange.value;

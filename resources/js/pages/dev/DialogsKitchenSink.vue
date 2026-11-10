@@ -5,6 +5,7 @@ import DialogsKitchenSinkController from '@/actions/App/Http/Controllers/Dev/Dia
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
+import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
@@ -43,6 +44,8 @@ const states = [
     'category-saving',
     'category-bad-amount',
     'category-month-item-kind',
+    'category-group-new',
+    'category-group-rename-error',
     'budget-create',
     'budget-errors',
     'confirm-plain',
@@ -90,6 +93,9 @@ const labels: Record<SinkState, string> = {
     'category-saving': 'Kategoria: zapis w toku',
     'category-bad-amount': 'Kategoria: zła kwota',
     'category-month-item-kind': 'Kategoria: rodzaj pozycji (wydatek)',
+    'category-group-new': 'Grupa kategorii: nowa',
+    'category-group-rename-error':
+        'Grupa kategorii: zmiana nazwy (błąd po zapisie)',
     'budget-create': 'Utwórz budżet',
     'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
@@ -304,6 +310,21 @@ function setOpen(state: SinkState, value: boolean): void {
             default-type="expense"
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-month-item-kind', $event)"
+        />
+        <CategoryGroupFormDialog
+            :open="isOpen('category-group-new')"
+            mode="create"
+            type="expense"
+            @update:open="setOpen('category-group-new', $event)"
+        />
+        <!-- The sink endpoint waits and rejects the name, so renaming touches no data. -->
+        <CategoryGroupFormDialog
+            :open="isOpen('category-group-rename-error')"
+            mode="rename"
+            type="expense"
+            :group="{ id: 1, name: 'Opłaty stałe' }"
+            :form="validateForm"
+            @update:open="setOpen('category-group-rename-error', $event)"
         />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"

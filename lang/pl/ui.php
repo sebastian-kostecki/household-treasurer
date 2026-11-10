@@ -584,6 +584,7 @@ return [
         'group_delete_orphans_one' => '1 kategoria zostanie bez grupy.',
         'group_delete_orphans_few' => ':count kategorie zostaną bez grupy.',
         'group_delete_orphans_many' => ':count kategorii zostanie bez grupy.',
+        'group_delete_archived' => 'Zarchiwizowane kategorie grupy (:count) też stracą grupę.',
         'group_reorder_failed' => 'Nie udało się zapisać kolejności. Przywrócono poprzednią.',
         'group_assign_failed' => 'Nie udało się przypisać kategorii do grupy.',
     ],

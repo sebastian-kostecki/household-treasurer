@@ -156,13 +156,25 @@ function onChangeStart(key: SectionKey): void {
 }
 
 // Saves the visible tree of the type; the server answers with the new order and
-// membership, so the page reloads its props afterwards.
+// membership, so the page reloads its props afterwards (also after a rejection,
+// so the view shows the order the server holds).
 async function saveTree(key: SectionKey): Promise<void> {
     reorderHttp.type = key;
     reorderHttp.items = treeToReorderItems(trees.value[key]);
 
     try {
-        await reorderHttp.patch(reorder.url());
+        // A 422 (the tree no longer matches the list, e.g. changed in another
+        // tab) does not throw: useHttp passes it to onError and resolves.
+        await reorderHttp.patch(reorder.url(), {
+            onError: (errors) => {
+                console.error(
+                    'The server rejected the category order.',
+                    errors,
+                );
+                trees.value[key] = treeBeforeChange.value;
+                toast.error(t.categories.group_reorder_failed);
+            },
+        });
     } catch (error) {
         console.error('Saving the category order failed.', error);
         trees.value[key] = treeBeforeChange.value;
@@ -187,6 +199,12 @@ function moveGroup(
     groupId: number,
     direction: 'up' | 'down',
 ): void {
+    // Like dragging, a move waits for the previous save: a second one would
+    // overwrite the order restored when that save fails.
+    if (reorderHttp.processing) {
+        return;
+    }
+
     treeBeforeChange.value = snapshotOf(key);
     trees.value[key] = moveTopLevelItem(trees.value[key], groupId, direction);
     void saveTree(key);

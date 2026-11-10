@@ -1,7 +1,7 @@
 ---
 change_id: category-groups
 title: Category groups
-status: implemented
+status: impl_reviewed
 created: 2026-11-10
 updated: 2026-11-10
 archived_at: null
