@@ -46,7 +46,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | F-04 | safe-first-data-migration            | (foundation) wdrożenie robi kopię bazy przed migracją, a reguły migracji danych, kategorii i snapshotu są w repo   | —             | Migracja danych (wskazane przez użytkownika), Guardrails | done     |
 | F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | done     |
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
-| S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | proposed |
+| S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | in-progress |
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | ready    |
 | S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | ready    |
 | S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | ready    |
@@ -151,7 +151,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Zmiana typu kategorii z operacjami w dowolnym roku musi być zablokowana (PRD, FR-002), inaczej sumy przychodów i wydatków się rozjadą.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-20: Nowy budżet z listy kategorii
 
