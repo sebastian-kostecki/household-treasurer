@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $user_id
+ * @property int|null $category_group_id
  * @property string $name
  * @property string $name_key
  * @property string $icon
@@ -30,6 +31,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'user_id',
+    'category_group_id',
     'name',
     'name_key',
     'icon',
@@ -75,6 +77,14 @@ class Category extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<CategoryGroup, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(CategoryGroup::class, 'category_group_id');
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\CategoryTypeChange;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -41,12 +42,18 @@ class UpdateCategory
                     $this->assertKeyFree($category, $type, $nameKey);
                 }
 
+                $typeChanged = $type !== $category->type;
+
                 $category->update([
                     'name' => $name,
                     'name_key' => $nameKey,
                     'icon' => $attributes['icon'],
                     'color' => $attributes['color'],
                     'type' => $type,
+                    ...($typeChanged ? [
+                        'category_group_id' => null,
+                        'sort_order' => CategoryListSequence::nextSortOrder($category->user_id, $type),
+                    ] : []),
                 ]);
 
                 if ($type === CategoryType::Income && $category->wasChanged('type')) {
