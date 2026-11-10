@@ -1,9 +1,9 @@
 ---
 change_id: category-list-after-migration
 title: Category list after migration
-status: implementing
+status: implemented
 created: 2026-11-09
-updated: 2026-11-09
+updated: 2026-11-10
 archived_at: null
 ---
 

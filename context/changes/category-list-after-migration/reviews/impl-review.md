@@ -7,7 +7,7 @@
 - **Date**: 2026-11-09
 - **Verdict**: REJECTED
 - **Findings**: 1 critical, 2 warnings, 5 observations
-- **Triage**: F1 (Fix A), F2 (Fix A), F3–F8 fixed. Po triage `composer ci:check` w Sail na PostgreSQL zielony (1052 passed, 2 skipped), Sloppy czysty. Zmiany niezacommitowane. Zostaje próba fazy 7 (`follow-ups/review-fixes.md`, F1); `change.md` → `implementing`, dopóki jej nie ma.
+- **Triage**: F1 (Fix A), F2 (Fix A), F3–F8 fixed. Po triage `composer ci:check` w Sail na PostgreSQL zielony (1052 passed, 2 skipped), Sloppy czysty. Zmiany niezacommitowane. Próba fazy 7 zrobiona 2026-11-10 (`migration-trial.md`); `change.md` → `implemented`.
 
 Werdykt REJECTED wynika wyłącznie z F1 (brak próby na kopii produkcji, która jest warunkiem wdrożenia). Kod faz 1–6 jest zgodny z planem, a cała bramka jest zielona.
 
@@ -56,7 +56,7 @@ Werdykt REJECTED wynika wyłącznie z F1 (brak próby na kopii produkcji, która
   - Tradeoff: Zapis z pamięci jest słabszym dowodem niż wyjście komend; bez plików `before.json` nie ma tabeli liczb.
   - Confidence: LOW — nic w repo nie wskazuje, że próba się odbyła.
   - Blind spot: Czy zachowały się liczby kontrolne z tej próby.
-- **Decision**: FIXED (Fix A) — 7.1–7.5 odhaczone w `plan.md`, `change.md` → `implementing`; sama próba i `migration-trial.md` w kolejce `follow-ups/review-fixes.md` (F1).
+- **Decision**: FIXED (Fix A) — 7.1–7.5 odhaczone w `plan.md`, `change.md` → `implementing`; sama próba i `migration-trial.md` w kolejce `follow-ups/review-fixes.md` (F1). Próba przeprowadzona 2026-11-10 na archiwum `2026-11-10-05-13-42.zip`: migracja, `down()`, ponowna migracja i powrót z kopii bez różnic liczb kontrolnych; zapis w `migration-trial.md`, 7.1–7.5 odhaczone, `change.md` → `implemented`.
 
 ### F2 — Archiwum listy nie decyduje o wyborze (operacje, Import, plan miesiąca, nowy budżet)
 

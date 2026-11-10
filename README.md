@@ -165,7 +165,7 @@ Gdy wdrożenie się nie powiodło albo coś psuje się zaraz po nim. Przywrócen
 
 #### Przywrócenie produkcji
 
-Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba](context/changes/safe-first-data-migration/restore-trial.md)). Poniższych kroków na samej produkcji jeszcze nie ćwiczono; S-18 ma je przeprowadzić na bazie testowej przed pierwszą nieodwracalną migracją.
+Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba F-04](context/archive/2026-11-09-safe-first-data-migration/restore-trial.md)). Kroki 3–4 przeszły w próbie S-18 na bazie testowej po migracji: powrót z kopii sprzed migracji dał liczby kontrolne bez różnic ([próba S-18](context/changes/category-list-after-migration/migration-trial.md)). Kroków 1, 2, 5 i 6 nie da się przećwiczyć lokalnie, bo dzieją się na serwerze.
 
 1. `scripts/artisan.sh down` (tryb serwisowy).
 2. Lokalnie na `main`: `git revert` zmiany z migracją i `git push origin main`. Skrypt wdrożenia robi `git pull --ff-only origin main`, więc revert zrobiony tylko na VPS rozjedzie się z origin i zablokuje następne wdrożenie. Stary schemat nie działa z nowym kodem, więc kod musi wrócić razem z bazą. Na serwerze jeszcze nie rób `git pull`: kontener ma nadal nowy kod, a on zna `app:control-numbers`.
