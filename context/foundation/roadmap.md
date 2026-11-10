@@ -44,7 +44,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | ---- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------- | ---------------------------------------- | -------- |
 | F-03 | category-list-domain-decisions       | (foundation) ADR i słownik opisują kategorię przez lata, grupę kategorii i regułę migracji                         | —             | Wymogi istniejącego systemu, Decyzje strukturalne 1 i 4, FR-006 | done     |
 | F-04 | safe-first-data-migration            | (foundation) wdrożenie robi kopię bazy przed migracją, a reguły migracji danych, kategorii i snapshotu są w repo   | —             | Migracja danych (wskazane przez użytkownika), Guardrails | done     |
-| F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | ready    |
+| F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | done     |
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | proposed |
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | proposed |
@@ -125,7 +125,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Musi wyraźnie odróżnić „zebrane” od „odkładam / dobieram”, Set-aside i Reserve; nazwy z PRD („odkładam 150 · zebrane 450”) dziś zderzają się z sekcją „odkładam” na dole planu.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -234,7 +234,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Prerequisites:** F-05, S-24
 - **Parallel with:** S-19, S-20, S-21, S-22, S-23, S-25, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
-- **Unknowns:** —
+- **Unknowns:** z przeglądu implementacji F-05 (F9): (a) rachunek w miesiącu budżetu-szkicu albo roku bez budżetu, (b) zatwierdzony miesiąc bez pozycji nieregularnej, (c) miesiące przed pierwszym wpisem rytmu kategorii oznaczonej nieregularną przy utworzeniu
 - **Risk:** Jedyna zmiana reguły „do wydania”: stawka i rachunek to jedna reguła, której nie da się dostarczyć osobno bez podwójnego obniżenia w miesiącu rachunku. Zebrane jest odczytem z operacji (zwroty netto), nie zapisaną liczbą; salda i Spendable Liquidity bez zmian, a Wynik miesiąca liczy faktyczny rachunek.
 - **Status:** proposed
 
@@ -391,3 +391,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **F-03: (foundation) nowy ADR zastępuje ADR-0014 i zmienia ADR-0016 i ADR-0034, a wpisy w `context/foundation/glossary.md` opisują kategorię przez lata (bez terminu _Avoid_ „a Category identity that spans years”), grupę kategorii, archiwum globalne i regułę migracji (nazwa + typ → jedna kategoria listy).** — Archived 2026-11-09 → `context/archive/2026-11-09-category-list-domain-decisions/`. Lesson: —.
 - **F-04: (foundation) wdrożenie robi kopię bazy przed migracją, przywrócenie z niej jest raz sprawdzone na kopii lokalnej, a reguły migracji danych, tożsamości kategorii i konwersji starszego snapshotu (poprawki 1 i 2 z health-check) ładują się agentowi z `.ai/rules`.** — Archived 2026-11-09 → `context/archive/2026-11-09-safe-first-data-migration/`. Lesson: —.
 - **S-18: użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę kategorii przez lata z sekcją archiwum, a budżet 2026, ~1 000 operacji, Budżet roczny, plan miesiąca, Import i `user:backup` / `user:restore` działają na tej liście bez ręcznej pracy i bez zmiany kwot** — Archived 2026-11-10 → `context/archive/2026-11-09-category-list-after-migration/`. Lesson: —.
+- **F-05: (foundation) nowy ADR zmienia ADR-0024 i ADR-0033: cztery rytmy zastępują flagi, mapowanie flag na rytm przy migracji jest ustalone, a wpisy w `context/foundation/glossary.md` nazywają stawkę i „zebrane” (po polsku i angielsku), regułę „do wydania” dla wydatku nieregularnego i przejście zebranego przez 31 grudnia.** — Archived 2026-11-10 → `context/archive/2026-11-09-rhythm-and-irregular-decisions/`. Lesson: —.

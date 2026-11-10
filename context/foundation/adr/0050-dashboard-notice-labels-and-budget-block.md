@@ -26,3 +26,5 @@ Contradictions in the artifact. `Notice/README.md` describes a card without the 
 The change touches no rule in `context/foundation/glossary.md` and no _Avoid_ term, and no Inertia prop.
 
 Supersedes in part ADR-0043: the warning card, the panel with tabs and the four measures, already superseded by ADR-0045. We rejected one frame around the whole block (a card in a card and a change of `BudgetPlanSummaryStrip` for the Budget view), the captions Plan and Realizacja on the phone (the row would grow past one line; the footer carries the unit), a state word for `month_plan_not_approved` (the payload has none, and a made-up word would be a second source of the state) and only the two labels shown on the card (an agent would invent the other five).
+
+Amended by ADR-0066: the `one_off_over_limit` notice (Ponad limit) becomes the over-plan signal of an Even Annual Category against the year; an Irregular Category raises `month_item_over_plan` on a surplus.
