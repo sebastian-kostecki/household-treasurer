@@ -8,12 +8,14 @@ use App\Models\Category;
 use App\Models\CategoryGroup;
 use App\Models\User;
 use App\Support\CategoryList\CategoryTypeChange;
+use Carbon\CarbonImmutable;
 
 /**
  * The User's Category list for the „Kategorie” view (ADR-0063, ADR-0069):
  * active Categories split by type, archived ones apart, each with the years in
  * which it has a Budget Line, with the description and what the row may do
- * (ADR-0067), and the Category Groups of each type. No amounts. A fixed number
+ * (ADR-0067), the Rhythm of the current month (ADR-0070), and the Category Groups
+ * of each type. No amounts. A fixed number
  * of queries, whatever the number of Categories.
  *
  * Categories and groups come in the order of the type's sequence (`sort_order`,
@@ -25,9 +27,9 @@ class CategoryListReading
 {
     /**
      * @return array{
-     *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
-     *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
-     *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
      *     incomeGroups: list<array{id: int, name: string, sort_order: int, archived_count: int}>,
      *     expenseGroups: list<array{id: int, name: string, sort_order: int, archived_count: int}>
      * }
@@ -46,7 +48,10 @@ class CategoryListReading
             ->orderBy('id')
             ->get();
 
-        $lockedIds = array_flip(CategoryTypeChange::lockedIds(array_values($categories->map(fn (Category $category): int => $category->id)->all())));
+        $categoryIds = array_values($categories->map(fn (Category $category): int => $category->id)->all());
+        $lockedIds = array_flip(CategoryTypeChange::lockedIds($categoryIds));
+        $today = CarbonImmutable::today('UTC');
+        $rhythms = CategoryRhythms::forCategoryIds($categoryIds);
 
         $categories = $categories
             ->map(fn (Category $category): array => [
@@ -58,6 +63,7 @@ class CategoryListReading
                 'group_id' => $category->category_group_id,
                 'sort_order' => $category->sort_order,
                 'description' => $category->description,
+                'rhythm' => $rhythms->rhythmIn($category->id, $today->year, $today->month)?->value,
                 'budget_years' => $yearsByCategory[$category->id] ?? [],
                 'can_change_type' => ! isset($lockedIds[$category->id]),
                 'can_delete' => ! isset($lockedIds[$category->id]),

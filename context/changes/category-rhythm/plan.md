@@ -556,29 +556,29 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 #### Automated
 
-- [x] 1.1 Testy mapowania i odczytu przechodzą
-- [x] 1.2 Migracja, inwarianty i `down()` przechodzą na PostgreSQL
-- [x] 1.3 Liczby kontrolne na obu schematach przechodzą na PostgreSQL
-- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Testy mapowania i odczytu przechodzą — e261666
+- [x] 1.2 Migracja, inwarianty i `down()` przechodzą na PostgreSQL — e261666
+- [x] 1.3 Liczby kontrolne na obu schematach przechodzą na PostgreSQL — e261666
+- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — e261666
 
 #### Manual
 
-- [x] 1.5 ADR-0070 opisuje decyzje z tej rozmowy, a ADR-0066 mówi o wersjach 1–8
-- [x] 1.6 Na danych dev po `migrate` równomierne roczne i bieżące mają poprawne wpisy
+- [x] 1.5 ADR-0070 opisuje decyzje z tej rozmowy, a ADR-0066 mówi o wersjach 1–8 — e261666
+- [x] 1.6 Na danych dev po `migrate` równomierne roczne i bieżące mają poprawne wpisy — e261666
 
 ### Phase 2: Rytm w „Kategoriach” i snapshot v9
 
 #### Automated
 
-- [ ] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL
-- [ ] 2.2 Testy snapshotu przechodzą na PostgreSQL
-- [ ] 2.3 E2E „Kategorii” przechodzi
-- [ ] 2.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL
+- [x] 2.2 Testy snapshotu przechodzą na PostgreSQL
+- [x] 2.3 E2E „Kategorii” przechodzi
+- [x] 2.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 2.5 Zmiana rytmu „Czynsz” w „Kategoriach” pokazuje podpowiedź i etykietę
-- [ ] 2.6 Kitchen sinki pokazują pole „Rytm” we wszystkich stanach
+- [x] 2.5 Zmiana rytmu „Czynsz” w „Kategoriach” pokazuje podpowiedź i etykietę
+- [x] 2.6 Kitchen sinki pokazują pole „Rytm” we wszystkich stanach
 
 ### Phase 3: Propozycja z rytmu i wiersz planu
 

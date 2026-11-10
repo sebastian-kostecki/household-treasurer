@@ -270,7 +270,7 @@ class CategoryGroupTest extends TestCase
         CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Opłaty stałe', 'sort_order' => 1]);
 
         $this->actingAs($user)
-            ->post(route('categories.list.store'), ['name' => 'Wakacje', 'icon' => 'tag', 'color' => '#868e96', 'type' => 'expense'])
+            ->post(route('categories.list.store'), ['name' => 'Wakacje', 'icon' => 'tag', 'color' => '#868e96', 'type' => 'expense', 'rhythm' => 'running'])
             ->assertSessionHasNoErrors();
 
         $created = Category::query()->where('user_id', $user->id)->where('name', 'Wakacje')->sole();

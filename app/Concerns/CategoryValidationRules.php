@@ -4,6 +4,7 @@ namespace App\Concerns;
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -44,6 +45,7 @@ trait CategoryValidationRules
             'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
             'description' => ['nullable', 'string', 'max:500'],
+            'rhythm' => ['required_if:type,expense', 'prohibited_if:type,income', 'nullable', Rule::enum(Rhythm::class)],
         ];
     }
 

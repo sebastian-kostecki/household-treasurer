@@ -19,7 +19,7 @@ class CategoryRhythmFactory extends Factory
     public function definition(): array
     {
         return [
-            'category_id' => Category::factory()->state(['type' => CategoryType::Expense]),
+            'category_id' => Category::factory()->state(['type' => CategoryType::Expense])->withoutRhythm(),
             'start_year' => 2026,
             'start_month' => 1,
             'rhythm' => Rhythm::Running,

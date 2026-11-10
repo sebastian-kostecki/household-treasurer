@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +25,10 @@ use Illuminate\Validation\ValidationException;
  */
 class CreateCategory
 {
-    public function __construct(private readonly JoinDraftBudgets $joinDraftBudgets) {}
+    public function __construct(
+        private readonly JoinDraftBudgets $joinDraftBudgets,
+        private readonly ChangeCategoryRhythm $changeCategoryRhythm,
+    ) {}
 
     /**
      * @param  array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string}  $attributes
@@ -41,7 +46,7 @@ class CreateCategory
             : MonthItemKind::Running;
 
         try {
-            return DB::transaction(function () use ($user, $budget, $attributes, $type, $name, $nameKey, $isPaced, $monthItemKind): bool {
+            return DB::transaction(function () use ($user, $budget, $attributes, $type, $name, $nameKey, $isPaced, $monthItemKind, $isExpense): bool {
                 $existing = Category::query()
                     ->where('user_id', $user->id)
                     ->where('type', $type->value)
@@ -65,6 +70,10 @@ class CreateCategory
                 ]);
 
                 if ($existing === null) {
+                    if ($isExpense) {
+                        $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::today('UTC'));
+                    }
+
                     $this->joinDraftBudgets->handle($category, $isPaced, $monthItemKind, $budget->id);
                 }
 

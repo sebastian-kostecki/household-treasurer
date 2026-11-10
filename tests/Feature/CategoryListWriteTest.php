@@ -337,12 +337,19 @@ class CategoryListWriteTest extends TestCase
      */
     private function fields(array $overrides = []): array
     {
-        return [
+        $fields = [
             'name' => 'Kategoria',
             'icon' => 'tag',
             'color' => '#868e96',
             'type' => CategoryType::Expense->value,
+            'rhythm' => 'running',
             ...$overrides,
         ];
+
+        if ($fields['type'] === CategoryType::Income->value && ! array_key_exists('rhythm', $overrides)) {
+            unset($fields['rhythm']);
+        }
+
+        return $fields;
     }
 }

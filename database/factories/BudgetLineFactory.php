@@ -4,9 +4,11 @@ namespace Database\Factories;
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryRhythm;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -70,7 +72,7 @@ class BudgetLineFactory extends Factory
      */
     private function listCategoryFor(BudgetLine $line, int $userId, string $name, CategoryType $type, array $description): Category
     {
-        return Category::query()->firstOrCreate(
+        $category = Category::query()->firstOrCreate(
             [
                 'user_id' => $userId,
                 'type' => $type->value,
@@ -84,6 +86,17 @@ class BudgetLineFactory extends Factory
                 'archived_at' => $line->archived_at,
             ],
         );
+
+        if ($category->wasRecentlyCreated && $type === CategoryType::Expense) {
+            CategoryRhythm::query()->create([
+                'category_id' => $category->id,
+                'start_year' => now()->year,
+                'start_month' => now()->month,
+                'rhythm' => Rhythm::Running,
+            ]);
+        }
+
+        return $category;
     }
 
     /**

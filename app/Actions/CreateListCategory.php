@@ -4,11 +4,13 @@ namespace App\Actions;
 
 use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -20,19 +22,22 @@ use Illuminate\Support\Facades\DB;
  */
 class CreateListCategory
 {
-    public function __construct(private readonly JoinDraftBudgets $joinDraftBudgets) {}
+    public function __construct(
+        private readonly JoinDraftBudgets $joinDraftBudgets,
+        private readonly ChangeCategoryRhythm $changeCategoryRhythm,
+    ) {}
 
     /**
-     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null}  $attributes
+     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null}  $attributes
      */
-    public function handle(User $user, array $attributes): Category
+    public function handle(User $user, array $attributes, ?CarbonImmutable $today = null): Category
     {
         $type = CategoryType::from($attributes['type']);
         $name = CategoryNameKey::trim($attributes['name']);
         $nameKey = CategoryNameKey::of($name);
 
         try {
-            return DB::transaction(function () use ($user, $attributes, $type, $name, $nameKey): Category {
+            return DB::transaction(function () use ($user, $attributes, $type, $name, $nameKey, $today): Category {
                 CategoryNameGuard::assertFree($user->id, $type, $nameKey);
 
                 $nextSortOrder = CategoryListSequence::nextSortOrder($user->id, $type);
@@ -49,6 +54,14 @@ class CreateListCategory
                 ]);
 
                 $this->joinDraftBudgets->handle($category, true, MonthItemKind::Running);
+
+                if ($type === CategoryType::Expense) {
+                    $this->changeCategoryRhythm->handle(
+                        $category,
+                        isset($attributes['rhythm']) ? Rhythm::from($attributes['rhythm']) : Rhythm::Running,
+                        $today ?? CarbonImmutable::today('UTC'),
+                    );
+                }
 
                 return $category;
             });

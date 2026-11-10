@@ -49,9 +49,15 @@ const archivedOn = computed(() =>
           ),
 );
 
-/** The muted second line under the chip: the archive date and/or the description. */
+const rhythmLabel = computed(() =>
+    props.category.rhythm === null
+        ? null
+        : t.categories[`rhythm_${props.category.rhythm}`],
+);
+
+/** The muted second line under the chip: the Rhythm, the archive date and/or the description. */
 const caption = computed(() =>
-    [archivedOn.value, props.category.description]
+    [rhythmLabel.value, archivedOn.value, props.category.description]
         .filter((part): part is string => part !== null && part !== '')
         .join(' · '),
 );

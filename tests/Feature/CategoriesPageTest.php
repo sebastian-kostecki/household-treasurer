@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\CategoryGroup;
+use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CategoryAppearance;
@@ -59,6 +61,7 @@ class CategoriesPageTest extends TestCase
                     'group_id' => null,
                     'sort_order' => 0,
                     'description' => null,
+                    'rhythm' => null,
                     'budget_years' => [2026, 2027],
                     'can_change_type' => false,
                     'can_delete' => false,
@@ -77,6 +80,29 @@ class CategoriesPageTest extends TestCase
                 ->where('expenseCategories.2.budget_years', [])
                 ->where('archivedCategories', [])
                 ->where('categoryAppearanceOptions', CategoryAppearance::formOptions()),
+            );
+    }
+
+    public function test_each_expense_carries_the_rhythm_of_the_current_month_and_the_page_the_month_a_change_starts_in(): void
+    {
+        $this->travelTo('2026-11-10');
+        $user = User::factory()->create();
+        $running = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 0]);
+        $changed = Category::factory()->for($user)->expense()->withoutRhythm()->create(['name' => 'Czynsz', 'sort_order' => 1]);
+        CategoryRhythm::factory()->starting(2026, 1)->rhythm(Rhythm::Running)->create(['category_id' => $changed->id]);
+        CategoryRhythm::factory()->starting(2026, 11)->rhythm(Rhythm::FixedCharge)->create(['category_id' => $changed->id]);
+        CategoryRhythm::factory()->starting(2027, 1)->rhythm(Rhythm::EvenAnnual)->create(['category_id' => $changed->id]);
+        Category::factory()->for($user)->income()->create(['name' => 'Pensja']);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rhythmChangeMonth', ['year' => 2026, 'month' => 11])
+                ->where('expenseCategories.0.id', $running->id)
+                ->where('expenseCategories.0.rhythm', 'running')
+                ->where('expenseCategories.1.id', $changed->id)
+                ->where('expenseCategories.1.rhythm', 'fixed_charge')
+                ->where('incomeCategories.0.rhythm', null),
             );
     }
 

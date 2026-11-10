@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from '@/composables/useTranslations';
@@ -23,7 +24,7 @@ import {
     type CategoryAppearanceOptions,
 } from '@/lib/category-appearance';
 import { CATEGORY_DESCRIPTION_MAX_LENGTH } from '@/lib/category-list';
-import type { CategoryListItem } from '@/types/categories';
+import type { CategoryListItem, CategoryRhythm } from '@/types/categories';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
 
@@ -33,6 +34,8 @@ const props = defineProps<{
     defaultType: 'income' | 'expense';
     category?: CategoryListItem | null;
     categoryAppearanceOptions: CategoryAppearanceOptions;
+    /** The month a Rhythm change starts in (ADR-0070), shown in the hint. */
+    rhythmChangeMonth: { year: number; month: number };
     /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
     form?: Pick<FormBinding, 'action' | 'method'>;
 }>();
@@ -48,6 +51,7 @@ const icon = ref(DEFAULT_CATEGORY_ICON);
 const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('expense');
 const description = ref('');
+const rhythm = ref<CategoryRhythm>('running');
 const busy = ref(false);
 
 const lockType = computed(
@@ -66,6 +70,21 @@ const formBinding = computed(() => {
         ? CategoryListController.store.form()
         : CategoryListController.update.form(props.category.id);
 });
+
+const rhythmOptions = computed(() => [
+    { value: 'fixed_charge' as const, label: t.categories.rhythm_fixed_charge },
+    { value: 'running' as const, label: t.categories.rhythm_running },
+    { value: 'even_annual' as const, label: t.categories.rhythm_even_annual },
+]);
+
+const rhythmHint = computed(() =>
+    t.categories.rhythm_hint
+        .replace(
+            ':month',
+            t.categories[`month_genitive_${props.rhythmChangeMonth.month}`],
+        )
+        .replace(':year', String(props.rhythmChangeMonth.year)),
+);
 
 const descriptionHint = computed(() =>
     t.categories.description_counter
@@ -86,6 +105,7 @@ watch(
             color.value = props.category.color;
             type.value = props.category.type;
             description.value = props.category.description ?? '';
+            rhythm.value = props.category.rhythm ?? 'running';
 
             return;
         }
@@ -95,6 +115,7 @@ watch(
         color.value = DEFAULT_CATEGORY_COLOR;
         type.value = props.defaultType;
         description.value = '';
+        rhythm.value = 'running';
     },
     { immediate: true },
 );
@@ -172,6 +193,26 @@ function closeDialog(): void {
                         :maxlength="CATEGORY_DESCRIPTION_MAX_LENGTH"
                         :aria-describedby="describedBy"
                         :aria-invalid="invalid"
+                    />
+                </FormField>
+
+                <FormField
+                    v-if="type === 'expense'"
+                    id="category-rhythm"
+                    :label="t.categories.rhythm"
+                    group
+                    :hint="rhythmHint"
+                    :error="errors.rhythm"
+                    v-slot="{ labelId, describedBy, invalid }"
+                >
+                    <SegmentedControl
+                        v-model="rhythm"
+                        :options="rhythmOptions"
+                        :ariaLabelledby="labelId"
+                        :ariaDescribedby="describedBy"
+                        :ariaInvalid="invalid"
+                        name="rhythm"
+                        block
                     />
                 </FormField>
 

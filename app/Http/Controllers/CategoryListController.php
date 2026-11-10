@@ -8,6 +8,7 @@ use App\Actions\UpdateListCategory;
 use App\Http\Requests\StoreListCategoryRequest;
 use App\Http\Requests\UpdateListCategoryRequest;
 use App\Models\Category;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -22,9 +23,9 @@ class CategoryListController extends Controller
 
     public function store(StoreListCategoryRequest $request, CreateListCategory $createListCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null} $attributes */
         $attributes = $request->validated();
-        $createListCategory->handle($request->user(), $attributes);
+        $createListCategory->handle($request->user(), $attributes, CarbonImmutable::today('UTC'));
 
         Inertia::flash('toast', [
             'type' => 'success',
@@ -36,9 +37,9 @@ class CategoryListController extends Controller
 
     public function update(UpdateListCategoryRequest $request, Category $category, UpdateListCategory $updateListCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null} $attributes */
         $attributes = $request->validated();
-        $updateListCategory->handle($category, $attributes);
+        $updateListCategory->handle($category, $attributes, CarbonImmutable::today('UTC'));
 
         Inertia::flash('toast', [
             'type' => 'success',

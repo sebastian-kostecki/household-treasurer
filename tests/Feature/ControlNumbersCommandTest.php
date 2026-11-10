@@ -3,7 +3,6 @@
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
-use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -183,7 +182,7 @@ test('the output file holds the expected keys and the figures of the current sch
         'amount_minor_units' => 7_500,
     ]);
     DB::table('budget_lines')->where('id', $line->id)->update(['is_paced' => false, 'month_item_kind' => 'bill']);
-    CategoryRhythm::factory()->create(['category_id' => $line->category_id]);
+    // The expense Category already has its one Rhythm entry from the factory (ADR-0070).
 
     $path = controlNumbersPath('numbers.json');
 

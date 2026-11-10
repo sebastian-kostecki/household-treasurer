@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 
 function expenseCategoryWithHistory(User $user, array $entries): Category
 {
-    $category = Category::factory()->for($user)->expense()->create();
+    $category = Category::factory()->for($user)->expense()->withoutRhythm()->create();
 
     foreach ($entries as [$year, $month, $rhythm]) {
         CategoryRhythm::factory()->starting($year, $month)->rhythm($rhythm)->create(['category_id' => $category->id]);
@@ -47,7 +47,7 @@ test('an entry applies from its start month on and the next one takes over at it
 });
 
 test('an expense category without entries reads as running', function () {
-    $category = Category::factory()->for(User::factory()->create())->expense()->create();
+    $category = Category::factory()->for(User::factory()->create())->expense()->withoutRhythm()->create();
 
     $rhythms = CategoryRhythms::forCategoryIds([$category->id]);
 

@@ -9,13 +9,16 @@ use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
 use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\CategoryGroup;
+use App\Models\CategoryRhythm;
 use App\Models\MonthPlan;
 use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\LegacyCategoryConversion;
+use App\Support\CategoryList\LegacyRhythmConversion;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
@@ -25,11 +28,11 @@ class RestoreUserData
 {
     /**
      * Versions holding the User's Category list and Budget Lines (6; 7 with the
-     * description; 8 with the Category Groups).
+     * description; 8 with the Category Groups; 9 with the Rhythm history).
      *
      * @var list<int>
      */
-    private const LIST_FORMAT_VERSIONS = [6, 7, BackupUserData::SNAPSHOT_VERSION];
+    private const LIST_FORMAT_VERSIONS = [6, 7, 8, BackupUserData::SNAPSHOT_VERSION];
 
     public function __construct(private ResetUserData $resetUserData) {}
 
@@ -49,8 +52,12 @@ class RestoreUserData
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $isCurrentFormat
-                ? $this->restoreBudgetLines($targetUser, $snapshot['category_groups'] ?? [], $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap)
+                ? $this->restoreBudgetLines($targetUser, $snapshot['category_groups'] ?? [], $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap, $snapshot['version'])
                 : $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
+            if ($snapshot['version'] < BackupUserData::SNAPSHOT_VERSION) {
+                $this->restoreLegacyRhythms($targetUser);
+            }
+
             $this->restoreMonthPlans($snapshot['month_plans'] ?? [], $budgetIdMap, $categoryIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
             $this->restoreOwnTransfers($targetUser, $snapshot['own_transfers'], $accountIdMap);
@@ -96,7 +103,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -106,15 +113,15 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, 6, 7, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, 6, 7, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, 6, 7, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
@@ -122,7 +129,7 @@ class RestoreUserData
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('category_groups', $snapshot)) {
+        if (in_array($version, [8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: category_groups');
         }
 
@@ -245,9 +252,9 @@ class RestoreUserData
      * @param  array<int, int>  $budgetIdMap
      * @return array<int, int> snapshot Budget Line id => restored Budget Line id
      */
-    private function restoreBudgetLines(User $targetUser, array $categoryGroups, array $categories, array $budgetLines, array $budgetIdMap): array
+    private function restoreBudgetLines(User $targetUser, array $categoryGroups, array $categories, array $budgetLines, array $budgetIdMap, int $version): array
     {
-        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $this->restoreCategoryGroups($targetUser, $categoryGroups), $categories);
+        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $this->restoreCategoryGroups($targetUser, $categoryGroups), $categories, $version);
         $lineIdMap = [];
         $seenInBudget = [];
         $snapshotLineKeys = [];
@@ -345,7 +352,7 @@ class RestoreUserData
      * @param  list<array<string, mixed>>  $categories
      * @return array<int, Category> snapshot Category id => restored Category
      */
-    private function restoreCategoryListFromSnapshot(User $targetUser, array $groups, array $categories): array
+    private function restoreCategoryListFromSnapshot(User $targetUser, array $groups, array $categories, int $version): array
     {
         $restored = [];
         $seenKeys = [];
@@ -394,9 +401,118 @@ class RestoreUserData
             ]);
 
             $restored[$categoryData['id']] = $category;
+
+            if ($version === BackupUserData::SNAPSHOT_VERSION) {
+                $this->restoreCategoryRhythms($category, $categoryData);
+            }
         }
 
         return $restored;
+    }
+
+    /**
+     * The Rhythm history of a version 9 Category: an expense has at least one
+     * entry, an income none, each entry a known Rhythm and a month 1 to 12, and
+     * no start twice (ADR-0070).
+     *
+     * @param  array<string, mixed>  $categoryData
+     */
+    private function restoreCategoryRhythms(Category $category, array $categoryData): void
+    {
+        $entries = $categoryData['rhythms'] ?? null;
+
+        if (! is_array($entries)) {
+            throw new UserSnapshotException("Snapshot category {$categoryData['id']} is missing rhythms.");
+        }
+
+        if ($category->type === CategoryType::Income && $entries !== []) {
+            throw new UserSnapshotException("Snapshot income category {$categoryData['id']} has a rhythm.");
+        }
+
+        if ($category->type === CategoryType::Expense && $entries === []) {
+            throw new UserSnapshotException("Snapshot expense category {$categoryData['id']} has no rhythm.");
+        }
+
+        $seenStarts = [];
+        $rows = [];
+        $now = now();
+
+        foreach ($entries as $entry) {
+            $rhythm = Rhythm::tryFrom((string) ($entry['rhythm'] ?? ''));
+            $year = $entry['start_year'] ?? null;
+            $month = $entry['start_month'] ?? null;
+
+            if ($rhythm === null) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has an unknown rhythm.");
+            }
+
+            if (! is_int($year) || ! is_int($month) || $month < 1 || $month > 12) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has a rhythm with an invalid start month.");
+            }
+
+            if (isset($seenStarts[$year * 12 + $month])) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has two rhythms starting in one month.");
+            }
+
+            $seenStarts[$year * 12 + $month] = true;
+            $rows[] = [
+                'category_id' => $category->id,
+                'start_year' => $year,
+                'start_month' => $month,
+                'rhythm' => $rhythm->value,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        CategoryRhythm::query()->insert($rows);
+    }
+
+    /**
+     * Snapshots 1 to 8 carry no Rhythm: it is made from the flags of the
+     * restored Budget Lines by the class the backfill migration uses, so a
+     * restored snapshot equals what the migration would make of the same data
+     * (ADR-0070). A Category without a line is Running from the restore month.
+     */
+    private function restoreLegacyRhythms(User $targetUser): void
+    {
+        $lines = BudgetLine::query()
+            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
+            ->join('categories', 'categories.id', '=', 'budget_lines.category_id')
+            ->where('budgets.user_id', $targetUser->id)
+            ->toBase()
+            ->get(['budget_lines.category_id', 'categories.type as category_type', 'budgets.year', 'budget_lines.is_paced', 'budget_lines.month_item_kind'])
+            ->map(fn (object $row): array => [
+                'category_id' => (int) $row->category_id,
+                'category_type' => (string) $row->category_type,
+                'year' => (int) $row->year,
+                'is_paced' => (bool) $row->is_paced,
+                'month_item_kind' => (string) $row->month_item_kind,
+            ])
+            ->values()
+            ->all();
+
+        $expenseCategoryIds = $targetUser->categories()
+            ->where('type', CategoryType::Expense->value)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->values()
+            ->all();
+
+        $since = CarbonImmutable::today('UTC');
+        $entries = $expenseCategoryIds === []
+            ? []
+            : LegacyRhythmConversion::convert(array_values($lines), array_values($expenseCategoryIds), $since->year, $since->month);
+
+        $now = now();
+
+        foreach (array_chunk($entries, 500) as $chunk) {
+            CategoryRhythm::query()->insert(array_map(fn (array $entry): array => [
+                ...$entry,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ], $chunk));
+        }
     }
 
     /**

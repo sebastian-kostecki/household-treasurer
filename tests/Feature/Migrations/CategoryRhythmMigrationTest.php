@@ -188,4 +188,7 @@ test('down deletes the history and the table, and the flags are untouched', func
 
     expect(Schema::hasTable('category_rhythms'))->toBeFalse()
         ->and(categoryRhythmAmounts())->toBe($before);
+
+    // The test database is shared with the tests that run after this one.
+    categoryRhythmMigrationArtisan('migrate');
 });
