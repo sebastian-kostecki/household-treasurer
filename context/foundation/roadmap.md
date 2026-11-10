@@ -47,11 +47,11 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | done     |
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | proposed |
-| S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | proposed |
-| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | proposed |
-| S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | proposed |
-| S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | proposed |
-| S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | proposed |
+| S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | ready    |
+| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | ready    |
+| S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | ready    |
+| S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
+| S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | ready    |
 | S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | proposed |
 | S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | proposed |
 | S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | proposed |
@@ -163,7 +163,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Stoi wcześnie w strumieniu A, bo budżet 2027 powstanie w grudniu; utworzony starą zasadą zostawiłby kategorie do scalania. Zastępuje ADR-0014 (F-03).
-- **Status:** proposed
+- **Status:** ready
 
 ### S-21: Scalanie kategorii
 
@@ -175,7 +175,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Jeśli zebrane jeszcze nie istnieje, scalenie przenosi tylko operacje i plany, a S-26 dopisze zebrane.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-22: Grupy kategorii
 
@@ -187,7 +187,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Suma grupy musi równać się sumie jej kategorii co do grosza, a sumy Budżetu nie mogą się zmienić. Grupa nie miesza typów i nie ma planu (PRD Non-Goals).
-- **Status:** proposed
+- **Status:** ready
 
 ### S-23: Podpowiedzi Importu na liście kategorii
 
@@ -200,7 +200,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Unknowns:**
   - Kiedy porządki w danych: przed wdrożeniem S-18 czy po, przez S-21 i zmianę kategorii operacji (Otwarte pytanie 4)? Od tego zależy moment pomiaru trafności „przed”. — Owner: user. Block: no.
 - **Risk:** Pomiar przed i po musi iść na tych samych danych (istnieje próg z `import-category-suggestions`). Gorsze podpowiedzi to jeden z najszybszych sygnałów awarii wskazanych w PRD.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-24: Rytm kategorii w propozycji planu
 
@@ -212,7 +212,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Flagi są czytane w około 50 plikach, w tym w parach kalkulatorów PHP/TS: rytm dochodzi obok flag, czytelnicy przechodzą obszarami, a flagi znikają na końcu (reguła z F-04). Minione miesiące i zatwierdzone plany nie mogą się zmienić.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-25: Plan miesiąca w grupach
 
@@ -332,13 +332,13 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | F-05       | rhythm-and-irregular-decisions      | ADR i słownik: rytmy, stawka, „zebrane”, 31 grudnia                     | yes                   | Run `/10x-plan rhythm-and-irregular-decisions`       |
 | S-18       | category-list-after-migration       | Jedna lista kategorii po migracji i widok „Kategorie”                   | no                    | Czeka na F-03 i F-04                                 |
 | S-19       | category-edit-and-archive           | Edycja, archiwum i przywracanie kategorii                               | no                    | Czeka na S-18                                        |
-| S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                 | no                    | Czeka na S-18; przed utworzeniem budżetu 2027        |
-| S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                    | no                    | Czeka na S-18                                        |
-| S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                  | no                    | Czeka na S-18                                        |
-| S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                  | no                    | Czeka na S-18 i porządki w danych                    |
-| S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                               | no                    | Czeka na F-05 i S-18                                 |
+| S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                | yes                   | Run `/10x-plan new-budget-from-category-list`; przed utworzeniem budżetu 2027 |
+| S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | yes                   | Run `/10x-plan category-merge` |
+| S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | yes                   | Run `/10x-plan category-groups` |
+| S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | yes                   | Run `/10x-plan import-suggestions-on-category-list`; pomiar trafności po porządkach w danych (pytanie 4) |
+| S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | yes                   | Run `/10x-plan category-rhythm` |
 | S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | no                    | Czeka na S-22 i S-24                                 |
-| S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | no                    | Czeka na F-05 i S-24                                 |
+| S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | no                    | Czeka na S-24                                 |
 | S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Czeka na S-20 i S-26                                 |
 | S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | no                    | Czeka na S-22                                        |
 | S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | no                    | Czeka na S-28                                        |
@@ -351,8 +351,8 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 ## Open Roadmap Questions
 
-1. **Mapowanie dzisiejszych flag na rytm przy migracji.** „Rachunek” → stała opłata jest jasne; „bieżąca” równomierna → bieżąca czy równomierna roczna, „jednorazowa” → równomierna roczna czy nieregularna? Na devie wszystkie wydatki są „bieżąca”. — Owner: user, przy ADR rytmu. Block: rozstrzyga F-05; gates S-24.
-2. **Słownictwo UI dla stawki i zebranego.** Wiersz nieregularny mówi dziś w szkicach „odkładam 150 · zebrane 450”, a sekcja na dole to też „odkładam”; nazwy polskie i angielskie (słownik) do ustalenia w ADR. — Owner: user. Block: rozstrzyga F-05; gates S-26.
+1. **Mapowanie dzisiejszych flag na rytm przy migracji.** „Rachunek” → stała opłata jest jasne; „bieżąca” równomierna → bieżąca czy równomierna roczna, „jednorazowa” → równomierna roczna czy nieregularna? Na devie wszystkie wydatki są „bieżąca”. — Owner: user, przy ADR rytmu. Block: rozstrzyga F-05; gates S-24. — **Resolved 2026-11-10:** ADR-0066 (F-05).
+2. **Słownictwo UI dla stawki i zebranego.** Wiersz nieregularny mówi dziś w szkicach „odkładam 150 · zebrane 450”, a sekcja na dole to też „odkładam”; nazwy polskie i angielskie (słownik) do ustalenia w ADR. — Owner: user. Block: rozstrzyga F-05; gates S-26. — **Resolved 2026-11-10:** ADR-0066 (F-05).
 3. **Pojęcia z dokumentów, których nie ma w kodzie** (Earmark, Reserve, Year Close, Cash Expectation) są zdefiniowane na „kategorii należącej do budżetu” i łączeniu po nazwie. Czy przepisać ich definicje w słowniku w tej zmianie, czy oznaczyć jako do rewizji? — Owner: user, przy ADR tożsamości kategorii. Block: rozstrzyga F-03; gates S-18.
 4. **Porządek w danych przed migracją.** Literówki, dane testowe z września–października, błędnie przypisane operacje (Prime Video w Rozrywce, Sinsay w Artykułach spożywczych) — czy użytkownik sprząta przed wdrożeniem, czy po, przez FR-023 i zmianę kategorii operacji? Wpływa na pomiar trafności Importu „przed”. — Owner: user. Block: S-23 (moment pomiaru, nie planowanie).
 
