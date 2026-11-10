@@ -229,7 +229,7 @@ class CategoryMonthItemKindTest extends TestCase
             );
     }
 
-    public function test_creating_budget_with_source_copies_month_item_kind(): void
+    public function test_new_budget_carries_month_item_kind_from_the_newest_earlier_budget(): void
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
@@ -237,10 +237,7 @@ class CategoryMonthItemKindTest extends TestCase
         BudgetLine::factory()->for($sourceBudget)->bill()->create(['name' => 'Rent']);
 
         $this->actingAs($user)
-            ->post(route('budgets.store'), [
-                'year' => 2026,
-                'source_budget_id' => $sourceBudget->id,
-            ])
+            ->post(route('budgets.store'), ['year' => 2026])
             ->assertSessionHasNoErrors();
 
         $targetBudget = Budget::query()->where('user_id', $user->id)->where('year', 2026)->firstOrFail();

@@ -283,25 +283,25 @@ Bez migracji i bez zmiany danych. Istniejący szkic 2027 na produkcji zostaje be
 
 #### Automated
 
-- [x] 1.1 Plik ADR istnieje i ma następny wolny numer
-- [x] 1.2 Słownik odsyła do ADR-0066 w obu wpisach
+- [x] 1.1 Plik ADR istnieje i ma następny wolny numer — b86be67
+- [x] 1.2 Słownik odsyła do ADR-0066 w obu wpisach — b86be67
 
 #### Manual
 
-- [x] 1.3 ADR-0066 i wpisy słownika opisują regułę zgodnie z decyzjami
+- [x] 1.3 ADR-0066 i wpisy słownika opisują regułę zgodnie z decyzjami — b86be67
 
 ### Phase 2: Reguła tworzenia na serwerze
 
 #### Automated
 
-- [ ] 2.1 Testy budżetu i flag przechodzą na PostgreSQL
-- [ ] 2.2 Brak `sourceBudgetId` i `copyCategories` w `app`
-- [ ] 2.3 Formatowanie Pint
-- [ ] 2.4 Bramka `composer ci:check` i `sloppy ci`
+- [x] 2.1 Testy budżetu i flag przechodzą na PostgreSQL
+- [x] 2.2 Brak `sourceBudgetId` i `copyCategories` w `app`
+- [x] 2.3 Formatowanie Pint
+- [x] 2.4 Bramka `composer ci:check` i `sloppy ci`
 
 #### Manual
 
-- [ ] 2.5 Budżet utworzony na devie ma wszystkie aktywne kategorie z planami ze źródła
+- [x] 2.5 Budżet utworzony na devie ma wszystkie aktywne kategorie z planami ze źródła
 
 ### Phase 3: Okno „Nowy budżet”
 
