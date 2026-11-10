@@ -148,6 +148,18 @@ Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`
 - Przycisk „Szukaj i przejdź” (`SidebarMenuButton` z ikoną `Search`, `.sidebar-search` na `sidebar-accent`, `kbd` z ⌘K albo Ctrl+K, `aria-keyshortcuts="Control+K Meta+K"`) stoi pod znakiem produktu i otwiera paletę, tak samo jak ⌘K/Ctrl+K (także w polu edycji, nigdy przy otwartej warstwie). Paleta ma grupy „Widoki i akcje” i „Kategorie: operacje” (aktywne kategorie roku z sidebara z realizacją roczną, z endpointu `command-palette.categories`); okno to `.command-palette*` w `@layer components` (tło `sidebar`, tekst `sidebar-strong`, zaznaczenie `sidebar-accent`, fokus `sidebar-ring`, `radius-xl`, `shadow-dialog`), a szerokość to token wymiaru `--command-palette-width` 520 px (bez wariantu `.dark`; na telefonie pełna szerokość z marginesem).
 - Znak produktu to `BrandMark` (rysunek domu z monetą w `brand-foreground` na kafelku `brand`, 26 px, styl `brand-mark`, ADR-0059; ten sam rysunek ma favicon SVG i ICO oraz `apple-touch-icon` 180 × 180 w `public/`), zawsze z nazwą obok; stoi w sidebarze, nad kartą logowania i w `Welcome`. Sidebar podglądu aplikacji na stronie powitalnej jest statyczną repliką sidebara z nazwą produktu (ADR-0057). Pas wezwania `.landing-cta` czyta `--sidebar-background`, `sidebar-foreground`, `sidebar-strong` i `sidebar-ring`. Bez ikon Lucide w roli znaku.
 
+## Wykresy
+
+Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): obok stoi tabela z tymi samymi wierszami w tej samej kolejności, a wykres ma `aria-hidden="true"`. Biblioteka to shadcn-vue `chart` na Unovis; wygenerowane `components/ui/chart/**` nie jest edytowane dla jednego ekranu.
+
+| Token     | Rola na wykresie                                                                 |
+| --------- | --------------------------------------------------------------------------------- |
+| `chart-1` | słupki wydatków (Atrament: `#0b6f8a` jasny, `#2fb4d4` ciemny)                     |
+| `success` | słupki przychodów                                                                 |
+| `track`   | tło pasa i linie siatki (nie niesie danych)                                       |
+
+Grafika wykresu ma kontrast co najmniej 3:1 wobec `card` w obu trybach: `chart-1` 5,75:1 (jasny) i 7,16:1 (ciemny), `success` 6,52:1 i 9,99:1. Kolor kategorii nigdy nie maluje słupków (zostaje w `CategoryChip`). `chart-2..5` są nieużywane do S-29/S-30; użyte po raz pierwszy wymagają sprawdzonego kontrastu w obu trybach i wpisu tutaj.
+
 ## Tryb ciemny
 
 Jasny jest domyślny. Ciemny używa tych samych nazw tokenów z wartościami z `.dark`, więc komponent nie potrzebuje wariantów `dark:`, jeśli używa tokenów. Kolorów palety Tailwinda w komponentach nie ma, więc warianty `dark:` do kolorów nie są potrzebne.

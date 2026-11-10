@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
@@ -10,6 +10,10 @@ import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { budget as budgetRoute, reports as reportsRoute } from '@/routes';
 import type { ReportsPageProps } from '@/types/reports';
+
+const ReportBarChart = defineAsyncComponent(
+    () => import('@/components/ReportBarChart.vue'),
+);
 
 const props = defineProps<ReportsPageProps>();
 
@@ -126,12 +130,14 @@ const title = computed(() => {
             />
 
             <template v-else>
+                <ReportBarChart type="expense" :entries="report.expense" />
                 <ReportEntryTable
                     type="expense"
                     :title="t.reports.expense"
                     :entries="report.expense"
                     :total-minor-units="report.expense_minor_units"
                 />
+                <ReportBarChart type="income" :entries="report.income" />
                 <ReportEntryTable
                     type="income"
                     :title="t.reports.income"

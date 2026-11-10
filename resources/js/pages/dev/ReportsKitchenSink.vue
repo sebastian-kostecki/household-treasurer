@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
@@ -7,6 +8,10 @@ import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { reportScenarios } from '@/lib/reports-fixtures';
+
+const ReportBarChart = defineAsyncComponent(
+    () => import('@/components/ReportBarChart.vue'),
+);
 
 const t = useTranslations();
 
@@ -163,6 +168,10 @@ const stateMatrix = [
                     />
 
                     <template v-else>
+                        <ReportBarChart
+                            type="expense"
+                            :entries="scenario.report.expense"
+                        />
                         <ReportEntryTable
                             type="expense"
                             :title="t.reports.expense"
@@ -170,6 +179,10 @@ const stateMatrix = [
                             :total-minor-units="
                                 scenario.report.expense_minor_units
                             "
+                        />
+                        <ReportBarChart
+                            type="income"
+                            :entries="scenario.report.income"
                         />
                         <ReportEntryTable
                             type="income"

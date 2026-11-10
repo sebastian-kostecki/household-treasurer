@@ -148,7 +148,7 @@
     --ring: #0b6a7b;
     --scrim: rgba(15, 27, 45, 0.45);
     --dialog-shadow: 0 24px 60px rgba(15, 27, 45, 0.25);
-    --chart-1: hsl(189 85% 28%);
+    --chart-1: #0b6f8a;
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
@@ -223,7 +223,7 @@
     --ring: #5fd4c4;
     --scrim: rgba(0, 0, 0, 0.6);
     --dialog-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-    --chart-1: hsl(189 70% 40%);
+    --chart-1: #2fb4d4;
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);

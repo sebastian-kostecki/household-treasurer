@@ -428,35 +428,35 @@ Brak migracji schematu i danych. Nowa trasa i nowa pozycja menu. Wdrożenie nie 
 
 #### Automated
 
-- [x] 2.1 Testy strony, kitchen sinka i wyboru roku przechodzą na PostgreSQL
-- [x] 2.2 Testy wydajności nfr (z naprawionym NfrPerf01Test) przechodzą na PostgreSQL
-- [x] 2.3 Test formatera udziału przechodzi
-- [x] 2.4 Wayfinder i typy
-- [x] 2.5 Strażnik literałów UI
-- [x] 2.6 Pełna bramka w worktree
-- [x] 2.7 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy strony, kitchen sinka i wyboru roku przechodzą na PostgreSQL — a703242
+- [x] 2.2 Testy wydajności nfr (z naprawionym NfrPerf01Test) przechodzą na PostgreSQL — a703242
+- [x] 2.3 Test formatera udziału przechodzi — a703242
+- [x] 2.4 Wayfinder i typy — a703242
+- [x] 2.5 Strażnik literałów UI — a703242
+- [x] 2.6 Pełna bramka w worktree — a703242
+- [x] 2.7 Sloppy bez nowych znalezisk — a703242
 
 #### Manual
 
-- [x] 2.8 „Wydatki” roku równe sumie wykonania wydatków w Budżecie przy „Pokaż zarchiwizowane”
-- [x] 2.9 „Wynik” zamkniętego miesiąca równy realnemu odłożeniu w Podsumowaniu miesiąca
-- [x] 2.10 Grupy się zwijają, kolejność jak w Budżecie, zarchiwizowana kategoria w swojej grupie
-- [x] 2.11 Zmiana roku w sidebarze na Raportach zostaje na Raportach
-- [x] 2.12 Kitchen sink /dev/ui/reports we wszystkich scenariuszach, jasny, ciemny, telefon
+- [x] 2.8 „Wydatki” roku równe sumie wykonania wydatków w Budżecie przy „Pokaż zarchiwizowane” — a703242
+- [x] 2.9 „Wynik” zamkniętego miesiąca równy realnemu odłożeniu w Podsumowaniu miesiąca — a703242
+- [x] 2.10 Grupy się zwijają, kolejność jak w Budżecie, zarchiwizowana kategoria w swojej grupie — a703242
+- [x] 2.11 Zmiana roku w sidebarze na Raportach zostaje na Raportach — a703242
+- [x] 2.12 Kitchen sink /dev/ui/reports we wszystkich scenariuszach, jasny, ciemny, telefon — a703242
 
 ### Phase 3: Wykres
 
 #### Automated
 
-- [ ] 3.1 Wayfinder, build i typy
-- [ ] 3.2 Strażnik literałów UI
-- [ ] 3.3 Testy strony nadal przechodzą na PostgreSQL
-- [ ] 3.4 Test E2E przechodzi
-- [ ] 3.5 Pełna bramka w worktree
-- [ ] 3.6 Sloppy bez nowych znalezisk
+- [x] 3.1 Wayfinder, build i typy
+- [x] 3.2 Strażnik literałów UI
+- [x] 3.3 Testy strony nadal przechodzą na PostgreSQL
+- [x] 3.4 Test E2E przechodzi
+- [x] 3.5 Pełna bramka w worktree
+- [x] 3.6 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 3.7 Słupki zgadzają się z tabelą w trybie jasnym i ciemnym
-- [ ] 3.8 Wykres mieści się na telefonie, długie nazwy nie nachodzą na słupki
-- [ ] 3.9 Inne strony nie ładują unovis
+- [x] 3.7 Słupki zgadzają się z tabelą w trybie jasnym i ciemnym
+- [x] 3.8 Wykres mieści się na telefonie, długie nazwy nie nachodzą na słupki
+- [x] 3.9 Inne strony nie ładują unovis

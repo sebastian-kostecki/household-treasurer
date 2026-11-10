@@ -14,7 +14,7 @@ paths:
 
 ## A chart library is a recorded decision, not a dependency you add on the way
 
-There is no chart library yet. Adding one (Chart.js, ApexCharts, ECharts or another) needs a decision in the change plan and an ADR. If shadcn-vue Chart is chosen, add it with the shadcn-vue CLI into `resources/js/components/ui` and follow `components.json`. Every chart has a table with the same numbers next to it, so the data reads without the chart. Chart colours come from tokens in `resources/css/app.css` and category colours from `resources/js/lib/category-appearance.ts`; amounts go through `formatMoney` from `@/lib/format`.
+The chart library is shadcn-vue Chart on Unovis (ADR-0071, exact versions in `package.json`); `resources/js/components/ui/chart/**` is the generated primitive, never edited for one screen. Adding any other library needs a decision in the change plan and an ADR. Every chart has a table with the same numbers next to it, so the data reads without the chart. Chart colours come from tokens in `resources/css/app.css` (income `--success`, expense `--chart-1`); category colour only in `CategoryChip`, never on bars. A chart is `aria-hidden` and loaded with `defineAsyncComponent`; amounts go through `formatMoney` from `@/lib/format`.
 
 ## Report amounts equal the existing readings to the grosz
 
