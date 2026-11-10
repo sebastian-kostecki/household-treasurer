@@ -229,7 +229,7 @@ Okno dostaje opcjonalne propy `budgetYears?: number[]` i `activeCategoryCount?: 
 - Bez literałów w widokach: `npm run check:ui`
 - Lint i format: `npm run check`
 - Prop powłoki na PostgreSQL: `artisan test --compact tests/Feature/BudgetTest.php`
-- `rg "copyableBudgetSources|CopyableBudgetSource|source_budget_id|copy_source" app resources lang tests` nie zwraca nic
+- `rg "copyableBudgetSources|CopyableBudgetSource|source_budget_id|copy_source" app resources lang tests` nie zwraca nic poza celowym testem regresji `BudgetTest::test_the_submitted_source_budget_id_is_ignored` (addendum z impl-review: dowodzi, że przesłane `source_budget_id` jest ignorowane)
 - E2E okna: `npx playwright test tests/e2e/sidebar-year-refresh.spec.ts tests/e2e/command-palette.spec.ts`
 - Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 

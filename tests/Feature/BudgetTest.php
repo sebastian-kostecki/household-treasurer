@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class BudgetTest extends TestCase
@@ -70,6 +71,37 @@ class BudgetTest extends TestCase
             ->from(route('budget'))
             ->post(route('budgets.store'), ['year' => 2026])
             ->assertSessionHasErrors('year');
+
+        $this->assertDatabaseCount('budgets', 1);
+    }
+
+    /**
+     * @return array<string, array{0: array<string, mixed>}>
+     */
+    public static function invalidBudgetYearProvider(): array
+    {
+        return [
+            'missing' => [[]],
+            'not an integer' => [['year' => 'abc']],
+            'below 2000' => [['year' => 1999]],
+            'above 2100' => [['year' => 2101]],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    #[DataProvider('invalidBudgetYearProvider')]
+    public function test_creating_a_budget_rejects_an_invalid_year(array $payload): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->from(route('budget'))
+            ->post(route('budgets.store'), $payload)
+            ->assertSessionHasErrors('year');
+
+        $this->assertDatabaseCount('budgets', 0);
     }
 
     public function test_user_can_add_income_category_with_non_negative_planned_amount(): void
@@ -1139,19 +1171,22 @@ class BudgetTest extends TestCase
         $other = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
         $sourceLine = BudgetLine::factory()->for($sourceBudget)->expense()->create(['name' => 'Food', 'planned_amount_minor_units' => 100000]);
+        $categoryWithoutLine = Category::factory()->for($user)->expense()->create(['name' => 'Gifts']);
         $otherCategory = Category::factory()->for($other)->expense()->create(['name' => 'Foreign']);
 
         $this->actingAs($user)->post(route('budgets.store'), ['year' => 2026])->assertSessionHasNoErrors();
 
         $target = Budget::query()->where('user_id', $user->id)->where('year', 2026)->sole();
 
-        $this->assertSame([$sourceLine->category_id], $target->budgetLines()->pluck('category_id')->all());
+        $this->assertEqualsCanonicalizing([$sourceLine->category_id, $categoryWithoutLine->id], $target->budgetLines()->pluck('category_id')->all());
         $this->assertDatabaseMissing('budget_lines', ['category_id' => $otherCategory->id]);
         $this->assertDatabaseHas('budget_lines', [
             'id' => $sourceLine->id,
             'budget_id' => $sourceBudget->id,
             'planned_amount_minor_units' => 100000,
         ]);
+        $this->assertSame(1, $sourceBudget->budgetLines()->count());
+        $this->assertDatabaseMissing('budget_lines', ['budget_id' => $sourceBudget->id, 'category_id' => $categoryWithoutLine->id]);
     }
 
     public function test_the_submitted_source_budget_id_is_ignored(): void
@@ -1170,19 +1205,6 @@ class BudgetTest extends TestCase
             [200000],
             Budget::query()->where('user_id', $user->id)->where('year', 2026)->sole()->budgetLines()->pluck('planned_amount_minor_units')->all(),
         );
-    }
-
-    public function test_creating_a_budget_still_blocks_a_duplicate_year(): void
-    {
-        $user = User::factory()->create();
-        Budget::factory()->for($user)->create(['year' => 2026]);
-
-        $this->actingAs($user)
-            ->from(route('budget'))
-            ->post(route('budgets.store'), ['year' => 2026])
-            ->assertSessionHasErrors('year');
-
-        $this->assertDatabaseCount('budgets', 1);
     }
 
     public function test_budget_page_does_not_send_month_readings(): void
