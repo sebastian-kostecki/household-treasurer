@@ -17,7 +17,7 @@ use App\Support\CategoryAppearance;
 class ImportCategoryOptions
 {
     /**
-     * @return array<int, array{id: int, name: string, budget_year: int}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int}>
      */
     public static function income(User $user): array
     {
@@ -27,7 +27,8 @@ class ImportCategoryOptions
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Income)
                 ->openForChoice()
-                ->ordered(),
+                ->ordered()
+                ->with('category.group'),
             ])
             ->orderBy('year')
             ->get()
@@ -35,6 +36,7 @@ class ImportCategoryOptions
                 'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
+                'group' => CategoryAppearance::group($category),
                 'budget_year' => $budget->year,
             ]))
             ->values()
@@ -42,7 +44,7 @@ class ImportCategoryOptions
     }
 
     /**
-     * @return array<int, array{id: int, name: string, budget_year: int}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int, is_paced: bool}>
      */
     public static function expense(User $user): array
     {
@@ -52,7 +54,8 @@ class ImportCategoryOptions
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Expense)
                 ->openForChoice()
-                ->ordered(),
+                ->ordered()
+                ->with('category.group'),
             ])
             ->orderBy('year')
             ->get()
@@ -60,6 +63,7 @@ class ImportCategoryOptions
                 'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
+                'group' => CategoryAppearance::group($category),
                 'budget_year' => $budget->year,
                 'is_paced' => $category->is_paced,
             ]))

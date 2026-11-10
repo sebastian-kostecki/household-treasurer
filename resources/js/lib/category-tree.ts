@@ -158,3 +158,35 @@ export function toGroupMember<G, C extends object>(
         ? (element as TreeCategory<C>).category
         : (element as C);
 }
+
+export type SelectOptionBlock<O> =
+    | { kind: 'option'; option: O }
+    | { kind: 'group'; group: { id: number; name: string }; options: O[] };
+
+/**
+ * The options of a category selector as blocks: consecutive options of one
+ * group become a labelled block, options without a group stay single. The
+ * server sends the options already in the order of the list (a group's
+ * Categories next to each other), so only neighbours are joined; a group that
+ * reappears after another option starts a new block.
+ */
+export function groupSelectOptions<
+    O extends { group?: { id: number; name: string } | null },
+>(options: O[]): SelectOptionBlock<O>[] {
+    const blocks: SelectOptionBlock<O>[] = [];
+
+    for (const option of options) {
+        const group = option.group ?? null;
+        const last = blocks[blocks.length - 1];
+
+        if (group === null) {
+            blocks.push({ kind: 'option', option });
+        } else if (last?.kind === 'group' && last.group.id === group.id) {
+            last.options.push(option);
+        } else {
+            blocks.push({ kind: 'group', group, options: [option] });
+        }
+    }
+
+    return blocks;
+}

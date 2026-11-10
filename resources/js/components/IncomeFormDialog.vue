@@ -33,6 +33,7 @@ import {
     monthNamesLocativeFrom,
 } from '@/lib/operation-dialog-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
+import type { CategoryPickerGroup } from '@/lib/category-appearance';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
 
@@ -46,6 +47,7 @@ export type IncomeFormCategory = {
     name: string;
     icon: string;
     color: string;
+    group?: CategoryPickerGroup | null;
     budget_year: number;
 };
 

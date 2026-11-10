@@ -36,6 +36,7 @@ import {
     monthNamesLocativeFrom,
 } from '@/lib/operation-dialog-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
+import type { CategoryPickerGroup } from '@/lib/category-appearance';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
 
@@ -49,6 +50,7 @@ export type ExpenseFormCategory = {
     name: string;
     icon: string;
     color: string;
+    group?: CategoryPickerGroup | null;
     budget_year: number;
     planned_amount_minor_units: number;
     execution_minor_units: number;
@@ -59,6 +61,7 @@ export type ExpenseFormIncomeCategory = {
     name: string;
     icon: string;
     color: string;
+    group?: CategoryPickerGroup | null;
     budget_year: number;
 };
 

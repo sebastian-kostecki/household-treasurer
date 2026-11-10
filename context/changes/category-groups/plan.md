@@ -452,24 +452,24 @@ Migracja tylko dodaje tabelę i kolumnę nullable, bez przenoszenia danych; licz
 
 #### Automated
 
-- [x] 4.1 Testy Budżetu i przeciągania przechodzą na PostgreSQL
-- [x] 4.2 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
-- [x] 4.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Testy Budżetu i przeciągania przechodzą na PostgreSQL — cc597d2
+- [x] 4.2 `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą — cc597d2
+- [x] 4.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — cc597d2
 
 #### Manual
 
-- [x] 4.4 Budżet 2026 z grupami: zwijanie, „ponad plan”, „Razem” bez zmian
-- [x] 4.5 Przeciągnięcie w Budżecie widać w „Kategoriach” i w szkicu 2027
-- [x] 4.6 Szkic 2027 z grupami, telefon i ciemny motyw
+- [x] 4.4 Budżet 2026 z grupami: zwijanie, „ponad plan”, „Razem” bez zmian — cc597d2
+- [x] 4.5 Przeciągnięcie w Budżecie widać w „Kategoriach” i w szkicu 2027 — cc597d2
+- [x] 4.6 Szkic 2027 z grupami, telefon i ciemny motyw — cc597d2
 
 ### Phase 5: Grupy w selektorze
 
 #### Automated
 
-- [ ] 5.1 Testy propsów operacji i Importu przechodzą na PostgreSQL
-- [ ] 5.2 `npm run test`, `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
-- [ ] 5.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 5.1 Testy propsów operacji i Importu przechodzą na PostgreSQL
+- [x] 5.2 `npm run test`, `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
+- [x] 5.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 5.4 Okna operacji i podgląd Importu pokazują podpisy grup
+- [x] 5.4 Okna operacji i podgląd Importu pokazują podpisy grup

@@ -152,7 +152,8 @@ class OperationsController extends Controller
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Income)
                 ->openForChoice()
-                ->ordered(),
+                ->ordered()
+                ->with('category.group'),
             ])
             ->orderBy('year')
             ->get()
@@ -160,6 +161,7 @@ class OperationsController extends Controller
                 'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
+                'group' => CategoryAppearance::group($category),
                 'budget_year' => $budget->year,
             ]))
             ->values();
@@ -169,7 +171,8 @@ class OperationsController extends Controller
             ->with(['budgetLines' => fn ($query) => $query
                 ->ofType(CategoryType::Expense)
                 ->openForChoice()
-                ->ordered(),
+                ->ordered()
+                ->with('category.group'),
             ])
             ->orderBy('year')
             ->get()
@@ -177,6 +180,7 @@ class OperationsController extends Controller
                 'id' => $category->category_id,
                 'name' => $category->category->name,
                 ...CategoryAppearance::fields($category),
+                'group' => CategoryAppearance::group($category),
                 'budget_year' => $budget->year,
                 'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 'execution_minor_units' => $category->execution_minor_units,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
     buildCategoryTree,
+    groupSelectOptions,
     moveTopLevelItem,
     toGroupMember,
     toTreeItem,
@@ -157,5 +158,57 @@ describe('toTreeItem and toGroupMember', () => {
         expect(treeToReorderItems(tree)).toEqual([
             { kind: 'group', id: 1, category_ids: [10] },
         ]);
+    });
+});
+
+describe('groupSelectOptions', () => {
+    const health = { id: 1, name: 'Zdrowie' };
+    const option = (
+        id: number,
+        group?: { id: number; name: string } | null,
+    ) => ({ id, group });
+
+    it('keeps options without a group as single options', () => {
+        expect(groupSelectOptions([option(1), option(2, null)])).toEqual([
+            { kind: 'option', option: option(1) },
+            { kind: 'option', option: option(2, null) },
+        ]);
+    });
+
+    it('joins consecutive options of one group under its label', () => {
+        expect(
+            groupSelectOptions([
+                option(1),
+                option(2, health),
+                option(3, health),
+                option(4),
+            ]),
+        ).toEqual([
+            { kind: 'option', option: option(1) },
+            {
+                kind: 'group',
+                group: health,
+                options: [option(2, health), option(3, health)],
+            },
+            { kind: 'option', option: option(4) },
+        ]);
+    });
+
+    it('starts a new block when a group returns after another option', () => {
+        const blocks = groupSelectOptions([
+            option(1, health),
+            option(2),
+            option(3, health),
+        ]);
+
+        expect(blocks.map((block) => block.kind)).toEqual([
+            'group',
+            'option',
+            'group',
+        ]);
+    });
+
+    it('returns an empty list for no options', () => {
+        expect(groupSelectOptions([])).toEqual([]);
     });
 });
