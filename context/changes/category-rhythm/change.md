@@ -1,7 +1,7 @@
 ---
 change_id: category-rhythm
 title: Category rhythm
-status: new
+status: implementing
 created: 2026-11-10
 updated: 2026-11-10
 archived_at: null

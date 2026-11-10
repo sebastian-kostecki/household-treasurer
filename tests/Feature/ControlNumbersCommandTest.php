@@ -3,6 +3,7 @@
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,6 +41,9 @@ function controlNumbersMigrationFiles(): array
         database_path('migrations/2026_11_09_122524_expand_categories_into_category_list_and_budget_lines.php'),
         database_path('migrations/2026_11_09_122525_backfill_category_list.php'),
         database_path('migrations/2026_11_09_132817_drop_legacy_category_columns_from_budget_lines.php'),
+        // The history table points at the new `categories`, which the S-18 rollback drops.
+        database_path('migrations/2026_11_10_120000_create_category_rhythms_table.php'),
+        database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
     ];
 }
 
@@ -133,7 +137,9 @@ test('the same data gives matching control numbers on the old and on the new sch
     $oldDocument = json_decode(File::get($before), true);
 
     expect($oldDocument['meta']['schema'])->toBe('categories')
-        ->and($oldDocument['meta']['category_list_rows'])->toBeNull();
+        ->and($oldDocument['meta']['category_list_rows'])->toBeNull()
+        ->and($oldDocument['meta']['one_off_bill_lines'])->toBeNull()
+        ->and($oldDocument['meta']['category_rhythm_rows'])->toBeNull();
 
     controlNumbersMigrate('migrate');
 
@@ -176,6 +182,8 @@ test('the output file holds the expected keys and the figures of the current sch
         'budget_line_id' => $line->id,
         'amount_minor_units' => 7_500,
     ]);
+    DB::table('budget_lines')->where('id', $line->id)->update(['is_paced' => false, 'month_item_kind' => 'bill']);
+    CategoryRhythm::factory()->create(['category_id' => $line->category_id]);
 
     $path = controlNumbersPath('numbers.json');
 
@@ -187,6 +195,8 @@ test('the output file holds the expected keys and the figures of the current sch
         'meta', 'row_counts', 'max_financial_operation_id', 'budgets', 'lines',
         'own_transfers_total', 'capital_movements_by_direction', 'accounts', 'term_deposits',
     ])
+        ->and($document['meta']['one_off_bill_lines'])->toBe(1)
+        ->and($document['meta']['category_rhythm_rows'])->toBe(1)
         ->and($document['row_counts']['budget_lines'])->toBe(1)
         ->and($document['row_counts']['financial_operations'])->toBe(1)
         ->and($document['max_financial_operation_id'])->toBe(FinancialOperation::query()->max('id'))

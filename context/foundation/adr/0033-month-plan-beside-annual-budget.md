@@ -14,3 +14,5 @@ Superseded in part by ADR-0037: the Budget page no longer shows Month Result, Mo
 Amended by ADR-0063: January reads December of the same list Category (not a lookup by name and type), items are the Categories with a Budget Line on that Budget, and Month Item Kind comes from the previous year’s Budget Line instead of being copied with the Category.
 
 Amended by ADR-0066: the Proposal follows the Rhythm (Fixed Charge proposes the last paid amount), Month Item Kind is no longer copied onto a new Budget, To Spend counts items by Rhythm instead of Bill and Running items, „A One-off Category always starts at 0” becomes the Even Annual and Irregular average, and an Irregular item has an Irregular Rate and Collected; the rejected irregular-expense fund and carrying the remainder forward stay rejected.
+
+Amended by ADR-0070: the Month Item Kind switch in the Month Plan row is gone; the Rhythm is changed only in „Kategorie”, and the Month Plan shows it as a label.

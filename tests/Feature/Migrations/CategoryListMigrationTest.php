@@ -36,6 +36,9 @@ function categoryListMigrationFiles(): array
         database_path('migrations/2026_11_09_132817_drop_legacy_category_columns_from_budget_lines.php'),
         // S-19 adds a column to the new `categories` table; the S-18 expand step drops and recreates that table.
         database_path('migrations/2026_11_10_062409_add_description_to_categories_table.php'),
+        // S-24: the Rhythm history points at the new `categories`, which the S-18 rollback drops.
+        database_path('migrations/2026_11_10_120000_create_category_rhythms_table.php'),
+        database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
     ];
 }
 

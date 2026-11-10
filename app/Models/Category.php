@@ -96,4 +96,16 @@ class Category extends Model
     {
         return $this->hasMany(BudgetLine::class);
     }
+
+    /**
+     * The Rhythm history, oldest entry first (ADR-0066).
+     *
+     * @return HasMany<CategoryRhythm, $this>
+     */
+    public function rhythms(): HasMany
+    {
+        return $this->hasMany(CategoryRhythm::class)
+            ->orderBy('start_year')
+            ->orderBy('start_month');
+    }
 }
