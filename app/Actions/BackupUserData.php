@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 6;
+    public const SNAPSHOT_VERSION = 7;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -156,6 +156,7 @@ class BackupUserData
             'name' => $category->name,
             'icon' => $category->icon,
             'color' => $category->color,
+            'description' => $category->description,
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
             'archived_at' => $category->archived_at?->toIso8601String(),

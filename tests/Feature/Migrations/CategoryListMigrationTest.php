@@ -34,6 +34,8 @@ function categoryListMigrationFiles(): array
         database_path('migrations/2026_11_09_122524_expand_categories_into_category_list_and_budget_lines.php'),
         database_path('migrations/2026_11_09_122525_backfill_category_list.php'),
         database_path('migrations/2026_11_09_132817_drop_legacy_category_columns_from_budget_lines.php'),
+        // S-19 adds a column to the new `categories` table; the S-18 expand step drops and recreates that table.
+        database_path('migrations/2026_11_10_062409_add_description_to_categories_table.php'),
     ];
 }
 

@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $name_key
  * @property string $icon
  * @property string $color
+ * @property string|null $description
  * @property int $sort_order
  * @property CategoryType $type
  * @property Carbon|null $archived_at
@@ -34,6 +35,7 @@ use Illuminate\Support\Carbon;
     'name_key',
     'icon',
     'color',
+    'description',
     'sort_order',
     'type',
     'archived_at',

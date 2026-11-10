@@ -27,7 +27,7 @@ class RestoreUserData
     public function handle(User $targetUser, string $path): void
     {
         $snapshot = $this->readSnapshot($path);
-        $isCurrentFormat = $snapshot['version'] === BackupUserData::SNAPSHOT_VERSION;
+        $isCurrentFormat = in_array($snapshot['version'], [6, BackupUserData::SNAPSHOT_VERSION], true);
 
         if (! $isCurrentFormat) {
             $snapshot = $this->withBudgetLineKeys($snapshot);
@@ -87,7 +87,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -97,19 +97,19 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('budget_lines', $snapshot)) {
+        if (in_array($version, [6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('budget_lines', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
         }
 
@@ -316,6 +316,7 @@ class RestoreUserData
                 'name_key' => CategoryNameKey::of((string) $categoryData['name']),
                 'icon' => $categoryData['icon'],
                 'color' => $categoryData['color'],
+                'description' => $categoryData['description'] ?? null,
                 'sort_order' => $categoryData['sort_order'],
                 'type' => $type,
                 'archived_at' => isset($categoryData['archived_at']) ? Carbon::parse($categoryData['archived_at']) : null,
@@ -412,6 +413,7 @@ class RestoreUserData
             'name_key' => $category['name_key'],
             'icon' => $category['icon'],
             'color' => $category['color'],
+            'description' => null,
             'sort_order' => $category['sort_order'],
             'type' => $category['type'],
             'archived_at' => $category['archived_at']?->format('Y-m-d H:i:s'),

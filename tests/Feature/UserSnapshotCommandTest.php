@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -43,10 +44,11 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(6, $snapshot['version']);
+        $this->assertSame(7, $snapshot['version']);
         $this->assertSame([], $snapshot['month_plans']);
         $this->assertSame('running', $snapshot['budget_lines'][0]['month_item_kind']);
         $this->assertSame($snapshot['categories'][0]['id'], $snapshot['budget_lines'][0]['category_id']);
+        $this->assertArrayHasKey('description', $snapshot['categories'][0]);
         $this->assertArrayNotHasKey('name', $snapshot['budget_lines'][0]);
         $this->assertArrayNotHasKey('planned_amount_minor_units', $snapshot['categories'][0]);
         $this->assertSame($user->id, $snapshot['source']['user_id']);
@@ -222,7 +224,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(6, $snapshot['version']);
+        $this->assertSame(7, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -732,6 +734,53 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame($lines[0]->id, $operations[0]->budget_line_id);
         $this->assertSame($lines[7]->id, $operations[1]->budget_line_id);
         $this->assertSame($lines[0]->id, MonthPlan::query()->firstOrFail()->items()->firstOrFail()->budget_line_id);
+    }
+
+    public function test_restore_command_restores_the_v6_fixture_with_a_null_description(): void
+    {
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => base_path('tests/Fixtures/snapshots/v6-category-list.json'),
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+
+        $list = $targetUser->categories()->get()->keyBy('name');
+
+        $this->assertEqualsCanonicalizing(['Pensja', 'Rozrywka', 'Wakacje'], $list->keys()->all());
+        $this->assertNull($list['Rozrywka']->description);
+        $this->assertNotNull($list['Wakacje']->archived_at);
+        $this->assertSame('income', $list['Pensja']->type->value);
+
+        $lines = BudgetLine::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->orderBy('id')
+            ->get();
+
+        $this->assertCount(3, $lines);
+        $this->assertSame(111111, $lines[0]->execution_minor_units);
+        $this->assertSame($lines[0]->id, $targetUser->financialOperations()->orderBy('id')->firstOrFail()->budget_line_id);
+        $this->assertSame($lines[0]->id, MonthPlan::query()->firstOrFail()->items()->firstOrFail()->budget_line_id);
+    }
+
+    public function test_a_category_description_survives_a_backup_and_restore(): void
+    {
+        $sourceUser = User::factory()->create();
+        Category::factory()->for($sourceUser)->create(['name' => 'Zdrowie', 'description' => 'Leki i wizyty u lekarza']);
+        Category::factory()->for($sourceUser)->create(['name' => 'Dom']);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $list = $targetUser->categories()->get()->keyBy('name');
+
+        $this->assertSame('Leki i wizyty u lekarza', $list['Zdrowie']->description);
+        $this->assertNull($list['Dom']->description);
     }
 
     /**
