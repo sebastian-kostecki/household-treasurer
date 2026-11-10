@@ -15,7 +15,7 @@ use App\Support\CategoryList\CategoryChoiceOptions;
 class ImportCategoryOptions
 {
     /**
-     * @return array<int, array{id: int, name: string, icon: string, color: string, budget_year: int}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int}>
      */
     public static function income(User $user): array
     {
@@ -23,12 +23,13 @@ class ImportCategoryOptions
             'id' => $row['category']->id,
             'name' => $row['category']->name,
             ...CategoryAppearance::fields($row['category']),
+            'group' => CategoryAppearance::group($row['category']),
             'budget_year' => $row['budget_year'],
         ], CategoryChoiceOptions::forType($user, CategoryType::Income));
     }
 
     /**
-     * @return array<int, array{id: int, name: string, icon: string, color: string, budget_year: int, is_paced: bool}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int, is_paced: bool}>
      */
     public static function expense(User $user): array
     {
@@ -36,6 +37,7 @@ class ImportCategoryOptions
             'id' => $row['category']->id,
             'name' => $row['category']->name,
             ...CategoryAppearance::fields($row['category']),
+            'group' => CategoryAppearance::group($row['category']),
             'budget_year' => $row['budget_year'],
             'is_paced' => $row['is_paced'],
         ], CategoryChoiceOptions::forType($user, CategoryType::Expense));

@@ -151,6 +151,7 @@ class OperationsController extends Controller
                 'id' => $row['category']->id,
                 'name' => $row['category']->name,
                 ...CategoryAppearance::fields($row['category']),
+                'group' => CategoryAppearance::group($row['category']),
                 'budget_year' => $row['budget_year'],
             ])
             ->values();
@@ -160,6 +161,7 @@ class OperationsController extends Controller
                 'id' => $row['category']->id,
                 'name' => $row['category']->name,
                 ...CategoryAppearance::fields($row['category']),
+                'group' => CategoryAppearance::group($row['category']),
                 'budget_year' => $row['budget_year'],
                 'planned_amount_minor_units' => $row['line']->planned_amount_minor_units ?? 0,
                 'execution_minor_units' => $row['line']->execution_minor_units ?? 0,

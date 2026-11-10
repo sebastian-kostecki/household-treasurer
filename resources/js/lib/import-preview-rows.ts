@@ -1,3 +1,4 @@
+import type { CategoryPickerGroup } from './category-appearance';
 import { parseMoneyInputToMinorUnits } from './format';
 import {
     locksTypeToOwnTransfer,
@@ -27,6 +28,7 @@ export type CategoryRow = {
     name: string;
     icon: string;
     color: string;
+    group?: CategoryPickerGroup | null;
     budget_year: number;
     is_paced: boolean;
 };

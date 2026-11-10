@@ -4,16 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Actions\CreateListCategory;
 use App\Actions\DeleteCategory;
-use App\Actions\ReorderListCategories;
 use App\Actions\UpdateListCategory;
-use App\Enums\CategoryType;
-use App\Http\Requests\ReorderListCategoriesRequest;
 use App\Http\Requests\StoreListCategoryRequest;
 use App\Http\Requests\UpdateListCategoryRequest;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Inertia\Inertia;
 
 /**
@@ -50,19 +46,6 @@ class CategoryListController extends Controller
         ]);
 
         return back();
-    }
-
-    public function reorder(ReorderListCategoriesRequest $request, ReorderListCategories $reorderListCategories): Response
-    {
-        $validated = $request->validated();
-
-        $reorderListCategories->handle(
-            $request->user(),
-            CategoryType::from($validated['type']),
-            array_values(array_map('intval', $validated['category_ids'])),
-        );
-
-        return response()->noContent();
     }
 
     public function destroy(Category $category, DeleteCategory $deleteCategory): RedirectResponse

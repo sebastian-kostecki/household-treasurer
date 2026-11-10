@@ -9,6 +9,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -214,6 +215,26 @@ CSV;
                 ->where('rows.0.category_suggestion.income', null)
                 ->where('rows.1.category_suggestion.expense', null)
                 ->where('rows.1.category_suggestion.income', null),
+            );
+    }
+
+    public function test_preview_category_options_carry_the_category_group(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        $expenseCategory->category->update(['category_group_id' => $group->id]);
+
+        $this->previewCsv($user, $account, "date,description,amount\n2026-03-15,Biedronka 4521,-45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.id', $expenseCategory->category_id)
+                ->where('expenseCategories.0.group', ['id' => $group->id, 'name' => 'Dom'])
+                ->where('incomeCategories.0.group', null),
             );
     }
 

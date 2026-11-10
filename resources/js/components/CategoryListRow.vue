@@ -2,6 +2,7 @@
 import { GripVertical } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import CategoryGroupPicker from '@/components/CategoryGroupPicker.vue';
 import CategoryListRowActions from '@/components/CategoryListRowActions.vue';
 import TextLink from '@/components/TextLink.vue';
 import { useTranslations } from '@/composables/useTranslations';
@@ -11,14 +12,18 @@ import {
 } from '@/lib/category-list';
 import { formatDate } from '@/lib/format';
 import { operations } from '@/routes';
-import type { CategoryListItem } from '@/types/categories';
+import type { CategoryGroupItem, CategoryListItem } from '@/types/categories';
 
 const props = defineProps<{
     category: CategoryListItem;
     /** An archive row: muted, with the archive date under the name. */
     archived?: boolean;
-    /** The drag handle of the reorderable active rows. */
-    draggable?: boolean;
+    /** The groups of the Category's type; with it an active row gets "Grupa…" and a drag handle. */
+    groups?: CategoryGroupItem[];
+    /** The row stands under a group: indented. */
+    nested?: boolean;
+    /** Only the kitchen sink opens the "Grupa…" menu on mount. */
+    pickerOpen?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -57,22 +62,20 @@ const caption = computed(() =>
         class="categories-grid categories-row"
         :class="{
             'categories-row-archived': archived,
-            'categories-grid-no-handle': !draggable,
+            'categories-row-nested': nested,
         }"
         data-category-row
     >
-        <div v-if="draggable" class="categories-cell-handle">
+        <div class="categories-cell-name">
             <button
+                v-if="groups !== undefined"
                 type="button"
-                class="drag-handle text-muted-foreground hover:text-foreground focus-visible:outline-ring flex size-8 items-center justify-center rounded-md outline-none focus-visible:outline-2 focus-visible:outline-solid active:cursor-grabbing"
+                class="categories-handle drag-handle"
                 tabindex="-1"
                 :aria-label="t.categories.drag_handle"
             >
                 <GripVertical class="size-4" aria-hidden="true" />
             </button>
-        </div>
-
-        <div class="categories-cell-name">
             <CategoryChip
                 :name="category.name"
                 :icon="category.icon"
@@ -107,6 +110,12 @@ const caption = computed(() =>
             >
                 {{ t.categories.operations_link }}
             </TextLink>
+            <CategoryGroupPicker
+                v-if="groups !== undefined"
+                :category="category"
+                :groups="groups"
+                :default-open="pickerOpen"
+            />
         </div>
 
         <CategoryListRowActions

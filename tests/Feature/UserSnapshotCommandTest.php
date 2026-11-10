@@ -13,6 +13,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -44,7 +45,9 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(7, $snapshot['version']);
+        $this->assertSame(8, $snapshot['version']);
+        $this->assertSame([], $snapshot['category_groups']);
+        $this->assertNull($snapshot['categories'][0]['category_group_id']);
         $this->assertSame([], $snapshot['month_plans']);
         $this->assertSame('running', $snapshot['budget_lines'][0]['month_item_kind']);
         $this->assertSame($snapshot['categories'][0]['id'], $snapshot['budget_lines'][0]['category_id']);
@@ -224,7 +227,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(7, $snapshot['version']);
+        $this->assertSame(8, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -781,6 +784,201 @@ class UserSnapshotCommandTest extends TestCase
 
         $this->assertSame('Leki i wizyty u lekarza', $list['Zdrowie']->description);
         $this->assertNull($list['Dom']->description);
+    }
+
+    public function test_snapshot_v8_round_trips_category_groups_and_membership(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($sourceUser)->expense()->create(['name' => 'Opłaty stałe', 'sort_order' => 0]);
+        $member = Category::factory()->for($sourceUser)->expense()->create([
+            'name' => 'Czynsz',
+            'category_group_id' => $group->id,
+            'sort_order' => 1,
+        ]);
+        $loose = Category::factory()->for($sourceUser)->expense()->create(['name' => 'Wakacje', 'sort_order' => 2]);
+        BudgetLine::factory()->for($budget)->create(['category_id' => $member->id]);
+        BudgetLine::factory()->for($budget)->create(['category_id' => $loose->id]);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertSame(8, $snapshot['version']);
+        $this->assertCount(1, $snapshot['category_groups']);
+        $this->assertSame(
+            ['id', 'name', 'type', 'sort_order', 'created_at', 'updated_at'],
+            array_keys($snapshot['category_groups'][0]),
+        );
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restoredGroup = $targetUser->categoryGroups()->firstOrFail();
+        $categories = $targetUser->categories()->get()->keyBy('name');
+
+        $this->assertSame('Opłaty stałe', $restoredGroup->name);
+        $this->assertSame('opłaty stałe', $restoredGroup->name_key);
+        $this->assertSame('expense', $restoredGroup->type->value);
+        $this->assertSame(0, $restoredGroup->sort_order);
+        $this->assertNotSame($group->id, $restoredGroup->id);
+        $this->assertSame($restoredGroup->id, $categories['Czynsz']->category_group_id);
+        $this->assertNull($categories['Wakacje']->category_group_id);
+        $this->assertSame(1, $categories['Czynsz']->sort_order);
+        $this->assertSame(2, $categories['Wakacje']->sort_order);
+    }
+
+    public function test_restore_command_restores_a_v6_snapshot_without_groups(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = $this->asV6Snapshot(json_decode(file_get_contents($path), true));
+        $v6Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v6.json');
+        file_put_contents($v6Path, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $this->assertSame(6, $snapshot['version']);
+        $this->assertArrayNotHasKey('category_groups', $snapshot);
+        $this->assertArrayNotHasKey('category_group_id', $snapshot['categories'][0]);
+
+        $targetUser = User::factory()->create();
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $v6Path,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(0, $targetUser->categoryGroups()->count());
+        $this->assertSame(['Salary'], $targetUser->categories()->pluck('name')->all());
+        $this->assertNull($targetUser->categories()->firstOrFail()->category_group_id);
+        $this->assertSame(1, $targetUser->financialOperations()->count());
+    }
+
+    public function test_restore_command_rejects_an_inconsistent_v8_snapshot(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($sourceUser)->expense()->create(['name' => 'Opłaty stałe']);
+        $member = Category::factory()->for($sourceUser)->expense()->create([
+            'name' => 'Czynsz',
+            'category_group_id' => $group->id,
+            'sort_order' => 1,
+        ]);
+        BudgetLine::factory()->for($budget)->create(['category_id' => $member->id]);
+        $valid = json_decode(file_get_contents(app(BackupUserData::class)->handle($sourceUser)), true);
+
+        $mutations = [
+            'missing category_groups key' => function (array $snapshot): array {
+                unset($snapshot['category_groups']);
+
+                return $snapshot;
+            },
+            'duplicated group' => function (array $snapshot): array {
+                $snapshot['category_groups'][] = [...$snapshot['category_groups'][0], 'id' => 999999, 'name' => ' OPŁATY stałe '];
+
+                return $snapshot;
+            },
+            'unknown group' => function (array $snapshot): array {
+                $snapshot['categories'][0]['category_group_id'] = 999999;
+
+                return $snapshot;
+            },
+            'group of another type' => function (array $snapshot): array {
+                $snapshot['category_groups'][0]['type'] = 'income';
+
+                return $snapshot;
+            },
+        ];
+
+        foreach ($mutations as $label => $mutate) {
+            $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-groups.json');
+            file_put_contents($brokenPath, json_encode($mutate($valid), JSON_THROW_ON_ERROR));
+            $targetUser = User::factory()->create();
+
+            $exitCode = Artisan::call('user:restore', [
+                'user' => $targetUser->email,
+                'path' => $brokenPath,
+                '--force' => true,
+            ]);
+
+            $this->assertSame(1, $exitCode, $label);
+            $this->assertSame(0, $targetUser->categoryGroups()->count(), $label);
+            $this->assertSame(0, $targetUser->categories()->count(), $label);
+            $this->assertSame(0, $targetUser->budgets()->count(), $label);
+        }
+    }
+
+    public function test_restore_command_restores_a_v7_snapshot_with_descriptions_and_without_groups(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = $this->createUserWithDomainData();
+        $sourceUser->categories()->firstOrFail()->update(['description' => 'Pensja z etatu']);
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = $this->asV7Snapshot(json_decode(file_get_contents($path), true));
+        $v7Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v7.json');
+        file_put_contents($v7Path, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $this->assertSame(7, $snapshot['version']);
+        $this->assertArrayNotHasKey('category_groups', $snapshot);
+
+        $targetUser = User::factory()->create();
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => $v7Path,
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(0, $targetUser->categoryGroups()->count());
+        $this->assertSame('Pensja z etatu', $targetUser->categories()->firstOrFail()->description);
+        $this->assertNull($targetUser->categories()->firstOrFail()->category_group_id);
+        $this->assertSame(1, $targetUser->financialOperations()->count());
+    }
+
+    /**
+     * Turns a snapshot written by the current code into version 7: Category
+     * descriptions, but no Category Groups and no group membership.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function asV7Snapshot(array $snapshot): array
+    {
+        unset($snapshot['category_groups']);
+        $snapshot['categories'] = array_map(function (array $category): array {
+            unset($category['category_group_id']);
+
+            return $category;
+        }, $snapshot['categories']);
+        $snapshot['version'] = 7;
+
+        return $snapshot;
+    }
+
+    /**
+     * Turns a snapshot written by the current code into version 6: no
+     * Category Groups, no group membership and no description on Categories.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function asV6Snapshot(array $snapshot): array
+    {
+        unset($snapshot['category_groups']);
+        $snapshot['categories'] = array_map(function (array $category): array {
+            unset($category['category_group_id'], $category['description']);
+
+            return $category;
+        }, $snapshot['categories']);
+        $snapshot['version'] = 6;
+
+        return $snapshot;
     }
 
     /**

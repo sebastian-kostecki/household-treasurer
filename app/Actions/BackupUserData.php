@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\OwnTransfer;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 7;
+    public const SNAPSHOT_VERSION = 8;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -46,6 +47,11 @@ class BackupUserData
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($budget): array => $this->serializeBudget($budget))
+                ->all(),
+            'category_groups' => $user->categoryGroups()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($group): array => $this->serializeCategoryGroup($group))
                 ->all(),
             'categories' => $user->categories()
                 ->orderBy('id')
@@ -149,10 +155,26 @@ class BackupUserData
     /**
      * @return array<string, mixed>
      */
+    private function serializeCategoryGroup(CategoryGroup $group): array
+    {
+        return [
+            'id' => $group->id,
+            'name' => $group->name,
+            'type' => $group->type->value,
+            'sort_order' => $group->sort_order,
+            'created_at' => $group->created_at?->toIso8601String(),
+            'updated_at' => $group->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function serializeCategory(Category $category): array
     {
         return [
             'id' => $category->id,
+            'category_group_id' => $category->category_group_id,
             'name' => $category->name,
             'icon' => $category->icon,
             'color' => $category->color,

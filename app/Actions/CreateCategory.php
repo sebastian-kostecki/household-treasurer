@@ -8,6 +8,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -94,10 +95,7 @@ class CreateCategory
      */
     private function createListCategory(User $user, CategoryType $type, string $name, string $nameKey, array $attributes): Category
     {
-        $nextSortOrder = (Category::query()
-            ->where('user_id', $user->id)
-            ->where('type', $type->value)
-            ->max('sort_order') ?? -1) + 1;
+        $nextSortOrder = CategoryListSequence::nextSortOrder($user->id, $type);
 
         return Category::query()->create([
             'user_id' => $user->id,

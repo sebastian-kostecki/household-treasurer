@@ -294,9 +294,12 @@ export type CategoryAppearanceFields = {
     color: string;
 };
 
+export type CategoryPickerGroup = { id: number; name: string };
+
 export type CategoryPickerOption = CategoryAppearanceFields & {
     id: number;
     name: string;
+    group?: CategoryPickerGroup | null;
 };
 
 export type CategoryAppearanceOptions = {

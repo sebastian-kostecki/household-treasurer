@@ -25,6 +25,49 @@ export function categoryYearsLabel(years: number[]): string {
     return years.join(' · ');
 }
 
+type GroupDeleteCopy = Record<
+    | 'group_delete_description'
+    | 'group_delete_orphans_zero'
+    | 'group_delete_orphans_one'
+    | 'group_delete_orphans_few'
+    | 'group_delete_orphans_many'
+    | 'group_delete_archived',
+    string
+>;
+
+/**
+ * Treść potwierdzenia usunięcia grupy: ile kategorii zostanie bez grupy, łącznie
+ * z zarchiwizowanymi, którym usunięcie też zdejmuje grupę. Grupa z samymi
+ * zarchiwizowanymi kategoriami nie jest „pusta”.
+ */
+export function groupDeleteDescription(
+    activeCount: number,
+    archivedCount: number,
+    copy: GroupDeleteCopy,
+): string {
+    const sentences = [copy.group_delete_description];
+
+    if (activeCount === 0 && archivedCount === 0) {
+        sentences.push(copy.group_delete_orphans_zero);
+    } else if (activeCount === 1) {
+        sentences.push(copy.group_delete_orphans_one);
+    } else if (activeCount > 1) {
+        sentences.push(
+            copy[
+                `group_delete_orphans_${activeCountForm(activeCount)}`
+            ].replace(':count', String(activeCount)),
+        );
+    }
+
+    if (archivedCount > 0) {
+        sentences.push(
+            copy.group_delete_archived.replace(':count', String(archivedCount)),
+        );
+    }
+
+    return sentences.join(' ');
+}
+
 /** Polska odmiana liczebnika: 1 aktywna, 2–4 aktywne, reszta aktywnych. */
 export function activeCountForm(count: number): 'one' | 'few' | 'many' {
     if (count === 1) {

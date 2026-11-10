@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ReorderListCategoriesRequest extends FormRequest
+class StoreCategoryGroupRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -21,8 +21,7 @@ class ReorderListCategoriesRequest extends FormRequest
     {
         return [
             'type' => ['required', Rule::enum(CategoryType::class)],
-            'category_ids' => ['required', 'array'],
-            'category_ids.*' => ['required', 'integer', 'distinct'],
+            'name' => ['required', 'string', 'max:255'],
         ];
     }
 }

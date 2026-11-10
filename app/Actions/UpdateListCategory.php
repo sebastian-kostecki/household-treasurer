@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\CategoryTypeChange;
@@ -15,7 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * The fields of the list Category (ADR-0063, ADR-0067): name, icon, colour, type
- * and description go to every year at once. Used by „Kategorie” and by the
+ * and description go to every year at once. A type change takes the Category off
+ * its group and puts it at the end of the new type's order (ADR-0069). Used by „Kategorie” and by the
  * Budget page, which sends no description and so leaves it as it is.
  */
 class UpdateListCategory
@@ -49,6 +51,11 @@ class UpdateListCategory
                     'color' => $attributes['color'],
                     'type' => $type,
                 ];
+
+                if ($type !== $category->type) {
+                    $fields['category_group_id'] = null;
+                    $fields['sort_order'] = CategoryListSequence::nextSortOrder($category->user_id, $type);
+                }
 
                 if (array_key_exists('description', $attributes)) {
                     $fields['description'] = self::normalizeDescription($attributes['description']);

@@ -128,6 +128,7 @@ final class CategoryChoiceOptions
     private static function activeCategories(User $user, CategoryType $type): Collection
     {
         return Category::query()
+            ->with('group')
             ->where('user_id', $user->id)
             ->where('type', $type->value)
             ->whereNull('archived_at')

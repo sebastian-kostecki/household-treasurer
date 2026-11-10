@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { useHttp } from '@inertiajs/vue3';
+import { router, useHttp } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import draggable from 'vuedraggable';
 import { reorder } from '@/actions/App/Http/Controllers/CategoryController';
 import BudgetAmountCell from '@/components/BudgetAmountCell.vue';
+import BudgetCategoryGroupRow from '@/components/BudgetCategoryGroupRow.vue';
 import BudgetCategoryHeaderRow from '@/components/BudgetCategoryHeaderRow.vue';
 import BudgetCategoryRowComponent from '@/components/BudgetCategoryRow.vue';
 import ExecutionMeter from '@/components/ExecutionMeter.vue';
@@ -24,6 +25,14 @@ import {
     executionClass,
     totalsRemainingClass,
 } from '@/lib/budget-category-cells';
+import {
+    buildCategoryTree,
+    toGroupMember,
+    toTreeItem,
+    treeToReorderItems,
+    type CategoryTreeItem,
+    type ReorderItem,
+} from '@/lib/category-tree';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
 
@@ -33,6 +42,10 @@ export type BudgetCategoryRow = {
     icon: string;
     color: string;
     type: 'income' | 'expense';
+    /** The Category Group the Category stands in (ADR-0069), null without one. */
+    group_id: number | null;
+    /** Place in the one sequence of the type, shared with the groups. */
+    sort_order: number;
     planned_amount_minor_units: number;
     initial_plan_minor_units: number;
     current_plan_minor_units: number;
@@ -51,11 +64,23 @@ export type BudgetCategoryRow = {
     month_item_kind: 'bill' | 'running';
 };
 
+/** A Category Group with at least one active line in the Budget (ADR-0069). */
+export type BudgetCategoryGroup = {
+    id: number;
+    name: string;
+    sort_order: number;
+    totals: DashboardTypeTotals;
+    has_over_limit_category: boolean;
+};
+
+type Tree = CategoryTreeItem<BudgetCategoryGroup, BudgetCategoryRow>[];
+
 const NAME_FILTER_THRESHOLD = 12;
 
 const props = defineProps<{
     title: string;
     categories: BudgetCategoryRow[];
+    groups: BudgetCategoryGroup[];
     budgetId: number;
     categoryType: 'income' | 'expense';
     phase: 'draft' | 'execution';
@@ -63,6 +88,8 @@ const props = defineProps<{
     canReorder: boolean;
     emptyDescription: string;
     yearElapsedPercent: number | null;
+    /** Groups that start collapsed; the state is local to the component. */
+    initialCollapsedGroupIds?: number[];
 }>();
 
 const emit = defineEmits<{
@@ -72,11 +99,14 @@ const emit = defineEmits<{
 const t = useTranslations();
 const reorderHttp = useHttp({
     type: props.categoryType,
-    category_ids: [] as number[],
+    items: [] as ReorderItem[],
 });
 
-const localCategories = ref<BudgetCategoryRow[]>([]);
-const orderBeforeDrag = ref<BudgetCategoryRow[]>([]);
+const tree = ref<Tree>([]);
+const treeBeforeChange = ref<Tree>([]);
+const collapsedGroupIds = ref<number[]>([
+    ...(props.initialCollapsedGroupIds ?? []),
+]);
 const nameFilter = ref('');
 const archivedOpen = ref(false);
 
@@ -101,27 +131,19 @@ const remainingLabel = computed(() =>
 );
 
 watch(
-    () => props.categories,
-    (categories) => {
-        localCategories.value = [...categories];
+    () => [props.categories, props.groups] as const,
+    ([categories, groups]) => {
+        tree.value = buildCategoryTree(
+            groups,
+            categories.filter((category) => !category.is_archived),
+        );
     },
     { immediate: true, deep: true },
 );
 
 const archivedCategories = computed(() =>
-    localCategories.value.filter((category) => category.is_archived),
+    props.categories.filter((category) => category.is_archived),
 );
-
-const activeCategories = computed({
-    get: () =>
-        localCategories.value.filter((category) => !category.is_archived),
-    set: (reorderedActiveCategories) => {
-        localCategories.value = [
-            ...reorderedActiveCategories,
-            ...archivedCategories.value,
-        ];
-    },
-});
 
 function matchesNameFilter(category: BudgetCategoryRow): boolean {
     const query = nameFilter.value.trim().toLowerCase();
@@ -133,6 +155,12 @@ function matchesNameFilter(category: BudgetCategoryRow): boolean {
     return category.name.toLowerCase().includes(query);
 }
 
+// With a filter a group shows only the Categories that match, and no row at
+// all when none does.
+function groupHasMatch(categories: BudgetCategoryRow[]): boolean {
+    return !isFiltering.value || categories.some(matchesNameFilter);
+}
+
 const filteredArchivedCategories = computed(() =>
     archivedCategories.value.filter(matchesNameFilter),
 );
@@ -140,7 +168,11 @@ const filteredArchivedCategories = computed(() =>
 const hasNoFilterResults = computed(
     () =>
         isFiltering.value &&
-        !activeCategories.value.some(matchesNameFilter) &&
+        !tree.value.some((item) =>
+            item.kind === 'group'
+                ? item.categories.some(matchesNameFilter)
+                : matchesNameFilter(item.category),
+        ) &&
         filteredArchivedCategories.value.length === 0,
 );
 
@@ -164,38 +196,108 @@ const totalsAreOverLimit = computed(
         props.totals.remaining_minor_units < 0,
 );
 
-function onDragStart(): void {
-    orderBeforeDrag.value = [...localCategories.value];
+function itemKey(item: Tree[number]): string {
+    return item.kind === 'group'
+        ? `group:${item.group.id}`
+        : `category:${item.category.id}`;
 }
 
-async function onDragEnd(): Promise<void> {
+function groupBodyId(groupId: number): string {
+    return `budget-${props.categoryType}-group-${groupId}`;
+}
+
+function isGroupOpen(groupId: number): boolean {
+    return !collapsedGroupIds.value.includes(groupId);
+}
+
+function toggleGroup(groupId: number): void {
+    collapsedGroupIds.value = isGroupOpen(groupId)
+        ? [...collapsedGroupIds.value, groupId]
+        : collapsedGroupIds.value.filter((id) => id !== groupId);
+}
+
+const topListGroup = computed(() => ({
+    name: `budget-list-${props.categoryType}`,
+}));
+
+// A group never enters a group: only a Category may be put into a group's list.
+const groupListGroup = computed(() => ({
+    name: `budget-list-${props.categoryType}`,
+    put: (_to: unknown, _from: unknown, dragEl: HTMLElement): boolean =>
+        dragEl.dataset.kind === 'category',
+}));
+
+function snapshotTree(): Tree {
+    return tree.value.map((item) =>
+        item.kind === 'group'
+            ? { ...item, categories: [...item.categories] }
+            : item,
+    );
+}
+
+// Dragging between the top list and a group list moves the raw element, so the
+// elements are put back into the shape of the list they now sit in.
+function setTree(items: Array<Tree[number] | BudgetCategoryRow>): void {
+    tree.value = items.map((element) =>
+        toTreeItem<BudgetCategoryGroup, BudgetCategoryRow>(element),
+    );
+}
+
+function setGroupCategories(
+    item: Tree[number],
+    categories: Array<Tree[number] | BudgetCategoryRow>,
+): void {
+    if (item.kind === 'group') {
+        item.categories = categories.map((element) =>
+            toGroupMember<BudgetCategoryGroup, BudgetCategoryRow>(element),
+        );
+    }
+}
+
+function onChangeStart(): void {
+    treeBeforeChange.value = snapshotTree();
+}
+
+// Saves the visible tree of the type; the server answers with the new order,
+// membership and group totals, so the page reloads those props afterwards (also
+// after a rejection, so the view shows the order the server holds).
+async function saveTree(): Promise<void> {
     if (!canDrag.value) {
         return;
     }
 
     reorderHttp.type = props.categoryType;
-    reorderHttp.category_ids = activeCategories.value.map(
-        (category) => category.id,
-    );
+    reorderHttp.items = treeToReorderItems(tree.value);
 
     try {
-        // A 422 resolves instead of rejecting (Inertia 3 useHttp), so it rolls back here.
+        // A 422 (the tree no longer matches the Budget, e.g. changed in another
+        // tab) does not throw: useHttp passes it to onError and resolves.
         await reorderHttp.patch(reorder.url(props.budgetId), {
-            onError: restoreOrder,
+            onError: (errors) => {
+                console.error(
+                    'The server rejected the budget category order.',
+                    errors,
+                );
+                tree.value = treeBeforeChange.value;
+                toast.error(t.budget.reorder_failed);
+            },
         });
-    } catch (error: unknown) {
-        console.error(
-            new Error('Budget: saving the category order failed', {
-                cause: error,
-            }),
-        );
-        restoreOrder();
-    }
-}
+    } catch (error) {
+        console.error('Saving the budget category order failed.', error);
+        tree.value = treeBeforeChange.value;
+        toast.error(t.budget.reorder_failed);
 
-function restoreOrder(): void {
-    localCategories.value = [...orderBeforeDrag.value];
-    toast.error(t.budget.reorder_failed);
+        return;
+    }
+
+    router.reload({
+        only: [
+            'incomeCategories',
+            'expenseCategories',
+            'incomeGroups',
+            'expenseGroups',
+        ],
+    });
 }
 </script>
 
@@ -242,27 +344,99 @@ function restoreOrder(): void {
                 :show-handle="canDrag"
             />
             <draggable
-                v-model="activeCategories"
+                :model-value="tree"
                 tag="div"
-                item-key="id"
+                :item-key="itemKey"
                 handle=".drag-handle"
+                :group="topListGroup"
                 :disabled="!canDrag || reorderHttp.processing"
                 :animation="150"
                 ghost-class="opacity-50"
-                @start="onDragStart"
-                @end="onDragEnd"
+                @update:model-value="setTree($event)"
+                @start="onChangeStart"
+                @end="saveTree"
             >
-                <template #item="{ element: category }">
+                <template #item="{ element: item }">
                     <BudgetCategoryRowComponent
-                        v-show="matchesNameFilter(category)"
-                        :category="category"
+                        v-if="item.kind === 'category'"
+                        v-show="matchesNameFilter(item.category)"
+                        data-kind="category"
+                        :category="item.category"
                         :budget-id="budgetId"
                         :category-type="categoryType"
                         :phase="phase"
                         :show-handle="canDrag"
                         :year-elapsed-percent="yearElapsedPercent"
-                        @edit="emit('edit', category)"
+                        @edit="emit('edit', item.category)"
                     />
+                    <div
+                        v-else
+                        v-show="groupHasMatch(item.categories)"
+                        data-kind="group"
+                    >
+                        <BudgetCategoryGroupRow
+                            :name="item.group.name"
+                            :totals="item.group.totals"
+                            :count="item.categories.length"
+                            :has-over-limit-category="
+                                item.group.has_over_limit_category
+                            "
+                            :category-type="categoryType"
+                            :phase="phase"
+                            :show-handle="canDrag"
+                            :open="isGroupOpen(item.group.id)"
+                            :controls="groupBodyId(item.group.id)"
+                            @toggle="toggleGroup(item.group.id)"
+                        />
+                        <div
+                            v-show="isGroupOpen(item.group.id)"
+                            :id="groupBodyId(item.group.id)"
+                            class="budget-category-group-body"
+                        >
+                            <draggable
+                                :model-value="item.categories"
+                                tag="div"
+                                item-key="id"
+                                handle=".drag-handle"
+                                :group="groupListGroup"
+                                :disabled="!canDrag || reorderHttp.processing"
+                                :animation="150"
+                                ghost-class="opacity-50"
+                                :class="{
+                                    'budget-category-group-items-empty':
+                                        item.categories.length === 0,
+                                }"
+                                @update:model-value="
+                                    setGroupCategories(item, $event)
+                                "
+                                @start="onChangeStart"
+                                @end="saveTree"
+                            >
+                                <template #item="{ element: category }">
+                                    <BudgetCategoryRowComponent
+                                        v-show="matchesNameFilter(category)"
+                                        data-kind="category"
+                                        nested
+                                        :category="category"
+                                        :budget-id="budgetId"
+                                        :category-type="categoryType"
+                                        :phase="phase"
+                                        :show-handle="canDrag"
+                                        :year-elapsed-percent="
+                                            yearElapsedPercent
+                                        "
+                                        @edit="emit('edit', category)"
+                                    />
+                                </template>
+                            </draggable>
+                            <p
+                                v-if="item.categories.length === 0"
+                                class="budget-category-group-hint"
+                            >
+                                {{ t.budget.group_empty_hint }}
+                            </p>
+                        </div>
+                    </div>
                 </template>
             </draggable>
             <p

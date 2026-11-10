@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Enums\MonthItemKind;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -34,10 +35,7 @@ class CreateListCategory
             return DB::transaction(function () use ($user, $attributes, $type, $name, $nameKey): Category {
                 CategoryNameGuard::assertFree($user->id, $type, $nameKey);
 
-                $nextSortOrder = (Category::query()
-                    ->where('user_id', $user->id)
-                    ->where('type', $type->value)
-                    ->max('sort_order') ?? -1) + 1;
+                $nextSortOrder = CategoryListSequence::nextSortOrder($user->id, $type);
 
                 $category = Category::query()->create([
                     'user_id' => $user->id,

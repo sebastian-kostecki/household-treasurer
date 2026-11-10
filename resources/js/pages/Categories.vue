@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Head, useHttp } from '@inertiajs/vue3';
-import { computed, reactive, ref, watch } from 'vue';
+import { Head, router, useHttp } from '@inertiajs/vue3';
+import { Plus } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import draggable from 'vuedraggable';
-import { reorder } from '@/actions/App/Http/Controllers/CategoryListController';
+import { reorder } from '@/actions/App/Http/Controllers/CategoryGroupController';
 import CategoryArchiveSection from '@/components/CategoryArchiveSection.vue';
+import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
+import CategoryGroupRow from '@/components/CategoryGroupRow.vue';
 import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import CategoryListRow from '@/components/CategoryListRow.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -12,40 +15,59 @@ import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    buildCategoryTree,
+    moveTopLevelItem,
+    toGroupMember,
+    toTreeItem,
+    treeToReorderItems,
+    type CategoryTreeItem,
+    type ReorderItem,
+} from '@/lib/category-tree';
 import { activeCountForm } from '@/lib/category-list';
-import type { CategoriesPageProps, CategoryListItem } from '@/types/categories';
+import type {
+    CategoriesPageProps,
+    CategoryGroupItem,
+    CategoryListItem,
+} from '@/types/categories';
 
 type SectionKey = 'income' | 'expense';
+type Tree = CategoryTreeItem<CategoryGroupItem, CategoryListItem>[];
 
 const props = defineProps<CategoriesPageProps>();
 
 const t = useTranslations();
 
 const reorderHttp = useHttp({
-    type: 'expense' as SectionKey,
-    category_ids: [] as number[],
+    type: 'income' as SectionKey,
+    items: [] as ReorderItem[],
 });
 
-/** The local order of each section while (and after) a drag, restored when saving fails. */
-const localCategories = reactive<Record<SectionKey, CategoryListItem[]>>({
-    income: [],
-    expense: [],
-});
-let orderBeforeDrag: CategoryListItem[] = [];
+const trees = ref<Record<SectionKey, Tree>>({ income: [], expense: [] });
+const treeBeforeChange = ref<Tree>([]);
+const createGroupType = ref<SectionKey | null>(null);
+
+const categoryDialogOpen = ref(false);
+const categoryDialogMode = ref<'create' | 'edit'>('create');
+const categoryDialogType = ref<SectionKey>('expense');
+const editedCategory = ref<CategoryListItem | null>(null);
 
 watch(
-    () => [props.incomeCategories, props.expenseCategories] as const,
-    ([income, expense]) => {
-        localCategories.income = [...income];
-        localCategories.expense = [...expense];
+    () =>
+        [
+            props.incomeCategories,
+            props.incomeGroups,
+            props.expenseCategories,
+            props.expenseGroups,
+        ] as const,
+    ([incomeCategories, incomeGroups, expenseCategories, expenseGroups]) => {
+        trees.value = {
+            income: buildCategoryTree(incomeGroups, incomeCategories),
+            expense: buildCategoryTree(expenseGroups, expenseCategories),
+        };
     },
     { immediate: true, deep: true },
 );
-
-const dialogOpen = ref(false);
-const dialogMode = ref<'create' | 'edit'>('create');
-const dialogType = ref<SectionKey>('expense');
-const editedCategory = ref<CategoryListItem | null>(null);
 
 const activeCount = computed(
     () => props.incomeCategories.length + props.expenseCategories.length,
@@ -66,57 +88,146 @@ const sections = computed(() => [
     {
         key: 'income' as const,
         title: t.categories.income_title,
+        categories: props.incomeCategories,
+        groups: props.incomeGroups,
     },
     {
         key: 'expense' as const,
         title: t.categories.expense_title,
+        categories: props.expenseCategories,
+        groups: props.expenseGroups,
     },
 ]);
 
-function openCreateDialog(type: SectionKey): void {
-    dialogMode.value = 'create';
-    dialogType.value = type;
+const createDialogOpen = computed({
+    get: () => createGroupType.value !== null,
+    set: (open: boolean) => {
+        if (!open) {
+            createGroupType.value = null;
+        }
+    },
+});
+
+function openCreateCategoryDialog(type: SectionKey): void {
+    categoryDialogMode.value = 'create';
+    categoryDialogType.value = type;
     editedCategory.value = null;
-    dialogOpen.value = true;
+    categoryDialogOpen.value = true;
 }
 
-function openEditDialog(category: CategoryListItem): void {
-    dialogMode.value = 'edit';
-    dialogType.value = category.type;
+function openEditCategoryDialog(category: CategoryListItem): void {
+    categoryDialogMode.value = 'edit';
+    categoryDialogType.value = category.type;
     editedCategory.value = category;
-    dialogOpen.value = true;
+    categoryDialogOpen.value = true;
 }
 
-function onDragStart(key: SectionKey): void {
-    orderBeforeDrag = [...localCategories[key]];
+function itemKey(item: Tree[number]): string {
+    return item.kind === 'group'
+        ? `group:${item.group.id}`
+        : `category:${item.category.id}`;
 }
 
-async function onDragEnd(key: SectionKey): Promise<void> {
-    const categoryIds = localCategories[key].map((category) => category.id);
+function topListGroup(key: SectionKey) {
+    return { name: `category-list-${key}` };
+}
 
-    if (categoryIds.every((id, index) => id === orderBeforeDrag[index]?.id)) {
+// A group never enters a group: only a Category may be put into a group's list.
+function groupListGroup(key: SectionKey) {
+    return {
+        name: `category-list-${key}`,
+        put: (_to: unknown, _from: unknown, dragEl: HTMLElement): boolean =>
+            dragEl.dataset.kind === 'category',
+    };
+}
+
+function snapshotOf(key: SectionKey): Tree {
+    return trees.value[key].map((item) =>
+        item.kind === 'group'
+            ? { ...item, categories: [...item.categories] }
+            : item,
+    );
+}
+
+// Dragging between the top list and a group list moves the raw element, so the
+// elements are put back into the shape of the list they now sit in.
+function setTree(
+    key: SectionKey,
+    tree: Array<Tree[number] | CategoryListItem>,
+): void {
+    trees.value[key] = tree.map((element) =>
+        toTreeItem<CategoryGroupItem, CategoryListItem>(element),
+    );
+}
+
+function setGroupCategories(
+    item: Tree[number],
+    categories: Array<Tree[number] | CategoryListItem>,
+): void {
+    if (item.kind === 'group') {
+        item.categories = categories.map((element) =>
+            toGroupMember<CategoryGroupItem, CategoryListItem>(element),
+        );
+    }
+}
+
+function onChangeStart(key: SectionKey): void {
+    treeBeforeChange.value = snapshotOf(key);
+}
+
+// Saves the visible tree of the type; the server answers with the new order and
+// membership, so the page reloads its props afterwards (also after a rejection,
+// so the view shows the order the server holds).
+async function saveTree(key: SectionKey): Promise<void> {
+    reorderHttp.type = key;
+    reorderHttp.items = treeToReorderItems(trees.value[key]);
+
+    try {
+        // A 422 (the tree no longer matches the list, e.g. changed in another
+        // tab) does not throw: useHttp passes it to onError and resolves.
+        await reorderHttp.patch(reorder.url(), {
+            onError: (errors) => {
+                console.error(
+                    'The server rejected the category order.',
+                    errors,
+                );
+                trees.value[key] = treeBeforeChange.value;
+                toast.error(t.categories.group_reorder_failed);
+            },
+        });
+    } catch (error) {
+        console.error('Saving the category order failed.', error);
+        trees.value[key] = treeBeforeChange.value;
+        toast.error(t.categories.group_reorder_failed);
+
         return;
     }
 
-    reorderHttp.type = key;
-    reorderHttp.category_ids = categoryIds;
-
-    try {
-        // A 422 resolves instead of rejecting (Inertia 3 useHttp), so it rolls back here.
-        await reorderHttp.patch(reorder.url(), {
-            onError: () => restoreOrder(key),
-        });
-    } catch (error: unknown) {
-        console.error(
-            new Error('Categories: saving the order failed', { cause: error }),
-        );
-        restoreOrder(key);
-    }
+    router.reload({
+        only: [
+            'incomeCategories',
+            'expenseCategories',
+            'archivedCategories',
+            'incomeGroups',
+            'expenseGroups',
+        ],
+    });
 }
 
-function restoreOrder(key: SectionKey): void {
-    localCategories[key] = orderBeforeDrag;
-    toast.error(t.categories.reorder_failed);
+function moveGroup(
+    key: SectionKey,
+    groupId: number,
+    direction: 'up' | 'down',
+): void {
+    // Like dragging, a move waits for the previous save: a second one would
+    // overwrite the order restored when that save fails.
+    if (reorderHttp.processing) {
+        return;
+    }
+
+    treeBeforeChange.value = snapshotOf(key);
+    trees.value[key] = moveTopLevelItem(trees.value[key], groupId, direction);
+    void saveTree(key);
 }
 </script>
 
@@ -140,7 +251,7 @@ function restoreOrder(key: SectionKey): void {
             :description="t.categories.empty_description"
         >
             <template #actions>
-                <Button @click="openCreateDialog('expense')">
+                <Button @click="openCreateCategoryDialog('expense')">
                     {{ t.categories.add }}
                 </Button>
             </template>
@@ -154,25 +265,39 @@ function restoreOrder(key: SectionKey): void {
                 :data-section="section.key"
             >
                 <template #header>
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center justify-between gap-2">
                         <h2 class="section-title">{{ section.title }}</h2>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            :aria-label="
-                                t.categories.add_label.replace(
-                                    ':section',
-                                    section.title,
-                                )
-                            "
-                            @click="openCreateDialog(section.key)"
-                        >
-                            {{ t.categories.add }}
-                        </Button>
+                        <div class="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                @click="createGroupType = section.key"
+                            >
+                                <Plus class="size-4" aria-hidden="true" />
+                                {{ t.categories.add_group }}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                :aria-label="
+                                    t.categories.add_label.replace(
+                                        ':section',
+                                        section.title,
+                                    )
+                                "
+                                @click="openCreateCategoryDialog(section.key)"
+                            >
+                                {{ t.categories.add }}
+                            </Button>
+                        </div>
                     </div>
                 </template>
                 <div
-                    v-if="localCategories[section.key].length > 0"
+                    v-if="
+                        section.categories.length > 0 ||
+                        section.groups.length > 0
+                    "
                     class="categories-grid categories-header-row"
                 >
                     <div class="categories-cell-name">
@@ -183,26 +308,93 @@ function restoreOrder(key: SectionKey): void {
                     </div>
                 </div>
                 <draggable
-                    v-model="localCategories[section.key]"
+                    :model-value="trees[section.key]"
                     tag="div"
-                    item-key="id"
+                    :item-key="itemKey"
                     handle=".drag-handle"
+                    :group="topListGroup(section.key)"
                     :disabled="reorderHttp.processing"
                     :animation="150"
-                    ghost-class="categories-row-ghost"
-                    @start="onDragStart(section.key)"
-                    @end="onDragEnd(section.key)"
+                    ghost-class="categories-ghost"
+                    @update:model-value="setTree(section.key, $event)"
+                    @start="onChangeStart(section.key)"
+                    @end="saveTree(section.key)"
                 >
-                    <template #item="{ element: category }">
+                    <template #item="{ element: item, index }">
                         <CategoryListRow
-                            :category="category"
-                            draggable
-                            @edit="openEditDialog(category)"
+                            v-if="item.kind === 'category'"
+                            data-kind="category"
+                            :category="item.category"
+                            :groups="section.groups"
+                            @edit="openEditCategoryDialog(item.category)"
                         />
+                        <div v-else data-kind="group">
+                            <CategoryGroupRow
+                                :group="item.group"
+                                :type="section.key"
+                                :count="item.categories.length"
+                                :can-move-up="index > 0"
+                                :can-move-down="
+                                    index < trees[section.key].length - 1
+                                "
+                                @move-up="
+                                    moveGroup(section.key, item.group.id, 'up')
+                                "
+                                @move-down="
+                                    moveGroup(
+                                        section.key,
+                                        item.group.id,
+                                        'down',
+                                    )
+                                "
+                            />
+                            <div class="categories-group-body">
+                                <draggable
+                                    :model-value="item.categories"
+                                    tag="div"
+                                    item-key="id"
+                                    handle=".drag-handle"
+                                    :group="groupListGroup(section.key)"
+                                    :disabled="reorderHttp.processing"
+                                    :animation="150"
+                                    ghost-class="categories-ghost"
+                                    :class="{
+                                        'categories-group-items-empty':
+                                            item.categories.length === 0,
+                                    }"
+                                    @update:model-value="
+                                        setGroupCategories(item, $event)
+                                    "
+                                    @start="onChangeStart(section.key)"
+                                    @end="saveTree(section.key)"
+                                >
+                                    <template #item="{ element: category }">
+                                        <CategoryListRow
+                                            data-kind="category"
+                                            nested
+                                            :category="category"
+                                            :groups="section.groups"
+                                            @edit="
+                                                openEditCategoryDialog(category)
+                                            "
+                                        />
+                                    </template>
+                                </draggable>
+                                <p
+                                    v-if="item.categories.length === 0"
+                                    class="categories-group-hint"
+                                >
+                                    {{ t.categories.group_empty_hint }}
+                                </p>
+                            </div>
+                        </div>
                     </template>
                 </draggable>
                 <p
-                    v-if="localCategories[section.key].length === 0"
+                    v-if="
+                        section.categories.length === 0 &&
+                        section.groups.length === 0
+                    "
                     class="text-muted-foreground px-4 py-3 text-sm"
                 >
                     {{ t.categories.section_empty }}
@@ -215,10 +407,16 @@ function restoreOrder(key: SectionKey): void {
             />
         </template>
 
+        <CategoryGroupFormDialog
+            v-model:open="createDialogOpen"
+            mode="create"
+            :type="createGroupType ?? 'expense'"
+        />
+
         <CategoryListFormDialog
-            v-model:open="dialogOpen"
-            :mode="dialogMode"
-            :default-type="dialogType"
+            v-model:open="categoryDialogOpen"
+            :mode="categoryDialogMode"
+            :default-type="categoryDialogType"
             :category="editedCategory"
             :category-appearance-options="categoryAppearanceOptions"
         />

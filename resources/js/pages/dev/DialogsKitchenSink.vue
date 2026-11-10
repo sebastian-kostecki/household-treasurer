@@ -6,6 +6,7 @@ import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
+import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
@@ -51,6 +52,8 @@ const states = [
     'category-list-errors',
     'category-list-name-archived',
     'category-list-saving',
+    'category-group-new',
+    'category-group-rename-error',
     'budget-create',
     'budget-create-no-source',
     'budget-create-empty',
@@ -110,6 +113,9 @@ const labels: Record<SinkState, string> = {
     'budget-create': 'Utwórz budżet: szkic z planem z poprzedniego roku',
     'budget-create-no-source': 'Utwórz budżet: bez wcześniejszego budżetu',
     'budget-create-empty': 'Utwórz budżet: pusta lista kategorii',
+    'category-group-new': 'Grupa kategorii: nowa',
+    'category-group-rename-error':
+        'Grupa kategorii: zmiana nazwy (błąd po zapisie)',
     'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
@@ -188,6 +194,8 @@ const listCategory: CategoryListItem = {
     icon: 'shopping-cart',
     color: 'blue',
     type: 'expense',
+    group_id: null,
+    sort_order: 0,
     description:
         'Zakupy spożywcze, chemia domowa i drobiazgi z osiedlowego sklepu.',
     budget_years: [2026],
@@ -396,6 +404,21 @@ function setOpen(state: SinkState, value: boolean): void {
             :form="savingForm"
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-list-saving', $event)"
+        />
+        <CategoryGroupFormDialog
+            :open="isOpen('category-group-new')"
+            mode="create"
+            type="expense"
+            @update:open="setOpen('category-group-new', $event)"
+        />
+        <!-- The sink endpoint waits and rejects the name, so renaming touches no data. -->
+        <CategoryGroupFormDialog
+            :open="isOpen('category-group-rename-error')"
+            mode="rename"
+            type="expense"
+            :group="{ id: 1, name: 'Opłaty stałe' }"
+            :form="validateForm"
+            @update:open="setOpen('category-group-rename-error', $event)"
         />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"

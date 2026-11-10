@@ -27,6 +27,20 @@ class CategoryAppearance
     }
 
     /**
+     * The Category Group of a selector option, read from the eager-loaded
+     * `group` (of a Category) or `category.group` (of a Budget Line).
+     *
+     * @return array{id: int, name: string}|null
+     */
+    public static function group(BudgetLine|Category $source): ?array
+    {
+        $category = $source instanceof BudgetLine ? $source->category : $source;
+        $group = $category->group;
+
+        return $group === null ? null : ['id' => $group->id, 'name' => $group->name];
+    }
+
+    /**
      * @return array{id: int, name: string, icon: string, color: string}
      */
     public static function pickerOption(BudgetLine|Category $source): array

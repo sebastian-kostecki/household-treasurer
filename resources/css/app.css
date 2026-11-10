@@ -1256,18 +1256,11 @@
     /**
      * Categories list: below `md` a row is two lines (the chip with the actions,
      * then years + link); from `md` it is one line of columns. No amounts, so no
-     * money column. An active row starts with the drag handle; the archive rows
-     * and their header (`-no-handle`) do not.
+     * money column. The drag handle of an active row sits in the name cell and
+     * shows from `md` (`.categories-handle`), the same as in the group row.
      */
     .categories-grid {
         @apply grid items-center gap-x-3;
-        grid-template-columns: 2rem minmax(0, 1fr) auto;
-        grid-template-areas:
-            'handle name actions'
-            'handle years link';
-    }
-
-    .categories-grid-no-handle {
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'name actions'
@@ -1276,12 +1269,7 @@
 
     @variant md {
         .categories-grid {
-            grid-template-columns: 2rem minmax(0, 1fr) 220px 120px 7rem;
-            grid-template-areas: 'handle name years link actions';
-        }
-
-        .categories-grid-no-handle {
-            grid-template-columns: minmax(0, 1fr) 220px 120px 7rem;
+            grid-template-columns: minmax(0, 1fr) 220px auto 7rem;
             grid-template-areas: 'name years link actions';
         }
     }
@@ -1304,11 +1292,6 @@
         @apply text-muted-foreground;
     }
 
-    .categories-cell-handle {
-        grid-area: handle;
-        @apply flex items-center;
-    }
-
     .categories-cell-name {
         grid-area: name;
         @apply flex min-w-0 items-center gap-2;
@@ -1321,17 +1304,60 @@
 
     .categories-cell-link {
         grid-area: link;
-        @apply flex justify-end;
+        @apply flex items-center justify-end gap-2;
+    }
+
+    /**
+     * Category Groups in „Kategorie” (ADR-0069): the group row is a `muted`
+     * band like `.month-plan-group-row`, its Categories stand indented under it
+     * (`.categories-row-nested`); an empty group keeps a drop zone with a hint.
+     * The drag handle shows from `md`; below it the "Grupa…" menu does the job.
+     */
+    .categories-group-row {
+        @apply bg-muted border-border-soft min-h-row flex items-center gap-2 border-b px-4 py-2;
+    }
+
+    .categories-group-name {
+        @apply section-title min-w-0 flex-1 truncate;
+    }
+
+    .categories-group-count {
+        @apply meta text-muted-foreground shrink-0;
+    }
+
+    .categories-row-nested {
+        @apply pl-10;
+    }
+
+    .categories-handle {
+        @apply text-muted-foreground hover:text-foreground hidden size-8 shrink-0 cursor-grab items-center justify-center rounded-md active:cursor-grabbing;
+    }
+
+    @variant md {
+        .categories-handle {
+            @apply flex;
+        }
+    }
+
+    .categories-ghost {
+        @apply bg-secondary;
+    }
+
+    .categories-group-body {
+        @apply relative;
+    }
+
+    .categories-group-items-empty {
+        @apply min-h-row;
+    }
+
+    .categories-group-hint {
+        @apply meta text-muted-foreground pointer-events-none absolute inset-0 flex items-center py-2 pr-4 pl-10;
     }
 
     .categories-cell-actions {
         grid-area: actions;
         @apply flex justify-end gap-1;
-    }
-
-    /** The row picked up by the drag handle (vuedraggable ghost). */
-    .categories-row-ghost {
-        @apply opacity-50;
     }
 
     /** One muted line under the chip name; the full text sits in `title`. */
@@ -1341,6 +1367,41 @@
 
     .budget-category-row {
         @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
+    }
+
+    /**
+     * Category Group in the Budget (ADR-0069): a `muted` band on the same grid
+     * as the rows (and the same draft variant), with the totals of the group's
+     * active lines. Its Categories stand indented under it
+     * (`.budget-category-row-nested`); an empty group keeps a drop zone with a
+     * hint. The wrapper `.budget-category-group-name` holds the collapse button.
+     */
+    .budget-category-group-row {
+        @apply bg-muted border-border/60 min-h-row border-b py-3 text-sm;
+    }
+
+    .budget-category-group-name {
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .budget-category-group-toggle {
+        @apply section-title hover:text-foreground flex min-w-0 items-center gap-2 rounded-md text-left;
+    }
+
+    .budget-category-row-nested {
+        @apply pl-6;
+    }
+
+    .budget-category-group-body {
+        @apply relative;
+    }
+
+    .budget-category-group-items-empty {
+        @apply min-h-row;
+    }
+
+    .budget-category-group-hint {
+        @apply meta text-muted-foreground pointer-events-none absolute inset-0 flex items-center py-2 pr-4 pl-10;
     }
 
     .budget-category-header-row {

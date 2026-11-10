@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CategoryAppearance;
@@ -55,12 +56,16 @@ class CategoriesPageTest extends TestCase
                     'icon' => $salary->icon,
                     'color' => $salary->color,
                     'type' => 'income',
+                    'group_id' => null,
+                    'sort_order' => 0,
                     'description' => null,
                     'budget_years' => [2026, 2027],
                     'can_change_type' => false,
                     'can_delete' => false,
                     'archived_at' => null,
                 ])
+                ->where('incomeGroups', [])
+                ->where('expenseGroups', [])
                 ->has('expenseCategories', 3)
                 ->where('expenseCategories.0.id', $food->id)
                 ->where('expenseCategories.0.budget_years', [2026])
@@ -183,7 +188,66 @@ class CategoriesPageTest extends TestCase
                 ->component('Categories')
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
-                ->where('archivedCategories', []),
+                ->where('archivedCategories', [])
+                ->where('incomeGroups', [])
+                ->where('expenseGroups', []),
+            );
+    }
+
+    public function test_groups_and_membership_come_in_the_order_of_the_sequence_per_type(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $health = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 1]);
+        $fixed = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Opłaty', 'sort_order' => 3]);
+        $salary = CategoryGroup::factory()->for($user)->income()->create(['name' => 'Pensje', 'sort_order' => 0]);
+        CategoryGroup::factory()->for($other)->expense()->create(['name' => 'Cudza', 'sort_order' => 0]);
+        $food = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 0]);
+        $pharmacy = Category::factory()->for($user)->expense()->create(['name' => 'Apteka', 'sort_order' => 2, 'category_group_id' => $health->id]);
+        $rent = Category::factory()->for($user)->expense()->create(['name' => 'Czynsz', 'sort_order' => 4, 'category_group_id' => $fixed->id]);
+        $wage = Category::factory()->for($user)->income()->create(['name' => 'Wynagrodzenie', 'sort_order' => 1, 'category_group_id' => $salary->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeGroups', [['id' => $salary->id, 'name' => 'Pensje', 'sort_order' => 0, 'archived_count' => 0]])
+                ->where('expenseGroups', [
+                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 1, 'archived_count' => 0],
+                    ['id' => $fixed->id, 'name' => 'Opłaty', 'sort_order' => 3, 'archived_count' => 0],
+                ])
+                ->where('incomeCategories.0.id', $wage->id)
+                ->where('incomeCategories.0.group_id', $salary->id)
+                ->where('expenseCategories.0.id', $food->id)
+                ->where('expenseCategories.0.group_id', null)
+                ->where('expenseCategories.1.id', $pharmacy->id)
+                ->where('expenseCategories.1.group_id', $health->id)
+                ->where('expenseCategories.1.sort_order', 2)
+                ->where('expenseCategories.2.id', $rent->id)
+                ->where('expenseCategories.2.group_id', $fixed->id),
+            );
+    }
+
+    /**
+     * Deleting a group takes the group from its archived Categories too, so the
+     * confirmation needs their number; the view lists only active ones in a group.
+     */
+    public function test_a_group_counts_its_archived_categories(): void
+    {
+        $user = User::factory()->create();
+        $health = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $empty = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Podróże', 'sort_order' => 3]);
+        Category::factory()->for($user)->expense()->create(['name' => 'Apteka', 'sort_order' => 1, 'category_group_id' => $health->id]);
+        Category::factory()->for($user)->expense()->archived()->create(['name' => 'Badania', 'sort_order' => 2, 'category_group_id' => $health->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseGroups', [
+                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 0, 'archived_count' => 1],
+                    ['id' => $empty->id, 'name' => 'Podróże', 'sort_order' => 3, 'archived_count' => 0],
+                ])
+                ->count('expenseCategories', 1)
+                ->count('archivedCategories', 1),
             );
     }
 }

@@ -83,9 +83,20 @@ export const dialogExpenseCategories: ExpenseFormCategory[] &
         name: 'Czynsz',
         icon: 'home',
         color: 'orange',
+        group: { id: 1, name: 'Mieszkanie' },
         budget_year: year,
         planned_amount_minor_units: 300000,
         execution_minor_units: 300000,
+    },
+    {
+        id: 4,
+        name: 'Prąd',
+        icon: 'zap',
+        color: 'yellow',
+        group: { id: 1, name: 'Mieszkanie' },
+        budget_year: year,
+        planned_amount_minor_units: 25000,
+        execution_minor_units: 12000,
     },
 ];
 

@@ -4,42 +4,41 @@ namespace App\Actions;
 
 use App\Enums\CategoryType;
 use App\Models\Budget;
-use App\Support\CategoryList\CategoryListOrder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use App\Models\BudgetLine;
 
 /**
- * Drag and drop on the Budget page sets the list order (ADR-0063). The order
- * belongs to the whole list of the type, across years: the submitted ids must be
- * the active Categories of this Budget, and the numbering is
- * `CategoryListOrder`'s.
+ * Drag and drop on the Budget page (ADR-0063, ADR-0069). The Budget shows the
+ * active lines of one year and the groups of their Categories, so that is the
+ * set the submitted tree must be; `ReorderCategoryList` does the rest, the same
+ * as for „Kategorie”.
  */
 class ReorderCategories
 {
+    public function __construct(private readonly ReorderCategoryList $reorderCategoryList) {}
+
     /**
-     * @param  list<int>  $categoryIds  ids of list Categories
+     * @param  list<array{kind: 'group', id: int, category_ids: list<int>}|array{kind: 'category', id: int}>  $items
      */
-    public function handle(Budget $budget, CategoryType $type, array $categoryIds): void
+    public function handle(Budget $budget, CategoryType $type, array $items): void
     {
-        $activeCategoryIds = $budget->budgetLines()
+        $visibleCategories = $budget->budgetLines()
             ->whereNull('archived_at')
             ->ofType($type)
-            ->ordered()
-            ->pluck('category_id')
-            ->map(fn ($id): int => (int) $id)
-            ->all();
+            ->with('category')
+            ->get()
+            ->map(fn (BudgetLine $line) => $line->category);
 
-        $submittedIds = $categoryIds;
-        sort($submittedIds);
-        $expectedIds = $activeCategoryIds;
-        sort($expectedIds);
-
-        if ($submittedIds !== $expectedIds) {
-            throw ValidationException::withMessages([
-                'category_ids' => __('The category order is invalid.'),
-            ]);
-        }
-
-        DB::transaction(fn () => CategoryListOrder::place($budget->user, $type, $categoryIds));
+        $this->reorderCategoryList->handle(
+            $budget->user,
+            $type,
+            $items,
+            array_values($visibleCategories->map(fn ($category): int => $category->id)->all()),
+            array_values($visibleCategories
+                ->pluck('category_group_id')
+                ->filter()
+                ->map(fn ($id): int => (int) $id)
+                ->unique()
+                ->all()),
+        );
     }
 }

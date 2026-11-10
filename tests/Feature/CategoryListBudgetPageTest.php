@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CsvImport\ImportCategoryOptions;
@@ -266,6 +267,98 @@ class CategoryListBudgetPageTest extends TestCase
                 'planned_amount_minor_units' => 1,
             ]))
             ->assertSessionHasErrors('name');
+    }
+
+    public function test_type_change_takes_the_category_off_its_group_and_puts_it_at_the_end_of_the_new_type(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $line = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Premia', 'sort_order' => 1]);
+        $line->category->update(['category_group_id' => $group->id]);
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Pensja', 'sort_order' => 4]);
+        CategoryGroup::factory()->for($user)->income()->create(['name' => 'Etat', 'sort_order' => 7]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', [$budget, $line->category_id]), $this->categoryFields([
+                'name' => 'Premia',
+                'type' => CategoryType::Income->value,
+                'planned_amount_minor_units' => 10,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $category = $line->category->fresh();
+
+        $this->assertNull($category->category_group_id);
+        $this->assertSame(8, $category->sort_order);
+        $this->assertSame(0, $group->categories()->count());
+    }
+
+    public function test_a_type_change_that_keeps_the_type_keeps_the_group_and_the_place(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $line = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Apteka', 'sort_order' => 1]);
+        $line->category->update(['category_group_id' => $group->id]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', [$budget, $line->category_id]), $this->categoryFields([
+                'name' => 'Apteka i leki',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 10,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $category = $line->category->fresh();
+
+        $this->assertSame($group->id, $category->category_group_id);
+        $this->assertSame(1, $category->sort_order);
+    }
+
+    public function test_a_new_category_goes_after_the_last_group_and_category_of_the_type(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 5]);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Kredyt', 'sort_order' => 2]);
+        CategoryGroup::factory()->for($user)->income()->create(['name' => 'Etat', 'sort_order' => 40]);
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $budget), $this->categoryFields([
+                'name' => 'Domeny',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 12_000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $created = Category::query()->where('user_id', $user->id)->where('name', 'Domeny')->sole();
+
+        $this->assertSame(6, $created->sort_order);
+        $this->assertNull($created->category_group_id);
+    }
+
+    public function test_joining_an_existing_category_does_not_change_its_group(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $draft2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $existing = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Apteka', 'sort_order' => 1]);
+        $existing->category->update(['category_group_id' => $group->id]);
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $draft2027), $this->categoryFields([
+                'name' => 'Apteka',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 100,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $category = $existing->category->fresh();
+
+        $this->assertSame($group->id, $category->category_group_id);
+        $this->assertSame(1, $category->sort_order);
     }
 
     public function test_archiving_in_march_2027_follows_the_adr_example(): void

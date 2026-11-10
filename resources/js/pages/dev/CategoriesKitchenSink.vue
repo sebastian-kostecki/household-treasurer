@@ -1,13 +1,49 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
+import DialogsKitchenSinkController from '@/actions/App/Http/Controllers/Dev/DialogsKitchenSinkController';
 import CategoryArchiveSection from '@/components/CategoryArchiveSection.vue';
+import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
+import CategoryGroupRow from '@/components/CategoryGroupRow.vue';
+import CategoryListRow from '@/components/CategoryListRow.vue';
+import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
+import ListSurface from '@/components/ListSurface.vue';
+import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/composables/useTranslations';
 import {
     archivedCategories,
     categoriesScenarios,
+    expenseGroups,
+    groupedExpenseCategories,
 } from '@/lib/categories-fixtures';
+import { groupDeleteDescription } from '@/lib/category-list';
 
 const Categories = defineAsyncComponent(() => import('@/pages/Categories.vue'));
+
+const t = useTranslations();
+
+// The group dialogs post to the dialogs sink endpoint, which waits and rejects
+// every field, so the saving state and the name error are visible without
+// touching the User's data.
+const validateForm = DialogsKitchenSinkController.validate.form();
+const plainForm = { action: '#', method: 'post' } as const;
+
+const createDialogOpen = ref(false);
+const renameDialogOpen = ref(false);
+const deleteDialogOpen = ref(false);
+const deleteEmptyDialogOpen = ref(false);
+const deleteArchivedOnlyDialogOpen = ref(false);
+
+const deleteCopy = {
+    group_delete_description: t.categories.group_delete_description,
+    group_delete_orphans_zero: t.categories.group_delete_orphans_zero,
+    group_delete_orphans_one: t.categories.group_delete_orphans_one,
+    group_delete_orphans_few: t.categories.group_delete_orphans_few,
+    group_delete_orphans_many: t.categories.group_delete_orphans_many,
+    group_delete_archived: t.categories.group_delete_archived,
+};
+
+const pickerCategory = groupedExpenseCategories[3];
 
 const stateMatrix = [
     {
@@ -23,12 +59,16 @@ const stateMatrix = [
         where: 'Zrzuty z działającej aplikacji po Tab: przyciski „Dodaj kategorię”, ikony akcji (obrys `ring`), link „Operacje →” i przycisk rozwijający archiwum; uchwyt przeciągania ma `tabindex=-1` (kolejność zmienia się myszą lub dotykiem).',
     },
     {
+        state: 'groups',
+        where: 'Scenariusz with-groups: wiersz grupy (tło `muted`, nazwa, liczba kategorii, menu ⋯), kategorie wcięte pod grupą, grupa rozwinięta z wieloma kategoriami (Opłaty stałe), pusta grupa z podpowiedzią i strefą upuszczenia (Podróże), kategorie bez grupy na poziomie typu. Sekcja „Okna i menu grup” poniżej: menu „Grupa…”, okno „Dodaj grupę”, „Zmień nazwę” z błędem nazwy po zapisie, potwierdzenie usunięcia (z liczbą kategorii, które zostaną bez grupy, także zarchiwizowanych; grupa z samymi zarchiwizowanymi nie jest „pusta”) i wiersz grupy z przyciskami W górę / W dół wyłączonymi na brzegach. Scenariusz only-empty-group: sekcja z samą pustą grupą.',
+    },
+    {
         state: 'disabled',
-        where: 'Typ zablokowany w dialogu edycji (SegmentedControl wyłączony z podpowiedzią, /dev/ui/dialogs: Kategoria listy: typ zablokowany); przeciąganie wyłączone na czas zapisu kolejności (`reorderHttp.processing`); „Usuń” nie pojawia się, gdy nie można usunąć (can_delete wył. w default).',
+        where: 'Typ zablokowany w dialogu edycji (SegmentedControl wyłączony z podpowiedzią, /dev/ui/dialogs: Kategoria listy: typ zablokowany); przeciąganie wyłączone na czas zapisu kolejności (`reorderHttp.processing`); „Usuń” nie pojawia się, gdy nie można usunąć (can_delete wył. w default). Sekcja „Okna i menu grup”: wiersz grupy na pierwszym miejscu ma „W górę” wyłączone, na ostatnim „W dół”. Uchwyt przeciągania jest ukryty poniżej md (na telefonie kategorię przenosi menu „Grupa…”).',
     },
     {
         state: 'error',
-        where: 'Dialogi na /dev/ui/dialogs: Kategoria listy: błędy pól i nazwa zajęta przez kategorię z archiwum. Nieudane przeciągnięcie przywraca kolejność i pokazuje toast „Nie udało się zapisać kolejności”.',
+        where: 'Dialogi na /dev/ui/dialogs: Kategoria listy: błędy pól i nazwa zajęta przez kategorię z archiwum. Nieudane przeciągnięcie przywraca kolejność i pokazuje toast „Nie udało się zapisać kolejności”. Sekcja „Okna i menu grup”: okno „Zmień nazwę” zapisuje przez endpoint sinka, który odrzuca pole nazwy (komunikat pod polem); niepowodzenie zapisu kolejności to toast z przywróceniem poprzedniego porządku (przeciągnięcie w sinku trafia w prawdziwy endpoint i kończy się błędem).',
     },
     {
         state: 'empty',
@@ -95,6 +135,116 @@ const stateMatrix = [
                 {{ scenario.title }}
             </h2>
             <Categories v-bind="scenario.props" />
+        </section>
+
+        <section class="space-y-2" data-scenario="group-states">
+            <h2
+                class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
+            >
+                group-states: okna i menu grup (menu „Grupa…” otwarte, wiersz
+                grupy na brzegach)
+            </h2>
+            <ListSurface flush>
+                <template #header>
+                    <h2 class="section-title">
+                        {{ t.categories.expense_title }}
+                    </h2>
+                </template>
+                <CategoryGroupRow
+                    :group="expenseGroups[0]"
+                    type="expense"
+                    :count="2"
+                    :can-move-up="false"
+                    :can-move-down="true"
+                />
+                <CategoryListRow
+                    nested
+                    picker-open
+                    :category="pickerCategory"
+                    :groups="expenseGroups"
+                />
+                <CategoryGroupRow
+                    :group="expenseGroups[2]"
+                    type="expense"
+                    :count="0"
+                    :can-move-up="true"
+                    :can-move-down="false"
+                />
+            </ListSurface>
+            <div class="flex flex-wrap gap-2">
+                <Button type="button" @click="createDialogOpen = true">
+                    {{ t.categories.add_group }}
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="renameDialogOpen = true"
+                >
+                    {{ t.categories.group_rename }} (błąd nazwy po zapisie)
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="deleteDialogOpen = true"
+                >
+                    {{ t.categories.group_delete }} (5 kategorii i 1
+                    zarchiwizowana)
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="deleteArchivedOnlyDialogOpen = true"
+                >
+                    {{ t.categories.group_delete }} (tylko zarchiwizowane)
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="deleteEmptyDialogOpen = true"
+                >
+                    {{ t.categories.group_delete }} (pusta)
+                </Button>
+            </div>
+            <CategoryGroupFormDialog
+                v-model:open="createDialogOpen"
+                mode="create"
+                type="expense"
+                :form="validateForm"
+            />
+            <CategoryGroupFormDialog
+                v-model:open="renameDialogOpen"
+                mode="rename"
+                type="expense"
+                :group="expenseGroups[1]"
+                :form="validateForm"
+            />
+            <ConfirmActionDialog
+                v-model:open="deleteDialogOpen"
+                :form="plainForm"
+                destructive
+                :title="t.categories.group_delete_title"
+                :description="groupDeleteDescription(5, 1, deleteCopy)"
+                :confirm-label="t.categories.group_delete"
+                :cancel-label="t.categories.group_cancel"
+            />
+            <ConfirmActionDialog
+                v-model:open="deleteEmptyDialogOpen"
+                :form="plainForm"
+                destructive
+                :title="t.categories.group_delete_title"
+                :description="groupDeleteDescription(0, 0, deleteCopy)"
+                :confirm-label="t.categories.group_delete"
+                :cancel-label="t.categories.group_cancel"
+            />
+            <ConfirmActionDialog
+                v-model:open="deleteArchivedOnlyDialogOpen"
+                :form="plainForm"
+                destructive
+                :title="t.categories.group_delete_title"
+                :description="groupDeleteDescription(0, 2, deleteCopy)"
+                :confirm-label="t.categories.group_delete"
+                :cancel-label="t.categories.group_cancel"
+            />
         </section>
 
         <section class="space-y-2" data-scenario="archive-open">

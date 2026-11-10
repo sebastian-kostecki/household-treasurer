@@ -10,6 +10,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CsvImport\ImportMonthRemainingContext;
@@ -560,6 +561,33 @@ class ExpenseTest extends TestCase
                 ->where('expenseCategories.0.planned_amount_minor_units', 100000)
                 ->where('expenseCategories.0.execution_minor_units', 25000)
                 ->where('expenseCategories.0.budget_year', 2026),
+            );
+    }
+
+    public function test_operations_page_options_carry_the_category_group(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie']);
+        $grouped = BudgetLine::factory()->for($budget)->expense()->create(['sort_order' => 1]);
+        $grouped->category->update(['category_group_id' => $group->id]);
+        $ungrouped = BudgetLine::factory()->for($budget)->expense()->create(['sort_order' => 0]);
+        $income = BudgetLine::factory()->for($budget)->income()->create();
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 2)
+                ->where('expenseCategories.0.id', $ungrouped->category_id)
+                ->where('expenseCategories.0.group', null)
+                ->where('expenseCategories.1.id', $grouped->category_id)
+                ->where('expenseCategories.1.group', ['id' => $group->id, 'name' => 'Zdrowie'])
+                ->where('incomeCategories.0.id', $income->category_id)
+                ->where('incomeCategories.0.group', null),
             );
     }
 

@@ -142,12 +142,13 @@ class CategoryController extends Controller
         Budget $budget,
         ReorderCategories $reorderCategories,
     ): Response {
+        /** @var array{type: string, items: list<array{kind: 'group', id: int, category_ids: list<int>}|array{kind: 'category', id: int}>} $validated */
         $validated = $request->validated();
 
         $reorderCategories->handle(
             $budget,
             CategoryType::from($validated['type']),
-            $validated['category_ids'],
+            $validated['items'],
         );
 
         return response()->noContent();

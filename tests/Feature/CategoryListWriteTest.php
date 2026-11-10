@@ -219,9 +219,9 @@ class CategoryListWriteTest extends TestCase
         $income = Category::factory()->for($user)->income()->create(['name' => 'D', 'sort_order' => 0]);
 
         $this->actingAs($user)
-            ->patchJson(route('categories.list.reorder'), [
+            ->patchJson(route('categories.reorder-list'), [
                 'type' => CategoryType::Expense->value,
-                'category_ids' => [$second->id, $first->id],
+                'items' => $this->flatItems([$second->id, $first->id]),
             ])
             ->assertNoContent();
 
@@ -232,10 +232,21 @@ class CategoryListWriteTest extends TestCase
 
         foreach ([[$first->id], [$first->id, $second->id, $archived->id], [$first->id, $second->id, $income->id]] as $ids) {
             $this->actingAs($user)
-                ->patchJson(route('categories.list.reorder'), ['type' => CategoryType::Expense->value, 'category_ids' => $ids])
+                ->patchJson(route('categories.reorder-list'), ['type' => CategoryType::Expense->value, 'items' => $this->flatItems($ids)])
                 ->assertUnprocessable()
-                ->assertJsonValidationErrors('category_ids');
+                ->assertJsonValidationErrors('items');
         }
+    }
+
+    /**
+     * The reorder tree of Categories without a group.
+     *
+     * @param  list<int>  $categoryIds
+     * @return list<array{kind: 'category', id: int}>
+     */
+    private function flatItems(array $categoryIds): array
+    {
+        return array_map(fn (int $id): array => ['kind' => 'category', 'id' => $id], $categoryIds);
     }
 
     public function test_deleting_a_fresh_category_removes_its_draft_lines_and_a_history_refuses_it(): void

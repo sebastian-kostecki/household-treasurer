@@ -3,7 +3,45 @@ import {
     activeCountForm,
     categoryAllYearsOperationsQuery,
     categoryYearsLabel,
+    groupDeleteDescription,
 } from './category-list';
+
+describe('groupDeleteDescription', () => {
+    const copy = {
+        group_delete_description: 'Grupa zniknie.',
+        group_delete_orphans_zero: 'Grupa jest pusta.',
+        group_delete_orphans_one: '1 kategoria zostanie bez grupy.',
+        group_delete_orphans_few: ':count kategorie zostaną bez grupy.',
+        group_delete_orphans_many: ':count kategorii zostanie bez grupy.',
+        group_delete_archived:
+            'Zarchiwizowane kategorie grupy (:count) też stracą grupę.',
+    };
+
+    it.each([
+        [0, 0, 'Grupa zniknie. Grupa jest pusta.'],
+        [1, 0, 'Grupa zniknie. 1 kategoria zostanie bez grupy.'],
+        [2, 0, 'Grupa zniknie. 2 kategorie zostaną bez grupy.'],
+        [5, 0, 'Grupa zniknie. 5 kategorii zostanie bez grupy.'],
+        [
+            1,
+            1,
+            'Grupa zniknie. 1 kategoria zostanie bez grupy. Zarchiwizowane kategorie grupy (1) też stracą grupę.',
+        ],
+        // A group with archived Categories only is not empty.
+        [
+            0,
+            2,
+            'Grupa zniknie. Zarchiwizowane kategorie grupy (2) też stracą grupę.',
+        ],
+    ])(
+        'describes %i active and %i archived Categories',
+        (active, archived, expected) => {
+            expect(groupDeleteDescription(active, archived, copy)).toBe(
+                expected,
+            );
+        },
+    );
+});
 
 describe('categoryAllYearsOperationsQuery', () => {
     it('filters by the list category id only, with no year or date range', () => {

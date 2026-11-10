@@ -1,5 +1,9 @@
 import { DEFAULT_CATEGORY_COLOR } from '@/lib/category-appearance';
-import type { CategoriesPageProps, CategoryListItem } from '@/types/categories';
+import type {
+    CategoriesPageProps,
+    CategoryGroupItem,
+    CategoryListItem,
+} from '@/types/categories';
 
 const categoryAppearanceOptions: CategoriesPageProps['categoryAppearanceOptions'] =
     {
@@ -16,7 +20,12 @@ export type CategoriesScenario = {
 type CategoryFixtureOptions = Partial<
     Pick<
         CategoryListItem,
-        'description' | 'can_change_type' | 'can_delete' | 'archived_at'
+        | 'description'
+        | 'can_change_type'
+        | 'can_delete'
+        | 'archived_at'
+        | 'group_id'
+        | 'sort_order'
     >
 >;
 
@@ -40,6 +49,8 @@ function category(
         icon,
         color,
         type,
+        group_id: options.group_id ?? null,
+        sort_order: options.sort_order ?? id,
         description: options.description ?? null,
         budget_years: budgetYears,
         can_change_type: options.can_change_type ?? true,
@@ -121,7 +132,11 @@ export const archivedCategories: CategoryListItem[] = [
         'plane',
         DEFAULT_CATEGORY_COLOR,
         [2026],
-        { archived_at: '2026-09-09', description: shortDescription },
+        {
+            archived_at: '2026-09-09',
+            description: shortDescription,
+            group_id: 32,
+        },
     ),
     category(
         22,
@@ -134,6 +149,121 @@ export const archivedCategories: CategoryListItem[] = [
     ),
 ];
 
+/**
+ * Kategorie z grupami (ADR-0069). Jeden ciąg miejsc na typ: grupa „Zdrowie”
+ * (2 kategorie), grupa „Opłaty stałe” (5 kategorii i zarchiwizowane Wakacje),
+ * pusta grupa „Podróże” oraz kategorie bez grupy na poziomie typu.
+ */
+export const incomeGroups: CategoryGroupItem[] = [
+    { id: 34, name: 'Pensje', sort_order: 0, archived_count: 0 },
+];
+
+export const groupedIncomeCategories: CategoryListItem[] = [
+    category(
+        1,
+        'Wynagrodzenie',
+        'income',
+        'wallet',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { group_id: 34, sort_order: 1 },
+    ),
+    category(
+        2,
+        'Odsetki',
+        'income',
+        'percent',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { sort_order: 2 },
+    ),
+];
+
+export const expenseGroups: CategoryGroupItem[] = [
+    { id: 31, name: 'Zdrowie', sort_order: 1, archived_count: 0 },
+    { id: 32, name: 'Opłaty stałe', sort_order: 4, archived_count: 1 },
+    { id: 33, name: 'Podróże', sort_order: 10, archived_count: 0 },
+];
+
+export const groupedExpenseCategories: CategoryListItem[] = [
+    category(
+        11,
+        'Żywność',
+        'expense',
+        'shopping-cart',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { sort_order: 0 },
+    ),
+    category(
+        15,
+        'Apteka',
+        'expense',
+        'heart',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { group_id: 31, sort_order: 2 },
+    ),
+    category(
+        16,
+        'Badania',
+        'expense',
+        'heart',
+        DEFAULT_CATEGORY_COLOR,
+        [2026],
+        { group_id: 31, sort_order: 3 },
+    ),
+    category(
+        17,
+        'Czynsz',
+        'expense',
+        'home',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { group_id: 32, sort_order: 5 },
+    ),
+    category(
+        18,
+        'Prąd',
+        'expense',
+        'zap',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { group_id: 32, sort_order: 6 },
+    ),
+    category(
+        19,
+        'Internet',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { group_id: 32, sort_order: 7 },
+    ),
+    category(20, 'Gaz', 'expense', 'tag', DEFAULT_CATEGORY_COLOR, [2026], {
+        group_id: 32,
+        sort_order: 8,
+    }),
+    category(
+        23,
+        'Woda',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { group_id: 32, sort_order: 9 },
+    ),
+    category(
+        12,
+        'Rozrywka',
+        'expense',
+        'film',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { sort_order: 11 },
+    ),
+];
+
 export const categoriesScenarios: CategoriesScenario[] = [
     {
         key: 'default',
@@ -142,6 +272,20 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories,
             expenseCategories,
             archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: [],
+            categoryAppearanceOptions,
+        },
+    },
+    {
+        key: 'with-groups',
+        title: 'with-groups: grupy z kategoriami wciętymi pod wierszem grupy (Zdrowie: 2, Opłaty stałe: 5), pusta grupa „Podróże” z podpowiedzią, kategorie bez grupy na poziomie typu',
+        props: {
+            incomeCategories: groupedIncomeCategories,
+            expenseCategories: groupedExpenseCategories,
+            archivedCategories: [],
+            incomeGroups,
+            expenseGroups,
             categoryAppearanceOptions,
         },
     },
@@ -152,6 +296,8 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories,
             expenseCategories,
             archivedCategories,
+            incomeGroups: [],
+            expenseGroups: [],
             categoryAppearanceOptions,
         },
     },
@@ -162,6 +308,27 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories,
             archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: [],
+            categoryAppearanceOptions,
+        },
+    },
+    {
+        key: 'only-empty-group',
+        title: 'only-empty-group: sekcja przychodów ma tylko pustą grupę, bez komunikatu „Brak aktywnych kategorii”',
+        props: {
+            incomeCategories: [],
+            expenseCategories,
+            archivedCategories: [],
+            incomeGroups: [
+                {
+                    id: 35,
+                    name: 'Pusta grupa',
+                    sort_order: 0,
+                    archived_count: 0,
+                },
+            ],
+            expenseGroups: [],
             categoryAppearanceOptions,
         },
     },
@@ -172,6 +339,8 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories: [],
             archivedCategories,
+            incomeGroups: [],
+            expenseGroups: [],
             categoryAppearanceOptions,
         },
     },
@@ -182,6 +351,8 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeCategories: [],
             expenseCategories: [],
             archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: [],
             categoryAppearanceOptions,
         },
     },

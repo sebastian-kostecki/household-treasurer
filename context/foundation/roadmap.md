@@ -49,13 +49,13 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | done |
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | done |
 | S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | ready    |
-| S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | ready    |
+| S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
 | S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | ready    |
 | S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | proposed |
 | S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | proposed |
 | S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | proposed |
-| S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | proposed |
+| S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | ready    |
 | S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | proposed |
 | S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | proposed |
 | S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | proposed |
@@ -187,7 +187,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Suma grupy musi równać się sumie jej kategorii co do grosza, a sumy Budżetu nie mogą się zmienić. Grupa nie miesza typów i nie ma planu (PRD Non-Goals).
-- **Status:** ready
+- **Status:** done
 
 ### S-23: Podpowiedzi Importu na liście kategorii
 
@@ -261,7 +261,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Unknowns:**
   - Biblioteka wykresów czy wykres bez biblioteki? Decyzja planu plus ADR (`.ai/rules/reports.md`). — Owner: user. Block: no.
 - **Risk:** Suma kategorii za rok musi równać się wykonaniu w Budżecie, a wynik miesiąca Wynikowi miesiąca, co do grosza; raport roku otwiera się w 2 s przy 10 000 operacji. Tu powstaje widok i decyzja o wykresach, z których korzysta reszta strumienia B.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-29: Rok do roku
 
@@ -334,13 +334,13 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-19       | category-edit-and-archive           | Edycja, archiwum i przywracanie kategorii                               | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-edit-and-archive/` |
 | S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                | done                  | Zarchiwizowane: `context/archive/2026-11-10-new-budget-from-category-list/` |
 | S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | yes                   | Run `/10x-plan category-merge` |
-| S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | yes                   | Run `/10x-plan category-groups` |
+| S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-groups/` |
 | S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | yes                   | Run `/10x-plan import-suggestions-on-category-list`; pomiar trafności po porządkach w danych (pytanie 4) |
 | S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | yes                   | Run `/10x-plan category-rhythm` |
-| S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | no                    | Czeka na S-22 i S-24                                 |
+| S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | no                    | Czeka na S-24 (S-22 done)                            |
 | S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | no                    | Czeka na S-24                                 |
 | S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Czeka na S-26 (S-20 done)                            |
-| S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | no                    | Czeka na S-22                                        |
+| S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | yes                   | Run `/10x-plan period-report-by-group` |
 | S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | no                    | Czeka na S-28                                        |
 | S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | no                    | Opcjonalne; czeka na S-28                            |
 | S-31       | report-to-operations                | Raporty: przejście z kategorii do operacji                              | no                    | Opcjonalne; czeka na S-28                            |
@@ -394,3 +394,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **F-05: (foundation) nowy ADR zmienia ADR-0024 i ADR-0033: cztery rytmy zastępują flagi, mapowanie flag na rytm przy migracji jest ustalone, a wpisy w `context/foundation/glossary.md` nazywają stawkę i „zebrane” (po polsku i angielsku), regułę „do wydania” dla wydatku nieregularnego i przejście zebranego przez 31 grudnia.** — Archived 2026-11-10 → `context/archive/2026-11-09-rhythm-and-irregular-decisions/`. Lesson: —.
 - **S-19: użytkownik może utworzyć kategorię i edytować jej nazwę, ikonę, kolor, kolejność, typ i opis, zarchiwizować ją i przywrócić; archiwalna znika z wyboru w operacjach i planie, a na istniejącej operacji zostaje widoczna w selektorze** — Archived 2026-11-10 → `context/archive/2026-11-10-category-edit-and-archive/`. Lesson: —.
 - **S-20: użytkownik może utworzyć nowy budżet, który bierze aktywne kategorie z listy i podpowiada kwoty planu z planu aktualnego poprzedniego roku** — Archived 2026-11-10 → `context/archive/2026-11-10-new-budget-from-category-list/`. Lesson: —.
+- **S-22: użytkownik może utworzyć, nazwać, uporządkować i usunąć grupę (przychodów albo wydatków), przypisać do niej kategorie i widzieć kategorie w grupach z sumą grupy w „Kategoriach”, w Budżecie rocznym i w selektorze kategorii operacji** — Archived 2026-11-10 → `context/archive/2026-11-10-category-groups/`. Lesson: —.
