@@ -11,6 +11,7 @@ use App\Enums\FinancialOperationType;
 use App\Enums\MonthItemKind;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\MonthPlan;
 use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
@@ -22,12 +23,20 @@ use Illuminate\Support\Facades\DB;
 
 class RestoreUserData
 {
+    /**
+     * Versions holding the User's Category list and Budget Lines (6, and 7 with
+     * the Category Groups).
+     *
+     * @var list<int>
+     */
+    private const LIST_FORMAT_VERSIONS = [6, BackupUserData::SNAPSHOT_VERSION];
+
     public function __construct(private ResetUserData $resetUserData) {}
 
     public function handle(User $targetUser, string $path): void
     {
         $snapshot = $this->readSnapshot($path);
-        $isCurrentFormat = $snapshot['version'] === BackupUserData::SNAPSHOT_VERSION;
+        $isCurrentFormat = in_array($snapshot['version'], self::LIST_FORMAT_VERSIONS, true);
 
         if (! $isCurrentFormat) {
             $snapshot = $this->withBudgetLineKeys($snapshot);
@@ -40,7 +49,7 @@ class RestoreUserData
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $isCurrentFormat
-                ? $this->restoreBudgetLines($targetUser, $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap)
+                ? $this->restoreBudgetLines($targetUser, $snapshot['category_groups'] ?? [], $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap)
                 : $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
             $this->restoreMonthPlans($snapshot['month_plans'] ?? [], $budgetIdMap, $categoryIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
@@ -87,7 +96,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -97,20 +106,24 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('budget_lines', $snapshot)) {
+        if (in_array($version, self::LIST_FORMAT_VERSIONS, true) && ! array_key_exists('budget_lines', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('category_groups', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: category_groups');
         }
 
         return $snapshot;
@@ -223,16 +236,18 @@ class RestoreUserData
     }
 
     /**
-     * Snapshot 6: the User's Category list and the Budget Lines pointing at it.
+     * Snapshots 6 and 7: the User's Category list (with the Category Groups of
+     * 7) and the Budget Lines pointing at it.
      *
+     * @param  list<array<string, mixed>>  $categoryGroups
      * @param  list<array<string, mixed>>  $categories
      * @param  list<array<string, mixed>>  $budgetLines
      * @param  array<int, int>  $budgetIdMap
      * @return array<int, int> snapshot Budget Line id => restored Budget Line id
      */
-    private function restoreBudgetLines(User $targetUser, array $categories, array $budgetLines, array $budgetIdMap): array
+    private function restoreBudgetLines(User $targetUser, array $categoryGroups, array $categories, array $budgetLines, array $budgetIdMap): array
     {
-        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $categories);
+        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $this->restoreCategoryGroups($targetUser, $categoryGroups), $categories);
         $lineIdMap = [];
         $seenInBudget = [];
         $snapshotLineKeys = [];
@@ -288,10 +303,49 @@ class RestoreUserData
     }
 
     /**
+     * @param  list<array<string, mixed>>  $groups
+     * @return array<int, CategoryGroup> snapshot group id => restored group
+     */
+    private function restoreCategoryGroups(User $targetUser, array $groups): array
+    {
+        $restored = [];
+        $seenKeys = [];
+
+        foreach ($groups as $groupData) {
+            $type = CategoryType::tryFrom((string) $groupData['type']);
+
+            if ($type === null) {
+                throw new UserSnapshotException("Snapshot category group {$groupData['id']} has an invalid type.");
+            }
+
+            $nameKey = CategoryNameKey::of((string) $groupData['name']);
+            $uniqueKey = $type->value."\0".$nameKey;
+
+            if (isset($seenKeys[$uniqueKey])) {
+                throw new UserSnapshotException("Snapshot contains the category group \"{$groupData['name']}\" twice.");
+            }
+
+            $seenKeys[$uniqueKey] = true;
+
+            $restored[$groupData['id']] = $targetUser->categoryGroups()->create([
+                'name' => $groupData['name'],
+                'name_key' => $nameKey,
+                'type' => $type,
+                'sort_order' => $groupData['sort_order'],
+                'created_at' => isset($groupData['created_at']) ? Carbon::parse($groupData['created_at']) : now(),
+                'updated_at' => isset($groupData['updated_at']) ? Carbon::parse($groupData['updated_at']) : now(),
+            ]);
+        }
+
+        return $restored;
+    }
+
+    /**
+     * @param  array<int, CategoryGroup>  $groups
      * @param  list<array<string, mixed>>  $categories
      * @return array<int, Category> snapshot Category id => restored Category
      */
-    private function restoreCategoryListFromSnapshot(User $targetUser, array $categories): array
+    private function restoreCategoryListFromSnapshot(User $targetUser, array $groups, array $categories): array
     {
         $restored = [];
         $seenKeys = [];
@@ -311,7 +365,22 @@ class RestoreUserData
 
             $seenKeys[$uniqueKey] = true;
 
+            $group = null;
+
+            if (isset($categoryData['category_group_id'])) {
+                $group = $groups[$categoryData['category_group_id']] ?? null;
+
+                if ($group === null) {
+                    throw new UserSnapshotException("Snapshot category {$categoryData['id']} references unknown category group id {$categoryData['category_group_id']}.");
+                }
+
+                if ($group->type !== $type) {
+                    throw new UserSnapshotException("Snapshot category {$categoryData['id']} belongs to a category group of another type.");
+                }
+            }
+
             $category = $targetUser->categories()->create([
+                'category_group_id' => $group?->id,
                 'name' => $categoryData['name'],
                 'name_key' => CategoryNameKey::of((string) $categoryData['name']),
                 'icon' => $categoryData['icon'],

@@ -413,25 +413,25 @@ Migracja tylko dodaje tabelę i kolumnę nullable, bez przenoszenia danych; licz
 
 #### Automated
 
-- [x] 1.1 Testy jednostkowe kolejności przechodzą
-- [x] 1.2 Migracja, `down()` i unikalność nazwy grupy przechodzą na PostgreSQL
-- [x] 1.3 Testy zmiany typu i tworzenia kategorii przechodzą na PostgreSQL
-- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Testy jednostkowe kolejności przechodzą — b5b9910
+- [x] 1.2 Migracja, `down()` i unikalność nazwy grupy przechodzą na PostgreSQL — b5b9910
+- [x] 1.3 Testy zmiany typu i tworzenia kategorii przechodzą na PostgreSQL — b5b9910
+- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — b5b9910
 
 #### Manual
 
-- [x] 1.5 ADR-0066 i wpis słownika opisują decyzje z tej rozmowy
+- [x] 1.5 ADR-0066 i wpis słownika opisują decyzje z tej rozmowy — b5b9910
 
 ### Phase 2: Snapshot v7
 
 #### Automated
 
-- [ ] 2.1 Testy snapshotu przechodzą na PostgreSQL
-- [ ] 2.2 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Testy snapshotu przechodzą na PostgreSQL
+- [x] 2.2 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 2.3 `user:backup` i `user:restore` na devie odtwarzają grupę i przynależność
+- [x] 2.3 `user:backup` i `user:restore` na devie odtwarzają grupę i przynależność
 
 ### Phase 3: Grupy w „Kategoriach”
 
