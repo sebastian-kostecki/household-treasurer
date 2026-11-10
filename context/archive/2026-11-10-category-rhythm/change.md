@@ -1,10 +1,10 @@
 ---
 change_id: category-rhythm
 title: Category rhythm
-status: impl_reviewed
+status: archived
 created: 2026-11-10
 updated: 2026-11-10
-archived_at: null
+archived_at: 2026-11-10T18:23:52Z
 ---
 
 ## Notes
