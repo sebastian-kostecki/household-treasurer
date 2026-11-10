@@ -415,34 +415,34 @@ Brak migracji schematu i danych. Nowa trasa i nowa pozycja menu. Wdrożenie nie 
 
 #### Automated
 
-- [x] 1.1 Testy odczytu przechodzą na SQLite
-- [x] 1.2 Testy odczytu przechodzą na PostgreSQL (worktree)
-- [x] 1.3 Formatowanie PHP
-- [x] 1.4 Sloppy bez nowych znalezisk
+- [x] 1.1 Testy odczytu przechodzą na SQLite — ab78378
+- [x] 1.2 Testy odczytu przechodzą na PostgreSQL (worktree) — ab78378
+- [x] 1.3 Formatowanie PHP — ab78378
+- [x] 1.4 Sloppy bez nowych znalezisk — ab78378
 
 #### Manual
 
-- [x] 1.5 ADR-0070 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu
+- [x] 1.5 ADR-0070 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu — ab78378
 
 ### Phase 2: Strona „Raporty” z tabelami
 
 #### Automated
 
-- [ ] 2.1 Testy strony, kitchen sinka i wyboru roku przechodzą na PostgreSQL
-- [ ] 2.2 Testy wydajności nfr (z naprawionym NfrPerf01Test) przechodzą na PostgreSQL
-- [ ] 2.3 Test formatera udziału przechodzi
-- [ ] 2.4 Wayfinder i typy
-- [ ] 2.5 Strażnik literałów UI
-- [ ] 2.6 Pełna bramka w worktree
-- [ ] 2.7 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy strony, kitchen sinka i wyboru roku przechodzą na PostgreSQL
+- [x] 2.2 Testy wydajności nfr (z naprawionym NfrPerf01Test) przechodzą na PostgreSQL
+- [x] 2.3 Test formatera udziału przechodzi
+- [x] 2.4 Wayfinder i typy
+- [x] 2.5 Strażnik literałów UI
+- [x] 2.6 Pełna bramka w worktree
+- [x] 2.7 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 2.8 „Wydatki” roku równe sumie wykonania wydatków w Budżecie przy „Pokaż zarchiwizowane”
-- [ ] 2.9 „Wynik” zamkniętego miesiąca równy realnemu odłożeniu w Podsumowaniu miesiąca
-- [ ] 2.10 Grupy się zwijają, kolejność jak w Budżecie, zarchiwizowana kategoria w swojej grupie
-- [ ] 2.11 Zmiana roku w sidebarze na Raportach zostaje na Raportach
-- [ ] 2.12 Kitchen sink /dev/ui/reports we wszystkich scenariuszach, jasny, ciemny, telefon
+- [x] 2.8 „Wydatki” roku równe sumie wykonania wydatków w Budżecie przy „Pokaż zarchiwizowane”
+- [x] 2.9 „Wynik” zamkniętego miesiąca równy realnemu odłożeniu w Podsumowaniu miesiąca
+- [x] 2.10 Grupy się zwijają, kolejność jak w Budżecie, zarchiwizowana kategoria w swojej grupie
+- [x] 2.11 Zmiana roku w sidebarze na Raportach zostaje na Raportach
+- [x] 2.12 Kitchen sink /dev/ui/reports we wszystkich scenariuszach, jasny, ciemny, telefon
 
 ### Phase 3: Wykres
 

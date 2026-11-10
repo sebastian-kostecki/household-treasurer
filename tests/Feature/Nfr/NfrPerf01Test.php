@@ -22,13 +22,12 @@ use Tests\TestCase;
 #[Group('nfr')]
 class NfrPerf01Test extends TestCase
 {
+    use MeasuresRequestTime;
     use RefreshDatabase;
 
     private const int FINANCIAL_OPERATIONS_COUNT = 10_000;
 
     private const int OWN_TRANSFERS_COUNT = 1_000;
-
-    private const float MAX_SECONDS = 2.0;
 
     protected function setUp(): void
     {
@@ -157,7 +156,7 @@ class NfrPerf01Test extends TestCase
                 'user_id' => $user->id,
                 'type' => FinancialOperationType::Income->value,
                 'account_id' => $account->id,
-                'category_id' => $category->category_id,
+                'budget_line_id' => $category->id,
                 'budget_id' => $budget->id,
                 'operation_date' => '2026-03-01',
                 'amount_minor_units' => 1000 + ($index % 100),
@@ -207,20 +206,5 @@ class NfrPerf01Test extends TestCase
         if ($rows !== []) {
             DB::table('own_transfers')->insert($rows);
         }
-    }
-
-    private function assertRequestWithinSeconds(callable $request, string $label): void
-    {
-        $startedAt = microtime(true);
-
-        $request();
-
-        $elapsedSeconds = microtime(true) - $startedAt;
-
-        $this->assertLessThanOrEqual(
-            self::MAX_SECONDS,
-            $elapsedSeconds,
-            "{$label} took {$elapsedSeconds}s; expected ≤ ".self::MAX_SECONDS.'s.',
-        );
     }
 }

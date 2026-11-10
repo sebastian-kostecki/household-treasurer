@@ -72,8 +72,10 @@ final class PeriodReport
 
         $groups = CategoryGroup::query()->where('user_id', $budget->user_id)->get();
 
-        $income = self::entriesOfType(CategoryType::Income, $rows, $groups->all());
-        $expense = self::entriesOfType(CategoryType::Expense, $rows, $groups->all());
+        $groupList = array_values($groups->all());
+
+        $income = self::entriesOfType(CategoryType::Income, $rows, $groupList);
+        $expense = self::entriesOfType(CategoryType::Expense, $rows, $groupList);
 
         $incomeTotal = self::total($income);
         $expenseTotal = self::total($expense);

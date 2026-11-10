@@ -1404,6 +1404,58 @@
         @apply meta text-muted-foreground pointer-events-none absolute inset-0 flex items-center py-2 pr-4 pl-10;
     }
 
+    /**
+     * Period Report table (ADR-0070): one markup on every width, columns
+     * Kategoria | Kwota | Udział; income has no Udział column. A group is a
+     * `muted` band like in the Budget, its Categories stand indented.
+     */
+    .report-grid {
+        @apply grid w-full items-center gap-x-4;
+        grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto) 4.5rem;
+    }
+
+    .report-grid-no-share {
+        grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
+    }
+
+    /* Kitchen sink only: a phone-wide frame for the Reports scenarios. */
+    .report-phone-frame {
+        @apply mx-auto w-full;
+        max-width: 22rem;
+    }
+
+    .report-header-row {
+        @apply table-header border-border-soft border-b px-4 py-2;
+    }
+
+    .report-row {
+        @apply border-border-soft min-h-row border-b px-4 py-2 text-sm;
+    }
+
+    .report-group-row {
+        @apply bg-muted border-border/60 min-h-row border-b px-4 py-3 text-sm;
+    }
+
+    .report-row-nested {
+        @apply pl-10;
+    }
+
+    .report-total-row {
+        @apply min-h-row px-4 py-3 text-sm;
+    }
+
+    .report-cell-name {
+        @apply flex min-w-0 items-center gap-2;
+    }
+
+    .report-cell-amount {
+        @apply amount text-right;
+    }
+
+    .report-cell-share {
+        @apply amount text-muted-foreground text-right;
+    }
+
     .budget-category-header-row {
         @apply table-header border-border/60 hidden border-b px-4 py-2.5;
     }
