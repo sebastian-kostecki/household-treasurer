@@ -430,6 +430,7 @@ Brak migracji schematu i danych. Nowa trasa i nowa pozycja menu. Wdrożenie nie 
 
 - [x] 2.1 Testy strony, kitchen sinka i wyboru roku przechodzą na PostgreSQL — a703242
 - [x] 2.2 Testy wydajności nfr (z naprawionym NfrPerf01Test) przechodzą na PostgreSQL — a703242
+  - Impl-review 2026-11-10 (F1): NfrPerf01Test i NfrPerfReportTest zielone; NfrPerf03ImportPreviewTest przekracza 2 s (2,05 / 3,73 / 5,04 s), poza zakresem S-28 — zgłoszenie #223.
 - [x] 2.3 Test formatera udziału przechodzi — a703242
 - [x] 2.4 Wayfinder i typy — a703242
 - [x] 2.5 Strażnik literałów UI — a703242

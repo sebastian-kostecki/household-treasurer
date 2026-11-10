@@ -6,6 +6,7 @@ paths:
     - 'tests/Feature/Nfr/*.php'
     - 'resources/js/components/Report*.vue'
     - 'resources/js/lib/format-share*.ts'
+    - 'resources/js/lib/report-chart*.ts'
     - 'resources/js/lib/reports-fixtures.ts'
     - 'tests/Unit/ReportsHardcodedUiTest.php'
 ---

@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
@@ -107,16 +108,14 @@ const stateMatrix = [
                 class="flex flex-col gap-4"
                 :class="{ 'report-phone-frame': scenario.phone }"
             >
-                <IndexEmptyState
+                <ReportEmptyState
                     v-if="scenario.kind === 'no-budget'"
-                    :title="t.reports.no_budget_title"
-                    :description="t.reports.no_budget_description"
+                    kind="no-budget"
                 />
 
-                <IndexEmptyState
+                <ReportEmptyState
                     v-else-if="scenario.kind === 'draft'"
-                    :title="t.reports.draft_title"
-                    :description="t.reports.draft_description"
+                    kind="draft"
                 />
 
                 <template v-else-if="scenario.report !== null">

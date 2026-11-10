@@ -403,6 +403,7 @@ return [
         'amounts_in_zl' => 'Kwoty w zł',
         'group_expand' => 'Rozwiń grupę :name',
         'group_collapse' => 'Zwiń grupę :name',
+        'group_category_count' => 'Liczba kategorii w grupie',
         'section_empty' => 'Brak pozycji w tym okresie.',
         'no_budget_title' => 'Brak budżetu',
         'no_budget_description' => 'Raport powstaje z budżetu wybranego roku. Dodaj budżet, aby go zobaczyć.',

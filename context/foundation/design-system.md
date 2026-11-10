@@ -156,7 +156,8 @@ Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): obok st
 | --------- | --------------------------------------------------------------------------------- |
 | `chart-1` | słupki wydatków (Atrament: `#0b6f8a` jasny, `#2fb4d4` ciemny)                     |
 | `success` | słupki przychodów                                                                 |
-| `track`   | tło pasa i linie siatki (nie niesie danych)                                       |
+| `track`   | tło pasa (nie niesie danych)                                                      |
+| `border`  | linie siatki w 50% (nie niosą danych); maluje je `ChartContainer` z `ui/chart`    |
 
 Grafika wykresu ma kontrast co najmniej 3:1 wobec `card` w obu trybach: `chart-1` 5,75:1 (jasny) i 7,16:1 (ciemny), `success` 6,52:1 i 9,99:1. Kolor kategorii nigdy nie maluje słupków (zostaje w `CategoryChip`). `chart-2..5` są nieużywane do S-29/S-30; użyte po raz pierwszy wymagają sprawdzonego kontrastu w obu trybach i wpisu tutaj.
 

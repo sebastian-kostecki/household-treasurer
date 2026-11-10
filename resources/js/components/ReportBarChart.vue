@@ -6,6 +6,8 @@ import ListSurface from '@/components/ListSurface.vue';
 import { ChartContainer } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
 import { formatMoney } from '@/lib/format';
+import { reportChartBars } from '@/lib/report-chart';
+import type { ReportChartBar } from '@/lib/report-chart';
 import type { PeriodReportEntry } from '@/types/reports';
 
 /**
@@ -18,16 +20,10 @@ const props = defineProps<{
     type: 'income' | 'expense';
 }>();
 
-type Bar = { index: number; name: string; value: number };
+type Bar = ReportChartBar;
 
-/** Rows whose amount is not positive keep their place but get no bar. */
-const bars = computed<Bar[]>(() =>
-    props.entries.map((entry, index) => ({
-        index,
-        name: entry.name,
-        value: Math.max(0, entry.amount_minor_units),
-    })),
-);
+/** Empty when no row has a positive amount: then only the table is shown. */
+const bars = computed<Bar[]>(() => reportChartBars(props.entries));
 
 const color = computed(() =>
     props.type === 'income' ? 'var(--success)' : 'var(--chart-1)',

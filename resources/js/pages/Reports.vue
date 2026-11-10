@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { computed, defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
-import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import { budget as budgetRoute, reports as reportsRoute } from '@/routes';
+import { reports as reportsRoute } from '@/routes';
 import type { ReportsPageProps } from '@/types/reports';
 
 const ReportBarChart = defineAsyncComponent(
@@ -69,33 +69,9 @@ const title = computed(() => {
     <Head :title="t.reports.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
-        <IndexEmptyState
-            v-if="budgetYear === null"
-            :title="t.reports.no_budget_title"
-            :description="t.reports.no_budget_description"
-        >
-            <template #actions>
-                <Button as-child>
-                    <Link :href="budgetRoute()">
-                        {{ t.reports.go_to_budget }}
-                    </Link>
-                </Button>
-            </template>
-        </IndexEmptyState>
+        <ReportEmptyState v-if="budgetYear === null" kind="no-budget" />
 
-        <IndexEmptyState
-            v-else-if="report === null"
-            :title="t.reports.draft_title"
-            :description="t.reports.draft_description"
-        >
-            <template #actions>
-                <Button as-child>
-                    <Link :href="budgetRoute()">
-                        {{ t.reports.go_to_budget }}
-                    </Link>
-                </Button>
-            </template>
-        </IndexEmptyState>
+        <ReportEmptyState v-else-if="report === null" kind="draft" />
 
         <template v-else>
             <div class="flex flex-wrap items-center justify-between gap-3">

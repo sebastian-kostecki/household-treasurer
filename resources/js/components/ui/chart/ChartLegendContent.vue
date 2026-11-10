@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { cn } from "cn"
+import { cn } from "@/lib/utils"
 import { computed, onMounted, ref } from "vue"
 import { useChart } from "."
 

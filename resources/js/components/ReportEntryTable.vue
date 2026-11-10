@@ -46,7 +46,7 @@ function bodyId(groupId: number): string {
             <h2 class="section-title">{{ title }}</h2>
         </template>
 
-        <div>
+        <div v-if="entries.length > 0">
             <div
                 class="report-grid report-header-row"
                 :class="{ 'report-grid-no-share': !showShare }"
@@ -100,8 +100,11 @@ function bodyId(groupId: number): string {
                 </div>
             </div>
         </div>
+        <p v-else class="text-muted-foreground px-4 py-3 text-sm">
+            {{ t.reports.section_empty }}
+        </p>
 
-        <template #footer>
+        <template v-if="entries.length > 0" #footer>
             <p class="meta text-muted-foreground">
                 {{ t.reports.amounts_in_zl }}
             </p>

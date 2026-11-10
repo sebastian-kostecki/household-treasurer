@@ -52,7 +52,9 @@ const toggleLabel = computed(() =>
                 />
                 <span class="truncate">{{ group.name }}</span>
             </button>
-            <Badge variant="neutral">{{ group.categories.length }}</Badge>
+            <Badge variant="neutral" :title="t.reports.group_category_count">
+                {{ group.categories.length }}
+            </Badge>
         </div>
         <div class="report-cell-amount amount-sum">
             {{ formatMoneyAmount(group.amount_minor_units) }}

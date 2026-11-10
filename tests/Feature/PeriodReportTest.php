@@ -208,6 +208,21 @@ test('a group sums its rows, archived categories stand inside it and empty group
         ->and(array_sum(array_column($expense[0]['categories'], 'amount_minor_units')))->toBe($expense[0]['amount_minor_units']);
 });
 
+test('the archived mark comes from the budget line of the period, not from the list category', function () {
+    [$user, $account, $budget] = reportFixture();
+    $lineArchivedThisYear = reportLine($user, $budget, 'expense', 'Abonament', archivedLine: true);
+    $categoryArchivedOnList = reportLine($user, $budget, 'expense', 'Siłownia', ['archived_at' => now()]);
+    reportOperation($user, $account, $lineArchivedThisYear, '2026-03-02', 5_000);
+    reportOperation($user, $account, $categoryArchivedOnList, '2026-03-03', 9_000);
+
+    $expense = PeriodReport::forYear($budget)->toArray()['expense'];
+
+    expect(array_column($expense, 'is_archived', 'name'))->toEqual([
+        'Abonament' => true,
+        'Siłownia' => false,
+    ]);
+});
+
 test('rows follow the list order with groups and ungrouped categories interleaved and ties broken like the list', function () {
     [$user, $account, $budget] = reportFixture();
     $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Grupa', 'sort_order' => 1]);

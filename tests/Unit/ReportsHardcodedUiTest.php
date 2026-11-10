@@ -13,6 +13,7 @@ const REPORTS_VIEW_FILES = [
     'resources/js/components/ReportGroupRow.vue',
     'resources/js/components/ReportCategoryRow.vue',
     'resources/js/components/ReportBarChart.vue',
+    'resources/js/components/ReportEmptyState.vue',
 ];
 
 const REPORTS_FORBIDDEN_PATTERNS = [
