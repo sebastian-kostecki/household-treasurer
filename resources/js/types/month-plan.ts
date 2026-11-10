@@ -1,5 +1,7 @@
 export type MonthItemKind = 'bill' | 'running';
 
+export type MonthRhythm = 'fixed_charge' | 'running' | 'even_annual';
+
 export type MonthStripState = 'summary' | 'approved' | 'proposal';
 
 export type MonthPace = {
@@ -31,13 +33,19 @@ export type MonthPlanItem = {
     plan_minor_units: number;
     actual_minor_units: number;
     has_positive_amount: boolean;
-    can_change_kind: boolean;
     in_plan: boolean;
     deviation_minor_units: number | null;
     is_over_plan: boolean;
     is_settled: boolean;
-    available_limit_minor_units: number | null;
-    is_idle_one_off: boolean;
+    /** Even Annual without a plan amount and without operations in the month (ADR-0070). */
+    is_idle_even_annual: boolean;
+    /** The Rhythm of the viewed month (ADR-0066); null for an income item. */
+    rhythm: MonthRhythm | null;
+    /** "Zostało X na Y mies." of an Even Annual item in the current and future months. */
+    even_annual_remaining: {
+        available_limit_minor_units: number;
+        months_left: number;
+    } | null;
     approved_minor_units: number | null;
     is_join_candidate: boolean;
     year_comparison: MonthYearComparison | null;

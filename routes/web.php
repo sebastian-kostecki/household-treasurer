@@ -77,7 +77,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::patch('budgets/{budget}/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::patch('budgets/{budget}/categories/{category}/month-item-kind', [CategoryController::class, 'updateMonthItemKind'])->name('categories.month-item-kind');
     Route::delete('budgets/{budget}/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::post('budgets/{budget}/categories/{category}/align-current-plan', [CategoryController::class, 'alignCurrentPlan'])->name('categories.align-current-plan');
     Route::post('categories', [CategoryListController::class, 'store'])->name('categories.list.store');

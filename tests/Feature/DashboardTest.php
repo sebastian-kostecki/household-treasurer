@@ -802,7 +802,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('month_to_spend', [
                     'state' => 'proposal',
-                    'to_spend_minor_units' => 0,
+                    'to_spend_minor_units' => -10_000,
                 ])
                 ->where('current_month', 9),
             );
@@ -1487,7 +1487,7 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices.1.kind', 'negative_term_deposit')
                 ->where('dashboardNotices.1.id', $negativeTermDeposit->id)
                 ->where('dashboardNotices.2.kind', 'month_to_spend_negative')
-                ->where('dashboardNotices.2.amount_minor_units', -150_000)
+                ->where('dashboardNotices.2.amount_minor_units', -154_166)
                 ->where('dashboardNotices.3.kind', 'month_item_over_plan')
                 ->where('dashboardNotices.3.id', $groceries->category_id)
                 ->where('dashboardNotices.3.amount_minor_units', -50_000)

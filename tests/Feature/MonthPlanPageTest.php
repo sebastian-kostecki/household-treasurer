@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\ManageFinancialOperation;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -48,10 +49,10 @@ class MonthPlanPageTest extends TestCase
                 ->where('viewedMonth', 6)
                 ->where('viewedMonthTiming', 'current')
                 ->missing('currentMonth')
-                ->where('translations.month_plan.kind_column', 'Rodzaj')
+                ->where('translations.month_plan.kind_column', 'Rytm')
                 ->where('translations.month_plan.edit_bar_label', 'Edycja planu')
-                ->where('translations.month_plan.changing_hint', 'Zmieniasz plan. Rodzaj pozycji zapisuje się od razu i „Anuluj” go nie cofa.')
-                ->where('translations.month_plan.kind_scope_note', 'Rodzaj pozycji to ustawienie kategorii: zmiana zapisuje się od razu i dotyczy wszystkich miesięcy, także minionych.')
+                ->where('translations.month_plan.changing_hint', 'Zmieniasz plan. Zapisz zmiany, aby zapisać nowe kwoty.')
+                ->where('translations.month_plan.rhythm_even_annual', 'Równomierna roczna')
                 ->where('translations.month_plan.amount_invalid', 'Wpisz kwotę, np. 1200,50.')
                 ->where('translations.month_plan.invalid_amounts', 'Niepoprawne kwoty: :count')
                 ->where('monthPlan.state', 'proposal')
@@ -75,7 +76,6 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.income_items.0.plan_minor_units', 800_000)
                 ->where('monthPlan.income_items.0.actual_minor_units', 0)
                 ->where('monthPlan.income_items.0.has_positive_amount', false)
-                ->where('monthPlan.income_items.0.can_change_kind', false)
                 ->where('monthPlan.income_items.0.in_plan', true)
                 ->where('monthPlan.income_items.0.approved_minor_units', null)
                 ->where('monthPlan.income_items.0.is_join_candidate', false)
@@ -84,11 +84,17 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.0.plan_minor_units', 200_000)
                 ->where('monthPlan.expense_items.0.actual_minor_units', 195_000)
                 ->where('monthPlan.expense_items.0.has_positive_amount', true)
-                ->where('monthPlan.expense_items.0.can_change_kind', true)
+                ->where('monthPlan.expense_items.0.rhythm', 'fixed_charge')
+                ->where('monthPlan.expense_items.0.even_annual_remaining', null)
+                ->where('monthPlan.expense_items.0.is_idle_even_annual', false)
+                ->where('monthPlan.income_items.0.rhythm', null)
+                ->missing('monthPlan.expense_items.0.can_change_kind')
                 ->where('monthPlan.expense_items.1.month_item_kind', 'running')
+                ->where('monthPlan.expense_items.1.rhythm', 'running')
                 ->where('monthPlan.expense_items.3.name', 'Prezent')
                 ->where('monthPlan.expense_items.3.is_one_off', true)
-                ->where('monthPlan.expense_items.3.plan_minor_units', 0)
+                ->where('monthPlan.expense_items.3.rhythm', 'even_annual')
+                ->where('monthPlan.expense_items.3.plan_minor_units', 8_333)
                 ->where('monthPlan.expense_items.3.actual_minor_units', 30_000),
             );
     }
@@ -128,9 +134,8 @@ class MonthPlanPageTest extends TestCase
                 ->where('viewedMonthTiming', 'future')
                 ->where('monthPlan.state', 'proposal')
                 ->where('monthPlan.can_approve', false)
-                ->where('monthPlan.to_spend_minor_units', 410_000)
-                ->where('monthPlan.month_pace', null)
-                ->where('monthPlan.expense_items.0.can_change_kind', true),
+                ->where('monthPlan.to_spend_minor_units', 406_667)
+                ->where('monthPlan.month_pace', null),
             );
     }
 
@@ -309,7 +314,6 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.month_pace.is_ahead', false)
                 ->has('monthPlan.income_items', 1)
                 ->has('monthPlan.expense_items', 1)
-                ->where('monthPlan.expense_items.0.can_change_kind', false)
                 ->where('monthPlan.expense_items.0.is_join_candidate', false)
                 ->where('monthPlan.summary.income.final_minor_units', 500_000)
                 ->where('monthPlan.summary.expense.actual_minor_units', 0)
@@ -436,7 +440,6 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.4.is_archived', true)
                 ->where('monthPlan.expense_items.4.plan_minor_units', 0)
                 ->where('monthPlan.expense_items.4.actual_minor_units', 20_000)
-                ->where('monthPlan.expense_items.4.can_change_kind', false)
                 ->where('monthPlan.to_spend_minor_units', 353_000),
             );
     }
@@ -534,7 +537,7 @@ class MonthPlanPageTest extends TestCase
                         && $join['in_plan'] === false
                         && $join['plan_minor_units'] === 0
                         && $join['actual_minor_units'] === 0
-                        && $join['can_change_kind'] === false
+                        && $join['rhythm'] === 'running'
                         && array_keys($join) === array_keys($line);
                 })
                 ->where('monthPlan.to_spend_minor_units', 373_000),
@@ -760,7 +763,7 @@ class MonthPlanPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('monthPlan.state', 'proposal')
                 ->where('monthPlan.set_aside_minor_units', 50_000)
-                ->where('monthPlan.to_spend_minor_units', 360_000),
+                ->where('monthPlan.to_spend_minor_units', 356_667),
             );
     }
 
@@ -898,10 +901,10 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.2.deviation_minor_units', 12_000)
                 ->where('monthPlan.expense_items.2.is_over_plan', true)
                 ->where('monthPlan.expense_items.3.name', 'Prezent')
-                ->where('monthPlan.expense_items.3.deviation_minor_units', 30_000)
+                ->where('monthPlan.expense_items.3.deviation_minor_units', 21_667)
                 ->where('monthPlan.expense_items.3.is_over_plan', true)
                 ->where('monthPlan.expense_items.3.is_settled', false)
-                ->where('monthPlan.expense_items.3.is_idle_one_off', false),
+                ->where('monthPlan.expense_items.3.is_idle_even_annual', false),
             );
     }
 
@@ -926,7 +929,7 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
-    public function test_one_off_rows_expose_the_annual_available_limit(): void
+    public function test_even_annual_rows_expose_what_is_left_of_the_year_and_the_months_left(): void
     {
         [$user, , $categories] = $this->canonicalBudget();
 
@@ -936,22 +939,76 @@ class MonthPlanPageTest extends TestCase
             ->withSession(['budget_year' => 2026])
             ->get(route('month-plan'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('monthPlan.expense_items.3.available_limit_minor_units', 70_000)
-                ->where('monthPlan.expense_items.2.available_limit_minor_units', null)
-                ->where('monthPlan.income_items.0.available_limit_minor_units', null),
+                ->where('monthPlan.expense_items.3.even_annual_remaining', [
+                    'available_limit_minor_units' => 70_000,
+                    'months_left' => 7,
+                ])
+                ->where('monthPlan.expense_items.2.even_annual_remaining', null)
+                ->where('monthPlan.income_items.0.even_annual_remaining', null),
             );
 
         $categories['gift']->update(['execution_minor_units' => 130_000]);
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
-            ->get(route('month-plan'))
+            ->get(route('month-plan', ['month' => 8]))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('monthPlan.expense_items.3.available_limit_minor_units', -30_000),
+                ->where('monthPlan.expense_items.3.even_annual_remaining', [
+                    'available_limit_minor_units' => -30_000,
+                    'months_left' => 7,
+                ]),
             );
     }
 
-    public function test_one_off_without_plan_and_operations_is_idle(): void
+    public function test_even_annual_months_left_count_from_the_current_calendar_month(): void
+    {
+        $this->travelTo('2026-11-10');
+        [$user, $budget] = $this->canonicalBudget();
+        $next = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        BudgetLine::factory()->for($next)->oneOff()->create([
+            'name' => 'Wakacje', 'planned_amount_minor_units' => 120_000,
+        ]);
+
+        foreach ([11, 12] as $month) {
+            $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('month-plan', ['month' => $month]))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('monthPlan.expense_items.3.name', 'Prezent')
+                    ->where('monthPlan.expense_items.3.even_annual_remaining.months_left', 2),
+                );
+        }
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan', ['month' => 1]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'future')
+                ->where('monthPlan.expense_items.0.rhythm', 'even_annual')
+                ->where('monthPlan.expense_items.0.even_annual_remaining', [
+                    'available_limit_minor_units' => 120_000,
+                    'months_left' => 12,
+                ]),
+            );
+    }
+
+    public function test_past_months_have_no_even_annual_remaining(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+        $this->approveJune($user, $budget, $categories);
+        $this->travelTo('2026-08-10');
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 6]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'past')
+                ->where('monthPlan.expense_items.3.rhythm', 'even_annual')
+                ->where('monthPlan.expense_items.3.even_annual_remaining', null),
+            );
+    }
+
+    public function test_even_annual_without_plan_and_operations_is_idle(): void
     {
         [$user, $budget] = $this->canonicalBudget();
         BudgetLine::factory()->for($budget)->oneOff()->create([
@@ -968,14 +1025,33 @@ class MonthPlanPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('monthPlan.expense_items.4.name', 'Wakacje')
                 ->where('monthPlan.expense_items.4.in_plan', true)
-                ->where('monthPlan.expense_items.4.is_idle_one_off', true)
+                ->where('monthPlan.expense_items.4.is_idle_even_annual', true)
                 ->where('monthPlan.expense_items.5.name', 'Zwrot')
                 ->where('monthPlan.expense_items.5.deviation_minor_units', -5_000)
-                ->where('monthPlan.expense_items.5.is_idle_one_off', false),
+                ->where('monthPlan.expense_items.5.is_idle_even_annual', false)
+                ->where('monthPlan.expense_items.3.is_idle_even_annual', false),
             );
     }
 
-    public function test_one_off_with_an_approved_plan_amount_is_not_idle(): void
+    public function test_only_an_even_annual_rhythm_makes_a_row_idle(): void
+    {
+        [$user, $budget] = $this->canonicalBudget();
+        $running = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Kino', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
+        ]);
+        $running->category->rhythms()->update(['rhythm' => Rhythm::Running]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.4.name', 'Kino')
+                ->where('monthPlan.expense_items.4.plan_minor_units', 0)
+                ->where('monthPlan.expense_items.4.is_idle_even_annual', false),
+            );
+    }
+
+    public function test_even_annual_with_an_approved_plan_amount_is_not_idle(): void
     {
         [$user, $budget] = $this->canonicalBudget();
         $holiday = BudgetLine::factory()->for($budget)->oneOff()->create([
@@ -997,7 +1073,28 @@ class MonthPlanPageTest extends TestCase
                 ->where('monthPlan.expense_items.4.name', 'Wakacje')
                 ->where('monthPlan.expense_items.4.plan_minor_units', 200_000)
                 ->where('monthPlan.expense_items.4.deviation_minor_units', -200_000)
-                ->where('monthPlan.expense_items.4.is_idle_one_off', false),
+                ->where('monthPlan.expense_items.4.is_idle_even_annual', false),
+            );
+    }
+
+    public function test_a_join_row_of_an_even_annual_category_is_idle_with_the_rhythm_of_the_month(): void
+    {
+        [$user] = $this->canonicalBudget();
+        $category = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $category->rhythms()->update(['rhythm' => Rhythm::EvenAnnual]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', function ($items) {
+                    $join = collect($items)->firstWhere('name', 'Domeny');
+
+                    return $join['is_join_candidate'] === true
+                        && $join['rhythm'] === 'even_annual'
+                        && $join['is_idle_even_annual'] === true
+                        && $join['even_annual_remaining'] === ['available_limit_minor_units' => 0, 'months_left' => 7];
+                }),
             );
     }
 

@@ -10,7 +10,6 @@ use App\Actions\UpdateCategory;
 use App\Enums\CategoryType;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryMonthItemKindRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -70,13 +69,6 @@ class CategoryController extends Controller
         ]);
 
         return to_route('budget');
-    }
-
-    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, Budget $budget, Category $category): RedirectResponse
-    {
-        $this->lineOf($budget, $category)->update($request->safe()->only(['month_item_kind']));
-
-        return back();
     }
 
     public function destroy(Budget $budget, Category $category): RedirectResponse

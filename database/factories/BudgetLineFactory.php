@@ -143,7 +143,7 @@ class BudgetLineFactory extends Factory
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
             'month_item_kind' => MonthItemKind::Bill,
-        ]);
+        ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::FixedCharge));
     }
 
     public function oneOff(): static
@@ -151,6 +151,20 @@ class BudgetLineFactory extends Factory
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
             'is_paced' => false,
+        ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::EvenAnnual));
+    }
+
+    /**
+     * Keeps the Rhythm history of the line's Category in step with the flag state, as the
+     * migration maps it (ADR-0066): the single entry starts in January of the Budget year.
+     */
+    private function setRhythm(BudgetLine $line, Rhythm $rhythm): void
+    {
+        $line->category->rhythms()->delete();
+        $line->category->rhythms()->create([
+            'start_year' => $line->budget->year,
+            'start_month' => 1,
+            'rhythm' => $rhythm,
         ]);
     }
 }

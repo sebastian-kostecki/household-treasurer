@@ -158,58 +158,6 @@ class CategoryMonthItemKindTest extends TestCase
         $this->assertSame(MonthItemKind::Running, $category->refresh()->month_item_kind);
     }
 
-    public function test_kind_switch_saves_the_kind_and_redirects_back(): void
-    {
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = BudgetLine::factory()->for($budget)->expense()->create();
-
-        $this->actingAs($user)
-            ->from(route('month-plan'))
-            ->patch(route('categories.month-item-kind', [$category->budget_id, $category->category_id]), ['month_item_kind' => 'bill'])
-            ->assertSessionHasNoErrors()
-            ->assertRedirect(route('month-plan'));
-
-        $this->assertSame(MonthItemKind::Bill, $category->refresh()->month_item_kind);
-    }
-
-    public function test_kind_switch_rejects_income_and_archived_categories(): void
-    {
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $income = BudgetLine::factory()->for($budget)->income()->create();
-        $archived = BudgetLine::factory()->for($budget)->expense()->archived()->create();
-
-        $this->actingAs($user)
-            ->from(route('month-plan'))
-            ->patch(route('categories.month-item-kind', [$income->budget_id, $income->category_id]), ['month_item_kind' => 'bill'])
-            ->assertSessionHasErrors('month_item_kind');
-
-        $this->actingAs($user)
-            ->from(route('month-plan'))
-            ->patch(route('categories.month-item-kind', [$archived->budget_id, $archived->category_id]), ['month_item_kind' => 'bill'])
-            ->assertSessionHasErrors('month_item_kind');
-
-        $this->assertSame(MonthItemKind::Running, $income->refresh()->month_item_kind);
-        $this->assertSame(MonthItemKind::Running, $archived->refresh()->month_item_kind);
-    }
-
-    public function test_kind_switch_rejects_an_unknown_kind_and_foreign_categories(): void
-    {
-        $user = User::factory()->create();
-        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $category = BudgetLine::factory()->for($budget)->expense()->create();
-
-        $this->actingAs($user)
-            ->from(route('month-plan'))
-            ->patch(route('categories.month-item-kind', [$category->budget_id, $category->category_id]), ['month_item_kind' => 'weekly'])
-            ->assertSessionHasErrors('month_item_kind');
-
-        $this->actingAs(User::factory()->create())
-            ->patch(route('categories.month-item-kind', [$category->budget_id, $category->category_id]), ['month_item_kind' => 'bill'])
-            ->assertForbidden();
-    }
-
     public function test_budget_page_exposes_month_item_kind(): void
     {
         $user = User::factory()->create();

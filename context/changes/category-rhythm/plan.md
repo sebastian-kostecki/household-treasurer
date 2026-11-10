@@ -570,30 +570,30 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 #### Automated
 
-- [x] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL
-- [x] 2.2 Testy snapshotu przechodzą na PostgreSQL
-- [x] 2.3 E2E „Kategorii” przechodzi
-- [x] 2.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL — f83b7be
+- [x] 2.2 Testy snapshotu przechodzą na PostgreSQL — f83b7be
+- [x] 2.3 E2E „Kategorii” przechodzi — f83b7be
+- [x] 2.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — f83b7be
 
 #### Manual
 
-- [x] 2.5 Zmiana rytmu „Czynsz” w „Kategoriach” pokazuje podpowiedź i etykietę
-- [x] 2.6 Kitchen sinki pokazują pole „Rytm” we wszystkich stanach
+- [x] 2.5 Zmiana rytmu „Czynsz” w „Kategoriach” pokazuje podpowiedź i etykietę — f83b7be
+- [x] 2.6 Kitchen sinki pokazują pole „Rytm” we wszystkich stanach — f83b7be
 
 ### Phase 3: Propozycja z rytmu i wiersz planu
 
 #### Automated
 
-- [ ] 3.1 Testy propozycji i strony planu przechodzą na PostgreSQL
-- [ ] 3.2 Test literałów UI planu przechodzi
+- [x] 3.1 Testy propozycji i strony planu przechodzą na PostgreSQL
+- [x] 3.2 Test literałów UI planu przechodzi
 - [ ] 3.3 E2E przechodzi
-- [ ] 3.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 3.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 3.5 Grudzień 2026 na dev proponuje kwoty z rytmu, a listopad się nie zmienia
-- [ ] 3.6 Stała opłata proponuje kwotę zapłaconą w poprzednim miesiącu
-- [ ] 3.7 `/dev/month-plan` pokazuje nowe stany
+- [x] 3.5 Grudzień 2026 na dev proponuje kwoty z rytmu, a listopad się nie zmienia
+- [x] 3.6 Stała opłata proponuje kwotę zapłaconą w poprzednim miesiącu
+- [x] 3.7 `/dev/month-plan` pokazuje nowe stany
 
 ### Phase 4: Odczyty miesiąca z rytmu
 

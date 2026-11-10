@@ -36,7 +36,6 @@ import {
     approvedReading,
     futureProposalReading,
     joinCandidateExpense,
-    lockedKindExpense,
     negativeDrawReading,
     paidBill,
     pastReading,
@@ -66,7 +65,7 @@ const stateMatrix: { state: string; where: string }[] = [
     },
     {
         state: 'hover',
-        where: 'Najedź na wiersze tabeli, miesiące w pasku, przyciski „Zatwierdź” i „Zmień plan”, przełączniki rodzaju i kierunku oraz wiersz zwijania jednorazowych.',
+        where: 'Najedź na wiersze tabeli, miesiące w pasku, przyciski „Zatwierdź” i „Zmień plan”, przełącznik kierunku odkładania oraz wiersz zwijania równomiernych rocznych.',
     },
     {
         state: 'focus-visible',
@@ -74,11 +73,11 @@ const stateMatrix: { state: string; where: string }[] = [
     },
     {
         state: 'disabled',
-        where: 'Sekcja „Wyłączone”: „Zatwierdź” z licznikiem błędnych kwot i „Zapisz zmiany” bez zmian; przełącznik rodzaju w trakcie zapisu w tabeli „Błędy”. „Zmień plan” znika przy `!can_change`, a komórka planu nie ma stanu wyłączonego: N/A.',
+        where: 'Sekcja „Wyłączone”: „Zatwierdź” z licznikiem błędnych kwot i „Zapisz zmiany” bez zmian. „Zmień plan” znika przy `!can_change`, a komórka planu nie ma stanu wyłączonego: N/A.',
     },
     {
         state: 'error',
-        where: 'Tabela „Błędy” (błędna kwota, błąd rodzaju, błąd klienta i serwera pola odkładania) oraz sekcja „Błędy w pasie edycji”.',
+        where: 'Tabela „Błędy” (błędna kwota, błąd klienta i serwera pola odkładania) oraz sekcja „Błędy w pasie edycji”.',
     },
     {
         state: 'empty',
@@ -98,9 +97,11 @@ function splitRows(reading: MonthPlanReading): {
     return {
         incomeRows: reading.income_items,
         expenseRows: reading.expense_items.filter(
-            (row) => !row.is_idle_one_off,
+            (row) => !row.is_idle_even_annual,
         ),
-        idleRows: reading.expense_items.filter((row) => row.is_idle_one_off),
+        idleRows: reading.expense_items.filter(
+            (row) => row.is_idle_even_annual,
+        ),
     };
 }
 
@@ -113,8 +114,6 @@ type TableConfig = {
     idleRows: MonthPlanItem[];
     amountInputs: Record<number, string>;
     invalidIds: number[];
-    kindErrorId: number | null;
-    kindPendingId: number | null;
     yearStale: boolean;
     setAsideMinorUnits: number | null;
     showSetAside: boolean;
@@ -149,8 +148,6 @@ function tableConfig(
         ...splitRows(reading),
         amountInputs: inputsFor(reading),
         invalidIds: [],
-        kindErrorId: null,
-        kindPendingId: null,
         yearStale: false,
         setAsideMinorUnits: setAside,
         showSetAside: reading.summary === null,
@@ -165,12 +162,12 @@ function tableConfig(
 const tables = reactive<TableConfig[]>([
     tableConfig(
         'read',
-        'Odczyt, bieżący zatwierdzony (linia „W roku”, kolumna „Zatwierdzony” ze strzałką, jednorazowe zwinięte)',
+        'Odczyt, bieżący zatwierdzony (linia „W roku”, kolumna „Zatwierdzony” ze strzałką, etykiety rytmów, „zostało X na Y mies.” w bieżącym miesiącu: X > 0, X = 0, X < 0, równomierne roczne bez planu i wydatków zwinięte)',
         approvedReading,
     ),
     tableConfig(
         'read-open',
-        'Odczyt, jednorazowe rozwinięte, odkładanie w kierunku „Dobieram”',
+        'Odczyt, równomierne roczne rozwinięte, odkładanie w kierunku „Dobieram”',
         negativeDrawReading,
         { idleOpen: true },
     ),
@@ -214,19 +211,23 @@ const tables = reactive<TableConfig[]>([
     ),
     tableConfig(
         'edit-errors',
-        'Błędy (błędna kwota, błąd rodzaju, odkładanie nieczytelne z błędem serwera, rodzaj w zapisie)',
+        'Błędy (błędna kwota, odkładanie nieczytelne z błędem serwera)',
         approvedReading,
         {
             editable: true,
             invalidIds: [runningExpense.category_id],
-            kindErrorId: lockedKindExpense.category_id,
-            kindPendingId: paidBill.category_id,
             flagged: true,
             setAsideMinorUnits: null,
             setAsideInput: 'abc',
             serverError: 'Kwota odkładania jest niepoprawna.',
             idleOpen: true,
         },
+    ),
+    tableConfig(
+        'future-proposal',
+        'Przyszły miesiąc, propozycja (bez linii „W roku”; „zostało X na 12 mies.” przy X > 0, X = 0 i X < 0; zwinięte równomierne roczne)',
+        futureProposalReading,
+        { editable: true },
     ),
     tableConfig(
         'past',
@@ -295,10 +296,6 @@ function stateOf(
             }),
             yearStale: config.yearStale,
             invalid: config.invalidIds.includes(row.category_id),
-            kindError:
-                config.kindErrorId === row.category_id
-                    ? 'Nie udało się zapisać rodzaju pozycji.'
-                    : undefined,
             matchActual: config.editable
                 ? matchActualState(row, fieldAmount, hasField)
                 : null,
@@ -579,7 +576,6 @@ const stripMonth = ref(11);
                 :editable="config.editable"
                 :amount-inputs="config.amountInputs"
                 :row-state="stateOf(config)"
-                :kind-pending-category-id="config.kindPendingId"
                 :year-totals="yearTotals"
                 :year-totals-stale="{
                     income: config.yearStale,
@@ -594,7 +590,6 @@ const stripMonth = ref(11);
                         (config.amountInputs[id] = value)
                 "
                 @amount-blur="noop"
-                @change-kind="noop"
                 @match-actual="(id: number) => matchActualIn(config, id)"
                 @set-aside-blur="noop"
             />

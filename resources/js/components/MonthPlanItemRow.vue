@@ -2,7 +2,6 @@
 import { computed, nextTick, ref } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import InputError from '@/components/InputError.vue';
-import MonthPlanKindCell from '@/components/MonthPlanKindCell.vue';
 import MonthPlanMatchActual from '@/components/MonthPlanMatchActual.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
@@ -11,7 +10,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
-import type { MonthItemKind, MonthPlanItem } from '@/types/month-plan';
+import type { MonthPlanItem } from '@/types/month-plan';
 
 const props = withDefaults(
     defineProps<{
@@ -23,22 +22,18 @@ const props = withDefaults(
         overPlan: boolean;
         status: MonthItemStatus | null;
         yearStale?: boolean;
-        kindPending?: boolean;
-        kindError?: string;
         invalid?: boolean;
         /** Button or marker "plan = actual" in change mode (ADR-0062). */
         matchActual?: MatchActualState;
     }>(),
     {
         yearStale: false,
-        kindPending: false,
         invalid: false,
         matchActual: null,
     },
 );
 
 const emit = defineEmits<{
-    'change-kind': [kind: MonthItemKind];
     'amount-blur': [];
     'match-actual': [];
 }>();
@@ -65,11 +60,41 @@ const hasAmountField = computed(
     () => props.editable && (props.row.in_plan || !props.row.is_archived),
 );
 
-const hasSubtitle = computed(
-    () =>
-        (props.row.year_comparison !== null && !props.row.is_idle_one_off) ||
-        props.row.available_limit_minor_units !== null,
+const showsYearLine = computed(
+    () => props.row.year_comparison !== null && !props.row.is_idle_even_annual,
 );
+
+const hasSubtitle = computed(
+    () => showsYearLine.value || props.row.even_annual_remaining !== null,
+);
+
+const rhythmLabel = computed(() => {
+    switch (props.row.rhythm) {
+        case 'fixed_charge':
+            return t.month_plan.rhythm_fixed_charge;
+        case 'running':
+            return t.month_plan.rhythm_running;
+        case 'even_annual':
+            return t.month_plan.rhythm_even_annual;
+        default:
+            return '';
+    }
+});
+
+const evenAnnualRemainingText = computed(() => {
+    const remaining = props.row.even_annual_remaining;
+
+    if (remaining === null) {
+        return '';
+    }
+
+    return t.month_plan.even_annual_remaining
+        .replace(
+            ':amount',
+            formatMoneyAmount(remaining.available_limit_minor_units),
+        )
+        .replace(':months', String(remaining.months_left));
+});
 
 const deviationText = computed(() =>
     props.deviation === null ? '—' : formatSignedMoneyAmount(props.deviation),
@@ -105,9 +130,6 @@ const deviationClass = computed(() => {
                 size="lg"
             >
                 <template #badges>
-                    <Badge v-if="row.is_one_off" variant="neutral">
-                        {{ t.month_plan.one_off_badge }}
-                    </Badge>
                     <Badge v-if="row.is_archived" variant="neutral">
                         {{ t.month_plan.archived_badge }}
                     </Badge>
@@ -117,42 +139,31 @@ const deviationClass = computed(() => {
                 </template>
 
                 <template v-if="hasSubtitle" #subtitle>
-                    <span
-                        v-if="
-                            row.year_comparison !== null && !row.is_idle_one_off
-                        "
-                        class="meta text-muted-foreground"
-                    >
-                        <span :class="yearStale ? '' : 'text-foreground'">
+                    <span class="meta text-muted-foreground">
+                        <span
+                            v-if="showsYearLine && row.year_comparison !== null"
+                            :class="yearStale ? '' : 'text-foreground'"
+                        >
                             {{ t.month_plan.year_line }}:
                             <MonthYearSummary
                                 :comparison="row.year_comparison"
                                 :type="row.type"
                             />
                         </span>
-                        <span v-if="yearStale">
+                        <span v-if="showsYearLine && yearStale">
                             · {{ t.month_plan.year_stale_hint }}
                         </span>
-                    </span>
-
-                    <span
-                        v-else-if="row.available_limit_minor_units !== null"
-                        class="meta text-muted-foreground"
-                    >
-                        {{ t.month_plan.available_limit }}:
                         <span
-                            class="tabular-nums"
+                            v-if="row.even_annual_remaining !== null"
                             :class="
-                                row.available_limit_minor_units < 0
+                                row.even_annual_remaining
+                                    .available_limit_minor_units < 0
                                     ? 'text-destructive'
                                     : ''
                             "
                         >
-                            {{
-                                formatMoneyAmount(
-                                    row.available_limit_minor_units,
-                                )
-                            }}
+                            <template v-if="showsYearLine">· </template
+                            >{{ evenAnnualRemainingText }}
                         </span>
                     </span>
                 </template>
@@ -160,14 +171,12 @@ const deviationClass = computed(() => {
         </div>
 
         <div v-if="hasKindColumn" class="month-plan-cell-kind">
-            <MonthPlanKindCell
-                v-if="row.month_item_kind !== null"
-                :kind="row.month_item_kind"
-                :can-change="row.can_change_kind"
-                :pending="kindPending"
-                :error="kindError"
-                @change="emit('change-kind', $event)"
-            />
+            <span
+                v-if="row.rhythm !== null"
+                class="text-muted-foreground text-sm"
+            >
+                {{ rhythmLabel }}
+            </span>
         </div>
 
         <div class="month-plan-cell-approved">

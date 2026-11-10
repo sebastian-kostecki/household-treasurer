@@ -120,7 +120,6 @@ const FILES = [
     'resources/js/components/CategoryChip.vue',
     'resources/js/components/PlanChangeArrow.vue',
     'resources/js/components/MonthPlanMatchActual.vue',
-    'resources/js/components/MonthPlanKindCell.vue',
     'resources/js/components/MonthPlanTable.vue',
     'resources/js/components/MonthPlanTitleRow.vue',
     'resources/js/components/MonthPlanStatPanel.vue',

@@ -19,13 +19,13 @@ function item(overrides: Partial<MonthPlanItem>): MonthPlanItem {
         plan_minor_units: 0,
         actual_minor_units: 0,
         has_positive_amount: false,
-        can_change_kind: true,
         in_plan: true,
         deviation_minor_units: null,
         is_over_plan: false,
         is_settled: false,
-        available_limit_minor_units: null,
-        is_idle_one_off: false,
+        is_idle_even_annual: false,
+        rhythm: 'running',
+        even_annual_remaining: null,
         approved_minor_units: null,
         is_join_candidate: false,
         year_comparison: null,
@@ -53,6 +53,7 @@ export const paidBill = item({
     category_id: 2,
     name: 'Czynsz',
     month_item_kind: 'bill',
+    rhythm: 'fixed_charge',
     plan_minor_units: 150_000,
     actual_minor_units: 150_000,
     has_positive_amount: true,
@@ -72,10 +73,10 @@ export const settledIncome = item({
     name: 'Wynagrodzenie',
     type: 'income',
     month_item_kind: null,
+    rhythm: null,
     plan_minor_units: 500_000,
     actual_minor_units: 500_000,
     has_positive_amount: true,
-    can_change_kind: false,
     deviation_minor_units: 0,
     is_settled: true,
     approved_minor_units: 450_000,
@@ -92,19 +93,120 @@ export const waitingIncome = item({
     name: 'Premia',
     type: 'income',
     month_item_kind: null,
+    rhythm: null,
     plan_minor_units: 100_000,
     has_positive_amount: true,
-    can_change_kind: false,
     deviation_minor_units: -100_000,
 });
 
-export const idleOneOff = item({
+export const idleEvenAnnual = item({
     category_id: 4,
     name: 'Prezent urodzinowy',
     is_one_off: true,
-    is_idle_one_off: true,
+    rhythm: 'even_annual',
+    is_idle_even_annual: true,
     plan_minor_units: 0,
-    available_limit_minor_units: 30_000,
+    even_annual_remaining: {
+        available_limit_minor_units: 30_000,
+        months_left: 2,
+    },
+});
+
+/** Even Annual in the current month, with a year line and the rest of the year (X > 0). */
+export const evenAnnualLeft = item({
+    category_id: 12,
+    name: 'Rekolekcje',
+    is_one_off: true,
+    rhythm: 'even_annual',
+    plan_minor_units: 19_833,
+    deviation_minor_units: 19_833,
+    approved_minor_units: 19_833,
+    year_comparison: {
+        year_minor_units: 100_000,
+        annual_plan_minor_units: 238_000,
+        remaining_minor_units: 138_000,
+        is_over_year: false,
+    },
+    even_annual_remaining: {
+        available_limit_minor_units: 138_000,
+        months_left: 2,
+    },
+});
+
+/** Even Annual with the year plan used up (X = 0). */
+export const evenAnnualUsedUp = item({
+    category_id: 13,
+    name: 'Ubezpieczenie samochodu',
+    is_one_off: true,
+    rhythm: 'even_annual',
+    plan_minor_units: 4_512,
+    deviation_minor_units: 4_512,
+    approved_minor_units: 4_512,
+    year_comparison: {
+        year_minor_units: 54_100,
+        annual_plan_minor_units: 54_100,
+        remaining_minor_units: 0,
+        is_over_year: false,
+    },
+    even_annual_remaining: { available_limit_minor_units: 0, months_left: 2 },
+});
+
+/** Even Annual over the year plan (X < 0). */
+export const evenAnnualOver = item({
+    category_id: 14,
+    name: 'Wakacje',
+    is_one_off: true,
+    rhythm: 'even_annual',
+    plan_minor_units: 10_000,
+    actual_minor_units: 20_000,
+    has_positive_amount: true,
+    deviation_minor_units: -10_000,
+    is_over_plan: true,
+    approved_minor_units: 10_000,
+    year_comparison: {
+        year_minor_units: 130_000,
+        annual_plan_minor_units: 120_000,
+        remaining_minor_units: -10_000,
+        is_over_year: true,
+    },
+    even_annual_remaining: {
+        available_limit_minor_units: -10_000,
+        months_left: 2,
+    },
+});
+
+/** Even Annual in a future month: no year line, only "zostało X na Y mies." (X > 0, X = 0, X < 0). */
+export const evenAnnualFutureLeft = item({
+    category_id: 15,
+    name: 'Prezenty świąteczne',
+    is_one_off: true,
+    rhythm: 'even_annual',
+    plan_minor_units: 25_000,
+    even_annual_remaining: {
+        available_limit_minor_units: 275_000,
+        months_left: 12,
+    },
+});
+
+export const evenAnnualFutureUsedUp = item({
+    category_id: 16,
+    name: 'Przegląd roczny',
+    is_one_off: true,
+    rhythm: 'even_annual',
+    plan_minor_units: 5_000,
+    even_annual_remaining: { available_limit_minor_units: 0, months_left: 12 },
+});
+
+export const evenAnnualFutureOver = item({
+    category_id: 17,
+    name: 'Naprawy',
+    is_one_off: true,
+    rhythm: 'even_annual',
+    plan_minor_units: 8_000,
+    even_annual_remaining: {
+        available_limit_minor_units: -12_000,
+        months_left: 12,
+    },
 });
 
 export const archivedExpense = item({
@@ -116,7 +218,6 @@ export const archivedExpense = item({
     has_positive_amount: true,
     deviation_minor_units: 0,
     approved_minor_units: 15_000,
-    can_change_kind: false,
 });
 
 export const outsidePlanExpense = item({
@@ -126,7 +227,6 @@ export const outsidePlanExpense = item({
     actual_minor_units: 4_500,
     deviation_minor_units: -4_500,
     is_over_plan: true,
-    can_change_kind: false,
 });
 
 export const overPlanExpense = item({
@@ -155,13 +255,13 @@ export const longNameExpense = item({
     deviation_minor_units: 89_900,
 });
 
-export const lockedKindExpense = item({
+export const fixedChargeUnpaid = item({
     category_id: 9,
     name: 'Ubezpieczenie',
     month_item_kind: 'bill',
+    rhythm: 'fixed_charge',
     plan_minor_units: 25_000,
     has_positive_amount: true,
-    can_change_kind: false,
 });
 
 /** A list category without a budget line: plan 0, joins the plan only with an amount above 0. */
@@ -170,7 +270,6 @@ export const joinCandidateExpense = item({
     name: 'Domeny',
     in_plan: false,
     is_join_candidate: true,
-    can_change_kind: false,
     year_comparison: {
         year_minor_units: 0,
         annual_plan_minor_units: 0,
@@ -186,11 +285,30 @@ export const expenseRows: MonthPlanItem[] = [
     paidBill,
     overPlanExpense,
     longNameExpense,
-    lockedKindExpense,
+    fixedChargeUnpaid,
     outsidePlanExpense,
     archivedExpense,
-    idleOneOff,
+    evenAnnualLeft,
+    evenAnnualUsedUp,
+    evenAnnualOver,
+    idleEvenAnnual,
 ];
+
+/** Future month: the Even Annual rows carry only "zostało X na Y mies.". */
+export const futureExpenseRows: MonthPlanItem[] = [
+    runningExpense,
+    paidBill,
+    evenAnnualFutureLeft,
+    evenAnnualFutureUsedUp,
+    evenAnnualFutureOver,
+    {
+        ...idleEvenAnnual,
+        even_annual_remaining: {
+            available_limit_minor_units: 30_000,
+            months_left: 12,
+        },
+    },
+].map((row) => ({ ...row, year_comparison: null }));
 
 export const yearTotals: {
     income: MonthYearComparison;
@@ -322,6 +440,7 @@ export const approvedNoPaceReading = buildMonthPlanReading({
 /** Future proposal: no pace yet. */
 export const futureProposalReading = buildMonthPlanReading({
     month_pace: null,
+    expense_items: futureExpenseRows,
     year_totals: yearTotals,
 });
 

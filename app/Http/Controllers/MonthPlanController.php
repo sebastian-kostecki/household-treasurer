@@ -8,6 +8,7 @@ use App\Enums\CategoryType;
 use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
+use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetViewedMonth;
 use App\Support\MonthPace;
@@ -22,6 +23,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -165,46 +167,12 @@ class MonthPlanController extends Controller
             && $timing !== 'past'
             && ! $toSpend->proposal->isBlockedByPreviousMonth($month);
 
-        $categories = $toSpend->categories;
-        $joinCandidateIds = [];
+        [$categories, $joinCandidateIds] = $this->categoriesWithJoinCandidates($budget, $toSpend->categories, $canChange);
 
-        if ($canChange) {
-            $knownIds = $categories->pluck('id')->all();
-
-            $joinCandidateIds = $budget->budgetLines()
-                ->openForChoice()
-                ->whereNotIn('id', $knownIds)
-                ->pluck('id')
-                ->all();
-
-            if ($joinCandidateIds !== []) {
-                $categories = $budget->budgetLines()
-                    ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
-                    ->ordered()
-                    ->get();
-            }
-        }
-
-        $incomeItems = [];
-        $expenseItems = [];
-
-        foreach ($categories as $category) {
-            $row = MonthPlanItemRow::forLine(
-                $category,
-                $toSpend,
-                $timing,
-                in_array($category->id, $joinCandidateIds, true),
-            );
-
-            if ($category->hasType(CategoryType::Income)) {
-                $incomeItems[] = $row;
-            } else {
-                $expenseItems[] = $row;
-            }
-        }
+        [$incomeItems, $expenseItems] = $this->itemRows($categories, $joinCandidateIds, $toSpend, $timing, $month, $today);
 
         if ($canChange || $canApprove) {
-            $joining = MonthPlanJoinCandidates::rows($user, $budget, $timing);
+            $joining = MonthPlanJoinCandidates::rows($user, $budget, $timing, $month, $today);
             $incomeItems = [...$incomeItems, ...$joining['income']];
             $expenseItems = [...$expenseItems, ...$joining['expense']];
         }
@@ -232,6 +200,67 @@ class MonthPlanController extends Controller
                 : null,
             'summary' => $timing === 'past' ? MonthSummary::forMonth($toSpend, $budget, $month)?->toArray() : null,
         ];
+    }
+
+    /**
+     * @param  Collection<int, BudgetLine>  $categories
+     * @return array{0: Collection<int, BudgetLine>, 1: list<int>}
+     */
+    private function categoriesWithJoinCandidates(Budget $budget, Collection $categories, bool $canChange): array
+    {
+        if (! $canChange) {
+            return [$categories, []];
+        }
+
+        $knownIds = $categories->pluck('id')->all();
+
+        $joinCandidateIds = $budget->budgetLines()
+            ->openForChoice()
+            ->whereNotIn('id', $knownIds)
+            ->pluck('id')
+            ->all();
+
+        if ($joinCandidateIds === []) {
+            return [$categories, []];
+        }
+
+        return [
+            $budget->budgetLines()
+                ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
+                ->ordered()
+                ->get(),
+            $joinCandidateIds,
+        ];
+    }
+
+    /**
+     * @param  iterable<BudgetLine>  $categories
+     * @param  list<int>  $joinCandidateIds
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
+     */
+    private function itemRows(iterable $categories, array $joinCandidateIds, MonthToSpend $toSpend, string $timing, int $month, CarbonImmutable $today): array
+    {
+        $incomeItems = [];
+        $expenseItems = [];
+
+        foreach ($categories as $category) {
+            $row = MonthPlanItemRow::forLine(
+                $category,
+                $toSpend,
+                $timing,
+                in_array($category->id, $joinCandidateIds, true),
+                $month,
+                $today,
+            );
+
+            if ($category->hasType(CategoryType::Income)) {
+                $incomeItems[] = $row;
+            } else {
+                $expenseItems[] = $row;
+            }
+        }
+
+        return [$incomeItems, $expenseItems];
     }
 
     /**
