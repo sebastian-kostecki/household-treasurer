@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Enums\OperationsListSection;
 use App\Http\Requests\IndexOperationsRequest;
 use App\Models\Account;
-use App\Models\Budget;
-use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Support\AccountIdentity;
 use App\Support\CategoryAppearance;
+use App\Support\CategoryList\CategoryChoiceOptions;
 use App\Support\CsvImport\OwnTransferImportSnapshots;
 use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
@@ -41,7 +39,7 @@ class OperationsController extends Controller
         }
 
         $operations = $operationsQuery
-            ->with(['account:id,name,type,bank', 'budgetLine:id,category_id'])
+            ->with(['account:id,name,type,bank', 'budgetLine:id,category_id,archived_at'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
@@ -59,6 +57,7 @@ class OperationsController extends Controller
                 'category_label' => $operation->budgetLine->category->name,
                 'category_icon' => $operation->budgetLine->category->icon,
                 'category_color' => $operation->budgetLine->category->color,
+                'category_archived' => $operation->budgetLine->isArchived() || $operation->budgetLine->category->isArchived(),
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 
@@ -147,40 +146,24 @@ class OperationsController extends Controller
                 'current_balance_minor_units' => $account->current_balance_minor_units,
             ]);
 
-        $incomeCategories = $user->budgets()
-            ->where('phase', BudgetPhase::Execution)
-            ->with(['budgetLines' => fn ($query) => $query
-                ->ofType(CategoryType::Income)
-                ->openForChoice()
-                ->ordered(),
+        $incomeCategories = collect(CategoryChoiceOptions::forType($user, CategoryType::Income))
+            ->map(fn (array $row): array => [
+                'id' => $row['category']->id,
+                'name' => $row['category']->name,
+                ...CategoryAppearance::fields($row['category']),
+                'budget_year' => $row['budget_year'],
             ])
-            ->orderBy('year')
-            ->get()
-            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->category_id,
-                'name' => $category->category->name,
-                ...CategoryAppearance::fields($category),
-                'budget_year' => $budget->year,
-            ]))
             ->values();
 
-        $expenseCategories = $user->budgets()
-            ->where('phase', BudgetPhase::Execution)
-            ->with(['budgetLines' => fn ($query) => $query
-                ->ofType(CategoryType::Expense)
-                ->openForChoice()
-                ->ordered(),
+        $expenseCategories = collect(CategoryChoiceOptions::forType($user, CategoryType::Expense))
+            ->map(fn (array $row): array => [
+                'id' => $row['category']->id,
+                'name' => $row['category']->name,
+                ...CategoryAppearance::fields($row['category']),
+                'budget_year' => $row['budget_year'],
+                'planned_amount_minor_units' => $row['line']?->planned_amount_minor_units ?? 0,
+                'execution_minor_units' => $row['line']?->execution_minor_units ?? 0,
             ])
-            ->orderBy('year')
-            ->get()
-            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->category_id,
-                'name' => $category->category->name,
-                ...CategoryAppearance::fields($category),
-                'budget_year' => $budget->year,
-                'planned_amount_minor_units' => $category->planned_amount_minor_units,
-                'execution_minor_units' => $category->execution_minor_units,
-            ]))
             ->values();
 
         return Inertia::render('Operations', [

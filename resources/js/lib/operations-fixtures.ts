@@ -54,6 +54,7 @@ const baseOperation = {
     category_id: 1,
     category_icon: 'shopping-cart',
     category_color: '#0d9488',
+    category_archived: false,
     ...mainAccount,
 } as const;
 

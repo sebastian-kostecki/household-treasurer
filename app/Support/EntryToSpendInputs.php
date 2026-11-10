@@ -4,9 +4,11 @@ namespace App\Support;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
+use App\Enums\MonthItemKind;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\CategoryList\CategoryChoiceOptions;
 use Carbon\CarbonImmutable;
 
 class EntryToSpendInputs
@@ -38,17 +40,21 @@ class EntryToSpendInputs
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
+            ->with('budgetLines')
             ->orderBy('year')
             ->get();
 
+        $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets);
+
         return [
             'budgets' => array_values($budgets
-                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $today))
+                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $today, $joiningEntries[$budget->id]))
                 ->all()),
         ];
     }
 
     /**
+     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningEntries  expense Categories that join the Budget at their first use: no plan item, Running or the flags of their newest line
      * @return array{
      *     year: int,
      *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
@@ -59,7 +65,7 @@ class EntryToSpendInputs
      *     }>,
      * }
      */
-    private static function budgetPayload(Budget $budget, CarbonImmutable $today): array
+    private static function budgetPayload(Budget $budget, CarbonImmutable $today, array $joiningEntries): array
     {
         $proposal = MonthPlanProposal::forBudget($budget, $today);
 
@@ -109,15 +115,23 @@ class EntryToSpendInputs
 
         return [
             'year' => $budget->year,
-            'categories' => array_values($budget->budgetLines
-                ->map(fn (BudgetLine $category): array => [
-                    'id' => $category->category_id,
-                    'type' => $category->category->type->value,
-                    'month_item_kind' => $category->hasType(CategoryType::Income)
-                        ? null
-                        : $category->month_item_kind->value,
-                ])
-                ->all()),
+            'categories' => [
+                ...$budget->budgetLines
+                    ->map(fn (BudgetLine $category): array => [
+                        'id' => $category->category_id,
+                        'type' => $category->category->type->value,
+                        'month_item_kind' => $category->hasType(CategoryType::Income)
+                            ? null
+                            : $category->month_item_kind->value,
+                    ])
+                    ->values()
+                    ->all(),
+                ...array_map(fn (array $joining): array => [
+                    'id' => $joining['category_id'],
+                    'type' => CategoryType::Expense->value,
+                    'month_item_kind' => $joining['month_item_kind']->value,
+                ], $joiningEntries),
+            ],
             'months' => $months,
         ];
     }

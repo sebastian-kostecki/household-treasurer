@@ -311,9 +311,9 @@ class CategoryListBudgetPageTest extends TestCase
         $this->actingAs($user)
             ->get(route('operations'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('expenseCategories', fn ($options) => collect($options)->pluck('id')->all() === [$other->category_id]));
+                ->where('expenseCategories', fn ($options) => collect($options)->pluck('id')->unique()->values()->all() === [$other->category_id]));
 
-        $this->assertSame([$other->category_id], array_column(ImportCategoryOptions::expense($user), 'id'));
+        $this->assertSame([$other->category_id], array_values(array_unique(array_column(ImportCategoryOptions::expense($user), 'id'))));
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [

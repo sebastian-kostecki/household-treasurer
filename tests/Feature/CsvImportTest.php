@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -4159,5 +4160,44 @@ CSV);
             UPLOAD_ERR_OK,
             true,
         );
+    }
+
+    public function test_import_row_on_a_category_without_a_line_joins_the_budget_on_commit_and_the_options_offer_it(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseLine] = $this->createImportFixture();
+        $domains = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,OVH,80.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 2)
+                ->where('expenseCategories', fn ($options) => collect($options)->contains(
+                    fn ($option) => $option['id'] === $domains->id && $option['budget_year'] === 2026 && $option['is_paced'] === true,
+                ))
+                ->where('monthRemainingContext.budgets.0.categories', fn ($categories) => collect($categories)->contains(
+                    fn ($entry) => $entry['id'] === $domains->id && $entry['planned_amount_minor_units'] === 0 && $entry['is_paced'] === true,
+                )),
+            );
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [['index' => 0, 'selected' => true, 'type' => 'expense', 'category_id' => $domains->id]],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $line = BudgetLine::query()->where('category_id', $domains->id)->firstOrFail();
+        $this->assertSame($expenseLine->budget_id, $line->budget_id);
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertSame(8000, $line->execution_minor_units);
     }
 }

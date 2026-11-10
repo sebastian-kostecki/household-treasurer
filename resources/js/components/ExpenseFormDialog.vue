@@ -31,6 +31,8 @@ import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import { previewHandEntryMonthRemainingWarnings } from '@/lib/hand-entry-month-remaining-preview';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
+import { withSelectedCategory } from '@/lib/operations-category-options';
+import type { SelectedOperationCategory } from '@/lib/operations-category-options';
 import {
     buildOperationPreview,
     monthNamesLocativeFrom,
@@ -71,6 +73,10 @@ export type ExpenseFormOperation = {
     raw_statement_description?: string | null;
     account_id: number;
     category_id: number;
+    category_label?: string;
+    category_icon?: string;
+    category_color?: string;
+    category_archived?: boolean;
 };
 
 const props = defineProps<{
@@ -142,7 +148,7 @@ const typeOptions = computed(() => {
 const { amountInvalid, amountMinorUnits, showPreview } =
     useOperationAmountInput(amountInput);
 
-const availableCategories = computed(() => {
+const yearCategories = computed(() => {
     if (!operationDate.value) {
         return [];
     }
@@ -160,14 +166,52 @@ const availableCategories = computed(() => {
     );
 });
 
-const selectedCategory = computed(() =>
-    availableCategories.value.find(
-        (category) => category.id === categoryId.value,
+const selectedOperationCategory = computed<SelectedOperationCategory | null>(
+    () => {
+        const operation = props.operation;
+
+        if (
+            props.mode !== 'edit' ||
+            operation === null ||
+            operation === undefined ||
+            operation.category_label === undefined ||
+            operation.category_icon === undefined ||
+            operation.category_color === undefined ||
+            categoryId.value !== operation.category_id
+        ) {
+            return null;
+        }
+
+        return {
+            id: operation.category_id,
+            name: operation.category_label,
+            icon: operation.category_icon,
+            color: operation.category_color,
+            archived: operation.category_archived === true,
+        };
+    },
+);
+
+const availableCategories = computed(() =>
+    withSelectedCategory(
+        yearCategories.value,
+        selectedOperationCategory.value,
+        t.operations.category_archived_suffix,
     ),
+);
+
+const selectedCategory = computed(() =>
+    yearCategories.value.find((category) => category.id === categoryId.value),
 );
 
 const signedAmountMinorUnits = computed(() =>
     type.value === 'refund' ? -amountMinorUnits.value : amountMinorUnits.value,
+);
+
+const operationYear = computed(() =>
+    operationDate.value === ''
+        ? undefined
+        : Number(operationDate.value.slice(0, 4)),
 );
 
 const warningPreview = computed(() => {
@@ -180,6 +224,7 @@ const warningPreview = computed(() => {
                 kind: type.value,
                 account_id: 0,
                 category_id: 0,
+                operation_year: operationYear.value,
                 amount_minor_units: 0,
             },
         });
@@ -210,6 +255,7 @@ const warningPreview = computed(() => {
                 type.value === 'income' || categoryId.value === ''
                     ? undefined
                     : categoryId.value,
+            operation_year: operationYear.value,
             amount_minor_units: amountMinorUnits.value,
         },
     });

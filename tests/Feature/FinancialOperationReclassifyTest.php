@@ -187,6 +187,8 @@ class FinancialOperationReclassifyTest extends TestCase
             'execution_minor_units' => 0,
         ]);
         $expenseCategory2025 = BudgetLine::factory()->for($budget2025)->expense()->create();
+        // An active category would join the 2026 budget (ADR-0067); an archived one never does.
+        $expenseCategory2025->category->update(['archived_at' => now()]);
 
         $this->actingAs($user)->post(route('incomes.store'), [
             'operation_date' => '2026-03-15',

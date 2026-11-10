@@ -804,6 +804,7 @@ return [
         'select_category' => 'Wybierz kategorię',
         'no_income_category_for_year' => 'Brak kategorii dla roku operacji',
         'no_expense_category_for_year' => 'Brak kategorii wydatkowej dla roku operacji',
+        'category_archived_suffix' => '(zarchiwizowana)',
         'cancel' => 'Anuluj',
         'save' => 'Zapisz',
         'accounts' => 'Konta',

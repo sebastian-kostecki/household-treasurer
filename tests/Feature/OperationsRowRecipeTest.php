@@ -129,4 +129,40 @@ class OperationsRowRecipeTest extends TestCase
                 ]),
             );
     }
+
+    public function test_operations_index_flags_an_operation_on_an_archived_category_or_line(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $active = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Aktywna']);
+        $listArchived = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Wakacje']);
+        $lineArchived = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Linia']);
+
+        foreach ([$active, $listArchived, $lineArchived] as $line) {
+            FinancialOperation::factory()->create([
+                'user_id' => $user->id,
+                'type' => FinancialOperationType::Expense,
+                'account_id' => $account->id,
+                'budget_line_id' => $line->id,
+                'budget_id' => $budget->id,
+                'description' => $line->category->name,
+            ]);
+        }
+
+        $listArchived->category->update(['archived_at' => now()]);
+        $lineArchived->update(['archived_at' => now()]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('operations.data', 3)
+                ->where('operations.data', fn ($rows) => collect($rows)->pluck('category_archived', 'category_label')->all() == [
+                    'Aktywna' => false,
+                    'Wakacje' => true,
+                    'Linia' => true,
+                ]),
+            );
+    }
 }

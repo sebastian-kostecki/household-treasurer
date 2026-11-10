@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\User;
+use App\Support\CategoryList\CategoryChoiceOptions;
 use Carbon\CarbonImmutable;
 
 class HandEntryMonthRemainingInputs
@@ -37,6 +38,7 @@ class HandEntryMonthRemainingInputs
             ->orderBy('year')
             ->get();
 
+        $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets);
         $payloadBudgets = [];
 
         foreach ($budgets as $budget) {
@@ -56,6 +58,15 @@ class HandEntryMonthRemainingInputs
                     'is_paced' => $category->is_paced,
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                     'monthly_execution_minor_units' => $monthlyExecution,
+                ];
+            }
+
+            foreach ($joiningEntries[$budget->id] as $joining) {
+                $categories[] = [
+                    'id' => $joining['category_id'],
+                    'is_paced' => $joining['is_paced'],
+                    'planned_amount_minor_units' => 0,
+                    'monthly_execution_minor_units' => array_fill(1, 12, 0),
                 ];
             }
 

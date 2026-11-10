@@ -10,6 +10,7 @@ const termDeposits = [{ id: 7, current_balance_minor_units: 50_000 }];
 const categories = [
     {
         id: 10,
+        budget_year: 2026,
         planned_amount_minor_units: 100_000,
         execution_minor_units: 30_000,
     },
@@ -26,6 +27,7 @@ function input(
         categories,
         editedRecord: null,
         ...overrides,
+        proposal: { operation_year: 2026, ...overrides.proposal },
     };
 }
 
@@ -100,6 +102,7 @@ test('edit expense unchanged: before equals after for balance and limit', () => 
         categories: [
             {
                 id: 10,
+                budget_year: 2026,
                 planned_amount_minor_units: 1_000,
                 execution_minor_units: 300,
             },
@@ -113,6 +116,7 @@ test('edit expense unchanged: before equals after for balance and limit', () => 
             kind: 'expense',
             account_id: 1,
             category_id: 10,
+            operation_year: 2026,
             amount_minor_units: 300,
         },
     });
@@ -417,4 +421,33 @@ test('edit capital movement with a larger amount applies only the difference', (
         accountBalanceAfterMinorUnits: 90_000,
         termDepositBalanceAfterMinorUnits: 60_000,
     });
+});
+
+test('finds the category entry of the operation year when two budgets are in execution', () => {
+    const twoBudgets = [
+        ...categories,
+        {
+            id: 10,
+            budget_year: 2027,
+            planned_amount_minor_units: 0,
+            execution_minor_units: 0,
+        },
+    ];
+
+    const result = previewHandEntryWarnings(
+        input({
+            categories: twoBudgets,
+            proposal: {
+                kind: 'expense',
+                account_id: 1,
+                category_id: 10,
+                operation_year: 2027,
+                amount_minor_units: 20_000,
+            },
+        }),
+    );
+
+    expect(result.availableLimitBeforeMinorUnits).toBe(0);
+    expect(result.availableLimitAfterMinorUnits).toBe(-20_000);
+    expect(result.showOverLimitWarning).toBe(true);
 });
