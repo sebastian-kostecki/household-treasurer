@@ -64,6 +64,19 @@ test('an income category has no rhythm', function () {
         ->and($rhythms->rhythmsInYear($category->id, 2026))->toBeNull();
 });
 
+test('a category outside the loaded set is refused instead of reading as an income', function () {
+    $user = User::factory()->create();
+    $loaded = expenseCategoryWithHistory($user, [[2026, 1, Rhythm::Running]]);
+    $other = expenseCategoryWithHistory($user, [[2026, 1, Rhythm::FixedCharge]]);
+
+    $rhythms = CategoryRhythms::forCategoryIds([$loaded->id]);
+
+    expect(fn () => $rhythms->rhythmIn($other->id, 2026, 7))
+        ->toThrow(LogicException::class, "Category {$other->id}")
+        ->and(fn () => $rhythms->rhythmsInYear($other->id, 2026))
+        ->toThrow(LogicException::class, "Category {$other->id}");
+});
+
 test('rhythms in a year follow the entry boundary month by month', function () {
     $category = expenseCategoryWithHistory(User::factory()->create(), [
         [2026, 1, Rhythm::Running],

@@ -1,4 +1,4 @@
-export type MonthRhythm = 'fixed_charge' | 'running' | 'even_annual';
+import type { Rhythm } from './rhythm';
 
 export type MonthStripState = 'summary' | 'approved' | 'proposal';
 
@@ -36,7 +36,7 @@ export type MonthPlanItem = {
     /** Even Annual without a plan amount and without operations in the month (ADR-0070). */
     is_idle_even_annual: boolean;
     /** The Rhythm of the viewed month (ADR-0066); null for an income item. */
-    rhythm: MonthRhythm | null;
+    rhythm: Rhythm | null;
     /** Execution of the whole year of the Category, for the over-plan reading of an Even Annual item. */
     year_execution_minor_units: number;
     /** Current Plan of the Category in the year. */

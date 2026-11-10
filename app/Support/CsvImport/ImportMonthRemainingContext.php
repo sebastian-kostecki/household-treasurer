@@ -4,7 +4,6 @@ namespace App\Support\CsvImport;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
@@ -42,11 +41,12 @@ class ImportMonthRemainingContext
             ->get();
 
         $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningEntries);
 
         return [
             'today' => $today->toDateString(),
             'budgets' => array_values($budgets
-                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $joiningEntries[$budget->id]))
+                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $rhythms, $joiningEntries[$budget->id]))
                 ->all()),
         ];
     }
@@ -65,7 +65,7 @@ class ImportMonthRemainingContext
      *     execution_by_category_and_month: array<int, array<int, int>>,
      * }
      */
-    private static function budgetPayload(Budget $budget, array $joiningEntries): array
+    private static function budgetPayload(Budget $budget, CategoryRhythms $rhythms, array $joiningEntries): array
     {
         $categories = $budget->budgetLines;
         $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $categories);
@@ -84,11 +84,7 @@ class ImportMonthRemainingContext
             }
         }
 
-        $rhythms = CategoryRhythms::forCategoryIds([
-            ...$categories->pluck('category_id')->all(),
-            ...array_column($joiningEntries, 'category_id'),
-        ]);
-        $rhythmsOf = fn (int $categoryId): ?array => self::rhythmValues($rhythms, $categoryId, $budget->year);
+        $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
         $joiningCategories = [];
 
         foreach ($joiningEntries as $joining) {
@@ -114,17 +110,5 @@ class ImportMonthRemainingContext
                 ->all(), ...$joiningCategories],
             'execution_by_category_and_month' => $executionByCategoryAndMonth,
         ];
-    }
-
-    /**
-     * @return array<int, string>|null month 1..12 => Rhythm value; null for an income Category
-     */
-    private static function rhythmValues(CategoryRhythms $rhythms, int $categoryId, int $year): ?array
-    {
-        $byMonth = $rhythms->rhythmsInYear($categoryId, $year);
-
-        return $byMonth === null
-            ? null
-            : array_map(fn (Rhythm $rhythm): string => $rhythm->value, $byMonth);
     }
 }

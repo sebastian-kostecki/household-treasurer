@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
@@ -46,12 +45,14 @@ class EntryToSpendInputs
 
         $joiningExpenses = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
         $joiningIncomes = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Income);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningExpenses, $joiningIncomes);
 
         return [
             'budgets' => array_values($budgets
                 ->map(fn (Budget $budget): array => self::budgetPayload(
                     $budget,
                     $today,
+                    $rhythms,
                     $joiningExpenses[$budget->id],
                     $joiningIncomes[$budget->id],
                 ))
@@ -72,7 +73,7 @@ class EntryToSpendInputs
      *     }>,
      * }
      */
-    private static function budgetPayload(Budget $budget, CarbonImmutable $today, array $joiningExpenses, array $joiningIncomes): array
+    private static function budgetPayload(Budget $budget, CarbonImmutable $today, CategoryRhythms $rhythms, array $joiningExpenses, array $joiningIncomes): array
     {
         $proposal = MonthPlanProposal::forBudget($budget, $today);
 
@@ -93,12 +94,7 @@ class EntryToSpendInputs
         $actualsByMonth = MonthCategoryActuals::forMonths($budget, array_keys($readings));
 
         $listCategoryIds = $budget->budgetLines->pluck('category_id', 'id');
-        $rhythms = CategoryRhythms::forCategoryIds([
-            ...$listCategoryIds->values()->all(),
-            ...array_column($joiningExpenses, 'category_id'),
-            ...array_column($joiningIncomes, 'category_id'),
-        ]);
-        $rhythmsOf = fn (int $categoryId): ?array => self::rhythmValues($rhythms, $categoryId, $budget->year);
+        $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
         $months = [];
 
         foreach ($readings as $month => $reading) {
@@ -150,17 +146,5 @@ class EntryToSpendInputs
             ],
             'months' => $months,
         ];
-    }
-
-    /**
-     * @return array<int, string>|null month 1..12 => Rhythm value; null for an income Category
-     */
-    private static function rhythmValues(CategoryRhythms $rhythms, int $categoryId, int $year): ?array
-    {
-        $byMonth = $rhythms->rhythmsInYear($categoryId, $year);
-
-        return $byMonth === null
-            ? null
-            : array_map(fn (Rhythm $rhythm): string => $rhythm->value, $byMonth);
     }
 }

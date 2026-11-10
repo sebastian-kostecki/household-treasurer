@@ -24,7 +24,8 @@ import {
     type CategoryAppearanceOptions,
 } from '@/lib/category-appearance';
 import { CATEGORY_DESCRIPTION_MAX_LENGTH } from '@/lib/category-list';
-import type { CategoryListItem, CategoryRhythm } from '@/types/categories';
+import type { CategoryListItem } from '@/types/categories';
+import type { Rhythm } from '@/types/rhythm';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
 
@@ -51,7 +52,7 @@ const icon = ref(DEFAULT_CATEGORY_ICON);
 const color = ref<string | null>(DEFAULT_CATEGORY_COLOR);
 const type = ref<'income' | 'expense'>('expense');
 const description = ref('');
-const rhythm = ref<CategoryRhythm>('running');
+const rhythm = ref<Rhythm>('running');
 const busy = ref(false);
 
 const lockType = computed(

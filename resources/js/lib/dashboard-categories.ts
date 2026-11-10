@@ -3,8 +3,7 @@ import {
     EMPTY_OPERATIONS_FILTERS,
     operationsListQuery,
 } from './operations-list-query';
-
-export type DashboardRhythm = 'fixed_charge' | 'running' | 'even_annual';
+import type { Rhythm } from '../types/rhythm';
 
 export type DashboardCategory = {
     id: number;
@@ -18,7 +17,7 @@ export type DashboardCategory = {
     percent_complete: number | null;
     is_over_limit: boolean;
     is_archived: boolean;
-    rhythm?: DashboardRhythm | null;
+    rhythm?: Rhythm | null;
 };
 
 export type DashboardTypeTotals = {
@@ -50,7 +49,7 @@ export function categoryOperationsQuery(
 
 export function showsYearElapsedMark(
     categoryType: 'income' | 'expense',
-    rhythm: DashboardRhythm | null | undefined,
+    rhythm: Rhythm | null | undefined,
 ): boolean {
     if (categoryType === 'income') {
         return true;

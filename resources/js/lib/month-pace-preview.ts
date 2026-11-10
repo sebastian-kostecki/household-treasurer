@@ -4,11 +4,11 @@ import {
     monthPacePoolSums,
 } from './month-pace-calculator';
 
-import type { MonthRhythm } from '../types/month-plan';
+import type { Rhythm } from '../types/rhythm';
 
 export type MonthPacePreviewRow = {
     type: 'income' | 'expense';
-    rhythm: MonthRhythm | null;
+    rhythm: Rhythm | null;
     actual_minor_units: number;
 };
 

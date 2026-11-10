@@ -3,8 +3,8 @@ import {
     isPoolRhythm,
     poolCategoryMonthRemainingMinorUnits,
     poolMonthRemainingMinorUnits,
-    type PoolRhythm,
 } from './month-remaining-calculator';
+import type { Rhythm } from '../types/rhythm';
 
 export type MonthRemainingBudgetContext = {
     id: number;
@@ -12,7 +12,7 @@ export type MonthRemainingBudgetContext = {
     is_draft: boolean;
     categories: Array<{
         id: number;
-        rhythms: Record<number, PoolRhythm> | null;
+        rhythms: Record<number, Rhythm> | null;
         planned_amount_minor_units: number;
     }>;
     execution_by_category_and_month: Record<number, Record<number, number>>;
@@ -84,7 +84,7 @@ function isPoolExpenseSelection(
     expenseCategories: Array<{
         id: number;
         budget_year: number;
-        rhythms?: Record<number, PoolRhythm> | null;
+        rhythms?: Record<number, Rhythm> | null;
     }>,
 ): boolean {
     if (!selection.selected || selection.type !== 'expense') {
@@ -110,7 +110,7 @@ export function computeImportMonthRemainingWarnings(
     expenseCategories: Array<{
         id: number;
         budget_year: number;
-        rhythms?: Record<number, PoolRhythm> | null;
+        rhythms?: Record<number, Rhythm> | null;
     }>,
     context: MonthRemainingContext,
     translations: Record<string, string>,

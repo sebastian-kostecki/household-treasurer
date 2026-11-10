@@ -45,14 +45,7 @@ const kindLabel = computed(() => {
         return t.budget.kind_income;
     }
 
-    switch (props.category.rhythm) {
-        case 'fixed_charge':
-            return t.budget.rhythm_fixed_charge;
-        case 'even_annual':
-            return t.budget.rhythm_even_annual;
-        default:
-            return t.budget.rhythm_running;
-    }
+    return t.categories[`rhythm_${props.category.rhythm ?? 'running'}`];
 });
 
 const meterYearElapsedPercent = computed(() =>

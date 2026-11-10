@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\Rhythm;
 use App\Models\User;
 use App\Support\CategoryList\CategoryChoiceOptions;
 use Carbon\CarbonImmutable;
@@ -40,16 +39,13 @@ class HandEntryMonthRemainingInputs
             ->get();
 
         $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningEntries);
         $payloadBudgets = [];
 
         foreach ($budgets as $budget) {
             $expenseCategories = $budget->budgetLines;
             $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $expenseCategories);
-            $rhythms = CategoryRhythms::forCategoryIds([
-                ...$expenseCategories->pluck('category_id')->all(),
-                ...array_column($joiningEntries[$budget->id], 'category_id'),
-            ]);
-            $rhythmsOf = fn (int $categoryId): ?array => self::rhythmValues($rhythms, $categoryId, $budget->year);
+            $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
             $categories = [];
 
             foreach ($expenseCategories as $category) {
@@ -87,17 +83,5 @@ class HandEntryMonthRemainingInputs
             'today' => $today->toDateString(),
             'budgets' => $payloadBudgets,
         ];
-    }
-
-    /**
-     * @return array<int, string>|null month 1..12 => Rhythm value; null for an income Category
-     */
-    private static function rhythmValues(CategoryRhythms $rhythms, int $categoryId, int $year): ?array
-    {
-        $byMonth = $rhythms->rhythmsInYear($categoryId, $year);
-
-        return $byMonth === null
-            ? null
-            : array_map(fn (Rhythm $rhythm): string => $rhythm->value, $byMonth);
     }
 }

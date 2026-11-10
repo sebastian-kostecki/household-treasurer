@@ -51,7 +51,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | ready    |
 | S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
 | S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
-| S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | ready    |
+| S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | in-progress |
 | S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | proposed |
 | S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | proposed |
 | S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | proposed |
@@ -212,7 +212,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Flagi są czytane w około 50 plikach, w tym w parach kalkulatorów PHP/TS: rytm dochodzi obok flag, czytelnicy przechodzą obszarami, a flagi znikają na końcu (reguła z F-04). Minione miesiące i zatwierdzone plany nie mogą się zmienić.
-- **Status:** ready
+- **Status:** in-progress
 
 ### S-25: Plan miesiąca w grupach
 
@@ -336,7 +336,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | yes                   | Run `/10x-plan category-merge` |
 | S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-groups/` |
 | S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | yes                   | Run `/10x-plan import-suggestions-on-category-list`; pomiar trafności po porządkach w danych (pytanie 4) |
-| S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | yes                   | Run `/10x-plan category-rhythm` |
+| S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | in-progress           | Implementacja i przegląd gotowe; przed wdrożeniem próba na kopii produkcji (`context/changes/category-rhythm/reviews/production-rehearsal.md`), potem `/10x-archive` |
 | S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | no                    | Czeka na S-24 (S-22 done)                            |
 | S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | no                    | Czeka na S-24                                 |
 | S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Czeka na S-26 (S-20 done)                            |

@@ -449,6 +449,10 @@ class RestoreUserData
         $now = now();
 
         foreach ($entries as $entry) {
+            if (! is_array($entry)) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has a rhythm that is not an object.");
+            }
+
             $rhythm = Rhythm::tryFrom((string) ($entry['rhythm'] ?? ''));
             $year = $entry['start_year'] ?? null;
             $month = $entry['start_month'] ?? null;
@@ -457,7 +461,7 @@ class RestoreUserData
                 throw new UserSnapshotException("Snapshot category {$categoryData['id']} has an unknown rhythm.");
             }
 
-            if (! is_int($year) || ! is_int($month) || $month < 1 || $month > 12) {
+            if (! is_int($year) || ! is_int($month) || $year < 1 || $year > 9999 || $month < 1 || $month > 12) {
                 throw new UserSnapshotException("Snapshot category {$categoryData['id']} has a rhythm with an invalid start month.");
             }
 

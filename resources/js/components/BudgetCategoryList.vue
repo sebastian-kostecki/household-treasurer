@@ -35,6 +35,7 @@ import {
 } from '@/lib/category-tree';
 import type { DashboardTypeTotals } from '@/lib/dashboard-categories';
 import { formatMoney } from '@/lib/format';
+import type { Rhythm } from '@/types/rhythm';
 
 export type BudgetCategoryRow = {
     id: number;
@@ -60,7 +61,7 @@ export type BudgetCategoryRow = {
     can_archive: boolean;
     can_restore: boolean;
     can_align_current_plan: boolean;
-    rhythm: 'fixed_charge' | 'running' | 'even_annual' | null;
+    rhythm: Rhythm | null;
 };
 
 /** A Category Group with at least one active line in the Budget (ADR-0069). */

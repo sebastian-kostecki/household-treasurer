@@ -1,5 +1,4 @@
-/** The Rhythm of an expense Category (ADR-0066); an income Category has none. */
-export type CategoryRhythm = 'fixed_charge' | 'running' | 'even_annual';
+import type { Rhythm } from './rhythm';
 
 export type CategoryListItem = {
     id: number;
@@ -13,7 +12,7 @@ export type CategoryListItem = {
     sort_order: number;
     description: string | null;
     /** The Rhythm in the current month (ADR-0070), null for an income Category. */
-    rhythm: CategoryRhythm | null;
+    rhythm: Rhythm | null;
     budget_years: number[];
     can_change_type: boolean;
     can_delete: boolean;

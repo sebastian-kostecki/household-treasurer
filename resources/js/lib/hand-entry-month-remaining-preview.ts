@@ -3,8 +3,8 @@ import {
     poolCategoryMonthRemainingMinorUnits,
     poolMonthRemainingMinorUnits,
     type MonthRemainingCalculatorOptions,
-    type PoolRhythm,
-} from '@/lib/month-remaining-calculator';
+} from './month-remaining-calculator';
+import type { Rhythm } from '../types/rhythm';
 
 export type HandEntryMonthRemainingPreviewEditedRecord = {
     category_id?: number;
@@ -17,11 +17,9 @@ export type HandEntryMonthRemainingPreviewProposal = {
     category_id?: number;
 };
 
-export type MonthRemainingRhythm = PoolRhythm;
-
 export type HandEntryMonthRemainingCategory = {
     id: number;
-    rhythms: Record<number, MonthRemainingRhythm> | null;
+    rhythms: Record<number, Rhythm> | null;
     planned_amount_minor_units: number;
     monthly_execution_minor_units: Record<number, number>;
 };

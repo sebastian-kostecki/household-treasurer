@@ -12,13 +12,13 @@ import type {
     ToSpendEntryChange,
 } from './entry-to-spend-warning';
 
-import type { MonthRhythm } from '../types/month-plan';
+import type { Rhythm } from '../types/rhythm';
 const SALARY = 1;
 const RENT = 2;
 const GROCERIES = 3;
 const ONE_TIME = 4;
 
-function allMonths(rhythm: MonthRhythm): Record<number, MonthRhythm> {
+function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
     return Object.fromEntries(
         Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
     );
@@ -484,7 +484,7 @@ test('readings: a month without a plan gives no reading', () => {
 
 test('the Rhythm of the operation month decides the To Spend rule', () => {
     const CHANGED = 5;
-    const changedInNovember: Record<number, MonthRhythm> = Object.fromEntries(
+    const changedInNovember: Record<number, Rhythm> = Object.fromEntries(
         Array.from({ length: 12 }, (_, index) => [
             index + 1,
             index + 1 >= 11 ? 'fixed_charge' : 'running',

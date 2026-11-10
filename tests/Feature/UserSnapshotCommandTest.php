@@ -1164,6 +1164,16 @@ class UserSnapshotCommandTest extends TestCase
 
                 return $snapshot;
             },
+            'entry that is not an object' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'] = ['running'];
+
+                return $snapshot;
+            },
+            'year out of range' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'][0]['start_year'] = 70_000;
+
+                return $snapshot;
+            },
         ];
 
         foreach ($mutations as $label => $mutate) {

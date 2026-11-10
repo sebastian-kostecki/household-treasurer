@@ -7,12 +7,12 @@ import type {
 import { computeImportToSpendWarnings } from './import-to-spend-warnings';
 import type { ImportRow, RowSelection } from './import-preview-rows';
 
-import type { MonthRhythm } from '../types/month-plan';
+import type { Rhythm } from '../types/rhythm';
 const SALARY = 1;
 const INTEREST = 2;
 const GROCERIES = 3;
 
-function allMonths(rhythm: MonthRhythm): Record<number, MonthRhythm> {
+function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
     return Object.fromEntries(
         Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
     );

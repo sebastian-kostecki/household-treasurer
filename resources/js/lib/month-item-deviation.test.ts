@@ -4,9 +4,10 @@ import {
     monthItemDeviationMinorUnits,
 } from './month-item-deviation';
 import type { MonthItemDeviationInput } from './month-item-deviation';
+import type { Rhythm } from '../types/rhythm';
 
 function expense(
-    rhythm: 'fixed_charge' | 'running' | 'even_annual',
+    rhythm: Rhythm,
     plan: number,
     actual: number,
     hasPositiveAmount: boolean,

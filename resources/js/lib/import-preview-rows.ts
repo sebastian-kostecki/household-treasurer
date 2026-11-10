@@ -1,6 +1,6 @@
 import type { CategoryPickerGroup } from './category-appearance';
 import { parseMoneyInputToMinorUnits } from './format';
-import type { PoolRhythm } from './month-remaining-calculator';
+import type { Rhythm } from '../types/rhythm';
 import {
     locksTypeToOwnTransfer,
     uniquePairCandidate,
@@ -32,7 +32,7 @@ export type CategoryRow = {
     group?: CategoryPickerGroup | null;
     budget_year: number;
     /** Rhythm by month 1..12 of the year in `budget_year`; null for an income. */
-    rhythms?: Record<number, PoolRhythm> | null;
+    rhythms?: Record<number, Rhythm> | null;
 };
 
 export type TermDepositRow = {

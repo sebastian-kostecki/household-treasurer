@@ -4,7 +4,7 @@ Aplikacja webowa do rocznego budżetu domowego: plan kategorii kontra rzeczywist
 
 Dwie płaszczyzny produktu:
 
-- **Budżet** — plan początkowy, plan aktualny i wykonanie. Kategorie wydatkowe są równomierne (_Paced_) albo jednorazowe (_One-off_).
+- **Budżet** — plan początkowy, plan aktualny i wykonanie. Każda kategoria wydatkowa ma rytm (_Rhythm_): stała opłata, bieżąca albo równomierna roczna.
 - **Płynność** — _Spendable Liquidity_ (salda kont) i _Total funds_ (te salda plus lokaty).
 
 Konta logowania tworzy administrator. Samodzielna rejestracja jest wyłączona. Każdy użytkownik widzi wyłącznie własne dane.
@@ -113,7 +113,7 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | Komenda                      | Działanie                                                                                                                |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `user:create`                | Konto logowania                                                                                                          |
-| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 6)                                                                               |
+| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 9)                                                                               |
 | `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
 | `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
 | `demo:seed-household {user}` | Dane demo                                                                                                                |

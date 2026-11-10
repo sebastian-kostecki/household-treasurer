@@ -4,7 +4,6 @@ namespace App\Support\CategoryList;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -62,7 +61,7 @@ final class CategoryChoiceOptions
                         'category' => $category,
                         'budget_year' => $budget->year,
                         'line' => $line,
-                        'rhythms' => self::rhythmValues($rhythms, $category->id, $budget->year),
+                        'rhythms' => $rhythms->rhythmValuesInYear($category->id, $budget->year),
                     ];
 
                     continue;
@@ -72,7 +71,7 @@ final class CategoryChoiceOptions
                     'category' => $category,
                     'budget_year' => $budget->year,
                     'line' => null,
-                    'rhythms' => self::rhythmValues($rhythms, $category->id, $budget->year),
+                    'rhythms' => $rhythms->rhythmValuesInYear($category->id, $budget->year),
                 ];
             }
         }
@@ -107,18 +106,6 @@ final class CategoryChoiceOptions
         }
 
         return $entries;
-    }
-
-    /**
-     * @return array<int, string>|null month 1..12 => Rhythm value; null for an income Category
-     */
-    private static function rhythmValues(CategoryRhythms $rhythms, int $categoryId, int $year): ?array
-    {
-        $byMonth = $rhythms->rhythmsInYear($categoryId, $year);
-
-        return $byMonth === null
-            ? null
-            : array_map(fn (Rhythm $rhythm): string => $rhythm->value, $byMonth);
     }
 
     /**

@@ -485,8 +485,8 @@ const stateMatrix: { state: string; where: string }[] = [
         <section class="flex flex-col gap-3" aria-labelledby="ks-expense">
             <h2 id="ks-expense" class="section-title">
                 Realizacja wydatków (przekroczenie, plan zwiększony „Jedzenie” i
-                zmniejszony „Rozrywka”, bez zmiany „Czynsz”, równomierna z
-                kreską, równomierna roczna „Remont łazienki” z kreską)
+                zmniejszony „Rozrywka”, bez zmiany „Czynsz”, bieżąca z kreską,
+                równomierna roczna „Remont łazienki” z kreską)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"

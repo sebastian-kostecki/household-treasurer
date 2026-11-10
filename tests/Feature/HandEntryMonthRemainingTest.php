@@ -6,7 +6,11 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\HandEntryMonthRemainingInputs;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -127,4 +131,25 @@ test('expense exceeding month remaining is still saved', function () {
     $category->refresh();
 
     expect($category->execution_minor_units)->toBe(85_000);
+});
+
+test('hand entry month remaining inputs read the rhythm history once for every budget in execution', function () {
+    $user = User::factory()->create();
+
+    foreach ([2026, 2027] as $year) {
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => $year]);
+        BudgetLine::factory()->for($budget)->expense()->create();
+    }
+
+    $rhythmQueries = 0;
+    DB::listen(function (QueryExecuted $query) use (&$rhythmQueries): void {
+        if (str_contains($query->sql, 'category_rhythms')) {
+            $rhythmQueries++;
+        }
+    });
+
+    $payload = HandEntryMonthRemainingInputs::forUser($user, CarbonImmutable::create(2026, 6, 15));
+
+    expect($payload['budgets'])->toHaveCount(2);
+    expect($rhythmQueries)->toBe(1);
 });

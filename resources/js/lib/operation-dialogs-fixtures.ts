@@ -20,7 +20,7 @@ import type {
     OwnTransferFormTransfer,
 } from '@/components/OwnTransferFormDialog.vue';
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
-import type { MonthRhythm } from '@/types/month-plan';
+import type { Rhythm } from '@/types/rhythm';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 
 const now = new Date();
@@ -134,7 +134,7 @@ export const dialogTermDeposits: CapitalMovementFormTermDeposit[] = [
     },
 ];
 
-function allMonths(rhythm: MonthRhythm): Record<number, MonthRhythm> {
+function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
     return Object.fromEntries(
         Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
     );

@@ -1,3 +1,5 @@
+import type { Rhythm } from '../types/rhythm';
+
 export type MonthRemainingCalculatorOptions = {
     isDraft: boolean;
     budgetYear: number;
@@ -96,13 +98,11 @@ function futurePlasterMonthRemainingMinorUnits(
     );
 }
 
-export type PoolRhythm = 'fixed_charge' | 'running' | 'even_annual';
-
 /**
  * The pool of "Pozostało w miesiącu" holds fixed charges and running
  * categories; an even annual category has no such reading (ADR-0066).
  */
-export function isPoolRhythm(rhythm: PoolRhythm | null | undefined): boolean {
+export function isPoolRhythm(rhythm: Rhythm | null | undefined): boolean {
     return rhythm === 'fixed_charge' || rhythm === 'running';
 }
 

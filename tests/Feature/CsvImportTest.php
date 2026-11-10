@@ -16,9 +16,13 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
 use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportRowFields;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -4224,5 +4228,27 @@ CSV;
         $this->assertSame($expenseLine->budget_id, $line->budget_id);
         $this->assertSame(0, $line->planned_amount_minor_units);
         $this->assertSame(8000, $line->execution_minor_units);
+    }
+
+    public function test_month_remaining_context_reads_the_rhythm_history_once_for_every_budget_in_execution(): void
+    {
+        $user = User::factory()->create();
+
+        foreach ([2026, 2027] as $year) {
+            $budget = Budget::factory()->for($user)->execution()->create(['year' => $year]);
+            BudgetLine::factory()->for($budget)->expense()->create();
+        }
+
+        $rhythmQueries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$rhythmQueries): void {
+            if (str_contains($query->sql, 'category_rhythms')) {
+                $rhythmQueries++;
+            }
+        });
+
+        $context = ImportMonthRemainingContext::forUser($user, CarbonImmutable::create(2026, 6, 15));
+
+        $this->assertCount(2, $context['budgets']);
+        $this->assertSame(1, $rhythmQueries);
     }
 }

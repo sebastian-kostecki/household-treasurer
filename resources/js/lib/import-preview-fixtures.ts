@@ -9,7 +9,7 @@ import type {
     MonthRemainingWarningState,
 } from './import-month-remaining-warnings';
 import type { PairCandidate } from './import-pair-selection';
-import type { PoolRhythm } from './month-remaining-calculator';
+import type { Rhythm } from '../types/rhythm';
 import {
     emptySelection,
     type CategoryRow,
@@ -177,7 +177,7 @@ export const importPreviewEntryToSpend: EntryToSpendInputs = {
     budgets: [],
 };
 
-function everyMonth(rhythm: PoolRhythm): Record<number, PoolRhythm> {
+function everyMonth(rhythm: Rhythm): Record<number, Rhythm> {
     return Object.fromEntries(
         Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
     );

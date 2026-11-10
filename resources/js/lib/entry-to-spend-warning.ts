@@ -1,11 +1,11 @@
-import type { MonthRhythm } from '../types/month-plan';
+import type { Rhythm } from '../types/rhythm';
 import { toSpendMinorUnits } from './to-spend-calculator';
 
 export type EntryToSpendCategory = {
     id: number;
     type: 'income' | 'expense';
     /** The Rhythm of each month of the budget year (1..12); null for an income. */
-    rhythms: Record<number, MonthRhythm> | null;
+    rhythms: Record<number, Rhythm> | null;
 };
 
 export type EntryToSpendItem = {

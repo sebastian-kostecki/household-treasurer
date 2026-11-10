@@ -4,7 +4,10 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Enums\Rhythm;
+use App\Models\Budget;
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use LogicException;
 
 /**
  * The Rhythm of list Categories by month (ADR-0066 read rule, ADR-0070).
@@ -12,7 +15,8 @@ use App\Models\Category;
  * The Rhythm of month m is the entry with the latest start not after m; a month
  * before the first entry has the Rhythm of the first entry. An expense Category
  * without an entry reads as Running, an income Category has no Rhythm (null).
- * The entries and the type of a set of Categories load in one query.
+ * The entries and the type of a set of Categories load in one query; asking
+ * about a Category outside that set throws.
  */
 final class CategoryRhythms
 {
@@ -24,6 +28,31 @@ final class CategoryRhythms
         private readonly array $types,
         private readonly array $entries,
     ) {}
+
+    /**
+     * One load for a reading over several Budgets: the Categories of their
+     * loaded Budget Lines and of the entries that join them.
+     *
+     * @param  EloquentCollection<int, Budget>  $budgets  their `budgetLines` are used as loaded (a caller may load only one type)
+     * @param  array<int, list<array{category_id: int}>>  ...$joiningEntries  budget id => entries (`CategoryChoiceOptions::joiningEntries()`)
+     */
+    public static function forBudgets(EloquentCollection $budgets, array ...$joiningEntries): self
+    {
+        $budgets->loadMissing('budgetLines');
+        $categoryIds = [];
+
+        foreach ($budgets as $budget) {
+            array_push($categoryIds, ...$budget->budgetLines->pluck('category_id')->all());
+        }
+
+        foreach ($joiningEntries as $entriesByBudget) {
+            foreach ($entriesByBudget as $entries) {
+                array_push($categoryIds, ...array_column($entries, 'category_id'));
+            }
+        }
+
+        return self::forCategoryIds($categoryIds);
+    }
 
     /**
      * @param  iterable<int>  $categoryIds
@@ -70,7 +99,7 @@ final class CategoryRhythms
 
     public function rhythmIn(int $categoryId, int $year, int $month): ?Rhythm
     {
-        if (($this->types[$categoryId] ?? null) !== CategoryType::Expense) {
+        if ($this->typeOf($categoryId) !== CategoryType::Expense) {
             return null;
         }
 
@@ -99,7 +128,7 @@ final class CategoryRhythms
      */
     public function rhythmsInYear(int $categoryId, int $year): ?array
     {
-        if (($this->types[$categoryId] ?? null) !== CategoryType::Expense) {
+        if ($this->typeOf($categoryId) !== CategoryType::Expense) {
             return null;
         }
 
@@ -110,6 +139,28 @@ final class CategoryRhythms
         }
 
         return $months;
+    }
+
+    /**
+     * @return array<int, string>|null month 1..12 => Rhythm value, the shape of an Inertia payload; null for an income Category
+     */
+    public function rhythmValuesInYear(int $categoryId, int $year): ?array
+    {
+        $byMonth = $this->rhythmsInYear($categoryId, $year);
+
+        return $byMonth === null
+            ? null
+            : array_map(fn (Rhythm $rhythm): string => $rhythm->value, $byMonth);
+    }
+
+    /**
+     * A Category that was not loaded has no known type: answering null would
+     * read an expense as an income, so it is the caller's error.
+     */
+    private function typeOf(int $categoryId): CategoryType
+    {
+        return $this->types[$categoryId]
+            ?? throw new LogicException("Category {$categoryId} was not loaded into CategoryRhythms.");
     }
 
     private static function monthIndex(int $year, int $month): int

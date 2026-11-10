@@ -1,8 +1,8 @@
-import type { MonthRhythm } from '../types/month-plan';
+import type { Rhythm } from '../types/rhythm';
 
 export type MonthItemDeviationInput = {
     type: 'income' | 'expense';
-    rhythm: MonthRhythm | null;
+    rhythm: Rhythm | null;
     plan: number;
     actual: number;
     hasPositiveAmount: boolean;

@@ -1,9 +1,9 @@
-import type { MonthRhythm } from '../types/month-plan';
+import type { Rhythm } from '../types/rhythm';
 
 export type ToSpendItem = {
     type: 'income' | 'expense';
     /** The Rhythm of the item's Category in the month; null for an income. */
-    rhythm: MonthRhythm | null;
+    rhythm: Rhythm | null;
     plan: number;
     actual: number;
     hasPositiveAmount: boolean;

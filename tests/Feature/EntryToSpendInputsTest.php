@@ -13,7 +13,9 @@ use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
 use App\Support\EntryToSpendInputs;
+use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -193,6 +195,35 @@ class EntryToSpendInputsTest extends TestCase
             EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['budgets'][0]['months'],
         );
         $this->assertSame($few, $many);
+    }
+
+    public function test_a_second_budget_in_execution_adds_no_rhythm_query_beyond_the_one_of_its_proposal(): void
+    {
+        $budgets = [$this->budget(2026), $this->budget(2027)];
+
+        foreach ($budgets as $budget) {
+            $this->food($budget);
+        }
+
+        $today = $this->day(2026, 11, 10);
+        $rhythmQueries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$rhythmQueries): void {
+            if (str_contains($query->sql, 'category_rhythms')) {
+                $rhythmQueries++;
+            }
+        });
+
+        foreach ($budgets as $budget) {
+            MonthPlanProposal::forBudget($budget, $today);
+        }
+
+        $ofTheProposals = $rhythmQueries;
+        $rhythmQueries = 0;
+
+        $payload = EntryToSpendInputs::forUser($this->user, $today);
+
+        $this->assertCount(2, $payload['budgets']);
+        $this->assertSame($ofTheProposals + 1, $rhythmQueries);
     }
 
     private function countQueries(): int

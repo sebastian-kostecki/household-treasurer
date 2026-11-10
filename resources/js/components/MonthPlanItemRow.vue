@@ -155,6 +155,7 @@ const deviationClass = computed(() => {
                         </span>
                         <span
                             v-if="row.even_annual_remaining !== null"
+                            class="tabular-nums"
                             :class="
                                 row.even_annual_remaining
                                     .available_limit_minor_units < 0
