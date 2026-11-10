@@ -774,7 +774,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -793,7 +793,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -841,7 +841,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'planned_amount_minor_units' => 50_000,
         ]);
@@ -987,7 +987,7 @@ class DashboardTest extends TestCase
             'color' => '#fa5252',
             'sort_order' => 2,
         ]);
-        $rent = BudgetLine::factory()->for($budget)->bill()->create([
+        $rent = BudgetLine::factory()->for($budget)->fixedCharge()->create([
             'name' => 'Rent',
             'icon' => 'home',
             'color' => '#228be6',
@@ -1058,7 +1058,7 @@ class DashboardTest extends TestCase
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $insurance = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'icon' => 'shield',
             'color' => '#228be6',
@@ -1379,7 +1379,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $insurance = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'icon' => 'shield',
             'color' => '#228be6',
@@ -1456,7 +1456,7 @@ class DashboardTest extends TestCase
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $rent = BudgetLine::factory()->for($budget)->bill()->create([
+        $rent = BudgetLine::factory()->for($budget)->fixedCharge()->create([
             'name' => 'Rent',
             'planned_amount_minor_units' => 120_000,
             'execution_minor_units' => 150_000,
@@ -1498,7 +1498,7 @@ class DashboardTest extends TestCase
             'planned_amount_minor_units' => 1_200_000,
             'sort_order' => 1,
         ]);
-        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $oneOff = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'planned_amount_minor_units' => 50_000,
             'execution_minor_units' => 80_000,

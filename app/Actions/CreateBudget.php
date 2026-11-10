@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Enums\BudgetPhase;
-use App\Enums\MonthItemKind;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -36,9 +35,9 @@ class CreateBudget
      * User's list (`categories.archived_at IS NULL`), none for an archived one
      * (ADR-0068). The source is the newest earlier Budget of the User, a draft
      * or an empty one included. Its line of the same Category gives the plan
-     * (Current Plan, 0 when that line is archived) and the flags (also of an
-     * archived line); with no such line the plan is 0 and the flags are Paced
-     * and Running. Initial Plan and Execution are 0. No Category is copied.
+     * (Current Plan, 0 when that line is archived); with no such line the plan
+     * is 0. Initial Plan and Execution are 0. No Category is copied, and the
+     * Rhythm is the history of the list Category (ADR-0066), not of the line.
      */
     private function createLinesFromList(User $user, Budget $budget, ?int $earlierBudgetId): void
     {
@@ -69,8 +68,6 @@ class CreateBudget
             return [
                 'budget_id' => $budget->id,
                 'category_id' => $categoryId,
-                'is_paced' => $source->is_paced ?? true,
-                'month_item_kind' => ($source->month_item_kind ?? MonthItemKind::Running)->value,
                 'planned_amount_minor_units' => $source !== null && ! $source->isArchived()
                     ? $source->planned_amount_minor_units
                     : 0,

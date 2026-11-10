@@ -961,7 +961,7 @@ class MonthPlanPageTest extends TestCase
     public function test_settled_flag_covers_income_inflow_and_a_bill_with_only_a_refund(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
-        $internet = BudgetLine::factory()->for($budget)->bill()->create([
+        $internet = BudgetLine::factory()->for($budget)->fixedCharge()->create([
             'name' => 'Internet', 'sort_order' => 4, 'planned_amount_minor_units' => 600_000,
         ]);
         $this->operation($user, $budget, $categories['salary'], '2026-06-10', 820_000);
@@ -1015,7 +1015,7 @@ class MonthPlanPageTest extends TestCase
         $this->travelTo('2026-11-10');
         [$user, $budget] = $this->canonicalBudget();
         $next = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
-        BudgetLine::factory()->for($next)->oneOff()->create([
+        BudgetLine::factory()->for($next)->evenAnnual()->create([
             'name' => 'Wakacje', 'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -1061,10 +1061,10 @@ class MonthPlanPageTest extends TestCase
     public function test_even_annual_without_plan_and_operations_is_idle(): void
     {
         [$user, $budget] = $this->canonicalBudget();
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Wakacje', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
         ]);
-        $refunded = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $refunded = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Zwrot', 'sort_order' => 5, 'planned_amount_minor_units' => 0,
         ]);
         $this->operation($user, $budget, $refunded, '2026-06-06', -5_000);
@@ -1104,7 +1104,7 @@ class MonthPlanPageTest extends TestCase
     public function test_even_annual_with_an_approved_plan_amount_is_not_idle(): void
     {
         [$user, $budget] = $this->canonicalBudget();
-        $holiday = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $holiday = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Wakacje', 'sort_order' => 4, 'planned_amount_minor_units' => 0,
         ]);
         $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
@@ -1391,7 +1391,7 @@ class MonthPlanPageTest extends TestCase
             'salary' => BudgetLine::factory()->for($budget)->income()->create([
                 'name' => 'Pensja', 'sort_order' => 0, 'planned_amount_minor_units' => 9_600_000,
             ]),
-            'rent' => BudgetLine::factory()->for($budget)->bill()->create([
+            'rent' => BudgetLine::factory()->for($budget)->fixedCharge()->create([
                 'name' => 'Czynsz', 'sort_order' => 0, 'planned_amount_minor_units' => 2_400_000,
             ]),
             'food' => BudgetLine::factory()->for($budget)->expense()->create([
@@ -1400,7 +1400,7 @@ class MonthPlanPageTest extends TestCase
             'fuel' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Paliwo', 'sort_order' => 2, 'planned_amount_minor_units' => 480_000,
             ]),
-            'gift' => BudgetLine::factory()->for($budget)->oneOff()->create([
+            'gift' => BudgetLine::factory()->for($budget)->evenAnnual()->create([
                 'name' => 'Prezent', 'sort_order' => 3, 'planned_amount_minor_units' => 100_000,
             ]),
         ];

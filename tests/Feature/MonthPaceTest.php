@@ -133,7 +133,7 @@ class MonthPaceTest extends TestCase
             'salary' => BudgetLine::factory()->for($budget)->income()->create([
                 'name' => 'Pensja', 'sort_order' => 0, 'planned_amount_minor_units' => 9_600_000,
             ]),
-            'rent' => BudgetLine::factory()->for($budget)->bill()->create([
+            'rent' => BudgetLine::factory()->for($budget)->fixedCharge()->create([
                 'name' => 'Czynsz', 'sort_order' => 0, 'planned_amount_minor_units' => 2_400_000,
             ]),
             'food' => BudgetLine::factory()->for($budget)->expense()->create([
@@ -142,7 +142,7 @@ class MonthPaceTest extends TestCase
             'fuel' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Paliwo', 'sort_order' => 2, 'planned_amount_minor_units' => 480_000,
             ]),
-            'gift' => BudgetLine::factory()->for($budget)->oneOff()->create([
+            'gift' => BudgetLine::factory()->for($budget)->evenAnnual()->create([
                 'name' => 'Prezent', 'sort_order' => 3, 'planned_amount_minor_units' => 100_000,
             ]),
         ];

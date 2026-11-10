@@ -114,7 +114,7 @@ class EntryToSpendInputsTest extends TestCase
     {
         $budget = $this->budget(2026);
         $food = $this->food($budget);
-        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create();
+        $oneOff = BudgetLine::factory()->for($budget)->evenAnnual()->create();
         $this->approve($budget, 11, [$food->id => 5_000]);
         $this->operation($budget, $oneOff, '2026-11-03', 2_000);
 
@@ -129,7 +129,7 @@ class EntryToSpendInputsTest extends TestCase
     public function test_categories_include_archived_ones_and_income_has_no_rhythms(): void
     {
         $budget = $this->budget(2026);
-        $bill = BudgetLine::factory()->for($budget)->bill()->create();
+        $bill = BudgetLine::factory()->for($budget)->fixedCharge()->create();
         $archived = BudgetLine::factory()->for($budget)->expense()->archived()->create();
         $salary = BudgetLine::factory()->for($budget)->income()->create();
 

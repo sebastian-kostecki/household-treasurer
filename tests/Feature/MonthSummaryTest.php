@@ -35,9 +35,9 @@ class MonthSummaryTest extends TestCase
     public function test_totals_compare_approved_final_and_actual(): void
     {
         $salary = BudgetLine::factory()->for($this->budget)->income()->create();
-        $rent = BudgetLine::factory()->for($this->budget)->bill()->create();
+        $rent = BudgetLine::factory()->for($this->budget)->fixedCharge()->create();
         $food = BudgetLine::factory()->for($this->budget)->expense()->create();
-        $bill = BudgetLine::factory()->for($this->budget)->bill()->create();
+        $bill = BudgetLine::factory()->for($this->budget)->fixedCharge()->create();
         $joinedLater = BudgetLine::factory()->for($this->budget)->expense()->create();
         $outside = BudgetLine::factory()->for($this->budget)->expense()->create();
 

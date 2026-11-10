@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -110,8 +109,6 @@ class BudgetLineFactory extends Factory
             'icon' => CategoryAppearance::DEFAULT_ICON,
             'color' => CategoryAppearance::DEFAULT_COLOR,
             'type' => fake()->randomElement(CategoryType::cases()),
-            'is_paced' => true,
-            'month_item_kind' => MonthItemKind::Running,
             'planned_amount_minor_units' => fake()->numberBetween(0, 500000),
             'execution_minor_units' => 0,
         ];
@@ -138,25 +135,29 @@ class BudgetLineFactory extends Factory
         ]);
     }
 
-    public function bill(): static
+    /**
+     * An expense line whose Category is a Fixed Charge (ADR-0066).
+     */
+    public function fixedCharge(): static
     {
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
-            'month_item_kind' => MonthItemKind::Bill,
         ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::FixedCharge));
     }
 
-    public function oneOff(): static
+    /**
+     * An expense line whose Category is Even Annual (ADR-0066).
+     */
+    public function evenAnnual(): static
     {
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
-            'is_paced' => false,
         ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::EvenAnnual));
     }
 
     /**
-     * Keeps the Rhythm history of the line's Category in step with the flag state, as the
-     * migration maps it (ADR-0066): the single entry starts in January of the Budget year.
+     * The Rhythm lives on the line's Category: its history becomes a single entry from
+     * January of the Budget year.
      */
     private function setRhythm(BudgetLine $line, Rhythm $rhythm): void
     {

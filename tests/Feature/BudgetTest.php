@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
@@ -214,8 +213,6 @@ class BudgetTest extends TestCase
         $line = $budget->budgetLines()->sole();
         $category = $line->category;
 
-        $this->assertTrue($line->is_paced);
-        $this->assertSame(MonthItemKind::Running, $line->month_item_kind);
         $this->assertSame(['running'], $category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
 
         $this->actingAs($user)
@@ -228,9 +225,24 @@ class BudgetTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        $this->assertTrue($line->fresh()->is_paced);
-        $this->assertSame(MonthItemKind::Running, $line->fresh()->month_item_kind);
+        $this->assertSame(10, $line->fresh()->planned_amount_minor_units);
         $this->assertSame(['running'], $category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
+    }
+
+    public function test_income_category_created_from_the_budget_page_has_no_rhythm(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create();
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $budget), $this->categoryFields([
+                'name' => 'Salary',
+                'type' => CategoryType::Income->value,
+                'planned_amount_minor_units' => 500000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(0, $budget->budgetLines()->sole()->category->rhythms()->count());
     }
 
     public function test_negative_planned_amount_is_rejected(): void
@@ -1095,13 +1107,11 @@ class BudgetTest extends TestCase
             'initial_plan_minor_units' => 400000,
             'execution_minor_units' => 250000,
         ]);
-        $expense = BudgetLine::factory()->for($sourceBudget)->expense()->create([
+        $expense = BudgetLine::factory()->for($sourceBudget)->fixedCharge()->create([
             'name' => 'Groceries',
             'planned_amount_minor_units' => 120000,
             'initial_plan_minor_units' => 100000,
             'execution_minor_units' => 80000,
-            'is_paced' => false,
-            'month_item_kind' => MonthItemKind::Bill,
         ]);
         $archived = BudgetLine::factory()->for($sourceBudget)->expense()->archived()->create(['name' => 'Archived']);
 
@@ -1119,8 +1129,8 @@ class BudgetTest extends TestCase
 
         $this->assertSame(500000, $lines[$income->category_id]->planned_amount_minor_units);
         $this->assertSame(120000, $lines[$expense->category_id]->planned_amount_minor_units);
-        $this->assertFalse($lines[$expense->category_id]->is_paced);
-        $this->assertSame(MonthItemKind::Bill, $lines[$expense->category_id]->month_item_kind);
+        // The Rhythm is the history of the list Category: a new Budget writes no entry (ADR-0066).
+        $this->assertSame(['fixed_charge'], $expense->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
 
         foreach ($lines as $line) {
             $this->assertSame(0, $line->initial_plan_minor_units);
@@ -1137,7 +1147,7 @@ class BudgetTest extends TestCase
         $this->assertSame(3, Category::query()->where('user_id', $user->id)->count());
     }
 
-    public function test_active_category_without_a_line_in_the_source_gets_plan_zero_and_default_flags(): void
+    public function test_active_category_without_a_line_in_the_source_gets_plan_zero_and_keeps_its_rhythm(): void
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->create(['year' => 2025]);
@@ -1150,8 +1160,7 @@ class BudgetTest extends TestCase
             ->budgetLines()->where('category_id', $unlisted->id)->sole();
 
         $this->assertSame(0, $line->planned_amount_minor_units);
-        $this->assertTrue($line->is_paced);
-        $this->assertSame(MonthItemKind::Running, $line->month_item_kind);
+        $this->assertSame(['running'], $unlisted->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
     }
 
     public function test_gap_year_takes_plans_from_the_newest_earlier_budget(): void
@@ -1209,7 +1218,6 @@ class BudgetTest extends TestCase
         BudgetLine::factory()->for($budget2026)->expense()->create([
             'name' => 'Food',
             'planned_amount_minor_units' => 100000,
-            'is_paced' => false,
         ]);
 
         $this->actingAs($user)->post(route('budgets.store'), ['year' => 2025])->assertSessionHasNoErrors();
@@ -1217,19 +1225,15 @@ class BudgetTest extends TestCase
         $line = Budget::query()->where('user_id', $user->id)->where('year', 2025)->sole()->budgetLines()->sole();
 
         $this->assertSame(0, $line->planned_amount_minor_units);
-        $this->assertTrue($line->is_paced);
-        $this->assertSame(MonthItemKind::Running, $line->month_item_kind);
     }
 
-    public function test_an_archived_source_line_of_an_active_category_gives_plan_zero_and_its_flags(): void
+    public function test_an_archived_source_line_of_an_active_category_gives_plan_zero_and_the_rhythm_stays_with_the_category(): void
     {
         $user = User::factory()->create();
         $sourceBudget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $sourceLine = BudgetLine::factory()->for($sourceBudget)->expense()->archived()->create([
+        $sourceLine = BudgetLine::factory()->for($sourceBudget)->fixedCharge()->archived()->create([
             'name' => 'Food',
             'planned_amount_minor_units' => 100000,
-            'is_paced' => false,
-            'month_item_kind' => MonthItemKind::Bill,
         ]);
         $sourceLine->category->update(['archived_at' => null]);
 
@@ -1239,8 +1243,7 @@ class BudgetTest extends TestCase
 
         $this->assertSame($sourceLine->category_id, $line->category_id);
         $this->assertSame(0, $line->planned_amount_minor_units);
-        $this->assertFalse($line->is_paced);
-        $this->assertSame(MonthItemKind::Bill, $line->month_item_kind);
+        $this->assertSame(['fixed_charge'], $sourceLine->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
     }
 
     public function test_an_empty_list_gives_a_draft_without_lines(): void

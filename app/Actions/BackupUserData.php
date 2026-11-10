@@ -204,8 +204,6 @@ class BackupUserData
             'id' => $budgetLine->id,
             'budget_id' => $budgetLine->budget_id,
             'category_id' => $budgetLine->category_id,
-            'is_paced' => $budgetLine->is_paced,
-            'month_item_kind' => $budgetLine->month_item_kind->value,
             'planned_amount_minor_units' => $budgetLine->planned_amount_minor_units,
             'initial_plan_minor_units' => $budgetLine->initial_plan_minor_units,
             'execution_minor_units' => $budgetLine->execution_minor_units,

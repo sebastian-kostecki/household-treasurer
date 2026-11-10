@@ -613,26 +613,26 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 #### Automated
 
-- [x] 5.1 Testy odczytów roku, Budżetu i „Pozostało w miesiącu” przechodzą na PostgreSQL
-- [x] 5.2 Testy TS przechodzą
-- [x] 5.3 E2E przechodzi
-- [x] 5.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 5.1 Testy odczytów roku, Budżetu i „Pozostało w miesiącu” przechodzą na PostgreSQL — e5dd783
+- [x] 5.2 Testy TS przechodzą — e5dd783
+- [x] 5.3 E2E przechodzi — e5dd783
+- [x] 5.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — e5dd783
 
 #### Manual
 
-- [x] 5.5 Dashboard i Budżet pokazują kreskę i etykiety rytmu, okno Budżetu bez flag
-- [x] 5.6 Kitchen sinki Budżetu i Dashboardu pokazują nowe stany
+- [x] 5.5 Dashboard i Budżet pokazują kreskę i etykiety rytmu, okno Budżetu bez flag — e5dd783
+- [x] 5.6 Kitchen sinki Budżetu i Dashboardu pokazują nowe stany — e5dd783
 
 ### Phase 6: Usunięcie flag, dokumenty i próba na kopii produkcji
 
 #### Automated
 
-- [ ] 6.1 Migracja usuwająca, odtworzenie flag w `down()` i inwarianty przechodzą na PostgreSQL
-- [ ] 6.2 Nie ma czytelników flag
-- [ ] 6.3 Pełna bramka na PostgreSQL
-- [ ] 6.4 `vendor/bin/sloppy ci` i `npx playwright test` przechodzą
+- [x] 6.1 Migracja usuwająca, odtworzenie flag w `down()` i inwarianty przechodzą na PostgreSQL
+- [x] 6.2 Nie ma czytelników flag
+- [x] 6.3 Pełna bramka na PostgreSQL
+- [x] 6.4 `vendor/bin/sloppy ci` i `npx playwright test` przechodzą
 
 #### Manual
 
-- [ ] 6.5 Słownik, ADR-0070 i reguły opisują stan po S-24 bez sprzeczności
+- [x] 6.5 Słownik, ADR-0070 i reguły opisują stan po S-24 bez sprzeczności
 - [ ] 6.6 Próba na kopii produkcji bez różnic

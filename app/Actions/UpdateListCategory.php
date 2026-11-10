@@ -3,9 +3,7 @@
 namespace App\Actions;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
-use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
@@ -66,12 +64,6 @@ class UpdateListCategory
                 }
 
                 $category->update($fields);
-
-                if ($type === CategoryType::Income && $category->wasChanged('type')) {
-                    BudgetLine::query()
-                        ->where('category_id', $category->id)
-                        ->update(['is_paced' => true, 'month_item_kind' => MonthItemKind::Running->value]);
-                }
 
                 $this->writeRhythm($category, $type, $attributes, $today ?? CarbonImmutable::today('UTC'));
 

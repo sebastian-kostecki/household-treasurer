@@ -43,6 +43,8 @@ function controlNumbersMigrationFiles(): array
         // The history table points at the new `categories`, which the S-18 rollback drops.
         database_path('migrations/2026_11_10_120000_create_category_rhythms_table.php'),
         database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
+        // The old shape carries the flags that the S-24 drop removes.
+        database_path('migrations/2026_11_10_120002_drop_rhythm_flags_from_budget_lines.php'),
     ];
 }
 
@@ -181,7 +183,6 @@ test('the output file holds the expected keys and the figures of the current sch
         'budget_line_id' => $line->id,
         'amount_minor_units' => 7_500,
     ]);
-    DB::table('budget_lines')->where('id', $line->id)->update(['is_paced' => false, 'month_item_kind' => 'bill']);
     // The expense Category already has its one Rhythm entry from the factory (ADR-0070).
 
     $path = controlNumbersPath('numbers.json');
@@ -194,7 +195,8 @@ test('the output file holds the expected keys and the figures of the current sch
         'meta', 'row_counts', 'max_financial_operation_id', 'budgets', 'lines',
         'own_transfers_total', 'capital_movements_by_direction', 'accounts', 'term_deposits',
     ])
-        ->and($document['meta']['one_off_bill_lines'])->toBe(1)
+        // The flags are dropped (S-24), so there is nothing to count.
+        ->and($document['meta']['one_off_bill_lines'])->toBeNull()
         ->and($document['meta']['category_rhythm_rows'])->toBe(1)
         ->and($document['row_counts']['budget_lines'])->toBe(1)
         ->and($document['row_counts']['financial_operations'])->toBe(1)
@@ -213,6 +215,34 @@ test('the output file holds the expected keys and the figures of the current sch
             'operations' => 7_500,
         ])
         ->and($document['accounts'])->toHaveKey((string) $account->id);
+});
+
+test('one-off bill lines are counted while the flags are still on the budget lines', function () {
+    if (DB::getDriverName() !== 'pgsql') {
+        $this->markTestSkipped('The S-24 migration is exercised on PostgreSQL only.');
+    }
+
+    $dropFlags = [
+        '--path' => [database_path('migrations/2026_11_10_120002_drop_rhythm_flags_from_budget_lines.php')],
+        '--realpath' => true,
+        '--force' => true,
+    ];
+    $budget = Budget::factory()->for(User::factory()->create())->create();
+    $oneOffBill = BudgetLine::factory()->for($budget)->expense()->create();
+    BudgetLine::factory()->for($budget)->fixedCharge()->create();
+
+    // The shape `scripts/deploy.sh` reads before `migrate`: the flags of S-24 are still there.
+    Artisan::call('migrate:rollback', $dropFlags);
+    DB::table('budget_lines')->where('id', $oneOffBill->id)->update(['is_paced' => false, 'month_item_kind' => 'bill']);
+
+    $path = controlNumbersPath('numbers.json');
+
+    $this->artisan('app:control-numbers', ['--output' => $path])->assertExitCode(0);
+
+    expect(json_decode(File::get($path), true)['meta']['one_off_bill_lines'])->toBe(1);
+
+    // The test database is shared with the tests that run after this one.
+    Artisan::call('migrate', $dropFlags);
 });
 
 test('an unreadable comparison file fails instead of passing silently', function () {

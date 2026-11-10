@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\Category;
 use App\Models\User;
@@ -16,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * "Dodaj kategorię" on „Kategorie” (ADR-0063, ADR-0067): a new list Category
- * that joins every draft Budget with plan 0 and the default flags. It does not
+ * that joins every draft Budget with plan 0. It does not
  * join a Budget in execution (the first use does), and an existing key, active or
  * archived, is refused: the list has no "join".
  */
@@ -53,7 +52,7 @@ class CreateListCategory
                     'sort_order' => $nextSortOrder,
                 ]);
 
-                $this->joinDraftBudgets->handle($category, true, MonthItemKind::Running);
+                $this->joinDraftBudgets->handle($category);
 
                 if ($type === CategoryType::Expense) {
                     $this->changeCategoryRhythm->handle(

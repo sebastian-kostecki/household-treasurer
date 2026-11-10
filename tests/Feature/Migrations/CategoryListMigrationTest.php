@@ -42,13 +42,31 @@ function categoryListMigrationFiles(): array
     ];
 }
 
+/**
+ * A rollback also takes the S-24 drop of the flags back (its `down()` runs first and
+ * restores them from the Rhythm history), because the old shape carries the flags. Forward
+ * the drop stays out, so these tests can compare the flags of every line on both shapes
+ * (ADR-0063, step (e)); the transaction of `RefreshDatabase` takes the schema back after
+ * each test, so the tests that follow see the flags dropped again.
+ */
 function categoryListMigrationArtisan(string $command): void
 {
+    $files = categoryListMigrationFiles();
+
+    if ($command === 'migrate:rollback') {
+        $files[] = categoryListMigrationFlagDropFile();
+    }
+
     Artisan::call($command, [
-        '--path' => categoryListMigrationFiles(),
+        '--path' => $files,
         '--realpath' => true,
         '--force' => true,
     ]);
+}
+
+function categoryListMigrationFlagDropFile(): string
+{
+    return database_path('migrations/2026_11_10_120002_drop_rhythm_flags_from_budget_lines.php');
 }
 
 function categoryListMigrationUser(string $email = 'owner@example.test'): int

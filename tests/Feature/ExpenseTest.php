@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Actions\ManageFinancialOperation;
 use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
@@ -276,7 +275,7 @@ class ExpenseTest extends TestCase
         $this->assertSame(0, $only2025->fresh()->execution_minor_units);
     }
 
-    public function test_joined_line_takes_the_flags_of_the_newest_line_of_the_category(): void
+    public function test_joining_a_budget_at_first_use_leaves_the_rhythm_of_the_category(): void
     {
         $this->travelTo('2026-11-20');
 
@@ -284,7 +283,7 @@ class ExpenseTest extends TestCase
         $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
         $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $only2025 = BudgetLine::factory()->for($budget2025)->expense()->create(['is_paced' => false]);
+        $only2025 = BudgetLine::factory()->for($budget2025)->evenAnnual()->create();
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
@@ -296,10 +295,11 @@ class ExpenseTest extends TestCase
             ])
             ->assertSessionHasNoErrors();
 
-        $this->assertFalse(BudgetLine::query()
+        $this->assertSame(0, BudgetLine::query()
             ->where('budget_id', $budget2026->id)
             ->where('category_id', $only2025->category_id)
-            ->firstOrFail()->is_paced);
+            ->sole()->planned_amount_minor_units);
+        $this->assertSame(['even_annual'], $only2025->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
     }
 
     public function test_expense_is_refused_for_a_year_without_a_budget_and_for_an_archived_category_without_a_line(): void
@@ -705,7 +705,7 @@ class ExpenseTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $oneOff = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
         $older = Budget::factory()->for($user)->create(['year' => 2025, 'phase' => BudgetPhase::Draft]);
-        BudgetLine::factory()->for($older)->create(['category_id' => $oneOff->id, 'is_paced' => false, 'month_item_kind' => MonthItemKind::Bill]);
+        BudgetLine::factory()->for($older)->create(['category_id' => $oneOff->id]);
         $oneOff->rhythms()->delete();
         $oneOff->rhythms()->create(['start_year' => 2025, 'start_month' => 1, 'rhythm' => Rhythm::FixedCharge]);
 

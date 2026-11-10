@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -68,7 +67,7 @@ class CreateCategory
                         $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::today('UTC'));
                     }
 
-                    $this->joinDraftBudgets->handle($category, true, MonthItemKind::Running, $budget->id);
+                    $this->joinDraftBudgets->handle($category, $budget->id);
                 }
 
                 return $existing !== null;

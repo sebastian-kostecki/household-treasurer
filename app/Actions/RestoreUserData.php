@@ -8,7 +8,6 @@ use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -34,6 +33,14 @@ class RestoreUserData
      */
     private const LIST_FORMAT_VERSIONS = [6, 7, 8, BackupUserData::SNAPSHOT_VERSION];
 
+    /**
+     * The flags of the Budget Lines of a snapshot of version 1 to 8, kept only
+     * as the input of `LegacyRhythmConversion`: the lines no longer store them.
+     *
+     * @var list<array{budget_id: int, category_id: int, category_type: string, is_paced: bool, month_item_kind: string}>
+     */
+    private array $legacyFlagLines = [];
+
     public function __construct(private ResetUserData $resetUserData) {}
 
     public function handle(User $targetUser, string $path): void
@@ -44,6 +51,8 @@ class RestoreUserData
         if (! $isCurrentFormat) {
             $snapshot = $this->withBudgetLineKeys($snapshot);
         }
+
+        $this->legacyFlagLines = [];
 
         DB::transaction(function () use ($targetUser, $snapshot, $isCurrentFormat): void {
             $this->resetUserData->handle($targetUser);
@@ -279,11 +288,13 @@ class RestoreUserData
 
             $seenInBudget[$budgetId][$listCategory->id] = true;
 
+            if ($version < BackupUserData::SNAPSHOT_VERSION) {
+                $this->rememberLegacyFlags($budgetId, $listCategory->id, [...$lineData, 'type' => $listCategory->type->value]);
+            }
+
             $rows[] = [
                 'budget_id' => $budgetId,
                 'category_id' => $listCategory->id,
-                'is_paced' => $this->restoredCategoryIsPaced([...$lineData, 'type' => $listCategory->type->value]),
-                'month_item_kind' => $this->restoredCategoryMonthItemKind([...$lineData, 'type' => $listCategory->type->value])->value,
                 'planned_amount_minor_units' => $lineData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $lineData['initial_plan_minor_units'],
                 'execution_minor_units' => $lineData['execution_minor_units'],
@@ -469,28 +480,22 @@ class RestoreUserData
     }
 
     /**
-     * Snapshots 1 to 8 carry no Rhythm: it is made from the flags of the
-     * restored Budget Lines by the class the backfill migration uses, so a
-     * restored snapshot equals what the migration would make of the same data
+     * Snapshots 1 to 8 carry no Rhythm: it is made from the flags their Budget
+     * Lines carry by the class the backfill migration uses, so a restored
+     * snapshot equals what the migration would make of the same data
      * (ADR-0070). A Category without a line is Running from the restore month.
      */
     private function restoreLegacyRhythms(User $targetUser): void
     {
-        $lines = BudgetLine::query()
-            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
-            ->join('categories', 'categories.id', '=', 'budget_lines.category_id')
-            ->where('budgets.user_id', $targetUser->id)
-            ->toBase()
-            ->get(['budget_lines.category_id', 'categories.type as category_type', 'budgets.year', 'budget_lines.is_paced', 'budget_lines.month_item_kind'])
-            ->map(fn (object $row): array => [
-                'category_id' => (int) $row->category_id,
-                'category_type' => (string) $row->category_type,
-                'year' => (int) $row->year,
-                'is_paced' => (bool) $row->is_paced,
-                'month_item_kind' => (string) $row->month_item_kind,
-            ])
-            ->values()
-            ->all();
+        $yearByBudget = $targetUser->budgets()->pluck('year', 'id');
+
+        $lines = array_map(fn (array $line): array => [
+            'category_id' => $line['category_id'],
+            'category_type' => $line['category_type'],
+            'year' => (int) $yearByBudget[$line['budget_id']],
+            'is_paced' => $line['is_paced'],
+            'month_item_kind' => $line['month_item_kind'],
+        ], $this->legacyFlagLines);
 
         $expenseCategoryIds = $targetUser->categories()
             ->where('type', CategoryType::Expense->value)
@@ -502,7 +507,7 @@ class RestoreUserData
         $since = CarbonImmutable::today('UTC');
         $entries = $expenseCategoryIds === []
             ? []
-            : LegacyRhythmConversion::convert(array_values($lines), array_values($expenseCategoryIds), $since->year, $since->month);
+            : LegacyRhythmConversion::convert($lines, array_values($expenseCategoryIds), $since->year, $since->month);
 
         $now = now();
 
@@ -538,11 +543,11 @@ class RestoreUserData
                 throw new UserSnapshotException("Snapshot references unknown budget id {$categoryData['budget_id']}.");
             }
 
+            $this->rememberLegacyFlags($budgetId, $listCategoryIds[$categoryData['id']], $categoryData);
+
             $category = BudgetLine::query()->create([
                 'budget_id' => $budgetId,
                 'category_id' => $listCategoryIds[$categoryData['id']],
-                'is_paced' => $this->restoredCategoryIsPaced($categoryData),
-                'month_item_kind' => $this->restoredCategoryMonthItemKind($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $categoryData['initial_plan_minor_units'],
                 'execution_minor_units' => $categoryData['execution_minor_units'],
@@ -837,6 +842,22 @@ class RestoreUserData
     }
 
     /**
+     * @param  array<string, mixed>  $lineData  a Budget Line of a snapshot of version 1 to 8, with the `type` of its Category
+     */
+    private function rememberLegacyFlags(int $budgetId, int $categoryId, array $lineData): void
+    {
+        $this->legacyFlagLines[] = [
+            'budget_id' => $budgetId,
+            'category_id' => $categoryId,
+            'category_type' => (string) $lineData['type'],
+            'is_paced' => $this->restoredCategoryIsPaced($lineData),
+            'month_item_kind' => $this->restoredCategoryMonthItemKind($lineData),
+        ];
+    }
+
+    /**
+     * Input of `LegacyRhythmConversion` for snapshots 1 to 8 only.
+     *
      * @param  array<string, mixed>  $categoryData
      */
     private function restoredCategoryIsPaced(array $categoryData): bool
@@ -845,18 +866,21 @@ class RestoreUserData
             return true;
         }
 
-        return $categoryData['is_paced'] ?? true;
+        return (bool) ($categoryData['is_paced'] ?? true);
     }
 
     /**
+     * Input of `LegacyRhythmConversion` for snapshots 1 to 8 only: `bill` or
+     * `running`, the values of the removed Month Item Kind.
+     *
      * @param  array<string, mixed>  $categoryData
      */
-    private function restoredCategoryMonthItemKind(array $categoryData): MonthItemKind
+    private function restoredCategoryMonthItemKind(array $categoryData): string
     {
         if ($categoryData['type'] !== CategoryType::Expense->value) {
-            return MonthItemKind::Running;
+            return 'running';
         }
 
-        return MonthItemKind::tryFrom((string) ($categoryData['month_item_kind'] ?? '')) ?? MonthItemKind::Running;
+        return ($categoryData['month_item_kind'] ?? null) === 'bill' ? 'bill' : 'running';
     }
 }

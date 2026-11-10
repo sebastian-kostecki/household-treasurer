@@ -271,8 +271,8 @@ class MonthPlanProposalTest extends TestCase
     public function test_even_annual_category_is_proposed_as_the_average_with_the_remainder_in_december(): void
     {
         $budget = $this->budget(2026);
-        $retreat = BudgetLine::factory()->for($budget)->oneOff()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 238_000]);
-        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create(['name' => 'Ubezpieczenie samochodu', 'planned_amount_minor_units' => 54_100]);
+        $retreat = BudgetLine::factory()->for($budget)->evenAnnual()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 238_000]);
+        $insurance = BudgetLine::factory()->for($budget)->evenAnnual()->create(['name' => 'Ubezpieczenie samochodu', 'planned_amount_minor_units' => 54_100]);
 
         $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
 
@@ -286,7 +286,7 @@ class MonthPlanProposalTest extends TestCase
     public function test_even_annual_category_ignores_an_approved_source_month(): void
     {
         $budget = $this->budget(2026);
-        $retreat = BudgetLine::factory()->for($budget)->oneOff()->create(['planned_amount_minor_units' => 120_000]);
+        $retreat = BudgetLine::factory()->for($budget)->evenAnnual()->create(['planned_amount_minor_units' => 120_000]);
         $this->approve($budget, 10, [$retreat->id => 77_000]);
 
         $this->assertSame(10_000, MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11)->amounts[$retreat->id]);
@@ -470,7 +470,7 @@ class MonthPlanProposalTest extends TestCase
      */
     private function fixedCharge(Budget $budget, int $annualMinorUnits, array $attributes = []): BudgetLine
     {
-        return BudgetLine::factory()->for($budget)->bill()->create($attributes + [
+        return BudgetLine::factory()->for($budget)->fixedCharge()->create($attributes + [
             'name' => 'Telefon + Internet',
             'planned_amount_minor_units' => $annualMinorUnits,
         ]);

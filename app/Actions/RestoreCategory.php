@@ -5,7 +5,6 @@ namespace App\Actions;
 use App\Enums\BudgetPhase;
 use App\Models\BudgetLine;
 use App\Models\Category;
-use App\Support\CategoryList\CategoryJoinFlags;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,13 +29,7 @@ class RestoreCategory
                     ->select('id'))
                 ->update(['archived_at' => null]);
 
-            $flags = CategoryJoinFlags::forCategory($category->id);
-
-            $this->joinDraftBudgets->handle(
-                $category,
-                $flags['is_paced'],
-                $flags['month_item_kind'],
-            );
+            $this->joinDraftBudgets->handle($category);
         });
     }
 }

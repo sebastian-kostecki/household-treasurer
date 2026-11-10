@@ -8,7 +8,6 @@ use App\Actions\RestoreUserData;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
-use App\Enums\MonthItemKind;
 use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
@@ -55,7 +54,8 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame([], $snapshot['category_groups']);
         $this->assertNull($snapshot['categories'][0]['category_group_id']);
         $this->assertSame([], $snapshot['month_plans']);
-        $this->assertSame('running', $snapshot['budget_lines'][0]['month_item_kind']);
+        $this->assertArrayNotHasKey('is_paced', $snapshot['budget_lines'][0]);
+        $this->assertArrayNotHasKey('month_item_kind', $snapshot['budget_lines'][0]);
         $this->assertSame($snapshot['categories'][0]['id'], $snapshot['budget_lines'][0]['category_id']);
         $this->assertArrayHasKey('description', $snapshot['categories'][0]);
         $this->assertArrayNotHasKey('name', $snapshot['budget_lines'][0]);
@@ -207,13 +207,13 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertNull($restoredTermDeposit->end_date);
     }
 
-    public function test_snapshot_round_trips_month_plan_and_item_kind_with_remapped_ids(): void
+    public function test_snapshot_round_trips_month_plan_and_rhythm_with_remapped_ids(): void
     {
         Storage::fake('local');
 
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
-        $billCategory = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $billCategory = BudgetLine::factory()->for($budget)->fixedCharge()->create(['name' => 'Rent']);
         $runningCategory = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Food']);
         $monthPlan = MonthPlan::factory()->for($budget)->create([
             'month' => 3,
@@ -249,7 +249,10 @@ class UserSnapshotCommandTest extends TestCase
             ->firstOrFail();
         $restoredItem = $restoredPlan->items()->where('budget_line_id', $restoredBill->id)->firstOrFail();
 
-        $this->assertSame(MonthItemKind::Bill, $restoredBill->month_item_kind);
+        $this->assertSame(
+            ['fixed_charge'],
+            $restoredBill->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all(),
+        );
         $this->assertSame(3, $restoredPlan->month);
         $this->assertSame('2026-03-02 10:00:00', $restoredPlan->approved_at->format('Y-m-d H:i:s'));
         $this->assertNotSame($monthPlan->id, $restoredPlan->id);
@@ -261,13 +264,13 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(2, $restoredPlan->items()->count());
     }
 
-    public function test_restore_command_restores_v4_snapshot_with_running_kind_and_no_plans(): void
+    public function test_restore_command_restores_v4_snapshot_as_running_and_with_no_plans(): void
     {
         Storage::fake('local');
 
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
-        $category = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $category = BudgetLine::factory()->for($budget)->fixedCharge()->create(['name' => 'Rent']);
         MonthPlanItem::factory()
             ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
             ->for($category)
@@ -289,11 +292,8 @@ class UserSnapshotCommandTest extends TestCase
             '--force' => true,
         ]);
 
-        $restoredCategory = BudgetLine::query()
-            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
-            ->firstOrFail();
-
-        $this->assertSame(MonthItemKind::Running, $restoredCategory->month_item_kind);
+        // A version 4 line has no Month Item Kind, so the mapping reads it as Running (ADR-0070).
+        $this->assertSame(['Rent' => [['running', 2026, 1]]], $this->rhythmsByName($targetUser));
         $this->assertSame(0, MonthPlan::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->count());
@@ -368,7 +368,7 @@ class UserSnapshotCommandTest extends TestCase
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
         $otherBudget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2025]);
-        $category = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $category = BudgetLine::factory()->for($budget)->fixedCharge()->create(['name' => 'Rent']);
         $otherCategory = BudgetLine::factory()->for($otherBudget)->expense()->create(['name' => 'Food']);
         MonthPlanItem::factory()
             ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
@@ -1106,9 +1106,9 @@ class UserSnapshotCommandTest extends TestCase
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
         $category = Category::factory()->for($sourceUser)->expense()->create(['name' => 'Czynsz']);
-        BudgetLine::factory()->for($budget)->create(['category_id' => $category->id, 'is_paced' => true, 'month_item_kind' => MonthItemKind::Bill]);
+        BudgetLine::factory()->for($budget)->create(['category_id' => $category->id]);
         $path = app(BackupUserData::class)->handle($sourceUser);
-        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true));
+        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true), ['is_paced' => true, 'month_item_kind' => 'bill']);
         $v8Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v8.json');
         file_put_contents($v8Path, json_encode($snapshot, JSON_THROW_ON_ERROR));
 
@@ -1179,51 +1179,37 @@ class UserSnapshotCommandTest extends TestCase
         }
     }
 
-    /**
-     * @return array<string, list<array{0: string, 1: int, 2: int}>> Category name => entries
-     */
-    public function test_snapshot_round_trips_paced_flag(): void
+    public function test_a_v8_one_off_flag_restores_as_even_annual(): void
     {
         Storage::fake('local');
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->expense()->create([
-            'name' => 'One-off',
-            'is_paced' => false,
-        ]);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'One-off']);
 
         $path = app(BackupUserData::class)->handle($user);
-        $snapshot = json_decode(file_get_contents($path), true);
-
-        $this->assertFalse($snapshot['budget_lines'][0]['is_paced']);
+        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true), ['is_paced' => false, 'month_item_kind' => 'running']);
+        file_put_contents($path, json_encode($snapshot));
 
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
 
-        $restoredCategory = BudgetLine::query()
-            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
-            ->whereHas('category', fn ($query) => $query->where('name', 'One-off'))
-            ->firstOrFail();
-
-        $this->assertFalse($restoredCategory->is_paced);
+        $this->assertSame(['One-off' => [['even_annual', 2026, 1]]], $this->rhythmsByName($targetUser));
     }
 
-    public function test_snapshot_missing_paced_flag_restores_expense_category_as_paced(): void
+    public function test_a_v8_line_without_the_flags_restores_its_expense_category_as_running(): void
     {
         Storage::fake('local');
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->create(['year' => 2026]);
-        $category = BudgetLine::factory()->for($budget)->expense()->create([
-            'name' => 'Legacy',
-            'is_paced' => true,
-        ]);
+        $category = BudgetLine::factory()->for($budget)->evenAnnual()->create(['name' => 'Legacy']);
 
         $path = app(BackupUserData::class)->handle($user);
-        $snapshot = json_decode(file_get_contents($path), true);
-        unset($snapshot['budget_lines'][0]['is_paced']);
+        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true));
         file_put_contents($path, json_encode($snapshot));
+
+        $this->assertArrayNotHasKey('is_paced', $snapshot['budget_lines'][0]);
 
         $targetUser = User::factory()->create();
         app(RestoreUserData::class)->handle($targetUser, $path);
@@ -1233,10 +1219,13 @@ class UserSnapshotCommandTest extends TestCase
             ->whereHas('category', fn ($query) => $query->where('name', 'Legacy'))
             ->firstOrFail();
 
-        $this->assertTrue($restoredCategory->is_paced);
+        $this->assertSame(['Legacy' => [['running', 2026, 1]]], $this->rhythmsByName($targetUser));
         $this->assertNotSame($category->id, $restoredCategory->id);
     }
 
+    /**
+     * @return array<string, list<array{0: string, 1: int, 2: int}>> Category name => entries
+     */
     private function rhythmsByName(User $user): array
     {
         $result = [];
@@ -1254,13 +1243,16 @@ class UserSnapshotCommandTest extends TestCase
 
     /**
      * Turns a snapshot written by the current code into version 8: Category
-     * Groups, but no Rhythm history.
+     * Groups, but no Rhythm history. A version 8 Budget Line carried the flags
+     * the current code no longer writes; `$lineFlags` puts them on every line.
      *
      * @param  array<string, mixed>  $snapshot
+     * @param  array{is_paced?: bool, month_item_kind?: string}  $lineFlags
      * @return array<string, mixed>
      */
-    private function asV8Snapshot(array $snapshot): array
+    private function asV8Snapshot(array $snapshot, array $lineFlags = []): array
     {
+        $snapshot['budget_lines'] = array_map(fn (array $line): array => [...$line, ...$lineFlags], $snapshot['budget_lines']);
         $snapshot['categories'] = array_map(function (array $category): array {
             unset($category['rhythms']);
 

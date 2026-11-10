@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Enums\BudgetPhase;
-use App\Enums\MonthItemKind;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -15,7 +14,7 @@ use App\Models\Category;
  */
 class JoinDraftBudgets
 {
-    public function handle(Category $category, bool $isPaced, MonthItemKind $monthItemKind, ?int $exceptBudgetId = null): void
+    public function handle(Category $category, ?int $exceptBudgetId = null): void
     {
         $budgetIds = Budget::query()
             ->where('user_id', $category->user_id)
@@ -33,8 +32,6 @@ class JoinDraftBudgets
         BudgetLine::query()->insert($budgetIds->map(fn (int $budgetId): array => [
             'budget_id' => $budgetId,
             'category_id' => $category->id,
-            'is_paced' => $isPaced,
-            'month_item_kind' => $monthItemKind->value,
             'planned_amount_minor_units' => 0,
             'initial_plan_minor_units' => 0,
             'execution_minor_units' => 0,
