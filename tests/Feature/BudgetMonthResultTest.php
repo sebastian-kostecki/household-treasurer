@@ -29,7 +29,7 @@ class BudgetMonthResultTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $income = BudgetLine::factory()->for($budget)->income()->create();
         $paced = BudgetLine::factory()->for($budget)->expense()->create();
-        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create();
+        $oneOff = BudgetLine::factory()->for($budget)->evenAnnual()->create();
 
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Income,

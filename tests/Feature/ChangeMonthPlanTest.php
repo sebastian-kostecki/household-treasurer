@@ -42,7 +42,7 @@ class ChangeMonthPlanTest extends TestCase
         $this->user = User::factory()->create();
         $this->budget = Budget::factory()->for($this->user)->execution()->create(['year' => 2026]);
         $this->salary = BudgetLine::factory()->for($this->budget)->income()->create(['name' => 'Pensja']);
-        $this->rent = BudgetLine::factory()->for($this->budget)->bill()->create(['name' => 'Czynsz']);
+        $this->rent = BudgetLine::factory()->for($this->budget)->fixedCharge()->create(['name' => 'Czynsz']);
         $this->food = BudgetLine::factory()->for($this->budget)->expense()->create(['name' => 'Jedzenie']);
     }
 
@@ -130,7 +130,6 @@ class ChangeMonthPlanTest extends TestCase
         $line = BudgetLine::query()->where('budget_id', $this->budget->id)->where('category_id', $domains->id)->firstOrFail();
         $this->assertSame(0, $line->planned_amount_minor_units);
         $this->assertSame(0, $line->execution_minor_units);
-        $this->assertTrue($line->is_paced);
         $this->assertItem($plan, $line, 0, 80);
     }
 

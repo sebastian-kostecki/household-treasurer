@@ -1,6 +1,8 @@
+import type { Rhythm } from '../types/rhythm';
+
 export type MonthItemDeviationInput = {
     type: 'income' | 'expense';
-    kind: 'bill' | 'running' | null;
+    rhythm: Rhythm | null;
     plan: number;
     actual: number;
     hasPositiveAmount: boolean;
@@ -13,7 +15,8 @@ export type MonthItemDeviationInput = {
 export function monthItemDeviationMinorUnits(
     item: MonthItemDeviationInput,
 ): number | null {
-    const isSettledKind = item.type === 'income' || item.kind === 'bill';
+    const isSettledKind =
+        item.type === 'income' || item.rhythm === 'fixed_charge';
 
     if (isSettledKind && !item.hasPositiveAmount) {
         return null;
@@ -26,7 +29,21 @@ export function monthItemDeviationMinorUnits(
  * Copy of App\Support\MonthItemDeviation::isOverPlan. Change both together.
  */
 export function isMonthItemOverPlan(
-    item: Pick<MonthItemDeviationInput, 'type' | 'plan' | 'actual'>,
+    item: Pick<
+        MonthItemDeviationInput,
+        'type' | 'rhythm' | 'plan' | 'actual'
+    > & {
+        yearExecution: number;
+        currentPlan: number;
+    },
 ): boolean {
-    return item.type === 'expense' && item.actual > item.plan;
+    if (item.type !== 'expense') {
+        return false;
+    }
+
+    if (item.rhythm === 'even_annual') {
+        return item.yearExecution > item.currentPlan;
+    }
+
+    return item.actual > item.plan;
 }

@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
@@ -20,7 +19,7 @@ class EntryToSpendInputs
      *         categories: list<array{
      *             id: int,
      *             type: string,
-     *             month_item_kind: string|null,
+     *             rhythms: array<int, string>|null,
      *         }>,
      *         months: list<array{
      *             month: int,
@@ -46,12 +45,14 @@ class EntryToSpendInputs
 
         $joiningExpenses = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
         $joiningIncomes = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Income);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningExpenses, $joiningIncomes);
 
         return [
             'budgets' => array_values($budgets
                 ->map(fn (Budget $budget): array => self::budgetPayload(
                     $budget,
                     $today,
+                    $rhythms,
                     $joiningExpenses[$budget->id],
                     $joiningIncomes[$budget->id],
                 ))
@@ -60,11 +61,11 @@ class EntryToSpendInputs
     }
 
     /**
-     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningExpenses  expense Categories that join the Budget at their first use: no plan item, Running or the flags of their newest line
-     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningIncomes  income Categories that join the Budget at their first use: no plan item and no Month Item Kind
+     * @param  list<array{category_id: int}>  $joiningExpenses  expense Categories that join the Budget at their first use: no plan item, their Rhythm by month
+     * @param  list<array{category_id: int}>  $joiningIncomes  income Categories that join the Budget at their first use: no plan item and no Rhythm
      * @return array{
      *     year: int,
-     *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
+     *     categories: list<array{id: int, type: string, rhythms: array<int, string>|null}>,
      *     months: list<array{
      *         month: int,
      *         set_aside_minor_units: int,
@@ -72,7 +73,7 @@ class EntryToSpendInputs
      *     }>,
      * }
      */
-    private static function budgetPayload(Budget $budget, CarbonImmutable $today, array $joiningExpenses, array $joiningIncomes): array
+    private static function budgetPayload(Budget $budget, CarbonImmutable $today, CategoryRhythms $rhythms, array $joiningExpenses, array $joiningIncomes): array
     {
         $proposal = MonthPlanProposal::forBudget($budget, $today);
 
@@ -93,6 +94,7 @@ class EntryToSpendInputs
         $actualsByMonth = MonthCategoryActuals::forMonths($budget, array_keys($readings));
 
         $listCategoryIds = $budget->budgetLines->pluck('category_id', 'id');
+        $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
         $months = [];
 
         foreach ($readings as $month => $reading) {
@@ -127,21 +129,19 @@ class EntryToSpendInputs
                     ->map(fn (BudgetLine $category): array => [
                         'id' => $category->category_id,
                         'type' => $category->category->type->value,
-                        'month_item_kind' => $category->hasType(CategoryType::Income)
-                            ? null
-                            : $category->month_item_kind->value,
+                        'rhythms' => $rhythmsOf($category->category_id),
                     ])
                     ->values()
                     ->all(),
                 ...array_map(fn (array $joining): array => [
                     'id' => $joining['category_id'],
                     'type' => CategoryType::Expense->value,
-                    'month_item_kind' => $joining['month_item_kind']->value,
+                    'rhythms' => $rhythmsOf($joining['category_id']),
                 ], $joiningExpenses),
                 ...array_map(fn (array $joining): array => [
                     'id' => $joining['category_id'],
                     'type' => CategoryType::Income->value,
-                    'month_item_kind' => null,
+                    'rhythms' => null,
                 ], $joiningIncomes),
             ],
             'months' => $months,

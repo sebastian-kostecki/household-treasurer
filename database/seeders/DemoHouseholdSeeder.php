@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\ChangeCategoryRhythm;
 use App\Actions\CreateBudget;
 use App\Actions\ManageCapitalMovement;
 use App\Actions\ManageFinancialOperation;
@@ -11,12 +12,14 @@ use App\Enums\AccountType;
 use App\Enums\Bank;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
@@ -273,6 +276,10 @@ class DemoHouseholdSeeder extends Seeder
                 'sort_order' => $index,
                 'type' => $definition['type'],
             ]);
+
+            if ($definition['type'] === CategoryType::Expense) {
+                app(ChangeCategoryRhythm::class)->handle($category, Rhythm::Running, CarbonImmutable::today('UTC'));
+            }
 
             $categories[$definition['name']] = BudgetLine::query()->create([
                 'budget_id' => $budgetId,

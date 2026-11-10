@@ -84,7 +84,7 @@ describe('noticePresentation', () => {
     it('presents a one-off over limit by category name', () => {
         const notice: DashboardNotice = {
             severity: 'exceeded',
-            kind: 'one_off_over_limit',
+            kind: 'even_annual_over_limit',
             id: 4,
             name: 'Podróże',
             icon: 'plane',

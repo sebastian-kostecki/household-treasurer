@@ -1,4 +1,4 @@
-export type MonthItemKind = 'bill' | 'running';
+import type { Rhythm } from './rhythm';
 
 export type MonthStripState = 'summary' | 'approved' | 'proposal';
 
@@ -25,19 +25,27 @@ export type MonthPlanItem = {
     icon: string;
     color: string;
     type: 'income' | 'expense';
-    month_item_kind: MonthItemKind | null;
-    is_one_off: boolean;
     is_archived: boolean;
     plan_minor_units: number;
     actual_minor_units: number;
     has_positive_amount: boolean;
-    can_change_kind: boolean;
     in_plan: boolean;
     deviation_minor_units: number | null;
     is_over_plan: boolean;
     is_settled: boolean;
-    available_limit_minor_units: number | null;
-    is_idle_one_off: boolean;
+    /** Even Annual without a plan amount and without operations in the month (ADR-0072). */
+    is_idle_even_annual: boolean;
+    /** The Rhythm of the viewed month (ADR-0066); null for an income item. */
+    rhythm: Rhythm | null;
+    /** Execution of the whole year of the Category, for the over-plan reading of an Even Annual item. */
+    year_execution_minor_units: number;
+    /** Current Plan of the Category in the year. */
+    current_plan_minor_units: number;
+    /** "Zostało X na Y mies." of an Even Annual item in the current and future months. */
+    even_annual_remaining: {
+        available_limit_minor_units: number;
+        months_left: number;
+    } | null;
     approved_minor_units: number | null;
     is_join_candidate: boolean;
     year_comparison: MonthYearComparison | null;

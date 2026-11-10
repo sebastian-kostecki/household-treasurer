@@ -12,28 +12,34 @@ describe('monthItemStatus', () => {
     it('marks a received income as ok and a pending one as waiting', () => {
         expect(
             monthItemStatus(
-                { type: 'income', month_item_kind: null, is_settled: true },
+                { type: 'income', rhythm: null, is_settled: true },
                 open,
             ),
-        ).toEqual({ key: 'settled_income', variant: 'ok' });
+        ).toEqual({
+            key: 'settled_income',
+            variant: 'ok',
+        });
         expect(
             monthItemStatus(
-                { type: 'income', month_item_kind: null, is_settled: false },
+                { type: 'income', rhythm: null, is_settled: false },
                 open,
             ),
-        ).toEqual({ key: 'status_waiting', variant: 'neutral' });
+        ).toEqual({
+            key: 'status_waiting',
+            variant: 'neutral',
+        });
     });
 
     it('marks a paid bill as ok and an unpaid one as due', () => {
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: true },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: true },
                 open,
             ),
         ).toEqual({ key: 'settled_bill', variant: 'ok' });
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: false },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: false },
                 open,
             ),
         ).toEqual({ key: 'status_due', variant: 'neutral' });
@@ -44,7 +50,7 @@ describe('monthItemStatus', () => {
             monthItemStatus(
                 {
                     type: 'expense',
-                    month_item_kind: 'running',
+                    rhythm: 'running',
                     is_settled: false,
                 },
                 open,
@@ -57,7 +63,7 @@ describe('monthItemStatus', () => {
             monthItemStatus(
                 {
                     type: 'expense',
-                    month_item_kind: 'running',
+                    rhythm: 'running',
                     is_settled: false,
                 },
                 { ...open, overPlan: true },
@@ -68,7 +74,7 @@ describe('monthItemStatus', () => {
     it('lets over plan win over a paid bill', () => {
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: true },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: true },
                 { ...open, overPlan: true },
             ),
         ).toEqual({ key: 'status_over_plan', variant: 'destructive-soft' });
@@ -79,13 +85,13 @@ describe('monthItemStatus', () => {
 
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: false },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: false },
                 zeroPlan,
             ),
         ).toBeNull();
         expect(
             monthItemStatus(
-                { type: 'income', month_item_kind: null, is_settled: false },
+                { type: 'income', rhythm: null, is_settled: false },
                 zeroPlan,
             ),
         ).toBeNull();
@@ -94,7 +100,7 @@ describe('monthItemStatus', () => {
     it('keeps the settled badge when the plan is zero', () => {
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: true },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: true },
                 { ...open, planMinorUnits: 0 },
             ),
         ).toEqual({ key: 'settled_bill', variant: 'ok' });
@@ -103,7 +109,7 @@ describe('monthItemStatus', () => {
     it('keeps the waiting badge while the typed plan is unreadable', () => {
         expect(
             monthItemStatus(
-                { type: 'income', month_item_kind: null, is_settled: false },
+                { type: 'income', rhythm: null, is_settled: false },
                 { ...open, planMinorUnits: null },
             ),
         ).toEqual({ key: 'status_waiting', variant: 'neutral' });
@@ -114,19 +120,19 @@ describe('monthItemStatus', () => {
 
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: false },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: false },
                 closed,
             ),
         ).toEqual({ key: 'status_unpaid', variant: 'neutral' });
         expect(
             monthItemStatus(
-                { type: 'income', month_item_kind: null, is_settled: false },
+                { type: 'income', rhythm: null, is_settled: false },
                 closed,
             ),
         ).toEqual({ key: 'status_not_received', variant: 'neutral' });
         expect(
             monthItemStatus(
-                { type: 'expense', month_item_kind: 'bill', is_settled: true },
+                { type: 'expense', rhythm: 'fixed_charge', is_settled: true },
                 closed,
             ),
         ).toEqual({ key: 'settled_bill', variant: 'ok' });

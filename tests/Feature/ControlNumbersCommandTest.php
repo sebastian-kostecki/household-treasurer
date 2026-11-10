@@ -40,6 +40,11 @@ function controlNumbersMigrationFiles(): array
         database_path('migrations/2026_11_09_122524_expand_categories_into_category_list_and_budget_lines.php'),
         database_path('migrations/2026_11_09_122525_backfill_category_list.php'),
         database_path('migrations/2026_11_09_132817_drop_legacy_category_columns_from_budget_lines.php'),
+        // The history table points at the new `categories`, which the S-18 rollback drops.
+        database_path('migrations/2026_11_10_120000_create_category_rhythms_table.php'),
+        database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
+        // The old shape carries the flags that the S-24 drop removes.
+        database_path('migrations/2026_11_10_120002_drop_rhythm_flags_from_budget_lines.php'),
     ];
 }
 
@@ -133,7 +138,9 @@ test('the same data gives matching control numbers on the old and on the new sch
     $oldDocument = json_decode(File::get($before), true);
 
     expect($oldDocument['meta']['schema'])->toBe('categories')
-        ->and($oldDocument['meta']['category_list_rows'])->toBeNull();
+        ->and($oldDocument['meta']['category_list_rows'])->toBeNull()
+        ->and($oldDocument['meta']['one_off_bill_lines'])->toBeNull()
+        ->and($oldDocument['meta']['category_rhythm_rows'])->toBeNull();
 
     controlNumbersMigrate('migrate');
 
@@ -176,6 +183,7 @@ test('the output file holds the expected keys and the figures of the current sch
         'budget_line_id' => $line->id,
         'amount_minor_units' => 7_500,
     ]);
+    // The expense Category already has its one Rhythm entry from the factory (ADR-0072).
 
     $path = controlNumbersPath('numbers.json');
 
@@ -187,6 +195,9 @@ test('the output file holds the expected keys and the figures of the current sch
         'meta', 'row_counts', 'max_financial_operation_id', 'budgets', 'lines',
         'own_transfers_total', 'capital_movements_by_direction', 'accounts', 'term_deposits',
     ])
+        // The flags are dropped (S-24), so there is nothing to count.
+        ->and($document['meta']['one_off_bill_lines'])->toBeNull()
+        ->and($document['meta']['category_rhythm_rows'])->toBe(1)
         ->and($document['row_counts']['budget_lines'])->toBe(1)
         ->and($document['row_counts']['financial_operations'])->toBe(1)
         ->and($document['max_financial_operation_id'])->toBe(FinancialOperation::query()->max('id'))
@@ -204,6 +215,34 @@ test('the output file holds the expected keys and the figures of the current sch
             'operations' => 7_500,
         ])
         ->and($document['accounts'])->toHaveKey((string) $account->id);
+});
+
+test('one-off bill lines are counted while the flags are still on the budget lines', function () {
+    if (DB::getDriverName() !== 'pgsql') {
+        $this->markTestSkipped('The S-24 migration is exercised on PostgreSQL only.');
+    }
+
+    $dropFlags = [
+        '--path' => [database_path('migrations/2026_11_10_120002_drop_rhythm_flags_from_budget_lines.php')],
+        '--realpath' => true,
+        '--force' => true,
+    ];
+    $budget = Budget::factory()->for(User::factory()->create())->create();
+    $oneOffBill = BudgetLine::factory()->for($budget)->expense()->create();
+    BudgetLine::factory()->for($budget)->fixedCharge()->create();
+
+    // The shape `scripts/deploy.sh` reads before `migrate`: the flags of S-24 are still there.
+    Artisan::call('migrate:rollback', $dropFlags);
+    DB::table('budget_lines')->where('id', $oneOffBill->id)->update(['is_paced' => false, 'month_item_kind' => 'bill']);
+
+    $path = controlNumbersPath('numbers.json');
+
+    $this->artisan('app:control-numbers', ['--output' => $path])->assertExitCode(0);
+
+    expect(json_decode(File::get($path), true)['meta']['one_off_bill_lines'])->toBe(1);
+
+    // The test database is shared with the tests that run after this one.
+    Artisan::call('migrate', $dropFlags);
 });
 
 test('an unreadable comparison file fails instead of passing silently', function () {

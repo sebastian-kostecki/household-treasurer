@@ -20,6 +20,7 @@ import type {
     OwnTransferFormTransfer,
 } from '@/components/OwnTransferFormDialog.vue';
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
+import type { Rhythm } from '@/types/rhythm';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 
 const now = new Date();
@@ -133,16 +134,22 @@ export const dialogTermDeposits: CapitalMovementFormTermDeposit[] = [
     },
 ];
 
+function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
 /** Plan of the current month: To Spend is 50,00 zł. */
 export const dialogEntryToSpend: EntryToSpendInputs = {
     budgets: [
         {
             year,
             categories: [
-                { id: 1, type: 'expense', month_item_kind: 'running' },
-                { id: 2, type: 'expense', month_item_kind: 'running' },
-                { id: 3, type: 'expense', month_item_kind: 'bill' },
-                { id: 10, type: 'income', month_item_kind: null },
+                { id: 1, type: 'expense', rhythms: allMonths('running') },
+                { id: 2, type: 'expense', rhythms: allMonths('running') },
+                { id: 3, type: 'expense', rhythms: allMonths('fixed_charge') },
+                { id: 10, type: 'income', rhythms: null },
             ],
             months: [
                 {
@@ -190,7 +197,7 @@ export const dialogHandEntryMonthRemaining: HandEntryMonthRemainingInputs = {
             categories: [
                 {
                     id: 1,
-                    is_paced: true,
+                    rhythms: allMonths('running'),
                     planned_amount_minor_units: 120000,
                     monthly_execution_minor_units: {},
                 },

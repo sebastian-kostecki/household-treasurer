@@ -6,7 +6,11 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\HandEntryMonthRemainingInputs;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -20,7 +24,6 @@ test('operations page includes hand entry month remaining inputs', function () {
     $category = BudgetLine::factory()->for($budget)->expense()->create([
         'planned_amount_minor_units' => 120_000,
         'execution_minor_units' => 35_000,
-        'is_paced' => true,
     ]);
 
     FinancialOperation::factory()->for($user)->for($budget)->create([
@@ -47,18 +50,22 @@ test('operations page includes hand entry month remaining inputs', function () {
             ->where('handEntryMonthRemaining.budgets.0.is_draft', false)
             ->has('handEntryMonthRemaining.budgets.0.categories', 1)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.id', $category->category_id)
-            ->where('handEntryMonthRemaining.budgets.0.categories.0.is_paced', true)
+            ->where('handEntryMonthRemaining.budgets.0.categories.0.rhythms', array_fill_keys(range(1, 12), 'running'))
             ->where('handEntryMonthRemaining.budgets.0.categories.0.planned_amount_minor_units', 120_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.1', 25_000)
             ->where('handEntryMonthRemaining.budgets.0.categories.0.monthly_execution_minor_units.3', 10_000)
             ->has('entryToSpend.budgets', 1)
             ->where('entryToSpend.budgets.0.year', 2026)
-            ->where('entryToSpend.budgets.0.categories.0.id', $category->category_id)
+            ->where('entryToSpend.budgets.0.categories.0', [
+                'id' => $category->category_id,
+                'type' => 'expense',
+                'rhythms' => array_fill_keys(range(1, 12), 'running'),
+            ])
             ->where('entryToSpend.budgets.0.months.0.month', 6),
         );
 });
 
-test('hand entry month remaining inputs include archived paced categories for pool math', function () {
+test('hand entry month remaining inputs include archived running categories for pool math', function () {
     $this->travelTo('2026-06-15');
 
     $user = User::factory()->create();
@@ -66,11 +73,9 @@ test('hand entry month remaining inputs include archived paced categories for po
     $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
     $activeCategory = BudgetLine::factory()->for($budget)->expense()->create([
         'planned_amount_minor_units' => 60_000,
-        'is_paced' => true,
     ]);
     $archivedCategory = BudgetLine::factory()->for($budget)->expense()->archived()->create([
         'planned_amount_minor_units' => 60_000,
-        'is_paced' => true,
     ]);
 
     $this->actingAs($user)
@@ -96,7 +101,6 @@ test('expense exceeding month remaining is still saved', function () {
     $category = BudgetLine::factory()->for($budget)->expense()->create([
         'planned_amount_minor_units' => 120_000,
         'execution_minor_units' => 35_000,
-        'is_paced' => true,
     ]);
 
     FinancialOperation::factory()->for($user)->for($budget)->for($account)->create([
@@ -127,4 +131,25 @@ test('expense exceeding month remaining is still saved', function () {
     $category->refresh();
 
     expect($category->execution_minor_units)->toBe(85_000);
+});
+
+test('hand entry month remaining inputs read the rhythm history once for every budget in execution', function () {
+    $user = User::factory()->create();
+
+    foreach ([2026, 2027] as $year) {
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => $year]);
+        BudgetLine::factory()->for($budget)->expense()->create();
+    }
+
+    $rhythmQueries = 0;
+    DB::listen(function (QueryExecuted $query) use (&$rhythmQueries): void {
+        if (str_contains($query->sql, 'category_rhythms')) {
+            $rhythmQueries++;
+        }
+    });
+
+    $payload = HandEntryMonthRemainingInputs::forUser($user, CarbonImmutable::create(2026, 6, 15));
+
+    expect($payload['budgets'])->toHaveCount(2);
+    expect($rhythmQueries)->toBe(1);
 });

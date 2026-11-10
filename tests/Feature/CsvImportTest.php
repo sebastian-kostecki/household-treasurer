@@ -16,9 +16,13 @@ use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
 use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportRowFields;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -73,7 +77,11 @@ CSV;
                 ->where('rows.1.amount_minor_units', -4550)
                 ->has('monthRemainingContext.budgets', 1)
                 ->has('entryToSpend.budgets', 1)
-                ->where('entryToSpend.budgets.0.year', 2026),
+                ->where('entryToSpend.budgets.0.year', 2026)
+                ->where('entryToSpend.budgets.0.categories', [
+                    ['id' => $incomeCategory->category_id, 'type' => 'income', 'rhythms' => null],
+                    ['id' => $expenseCategory->category_id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'running')],
+                ]),
             );
     }
 
@@ -4202,10 +4210,10 @@ CSV;
             ->assertInertia(fn (Assert $page) => $page
                 ->has('expenseCategories', 2)
                 ->where('expenseCategories', fn ($options) => collect($options)->contains(
-                    fn ($option) => $option['id'] === $domains->id && $option['budget_year'] === 2026 && $option['is_paced'] === true,
+                    fn ($option) => $option['id'] === $domains->id && $option['budget_year'] === 2026 && $option['rhythms'] === array_fill_keys(range(1, 12), 'running'),
                 ))
                 ->where('monthRemainingContext.budgets.0.categories', fn ($categories) => collect($categories)->contains(
-                    fn ($entry) => $entry['id'] === $domains->id && $entry['planned_amount_minor_units'] === 0 && $entry['is_paced'] === true,
+                    fn ($entry) => $entry['id'] === $domains->id && $entry['planned_amount_minor_units'] === 0 && $entry['rhythms'] === array_fill_keys(range(1, 12), 'running'),
                 )),
             );
 
@@ -4220,5 +4228,27 @@ CSV;
         $this->assertSame($expenseLine->budget_id, $line->budget_id);
         $this->assertSame(0, $line->planned_amount_minor_units);
         $this->assertSame(8000, $line->execution_minor_units);
+    }
+
+    public function test_month_remaining_context_reads_the_rhythm_history_once_for_every_budget_in_execution(): void
+    {
+        $user = User::factory()->create();
+
+        foreach ([2026, 2027] as $year) {
+            $budget = Budget::factory()->for($user)->execution()->create(['year' => $year]);
+            BudgetLine::factory()->for($budget)->expense()->create();
+        }
+
+        $rhythmQueries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$rhythmQueries): void {
+            if (str_contains($query->sql, 'category_rhythms')) {
+                $rhythmQueries++;
+            }
+        });
+
+        $context = ImportMonthRemainingContext::forUser($user, CarbonImmutable::create(2026, 6, 15));
+
+        $this->assertCount(2, $context['budgets']);
+        $this->assertSame(1, $rhythmQueries);
     }
 }

@@ -38,7 +38,7 @@ class MonthCategoryActualsTest extends TestCase
     public function test_refund_only_category_has_no_positive_amount(): void
     {
         [$user, $budget, $account] = $this->setUpBudget();
-        $rent = BudgetLine::factory()->for($budget)->bill()->create();
+        $rent = BudgetLine::factory()->for($budget)->fixedCharge()->create();
 
         $this->operation($user, $budget, $account, $rent, '2026-11-10', -10_000);
 

@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
+use App\Enums\Rhythm;
 use App\Models\BudgetLine;
 
 /**
@@ -22,14 +23,15 @@ class MonthYearComparison
 {
     /**
      * @param  array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}  $rowAmounts  as MonthToSpend::rowAmounts
+     * @param  Rhythm|null  $rhythm  the Rhythm of the Category in the month; null for an income
      * @return YearComparison
      */
-    public static function forCategory(BudgetLine $category, array $rowAmounts): array
+    public static function forCategory(BudgetLine $category, array $rowAmounts, ?Rhythm $rhythm): array
     {
         $before = $category->execution_minor_units - $rowAmounts['actual_minor_units'];
         $year = $before + ToSpendCalculator::itemMinorUnits(
             $category->category->type,
-            $category->month_item_kind,
+            $rhythm,
             $rowAmounts['plan_minor_units'],
             $rowAmounts['actual_minor_units'],
             $rowAmounts['has_positive_amount'],

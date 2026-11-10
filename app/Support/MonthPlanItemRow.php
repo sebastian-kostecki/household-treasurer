@@ -2,8 +2,9 @@
 
 namespace App\Support;
 
-use App\Enums\CategoryType;
+use App\Enums\Rhythm;
 use App\Models\BudgetLine;
+use Carbon\CarbonImmutable;
 
 /**
  * @phpstan-import-type YearComparison from MonthYearComparison
@@ -14,19 +15,19 @@ use App\Models\BudgetLine;
  *     icon: string,
  *     color: string,
  *     type: string,
- *     month_item_kind: string|null,
- *     is_one_off: bool,
  *     is_archived: bool,
  *     plan_minor_units: int,
  *     actual_minor_units: int,
  *     has_positive_amount: bool,
- *     can_change_kind: bool,
  *     in_plan: bool,
  *     deviation_minor_units: int|null,
  *     is_over_plan: bool,
  *     is_settled: bool,
- *     available_limit_minor_units: int|null,
- *     is_idle_one_off: bool,
+ *     is_idle_even_annual: bool,
+ *     rhythm: string|null,
+ *     year_execution_minor_units: int,
+ *     current_plan_minor_units: int,
+ *     even_annual_remaining: array{available_limit_minor_units: int, months_left: int}|null,
  *     approved_minor_units: int|null,
  *     is_join_candidate: bool,
  *     year_comparison: YearComparison|null,
@@ -38,10 +39,10 @@ final class MonthPlanItemRow
      * @param  'past'|'current'|'future'  $timing
      * @return MonthPlanRow
      */
-    public static function forLine(BudgetLine $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
+    public static function forLine(BudgetLine $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate, int $month, CarbonImmutable $today): array
     {
-        $isExpense = $category->hasType(CategoryType::Expense);
-        $isOneOff = $isExpense && ! $category->is_paced;
+        $rhythm = $toSpend->proposal->rhythmIn($category, $month);
+        $isEvenAnnual = $rhythm === Rhythm::EvenAnnual;
         $amounts = $toSpend->rowAmounts($category);
         $plan = $amounts['plan_minor_units'];
         $actual = $amounts['actual_minor_units'];
@@ -52,35 +53,58 @@ final class MonthPlanItemRow
             'name' => $category->category->name,
             ...CategoryAppearance::fields($category),
             'type' => $category->category->type->value,
-            'month_item_kind' => $isExpense ? $category->month_item_kind->value : null,
-            'is_one_off' => $isOneOff,
             'is_archived' => $category->isArchived(),
             'plan_minor_units' => $plan,
             'actual_minor_units' => $actual,
             'has_positive_amount' => $hasPositiveAmount,
-            'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
             'in_plan' => array_key_exists($category->id, $toSpend->reading->amounts),
             'approved_minor_units' => $toSpend->reading->approvedAmounts[$category->id] ?? null,
             'is_join_candidate' => $isJoinCandidate,
             'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits(
                 $category->category->type,
-                $category->month_item_kind,
+                $rhythm,
                 $plan,
                 $actual,
                 $hasPositiveAmount,
             ),
-            'is_over_plan' => MonthItemDeviation::isOverPlan($category->category->type, $plan, $actual),
-            'is_settled' => MonthItemDeviation::isSettled($category->category->type, $category->month_item_kind, $hasPositiveAmount),
-            'available_limit_minor_units' => $isOneOff
-                ? CategoryExecutionMetrics::remainingMinorUnits(
-                    $category->planned_amount_minor_units,
-                    $category->execution_minor_units,
-                )
+            'is_over_plan' => MonthItemDeviation::isOverPlan(
+                $category->category->type,
+                $rhythm,
+                $plan,
+                $actual,
+                $category->execution_minor_units,
+                $category->planned_amount_minor_units,
+            ),
+            'is_settled' => MonthItemDeviation::isSettled($category->category->type, $rhythm, $hasPositiveAmount),
+            'is_idle_even_annual' => $isEvenAnnual && $plan === 0 && ! $toSpend->actuals->hasOperations($category->id),
+            'rhythm' => $rhythm?->value,
+            'year_execution_minor_units' => $category->execution_minor_units,
+            'current_plan_minor_units' => $category->planned_amount_minor_units,
+            'even_annual_remaining' => $isEvenAnnual
+                ? self::evenAnnualRemaining($category->planned_amount_minor_units, $category->execution_minor_units, $timing, $toSpend->proposal->budgetYear(), $today)
                 : null,
-            'is_idle_one_off' => $isOneOff && $plan === 0 && ! $toSpend->actuals->hasOperations($category->id),
             'year_comparison' => $timing === 'current'
-                ? MonthYearComparison::forCategory($category, $amounts)
+                ? MonthYearComparison::forCategory($category, $amounts, $rhythm)
                 : null,
+        ];
+    }
+
+    /**
+     * "Zostało X na Y mies." of an Even Annual item (ADR-0072): X is the Available Limit as of
+     * today, Y the calendar months from the current one to December. Past months have none.
+     *
+     * @param  'past'|'current'|'future'  $timing
+     * @return array{available_limit_minor_units: int, months_left: int}|null
+     */
+    public static function evenAnnualRemaining(int $currentPlanMinorUnits, int $executionMinorUnits, string $timing, int $budgetYear, CarbonImmutable $today): ?array
+    {
+        if ($timing === 'past' || $budgetYear < $today->year) {
+            return null;
+        }
+
+        return [
+            'available_limit_minor_units' => CategoryExecutionMetrics::remainingMinorUnits($currentPlanMinorUnits, $executionMinorUnits),
+            'months_left' => $budgetYear === $today->year ? 12 - $today->month + 1 : 12,
         ];
     }
 }

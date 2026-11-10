@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use Carbon\CarbonImmutable;
@@ -21,6 +22,7 @@ final class MonthToSpend
      */
     private function __construct(
         public readonly MonthPlanProposal $proposal,
+        public readonly int $month,
         public readonly MonthPlanReading $reading,
         public readonly MonthCategoryActuals $actuals,
         public readonly Collection $categories,
@@ -45,7 +47,15 @@ final class MonthToSpend
             ->ordered()
             ->get();
 
-        return new self($proposal, $reading, $actuals, $categories);
+        return new self($proposal, $month, $reading, $actuals, $categories);
+    }
+
+    /**
+     * The Rhythm of the row's Category in the month read; null for an income.
+     */
+    public function rhythmOf(BudgetLine $category): ?Rhythm
+    {
+        return $this->proposal->rhythmIn($category, $this->month);
     }
 
     /**
@@ -74,7 +84,7 @@ final class MonthToSpend
 
             $items[] = [
                 'type' => $category->category->type,
-                'kind' => $category->month_item_kind,
+                'rhythm' => $this->rhythmOf($category),
                 'plan' => $amounts['plan_minor_units'],
                 'actual' => $amounts['actual_minor_units'],
                 'has_positive_amount' => $amounts['has_positive_amount'],

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\Rhythm;
 use Carbon\CarbonImmutable;
 
 class MonthRemainingCalculator
@@ -12,12 +13,21 @@ class MonthRemainingCalculator
         private readonly CarbonImmutable $today,
     ) {}
 
+    /**
+     * The pool of "Pozostało w miesiącu" holds fixed charges and running
+     * categories; an even annual category has no such reading (ADR-0066).
+     */
+    public static function isPoolRhythm(?Rhythm $rhythm): bool
+    {
+        return $rhythm === Rhythm::FixedCharge || $rhythm === Rhythm::Running;
+    }
+
     public function monthsLeft(int $month): int
     {
         return 13 - $month;
     }
 
-    public function pacedMonthRemainingMinorUnits(
+    public function poolCategoryMonthRemainingMinorUnits(
         int $currentPlanMinorUnits,
         int $executionBeforeViewedMonth,
         int $executionInViewedMonth,
@@ -45,16 +55,16 @@ class MonthRemainingCalculator
         );
     }
 
-    public function pacedPoolMonthRemainingMinorUnits(
+    public function poolMonthRemainingMinorUnits(
         int $totalCurrentPlanMinorUnits,
         int $totalExecutionBeforeViewedMonth,
         int $totalExecutionInViewedMonth,
         int $viewedMonth,
         int $totalExecutionBeforeCurrentMonth,
         int $totalExecutionInCurrentMonth,
-        bool $hasPacedCategories,
+        bool $hasPoolCategories,
     ): int {
-        if (! $hasPacedCategories) {
+        if (! $hasPoolCategories) {
             return 0;
         }
 

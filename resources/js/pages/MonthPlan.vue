@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle, Check, Pencil } from '@lucide/vue';
-import { Form, Head, Link, router } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
-import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import MonthPlanController from '@/actions/App/Http/Controllers/MonthPlanController';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -34,11 +33,7 @@ import {
 import { monthItemStatus } from '@/lib/month-plan-status';
 import { toSpendBreakdown } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
-import type {
-    MonthItemKind,
-    MonthPlanItem,
-    MonthPlanReading,
-} from '@/types/month-plan';
+import type { MonthPlanItem, MonthPlanReading } from '@/types/month-plan';
 
 const props = defineProps<{
     budget: {
@@ -292,7 +287,7 @@ const toSpendReading = computed<{
     return toSpendBreakdown(
         allRows.value.map((row) => ({
             type: row.type,
-            kind: row.month_item_kind,
+            rhythm: row.rhythm,
             plan: isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0,
             actual: row.actual_minor_units,
             hasPositiveAmount: row.has_positive_amount,
@@ -377,48 +372,6 @@ function monthUrl(month: number): string {
     return monthPlanRoute({ query: { month } }).url;
 }
 
-const kindPendingCategoryId = ref<number | null>(null);
-const kindError = ref<{ categoryId: number; message: string } | null>(null);
-
-function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
-    if (row.month_item_kind === kind) {
-        return;
-    }
-
-    kindError.value = null;
-    kindPendingCategoryId.value = row.category_id;
-
-    router.patch(
-        CategoryController.updateMonthItemKind.url({
-            budget: props.budget?.id ?? 0,
-            category: row.category_id,
-        }),
-        { month_item_kind: kind },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onError: (errors) => {
-                const message = Object.values(errors)[0];
-
-                kindError.value = message
-                    ? { categoryId: row.category_id, message }
-                    : null;
-            },
-            onFinish: () => {
-                if (kindPendingCategoryId.value === row.category_id) {
-                    kindPendingCategoryId.value = null;
-                }
-            },
-        },
-    );
-}
-
-function kindErrorFor(row: MonthPlanItem): string | undefined {
-    return kindError.value?.categoryId === row.category_id
-        ? kindError.value.message
-        : undefined;
-}
-
 /**
  * While the proposal is edited the deviation follows the typed plan amount;
  * otherwise the server reading is shown.
@@ -442,8 +395,10 @@ function rowReading(row: MonthPlanItem): {
 
     const item = {
         type: row.type,
-        kind: row.month_item_kind,
+        rhythm: row.rhythm,
         plan,
+        yearExecution: row.year_execution_minor_units,
+        currentPlan: row.current_plan_minor_units,
         actual: row.actual_minor_units,
         hasPositiveAmount: row.has_positive_amount,
     };
@@ -481,7 +436,6 @@ function rowState(row: MonthPlanItem): MonthPlanRowState {
         }),
         yearStale: yearStale(row),
         invalid: isAmountFlagged(row),
-        kindError: kindErrorFor(row),
         matchActual: isChanging.value
             ? matchActualState(row, parsedAmount(row), isEditableRow(row))
             : null,
@@ -497,10 +451,10 @@ const expenseItems = computed(() =>
     visibleRows(props.monthPlan?.expense_items ?? []),
 );
 const expenseRows = computed(() =>
-    expenseItems.value.filter((row) => !row.is_idle_one_off),
+    expenseItems.value.filter((row) => !row.is_idle_even_annual),
 );
 const idleRows = computed(() =>
-    expenseItems.value.filter((row) => row.is_idle_one_off),
+    expenseItems.value.filter((row) => row.is_idle_even_annual),
 );
 
 /** A section total is built from the saved plan, so one stale row marks it too. */
@@ -699,7 +653,6 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                     :editable="isEditable"
                     :amount-inputs="amountInputs"
                     :row-state="rowState"
-                    :kind-pending-category-id="kindPendingCategoryId"
                     :year-totals="monthPlan.year_totals"
                     :year-totals-stale="yearTotalsStale"
                     :set-aside-minor-units="shownSetAsideMinorUnits"
@@ -708,7 +661,6 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                     :set-aside-error="errors.set_aside_minor_units"
                     @update-amount="updateAmount"
                     @amount-blur="touchAmount"
-                    @change-kind="changeKind"
                     @match-actual="matchActual"
                     @set-aside-blur="setAsideTouched = true"
                 />

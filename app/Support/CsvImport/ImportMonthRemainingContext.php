@@ -4,12 +4,12 @@ namespace App\Support\CsvImport;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetMonthExecutionIndex;
 use App\Support\CategoryList\CategoryChoiceOptions;
+use App\Support\CategoryRhythms;
 use Carbon\CarbonImmutable;
 
 class ImportMonthRemainingContext
@@ -23,7 +23,7 @@ class ImportMonthRemainingContext
      *         is_draft: bool,
      *         categories: list<array{
      *             id: int,
-     *             is_paced: bool,
+     *             rhythms: array<int, string>|null,
      *             planned_amount_minor_units: int,
      *         }>,
      *         execution_by_category_and_month: array<int, array<int, int>>,
@@ -41,30 +41,31 @@ class ImportMonthRemainingContext
             ->get();
 
         $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningEntries);
 
         return [
             'today' => $today->toDateString(),
             'budgets' => array_values($budgets
-                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $joiningEntries[$budget->id]))
+                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $rhythms, $joiningEntries[$budget->id]))
                 ->all()),
         ];
     }
 
     /**
-     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningEntries  Categories that join the Budget at their first use
+     * @param  list<array{category_id: int}>  $joiningEntries  Categories that join the Budget at their first use
      * @return array{
      *     id: int,
      *     year: int,
      *     is_draft: bool,
      *     categories: list<array{
      *         id: int,
-     *         is_paced: bool,
+     *         rhythms: array<int, string>|null,
      *         planned_amount_minor_units: int,
      *     }>,
      *     execution_by_category_and_month: array<int, array<int, int>>,
      * }
      */
-    private static function budgetPayload(Budget $budget, array $joiningEntries): array
+    private static function budgetPayload(Budget $budget, CategoryRhythms $rhythms, array $joiningEntries): array
     {
         $categories = $budget->budgetLines;
         $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $categories);
@@ -83,12 +84,13 @@ class ImportMonthRemainingContext
             }
         }
 
+        $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
         $joiningCategories = [];
 
         foreach ($joiningEntries as $joining) {
             $joiningCategories[] = [
                 'id' => $joining['category_id'],
-                'is_paced' => $joining['is_paced'],
+                'rhythms' => $rhythmsOf($joining['category_id']),
                 'planned_amount_minor_units' => 0,
             ];
             $executionByCategoryAndMonth[$joining['category_id']] = [];
@@ -101,7 +103,7 @@ class ImportMonthRemainingContext
             'categories' => [...$categories
                 ->map(fn (BudgetLine $category): array => [
                     'id' => $category->category_id,
-                    'is_paced' => $category->is_paced,
+                    'rhythms' => $rhythmsOf($category->category_id),
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                 ])
                 ->values()

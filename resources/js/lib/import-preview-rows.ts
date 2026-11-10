@@ -1,5 +1,6 @@
 import type { CategoryPickerGroup } from './category-appearance';
 import { parseMoneyInputToMinorUnits } from './format';
+import type { Rhythm } from '../types/rhythm';
 import {
     locksTypeToOwnTransfer,
     uniquePairCandidate,
@@ -30,7 +31,8 @@ export type CategoryRow = {
     color: string;
     group?: CategoryPickerGroup | null;
     budget_year: number;
-    is_paced: boolean;
+    /** Rhythm by month 1..12 of the year in `budget_year`; null for an income. */
+    rhythms?: Record<number, Rhythm> | null;
 };
 
 export type TermDepositRow = {

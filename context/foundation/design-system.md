@@ -102,7 +102,7 @@ W wierszu tytułu Operacji jedyną akcją główną jest „Dodaj operację”: 
 
 ### Kitchen sink i zrzuty
 
-`/dev/kitchen-sink/budget` (tylko `local`) renderuje Budżet bez paska miesiąca w macierzy 7 stanów: realizacja (w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa bez kreski, równomierna z kreską), strzałka zmiany planu w „Planie początkowym” (w górę i w dół, wydatek i dochód, zarchiwizowany), szkic z kolumną „Typ”, pusty budżet, brak kategorii, Switch wł./wył., panel miar z 3 i 4 miarami.
+`/dev/kitchen-sink/budget` (tylko `local`) renderuje Budżet bez paska miesiąca w macierzy 7 stanów: realizacja (w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, bieżąca i równomierna roczna, obie z kreską), strzałka zmiany planu w „Planie początkowym” (w górę i w dół, wydatek i dochód, zarchiwizowany), szkic z kolumną „Typ”, pusty budżet, brak kategorii, Switch wł./wył., panel miar z 3 i 4 miarami.
 
 `/dev/ui/settings` (tylko `local`) renderuje ustawienia (Profil, Bezpieczeństwo, Wygląd) z prawdziwych komponentów: layout z podnawigacją na szerokim i wąskim ekranie, `SettingsPanel` z polami, błędem i stopką, strefę usuwania (`Alert` `danger`, Button `outline-destructive`, potwierdzenie) oraz `SegmentedControl` motywu w obu motywach (ADR-0049); nowy stan ustawień dopisz tam.
 

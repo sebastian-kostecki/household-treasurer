@@ -3,23 +3,28 @@
 namespace Tests\Feature;
 
 use App\Actions\BackupUserData;
+use App\Actions\ChangeCategoryRhythm;
 use App\Actions\RestoreUserData;
 use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
 use App\Models\CategoryGroup;
+use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
+use App\Support\CategoryList\LegacyRhythmConversion;
+use Carbon\CarbonImmutable;
+use Database\Seeders\DemoHouseholdSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -45,11 +50,12 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(8, $snapshot['version']);
+        $this->assertSame(9, $snapshot['version']);
         $this->assertSame([], $snapshot['category_groups']);
         $this->assertNull($snapshot['categories'][0]['category_group_id']);
         $this->assertSame([], $snapshot['month_plans']);
-        $this->assertSame('running', $snapshot['budget_lines'][0]['month_item_kind']);
+        $this->assertArrayNotHasKey('is_paced', $snapshot['budget_lines'][0]);
+        $this->assertArrayNotHasKey('month_item_kind', $snapshot['budget_lines'][0]);
         $this->assertSame($snapshot['categories'][0]['id'], $snapshot['budget_lines'][0]['category_id']);
         $this->assertArrayHasKey('description', $snapshot['categories'][0]);
         $this->assertArrayNotHasKey('name', $snapshot['budget_lines'][0]);
@@ -201,13 +207,13 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertNull($restoredTermDeposit->end_date);
     }
 
-    public function test_snapshot_round_trips_month_plan_and_item_kind_with_remapped_ids(): void
+    public function test_snapshot_round_trips_month_plan_and_rhythm_with_remapped_ids(): void
     {
         Storage::fake('local');
 
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
-        $billCategory = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $billCategory = BudgetLine::factory()->for($budget)->fixedCharge()->create(['name' => 'Rent']);
         $runningCategory = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Food']);
         $monthPlan = MonthPlan::factory()->for($budget)->create([
             'month' => 3,
@@ -227,7 +233,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(8, $snapshot['version']);
+        $this->assertSame(9, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -243,7 +249,10 @@ class UserSnapshotCommandTest extends TestCase
             ->firstOrFail();
         $restoredItem = $restoredPlan->items()->where('budget_line_id', $restoredBill->id)->firstOrFail();
 
-        $this->assertSame(MonthItemKind::Bill, $restoredBill->month_item_kind);
+        $this->assertSame(
+            ['fixed_charge'],
+            $restoredBill->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all(),
+        );
         $this->assertSame(3, $restoredPlan->month);
         $this->assertSame('2026-03-02 10:00:00', $restoredPlan->approved_at->format('Y-m-d H:i:s'));
         $this->assertNotSame($monthPlan->id, $restoredPlan->id);
@@ -255,13 +264,13 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(2, $restoredPlan->items()->count());
     }
 
-    public function test_restore_command_restores_v4_snapshot_with_running_kind_and_no_plans(): void
+    public function test_restore_command_restores_v4_snapshot_as_running_and_with_no_plans(): void
     {
         Storage::fake('local');
 
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
-        $category = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $category = BudgetLine::factory()->for($budget)->fixedCharge()->create(['name' => 'Rent']);
         MonthPlanItem::factory()
             ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
             ->for($category)
@@ -283,11 +292,8 @@ class UserSnapshotCommandTest extends TestCase
             '--force' => true,
         ]);
 
-        $restoredCategory = BudgetLine::query()
-            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
-            ->firstOrFail();
-
-        $this->assertSame(MonthItemKind::Running, $restoredCategory->month_item_kind);
+        // A version 4 line has no Month Item Kind, so the mapping reads it as Running (ADR-0072).
+        $this->assertSame(['Rent' => [['running', 2026, 1]]], $this->rhythmsByName($targetUser));
         $this->assertSame(0, MonthPlan::query()
             ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
             ->count());
@@ -362,7 +368,7 @@ class UserSnapshotCommandTest extends TestCase
         $sourceUser = User::factory()->create();
         $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
         $otherBudget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2025]);
-        $category = BudgetLine::factory()->for($budget)->bill()->create(['name' => 'Rent']);
+        $category = BudgetLine::factory()->for($budget)->fixedCharge()->create(['name' => 'Rent']);
         $otherCategory = BudgetLine::factory()->for($otherBudget)->expense()->create(['name' => 'Food']);
         MonthPlanItem::factory()
             ->for(MonthPlan::factory()->for($budget)->create(['month' => 3]))
@@ -805,7 +811,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(8, $snapshot['version']);
+        $this->assertSame(9, $snapshot['version']);
         $this->assertCount(1, $snapshot['category_groups']);
         $this->assertSame(
             ['id', 'name', 'type', 'sort_order', 'created_at', 'updated_at'],
@@ -939,6 +945,332 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame('Pensja z etatu', $targetUser->categories()->firstOrFail()->description);
         $this->assertNull($targetUser->categories()->firstOrFail()->category_group_id);
         $this->assertSame(1, $targetUser->financialOperations()->count());
+    }
+
+    public function test_snapshot_v9_round_trips_the_rhythm_history_after_a_change(): void
+    {
+        Storage::fake('local');
+        $this->travelTo('2026-03-10');
+
+        $sourceUser = User::factory()->create();
+        $changed = Category::factory()->for($sourceUser)->expense()->create(['name' => 'Czynsz']);
+        Category::factory()->for($sourceUser)->expense()->create(['name' => 'Żywność']);
+        Category::factory()->for($sourceUser)->income()->create(['name' => 'Pensja']);
+        app(ChangeCategoryRhythm::class)->handle($changed, Rhythm::FixedCharge, CarbonImmutable::parse('2026-11-10'));
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+        $byName = collect($snapshot['categories'])->keyBy('name');
+
+        $this->assertSame(
+            [['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 3], ['rhythm' => 'fixed_charge', 'start_year' => 2026, 'start_month' => 11]],
+            $byName['Czynsz']['rhythms'],
+        );
+        $this->assertCount(1, $byName['Żywność']['rhythms']);
+        $this->assertSame([], $byName['Pensja']['rhythms']);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restored = $targetUser->categories()->with('rhythms')->get()->keyBy('name');
+
+        $this->assertSame(
+            [[Rhythm::Running, 2026, 3], [Rhythm::FixedCharge, 2026, 11]],
+            $restored['Czynsz']->rhythms->map(fn (CategoryRhythm $entry): array => [$entry->rhythm, $entry->start_year, $entry->start_month])->all(),
+        );
+        $this->assertCount(1, $restored['Żywność']->rhythms);
+        $this->assertCount(0, $restored['Pensja']->rhythms);
+        $this->assertNotSame($changed->id, $restored['Czynsz']->id);
+    }
+
+    public function test_snapshot_v9_round_trips_the_demo_household(): void
+    {
+        Storage::fake('local');
+
+        (new DemoHouseholdSeeder)->run('demo@example.test');
+        $sourceUser = User::query()->where('email', 'demo@example.test')->firstOrFail();
+
+        $expected = $this->rhythmsByName($sourceUser);
+        $this->assertNotEmpty($expected);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $this->assertSame($expected, $this->rhythmsByName($targetUser));
+        $this->assertSame(0, $targetUser->categories()->where('type', 'income')->whereHas('rhythms')->count());
+        $this->assertSame(0, $targetUser->categories()->where('type', 'expense')->whereDoesntHave('rhythms')->count());
+    }
+
+    public function test_restore_command_restores_the_v5_fixture_with_the_rhythm_made_from_the_flags(): void
+    {
+        $this->travelTo('2026-11-10');
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => base_path('tests/Fixtures/snapshots/v5-category-list.json'),
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+
+        $rhythms = $this->rhythmsByName($targetUser);
+
+        $this->assertSame(
+            [
+                'Pensja' => [],
+                'Rozrywka' => [['running', 2026, 1]],
+                'Rozrywka (2)' => [['running', 2026, 1]],
+                'Wakacje' => [['running', 2025, 1]],
+                'Zdrowie' => [['running', 2026, 1]],
+            ],
+            $rhythms,
+        );
+    }
+
+    public function test_restore_command_restores_the_v6_fixture_with_the_rhythm_made_from_the_flags(): void
+    {
+        $this->travelTo('2026-11-10');
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => base_path('tests/Fixtures/snapshots/v6-category-list.json'),
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(
+            ['Pensja' => [], 'Rozrywka' => [['running', 2026, 1]], 'Wakacje' => [['running', 2025, 1]]],
+            $this->rhythmsByName($targetUser),
+        );
+    }
+
+    public function test_restore_command_restores_the_v8_fixture_with_the_same_rhythm_as_the_migration(): void
+    {
+        $this->travelTo('2026-11-10');
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => base_path('tests/Fixtures/snapshots/v8-category-list.json'),
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(
+            [
+                'Bez pozycji' => [['running', 2026, 11]],
+                'Czynsz' => [['running', 2026, 1], ['fixed_charge', 2027, 1]],
+                'Pensja' => [],
+                'Prąd' => [['fixed_charge', 2026, 1]],
+                'Rekolekcje' => [['even_annual', 2026, 1]],
+            ],
+            $this->rhythmsByName($targetUser),
+        );
+
+        // The parity with the backfill migration: the same frozen class on the same flags.
+        $fixture = json_decode(file_get_contents(base_path('tests/Fixtures/snapshots/v8-category-list.json')), true, flags: JSON_THROW_ON_ERROR);
+        $categories = collect($fixture['categories'])->keyBy('id');
+        $years = collect($fixture['budgets'])->pluck('year', 'id');
+        $converted = LegacyRhythmConversion::convert(
+            array_map(fn (array $line): array => [
+                'category_id' => $line['category_id'],
+                'category_type' => $categories[$line['category_id']]['type'],
+                'year' => $years[$line['budget_id']],
+                'is_paced' => $line['is_paced'],
+                'month_item_kind' => $line['month_item_kind'],
+            ], $fixture['budget_lines']),
+            $categories->where('type', 'expense')->keys()->all(),
+            2026,
+            11,
+        );
+        $expected = [];
+
+        foreach ($converted as $entry) {
+            $expected[$categories[$entry['category_id']]['name']][] = [$entry['rhythm'], $entry['start_year'], $entry['start_month']];
+        }
+
+        $actual = array_filter($this->rhythmsByName($targetUser), fn (array $entries): bool => $entries !== []);
+        ksort($expected);
+
+        $this->assertSame($expected, $actual);
+    }
+
+    public function test_restore_command_restores_a_v8_snapshot_written_by_the_current_code_with_the_rhythm_from_the_flags(): void
+    {
+        Storage::fake('local');
+        $this->travelTo('2026-11-10');
+
+        $sourceUser = User::factory()->create();
+        $budget = Budget::factory()->for($sourceUser)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($sourceUser)->expense()->create(['name' => 'Czynsz']);
+        BudgetLine::factory()->for($budget)->create(['category_id' => $category->id]);
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true), ['is_paced' => true, 'month_item_kind' => 'bill']);
+        $v8Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v8.json');
+        file_put_contents($v8Path, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $this->assertSame(8, $snapshot['version']);
+        $this->assertArrayNotHasKey('rhythms', $snapshot['categories'][0]);
+
+        $targetUser = User::factory()->create();
+        $exitCode = Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $v8Path, '--force' => true]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(['Czynsz' => [['fixed_charge', 2026, 1]]], $this->rhythmsByName($targetUser));
+    }
+
+    public function test_restore_command_rejects_an_inconsistent_v9_snapshot(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        Category::factory()->for($sourceUser)->expense()->create(['name' => 'Czynsz', 'sort_order' => 1]);
+        Category::factory()->for($sourceUser)->income()->create(['name' => 'Pensja', 'sort_order' => 0]);
+        $valid = json_decode(file_get_contents(app(BackupUserData::class)->handle($sourceUser)), true);
+        $expenseIndex = collect($valid['categories'])->search(fn (array $category): bool => $category['type'] === 'expense');
+        $incomeIndex = collect($valid['categories'])->search(fn (array $category): bool => $category['type'] === 'income');
+
+        $mutations = [
+            'expense without an entry' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'] = [];
+
+                return $snapshot;
+            },
+            'income with an entry' => function (array $snapshot) use ($incomeIndex): array {
+                $snapshot['categories'][$incomeIndex]['rhythms'] = [['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 1]];
+
+                return $snapshot;
+            },
+            'unknown rhythm' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'][0]['rhythm'] = 'weekly';
+
+                return $snapshot;
+            },
+            'month out of range' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'][0]['start_month'] = 13;
+
+                return $snapshot;
+            },
+            'duplicated start' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'][] = $snapshot['categories'][$expenseIndex]['rhythms'][0];
+
+                return $snapshot;
+            },
+            'missing rhythms key' => function (array $snapshot) use ($expenseIndex): array {
+                unset($snapshot['categories'][$expenseIndex]['rhythms']);
+
+                return $snapshot;
+            },
+            'entry that is not an object' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'] = ['running'];
+
+                return $snapshot;
+            },
+            'year out of range' => function (array $snapshot) use ($expenseIndex): array {
+                $snapshot['categories'][$expenseIndex]['rhythms'][0]['start_year'] = 70_000;
+
+                return $snapshot;
+            },
+        ];
+
+        foreach ($mutations as $label => $mutate) {
+            $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-rhythms.json');
+            file_put_contents($brokenPath, json_encode($mutate($valid), JSON_THROW_ON_ERROR));
+            $targetUser = User::factory()->create();
+
+            $exitCode = Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $brokenPath, '--force' => true]);
+
+            $this->assertSame(1, $exitCode, $label);
+            $this->assertSame(0, $targetUser->categories()->count(), $label);
+            $this->assertSame(0, CategoryRhythm::query()->whereIn('category_id', $targetUser->categories()->select('id'))->count(), $label);
+        }
+    }
+
+    public function test_a_v8_one_off_flag_restores_as_even_annual(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'One-off']);
+
+        $path = app(BackupUserData::class)->handle($user);
+        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true), ['is_paced' => false, 'month_item_kind' => 'running']);
+        file_put_contents($path, json_encode($snapshot));
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $this->assertSame(['One-off' => [['even_annual', 2026, 1]]], $this->rhythmsByName($targetUser));
+    }
+
+    public function test_a_v8_line_without_the_flags_restores_its_expense_category_as_running(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $category = BudgetLine::factory()->for($budget)->evenAnnual()->create(['name' => 'Legacy']);
+
+        $path = app(BackupUserData::class)->handle($user);
+        $snapshot = $this->asV8Snapshot(json_decode(file_get_contents($path), true));
+        file_put_contents($path, json_encode($snapshot));
+
+        $this->assertArrayNotHasKey('is_paced', $snapshot['budget_lines'][0]);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restoredCategory = BudgetLine::query()
+            ->whereHas('budget', fn ($query) => $query->where('user_id', $targetUser->id))
+            ->whereHas('category', fn ($query) => $query->where('name', 'Legacy'))
+            ->firstOrFail();
+
+        $this->assertSame(['Legacy' => [['running', 2026, 1]]], $this->rhythmsByName($targetUser));
+        $this->assertNotSame($category->id, $restoredCategory->id);
+    }
+
+    /**
+     * @return array<string, list<array{0: string, 1: int, 2: int}>> Category name => entries
+     */
+    private function rhythmsByName(User $user): array
+    {
+        $result = [];
+
+        foreach ($user->categories()->with('rhythms')->orderBy('name')->get() as $category) {
+            $result[$category->name] = $category->rhythms
+                ->map(fn (CategoryRhythm $entry): array => [$entry->rhythm->value, $entry->start_year, $entry->start_month])
+                ->all();
+        }
+
+        ksort($result);
+
+        return $result;
+    }
+
+    /**
+     * Turns a snapshot written by the current code into version 8: Category
+     * Groups, but no Rhythm history. A version 8 Budget Line carried the flags
+     * the current code no longer writes; `$lineFlags` puts them on every line.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @param  array{is_paced?: bool, month_item_kind?: string}  $lineFlags
+     * @return array<string, mixed>
+     */
+    private function asV8Snapshot(array $snapshot, array $lineFlags = []): array
+    {
+        $snapshot['budget_lines'] = array_map(fn (array $line): array => [...$line, ...$lineFlags], $snapshot['budget_lines']);
+        $snapshot['categories'] = array_map(function (array $category): array {
+            unset($category['rhythms']);
+
+            return $category;
+        }, $snapshot['categories']);
+        $snapshot['version'] = 8;
+
+        return $snapshot;
     }
 
     /**

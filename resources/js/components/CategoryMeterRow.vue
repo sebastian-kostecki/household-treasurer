@@ -30,7 +30,7 @@ const href = computed(() =>
 );
 
 const meterYearElapsedPercent = computed(() =>
-    showsYearElapsedMark(props.categoryType, props.category)
+    showsYearElapsedMark(props.categoryType, props.category.rhythm)
         ? props.yearElapsedPercent
         : null,
 );

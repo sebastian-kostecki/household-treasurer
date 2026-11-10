@@ -7,14 +7,21 @@ import type {
 import { computeImportToSpendWarnings } from './import-to-spend-warnings';
 import type { ImportRow, RowSelection } from './import-preview-rows';
 
+import type { Rhythm } from '../types/rhythm';
 const SALARY = 1;
 const INTEREST = 2;
 const GROCERIES = 3;
 
+function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
 const categories: EntryToSpendCategory[] = [
-    { id: SALARY, type: 'income', month_item_kind: null },
-    { id: INTEREST, type: 'income', month_item_kind: null },
-    { id: GROCERIES, type: 'expense', month_item_kind: 'running' },
+    { id: SALARY, type: 'income', rhythms: null },
+    { id: INTEREST, type: 'income', rhythms: null },
+    { id: GROCERIES, type: 'expense', rhythms: allMonths('running') },
 ];
 
 function item(

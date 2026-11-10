@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
@@ -265,15 +268,125 @@ class MonthPlanProposalTest extends TestCase
         $this->assertSame(8_333, $january->amounts[$food->id]);
     }
 
-    public function test_one_off_category_is_proposed_as_zero(): void
+    public function test_even_annual_category_is_proposed_as_the_average_with_the_remainder_in_december(): void
     {
         $budget = $this->budget(2026);
-        $vacation = BudgetLine::factory()->for($budget)->oneOff()->create(['planned_amount_minor_units' => 600_000]);
+        $retreat = BudgetLine::factory()->for($budget)->evenAnnual()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 238_000]);
+        $insurance = BudgetLine::factory()->for($budget)->evenAnnual()->create(['name' => 'Ubezpieczenie samochodu', 'planned_amount_minor_units' => 54_100]);
 
         $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
 
-        $this->assertSame(0, $proposal->reading(11)->amounts[$vacation->id]);
-        $this->assertSame(0, $proposal->reading(12)->amounts[$vacation->id]);
+        $this->assertSame(19_833, $proposal->reading(11)->amounts[$retreat->id]);
+        $this->assertSame(238_000 - 11 * 19_833, $proposal->reading(12)->amounts[$retreat->id]);
+        $this->assertSame(19_837, $proposal->reading(12)->amounts[$retreat->id]);
+        $this->assertSame(4_508, $proposal->reading(11)->amounts[$insurance->id]);
+        $this->assertSame(4_512, $proposal->reading(12)->amounts[$insurance->id]);
+    }
+
+    public function test_even_annual_category_ignores_an_approved_source_month(): void
+    {
+        $budget = $this->budget(2026);
+        $retreat = BudgetLine::factory()->for($budget)->evenAnnual()->create(['planned_amount_minor_units' => 120_000]);
+        $this->approve($budget, 10, [$retreat->id => 77_000]);
+
+        $this->assertSame(10_000, MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11)->amounts[$retreat->id]);
+    }
+
+    public function test_fixed_charge_is_proposed_as_the_last_paid_amount(): void
+    {
+        $budget = $this->budget(2026);
+        $phone = $this->fixedCharge($budget, 18_000);
+        $this->approve($budget, 10, [$phone->id => 18_000]);
+        $this->pay($budget, $phone, '2026-10-14', 17_215);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(17_215, $proposal->reading(11)->amounts[$phone->id]);
+        $this->assertSame(17_215, $proposal->reading(12)->amounts[$phone->id]);
+    }
+
+    public function test_fixed_charge_without_a_payment_copies_the_plan_of_the_previous_month(): void
+    {
+        $budget = $this->budget(2026);
+        $phone = $this->fixedCharge($budget, 18_000);
+        $this->approve($budget, 10, [$phone->id => 17_000]);
+
+        $this->assertSame(17_000, MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11)->amounts[$phone->id]);
+    }
+
+    public function test_fixed_charge_with_a_payment_and_a_larger_refund_copies_the_plan(): void
+    {
+        $budget = $this->budget(2026);
+        $phone = $this->fixedCharge($budget, 18_000);
+        $this->approve($budget, 10, [$phone->id => 18_000]);
+        $this->pay($budget, $phone, '2026-10-14', 10_000);
+        $this->pay($budget, $phone, '2026-10-20', -15_000);
+
+        $this->assertSame(18_000, MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11)->amounts[$phone->id]);
+    }
+
+    public function test_fixed_charge_with_two_payments_takes_their_net_sum(): void
+    {
+        $budget = $this->budget(2026);
+        $phone = $this->fixedCharge($budget, 18_000);
+        $this->approve($budget, 10, [$phone->id => 18_000]);
+        $this->pay($budget, $phone, '2026-10-14', 10_000);
+        $this->pay($budget, $phone, '2026-10-20', 7_000);
+        $this->pay($budget, $phone, '2026-10-21', -500);
+
+        $this->assertSame(16_500, MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11)->amounts[$phone->id]);
+    }
+
+    public function test_fixed_charge_of_january_reads_the_payment_of_december_in_the_previous_budget(): void
+    {
+        $previous = $this->budget(2026);
+        $previousPhone = $this->fixedCharge($previous, 18_000);
+        $this->approve($previous, 12, [$previousPhone->id => 18_000]);
+        $this->pay($previous, $previousPhone, '2026-12-14', 17_215);
+
+        $budget = $this->budget(2027);
+        $phone = $this->fixedCharge($budget, 18_000, ['category_id' => $previousPhone->category_id]);
+
+        $this->assertSame(17_215, MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1)->amounts[$phone->id]);
+    }
+
+    public function test_fixed_charge_in_a_past_unapproved_source_month_prefers_the_payment_to_the_average(): void
+    {
+        $budget = $this->budget(2026);
+        $phone = $this->fixedCharge($budget, 120_000);
+        $paid = $this->fixedCharge($budget, 120_000, ['name' => 'Opłacona']);
+        $this->pay($budget, $paid, '2026-10-14', 17_215);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame('none', $proposal->reading(10)->state);
+        $this->assertSame(17_215, $proposal->reading(11)->amounts[$paid->id]);
+        $this->assertSame(10_000, $proposal->reading(11)->amounts[$phone->id]);
+    }
+
+    public function test_rhythm_changed_in_november_applies_to_november_and_december_but_not_to_october(): void
+    {
+        $budget = $this->budget(2026);
+        $line = $this->food($budget, ['planned_amount_minor_units' => 120_000]);
+        $this->approve($budget, 10, [$line->id => 55_000]);
+        $line->category->rhythms()->delete();
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 11, 'rhythm' => Rhythm::EvenAnnual]);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(Rhythm::Running, $proposal->rhythmIn($line, 10));
+        $this->assertSame(Rhythm::EvenAnnual, $proposal->rhythmIn($line, 11));
+        $this->assertSame(10_000, $proposal->reading(11)->amounts[$line->id]);
+        $this->assertSame(10_000, $proposal->reading(12)->amounts[$line->id]);
+
+        $line->category->rhythms()->delete();
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 12, 'rhythm' => Rhythm::EvenAnnual]);
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+
+        $december = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(55_000, $december->reading(11)->amounts[$line->id]);
     }
 
     public function test_category_added_after_the_previous_month_was_approved_starts_at_zero(): void
@@ -311,6 +424,10 @@ class MonthPlanProposalTest extends TestCase
         $budget = $this->budget(2027);
         $this->food($budget);
 
+        $phone = $this->fixedCharge($budget, 18_000);
+        $this->fixedCharge($previous, 18_000, ['category_id' => $phone->category_id]);
+        $this->pay($budget, $phone, '2027-02-14', 1_000);
+
         $queries = 0;
         DB::listen(function () use (&$queries): void {
             $queries++;
@@ -322,8 +439,9 @@ class MonthPlanProposalTest extends TestCase
             $proposal->reading($month);
         }
 
-        // Two more than the lines alone: the list Category of each Budget's lines is eager loaded.
-        $this->assertLessThanOrEqual(7, $queries);
+        // Two more than the lines alone (the list Category of each Budget's lines is eager loaded),
+        // plus one for the Rhythm entries and one actuals query per Budget, whatever the months read.
+        $this->assertLessThanOrEqual(10, $queries);
     }
 
     private function day(int $year, int $month, int $day): CarbonImmutable
@@ -344,6 +462,27 @@ class MonthPlanProposalTest extends TestCase
         return BudgetLine::factory()->for($budget)->expense()->create($attributes + [
             'name' => 'Jedzenie',
             'planned_amount_minor_units' => 100_001,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function fixedCharge(Budget $budget, int $annualMinorUnits, array $attributes = []): BudgetLine
+    {
+        return BudgetLine::factory()->for($budget)->fixedCharge()->create($attributes + [
+            'name' => 'Telefon + Internet',
+            'planned_amount_minor_units' => $annualMinorUnits,
+        ]);
+    }
+
+    private function pay(Budget $budget, BudgetLine $line, string $date, int $amount): void
+    {
+        FinancialOperation::factory()->for($this->user)->for($budget)->create([
+            'type' => FinancialOperationType::Expense,
+            'budget_line_id' => $line->id,
+            'operation_date' => $date,
+            'amount_minor_units' => $amount,
         ]);
     }
 

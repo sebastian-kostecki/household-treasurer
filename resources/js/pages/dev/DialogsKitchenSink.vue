@@ -45,13 +45,15 @@ const states = [
     'category-errors',
     'category-saving',
     'category-bad-amount',
-    'category-month-item-kind',
     'category-list-new',
     'category-list-edit',
     'category-list-locked',
     'category-list-errors',
     'category-list-name-archived',
     'category-list-saving',
+    'category-list-rhythm',
+    'category-list-income',
+    'category-list-rhythm-error',
     'category-group-new',
     'category-group-rename-error',
     'budget-create',
@@ -102,7 +104,6 @@ const labels: Record<SinkState, string> = {
     'category-errors': 'Kategoria: błędy pól',
     'category-saving': 'Kategoria: zapis w toku',
     'category-bad-amount': 'Kategoria: zła kwota',
-    'category-month-item-kind': 'Kategoria: rodzaj pozycji (wydatek)',
     'category-list-new': 'Kategoria listy: nowa',
     'category-list-edit': 'Kategoria listy: edycja z opisem',
     'category-list-locked': 'Kategoria listy: typ zablokowany',
@@ -110,6 +111,10 @@ const labels: Record<SinkState, string> = {
     'category-list-name-archived':
         'Kategoria listy: nazwa zajęta przez archiwalną',
     'category-list-saving': 'Kategoria listy: zapis w toku',
+    'category-list-rhythm':
+        'Kategoria listy: edycja rytmu (równomierna roczna)',
+    'category-list-income': 'Kategoria listy: przychód (bez pola Rytm)',
+    'category-list-rhythm-error': 'Kategoria listy: błąd pola Rytm',
     'budget-create': 'Utwórz budżet: szkic z planem z poprzedniego roku',
     'budget-create-no-source': 'Utwórz budżet: bez wcześniejszego budżetu',
     'budget-create-empty': 'Utwórz budżet: pusta lista kategorii',
@@ -184,8 +189,6 @@ const category: CategoryFormCategory = {
     color: 'blue',
     type: 'expense',
     planned_amount_minor_units: 120000,
-    is_paced: true,
-    month_item_kind: 'running',
 };
 
 const listCategory: CategoryListItem = {
@@ -198,10 +201,25 @@ const listCategory: CategoryListItem = {
     sort_order: 0,
     description:
         'Zakupy spożywcze, chemia domowa i drobiazgi z osiedlowego sklepu.',
+    rhythm: 'running',
     budget_years: [2026],
     can_change_type: true,
     can_delete: true,
     archived_at: null,
+};
+
+const rhythmChangeMonth = { year: 2026, month: 11 };
+
+const evenAnnualListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'even_annual',
+};
+
+const incomeListCategory: CategoryListItem = {
+    ...listCategory,
+    name: 'Wynagrodzenie',
+    type: 'income',
+    rhythm: null,
 };
 
 const lockedListCategory: CategoryListItem = {
@@ -348,19 +366,12 @@ function setOpen(state: SinkState, value: boolean): void {
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-bad-amount', $event)"
         />
-        <CategoryFormDialog
-            :open="isOpen('category-month-item-kind')"
-            mode="create"
-            :budget-id="1"
-            default-type="expense"
-            :category-appearance-options="categoryAppearanceOptions"
-            @update:open="setOpen('category-month-item-kind', $event)"
-        />
         <CategoryListFormDialog
             :open="isOpen('category-list-new')"
             mode="create"
             default-type="expense"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-new', $event)"
         />
         <CategoryListFormDialog
@@ -369,6 +380,7 @@ function setOpen(state: SinkState, value: boolean): void {
             default-type="expense"
             :category="listCategory"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-edit', $event)"
         />
         <CategoryListFormDialog
@@ -377,6 +389,7 @@ function setOpen(state: SinkState, value: boolean): void {
             default-type="expense"
             :category="lockedListCategory"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-locked', $event)"
         />
         <CategoryListFormDialog
@@ -386,6 +399,7 @@ function setOpen(state: SinkState, value: boolean): void {
             :category="listCategory"
             :form="validateForm"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-errors', $event)"
         />
         <CategoryListFormDialog
@@ -394,6 +408,7 @@ function setOpen(state: SinkState, value: boolean): void {
             default-type="expense"
             :form="nameArchivedForm"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-name-archived', $event)"
         />
         <CategoryListFormDialog
@@ -403,7 +418,36 @@ function setOpen(state: SinkState, value: boolean): void {
             :category="listCategory"
             :form="savingForm"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-saving', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-rhythm')"
+            mode="edit"
+            default-type="expense"
+            :category="evenAnnualListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-rhythm', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-income')"
+            mode="edit"
+            default-type="income"
+            :category="incomeListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-income', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-rhythm-error')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :form="validateForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-rhythm-error', $event)"
         />
         <CategoryGroupFormDialog
             :open="isOpen('category-group-new')"

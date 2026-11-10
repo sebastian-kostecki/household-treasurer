@@ -45,13 +45,11 @@ const kindLabel = computed(() => {
         return t.budget.kind_income;
     }
 
-    return props.category.month_item_kind === 'bill'
-        ? t.budget.kind_bill
-        : t.budget.kind_running;
+    return t.categories[`rhythm_${props.category.rhythm ?? 'running'}`];
 });
 
 const meterYearElapsedPercent = computed(() =>
-    showsYearElapsedMark(props.categoryType, props.category)
+    showsYearElapsedMark(props.categoryType, props.category.rhythm)
         ? props.yearElapsedPercent
         : null,
 );

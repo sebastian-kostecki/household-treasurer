@@ -41,7 +41,7 @@ function category(id: number, budgetYear: number): CategoryRow {
         icon: 'tag',
         color: '#000000',
         budget_year: budgetYear,
-        is_paced: false,
+        rhythms: null,
     };
 }
 

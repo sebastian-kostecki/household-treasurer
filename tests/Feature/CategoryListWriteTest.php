@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -43,8 +42,6 @@ class CategoryListWriteTest extends TestCase
         $line = $draft2027->budgetLines()->where('category_id', $category->id)->sole();
 
         $this->assertSame(0, $line->planned_amount_minor_units);
-        $this->assertTrue($line->is_paced);
-        $this->assertSame(MonthItemKind::Running, $line->month_item_kind);
         $this->assertFalse($execution2026->budgetLines()->where('category_id', $category->id)->exists());
     }
 
@@ -190,24 +187,18 @@ class CategoryListWriteTest extends TestCase
         $this->assertSame(CategoryType::Income, $free->fresh()->type);
     }
 
-    public function test_changing_to_income_resets_the_flags_of_every_line(): void
+    public function test_changing_to_income_removes_the_rhythm_of_the_category(): void
     {
         $user = User::factory()->create();
         $draft = Budget::factory()->for($user)->create(['year' => 2027]);
-        $line = BudgetLine::factory()->for($draft)->expense()->create([
-            'name' => 'Premia',
-            'is_paced' => false,
-            'month_item_kind' => MonthItemKind::Bill,
-        ]);
+        $line = BudgetLine::factory()->for($draft)->fixedCharge()->create(['name' => 'Premia']);
 
         $this->actingAs($user)
             ->patch(route('categories.list.update', $line->category_id), $this->fields(['name' => 'Premia', 'type' => CategoryType::Income->value]))
             ->assertSessionHasNoErrors();
 
-        $line->refresh();
-
-        $this->assertTrue($line->is_paced);
-        $this->assertSame(MonthItemKind::Running, $line->month_item_kind);
+        $this->assertSame(CategoryType::Income, $line->category->fresh()->type);
+        $this->assertSame(0, $line->category->rhythms()->count());
     }
 
     public function test_reorder_takes_exactly_the_active_categories_of_the_type_and_keeps_archived_slots(): void
@@ -337,12 +328,19 @@ class CategoryListWriteTest extends TestCase
      */
     private function fields(array $overrides = []): array
     {
-        return [
+        $fields = [
             'name' => 'Kategoria',
             'icon' => 'tag',
             'color' => '#868e96',
             'type' => CategoryType::Expense->value,
+            'rhythm' => 'running',
             ...$overrides,
         ];
+
+        if ($fields['type'] === CategoryType::Income->value && ! array_key_exists('rhythm', $overrides)) {
+            unset($fields['rhythm']);
+        }
+
+        return $fields;
     }
 }

@@ -30,7 +30,7 @@ export type MonthItemStatusContext = {
  * or "nie wpłynęło" instead of "do zapłaty" or "czeka".
  */
 export function monthItemStatus(
-    row: Pick<MonthPlanItem, 'type' | 'month_item_kind' | 'is_settled'>,
+    row: Pick<MonthPlanItem, 'type' | 'rhythm' | 'is_settled'>,
     context: MonthItemStatusContext,
 ): MonthItemStatus | null {
     if (row.type === 'expense' && context.overPlan) {
@@ -51,7 +51,7 @@ export function monthItemStatus(
             : { key: 'status_waiting', variant: 'neutral' };
     }
 
-    if (row.month_item_kind === 'bill') {
+    if (row.rhythm === 'fixed_charge') {
         if (row.is_settled) {
             return { key: 'settled_bill', variant: 'ok' };
         }

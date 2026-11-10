@@ -29,7 +29,7 @@ class ImportCategoryOptions
     }
 
     /**
-     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int, is_paced: bool}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int, rhythms: array<int, string>|null}>
      */
     public static function expense(User $user): array
     {
@@ -39,7 +39,7 @@ class ImportCategoryOptions
             ...CategoryAppearance::fields($row['category']),
             'group' => CategoryAppearance::group($row['category']),
             'budget_year' => $row['budget_year'],
-            'is_paced' => $row['is_paced'],
+            'rhythms' => $row['rhythms'],
         ], CategoryChoiceOptions::forType($user, CategoryType::Expense));
     }
 }

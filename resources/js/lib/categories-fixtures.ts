@@ -21,6 +21,7 @@ type CategoryFixtureOptions = Partial<
     Pick<
         CategoryListItem,
         | 'description'
+        | 'rhythm'
         | 'can_change_type'
         | 'can_delete'
         | 'archived_at'
@@ -28,6 +29,11 @@ type CategoryFixtureOptions = Partial<
         | 'sort_order'
     >
 >;
+
+export const rhythmChangeMonth: CategoriesPageProps['rhythmChangeMonth'] = {
+    year: 2026,
+    month: 11,
+};
 
 export const shortDescription = 'Wypłata z etatu, wpływa 10. dnia miesiąca';
 
@@ -52,6 +58,7 @@ function category(
         group_id: options.group_id ?? null,
         sort_order: options.sort_order ?? id,
         description: options.description ?? null,
+        rhythm: options.rhythm ?? (type === 'expense' ? 'running' : null),
         budget_years: budgetYears,
         can_change_type: options.can_change_type ?? true,
         can_delete: options.can_delete ?? true,
@@ -113,6 +120,7 @@ export const expenseCategories: CategoryListItem[] = [
         'tag',
         DEFAULT_CATEGORY_COLOR,
         [2027],
+        { rhythm: 'even_annual' },
     ),
     category(
         14,
@@ -121,6 +129,7 @@ export const expenseCategories: CategoryListItem[] = [
         'tag',
         DEFAULT_CATEGORY_COLOR,
         [],
+        { rhythm: 'fixed_charge' },
     ),
 ];
 
@@ -220,7 +229,7 @@ export const groupedExpenseCategories: CategoryListItem[] = [
         'home',
         DEFAULT_CATEGORY_COLOR,
         [2026, 2027],
-        { group_id: 32, sort_order: 5 },
+        { group_id: 32, sort_order: 5, rhythm: 'fixed_charge' },
     ),
     category(
         18,
@@ -229,7 +238,7 @@ export const groupedExpenseCategories: CategoryListItem[] = [
         'zap',
         DEFAULT_CATEGORY_COLOR,
         [2026, 2027],
-        { group_id: 32, sort_order: 6 },
+        { group_id: 32, sort_order: 6, rhythm: 'fixed_charge' },
     ),
     category(
         19,
@@ -251,7 +260,7 @@ export const groupedExpenseCategories: CategoryListItem[] = [
         'tag',
         DEFAULT_CATEGORY_COLOR,
         [2026, 2027],
-        { group_id: 32, sort_order: 9 },
+        { group_id: 32, sort_order: 9, rhythm: 'even_annual' },
     ),
     category(
         12,
@@ -275,6 +284,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
     {
@@ -287,6 +297,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups,
             expenseGroups,
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
     {
@@ -299,6 +310,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
     {
@@ -311,6 +323,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
     {
@@ -330,6 +343,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             ],
             expenseGroups: [],
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
     {
@@ -342,6 +356,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
     {
@@ -354,6 +369,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            rhythmChangeMonth,
         },
     },
 ];

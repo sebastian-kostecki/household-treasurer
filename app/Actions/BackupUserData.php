@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 8;
+    public const SNAPSHOT_VERSION = 9;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -54,6 +54,7 @@ class BackupUserData
                 ->map(fn ($group): array => $this->serializeCategoryGroup($group))
                 ->all(),
             'categories' => $user->categories()
+                ->with('rhythms')
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($category): array => $this->serializeCategory($category))
@@ -179,6 +180,13 @@ class BackupUserData
             'icon' => $category->icon,
             'color' => $category->color,
             'description' => $category->description,
+            'rhythms' => $category->rhythms
+                ->map(fn ($entry): array => [
+                    'rhythm' => $entry->rhythm->value,
+                    'start_year' => $entry->start_year,
+                    'start_month' => $entry->start_month,
+                ])
+                ->all(),
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
             'archived_at' => $category->archived_at?->toIso8601String(),
@@ -196,8 +204,6 @@ class BackupUserData
             'id' => $budgetLine->id,
             'budget_id' => $budgetLine->budget_id,
             'category_id' => $budgetLine->category_id,
-            'is_paced' => $budgetLine->is_paced,
-            'month_item_kind' => $budgetLine->month_item_kind->value,
             'planned_amount_minor_units' => $budgetLine->planned_amount_minor_units,
             'initial_plan_minor_units' => $budgetLine->initial_plan_minor_units,
             'execution_minor_units' => $budgetLine->execution_minor_units,

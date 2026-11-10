@@ -4,11 +4,11 @@ namespace App\Support\CategoryList;
 
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryRhythms;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
@@ -22,7 +22,7 @@ use Illuminate\Support\Collection;
 final class CategoryChoiceOptions
 {
     /**
-     * @return list<array{category: Category, budget_year: int, line: BudgetLine|null, is_paced: bool}>
+     * @return list<array{category: Category, budget_year: int, line: BudgetLine|null, rhythms: array<int, string>|null}>
      */
     public static function forType(User $user, CategoryType $type): array
     {
@@ -45,17 +45,7 @@ final class CategoryChoiceOptions
             ->groupBy('budget_id')
             ->map(fn (Collection $budgetLines): Collection => $budgetLines->keyBy('category_id'));
 
-        $linelessIds = [];
-
-        foreach ($budgets as $budget) {
-            foreach ($categories as $category) {
-                if (! ($lines[$budget->id] ?? collect())->has($category->id)) {
-                    $linelessIds[] = $category->id;
-                }
-            }
-        }
-
-        $flags = CategoryJoinFlags::forCategories(array_values(array_unique($linelessIds)));
+        $rhythms = CategoryRhythms::forCategoryIds($categories->map(fn (Category $category): int => $category->id));
         $rows = [];
 
         foreach ($budgets as $budget) {
@@ -71,7 +61,7 @@ final class CategoryChoiceOptions
                         'category' => $category,
                         'budget_year' => $budget->year,
                         'line' => $line,
-                        'is_paced' => $line->is_paced,
+                        'rhythms' => $rhythms->rhythmValuesInYear($category->id, $budget->year),
                     ];
 
                     continue;
@@ -81,7 +71,7 @@ final class CategoryChoiceOptions
                     'category' => $category,
                     'budget_year' => $budget->year,
                     'line' => null,
-                    'is_paced' => $flags[$category->id]['is_paced'],
+                    'rhythms' => $rhythms->rhythmValuesInYear($category->id, $budget->year),
                 ];
             }
         }
@@ -91,18 +81,17 @@ final class CategoryChoiceOptions
 
     /**
      * The entries of the active Categories of a type that have no Budget Line
-     * in a Budget yet, as they will look after joining (plan 0 and the join
-     * flags): the readings behind the entry and Import warnings add them next
+     * in a Budget yet, as they will look after joining (plan 0; the Rhythm
+     * comes from the Category): the readings behind the entry and Import warnings add them next
      * to the real lines. Needs `budgetLines` loaded on each Budget.
      *
      * @param  EloquentCollection<int, Budget>  $budgets
-     * @return array<int, list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>> budget id => entries
+     * @return array<int, list<array{category_id: int}>> budget id => entries
      */
     public static function joiningEntries(User $user, EloquentCollection $budgets, CategoryType $type): array
     {
         $budgets->loadMissing('budgetLines');
         $categories = self::activeCategories($user, $type);
-        $flags = CategoryJoinFlags::forCategories(array_values($categories->map(fn (Category $category): int => $category->id)->all()));
         $entries = [];
 
         foreach ($budgets as $budget) {
@@ -111,10 +100,7 @@ final class CategoryChoiceOptions
 
             foreach ($categories as $category) {
                 if (! $present->has($category->id)) {
-                    $entries[$budget->id][] = [
-                        'category_id' => $category->id,
-                        ...$flags[$category->id],
-                    ];
+                    $entries[$budget->id][] = ['category_id' => $category->id];
                 }
             }
         }

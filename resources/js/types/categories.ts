@@ -1,3 +1,5 @@
+import type { Rhythm } from './rhythm';
+
 export type CategoryListItem = {
     id: number;
     name: string;
@@ -9,6 +11,8 @@ export type CategoryListItem = {
     /** Its place in the type's sequence, shared with the groups. */
     sort_order: number;
     description: string | null;
+    /** The Rhythm in the current month (ADR-0072), null for an income Category. */
+    rhythm: Rhythm | null;
     budget_years: number[];
     can_change_type: boolean;
     can_delete: boolean;
@@ -31,4 +35,6 @@ export type CategoriesPageProps = {
     incomeGroups: CategoryGroupItem[];
     expenseGroups: CategoryGroupItem[];
     categoryAppearanceOptions: { icons: string[]; colors: string[] };
+    /** The month a Rhythm change made on the list starts in (the current month). */
+    rhythmChangeMonth: { year: number; month: number };
 };

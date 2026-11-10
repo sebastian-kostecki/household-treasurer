@@ -1,9 +1,11 @@
+import type { Rhythm } from '../types/rhythm';
 import { toSpendMinorUnits } from './to-spend-calculator';
 
 export type EntryToSpendCategory = {
     id: number;
     type: 'income' | 'expense';
-    month_item_kind: 'bill' | 'running' | null;
+    /** The Rhythm of each month of the budget year (1..12); null for an income. */
+    rhythms: Record<number, Rhythm> | null;
 };
 
 export type EntryToSpendItem = {
@@ -136,11 +138,12 @@ function applyChange(
 function toSpendOf(
     states: Map<number, MonthState>,
     setAsideMinorUnits: number,
+    month: number,
 ): number {
     return toSpendMinorUnits(
         [...states.values()].map((state) => ({
             type: state.category.type,
-            kind: state.category.month_item_kind,
+            rhythm: state.category.rhythms?.[month] ?? null,
             plan: state.plan,
             actual: state.actual,
             hasPositiveAmount: state.positiveCount > 0,
@@ -211,13 +214,21 @@ export function previewToSpendReadings(
             }
         }
 
-        const before = toSpendOf(states, found.month.set_aside_minor_units);
+        const before = toSpendOf(
+            states,
+            found.month.set_aside_minor_units,
+            month,
+        );
 
         for (const change of byMonth.get(key) ?? []) {
             applyChange(states, found.budget, change);
         }
 
-        const after = toSpendOf(states, found.month.set_aside_minor_units);
+        const after = toSpendOf(
+            states,
+            found.month.set_aside_minor_units,
+            month,
+        );
 
         readings.push({
             year,

@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryRhythm;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryList\CategoryNameKey;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -70,7 +71,7 @@ class BudgetLineFactory extends Factory
      */
     private function listCategoryFor(BudgetLine $line, int $userId, string $name, CategoryType $type, array $description): Category
     {
-        return Category::query()->firstOrCreate(
+        $category = Category::query()->firstOrCreate(
             [
                 'user_id' => $userId,
                 'type' => $type->value,
@@ -84,6 +85,17 @@ class BudgetLineFactory extends Factory
                 'archived_at' => $line->archived_at,
             ],
         );
+
+        if ($category->wasRecentlyCreated && $type === CategoryType::Expense) {
+            CategoryRhythm::query()->create([
+                'category_id' => $category->id,
+                'start_year' => now()->year,
+                'start_month' => now()->month,
+                'rhythm' => Rhythm::Running,
+            ]);
+        }
+
+        return $category;
     }
 
     /**
@@ -97,8 +109,6 @@ class BudgetLineFactory extends Factory
             'icon' => CategoryAppearance::DEFAULT_ICON,
             'color' => CategoryAppearance::DEFAULT_COLOR,
             'type' => fake()->randomElement(CategoryType::cases()),
-            'is_paced' => true,
-            'month_item_kind' => MonthItemKind::Running,
             'planned_amount_minor_units' => fake()->numberBetween(0, 500000),
             'execution_minor_units' => 0,
         ];
@@ -125,19 +135,37 @@ class BudgetLineFactory extends Factory
         ]);
     }
 
-    public function bill(): static
+    /**
+     * An expense line whose Category is a Fixed Charge (ADR-0066).
+     */
+    public function fixedCharge(): static
     {
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
-            'month_item_kind' => MonthItemKind::Bill,
-        ]);
+        ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::FixedCharge));
     }
 
-    public function oneOff(): static
+    /**
+     * An expense line whose Category is Even Annual (ADR-0066).
+     */
+    public function evenAnnual(): static
     {
         return $this->state(fn (): array => [
             'type' => CategoryType::Expense,
-            'is_paced' => false,
+        ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::EvenAnnual));
+    }
+
+    /**
+     * The Rhythm lives on the line's Category: its history becomes a single entry from
+     * January of the Budget year.
+     */
+    private function setRhythm(BudgetLine $line, Rhythm $rhythm): void
+    {
+        $line->category->rhythms()->delete();
+        $line->category->rhythms()->create([
+            'start_year' => $line->budget->year,
+            'start_month' => 1,
+            'rhythm' => $rhythm,
         ]);
     }
 }

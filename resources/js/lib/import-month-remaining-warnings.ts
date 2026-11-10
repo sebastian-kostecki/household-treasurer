@@ -1,8 +1,10 @@
 import type { ImportRow, RowSelection } from './import-preview-rows';
 import {
-    pacedMonthRemainingMinorUnits,
-    pacedPoolMonthRemainingMinorUnits,
+    isPoolRhythm,
+    poolCategoryMonthRemainingMinorUnits,
+    poolMonthRemainingMinorUnits,
 } from './month-remaining-calculator';
+import type { Rhythm } from '../types/rhythm';
 
 export type MonthRemainingBudgetContext = {
     id: number;
@@ -10,7 +12,7 @@ export type MonthRemainingBudgetContext = {
     is_draft: boolean;
     categories: Array<{
         id: number;
-        is_paced: boolean;
+        rhythms: Record<number, Rhythm> | null;
         planned_amount_minor_units: number;
     }>;
     execution_by_category_and_month: Record<number, Record<number, number>>;
@@ -66,19 +68,23 @@ function budgetForYear(
     return context.budgets.find((budget) => budget.year === year);
 }
 
-function pacedCategories(
+function poolCategories(
     budget: MonthRemainingBudgetContext,
+    month: number,
 ): MonthRemainingBudgetContext['categories'] {
-    return budget.categories.filter((category) => category.is_paced);
+    return budget.categories.filter((category) =>
+        isPoolRhythm(category.rhythms?.[month]),
+    );
 }
 
-function isPacedExpenseSelection(
+function isPoolExpenseSelection(
     selection: RowSelection,
     year: number,
+    month: number,
     expenseCategories: Array<{
         id: number;
         budget_year: number;
-        is_paced: boolean;
+        rhythms?: Record<number, Rhythm> | null;
     }>,
 ): boolean {
     if (!selection.selected || selection.type !== 'expense') {
@@ -95,7 +101,7 @@ function isPacedExpenseSelection(
             candidate.budget_year === year,
     );
 
-    return category?.is_paced === true;
+    return isPoolRhythm(category?.rhythms?.[month]);
 }
 
 export function computeImportMonthRemainingWarnings(
@@ -104,7 +110,7 @@ export function computeImportMonthRemainingWarnings(
     expenseCategories: Array<{
         id: number;
         budget_year: number;
-        is_paced: boolean;
+        rhythms?: Record<number, Rhythm> | null;
     }>,
     context: MonthRemainingContext,
     translations: Record<string, string>,
@@ -140,7 +146,9 @@ export function computeImportMonthRemainingWarnings(
             continue;
         }
 
-        if (!isPacedExpenseSelection(selection, year, expenseCategories)) {
+        if (
+            !isPoolExpenseSelection(selection, year, month, expenseCategories)
+        ) {
             continue;
         }
 
@@ -149,12 +157,15 @@ export function computeImportMonthRemainingWarnings(
             (candidate) => candidate.id === categoryId,
         );
 
-        if (category === undefined || !category.is_paced) {
+        if (
+            category === undefined ||
+            !isPoolRhythm(category.rhythms?.[month])
+        ) {
             continue;
         }
 
         const importAmount = Math.abs(row.amount_minor_units ?? 0);
-        const paced = pacedCategories(budget);
+        const paced = poolCategories(budget, month);
         const budgetPending = pendingImportExecution[budget.id] ?? {};
         const calculatorOptions = {
             isDraft: budget.is_draft,
@@ -165,7 +176,7 @@ export function computeImportMonthRemainingWarnings(
         const currentMonth =
             todayYear === budget.year ? Number(context.today.slice(5, 7)) : 1;
 
-        const categoryMonthRemaining = pacedMonthRemainingMinorUnits(
+        const categoryMonthRemaining = poolCategoryMonthRemainingMinorUnits(
             calculatorOptions,
             category.planned_amount_minor_units,
             executionBeforeMonth(budget, budgetPending, categoryId, month),
@@ -181,54 +192,54 @@ export function computeImportMonthRemainingWarnings(
             executionInMonth(budget, budgetPending, categoryId, currentMonth),
         );
 
-        const poolMonthRemaining = pacedPoolMonthRemainingMinorUnits(
+        const poolMonthRemaining = poolMonthRemainingMinorUnits(
             calculatorOptions,
             paced.reduce(
-                (sum, pacedCategory) =>
-                    sum + pacedCategory.planned_amount_minor_units,
+                (sum, poolCategory) =>
+                    sum + poolCategory.planned_amount_minor_units,
                 0,
             ),
             paced.reduce(
-                (sum, pacedCategory) =>
+                (sum, poolCategory) =>
                     sum +
                     executionBeforeMonth(
                         budget,
                         budgetPending,
-                        pacedCategory.id,
+                        poolCategory.id,
                         month,
                     ),
                 0,
             ),
             paced.reduce(
-                (sum, pacedCategory) =>
+                (sum, poolCategory) =>
                     sum +
                     executionInMonth(
                         budget,
                         budgetPending,
-                        pacedCategory.id,
+                        poolCategory.id,
                         month,
                     ),
                 0,
             ) + importAmount,
             month,
             paced.reduce(
-                (sum, pacedCategory) =>
+                (sum, poolCategory) =>
                     sum +
                     executionBeforeMonth(
                         budget,
                         budgetPending,
-                        pacedCategory.id,
+                        poolCategory.id,
                         currentMonth,
                     ),
                 0,
             ),
             paced.reduce(
-                (sum, pacedCategory) =>
+                (sum, poolCategory) =>
                     sum +
                     executionInMonth(
                         budget,
                         budgetPending,
-                        pacedCategory.id,
+                        poolCategory.id,
                         currentMonth,
                     ),
                 0,

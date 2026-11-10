@@ -419,6 +419,7 @@ function moveGroup(
             :default-type="categoryDialogType"
             :category="editedCategory"
             :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
         />
     </div>
 </template>

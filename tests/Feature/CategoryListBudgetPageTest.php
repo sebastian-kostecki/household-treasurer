@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -63,7 +62,6 @@ class CategoryListBudgetPageTest extends TestCase
                 'name' => 'REKOLEKCJE',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 45_000,
-                'is_paced' => '0',
             ]))
             ->assertSessionHasNoErrors();
 
@@ -72,7 +70,7 @@ class CategoryListBudgetPageTest extends TestCase
         $joined = $draft2027->budgetLines()->where('category_id', $existing->category_id)->sole();
 
         $this->assertSame(45_000, $joined->planned_amount_minor_units);
-        $this->assertFalse($joined->is_paced);
+        $this->assertSame(1, $existing->category->rhythms()->count());
         $this->assertSame(1, $budget2026->budgetLines()->count());
     }
 
@@ -192,13 +190,13 @@ class CategoryListBudgetPageTest extends TestCase
         $this->assertSame('Rozrywka', $line->category->fresh()->name);
     }
 
-    public function test_type_change_is_allowed_for_a_draft_only_category_resets_the_flags_and_is_visible_in_every_draft(): void
+    public function test_type_change_is_allowed_for_a_draft_only_category_removes_its_rhythm_and_is_visible_in_every_draft(): void
     {
         $user = User::factory()->create();
         $draft2026 = Budget::factory()->for($user)->create(['year' => 2026]);
         $draft2027 = Budget::factory()->for($user)->create(['year' => 2027]);
-        $line = BudgetLine::factory()->for($draft2026)->expense()->create(['name' => 'Premia', 'is_paced' => false, 'month_item_kind' => MonthItemKind::Bill]);
-        $other = BudgetLine::factory()->for($draft2027)->expense()->create(['category_id' => $line->category_id, 'is_paced' => false]);
+        $line = BudgetLine::factory()->for($draft2026)->fixedCharge()->create(['name' => 'Premia']);
+        $other = BudgetLine::factory()->for($draft2027)->expense()->create(['category_id' => $line->category_id]);
 
         $this->actingAs($user)
             ->patch(route('categories.update', [$draft2026, $line->category_id]), $this->categoryFields([
@@ -210,9 +208,10 @@ class CategoryListBudgetPageTest extends TestCase
 
         $this->assertSame(CategoryType::Income, $line->category->fresh()->type);
 
+        $this->assertSame(0, $line->category->rhythms()->count());
+
         foreach ([$line, $other] as $changed) {
-            $this->assertTrue($changed->fresh()->is_paced);
-            $this->assertSame(MonthItemKind::Running, $changed->fresh()->month_item_kind);
+            $this->assertTrue($changed->fresh()->hasType(CategoryType::Income));
         }
     }
 
@@ -435,7 +434,7 @@ class CategoryListBudgetPageTest extends TestCase
         $user = User::factory()->create();
         $budget2027 = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
         $draft2028 = Budget::factory()->for($user)->create(['year' => 2028]);
-        $line2027 = BudgetLine::factory()->for($budget2027)->expense()->archived()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 500, 'is_paced' => false]);
+        $line2027 = BudgetLine::factory()->for($budget2027)->evenAnnual()->archived()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 500]);
 
         $this->actingAs($user)
             ->post(route('categories.restore', $line2027->category_id))
@@ -447,7 +446,8 @@ class CategoryListBudgetPageTest extends TestCase
         $draftLine = $draft2028->budgetLines()->where('category_id', $line2027->category_id)->sole();
 
         $this->assertSame(0, $draftLine->planned_amount_minor_units);
-        $this->assertFalse($draftLine->is_paced);
+        // A restored Category keeps its Rhythm history (ADR-0072).
+        $this->assertSame(['even_annual'], $line2027->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
     }
 
     public function test_deleting_in_a_draft_removes_only_the_line_and_the_category_stays_on_the_list(): void
@@ -511,13 +511,11 @@ class CategoryListBudgetPageTest extends TestCase
     {
         $user = User::factory()->create();
         $source = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $active = BudgetLine::factory()->for($source)->expense()->create([
+        $active = BudgetLine::factory()->for($source)->fixedCharge()->create([
             'name' => 'Rozrywka',
             'planned_amount_minor_units' => 300_000,
             'initial_plan_minor_units' => 250_000,
             'execution_minor_units' => 120_000,
-            'is_paced' => false,
-            'month_item_kind' => MonthItemKind::Bill,
         ]);
         BudgetLine::factory()->for($source)->expense()->archived()->create(['name' => 'Wakacje']);
 
@@ -531,8 +529,7 @@ class CategoryListBudgetPageTest extends TestCase
         $this->assertSame(300_000, $line->planned_amount_minor_units);
         $this->assertSame(0, $line->initial_plan_minor_units);
         $this->assertSame(0, $line->execution_minor_units);
-        $this->assertFalse($line->is_paced);
-        $this->assertSame(MonthItemKind::Bill, $line->month_item_kind);
+        $this->assertSame(['fixed_charge'], $active->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
         $this->assertSame(2, Category::query()->where('user_id', $user->id)->count());
     }
 }

@@ -18,11 +18,7 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
 import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
-import type {
-    MonthItemKind,
-    MonthPlanItem,
-    MonthYearComparison,
-} from '@/types/month-plan';
+import type { MonthPlanItem, MonthYearComparison } from '@/types/month-plan';
 
 export type MonthPlanRowState = {
     /** The plan the row shows now (typed value in change mode); null while the entry is unreadable. */
@@ -32,7 +28,6 @@ export type MonthPlanRowState = {
     status: MonthItemStatus | null;
     yearStale: boolean;
     invalid: boolean;
-    kindError?: string;
     /** Button or marker "plan = actual" in change mode (ADR-0062). */
     matchActual: MatchActualState;
 };
@@ -41,14 +36,13 @@ export type SetAsideDirection = 'set_aside' | 'draw';
 
 const props = defineProps<{
     incomeRows: MonthPlanItem[];
-    /** Expense rows without the idle one-offs, which sit in the collapsible. */
+    /** Expense rows without the idle Even Annual items, which sit in the collapsible. */
     expenseRows: MonthPlanItem[];
     idleRows: MonthPlanItem[];
     editable: boolean;
     /** Typed amounts by category id; the table never writes to it. */
     amountInputs: Record<number, string>;
     rowState: (row: MonthPlanItem) => MonthPlanRowState;
-    kindPendingCategoryId: number | null;
     yearTotals: {
         income: MonthYearComparison;
         expense: MonthYearComparison;
@@ -65,7 +59,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     'update-amount': [categoryId: number, value: string];
     'amount-blur': [categoryId: number];
-    'change-kind': [row: MonthPlanItem, kind: MonthItemKind];
     'set-aside-blur': [];
     'match-actual': [categoryId: number];
 }>();
@@ -77,12 +70,6 @@ const setAsideDirection = defineModel<SetAsideDirection>('setAsideDirection', {
 const setAsideInput = defineModel<string>('setAsideInput', { default: '' });
 
 const t = useTranslations();
-
-const showsKindScopeNote = computed(() =>
-    [...props.expenseRows, ...props.idleRows].some(
-        (row) => row.can_change_kind,
-    ),
-);
 
 const setAsideDirectionOptions = computed(() =>
     (['set_aside', 'draw'] as SetAsideDirection[]).map((direction) => ({
@@ -125,13 +112,6 @@ const expenseRowsEmpty = computed(
 
 <template>
     <ListSurface flush>
-        <p
-            v-if="showsKindScopeNote"
-            class="month-plan-footer meta text-muted-foreground"
-        >
-            {{ t.month_plan.kind_scope_note }}
-        </p>
-
         <div class="month-plan-grid month-plan-header-row">
             <span class="month-plan-cell-category">
                 {{ t.month_plan.category }}
@@ -176,14 +156,11 @@ const expenseRowsEmpty = computed(
             :over-plan="rowState(row).overPlan"
             :status="rowState(row).status"
             :year-stale="rowState(row).yearStale"
-            :kind-pending="kindPendingCategoryId === row.category_id"
-            :kind-error="rowState(row).kindError"
             :invalid="rowState(row).invalid"
             :match-actual="rowState(row).matchActual"
             @update:model-value="
                 emit('update-amount', row.category_id, $event ?? '')
             "
-            @change-kind="emit('change-kind', row, $event)"
             @amount-blur="emit('amount-blur', row.category_id)"
             @match-actual="emit('match-actual', row.category_id)"
         />
@@ -231,14 +208,11 @@ const expenseRowsEmpty = computed(
             :over-plan="rowState(row).overPlan"
             :status="rowState(row).status"
             :year-stale="rowState(row).yearStale"
-            :kind-pending="kindPendingCategoryId === row.category_id"
-            :kind-error="rowState(row).kindError"
             :invalid="rowState(row).invalid"
             :match-actual="rowState(row).matchActual"
             @update:model-value="
                 emit('update-amount', row.category_id, $event ?? '')
             "
-            @change-kind="emit('change-kind', row, $event)"
             @amount-blur="emit('amount-blur', row.category_id)"
             @match-actual="emit('match-actual', row.category_id)"
         />
@@ -252,7 +226,7 @@ const expenseRowsEmpty = computed(
                         class="-ml-3 gap-2"
                     >
                         <span class="table-header">
-                            {{ t.month_plan.idle_one_offs }}
+                            {{ t.month_plan.idle_even_annuals }}
                         </span>
                         <Badge variant="neutral">
                             {{ idleRows.length }}
@@ -277,14 +251,11 @@ const expenseRowsEmpty = computed(
                     :over-plan="rowState(row).overPlan"
                     :status="rowState(row).status"
                     :year-stale="rowState(row).yearStale"
-                    :kind-pending="kindPendingCategoryId === row.category_id"
-                    :kind-error="rowState(row).kindError"
                     :invalid="rowState(row).invalid"
                     :match-actual="rowState(row).matchActual"
                     @update:model-value="
                         emit('update-amount', row.category_id, $event ?? '')
                     "
-                    @change-kind="emit('change-kind', row, $event)"
                     @amount-blur="emit('amount-blur', row.category_id)"
                     @match-actual="emit('match-actual', row.category_id)"
                 />

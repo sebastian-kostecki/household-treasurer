@@ -9,36 +9,31 @@ function canonicalRows(): Row[] {
         {
             id: 1,
             type: 'income',
-            month_item_kind: 'running',
-            is_one_off: false,
+            rhythm: 'running',
             actual_minor_units: 0,
         },
         {
             id: 2,
             type: 'expense',
-            month_item_kind: 'bill',
-            is_one_off: false,
+            rhythm: 'fixed_charge',
             actual_minor_units: 195_000,
         },
         {
             id: 3,
             type: 'expense',
-            month_item_kind: 'running',
-            is_one_off: false,
+            rhythm: 'running',
             actual_minor_units: 60_000,
         },
         {
             id: 4,
             type: 'expense',
-            month_item_kind: 'running',
-            is_one_off: false,
+            rhythm: 'running',
             actual_minor_units: 52_000,
         },
         {
             id: 5,
             type: 'expense',
-            month_item_kind: 'running',
-            is_one_off: true,
+            rhythm: 'even_annual',
             actual_minor_units: 30_000,
         },
     ];
@@ -55,15 +50,21 @@ const typedPlans: Record<number, number> = {
 test('typed plans of the running pool give the canonical pace', () => {
     expect(
         monthPacePreview(canonicalRows(), (row) => typedPlans[row.id], 15, 30),
-    ).toEqual({ percent: 59, isAhead: false });
+    ).toEqual({
+        percent: 59,
+        isAhead: false,
+    });
 });
 
-test('changing the plan of a bill, a one-off or an income does not move the pace', () => {
+test('changing the plan of a fixed charge, an even annual or an income does not move the pace', () => {
     const plans: Record<number, number> = { ...typedPlans, 1: 1, 2: 1, 5: 1 };
 
     expect(
         monthPacePreview(canonicalRows(), (row) => plans[row.id], 15, 30),
-    ).toEqual({ percent: 59, isAhead: false });
+    ).toEqual({
+        percent: 59,
+        isAhead: false,
+    });
 });
 
 test('lowering the plan of a running item moves the pace and can flag it ahead', () => {
@@ -71,7 +72,10 @@ test('lowering the plan of a running item moves the pace and can flag it ahead',
 
     expect(
         monthPacePreview(canonicalRows(), (row) => plans[row.id], 15, 30),
-    ).toEqual({ percent: 80, isAhead: true });
+    ).toEqual({
+        percent: 80,
+        isAhead: true,
+    });
 });
 
 test('a plan of zero on every running item has no percent and is not ahead', () => {
@@ -79,5 +83,8 @@ test('a plan of zero on every running item has no percent and is not ahead', () 
 
     expect(
         monthPacePreview(canonicalRows(), (row) => plans[row.id], 15, 30),
-    ).toEqual({ percent: null, isAhead: false });
+    ).toEqual({
+        percent: null,
+        isAhead: false,
+    });
 });

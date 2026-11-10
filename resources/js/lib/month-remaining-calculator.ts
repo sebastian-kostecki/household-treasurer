@@ -1,3 +1,5 @@
+import type { Rhythm } from '../types/rhythm';
+
 export type MonthRemainingCalculatorOptions = {
     isDraft: boolean;
     budgetYear: number;
@@ -96,7 +98,15 @@ function futurePlasterMonthRemainingMinorUnits(
     );
 }
 
-export function pacedMonthRemainingMinorUnits(
+/**
+ * The pool of "Pozostało w miesiącu" holds fixed charges and running
+ * categories; an even annual category has no such reading (ADR-0066).
+ */
+export function isPoolRhythm(rhythm: Rhythm | null | undefined): boolean {
+    return rhythm === 'fixed_charge' || rhythm === 'running';
+}
+
+export function poolCategoryMonthRemainingMinorUnits(
     options: MonthRemainingCalculatorOptions,
     currentPlanMinorUnits: number,
     executionBeforeViewedMonth: number,
@@ -136,7 +146,7 @@ export function pacedMonthRemainingMinorUnits(
     );
 }
 
-export function pacedPoolMonthRemainingMinorUnits(
+export function poolMonthRemainingMinorUnits(
     options: MonthRemainingCalculatorOptions,
     totalCurrentPlanMinorUnits: number,
     totalExecutionBeforeViewedMonth: number,
@@ -144,9 +154,9 @@ export function pacedPoolMonthRemainingMinorUnits(
     viewedMonth: number,
     totalExecutionBeforeCurrentMonth: number,
     totalExecutionInCurrentMonth: number,
-    hasPacedCategories: boolean,
+    hasPoolCategories: boolean,
 ): number {
-    if (!hasPacedCategories) {
+    if (!hasPoolCategories) {
         return 0;
     }
 

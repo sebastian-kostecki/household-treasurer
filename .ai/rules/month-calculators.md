@@ -33,4 +33,4 @@ The TS copies exist only where a preview must react before submit: a proposal ca
 
 ## The TS copies feed the entry and Import warnings
 
-`hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the Month Remaining copy and have no tests of their own. `entry-to-spend-warning.ts` and `import-to-spend-warnings.ts` build on the To Spend copy (the "do wydania" below zero warning) and are covered by the `*.test.ts` files next to them. A change to a calculator changes the hand-entry and Import previews too, so run those tests as well.
+`hand-entry-month-remaining-preview.ts` and `import-month-remaining-warnings.ts` build on the Month Remaining copy and are the only Month Remaining code that runs in production (nothing calls the PHP copy outside its test); the `*.test.ts` files next to them cover the Rhythm of the month of the operation. `entry-to-spend-warning.ts` and `import-to-spend-warnings.ts` build on the To Spend copy (the "do wydania" below zero warning) and are covered by the `*.test.ts` files next to them. A change to a calculator changes the hand-entry and Import previews too, so run those tests as well.

@@ -6,14 +6,13 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Support\BudgetLineResolver;
-use App\Support\CategoryList\CategoryJoinFlags;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * Gives a list Category its Budget Line in a Budget at the first use, with
- * plan 0 and the flags of its newest line (ADR-0063, "Joining Budget Lines";
- * ADR-0067). An archived Category never joins, and an archived line is not
- * reactivated: a save on it goes through the operation's own rule.
+ * plan 0 (ADR-0063, "Joining Budget Lines"; ADR-0067). An archived Category
+ * never joins, and an archived line is not reactivated: a save on it goes
+ * through the operation's own rule.
  */
 class JoinBudgetAtFirstUse
 {
@@ -68,7 +67,6 @@ class JoinBudgetAtFirstUse
             throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$category->id]);
         }
 
-        $flags = CategoryJoinFlags::forCategory($category->id);
         $now = now();
 
         // A parallel save of the same pair loses on unique(budget_id, category_id)
@@ -76,8 +74,6 @@ class JoinBudgetAtFirstUse
         BudgetLine::query()->insertOrIgnore([
             'budget_id' => $budget->id,
             'category_id' => $category->id,
-            'is_paced' => $flags['is_paced'],
-            'month_item_kind' => $flags['month_item_kind']->value,
             'planned_amount_minor_units' => 0,
             'initial_plan_minor_units' => 0,
             'execution_minor_units' => 0,

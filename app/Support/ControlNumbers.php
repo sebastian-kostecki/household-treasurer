@@ -54,6 +54,10 @@ final class ControlNumbers
                 'category_list_rows' => $lineTable === 'budget_lines' && Schema::hasTable('categories')
                     ? DB::table('categories')->count()
                     : null,
+                'one_off_bill_lines' => $this->oneOffBillLines($lineTable),
+                'category_rhythm_rows' => Schema::hasTable('category_rhythms')
+                    ? DB::table('category_rhythms')->count()
+                    : null,
             ],
             'row_counts' => $this->rowCounts($lineTable),
             'max_financial_operation_id' => Schema::hasTable('financial_operations')
@@ -100,6 +104,25 @@ final class ControlNumbers
         }
 
         return $differences;
+    }
+
+    /**
+     * Lines that are One-off and a Bill (ADR-0066, ADR-0072): the one combination
+     * whose Month Remaining pool changes with the Rhythm. Null while the flags are
+     * not both on `budget_lines` (the old shape, or after they are dropped).
+     */
+    private function oneOffBillLines(string $lineTable): ?int
+    {
+        if ($lineTable !== 'budget_lines'
+            || ! Schema::hasColumn('budget_lines', 'is_paced')
+            || ! Schema::hasColumn('budget_lines', 'month_item_kind')) {
+            return null;
+        }
+
+        return DB::table('budget_lines')
+            ->where('is_paced', false)
+            ->where('month_item_kind', 'bill')
+            ->count();
     }
 
     private function lineTable(): string

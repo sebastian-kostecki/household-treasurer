@@ -1,7 +1,8 @@
+import type { Rhythm } from '../types/rhythm';
+
 export type MonthPaceItem = {
     type: 'income' | 'expense';
-    kind: 'bill' | 'running' | null;
-    isOneOff: boolean;
+    rhythm: Rhythm | null;
     plan: number;
     actual: number;
 };
@@ -20,11 +21,7 @@ export function monthPacePoolSums(items: MonthPaceItem[]): {
     let actualMinorUnits = 0;
 
     for (const item of items) {
-        if (
-            item.type !== 'expense' ||
-            item.kind !== 'running' ||
-            item.isOneOff
-        ) {
+        if (item.type !== 'expense' || item.rhythm !== 'running') {
             continue;
         }
 

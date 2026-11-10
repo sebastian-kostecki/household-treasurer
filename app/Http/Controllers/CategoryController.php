@@ -10,13 +10,13 @@ use App\Actions\UpdateCategory;
 use App\Enums\CategoryType;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryMonthItemKindRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryListReading;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,15 +34,18 @@ class CategoryController extends Controller
 
     public function index(Request $request): InertiaResponse
     {
+        $today = CarbonImmutable::today('UTC');
+
         return Inertia::render('Categories', [
             ...CategoryListReading::forUser($request->user()),
+            'rhythmChangeMonth' => ['year' => $today->year, 'month' => $today->month],
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);
     }
 
     public function store(StoreCategoryRequest $request, Budget $budget, CreateCategory $createCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int} $attributes */
         $attributes = $request->validated();
         $joinedExisting = $createCategory->handle($request->user(), $budget, $attributes);
 
@@ -56,7 +59,7 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Budget $budget, Category $category, UpdateCategory $updateCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int} $attributes */
         $attributes = $request->validated();
         $updateCategory->handle($this->lineOf($budget, $category), $attributes);
 
@@ -66,13 +69,6 @@ class CategoryController extends Controller
         ]);
 
         return to_route('budget');
-    }
-
-    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, Budget $budget, Category $category): RedirectResponse
-    {
-        $this->lineOf($budget, $category)->update($request->safe()->only(['month_item_kind']));
-
-        return back();
     }
 
     public function destroy(Budget $budget, Category $category): RedirectResponse

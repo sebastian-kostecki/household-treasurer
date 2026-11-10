@@ -3,13 +3,13 @@
 namespace App\Actions;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
-use App\Models\BudgetLine;
+use App\Enums\Rhythm;
 use App\Models\Category;
 use App\Support\CategoryList\CategoryListSequence;
 use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\CategoryTypeChange;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,13 +22,15 @@ use Illuminate\Validation\ValidationException;
  */
 class UpdateListCategory
 {
+    public function __construct(private readonly ChangeCategoryRhythm $changeCategoryRhythm) {}
+
     /**
-     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null}  $attributes
+     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null}  $attributes
      */
-    public function handle(Category $category, array $attributes): Category
+    public function handle(Category $category, array $attributes, ?CarbonImmutable $today = null): Category
     {
         try {
-            return DB::transaction(function () use ($category, $attributes): Category {
+            return DB::transaction(function () use ($category, $attributes, $today): Category {
                 $category = Category::query()->lockForUpdate()->findOrFail($category->id);
                 $type = CategoryType::from($attributes['type']);
                 $name = CategoryNameKey::trim($attributes['name']);
@@ -63,11 +65,7 @@ class UpdateListCategory
 
                 $category->update($fields);
 
-                if ($type === CategoryType::Income && $category->wasChanged('type')) {
-                    BudgetLine::query()
-                        ->where('category_id', $category->id)
-                        ->update(['is_paced' => true, 'month_item_kind' => MonthItemKind::Running->value]);
-                }
+                $this->writeRhythm($category, $type, $attributes, $today ?? CarbonImmutable::today('UTC'));
 
                 return $category;
             });
@@ -75,6 +73,22 @@ class UpdateListCategory
             report($exception);
 
             throw CategoryNameGuard::constraintRefusal();
+        }
+    }
+
+    /**
+     * The Rhythm follows a type change (an expense starts Running unless the
+     * request names one, an income loses its history) and a `rhythm` sent with
+     * the request; the Budget page sends none and leaves it as it is (ADR-0072).
+     *
+     * @param  array{rhythm?: string|null, ...}  $attributes
+     */
+    private function writeRhythm(Category $category, CategoryType $type, array $attributes, CarbonImmutable $today): void
+    {
+        $requested = isset($attributes['rhythm']) ? Rhythm::from($attributes['rhythm']) : null;
+
+        if ($category->wasChanged('type') || ($type === CategoryType::Expense && $requested !== null)) {
+            $this->changeCategoryRhythm->handle($category, $type === CategoryType::Expense ? $requested : null, $today);
         }
     }
 

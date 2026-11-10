@@ -12,9 +12,11 @@ use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
+use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\CategoryList\CategoryTypeChange;
+use App\Support\CategoryRhythms;
 use App\Support\SelectedBudgetYear;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
@@ -70,6 +72,9 @@ class BudgetController extends Controller
             array_values($categories->pluck('category_id')->map(fn ($id): int => (int) $id)->all()),
         );
 
+        $rhythms = CategoryRhythms::forCategoryIds($categories->pluck('category_id'));
+        $viewedMonth = BudgetViewedMonth::defaultForYear($budget->year, $today);
+
         return Inertia::render('Budget', [
             'budget' => [
                 'id' => $budget->id,
@@ -82,12 +87,12 @@ class BudgetController extends Controller
             'incomeCategories' => $categories
                 ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Income))
                 ->values()
-                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth))
                 ->all(),
             'expenseCategories' => $categories
                 ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Expense))
                 ->values()
-                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth))
                 ->all(),
             'incomeGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Income),
             'expenseGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Expense),
@@ -182,14 +187,14 @@ class BudgetController extends Controller
      * too, but the archive section shows no groups.
      *
      * @param  list<int>  $typeLockedIds  list Category ids whose type cannot change
+     * @param  int  $viewedMonth  the month whose Rhythm the row shows (BudgetViewedMonth)
      * @return array{
      *     id: int,
      *     name: string,
      *     icon: string,
      *     color: string,
      *     type: string,
-     *     is_paced: bool,
-     *     month_item_kind: string,
+     *     rhythm: 'fixed_charge'|'running'|'even_annual'|null,
      *     group_id: int|null,
      *     sort_order: int,
      *     planned_amount_minor_units: int,
@@ -208,7 +213,7 @@ class BudgetController extends Controller
      *     can_align_current_plan: bool,
      * }
      */
-    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds): array
+    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds, CategoryRhythms $rhythms, int $viewedMonth): array
     {
         $category = $line->category;
         $currentPlanMinorUnits = $line->planned_amount_minor_units;
@@ -228,8 +233,7 @@ class BudgetController extends Controller
             'type' => $category->type->value,
             'group_id' => $category->category_group_id,
             'sort_order' => $category->sort_order,
-            'is_paced' => $line->is_paced,
-            'month_item_kind' => $line->month_item_kind->value,
+            'rhythm' => $rhythms->rhythmIn($category->id, $budget->year, $viewedMonth)?->value,
             'planned_amount_minor_units' => $line->planned_amount_minor_units,
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,
