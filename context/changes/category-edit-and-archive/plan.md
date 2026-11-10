@@ -69,6 +69,8 @@ Zapisuje decyzje S-19, których słownik i ADR-0063 nie mówią, dodaje kolumnę
 
 **Contract**: Wpis **Category** w słowniku dostaje zdania o (2), (3) i opisie (500 znaków); zdania o archiwum i usuwaniu bez zmiany znaczenia. ADR-0066 odwołuje się do ADR-0063 jako uzupełnienie, nie zastąpienie.
 
+> Addendum (impl-review F7, 2026-11-10): the ADR was saved as `0067-category-choice-and-archive-on-the-list.md`, because 0066 was taken by the rhythm change (`0066-category-rhythm-and-irregular-collected.md`). Read every "ADR-0066" in this plan as ADR-0067; the code, rules and glossary cite 0067.
+
 #### 2. Kolumna opisu
 
 **File**: nowa migracja `database/migrations/<ts>_add_description_to_categories_table.php`, `app/Models/Category.php`
@@ -145,6 +147,8 @@ Trasy i akcje listy bez budżetu: tworzenie, edycja z opisem, kolejność, usuwa
 **Intent**: Archiwum według ADR-0066 (4), usuwanie według (5), edycja listy tylko aktywnej kategorii.
 
 **Contract**: `archive`: właściciel i nie zarchiwizowana. Nowe `delete`: właściciel i `! CategoryTypeChange::isLocked`. `UpdateListCategoryRequest` autoryzuje `update` i wymaga aktywnej kategorii. `listCategoryRules()`: `name` required|string|max:255, `icon` in `CategoryIcons`, `color` in `CategoryColors`, `type` enum, `description` nullable|string|max:500 (pusty tekst zapisuje `null`). Reorder: `type` + `category_ids` (distinct int).
+
+> Addendum (impl-review F4, 2026-11-10): `delete` checks ownership only. A Category with a history is refused by `DeleteCategory` with a message (a `category` error in `ConfirmActionDialog`) instead of a 403, also when the page is stale (`can_delete` from before an operation was added).
 
 #### 4. Propsy „Kategorii”
 
@@ -321,6 +325,8 @@ Po zapisie ten sam odczyt daje to samo co podgląd (test na każdy z trzech).
 **Intent**: Regresja dla nowych reguł i zachowanie dotychczasowych błędów.
 
 **Contract**: Przypadki: operacja 2026-11-12 na „Domenach” bez pozycji 2026 tworzy pozycję plan 0 / wykonanie 80, a 2025 bez zmian; rok bez budżetu i rok w szkicu → dzisiejsze błędy; nowa operacja na archiwalnej → błąd (istniejący test zostaje); edycja „Hotel Zakopane” na archiwalnych „Wakacjach”: zmiana opisu i kwoty zapisuje (wykonanie pozycji zmienia się o różnicę), data do 2027 bez pozycji → błąd, data do roku z pozycją → zapis; zmiana na inną archiwalną → błąd; edycja z niezmienioną aktywną kategorią na rok w wykonaniu bez jej pozycji → dołączenie; brak budżetu roku i brak pozycji zarchiwizowanej kategorii dają różne komunikaty; Import: wiersz na kategorii bez pozycji tworzy ją przy zatwierdzeniu, opcje Importu zawierają wpis dołączenia; podgląd ostrzeżenia wydatku na kategorii, która dołączy, równy stanowi po zapisie.
+
+> Addendum (impl-review F6, 2026-11-10): the case "brak budżetu roku i brak pozycji zarchiwizowanej kategorii dają różne komunikaty" contradicted the decision table in #3, which gives both cases today's message ("nie należy do budżetu roku"). The implementation follows the table: `OperationCategoryChoice` separates the two cases in code, but they give the same text, and `ExpenseTest::test_expense_is_refused_for_a_year_without_a_budget_and_for_an_archived_category_without_a_line` asserts that same message.
 
 ### Success Criteria:
 

@@ -264,8 +264,10 @@ class CategoryListWriteTest extends TestCase
         $this->assertDatabaseMissing('budget_lines', ['id' => $fresh->id]);
 
         $this->actingAs($user)
+            ->from(route('categories.index'))
             ->delete(route('categories.list.destroy', $withHistory->category_id))
-            ->assertForbidden();
+            ->assertSessionHasErrors(['category' => __('This category has a history. Archive it instead of deleting it.')])
+            ->assertRedirect(route('categories.index'));
 
         $this->assertDatabaseHas('categories', ['id' => $withHistory->category_id]);
     }

@@ -10,6 +10,7 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\EntryToSpendInputs;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -446,5 +447,33 @@ class IncomeTest extends TestCase
             ->where('incomeCategories.0.budget_year', 2026)
             ->missing('incomeCategories.0.is_paced'),
         );
+    }
+
+    public function test_to_spend_reading_before_the_save_equals_the_one_after_it_for_an_income_category_that_joins(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $refunds = Category::factory()->for($user)->income()->create(['name' => 'Zwroty']);
+
+        $entryToSpend = fn (): array => collect(EntryToSpendInputs::forUser($user)['budgets'])
+            ->firstWhere('year', 2026)['categories'];
+
+        $before = collect($entryToSpend())->firstWhere('id', $refunds->id);
+
+        $this->assertSame(['id' => $refunds->id, 'type' => 'income', 'month_item_kind' => null], $before);
+
+        $this->actingAs($user)->post(route('incomes.store'), [
+            'operation_date' => '2026-11-12',
+            'amount_minor_units' => 50000,
+            'description' => 'Zwrot z Allegro',
+            'account_id' => $account->id,
+            'category_id' => $refunds->id,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame($before, collect($entryToSpend())->firstWhere('id', $refunds->id));
+        $this->assertCount(1, array_filter($entryToSpend(), fn (array $entry): bool => $entry['id'] === $refunds->id));
     }
 }

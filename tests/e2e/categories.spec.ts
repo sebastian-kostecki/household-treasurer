@@ -3,7 +3,8 @@
 // Category shows without the years of its Budget Lines, the link to Operations
 // loses the Category id (and with it the history of all years), or a write
 // from the list (create with a description, edit, archive, restore, delete)
-// does not work in the browser. The test user has the demo household
+// does not work in the browser, or an order the server refuses (422) stays on
+// the page without a message. The test user has the demo household
 // (demo:seed-household): a budget for the current year with the Category
 // "Rozrywka"; the write flow creates its own Category and deletes it at the end.
 import { test, expect, type Page } from '@playwright/test';
@@ -48,6 +49,42 @@ test('the link Operacje → leads to Operations filtered by the Category id over
     expect(query.get('date_from')).toBeNull();
     expect(query.get('date_to')).toBeNull();
     expect(query.get('year')).toBeNull();
+});
+
+test('an order the server refuses (422) is rolled back with a toast', async ({
+    page,
+}) => {
+    await page.goto('/categories');
+
+    const rows = page
+        .locator('[data-section="expense"]')
+        .locator('[data-category-row]');
+    await expect(rows.nth(1)).toBeVisible();
+    const orderBefore = await rows.allInnerTexts();
+
+    // The list changed in another tab: ReorderListCategories refuses the set.
+    await page.route('**/categories/reorder', (route) =>
+        route.fulfill({
+            status: 422,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                message: 'The category order is invalid.',
+                errors: { category_ids: ['The category order is invalid.'] },
+            }),
+        }),
+    );
+
+    const handle = rows.nth(0).getByRole('button', {
+        name: 'Przeciągnij, aby zmienić kolejność',
+    });
+    await handle.dragTo(rows.nth(1));
+
+    await expect(
+        page.getByText(
+            'Nie udało się zapisać kolejności. Przywrócono poprzednią.',
+        ),
+    ).toBeVisible();
+    expect(await rows.allInnerTexts()).toEqual(orderBefore);
 });
 
 test('a Category is created with a description, edited, archived, restored and deleted from the UI', async ({

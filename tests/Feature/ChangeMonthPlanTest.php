@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\ChangeMonthPlan;
+use App\Actions\JoinBudgetAtFirstUse;
 use App\Enums\CategoryType;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -12,6 +13,7 @@ use App\Models\MonthPlanItem;
 use App\Models\User;
 use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -381,5 +383,18 @@ class ChangeMonthPlanTest extends TestCase
         }
 
         $this->fail('Expected a ValidationException with an items error.');
+    }
+
+    public function test_joining_amounts_refuses_a_category_of_another_user_past_validation(): void
+    {
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $foreign = Category::factory()->for(User::factory())->expense()->create(['name' => 'Cudza']);
+
+        try {
+            app(JoinBudgetAtFirstUse::class)->handleAmounts($budget, [$foreign->id => 8000]);
+            $this->fail('Expected joining to refuse a Category of another user.');
+        } catch (ModelNotFoundException) {
+            $this->assertDatabaseMissing('budget_lines', ['category_id' => $foreign->id]);
+        }
     }
 }

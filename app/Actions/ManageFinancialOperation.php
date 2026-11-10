@@ -215,8 +215,9 @@ class ManageFinancialOperation
     /**
      * The Budget Line of the list Category in the Budget in execution of the
      * operation's year, locked for the update of its Execution. A Category
-     * without a line joins the Budget here (ADR-0067); an archived line takes
-     * the save only for the unchanged Category of an existing operation.
+     * without a line joins the Budget here (ADR-0067); an archived line, or a
+     * Category archived on the list, takes the save only for the unchanged
+     * Category of an existing operation.
      */
     private function lockLine(User $user, int $categoryId, string $operationDate, ?int $currentCategoryId): BudgetLine
     {
@@ -240,7 +241,7 @@ class ManageFinancialOperation
             $line = $this->joinBudgetAtFirstUse->handle($budget, $category);
         }
 
-        if ($line->isArchived() && $categoryId !== $currentCategoryId) {
+        if ($categoryId !== $currentCategoryId && ($line->isArchived() || $line->category->isArchived())) {
             throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
         }
 

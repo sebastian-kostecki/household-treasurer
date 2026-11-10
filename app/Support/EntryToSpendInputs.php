@@ -44,17 +44,24 @@ class EntryToSpendInputs
             ->orderBy('year')
             ->get();
 
-        $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets);
+        $joiningExpenses = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
+        $joiningIncomes = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Income);
 
         return [
             'budgets' => array_values($budgets
-                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $today, $joiningEntries[$budget->id]))
+                ->map(fn (Budget $budget): array => self::budgetPayload(
+                    $budget,
+                    $today,
+                    $joiningExpenses[$budget->id],
+                    $joiningIncomes[$budget->id],
+                ))
                 ->all()),
         ];
     }
 
     /**
-     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningEntries  expense Categories that join the Budget at their first use: no plan item, Running or the flags of their newest line
+     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningExpenses  expense Categories that join the Budget at their first use: no plan item, Running or the flags of their newest line
+     * @param  list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>  $joiningIncomes  income Categories that join the Budget at their first use: no plan item and no Month Item Kind
      * @return array{
      *     year: int,
      *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
@@ -65,7 +72,7 @@ class EntryToSpendInputs
      *     }>,
      * }
      */
-    private static function budgetPayload(Budget $budget, CarbonImmutable $today, array $joiningEntries): array
+    private static function budgetPayload(Budget $budget, CarbonImmutable $today, array $joiningExpenses, array $joiningIncomes): array
     {
         $proposal = MonthPlanProposal::forBudget($budget, $today);
 
@@ -130,7 +137,12 @@ class EntryToSpendInputs
                     'id' => $joining['category_id'],
                     'type' => CategoryType::Expense->value,
                     'month_item_kind' => $joining['month_item_kind']->value,
-                ], $joiningEntries),
+                ], $joiningExpenses),
+                ...array_map(fn (array $joining): array => [
+                    'id' => $joining['category_id'],
+                    'type' => CategoryType::Income->value,
+                    'month_item_kind' => null,
+                ], $joiningIncomes),
             ],
             'months' => $months,
         ];

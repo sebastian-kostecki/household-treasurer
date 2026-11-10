@@ -1,7 +1,7 @@
 ---
 change_id: category-edit-and-archive
 title: Category edit and archive
-status: implemented
+status: impl_reviewed
 created: 2026-11-10
 updated: 2026-11-10
 archived_at: null

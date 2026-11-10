@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Category;
 use App\Models\User;
-use App\Support\CategoryList\CategoryTypeChange;
 
 class CategoryPolicy
 {
@@ -18,9 +17,13 @@ class CategoryPolicy
         return $this->ownsCategory($user, $category) && ! $category->isArchived();
     }
 
+    /**
+     * Ownership only: a Category with a history is refused by DeleteCategory,
+     * with a message instead of a 403.
+     */
     public function delete(User $user, Category $category): bool
     {
-        return $this->ownsCategory($user, $category) && ! CategoryTypeChange::isLocked($category);
+        return $this->ownsCategory($user, $category);
     }
 
     public function restore(User $user, Category $category): bool

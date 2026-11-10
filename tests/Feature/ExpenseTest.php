@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\ManageFinancialOperation;
 use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Enums\MonthItemKind;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -638,6 +640,31 @@ class ExpenseTest extends TestCase
                 ->where('expenseCategories.4.id', $domains->id)
                 ->where('expenseCategories.4.budget_year', 2027),
             );
+    }
+
+    public function test_the_write_refuses_a_category_archived_on_the_list_with_an_active_line_past_validation(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $holidays = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Wakacje']);
+        $holidays->category->update(['archived_at' => now()]);
+
+        try {
+            app(ManageFinancialOperation::class)->createExpense($user, [
+                'operation_date' => '2026-11-12',
+                'amount_minor_units' => 8000,
+                'description' => 'Hotel',
+                'account_id' => $account->id,
+                'category_id' => $holidays->category_id,
+            ]);
+            $this->fail('Expected the write to refuse a Category archived on the list.');
+        } catch (ModelNotFoundException) {
+            $this->assertDatabaseCount('financial_operations', 0);
+            $this->assertSame(0, $holidays->fresh()->execution_minor_units);
+        }
     }
 
     public function test_readings_before_the_save_equal_those_after_it_for_a_category_that_joins(): void

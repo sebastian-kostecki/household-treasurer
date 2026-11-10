@@ -38,7 +38,7 @@ class HandEntryMonthRemainingInputs
             ->orderBy('year')
             ->get();
 
-        $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets);
+        $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
         $payloadBudgets = [];
 
         foreach ($budgets as $budget) {

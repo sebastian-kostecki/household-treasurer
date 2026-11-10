@@ -13,12 +13,14 @@ use App\Support\CategoryList\CategoryJoinFlags;
  * Month Plan rows for the active Categories of the list that have no Budget
  * Line in the Budget: they join it with plan 0 once an amount above 0 is
  * entered (ADR-0067, "Month Plan").
+ *
+ * @phpstan-import-type MonthPlanRow from MonthPlanItemRow
  */
 final class MonthPlanJoinCandidates
 {
     /**
      * @param  'past'|'current'|'future'  $timing
-     * @return array{income: list<array<string, mixed>>, expense: list<array<string, mixed>>}
+     * @return array{income: list<MonthPlanRow>, expense: list<MonthPlanRow>}
      */
     public static function rows(User $user, Budget $budget, string $timing): array
     {
@@ -63,12 +65,12 @@ final class MonthPlanJoinCandidates
     }
 
     /**
-     * The shape of `MonthPlanController::itemRow` with constants (plan 0,
+     * The shape of `MonthPlanItemRow::forLine` with constants (plan 0,
      * execution 0) and no unsaved Budget Line, which the readings behind
-     * `itemRow` cannot take.
+     * `forLine` cannot take.
      *
      * @param  'past'|'current'|'future'  $timing
-     * @return array<string, mixed>
+     * @return MonthPlanRow
      */
     private static function row(Category $category, bool $isPaced, MonthItemKind $kind, string $timing): array
     {

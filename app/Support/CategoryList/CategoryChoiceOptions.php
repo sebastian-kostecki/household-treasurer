@@ -90,18 +90,18 @@ final class CategoryChoiceOptions
     }
 
     /**
-     * The entries of the active expense Categories that have no Budget Line in
-     * a Budget yet, as they will look after joining (plan 0 and the join
+     * The entries of the active Categories of a type that have no Budget Line
+     * in a Budget yet, as they will look after joining (plan 0 and the join
      * flags): the readings behind the entry and Import warnings add them next
      * to the real lines. Needs `budgetLines` loaded on each Budget.
      *
      * @param  EloquentCollection<int, Budget>  $budgets
      * @return array<int, list<array{category_id: int, is_paced: bool, month_item_kind: MonthItemKind}>> budget id => entries
      */
-    public static function joiningEntries(User $user, EloquentCollection $budgets): array
+    public static function joiningEntries(User $user, EloquentCollection $budgets, CategoryType $type): array
     {
         $budgets->loadMissing('budgetLines');
-        $categories = self::activeCategories($user, CategoryType::Expense);
+        $categories = self::activeCategories($user, $type);
         $flags = CategoryJoinFlags::forCategories(array_values($categories->map(fn (Category $category): int => $category->id)->all()));
         $entries = [];
 

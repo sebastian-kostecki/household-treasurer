@@ -92,17 +92,31 @@ function onDragStart(key: SectionKey): void {
 }
 
 async function onDragEnd(key: SectionKey): Promise<void> {
+    const categoryIds = localCategories[key].map((category) => category.id);
+
+    if (categoryIds.every((id, index) => id === orderBeforeDrag[index]?.id)) {
+        return;
+    }
+
     reorderHttp.type = key;
-    reorderHttp.category_ids = localCategories[key].map(
-        (category) => category.id,
-    );
+    reorderHttp.category_ids = categoryIds;
 
     try {
-        await reorderHttp.patch(reorder.url());
-    } catch {
-        localCategories[key] = orderBeforeDrag;
-        toast.error(t.categories.reorder_failed);
+        // A 422 resolves instead of rejecting (Inertia 3 useHttp), so it rolls back here.
+        await reorderHttp.patch(reorder.url(), {
+            onError: () => restoreOrder(key),
+        });
+    } catch (error: unknown) {
+        console.error(
+            new Error('Categories: saving the order failed', { cause: error }),
+        );
+        restoreOrder(key);
     }
+}
+
+function restoreOrder(key: SectionKey): void {
+    localCategories[key] = orderBeforeDrag;
+    toast.error(t.categories.reorder_failed);
 }
 </script>
 

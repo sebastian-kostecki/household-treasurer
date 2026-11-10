@@ -13,7 +13,6 @@ use App\Http\Requests\UpdateListCategoryRequest;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
 
@@ -66,7 +65,7 @@ class CategoryListController extends Controller
         return response()->noContent();
     }
 
-    public function destroy(Request $request, Category $category, DeleteCategory $deleteCategory): RedirectResponse
+    public function destroy(Category $category, DeleteCategory $deleteCategory): RedirectResponse
     {
         $this->authorize('delete', $category);
 

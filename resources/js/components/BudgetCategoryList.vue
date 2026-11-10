@@ -179,11 +179,23 @@ async function onDragEnd(): Promise<void> {
     );
 
     try {
-        await reorderHttp.patch(reorder.url(props.budgetId));
-    } catch {
-        localCategories.value = [...orderBeforeDrag.value];
-        toast.error(t.budget.reorder_failed);
+        // A 422 resolves instead of rejecting (Inertia 3 useHttp), so it rolls back here.
+        await reorderHttp.patch(reorder.url(props.budgetId), {
+            onError: restoreOrder,
+        });
+    } catch (error: unknown) {
+        console.error(
+            new Error('Budget: saving the category order failed', {
+                cause: error,
+            }),
+        );
+        restoreOrder();
     }
+}
+
+function restoreOrder(): void {
+    localCategories.value = [...orderBeforeDrag.value];
+    toast.error(t.budget.reorder_failed);
 }
 </script>
 

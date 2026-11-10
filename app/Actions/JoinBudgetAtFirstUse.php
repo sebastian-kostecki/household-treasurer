@@ -34,9 +34,18 @@ class JoinBudgetAtFirstUse
             return [];
         }
 
+        $categories = Category::query()
+            ->where('user_id', $budget->user_id)
+            ->whereIn('id', array_keys($positive))
+            ->get();
+
+        if ($categories->count() !== count($positive)) {
+            throw (new ModelNotFoundException)->setModel(Category::class, array_keys($positive));
+        }
+
         $amountsByLine = [];
 
-        foreach (Category::query()->whereIn('id', array_keys($positive))->get() as $category) {
+        foreach ($categories as $category) {
             $amountsByLine[$this->handle($budget, $category)->id] = $positive[$category->id];
         }
 

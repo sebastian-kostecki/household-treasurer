@@ -7,34 +7,36 @@ use App\Models\BudgetLine;
 
 /**
  * @phpstan-import-type YearComparison from MonthYearComparison
+ *
+ * @phpstan-type MonthPlanRow array{
+ *     category_id: int,
+ *     name: string,
+ *     icon: string,
+ *     color: string,
+ *     type: string,
+ *     month_item_kind: string|null,
+ *     is_one_off: bool,
+ *     is_archived: bool,
+ *     plan_minor_units: int,
+ *     actual_minor_units: int,
+ *     has_positive_amount: bool,
+ *     can_change_kind: bool,
+ *     in_plan: bool,
+ *     deviation_minor_units: int|null,
+ *     is_over_plan: bool,
+ *     is_settled: bool,
+ *     available_limit_minor_units: int|null,
+ *     is_idle_one_off: bool,
+ *     approved_minor_units: int|null,
+ *     is_join_candidate: bool,
+ *     year_comparison: YearComparison|null,
+ * }
  */
 final class MonthPlanItemRow
 {
     /**
      * @param  'past'|'current'|'future'  $timing
-     * @return array{
-     *     category_id: int,
-     *     name: string,
-     *     icon: string,
-     *     color: string,
-     *     type: string,
-     *     month_item_kind: string|null,
-     *     is_one_off: bool,
-     *     is_archived: bool,
-     *     plan_minor_units: int,
-     *     actual_minor_units: int,
-     *     has_positive_amount: bool,
-     *     can_change_kind: bool,
-     *     in_plan: bool,
-     *     deviation_minor_units: int|null,
-     *     is_over_plan: bool,
-     *     is_settled: bool,
-     *     available_limit_minor_units: int|null,
-     *     is_idle_one_off: bool,
-     *     approved_minor_units: int|null,
-     *     is_join_candidate: bool,
-     *     year_comparison: YearComparison|null,
-     * }
+     * @return MonthPlanRow
      */
     public static function forLine(BudgetLine $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
     {
