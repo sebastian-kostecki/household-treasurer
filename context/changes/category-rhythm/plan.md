@@ -586,7 +586,7 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 - [x] 3.1 Testy propozycji i strony planu przechodzą na PostgreSQL — 8108d17
 - [x] 3.2 Test literałów UI planu przechodzi — 8108d17
-- [ ] 3.3 E2E przechodzi
+- [x] 3.3 E2E przechodzi
 - [x] 3.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — 8108d17
 
 #### Manual
@@ -627,12 +627,12 @@ Trzy migracje w jednym wdrożeniu: tabela, wypełnienie, usunięcie flag. `scrip
 
 #### Automated
 
-- [x] 6.1 Migracja usuwająca, odtworzenie flag w `down()` i inwarianty przechodzą na PostgreSQL
-- [x] 6.2 Nie ma czytelników flag
-- [x] 6.3 Pełna bramka na PostgreSQL
-- [x] 6.4 `vendor/bin/sloppy ci` i `npx playwright test` przechodzą
+- [x] 6.1 Migracja usuwająca, odtworzenie flag w `down()` i inwarianty przechodzą na PostgreSQL — ddbb516
+- [x] 6.2 Nie ma czytelników flag — ddbb516
+- [x] 6.3 Pełna bramka na PostgreSQL — ddbb516
+- [x] 6.4 `vendor/bin/sloppy ci` i `npx playwright test` przechodzą — ddbb516
 
 #### Manual
 
-- [x] 6.5 Słownik, ADR-0070 i reguły opisują stan po S-24 bez sprzeczności
-- [ ] 6.6 Próba na kopii produkcji bez różnic
+- [x] 6.5 Słownik, ADR-0070 i reguły opisują stan po S-24 bez sprzeczności — ddbb516
+- [x] 6.6 Próba na kopii produkcji bez różnic — ddbb516
