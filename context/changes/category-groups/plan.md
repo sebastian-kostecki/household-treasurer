@@ -466,10 +466,10 @@ Migracja tylko dodaje tabelę i kolumnę nullable, bez przenoszenia danych; licz
 
 #### Automated
 
-- [x] 5.1 Testy propsów operacji i Importu przechodzą na PostgreSQL
-- [x] 5.2 `npm run test`, `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą
-- [x] 5.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 5.1 Testy propsów operacji i Importu przechodzą na PostgreSQL — 24b7610
+- [x] 5.2 `npm run test`, `npm run build`, `npm run types:check`, `npm run check:ui` przechodzą — 24b7610
+- [x] 5.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — 24b7610
 
 #### Manual
 
-- [x] 5.4 Okna operacji i podgląd Importu pokazują podpisy grup
+- [x] 5.4 Okna operacji i podgląd Importu pokazują podpisy grup — 24b7610
