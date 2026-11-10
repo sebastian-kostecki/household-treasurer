@@ -448,15 +448,15 @@ Brak migracji schematu i danych. Nowa trasa i nowa pozycja menu. Wdrożenie nie 
 
 #### Automated
 
-- [x] 3.1 Wayfinder, build i typy
-- [x] 3.2 Strażnik literałów UI
-- [x] 3.3 Testy strony nadal przechodzą na PostgreSQL
-- [x] 3.4 Test E2E przechodzi
-- [x] 3.5 Pełna bramka w worktree
-- [x] 3.6 Sloppy bez nowych znalezisk
+- [x] 3.1 Wayfinder, build i typy — de66ba8
+- [x] 3.2 Strażnik literałów UI — de66ba8
+- [x] 3.3 Testy strony nadal przechodzą na PostgreSQL — de66ba8
+- [x] 3.4 Test E2E przechodzi — de66ba8
+- [x] 3.5 Pełna bramka w worktree — de66ba8
+- [x] 3.6 Sloppy bez nowych znalezisk — de66ba8
 
 #### Manual
 
-- [x] 3.7 Słupki zgadzają się z tabelą w trybie jasnym i ciemnym
-- [x] 3.8 Wykres mieści się na telefonie, długie nazwy nie nachodzą na słupki
-- [x] 3.9 Inne strony nie ładują unovis
+- [x] 3.7 Słupki zgadzają się z tabelą w trybie jasnym i ciemnym — de66ba8
+- [x] 3.8 Wykres mieści się na telefonie, długie nazwy nie nachodzą na słupki — de66ba8
+- [x] 3.9 Inne strony nie ładują unovis — de66ba8

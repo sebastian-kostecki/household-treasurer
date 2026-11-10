@@ -1,7 +1,7 @@
 ---
 change_id: period-report-by-group
 title: Period report by group
-status: implementing
+status: implemented
 created: 2026-11-10
 updated: 2026-11-10
 archived_at: null
