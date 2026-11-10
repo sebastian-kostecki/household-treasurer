@@ -1,10 +1,10 @@
 ---
 change_id: category-edit-and-archive
 title: Category edit and archive
-status: impl_reviewed
+status: archived
 created: 2026-11-10
 updated: 2026-11-10
-archived_at: null
+archived_at: 2026-11-10T08:57:57Z
 ---
 
 ## Notes
