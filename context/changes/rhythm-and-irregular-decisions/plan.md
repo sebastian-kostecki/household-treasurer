@@ -305,16 +305,16 @@ Nie dotyczy tej zmiany, bo dane się nie zmieniają. Wycofanie to revert commit�
 
 #### Automated
 
-- [x] 2.1 Nowe terminy mają wpis
-- [x] 2.2 Predykaty są zapisane dosłownie w obu dokumentach
-- [x] 2.3 Stare sformułowania zniknęły ze słownika
-- [x] 2.4 Polskie copy jest w słowniku
-- [x] 2.5 Diff obejmuje tylko dokumenty tej zmiany
+- [x] 2.1 Nowe terminy mają wpis — e9a9424
+- [x] 2.2 Predykaty są zapisane dosłownie w obu dokumentach — e9a9424
+- [x] 2.3 Stare sformułowania zniknęły ze słownika — e9a9424
+- [x] 2.4 Polskie copy jest w słowniku — e9a9424
+- [x] 2.5 Diff obejmuje tylko dokumenty tej zmiany — e9a9424
 
 #### Manual
 
-- [x] 2.6 US-02 przeliczony według wpisów słownika daje oczekiwane liczby
-- [x] 2.7 Przypadki podniesienia planu i 31 grudnia dają te same liczby co w Fazie 1
-- [x] 2.8 Przypadki rytmu dają oczekiwany wynik
-- [x] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0066
-- [x] 2.10 Słownik nie urósł poza zakres zmiany
+- [x] 2.6 US-02 przeliczony według wpisów słownika daje oczekiwane liczby — e9a9424
+- [x] 2.7 Przypadki podniesienia planu i 31 grudnia dają te same liczby co w Fazie 1 — e9a9424
+- [x] 2.8 Przypadki rytmu dają oczekiwany wynik — e9a9424
+- [x] 2.9 Żaden z poprawionych wpisów nie przeczy ADR-0066 — e9a9424
+- [x] 2.10 Słownik nie urósł poza zakres zmiany — e9a9424
