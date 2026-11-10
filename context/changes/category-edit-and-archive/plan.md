@@ -479,17 +479,17 @@ Jedna migracja dodająca nullable kolumnę z prawdziwym `down()`; bez zmiany dan
 
 #### Automated
 
-- [x] 4.1 Testy wydatków, przychodów, Importu i przebudowy przechodzą
-- [x] 4.2 Te same testy przechodzą na PostgreSQL
-- [x] 4.3 npm run test przechodzi, w tym operations-category-options.test.ts
-- [x] 4.4 npm run build i types:check przechodzą
-- [x] 4.5 Sloppy bez nowych znalezisk
+- [x] 4.1 Testy wydatków, przychodów, Importu i przebudowy przechodzą — ebc3b41
+- [x] 4.2 Te same testy przechodzą na PostgreSQL — ebc3b41
+- [x] 4.3 npm run test przechodzi, w tym operations-category-options.test.ts — ebc3b41
+- [x] 4.4 npm run build i types:check przechodzą — ebc3b41
+- [x] 4.5 Sloppy bez nowych znalezisk — ebc3b41
 
 #### Manual
 
-- [x] 4.6 Nowa kategoria do wyboru w wydatku 2026 i po zapisie w Budżecie 2026 z planem 0
-- [x] 4.7 Edycja operacji na zarchiwizowanej kategorii pokazuje dopisek i zapisuje poprawkę
-- [x] 4.8 Import z wierszem na nowej kategorii zatwierdza się i tworzy pozycję
+- [x] 4.6 Nowa kategoria do wyboru w wydatku 2026 i po zapisie w Budżecie 2026 z planem 0 — ebc3b41
+- [x] 4.7 Edycja operacji na zarchiwizowanej kategorii pokazuje dopisek i zapisuje poprawkę — ebc3b41
+- [x] 4.8 Import z wierszem na nowej kategorii zatwierdza się i tworzy pozycję — ebc3b41
 
 ### Phase 5: Plan miesiąca
 
