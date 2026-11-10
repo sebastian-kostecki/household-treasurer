@@ -438,13 +438,13 @@ Jedna migracja dodająca nullable kolumnę z prawdziwym `down()`; bez zmiany dan
 
 #### Automated
 
-- [x] 1.1 Test migracji opisu przechodzi na PostgreSQL
-- [x] 1.2 UserSnapshotCommandTest przechodzi, w tym przywrócenie fixture v6 i v5
-- [x] 1.3 Pint bez zmian po formatowaniu
+- [x] 1.1 Test migracji opisu przechodzi na PostgreSQL — 768bd7d
+- [x] 1.2 UserSnapshotCommandTest przechodzi, w tym przywrócenie fixture v6 i v5 — 768bd7d
+- [x] 1.3 Pint bez zmian po formatowaniu — 768bd7d
 
 #### Manual
 
-- [x] 1.4 ADR-0066 i wpis słownika zgodne z ADR-0063 i decyzjami z planu
+- [x] 1.4 ADR-0066 i wpis słownika zgodne z ADR-0063 i decyzjami z planu — 768bd7d
 
 ### Phase 2: Zapisy listy (backend)
 
