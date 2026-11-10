@@ -307,17 +307,17 @@ Bez migracji i bez zmiany danych. Istniejący szkic 2027 na produkcji zostaje be
 
 #### Automated
 
-- [x] 3.1 Vitest funkcji zdania i kategorii
-- [x] 3.2 Cały Vitest, w tym `ui-contract.test.ts`
-- [x] 3.3 Typy po buildzie
-- [x] 3.4 Bez literałów w widokach (`check:ui`)
-- [x] 3.5 Lint i format (`npm run check`)
-- [x] 3.6 Prop powłoki na PostgreSQL
-- [x] 3.7 Brak starych nazw propu, pola i kluczy
-- [x] 3.8 E2E okna
-- [x] 3.9 Bramka `composer ci:check` i `sloppy ci`
+- [x] 3.1 Vitest funkcji zdania i kategorii — 6486944
+- [x] 3.2 Cały Vitest, w tym `ui-contract.test.ts` — 6486944
+- [x] 3.3 Typy po buildzie — 6486944
+- [x] 3.4 Bez literałów w widokach (`check:ui`) — 6486944
+- [x] 3.5 Lint i format (`npm run check`) — 6486944
+- [x] 3.6 Prop powłoki na PostgreSQL — 6486944
+- [x] 3.7 Brak starych nazw propu, pola i kluczy — 6486944
+- [x] 3.8 E2E okna — 6486944
+- [x] 3.9 Bramka `composer ci:check` i `sloppy ci` — 6486944
 
 #### Manual
 
-- [x] 3.10 Trzy warianty zdania w kitchen sinku, oba motywy, odmiana liczebnika
-- [x] 3.11 Zdanie na devie zmienia się z rokiem, a utworzony budżet ma zapowiedzianą liczbę kategorii
+- [x] 3.10 Trzy warianty zdania w kitchen sinku, oba motywy, odmiana liczebnika — 6486944
+- [x] 3.11 Zdanie na devie zmienia się z rokiem, a utworzony budżet ma zapowiedzianą liczbę kategorii — 6486944
