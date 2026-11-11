@@ -621,7 +621,7 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [x] 6.1 Liczby kontrolne po obu scaleniach nie różnią się od stanu „przed”
+- [x] 6.1 Liczby kontrolne po obu scaleniach nie różnią się od stanu „przed” — 111fdd2
 
 #### Manual
 

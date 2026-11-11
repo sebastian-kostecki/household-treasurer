@@ -45,6 +45,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | F-03 | category-list-domain-decisions       | (foundation) ADR i słownik opisują kategorię przez lata, grupę kategorii i regułę migracji                         | —             | Wymogi istniejącego systemu, Decyzje strukturalne 1 i 4, FR-006 | done     |
 | F-04 | safe-first-data-migration            | (foundation) wdrożenie robi kopię bazy przed migracją, a reguły migracji danych, kategorii i snapshotu są w repo   | —             | Migracja danych (wskazane przez użytkownika), Guardrails | done     |
 | F-05 | rhythm-and-irregular-decisions       | (foundation) ADR i słownik opisują cztery rytmy, stawkę, „zebrane” i przejście zebranego przez 31 grudnia          | —             | Business Logic Changes, Decyzje strukturalne 2, 3 i 5–9, FR-007, FR-010 | done     |
+| F-06 | restore-import-identity-accounts     | (foundation) `user:restore` wczytuje snapshot także na użytkownika z danymi (id kont w tożsamości importu)          | —             | Guardrails, FR-023                       | ready    |
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | done |
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | done |
@@ -127,6 +128,19 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Risk:** Musi wyraźnie odróżnić „zebrane” od „odkładam / dobieram”, Set-aside i Reserve; nazwy z PRD („odkładam 150 · zebrane 450”) dziś zderzają się z sekcją „odkładam” na dole planu.
 - **Status:** done
 
+### F-06: Restore snapshotu na istniejącego użytkownika
+
+- **Outcome:** (foundation) `user:restore` wczytuje snapshot także na użytkownika, który ma już dane: `import_identity_account_id` operacji oraz `source_import_identity_account_id` i `destination_import_identity_account_id` przelewów przechodzą przez mapę id kont, jak w ruchach kapitału. Test restore na bazie z danymi i operacją z importu jest czerwony przed poprawką.
+- **Change ID:** restore-import-identity-accounts
+- **PRD refs:** Guardrails (droga powrotu), FR-023
+- **Unlocks:** scalenie par kategorii na produkcji (S-21): droga powrotu ze snapshotu zapisanego przez akcję scalenia (`user:restore`, `README.md`, „Scalanie kategorii”) działa tylko po tej poprawce. Dotyczy też snapshotów `deploy.sh`.
+- **Prerequisites:** —
+- **Parallel with:** S-21, S-23, S-25, S-30, S-31, S-32, S-33
+- **Blockers:** —
+- **Unknowns:** Czy to jedyne pola z id konta w snapshocie, których restore nie mapuje (próba S-21 sprawdziła operacje i przelewy w kodzie, nie wszystkie tabele).
+- **Risk:** Błąd jest w `main` (`app/Actions/RestoreUserData.php`), nie w S-21; wykryty w próbie na kopii produkcji (`context/changes/category-merge/merge-trial.md`, O1): snapshot produkcji ma to pole wypełnione w 1269 z 1280 operacji, a `user:restore` na istniejącego użytkownika kończy się błędem klucza obcego (SQLSTATE 23503). Do pustej bazy restore przechodzi. Poprawka musi wejść przed wdrożeniem, bo `deploy.sh` robi snapshoty, a scalenie jest nieodwracalne w aplikacji.
+- **Status:** ready
+
 ## Slices
 
 ### S-18: Jedna lista kategorii po migracji
@@ -174,7 +188,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Parallel with:** F-05, S-19, S-20, S-22, S-23, S-24, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Co się dzieje z zebranym przy scaleniu, rozstrzyga ADR-0076.
+- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Co się dzieje z zebranym przy scaleniu, rozstrzyga ADR-0076. Kod i próba na kopii produkcji są gotowe (`context/changes/category-merge/merge-trial.md`); scalenie obu par na produkcji idzie po F-06 i po wdrożeniu: F-06 → `scripts/deploy.sh` → `user:backup` → scalenie w UI → `app:control-numbers`.
 - **Status:** in-progress
 
 ### S-22: Grupy kategorii
@@ -331,6 +345,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | F-03       | category-list-domain-decisions      | ADR i słownik: kategoria przez lata, grupa, reguła migracji              | done                  | Zarchiwizowane: `context/archive/2026-11-09-category-list-domain-decisions/` |
 | F-04       | safe-first-data-migration           | Kopia bazy przed migracją i reguły migracji danych                      | done                  | Zarchiwizowane: `context/archive/2026-11-09-safe-first-data-migration/` |
 | F-05       | rhythm-and-irregular-decisions      | ADR i słownik: rytmy, stawka, „zebrane”, 31 grudnia                     | done                  | Zarchiwizowane: `context/archive/2026-11-09-rhythm-and-irregular-decisions/` |
+| F-06       | restore-import-identity-accounts    | Restore snapshotu: mapowanie id kont w tożsamości importu               | yes                   | Run `/10x-new restore-import-identity-accounts`; przed wdrożeniem i przed scaleniem par na produkcji (próba S-21, O1) |
 | S-18       | category-list-after-migration       | Jedna lista kategorii po migracji i widok „Kategorie”                   | done                  | Zarchiwizowane: `context/archive/2026-11-09-category-list-after-migration/` |
 | S-19       | category-edit-and-archive           | Edycja, archiwum i przywracanie kategorii                               | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-edit-and-archive/` |
 | S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                | done                  | Zarchiwizowane: `context/archive/2026-11-10-new-budget-from-category-list/` |
