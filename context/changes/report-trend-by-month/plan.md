@@ -443,35 +443,35 @@ Brak migracji schematu i danych. Nowy parametr adresu i nowy cel zmiany roku są
 
 #### Automated
 
-- [x] 2.1 Testy jednostkowe frontu przechodzą
-- [x] 2.2 Wayfinder, build i typy
-- [x] 2.3 Strażnik literałów UI
-- [x] 2.4 Testy strony, zmiany roku i strażników przechodzą na PostgreSQL
-- [x] 2.5 Test wydajności trendu przechodzi na PostgreSQL
-- [x] 2.6 Pełna bramka w worktree
-- [x] 2.7 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy jednostkowe frontu przechodzą — d9337c6
+- [x] 2.2 Wayfinder, build i typy — d9337c6
+- [x] 2.3 Strażnik literałów UI — d9337c6
+- [x] 2.4 Testy strony, zmiany roku i strażników przechodzą na PostgreSQL — d9337c6
+- [x] 2.5 Test wydajności trendu przechodzi na PostgreSQL — d9337c6
+- [x] 2.6 Pełna bramka w worktree — d9337c6
+- [x] 2.7 Sloppy bez nowych znalezisk — d9337c6
 
 #### Manual
 
-- [x] 2.8 Segment „Trend” otwiera widok z kafelkami i trzema tabelami, a kwoty zgadzają się z widokami Rok i Miesiąc
-- [x] 2.9 Przy oknie 1280 px tabele trendu mieszczą się bez przewijania w poziomie
-- [x] 2.10 Na telefonie tabele przewijają się z przypiętą nazwą, także z klawiatury
-- [x] 2.11 Grupy startują zwinięte, miesiąc w toku ma podpis, puste komórki mają „—”, kolor ma tylko Wynik
-- [x] 2.12 Zmiana roku zostawia „Trend”, Rok i Miesiąc bez zmian, kitchen sink w obu trybach
+- [x] 2.8 Segment „Trend” otwiera widok z kafelkami i trzema tabelami, a kwoty zgadzają się z widokami Rok i Miesiąc — d9337c6
+- [x] 2.9 Przy oknie 1280 px tabele trendu mieszczą się bez przewijania w poziomie — d9337c6
+- [x] 2.10 Na telefonie tabele przewijają się z przypiętą nazwą, także z klawiatury — d9337c6
+- [x] 2.11 Grupy startują zwinięte, miesiąc w toku ma podpis, puste komórki mają „—”, kolor ma tylko Wynik — d9337c6
+- [x] 2.12 Zmiana roku zostawia „Trend”, Rok i Miesiąc bez zmian, kitchen sink w obu trybach — d9337c6
 
 ### Phase 3: Wykres i E2E
 
 #### Automated
 
-- [ ] 3.1 Test danych wykresu przechodzi
-- [ ] 3.2 Wayfinder, build i typy
-- [ ] 3.3 Strażnik literałów UI
-- [ ] 3.4 Testy E2E przechodzą
-- [ ] 3.5 Pełna bramka w worktree
-- [ ] 3.6 Sloppy bez nowych znalezisk
+- [x] 3.1 Test danych wykresu przechodzi
+- [x] 3.2 Wayfinder, build i typy
+- [x] 3.3 Strażnik literałów UI
+- [x] 3.4 Testy E2E przechodzą
+- [x] 3.5 Pełna bramka w worktree
+- [x] 3.6 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 3.7 Każdy miesiąc ma dwa słupki zgodne z tabelą miar, legenda pokazuje serie i miesiąc w toku
-- [ ] 3.8 Wykres czytelny w trybie jasnym i ciemnym i mieści się na telefonie
-- [ ] 3.9 Rok zakończony nie ma notki „w toku”, rok bez operacji nie ma wykresu
+- [x] 3.7 Każdy miesiąc ma dwa słupki zgodne z tabelą miar, legenda pokazuje serie i miesiąc w toku
+- [x] 3.8 Wykres czytelny w trybie jasnym i ciemnym i mieści się na telefonie
+- [x] 3.9 Rok zakończony nie ma notki „w toku”, rok bez operacji nie ma wykresu

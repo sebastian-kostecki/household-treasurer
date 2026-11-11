@@ -161,7 +161,9 @@ Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): obok st
 | `track`   | tło pasa (nie niesie danych)                                                      |
 | `border`  | linie siatki w 50% (nie niosą danych); maluje je `ChartContainer` z `ui/chart`    |
 
-Grafika wykresu ma kontrast co najmniej 3:1 wobec `card` w obu trybach: `chart-1` 5,75:1 (jasny) i 7,16:1 (ciemny), `chart-2` 3,66:1 i 5,89:1, `success` 6,52:1 i 9,99:1. Kolor kategorii nigdy nie maluje słupków (zostaje w `CategoryChip`). `chart-3..5` są nieużywane do S-30; użyte po raz pierwszy wymagają sprawdzonego kontrastu w obu trybach i wpisu tutaj.
+Grafika wykresu ma kontrast co najmniej 3:1 wobec `card` w obu trybach: `chart-1` 5,75:1 (jasny) i 7,16:1 (ciemny), `chart-2` 3,66:1 i 5,89:1, `success` 6,52:1 i 9,99:1. Kolor kategorii nigdy nie maluje słupków (zostaje w `CategoryChip`). `chart-3..5` są nieużywane; użyte po raz pierwszy wymagają sprawdzonego kontrastu w obu trybach i wpisu tutaj.
+
+Wykres trendu (karta „Miesiące” widoku Trend, ADR-0076) to pionowe słupki: 12 miesięcy na osi X (`month_chip_N`), dwa słupki na miesiąc, przychody w `success` i wydatki w `chart-1`, na wspólnej skali z osią w pełnych złotych. Legenda ma dwie próbki, a gdy rok jest bieżący, dopisuje notkę „<miesiąc> w toku”. Nie dochodzi żaden token.
 
 ## Tryb ciemny
 

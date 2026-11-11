@@ -124,6 +124,7 @@ const FILES = [
     'resources/js/components/ReportTrendRow.vue',
     'resources/js/components/ReportTrendSummary.vue',
     'resources/js/components/ReportTrendTable.vue',
+    'resources/js/components/ReportTrendChart.vue',
     'resources/js/components/ReportBarChart.vue',
     'resources/js/components/ReportEmptyState.vue',
     'resources/js/pages/MonthPlan.vue',

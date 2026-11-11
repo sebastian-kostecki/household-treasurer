@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
 import ReportTrendRow from '@/components/ReportTrendRow.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import type { ReportTrendData } from '@/types/reports';
+
+const ReportTrendChart = defineAsyncComponent(
+    () => import('@/components/ReportTrendChart.vue'),
+);
 
 const props = defineProps<{
     trend: ReportTrendData;
@@ -32,7 +36,10 @@ const regionLabel = computed(() =>
             <h2 class="section-title">{{ t.reports.trend_months_title }}</h2>
         </template>
 
-        <slot name="chart" />
+        <ReportTrendChart
+            :months="trend.months"
+            :in-progress-month="trend.in_progress_month"
+        />
 
         <div
             class="report-trend-scroll"
