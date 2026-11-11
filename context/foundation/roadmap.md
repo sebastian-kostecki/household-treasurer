@@ -56,7 +56,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | ready    |
 | S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | proposed |
 | S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | done     |
-| S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | in-progress |
+| S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | done     |
 | S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | ready    |
 | S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | ready    |
 | S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | ready    |
@@ -273,7 +273,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Na produkcji porównanie lat działa dopiero od 2027, więc tu powstaje mock budżetu 2025 z operacjami (tylko dev). Porównanie idzie po kategorii listy, nie po nazwie.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-30: Trend w miesiącach roku
 
@@ -397,3 +397,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-22: użytkownik może utworzyć, nazwać, uporządkować i usunąć grupę (przychodów albo wydatków), przypisać do niej kategorie i widzieć kategorie w grupach z sumą grupy w „Kategoriach”, w Budżecie rocznym i w selektorze kategorii operacji** — Archived 2026-11-10 → `context/archive/2026-11-10-category-groups/`. Lesson: —.
 - **S-28: użytkownik może otworzyć „Raporty”, wybrać miesiąc albo rok i zobaczyć przychody, wydatki, wynik oraz grupy z rozwinięciem do kategorii, z kwotą i udziałem % wydatków, jako wykres i tabelę** — Archived 2026-11-10 → `context/archive/2026-11-10-period-report-by-group/`. Lesson: —.
 - **S-24: użytkownik może zobaczyć rytm nadany istniejącym kategoriom z dzisiejszych flag, poprawić go, a propozycja planu miesiąca liczy kwotę z rytmu (stała opłata, bieżąca, równomierna roczna z odczytem „zostało X na Y mies.”)** — Archived 2026-11-10 → `context/archive/2026-11-10-category-rhythm/`. Lesson: —.
+- **S-29: użytkownik może porównać okres raportu z tym samym okresem rok wcześniej (kwota, różnica) na tej samej kategorii listy** — Archived 2026-11-11 → `context/archive/2026-11-11-year-over-year-report/`. Lesson: —.
