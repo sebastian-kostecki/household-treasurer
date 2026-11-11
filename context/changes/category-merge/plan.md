@@ -578,30 +578,30 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [x] 3.1 Testy HTTP przechodzą na PostgreSQL
-- [x] 3.2 Trasy istnieją
-- [x] 3.3 Wayfinder i typy
-- [x] 3.4 Formatowanie i bramka
+- [x] 3.1 Testy HTTP przechodzą na PostgreSQL — c7738f3
+- [x] 3.2 Trasy istnieją — c7738f3
+- [x] 3.3 Wayfinder i typy — c7738f3
+- [x] 3.4 Formatowanie i bramka — c7738f3
 
 #### Manual
 
-- [x] 3.5 Podgląd JSON na dev zwraca liczby zgodne z „Budżetem” i „Operacjami”
+- [x] 3.5 Podgląd JSON na dev zwraca liczby zgodne z „Budżetem” i „Operacjami” — c7738f3
 
 ### Phase 4: Okno scalania i menu wiersza
 
 #### Automated
 
-- [ ] 4.1 Testy logiki okna i kontraktu UI przechodzą
-- [ ] 4.2 Testy kitchen sinków, kluczy tłumaczeń i literałów UI przechodzą
-- [ ] 4.3 E2E „Kategorii” przechodzi po przeniesieniu „Usuń” do menu
-- [ ] 4.4 Bramka
+- [x] 4.1 Testy logiki okna i kontraktu UI przechodzą
+- [x] 4.2 Testy kitchen sinków, kluczy tłumaczeń i literałów UI przechodzą
+- [x] 4.3 E2E „Kategorii” przechodzi po przeniesieniu „Usuń” do menu
+- [x] 4.4 Bramka
 
 #### Manual
 
-- [ ] 4.5 Kitchen sink pokazuje dziesięć stanów okna scalania w trybie jasnym i ciemnym, tabela mieści się w 460 px i na 390 px
-- [ ] 4.6 Na dev okno otwiera się z wiersza, zmiana celu przeładowuje podgląd, „Scal” nieaktywne do wczytania
-- [ ] 4.7 Menu „⋯” działa z klawiatury, fokus wraca po zamknięciu okna
-- [ ] 4.8 Wiersz kategorii mieści akcje w kolumnie 7rem, także w archiwum i w grupie
+- [x] 4.5 Kitchen sink pokazuje dziesięć stanów okna scalania w trybie jasnym i ciemnym, tabela mieści się w 460 px i na 390 px
+- [x] 4.6 Na dev okno otwiera się z wiersza, zmiana celu przeładowuje podgląd, „Scal” nieaktywne do wczytania
+- [x] 4.7 Menu „⋯” działa z klawiatury, fokus wraca po zamknięciu okna
+- [x] 4.8 Wiersz kategorii mieści akcje w kolumnie 7rem, także w archiwum i w grupie
 
 ### Phase 5: E2E, README i bramka
 

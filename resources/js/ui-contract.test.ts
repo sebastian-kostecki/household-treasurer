@@ -505,6 +505,16 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(page).toContain('<IndexEmptyState');
     });
 
+    it('builds the merge dialog on ConfirmActionDialog, not on its own DialogContent', () => {
+        const dialog = readFileSync(
+            join(JS_ROOT, 'components/CategoryMergeDialog.vue'),
+            'utf8',
+        );
+
+        expect(dialog).toContain('<ConfirmActionDialog');
+        expect(dialog).not.toContain('DialogContent');
+    });
+
     it('shows each category with CategoryChip and a Wayfinder link to Operations', () => {
         const row = readFileSync(
             join(JS_ROOT, 'components/CategoryListRow.vue'),

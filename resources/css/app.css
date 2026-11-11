@@ -1365,6 +1365,17 @@
         @apply meta text-muted-foreground block truncate;
     }
 
+    /**
+     * The preview table of the merge dialog: Budżet | Operacje | Plan aktualny.
+     * One grid for the whole table (its rows are `contents`), so the columns
+     * line up in the 460 px dialog; the first column takes the rest, the other
+     * two size to their widest cell.
+     */
+    .category-merge-grid {
+        @apply grid items-baseline gap-x-3 gap-y-1 text-sm;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
     .budget-category-row {
         @apply border-border/60 hover:bg-secondary min-h-row gap-y-1 border-b py-3 text-sm transition-colors last:border-b-0;
     }

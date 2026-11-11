@@ -7,6 +7,7 @@ import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
 import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
+import CategoryMergeDialog from '@/components/CategoryMergeDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
@@ -18,7 +19,18 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { AccountFormAccount } from '@/types/accounts';
 import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
-import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
+import type { CategoryMergePreviewState } from '@/composables/useCategoryMergePreview';
+import type {
+    CategoryAppearanceOptions,
+    CategoryPickerOption,
+} from '@/lib/category-appearance';
+import {
+    mergeArchivedSourcePreview,
+    mergeCollectedLostPreview,
+    mergeCollectedPreview,
+    mergeFoldPreview,
+    mergeMovePreview,
+} from '@/lib/categories-fixtures';
 import type { CategoryListItem } from '@/types/categories';
 import {
     dialogAccounts,
@@ -60,6 +72,16 @@ const states = [
     'category-list-irregular-bad-amount',
     'category-group-new',
     'category-group-rename-error',
+    'merge-idle',
+    'merge-loading',
+    'merge-move',
+    'merge-fold',
+    'merge-collected',
+    'merge-collected-lost',
+    'merge-archived-source',
+    'merge-preview-error',
+    'merge-saving',
+    'merge-server-error',
     'budget-create',
     'budget-create-no-source',
     'budget-create-empty',
@@ -132,6 +154,16 @@ const labels: Record<SinkState, string> = {
     'category-group-new': 'Grupa kategorii: nowa',
     'category-group-rename-error':
         'Grupa kategorii: zmiana nazwy (błąd po zapisie)',
+    'merge-idle': 'Scalanie: bez wybranego celu',
+    'merge-loading': 'Scalanie: wczytywanie podglądu',
+    'merge-move': 'Scalanie: przepięcie pozycji (para z produkcji)',
+    'merge-fold': 'Scalanie: złożenie pozycji i plany miesięcy',
+    'merge-collected': 'Scalanie: zebrane obu kategorii',
+    'merge-collected-lost': 'Scalanie: utrata zebranego',
+    'merge-archived-source': 'Scalanie: archiwalne źródło',
+    'merge-preview-error': 'Scalanie: błąd podglądu',
+    'merge-saving': 'Scalanie: zapis w toku',
+    'merge-server-error': 'Scalanie: błąd po zapisie',
     'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
@@ -224,6 +256,81 @@ const listCategory: CategoryListItem = {
 };
 
 const rhythmChangeMonth = { year: 2026, month: 11 };
+
+const mergeSource: CategoryListItem = {
+    ...listCategory,
+    name: 'Jedzenie poza domem',
+};
+
+const mergeTargets: CategoryPickerOption[] = [
+    { id: 2, name: 'Restauracje', icon: 'shopping-cart', color: 'blue' },
+    { id: 3, name: 'Utrzymanie domu', icon: 'tag', color: 'blue' },
+];
+
+const mergeTargetId = 2;
+
+/** Each state of the merge dialog: the preview is given, so no request is made. */
+const mergeDialogs: {
+    state: SinkState;
+    source?: CategoryListItem;
+    previewState: CategoryMergePreviewState;
+    form?: 'saving' | 'validate';
+    withTarget?: boolean;
+}[] = [
+    {
+        state: 'merge-idle',
+        previewState: { status: 'idle' },
+        withTarget: false,
+    },
+    { state: 'merge-loading', previewState: { status: 'loading' } },
+    {
+        state: 'merge-move',
+        previewState: { status: 'loaded', preview: mergeMovePreview },
+    },
+    {
+        state: 'merge-fold',
+        previewState: { status: 'loaded', preview: mergeFoldPreview },
+    },
+    {
+        state: 'merge-collected',
+        source: { ...mergeSource, name: 'Energia' },
+        previewState: { status: 'loaded', preview: mergeCollectedPreview },
+    },
+    {
+        state: 'merge-collected-lost',
+        source: { ...mergeSource, name: 'Energia' },
+        previewState: { status: 'loaded', preview: mergeCollectedLostPreview },
+    },
+    {
+        state: 'merge-archived-source',
+        source: {
+            ...mergeSource,
+            name: 'Wakacje',
+            archived_at: '2026-03-01T10:00:00Z',
+        },
+        previewState: {
+            status: 'loaded',
+            preview: mergeArchivedSourcePreview,
+        },
+    },
+    {
+        state: 'merge-preview-error',
+        previewState: {
+            status: 'error',
+            message: 'Przywróć kategorię docelową przed scaleniem.',
+        },
+    },
+    {
+        state: 'merge-saving',
+        previewState: { status: 'loaded', preview: mergeMovePreview },
+        form: 'saving',
+    },
+    {
+        state: 'merge-server-error',
+        previewState: { status: 'loaded', preview: mergeMovePreview },
+        form: 'validate',
+    },
+];
 
 const evenAnnualListCategory: CategoryListItem = {
     ...listCategory,
@@ -528,6 +635,25 @@ function setOpen(state: SinkState, value: boolean): void {
             :group="{ id: 1, name: 'Opłaty stałe' }"
             :form="validateForm"
             @update:open="setOpen('category-group-rename-error', $event)"
+        />
+        <CategoryMergeDialog
+            v-for="dialog in mergeDialogs"
+            :key="dialog.state"
+            :open="isOpen(dialog.state)"
+            :source="dialog.source ?? mergeSource"
+            :targets="mergeTargets"
+            :preview-state="dialog.previewState"
+            :initial-target-id="
+                dialog.withTarget === false ? undefined : mergeTargetId
+            "
+            :form="
+                dialog.form === 'saving'
+                    ? savingForm
+                    : dialog.form === 'validate'
+                      ? validateForm
+                      : undefined
+            "
+            @update:open="setOpen(dialog.state, $event)"
         />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"

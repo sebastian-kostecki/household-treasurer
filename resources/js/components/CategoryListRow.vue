@@ -24,10 +24,13 @@ const props = defineProps<{
     nested?: boolean;
     /** Only the kitchen sink opens the "Grupa…" menu on mount. */
     pickerOpen?: boolean;
+    /** Whether another active Category of the type exists to merge into. */
+    canMerge?: boolean;
 }>();
 
 const emit = defineEmits<{
     edit: [];
+    merge: [];
 }>();
 
 const t = useTranslations();
@@ -127,7 +130,9 @@ const caption = computed(() =>
         <CategoryListRowActions
             :category="category"
             :archived="archived"
+            :can-merge="canMerge"
             @edit="emit('edit')"
+            @merge="emit('merge')"
         />
     </div>
 </template>

@@ -14,6 +14,9 @@ const CATEGORIES_VIEW_FILES = [
     'resources/js/components/CategoryGroupRow.vue',
     'resources/js/components/CategoryGroupFormDialog.vue',
     'resources/js/components/CategoryGroupPicker.vue',
+    'resources/js/components/CategoryMergeDialog.vue',
+    'resources/js/components/CategoryMergePreview.vue',
+    'resources/js/lib/category-merge.ts',
     'resources/js/pages/dev/CategoriesKitchenSink.vue',
     'resources/js/lib/categories-fixtures.ts',
 ];

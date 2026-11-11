@@ -131,7 +131,9 @@ test('a Category is created with a description, edited, archived, restored and d
     await expect(row).toContainText(description);
 
     // Edit the description.
-    await row.getByRole('button', { name: 'Edytuj' }).click();
+    const rowMenu = `Więcej działań kategorii ${name}`;
+    await row.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Edytuj' }).click();
     await dialog.getByLabel('Opis').fill(editedDescription);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
     await expect(dialog).toHaveCount(0);
@@ -139,7 +141,8 @@ test('a Category is created with a description, edited, archived, restored and d
     await expect(row).not.toContainText(description);
 
     // Archive: the row leaves the panel and lands in the collapsed archive.
-    await row.getByRole('button', { name: 'Archiwizuj' }).click();
+    await row.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
     await dialog.getByRole('button', { name: 'Archiwizuj' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toHaveCount(0);
@@ -155,13 +158,15 @@ test('a Category is created with a description, edited, archived, restored and d
     );
 
     // Restore: back in the Wydatki panel.
-    await archivedRow.getByRole('button', { name: 'Przywróć' }).click();
+    await archivedRow.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Przywróć' }).click();
     await dialog.getByRole('button', { name: 'Przywróć' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toContainText(editedDescription);
 
     // Delete the fresh Category (no operations, so it can be deleted).
-    await row.getByRole('button', { name: 'Usuń' }).click();
+    await row.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Usuń' }).click();
     await dialog.getByRole('button', { name: 'Usuń' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toHaveCount(0);

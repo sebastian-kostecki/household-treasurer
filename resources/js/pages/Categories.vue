@@ -10,6 +10,7 @@ import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
 import CategoryGroupRow from '@/components/CategoryGroupRow.vue';
 import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import CategoryListRow from '@/components/CategoryListRow.vue';
+import CategoryMergeDialog from '@/components/CategoryMergeDialog.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ import {
     type ReorderItem,
 } from '@/lib/category-tree';
 import { activeCountForm } from '@/lib/category-list';
+import { canMergeCategory, mergeTargetOptions } from '@/lib/category-merge';
 import type {
     CategoriesPageProps,
     CategoryGroupItem,
@@ -51,6 +53,9 @@ const categoryDialogOpen = ref(false);
 const categoryDialogMode = ref<'create' | 'edit'>('create');
 const categoryDialogType = ref<SectionKey>('expense');
 const editedCategory = ref<CategoryListItem | null>(null);
+
+const mergeSource = ref<CategoryListItem | null>(null);
+const mergeDialogOpen = ref(false);
 
 watch(
     () =>
@@ -121,6 +126,34 @@ function openEditCategoryDialog(category: CategoryListItem): void {
     editedCategory.value = category;
     categoryDialogOpen.value = true;
 }
+
+function openMergeCategoryDialog(category: CategoryListItem): void {
+    mergeSource.value = category;
+    mergeDialogOpen.value = true;
+}
+
+const activeCategories = computed(() => [
+    ...props.incomeCategories,
+    ...props.expenseCategories,
+]);
+
+function canMerge(category: CategoryListItem): boolean {
+    return canMergeCategory(category, activeCategories.value);
+}
+
+const mergeTargets = computed(() => {
+    const source = mergeSource.value;
+
+    if (source === null) {
+        return [];
+    }
+
+    return mergeTargetOptions(
+        source,
+        activeCategories.value,
+        source.type === 'income' ? props.incomeGroups : props.expenseGroups,
+    );
+});
 
 function itemKey(item: Tree[number]): string {
     return item.kind === 'group'
@@ -326,7 +359,9 @@ function moveGroup(
                             data-kind="category"
                             :category="item.category"
                             :groups="section.groups"
+                            :can-merge="canMerge(item.category)"
                             @edit="openEditCategoryDialog(item.category)"
+                            @merge="openMergeCategoryDialog(item.category)"
                         />
                         <div v-else data-kind="group">
                             <CategoryGroupRow
@@ -374,8 +409,14 @@ function moveGroup(
                                             nested
                                             :category="category"
                                             :groups="section.groups"
+                                            :can-merge="canMerge(category)"
                                             @edit="
                                                 openEditCategoryDialog(category)
+                                            "
+                                            @merge="
+                                                openMergeCategoryDialog(
+                                                    category,
+                                                )
                                             "
                                         />
                                     </template>
@@ -404,6 +445,8 @@ function moveGroup(
             <CategoryArchiveSection
                 v-if="archivedCategories.length > 0"
                 :categories="archivedCategories"
+                :can-merge="canMerge"
+                @merge="openMergeCategoryDialog"
             />
         </template>
 
@@ -420,6 +463,12 @@ function moveGroup(
             :category="editedCategory"
             :category-appearance-options="categoryAppearanceOptions"
             :rhythm-change-month="rhythmChangeMonth"
+        />
+
+        <CategoryMergeDialog
+            v-model:open="mergeDialogOpen"
+            :source="mergeSource"
+            :targets="mergeTargets"
         />
     </div>
 </template>

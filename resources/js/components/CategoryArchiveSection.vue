@@ -13,8 +13,14 @@ import type { CategoryListItem } from '@/types/categories';
 
 const props = defineProps<{
     categories: CategoryListItem[];
+    /** Whether another active Category of the type exists, per archived Category id. */
+    canMerge?: (category: CategoryListItem) => boolean;
     /** Only the kitchen sink opens the section on mount. */
     defaultOpen?: boolean;
+}>();
+
+const emit = defineEmits<{
+    merge: [category: CategoryListItem];
 }>();
 
 const t = useTranslations();
@@ -51,6 +57,8 @@ const open = ref(props.defaultOpen === true);
                     :key="category.id"
                     :category="category"
                     archived
+                    :can-merge="canMerge?.(category)"
+                    @merge="emit('merge', category)"
                 />
             </CollapsibleContent>
         </Collapsible>
