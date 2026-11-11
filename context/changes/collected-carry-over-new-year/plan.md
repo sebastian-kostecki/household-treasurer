@@ -254,7 +254,7 @@ Brak migracji, zmiany snapshotu i zmiany zapisanych danych. Wycofanie to cofnię
 #### Automated
 
 - [x] 2.1 Testy literałów UI i kluczy tłumaczeń przechodzą — e690a61
-- [ ] 2.2 E2E historii FR-012 i cały zestaw przechodzą
+- [x] 2.2 E2E historii FR-012 i cały zestaw przechodzą — e690a61
 - [x] 2.3 Pełna bramka na PostgreSQL — e690a61
 
 #### Manual

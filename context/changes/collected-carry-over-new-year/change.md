@@ -1,7 +1,7 @@
 ---
 change_id: collected-carry-over-new-year
 title: Zebrane startowe z 31 grudnia w nowym budżecie
-status: implementing
+status: implemented
 created: 2026-11-11
 updated: 2026-11-11
 archived_at: null
