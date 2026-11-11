@@ -3,6 +3,10 @@ import type {
     PeriodReportComparison,
     PeriodReportData,
     ReportPeriod,
+    ReportTrendCategory,
+    ReportTrendData,
+    ReportTrendEntry,
+    ReportTrendMonth,
 } from '@/types/reports';
 
 /** Scenarios of the Reports kitchen sink (`/dev/ui/reports`). */
@@ -11,9 +15,10 @@ export type ReportScenario = {
     caption: string;
     /** Rendered in a phone-wide frame. */
     phone?: boolean;
-    kind: 'report' | 'draft' | 'no-budget';
+    kind: 'report' | 'trend' | 'draft' | 'no-budget';
     period: ReportPeriod;
     report: PeriodReportData | null;
+    trend: ReportTrendData | null;
 };
 
 function category(
@@ -344,6 +349,259 @@ const comparedEmptyCurrentReport: PeriodReportData = {
     income: [{ kind: 'category', ...compared(salary, 690000, false) }],
 };
 
+type TrendMonthsByNumber = Record<number, number>;
+
+/** 12 cells from a month-number map; a missing month has no operation. */
+function trendMonths(byMonth: TrendMonthsByNumber): (number | null)[] {
+    return Array.from({ length: 12 }, (_, index) => byMonth[index + 1] ?? null);
+}
+
+function sumTrendMonths(rows: (number | null)[][]): (number | null)[] {
+    return Array.from({ length: 12 }, (_, index) => {
+        const cells = rows
+            .map((row) => row[index])
+            .filter((cell): cell is number => cell !== null);
+
+        return cells.length === 0
+            ? null
+            : cells.reduce((sum, cell) => sum + cell, 0);
+    });
+}
+
+function sumCells(months: (number | null)[]): number {
+    return months.reduce<number>((sum, cell) => sum + (cell ?? 0), 0);
+}
+
+function trendCategory(
+    id: number,
+    name: string,
+    icon: string,
+    color: string,
+    byMonth: TrendMonthsByNumber,
+    isArchived = false,
+): ReportTrendCategory {
+    const months = trendMonths(byMonth);
+
+    return {
+        id,
+        name,
+        icon,
+        color,
+        is_archived: isArchived,
+        amount_minor_units: sumCells(months),
+        months,
+    };
+}
+
+function trendGroup(
+    id: number,
+    name: string,
+    categories: ReportTrendCategory[],
+): ReportTrendEntry {
+    const months = sumTrendMonths(categories.map((entry) => entry.months));
+
+    return {
+        kind: 'group',
+        id,
+        name,
+        amount_minor_units: sumCells(months),
+        months,
+        categories,
+    };
+}
+
+function trendLoose(category: ReportTrendCategory): ReportTrendEntry {
+    return { kind: 'category', ...category };
+}
+
+/** The measures follow the rule of `ReportTrend`: a missing side counts as 0 in a month with operations. */
+function buildTrend(
+    income: ReportTrendEntry[],
+    expense: ReportTrendEntry[],
+    inProgressMonth: number | null,
+): ReportTrendData {
+    const incomeMonths = sumTrendMonths(income.map((entry) => entry.months));
+    const expenseMonths = sumTrendMonths(expense.map((entry) => entry.months));
+    const months: ReportTrendMonth[] = incomeMonths.map((incomeCell, index) => {
+        const expenseCell = expenseMonths[index];
+
+        return {
+            month: index + 1,
+            income_minor_units: incomeCell,
+            expense_minor_units: expenseCell,
+            result_minor_units:
+                incomeCell === null && expenseCell === null
+                    ? null
+                    : (incomeCell ?? 0) - (expenseCell ?? 0),
+        };
+    });
+    const incomeTotal = sumCells(incomeMonths);
+    const expenseTotal = sumCells(expenseMonths);
+
+    return {
+        income_minor_units: incomeTotal,
+        expense_minor_units: expenseTotal,
+        result_minor_units: incomeTotal - expenseTotal,
+        has_operations: income.length + expense.length > 0,
+        in_progress_month: inProgressMonth,
+        months,
+        income,
+        expense,
+    };
+}
+
+const trendSalary = trendCategory(7, 'Wynagrodzenie', 'briefcase', 'green', {
+    1: 700000,
+    2: 700000,
+    3: 700000,
+    4: 700000,
+    5: 700000,
+    6: 700000,
+    7: 700000,
+    8: 700000,
+    9: 700000,
+    10: 700000,
+    11: 700000,
+});
+const trendBonus = trendCategory(8, 'Premia', 'gift', 'teal', { 3: 80000 });
+const trendFood = trendCategory(1, 'Żywność', 'shopping-cart', 'green', {
+    1: 98000,
+    2: 91050,
+    3: 104990,
+    4: 99900,
+    5: 101250,
+    6: 95000,
+    7: 110000,
+    8: 97500,
+    9: 102000,
+    10: 99000,
+    11: 41234,
+});
+/** Irregular: bills only in three months, every other month has no operation. */
+const trendBills = trendCategory(2, 'Rachunki', 'zap', 'blue', {
+    3: 120000,
+    7: 118000,
+    11: 125000,
+});
+/** Net zero: a purchase refunded in the same month shows "0", not "—". */
+const trendNetZero = trendCategory(3, 'Meble', 'sofa', 'orange', {
+    4: 0,
+    9: 150000,
+});
+/** A refund larger than the purchases of the month gives a negative cell. */
+const trendRefund = trendCategory(4, 'Elektronika', 'tv', 'purple', {
+    2: 90000,
+    5: -20000,
+});
+const trendOldSubscription = trendCategory(
+    6,
+    'Stara prenumerata',
+    'newspaper',
+    'gray',
+    { 1: 4000, 2: 4000, 3: 4000 },
+    true,
+);
+const trendStreaming = trendCategory(9, 'Streaming', 'tv', 'red', {
+    1: 5000,
+    2: 5000,
+    3: 5000,
+    4: 5000,
+    5: 5000,
+    6: 5000,
+    7: 5000,
+    8: 5000,
+    9: 5000,
+    10: 5000,
+    11: 5000,
+});
+/** The January expense exceeds the income (negative result), the other months are positive. */
+const trendOverspendJanuary = trendCategory(10, 'Remont', 'hammer', 'orange', {
+    1: 900000,
+});
+
+const trendInProgress = buildTrend(
+    [trendLoose(trendSalary), trendLoose(trendBonus)],
+    [
+        trendLoose(trendFood),
+        trendGroup(10, 'Dom', [trendBills, trendNetZero, trendRefund]),
+        trendGroup(11, 'Abonamenty', [trendStreaming, trendOldSubscription]),
+        trendLoose(trendOverspendJanuary),
+    ],
+    11,
+);
+
+const trendClosed = buildTrend(
+    [
+        trendLoose(
+            trendCategory(7, 'Wynagrodzenie', 'briefcase', 'green', {
+                1: 700000,
+                2: 700000,
+                3: 700000,
+                4: 700000,
+                5: 700000,
+                6: 700000,
+                7: 700000,
+                8: 700000,
+                9: 700000,
+                10: 700000,
+                11: 700000,
+                12: 700000,
+            }),
+        ),
+    ],
+    [
+        trendLoose(
+            trendCategory(1, 'Żywność', 'shopping-cart', 'green', {
+                1: 98000,
+                2: 91050,
+                3: 104990,
+                4: 99900,
+                5: 101250,
+                6: 95000,
+                7: 110000,
+                8: 97500,
+                9: 102000,
+                10: 99000,
+                11: 94500,
+                12: 140250,
+            }),
+        ),
+    ],
+    null,
+);
+
+const trendIrregularAndZero = buildTrend(
+    [trendLoose(trendSalary)],
+    [trendLoose(trendBills), trendLoose(trendNetZero), trendLoose(trendRefund)],
+    11,
+);
+
+const trendArchivedInGroup = buildTrend(
+    [trendLoose(trendSalary)],
+    [trendGroup(11, 'Abonamenty', [trendStreaming, trendOldSubscription])],
+    null,
+);
+
+const trendNegativeResult = buildTrend(
+    [trendLoose(trendSalary)],
+    [trendLoose(trendOverspendJanuary), trendLoose(trendFood)],
+    11,
+);
+
+const trendEmpty = buildTrend([], [], 11);
+
+const trendPeriod: ReportPeriod = {
+    kind: 'trend',
+    month: null,
+    default_month: 11,
+    is_in_progress: true,
+};
+
+const trendClosedPeriod: ReportPeriod = {
+    ...trendPeriod,
+    is_in_progress: false,
+};
+
 export const reportScenarios: ReportScenario[] = [
     {
         key: 'year-in-progress',
@@ -356,6 +614,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: true,
         },
         report: yearReport,
+        trend: null,
     },
     {
         key: 'month-closed',
@@ -368,6 +627,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: archivedInGroupReport,
+        trend: null,
     },
     {
         key: 'archived-in-group',
@@ -380,6 +640,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: archivedInGroupReport,
+        trend: null,
     },
     {
         key: 'refund-negative-share',
@@ -392,6 +653,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: refundReport,
+        trend: null,
     },
     {
         key: 'non-positive-expenses',
@@ -404,6 +666,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: nonPositiveExpenseReport,
+        trend: null,
     },
     {
         key: 'no-operations',
@@ -416,6 +679,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: emptyReport,
+        trend: null,
     },
     {
         key: 'draft',
@@ -428,6 +692,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: null,
+        trend: null,
     },
     {
         key: 'no-budget',
@@ -440,6 +705,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: null,
+        trend: null,
     },
     {
         key: 'phone',
@@ -453,6 +719,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: true,
         },
         report: archivedInGroupReport,
+        trend: null,
     },
     {
         key: 'compared-year-in-progress',
@@ -466,6 +733,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: true,
         },
         report: comparedYearReport,
+        trend: null,
     },
     {
         key: 'compared-month-closed',
@@ -479,6 +747,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: comparedMonthReport,
+        trend: null,
     },
     {
         key: 'compared-one-side-only',
@@ -492,6 +761,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: comparedOnlyOneSideReport,
+        trend: null,
     },
     {
         key: 'compared-empty-current',
@@ -505,6 +775,7 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: false,
         },
         report: comparedEmptyCurrentReport,
+        trend: null,
     },
     {
         key: 'compared-phone',
@@ -518,5 +789,67 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: true,
         },
         report: comparedYearReport,
+        trend: null,
+    },
+    {
+        key: 'trend-in-progress',
+        caption:
+            'Trend roku w toku: miesiąc „w toku”, miesiące przyszłe z „—”, grupy zwinięte, kolor tylko w wierszu Wynik',
+        kind: 'trend',
+        period: trendPeriod,
+        report: null,
+        trend: trendInProgress,
+    },
+    {
+        key: 'trend-closed',
+        caption: 'Trend roku zakończonego: wszystkie miesiące z kwotami',
+        kind: 'trend',
+        period: trendClosedPeriod,
+        report: null,
+        trend: trendClosed,
+    },
+    {
+        key: 'trend-irregular-and-zero',
+        caption:
+            'Kategoria nieregularna (rachunki w 3 miesiącach, reszta „—”), kategoria z netto 0 („0”), zwrot dający ujemną komórkę',
+        kind: 'trend',
+        period: trendPeriod,
+        report: null,
+        trend: trendIrregularAndZero,
+    },
+    {
+        key: 'trend-negative-result',
+        caption: 'Miesiąc z ujemnym wynikiem (styczeń): wynik w kolorze błędu',
+        kind: 'trend',
+        period: trendPeriod,
+        report: null,
+        trend: trendNegativeResult,
+    },
+    {
+        key: 'trend-archived-in-group',
+        caption:
+            'Grupa z zarchiwizowaną kategorią: wyciszony wiersz z plakietką, bez koloru',
+        kind: 'trend',
+        period: trendClosedPeriod,
+        report: null,
+        trend: trendArchivedInGroup,
+    },
+    {
+        key: 'trend-no-operations',
+        caption: 'Rok bez operacji',
+        kind: 'trend',
+        period: trendPeriod,
+        report: null,
+        trend: trendEmpty,
+    },
+    {
+        key: 'trend-phone',
+        caption:
+            'Telefon (ramka 22rem): tabele przewijają się w poziomie, nazwa stoi w miejscu',
+        phone: true,
+        kind: 'trend',
+        period: trendPeriod,
+        report: null,
+        trend: trendInProgress,
     },
 ];

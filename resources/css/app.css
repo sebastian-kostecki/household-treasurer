@@ -1580,6 +1580,58 @@
         @apply amount text-muted-foreground text-right;
     }
 
+    /**
+     * Report Trend table (ADR-0077): one markup on every width, 14 columns in
+     * one line (Kategoria | 12 months | Razem). The grid has a minimum width and
+     * the scroll container scrolls below it; the name cell stays pinned to the
+     * left with the row's background, so amounts never show through it. The
+     * minimum is 62.5rem: 8rem name, 12 x 3.5rem months (a whole-zloty amount
+     * such as "-12 346" fits), 4rem total, 13 gaps of 0.5rem and the 1rem row
+     * padding on both sides. The Reports card beside the expanded sidebar at a
+     * 1280 px window is about 1020 px, so it does not scroll there; the 22rem
+     * phone frame of the kitchen sink does. Columns grow by `fr` weights
+     * (ADR-0061), a nested row indents the name cell, not the row, so the
+     * columns stay aligned.
+     */
+    .report-trend-scroll {
+        @apply focus-visible:outline-ring overflow-x-auto outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-solid;
+    }
+
+    .report-trend-grid {
+        @apply grid items-center gap-x-2;
+        min-width: 62.5rem;
+        grid-template-columns:
+            minmax(8rem, 1.6fr)
+            repeat(12, minmax(3.5rem, 1fr))
+            minmax(4rem, 1.1fr);
+    }
+
+    .report-trend-grid.report-row-nested {
+        @apply pl-4;
+    }
+
+    /* The pinned cell also covers the row's left padding and the gap after it,
+       so a scrolled name keeps its inset and no amount touches it. */
+    .report-trend-name {
+        @apply bg-card sticky left-0 z-10 -mr-2 -ml-4 flex min-w-0 items-center gap-2 self-stretch pr-2 pl-4;
+    }
+
+    .report-group-row .report-trend-name {
+        @apply bg-muted;
+    }
+
+    .report-row-nested .report-trend-name {
+        @apply pl-10;
+    }
+
+    .report-trend-head-cell {
+        @apply flex flex-col items-end;
+    }
+
+    .report-trend-in-progress {
+        @apply meta text-muted-foreground font-normal normal-case;
+    }
+
     .budget-category-header-row {
         @apply table-header border-border/60 hidden border-b px-4 py-2.5;
     }

@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -292,6 +293,165 @@ class ReportsPageTest extends TestCase
             ->withSession(['budget_year' => 2026])
             ->get(route('reports'))
             ->assertInertia(fn (Assert $page) => $page->where('report.comparison', null));
+    }
+
+    public function test_it_renders_the_trend_view(): void
+    {
+        $this->travelTo('2026-06-15');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $food = Category::query()->where('user_id', $user->id)->where('name', 'Żywność')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Reports')
+                ->where('budgetYear', 2026)
+                ->where('period.kind', 'trend')
+                ->where('period.month', null)
+                ->where('period.is_in_progress', true)
+                ->where('report', null)
+                ->where('trend.expense_minor_units', 12000)
+                ->where('trend.income_minor_units', 0)
+                ->where('trend.result_minor_units', -12000)
+                ->where('trend.has_operations', true)
+                ->where('trend.in_progress_month', 6)
+                ->has('trend.months', 12)
+                ->where('trend.months.2.expense_minor_units', 12000)
+                ->where('trend.months.0.expense_minor_units', null)
+                ->has('trend.expense', 1, fn (Assert $entry) => $entry
+                    ->where('kind', 'category')
+                    ->where('id', $food->id)
+                    ->where('name', 'Żywność')
+                    ->where('icon', $food->icon)
+                    ->where('color', $food->color)
+                    ->where('is_archived', false)
+                    ->where('amount_minor_units', 12000)
+                    ->has('months', 12)
+                    ->where('months.2', 12000)
+                    ->where('months.3', null))
+                ->where('trend.income', []));
+    }
+
+    public function test_the_trend_passes_a_group_with_its_categories(): void
+    {
+        $this->travelTo('2026-06-15');
+        $user = User::factory()->create();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        $rent = Category::factory()->for($user)->expense()->create(['name' => 'Czynsz', 'category_group_id' => $group->id]);
+        $this->bookExpense($user, 2026, 'Czynsz', '2026-03-10', 250000);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('trend.expense', 1, fn (Assert $entry) => $entry
+                    ->where('kind', 'group')
+                    ->where('id', $group->id)
+                    ->where('name', 'Dom')
+                    ->where('amount_minor_units', 250000)
+                    ->has('months', 12)
+                    ->where('months.2', 250000)
+                    ->where('months.3', null)
+                    ->has('categories', 1, fn (Assert $category) => $category
+                        ->where('id', $rent->id)
+                        ->where('name', 'Czynsz')
+                        ->where('icon', $rent->icon)
+                        ->where('color', $rent->color)
+                        ->where('is_archived', false)
+                        ->where('amount_minor_units', 250000)
+                        ->has('months', 12)
+                        ->where('months.2', 250000))));
+    }
+
+    public function test_the_trend_of_another_year_has_no_month_in_progress(): void
+    {
+        $this->travelTo('2026-06-15');
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'trend')
+                ->where('period.is_in_progress', false)
+                ->where('trend.in_progress_month', null)
+                ->where('trend.has_operations', false));
+    }
+
+    public function test_the_trend_ignores_the_month_parameter(): void
+    {
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend', 'month' => 3]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'trend')
+                ->where('period.month', null)
+                ->where('report', null)
+                ->has('trend.months', 12));
+    }
+
+    public function test_an_unknown_view_value_selects_the_year(): void
+    {
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'cokolwiek']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'year')
+                ->where('trend', null)
+                ->where('report.expense_minor_units', 12000));
+    }
+
+    public function test_the_year_and_month_views_have_no_trend(): void
+    {
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        foreach ([[], ['month' => 3]] as $query) {
+            $this->actingAs($user)
+                ->get(route('reports', $query))
+                ->assertInertia(fn (Assert $page) => $page->where('trend', null));
+        }
+    }
+
+    public function test_a_budget_in_preparation_and_no_budget_have_no_trend(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYear', null)
+                ->where('trend', null));
+
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetPhase', 'draft')
+                ->where('period.kind', 'trend')
+                ->where('report', null)
+                ->where('trend', null));
+    }
+
+    public function test_the_trend_shows_only_the_signed_in_users_amounts(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($other, 2026, 'Żywność', '2026-03-11', 99900);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('trend.expense_minor_units', 12000)
+                ->where('trend.months.2.expense_minor_units', 12000));
     }
 
     /**

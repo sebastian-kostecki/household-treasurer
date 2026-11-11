@@ -7,7 +7,6 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\CategoryGroup;
-use App\Support\CategoryList\CategoryListOrder;
 
 /**
  * The Period Report of one Budget (ADR-0070): Execution of a month or of the
@@ -189,64 +188,34 @@ final class PeriodReport
      */
     private static function entriesOfType(CategoryType $type, array $rows, array $groups, bool $hasComparison): array
     {
-        $categories = [];
-        $byCategoryId = [];
-        foreach ($rows as $row) {
-            $category = $row['category'];
-            if ($category->type !== $type) {
-                continue;
-            }
+        $nodes = ReportCategoryTree::entryNodesOfType($type, $rows, $groups, fn (array $row): array => self::categoryEntry($row, $hasComparison));
 
-            $categories[] = [
-                'id' => $category->id,
-                'group_id' => $category->category_group_id,
-                'sort_order' => $category->sort_order,
-                'name_key' => $category->name_key,
-            ];
-            $byCategoryId[$category->id] = self::categoryEntry($row, $hasComparison);
-        }
+        return array_map(fn (array $node): array => $node['kind'] === 'category'
+            ? ['kind' => 'category'] + $node['entry']
+            : self::groupEntry($node['group'], $node['entries'], $hasComparison), $nodes);
+    }
 
-        $typeGroups = [];
-        $groupsById = [];
-        foreach ($groups as $group) {
-            if ($group->type !== $type) {
-                continue;
-            }
+    /**
+     * @param  list<ReportCategory>  $members
+     * @return ReportGroup
+     */
+    private static function groupEntry(CategoryGroup $group, array $members, bool $hasComparison): array
+    {
+        $amount = array_sum(array_column($members, 'amount_minor_units'));
+        $previousAmounts = array_filter(array_column($members, 'previous_minor_units'), fn (?int $value): bool => $value !== null);
+        $previous = $previousAmounts === [] ? null : array_sum($previousAmounts);
 
-            $typeGroups[] = ['id' => $group->id, 'sort_order' => $group->sort_order, 'name_key' => $group->name_key];
-            $groupsById[$group->id] = $group;
-        }
-
-        $entries = [];
-        foreach (CategoryListOrder::tree($typeGroups, $categories) as $node) {
-            if ($node['kind'] === 'category') {
-                $entries[] = ['kind' => 'category'] + $byCategoryId[$node['id']];
-
-                continue;
-            }
-
-            if ($node['category_ids'] === []) {
-                continue;
-            }
-
-            $members = array_map(fn (int $id): array => $byCategoryId[$id], $node['category_ids']);
-            $amount = array_sum(array_column($members, 'amount_minor_units'));
-            $previousAmounts = array_filter(array_column($members, 'previous_minor_units'), fn (?int $value): bool => $value !== null);
-            $previous = $previousAmounts === [] ? null : array_sum($previousAmounts);
-            $entries[] = [
-                'kind' => 'group',
-                'id' => $node['id'],
-                'name' => $groupsById[$node['id']]->name,
-                'amount_minor_units' => $amount,
-                'share_tenths_percent' => null,
-                'has_operations' => in_array(true, array_column($members, 'has_operations'), true),
-                'previous_minor_units' => $previous,
-                'difference_minor_units' => $hasComparison ? $amount - ($previous ?? 0) : null,
-                'categories' => $members,
-            ];
-        }
-
-        return $entries;
+        return [
+            'kind' => 'group',
+            'id' => $group->id,
+            'name' => $group->name,
+            'amount_minor_units' => $amount,
+            'share_tenths_percent' => null,
+            'has_operations' => in_array(true, array_column($members, 'has_operations'), true),
+            'previous_minor_units' => $previous,
+            'difference_minor_units' => $hasComparison ? $amount - ($previous ?? 0) : null,
+            'categories' => $members,
+        ];
     }
 
     /**

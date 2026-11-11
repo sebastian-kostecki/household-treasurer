@@ -309,3 +309,165 @@ test('changing the budget year in the sidebar stays on Raporty', async ({
         }
     }
 });
+
+test('the Trend view shows the month chart and the measure and category tables', async ({
+    page,
+}) => {
+    await page.goto('/reports');
+    await page.getByRole('button', { name: 'Trend', exact: true }).click();
+
+    await expect(page).toHaveURL(/\/reports\?view=trend$/);
+    await expect(
+        page.getByRole('heading', { level: 1, name: /^Trend \d{4}$/ }),
+    ).toBeVisible();
+
+    const summary = page.locator('[data-trend-table="summary"]');
+    await expect(
+        summary.getByRole('heading', { level: 2, name: 'Miesiące' }),
+    ).toBeVisible();
+    // The chart is aria-hidden, so it is found by its test id.
+    await expect(
+        page.getByTestId('report-trend-chart').locator('svg'),
+    ).toBeVisible();
+    await expect(page.getByTestId('report-trend-chart-legend')).toContainText(
+        'Przychody',
+    );
+    for (const measure of ['Przychody', 'Wydatki', 'Wynik']) {
+        await expect(
+            summary.getByRole('rowheader', { name: measure, exact: true }),
+        ).toBeVisible();
+    }
+
+    const expenses = page.locator('[data-trend-table="expense"]');
+    // 12 months, the name column and „Razem”.
+    await expect(expenses.getByRole('columnheader')).toHaveCount(14);
+    await expect(
+        expenses.getByRole('columnheader', { name: 'Razem', exact: true }),
+    ).toBeVisible();
+
+    await expect(
+        page.getByText('Kwoty w zł, zaokrąglone do pełnych złotych').first(),
+    ).toBeVisible();
+});
+
+test('Trend groups start collapsed and expand to their Categories', async ({
+    page,
+}) => {
+    // The demo household has no expense group, so the test creates its own.
+    const group = 'Grupa E2E trend';
+    const description = `E2E trend grupa ${Date.now()}`;
+
+    await page.goto('/categories');
+    await page
+        .locator('[data-section="expense"]')
+        .getByRole('button', { name: 'Dodaj grupę' })
+        .click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Nazwa grupy').fill(group);
+    await dialog.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(groupBlock(page, group)).toBeVisible();
+
+    try {
+        await page
+            .locator('[data-category-row]')
+            .filter({ has: page.getByText('Rozrywka', { exact: true }) })
+            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
+            .click();
+        await page.getByRole('menuitem', { name: group }).click();
+        await expect(
+            groupBlock(page, group).locator('[data-category-row]'),
+        ).toContainText('Rozrywka');
+
+        await addOperation(page, 'Wydatek', description);
+        try {
+            await page.goto('/reports?view=trend');
+
+            const groupRow = page
+                .locator('[data-trend-table="expense"]')
+                .locator('[data-report-row="group"]')
+                .filter({ hasText: group });
+            // The accessible name flips to „Zwiń grupę …” once open, so the
+            // button is found by its row, not by its name.
+            const toggle = groupRow.locator('button[aria-expanded]');
+            await expect(toggle).toHaveAccessibleName(`Rozwiń grupę ${group}`);
+            const categoryRow = page
+                .locator('[data-trend-table="expense"]')
+                .locator('[data-report-row="category"]')
+                .filter({ hasText: 'Rozrywka' });
+
+            await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            await expect(categoryRow).toBeHidden();
+            await toggle.click();
+            await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+            await expect(categoryRow).toBeVisible();
+        } finally {
+            await deleteOperation(page, 'wydatek', description);
+        }
+    } finally {
+        await page.goto('/categories');
+        await page.mouse.move(0, 0);
+        await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+        await groupBlock(page, group)
+            .getByRole('button', { name: `Więcej działań grupy ${group}` })
+            .click();
+        await page.getByRole('menuitem', { name: 'Usuń grupę' }).click();
+        await page
+            .getByRole('dialog')
+            .getByRole('button', { name: 'Usuń grupę' })
+            .click();
+        await expect(groupBlock(page, group)).toHaveCount(0);
+    }
+});
+
+test('changing the budget year in the sidebar stays on the Trend', async ({
+    page,
+}) => {
+    await page.goto('/budget');
+
+    const initialSegmentCount = await yearSegments(page).count();
+    const createSegment = yearSegments(page).last();
+    const createLabel = (await createSegment.getAttribute('aria-label')) ?? '';
+    const newYear = Number(createLabel.match(/\d{4}/)?.[0]);
+    expect(newYear).toBeGreaterThan(2000);
+    const previousYear = newYear - 1;
+    let created = false;
+
+    try {
+        await createSegment.click();
+        const dialog = page.getByRole('dialog', { name: 'Nowy budżet' });
+        await dialog.getByRole('button', { name: 'Utwórz budżet' }).click();
+        await expect(dialog).toBeHidden();
+        created = true;
+
+        await page.goto('/reports?view=trend');
+        await yearSegments(page)
+            .filter({ hasText: String(previousYear) })
+            .first()
+            .click();
+
+        await expect(page).toHaveURL(/\/reports\?view=trend$/);
+        await expect(
+            page.getByRole('heading', {
+                level: 1,
+                name: `Trend ${previousYear}`,
+            }),
+        ).toBeVisible();
+    } finally {
+        if (created) {
+            await page.goto('/budget');
+            const newSegment = yearSegments(page)
+                .filter({ hasText: String(newYear) })
+                .first();
+            if ((await newSegment.getAttribute('aria-pressed')) !== 'true') {
+                await newSegment.click();
+            }
+            await page.getByRole('button', { name: 'Akcje budżetu' }).click();
+            await page.getByRole('menuitem', { name: 'Usuń budżet' }).click();
+            await page
+                .getByRole('dialog', { name: 'Usunąć budżet?' })
+                .getByRole('button', { name: 'Usuń budżet' })
+                .click();
+            await expect(yearSegments(page)).toHaveCount(initialSegmentCount);
+        }
+    }
+});

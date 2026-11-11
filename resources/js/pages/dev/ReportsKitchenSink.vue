@@ -6,6 +6,8 @@ import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
+import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
+import ReportTrendTable from '@/components/ReportTrendTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { reportScenarios } from '@/lib/reports-fixtures';
@@ -19,7 +21,18 @@ const t = useTranslations();
 const periodOptions = [
     { value: 'year' as const, label: t.reports.period_year },
     { value: 'month' as const, label: t.reports.period_month },
+    { value: 'trend' as const, label: t.reports.period_trend },
 ];
+
+function trendMonths(
+    months: {
+        income_minor_units: number | null;
+        expense_minor_units: number | null;
+    }[],
+    key: 'income_minor_units' | 'expense_minor_units',
+): (number | null)[] {
+    return months.map((month) => month[key]);
+}
 
 function monthUrl(month: number): string {
     return `#month-${month}`;
@@ -35,8 +48,12 @@ const stateMatrix = [
         where: 'Scenariusze compared-year-in-progress (z notką), compared-month-closed, compared-one-side-only, compared-empty-current i compared-phone (dwie linie wiersza); scenariusze bez przedrostka compared- to raport bez porównania.',
     },
     {
+        state: 'trend',
+        where: 'Scenariusze trend-in-progress (miesiąc „w toku”, miesiące przyszłe z „—”), trend-closed, trend-irregular-and-zero (kategoria nieregularna, netto 0, ujemna komórka), trend-negative-result, trend-archived-in-group, trend-no-operations i trend-phone (przewijanie z przypiętą nazwą). Grupy startują zwinięte.',
+    },
+    {
         state: 'empty',
-        where: 'Scenariusze no-operations, draft i no-budget poniżej.',
+        where: 'Scenariusze no-operations, trend-no-operations, draft i no-budget poniżej.',
     },
     {
         state: 'loading',
@@ -122,6 +139,80 @@ const stateMatrix = [
                     kind="draft"
                 />
 
+                <template
+                    v-else-if="
+                        scenario.kind === 'trend' && scenario.trend !== null
+                    "
+                >
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3"
+                    >
+                        <p class="page-title">
+                            {{ t.reports.title_trend.replace(':year', '2026') }}
+                        </p>
+                        <SegmentedControl
+                            model-value="trend"
+                            :options="periodOptions"
+                            :ariaLabel="t.reports.period_label"
+                            tone="neutral"
+                        />
+                    </div>
+
+                    <ReportStatPanel
+                        :income-minor-units="scenario.trend.income_minor_units"
+                        :expense-minor-units="
+                            scenario.trend.expense_minor_units
+                        "
+                        :result-minor-units="scenario.trend.result_minor_units"
+                        period-kind="year"
+                        :is-in-progress="scenario.period.is_in_progress"
+                    />
+
+                    <IndexEmptyState
+                        v-if="!scenario.trend.has_operations"
+                        :title="t.reports.no_operations_title"
+                        :description="t.reports.no_operations_description"
+                    />
+
+                    <template v-else>
+                        <ReportTrendSummary :trend="scenario.trend" />
+                        <ReportTrendTable
+                            type="expense"
+                            :title="t.reports.expense"
+                            :entries="scenario.trend.expense"
+                            :total-months="
+                                trendMonths(
+                                    scenario.trend.months,
+                                    'expense_minor_units',
+                                )
+                            "
+                            :total-minor-units="
+                                scenario.trend.expense_minor_units
+                            "
+                            :in-progress-month="
+                                scenario.trend.in_progress_month
+                            "
+                        />
+                        <ReportTrendTable
+                            type="income"
+                            :title="t.reports.income"
+                            :entries="scenario.trend.income"
+                            :total-months="
+                                trendMonths(
+                                    scenario.trend.months,
+                                    'income_minor_units',
+                                )
+                            "
+                            :total-minor-units="
+                                scenario.trend.income_minor_units
+                            "
+                            :in-progress-month="
+                                scenario.trend.in_progress_month
+                            "
+                        />
+                    </template>
+                </template>
+
                 <template v-else-if="scenario.report !== null">
                     <div
                         class="flex flex-wrap items-center justify-between gap-3"
@@ -160,7 +251,9 @@ const stateMatrix = [
                             scenario.report.expense_minor_units
                         "
                         :result-minor-units="scenario.report.result_minor_units"
-                        :period-kind="scenario.period.kind"
+                        :period-kind="
+                            scenario.period.kind === 'month' ? 'month' : 'year'
+                        "
                         :is-in-progress="scenario.period.is_in_progress"
                         :comparison="scenario.report.comparison"
                     />

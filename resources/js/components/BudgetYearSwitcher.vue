@@ -32,6 +32,22 @@ const staysOnReports = computed(() =>
     isCurrentSection(reports().url, page.url),
 );
 
+/** On the Trend view the switch stays on the Trend. */
+const staysOnTrend = computed(
+    () =>
+        staysOnReports.value &&
+        new URL(page.url, 'http://localhost').searchParams.get('view') ===
+            'trend',
+);
+
+const destination = computed(() => {
+    if (staysOnTrend.value) {
+        return 'reports-trend';
+    }
+
+    return staysOnReports.value ? 'reports' : null;
+});
+
 defineExpose({ pending });
 
 const segments = computed(() =>
@@ -71,9 +87,9 @@ function activate(segment: BudgetYearSegment): void {
 
     router.post(
         BudgetController.selectYear().url,
-        staysOnReports.value
-            ? { year: segment.year, destination: 'reports' }
-            : { year: segment.year },
+        destination.value === null
+            ? { year: segment.year }
+            : { year: segment.year, destination: destination.value },
         {
             onStart: () => {
                 pending.value = true;

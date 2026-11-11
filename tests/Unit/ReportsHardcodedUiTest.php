@@ -12,6 +12,10 @@ const REPORTS_VIEW_FILES = [
     'resources/js/components/ReportEntryTable.vue',
     'resources/js/components/ReportGroupRow.vue',
     'resources/js/components/ReportCategoryRow.vue',
+    'resources/js/components/ReportTrendRow.vue',
+    'resources/js/components/ReportTrendSummary.vue',
+    'resources/js/components/ReportTrendTable.vue',
+    'resources/js/components/ReportTrendChart.vue',
     'resources/js/components/ReportBarChart.vue',
     'resources/js/components/ReportEmptyState.vue',
 ];
