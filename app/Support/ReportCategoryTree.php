@@ -15,7 +15,7 @@ use App\Support\CategoryList\CategoryListOrder;
  * have a row and gets exactly the rows it shows.
  *
  * It is the one place that Period Report and Report Trend take their order and
- * membership from, so the two views cannot drift apart (ADR-0070, ADR-0076).
+ * membership from, so the two views cannot drift apart (ADR-0070, ADR-0077).
  *
  * @phpstan-type TreeNode array{kind: 'category', category: Category}|array{kind: 'group', group: CategoryGroup, categories: list<Category>}
  */

@@ -65,7 +65,7 @@ export type PeriodReportData = {
     expense: PeriodReportEntry[];
 };
 
-/** Mirror of `App\Support\ReportTrend::toArray()` (ADR-0076). Cells are minor units; null is a month without an operation. */
+/** Mirror of `App\Support\ReportTrend::toArray()` (ADR-0077). Cells are minor units; null is a month without an operation. */
 
 export type ReportTrendCategory = {
     /** Id of the list Category (not of the budget line). */

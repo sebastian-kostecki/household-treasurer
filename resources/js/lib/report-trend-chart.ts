@@ -8,7 +8,7 @@ export type ReportTrendChartBar = {
 };
 
 /**
- * Bars of the Trend chart (ADR-0076): two values per month, taken from the
+ * Bars of the Trend chart (ADR-0077): two values per month, taken from the
  * same `months` as the Przychody and Wydatki rows of the measures table. A
  * month without an operation (null) or with a negative net amount is drawn
  * as zero. When no value is positive there is nothing to draw, so the list is

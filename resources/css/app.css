@@ -1562,7 +1562,7 @@
     }
 
     /**
-     * Report Trend table (ADR-0076): one markup on every width, 14 columns in
+     * Report Trend table (ADR-0077): one markup on every width, 14 columns in
      * one line (Kategoria | 12 months | Razem). The grid has a minimum width and
      * the scroll container scrolls below it; the name cell stays pinned to the
      * left with the row's background, so amounts never show through it. The

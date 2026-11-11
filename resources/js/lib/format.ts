@@ -17,7 +17,7 @@ export function formatMoneyAmount(minorUnits: number): string {
 
 /**
  * Round minor units to whole zloty for display, half away from zero, on
- * integers (ADR-0076). Never returns -0.
+ * integers (ADR-0077). Never returns -0.
  */
 function wholeZloty(minorUnits: number): number {
     const zloty =
@@ -28,7 +28,7 @@ function wholeZloty(minorUnits: number): number {
 
 /**
  * Format minor units as whole zloty without the unit, e.g. 1234567 -> "12 346"
- * (the Report Trend tables, ADR-0076).
+ * (the Report Trend tables, ADR-0077).
  */
 export function formatWholeMoneyAmount(minorUnits: number): string {
     const zloty = wholeZloty(minorUnits);

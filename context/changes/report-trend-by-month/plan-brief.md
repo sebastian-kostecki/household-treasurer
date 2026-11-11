@@ -35,7 +35,7 @@ Przełącznik ma trzy segmenty: `Rok | Miesiąc | Trend`. Widok „Trend” (`/r
 ## Scope
 
 **In scope:**
-- słownik (akapit o trendzie we wpisie Period Report) i ADR-0076;
+- słownik (akapit o trendzie we wpisie Period Report) i ADR-0077;
 - `ReportTrend`, wspólne `ReportCategoryTree`, parametr `?view=trend`, prop `trend` i typy;
 - cel `reports-trend` przy zmianie roku;
 - `formatWholeMoneyAmount` / `formatWholeMoney`;
@@ -59,7 +59,7 @@ Kontroler przy `?view=trend` woła `ReportTrend::forYear($budget, $miesiącWToku
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Reguły i odczyt trendu na serwerze | Słownik, ADR-0076, `ReportCategoryTree`, `ReportTrend`, testy równości na SQLite i PostgreSQL | Wydzielenie drzewa zmienia wynik `PeriodReport` (pilnują istniejące testy) |
+| 1. Reguły i odczyt trendu na serwerze | Słownik, ADR-0077, `ReportCategoryTree`, `ReportTrend`, testy równości na SQLite i PostgreSQL | Wydzielenie drzewa zmienia wynik `PeriodReport` (pilnują istniejące testy) |
 | 2. Widok „Trend” z tabelami | `?view=trend`, propsy, zmiana roku, pełne złote, przewijana tabela, tabela miar i tabele grup, kitchen sink, reguły, test 2 s | 14 kolumn nie mieści się przy 1280 px mimo wyliczeń; przypięta kolumna z prześwitującym tłem |
 | 3. Wykres i E2E | Pionowe słupki miesięcy z legendą, design system, E2E, pełna bramka | Czytelność 24 słupków i etykiet osi na telefonie |
 
@@ -72,7 +72,7 @@ Kontroler przy `?view=trend` woła `ReportTrend::forYear($budget, $miesiącWToku
 - Zaokrąglone komórki mogą różnić się od „Razem” o kilka złotych (trzy miesiące po 100,40 zł to 100, 100, 100 i „Razem” 301). To świadomy koszt; stopka o tym mówi.
 - Niepełny miesiąc w toku ma niższy słupek mimo notki w legendzie.
 - Wyjątek od zasady „zawsze dwa miejsca” jest ograniczony do trendu; reguły i design system muszą to mówić wprost, żeby nie rozlał się na inne tabele.
-- Zakładamy, że ADR-0076 jest wolny; sprawdzić przed zapisem.
+- Zakładaliśmy, że ADR-0076 jest wolny; równoległa S-27 zajęła go wcześniej, więc trend ma ADR-0077.
 - Tabela trendu dostaje role ARIA tabeli, których nie mają pozostałe tabele Raportów; to celowa różnica, bo wykres jest ukryty dla czytników.
 
 ## Success Criteria (Summary)

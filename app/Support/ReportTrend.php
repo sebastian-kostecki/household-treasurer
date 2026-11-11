@@ -9,7 +9,7 @@ use App\Models\Category;
 use App\Models\CategoryGroup;
 
 /**
- * The Report Trend of one Budget (ADR-0076): the Period Report of the whole
+ * The Report Trend of one Budget (ADR-0077): the Period Report of the whole
  * year spread over the 12 calendar months. Same rows, same order and the same
  * amounts as `PeriodReport::forYear` without a comparison, with the amount of
  * every month beside the amount of the year. All amounts are minor units.

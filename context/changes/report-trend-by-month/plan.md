@@ -67,13 +67,13 @@ Weryfikacja:
 
 ## Implementation Approach
 
-Najpierw reguły na papierze (słownik, ADR-0076), potem odczyt z testami równości, bez dotykania strony. Druga faza podaje odczyt stronie i buduje cały widok z tabelami, bo prop i jego typ muszą wejść jednym commitem z testem `assertInertia`. Wykres i E2E są na końcu: tabela miar z fazy 2 jest dostępną formą tych samych liczb, więc wykres tylko ją ilustruje.
+Najpierw reguły na papierze (słownik, ADR-0077), potem odczyt z testami równości, bez dotykania strony. Druga faza podaje odczyt stronie i buduje cały widok z tabelami, bo prop i jego typ muszą wejść jednym commitem z testem `assertInertia`. Wykres i E2E są na końcu: tabela miar z fazy 2 jest dostępną formą tych samych liczb, więc wykres tylko ją ilustruje.
 
-Serwer liczy wszystko w minor units; klient tylko zaokrągla do wyświetlenia i rysuje. Numer ADR: 0076. Przed zapisem sprawdź, czy równoległa zmiana go nie zajęła; jeśli tak, weź kolejny wolny i popraw odsyłacze.
+Serwer liczy wszystko w minor units; klient tylko zaokrągla do wyświetlenia i rysuje. Numer ADR: 0077 (0076 zajęła równolegle S-27). Przed zapisem sprawdź, czy równoległa zmiana go nie zajęła; jeśli tak, weź kolejny wolny i popraw odsyłacze.
 
 ## Critical Implementation Details
 
-**Reguły komórek (ustalone z użytkownikiem, zapisywane w ADR-0076):**
+**Reguły komórek (ustalone z użytkownikiem, zapisywane w ADR-0077):**
 
 - Zawsze 12 kolumn miesięcy, także dla miesięcy przyszłych.
 - Komórka kategorii to `null` („—”), gdy kategoria nie ma operacji w tym miesiącu; `0`, gdy operacje były i netto wyszło zero. Komórka grupy to `null`, gdy żaden jej wiersz nie ma operacji w tym miesiącu, inaczej suma wierszy.
@@ -89,19 +89,19 @@ Serwer liczy wszystko w minor units; klient tylko zaokrągla do wyświetlenia i 
 
 ### Overview
 
-Zapisuje reguły w słowniku i ADR-0076 oraz dodaje odczyt `ReportTrend` z testami równości. Po tej fazie odczyt jest udowodniony, a strona wygląda jak dotąd.
+Zapisuje reguły w słowniku i ADR-0077 oraz dodaje odczyt `ReportTrend` z testami równości. Po tej fazie odczyt jest udowodniony, a strona wygląda jak dotąd.
 
 ### Changes Required:
 
 #### 1. Słownik i ADR
 
-**File**: `context/foundation/glossary.md`, `context/foundation/adr/0076-report-trend-by-month.md`
+**File**: `context/foundation/glossary.md`, `context/foundation/adr/0077-report-trend-by-month.md`
 
 **Intent**: Nazwać trend jako odczyt i zapisać jego reguły przed kodem (AGENTS.md). ADR zbiera decyzje z planowania wraz z odrzuconymi opcjami: sekcja pod raportem roku i dwa poziomy przełącznika; grosze z przewijaniem na laptopie i format mieszany; wykres na typ i wykres wybranego wiersza; wyszarzenie miesiąca w toku; średnia miesięczna, rok wcześniej w trendzie i link z miesiąca.
 
 **Contract**:
 - Wpis **Period Report** dostaje akapit o trendzie: rok budżetu rozpisany na 12 miesięcy kalendarzowych, te same wiersze i kolejność co raport roku, reguły komórek z „Critical Implementation Details”, równość z Month Result i z raportem roku, wyświetlanie w pełnych złotych. Polski tekst UI: „Trend”.
-- ADR-0076 w formacie sąsiednich ADR, z odsyłaczami do ADR-0058 (jedna zasada kwot), ADR-0061 (kolumny przez `fr`), ADR-0070, ADR-0071 i ADR-0074. Zapisuje też: wyjątek od „zawsze dwa miejsca” ograniczony do trendu i jego regułę zaokrąglenia; pierwszą tabelę przewijaną w poziomie z przypiętą kolumną nazwy; pionowe słupki miesięcy jako formę wykresu trendu (ADR-0071 opisuje słupki poziome dla raportu okresu); brak nowych tokenów koloru.
+- ADR-0077 w formacie sąsiednich ADR, z odsyłaczami do ADR-0058 (jedna zasada kwot), ADR-0061 (kolumny przez `fr`), ADR-0070, ADR-0071 i ADR-0074. Zapisuje też: wyjątek od „zawsze dwa miejsca” ograniczony do trendu i jego regułę zaokrąglenia; pierwszą tabelę przewijaną w poziomie z przypiętą kolumną nazwy; pionowe słupki miesięcy jako formę wykresu trendu (ADR-0071 opisuje słupki poziome dla raportu okresu); brak nowych tokenów koloru.
 
 #### 2. Wspólne drzewo kategorii raportu
 
@@ -162,7 +162,7 @@ Zapisuje reguły w słowniku i ADR-0076 oraz dodaje odczyt `ReportTrend` z testa
 
 #### Manual Verification:
 
-- ADR-0076 i akapit o trendzie we wpisie Period Report czyta się zgodnie z decyzjami tego planu (pełne złote, „—” kontra „0”, 12 kolumn, brak kolorów zmian, przewijana tabela)
+- ADR-0077 i akapit o trendzie we wpisie Period Report czyta się zgodnie z decyzjami tego planu (pełne złote, „—” kontra „0”, 12 kolumn, brak kolorów zmian, przewijana tabela)
 
 **Implementation Note**: Po tej fazie i zielonej weryfikacji automatycznej zatrzymaj się na potwierdzenie ręcznej weryfikacji przez człowieka.
 
@@ -260,7 +260,7 @@ Podaje odczyt stronie pod `?view=trend`, dodaje trzeci segment przełącznika i 
 - Macierz stanów dostaje wiersz o trendzie.
 - Każdy nowy plik `ReportTrend*.vue` trafia na listy w `scripts/check-ui-literals.mjs` i `ReportsHardcodedUiTest`.
 - `.ai/rules/reports.md`: akapit o trendzie (odczyt `ReportTrend`, równość z raportem roku i Month Result, tabela na siatce trendu z przewijaniem, pełne złote tylko tutaj) i ścieżka `resources/js/lib/report-trend*.ts` w `paths:`; potem `php artisan boost:index-rules`.
-- `.ai/rules/js.md`: zdanie „there are no exceptions” przy kwotach w tabelach dostaje jedyny wyjątek, trend w Raportach (`formatWholeMoneyAmount`, ADR-0076).
+- `.ai/rules/js.md`: zdanie „there are no exceptions” przy kwotach w tabelach dostaje jedyny wyjątek, trend w Raportach (`formatWholeMoneyAmount`, ADR-0077).
 - `design-system.md`: w „Kwoty” wyjątek pełnych złotych ze stopką; przy tabelach opis tabeli trendu (przewijanie w karcie, przypięta nazwa, kiedy wolno go użyć: tylko tabela z kolumną na każdy miesiąc).
 
 #### 9. Testy strony, zmiany roku i wydajności
@@ -439,7 +439,7 @@ Brak migracji schematu i danych. Nowy parametr adresu i nowy cel zmiany roku są
 
 #### Manual
 
-- [x] 1.6 ADR-0076 i akapit o trendzie w słowniku czyta się zgodnie z decyzjami tego planu — ba7cbff
+- [x] 1.6 ADR-0077 i akapit o trendzie w słowniku czyta się zgodnie z decyzjami tego planu — ba7cbff
 
 ### Phase 2: Widok „Trend” z tabelami
 

@@ -11,7 +11,7 @@ import type { ReportTrendChartBar } from '@/lib/report-trend-chart';
 import type { ReportTrendMonth } from '@/types/reports';
 
 /**
- * Month-by-month bars of the Trend (ADR-0076): income and expense per month,
+ * Month-by-month bars of the Trend (ADR-0077): income and expense per month,
  * the same numbers as the Przychody and Wydatki rows of the measures table
  * below. The chart is decoration for sighted users (aria-hidden); the table is
  * the accessible form of the data.
