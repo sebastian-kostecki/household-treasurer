@@ -174,7 +174,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Parallel with:** F-05, S-19, S-20, S-22, S-23, S-24, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Jeśli zebrane jeszcze nie istnieje, scalenie przenosi tylko operacje i plany, a S-26 dopisze zebrane.
+- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Co się dzieje z zebranym przy scaleniu, rozstrzyga ADR-0076.
 - **Status:** in-progress
 
 ### S-22: Grupy kategorii

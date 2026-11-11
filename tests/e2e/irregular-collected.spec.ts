@@ -124,8 +124,11 @@ test('an irregular Category: a bill covered by the collected amount, then one ov
         await page
             .locator('[data-category-row]')
             .filter({ has: page.getByText(category, { exact: true }) })
-            .getByRole('button', { name: 'Archiwizuj' })
+            .getByRole('button', {
+                name: `Więcej działań kategorii ${category}`,
+            })
             .click();
+        await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
         await page
             .getByRole('dialog')
             .getByRole('button', { name: 'Archiwizuj' })

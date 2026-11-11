@@ -591,31 +591,31 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [x] 4.1 Testy logiki okna i kontraktu UI przechodzą
-- [x] 4.2 Testy kitchen sinków, kluczy tłumaczeń i literałów UI przechodzą
-- [x] 4.3 E2E „Kategorii” przechodzi po przeniesieniu „Usuń” do menu
-- [x] 4.4 Bramka
+- [x] 4.1 Testy logiki okna i kontraktu UI przechodzą — 48a67aa
+- [x] 4.2 Testy kitchen sinków, kluczy tłumaczeń i literałów UI przechodzą — 48a67aa
+- [x] 4.3 E2E „Kategorii” przechodzi po przeniesieniu „Usuń” do menu — 48a67aa
+- [x] 4.4 Bramka — 48a67aa
 
 #### Manual
 
-- [x] 4.5 Kitchen sink pokazuje dziesięć stanów okna scalania w trybie jasnym i ciemnym, tabela mieści się w 460 px i na 390 px
-- [x] 4.6 Na dev okno otwiera się z wiersza, zmiana celu przeładowuje podgląd, „Scal” nieaktywne do wczytania
-- [x] 4.7 Menu „⋯” działa z klawiatury, fokus wraca po zamknięciu okna
-- [x] 4.8 Wiersz kategorii mieści akcje w kolumnie 7rem, także w archiwum i w grupie
+- [x] 4.5 Kitchen sink pokazuje dziesięć stanów okna scalania w trybie jasnym i ciemnym, tabela mieści się w 460 px i na 390 px — 48a67aa
+- [x] 4.6 Na dev okno otwiera się z wiersza, zmiana celu przeładowuje podgląd, „Scal” nieaktywne do wczytania — 48a67aa
+- [x] 4.7 Menu „⋯” działa z klawiatury, fokus wraca po zamknięciu okna — 48a67aa
+- [x] 4.8 Wiersz kategorii mieści akcje w kolumnie 7rem, także w archiwum i w grupie — 48a67aa
 
 ### Phase 5: E2E, README i bramka
 
 #### Automated
 
-- [ ] 5.1 Cały zestaw E2E przechodzi
-- [ ] 5.2 Pełna bramka na PostgreSQL przechodzi
-- [ ] 5.3 Sloppy bez nowych znalezisk
+- [x] 5.1 Cały zestaw E2E przechodzi
+- [x] 5.2 Pełna bramka na PostgreSQL przechodzi
+- [x] 5.3 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 5.4 Na dev scalenie dwóch kategorii z jednego budżetu daje jedną pozycję z sumami, suma planu budżetu bez zmian
-- [ ] 5.5 Na dev scalenie nieregularnej do nieregularnej daje „zebrane” równe sumie z podglądu
-- [ ] 5.6 README opisuje powrót tak, że da się go wykonać bez czytania kodu
+- [x] 5.4 Na dev scalenie dwóch kategorii z jednego budżetu daje jedną pozycję z sumami, suma planu budżetu bez zmian
+- [x] 5.5 Na dev scalenie nieregularnej do nieregularnej daje „zebrane” równe sumie z podglądu
+- [x] 5.6 README opisuje powrót tak, że da się go wykonać bez czytania kodu
 
 ### Phase 6: Próba na kopii produkcji
 

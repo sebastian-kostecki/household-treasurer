@@ -67,10 +67,7 @@ const deleteOpen = ref(false);
                     <Pencil class="size-4" />
                     {{ t.categories.edit }}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                    v-if="!archived"
-                    @select="archiveOpen = true"
-                >
+                <DropdownMenuItem v-if="!archived" @select="archiveOpen = true">
                     <Archive class="size-4" />
                     {{ t.categories.archive }}
                 </DropdownMenuItem>
