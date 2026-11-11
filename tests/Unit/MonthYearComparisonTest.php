@@ -29,6 +29,23 @@ function comparisonAmounts(int $plan, int $actual, ?bool $hasPositiveAmount = nu
     ];
 }
 
+test('an irregular category compares the execution of the year, not the rate', function () {
+    $category = comparisonCategory(CategoryType::Expense, 180_000, 40_000);
+
+    expect(MonthYearComparison::forCategory($category, comparisonAmounts(15_000, 40_000), Rhythm::Irregular))->toBe([
+        'year_minor_units' => 40_000,
+        'annual_plan_minor_units' => 180_000,
+        'remaining_minor_units' => 140_000,
+        'is_over_year' => false,
+    ]);
+});
+
+test('an irregular category with no bill in the month counts only the bills before it', function () {
+    $category = comparisonCategory(CategoryType::Expense, 180_000, 25_000);
+
+    expect(MonthYearComparison::forCategory($category, comparisonAmounts(15_000, 0), Rhythm::Irregular)['year_minor_units'])->toBe(25_000);
+});
+
 dataset('food comparison cases', [
     'under plan' => [1_200_000, 1_000_000 + 40_000, 40_000, 1_100_000, 100_000, false],
     'over plan' => [1_200_000, 1_000_000 + 130_000, 130_000, 1_130_000, 70_000, false],

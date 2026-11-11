@@ -28,6 +28,7 @@ function item(overrides: Partial<MonthPlanItem>): MonthPlanItem {
         even_annual_remaining: null,
         approved_minor_units: null,
         is_join_candidate: false,
+        collected: null,
         year_comparison: null,
         ...overrides,
     };
@@ -205,6 +206,88 @@ export const evenAnnualFutureOver = item({
     },
 });
 
+/** Irregular before any bill: the Collected at the end is the opening 300,00 plus the rate (450,00). */
+export const irregularBeforeBill = item({
+    category_id: 20,
+    name: 'Serwis auta',
+    rhythm: 'irregular',
+    plan_minor_units: 15_000,
+    deviation_minor_units: 0,
+    approved_minor_units: 15_000,
+    current_plan_minor_units: 180_000,
+    collected: { start_minor_units: 30_000, end_minor_units: 45_000 },
+    year_comparison: {
+        year_minor_units: 0,
+        annual_plan_minor_units: 180_000,
+        remaining_minor_units: 180_000,
+        is_over_year: false,
+    },
+});
+
+/** Irregular with a bill covered by the Collected (400,00 against 300,00 + 150,00): Collected 50,00, no surplus. */
+export const irregularCovered = item({
+    category_id: 21,
+    name: 'Rekolekcje',
+    rhythm: 'irregular',
+    plan_minor_units: 15_000,
+    actual_minor_units: 40_000,
+    has_positive_amount: true,
+    deviation_minor_units: 0,
+    approved_minor_units: 15_000,
+    year_execution_minor_units: 40_000,
+    current_plan_minor_units: 180_000,
+    collected: { start_minor_units: 30_000, end_minor_units: 5_000 },
+    year_comparison: {
+        year_minor_units: 40_000,
+        annual_plan_minor_units: 180_000,
+        remaining_minor_units: 140_000,
+        is_over_year: false,
+    },
+});
+
+/** Irregular with a surplus (600,00 against 300,00 + 150,00): Collected 0,00, surplus 150,00, over plan. */
+export const irregularSurplus = item({
+    category_id: 22,
+    name: 'Remont',
+    rhythm: 'irregular',
+    plan_minor_units: 15_000,
+    actual_minor_units: 60_000,
+    has_positive_amount: true,
+    deviation_minor_units: 15_000,
+    is_over_plan: true,
+    approved_minor_units: 15_000,
+    year_execution_minor_units: 60_000,
+    current_plan_minor_units: 180_000,
+    collected: { start_minor_units: 30_000, end_minor_units: 0 },
+    year_comparison: {
+        year_minor_units: 60_000,
+        annual_plan_minor_units: 180_000,
+        remaining_minor_units: 120_000,
+        is_over_year: false,
+    },
+});
+
+/** Irregular outside the plan (rate 0): joins with an amount above 0, nothing collected. */
+export const irregularOutsidePlan = item({
+    category_id: 23,
+    name: 'Naprawa dachu',
+    rhythm: 'irregular',
+    in_plan: false,
+    plan_minor_units: 0,
+    deviation_minor_units: 0,
+    collected: { start_minor_units: 0, end_minor_units: 0 },
+});
+
+/** Irregular in a future month: the forecast of the Collected with the bills that already exist. */
+export const irregularFuture = item({
+    category_id: 24,
+    name: 'Serwis auta',
+    rhythm: 'irregular',
+    plan_minor_units: 15_000,
+    deviation_minor_units: 0,
+    collected: { start_minor_units: 45_000, end_minor_units: 60_000 },
+});
+
 export const archivedExpense = item({
     category_id: 5,
     name: 'Siłownia',
@@ -288,6 +371,10 @@ export const expenseRows: MonthPlanItem[] = [
     evenAnnualLeft,
     evenAnnualUsedUp,
     evenAnnualOver,
+    irregularBeforeBill,
+    irregularCovered,
+    irregularSurplus,
+    irregularOutsidePlan,
     idleEvenAnnual,
 ];
 
@@ -298,6 +385,7 @@ export const futureExpenseRows: MonthPlanItem[] = [
     evenAnnualFutureLeft,
     evenAnnualFutureUsedUp,
     evenAnnualFutureOver,
+    irregularFuture,
     {
         ...idleEvenAnnual,
         even_annual_remaining: {

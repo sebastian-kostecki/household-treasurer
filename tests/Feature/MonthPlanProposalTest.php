@@ -444,6 +444,19 @@ class MonthPlanProposalTest extends TestCase
         $this->assertLessThanOrEqual(10, $queries);
     }
 
+    public function test_an_irregular_category_is_proposed_with_the_rate_of_the_annual_plan(): void
+    {
+        $budget = $this->budget(2026);
+        $service = BudgetLine::factory()->for($budget)->irregular()->create(['name' => 'Serwis', 'planned_amount_minor_units' => 180_000]);
+        $retreat = BudgetLine::factory()->for($budget)->irregular()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 238_000]);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 6, 10));
+
+        $this->assertSame(15_000, $proposal->reading(6)->amounts[$service->id]);
+        $this->assertSame(19_833, $proposal->reading(11)->amounts[$retreat->id]);
+        $this->assertSame(19_837, $proposal->reading(12)->amounts[$retreat->id]);
+    }
+
     private function day(int $year, int $month, int $day): CarbonImmutable
     {
         return CarbonImmutable::create($year, $month, $day);

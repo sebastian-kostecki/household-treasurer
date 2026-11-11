@@ -16,7 +16,9 @@ class MonthItemDeviation
 {
     /**
      * Actual minus plan, or null when a Fixed Charge or income has no positive amount yet
-     * (it is still waiting to be paid or received).
+     * (it is still waiting to be paid or received). For an Irregular expense the deviation is the
+     * surplus of the bill over the Collected plus the rate, never null (ADR-0066);
+     * `$collectedAtStart` is the Collected on the first day of the month.
      */
     public static function deviationMinorUnits(
         CategoryType $type,
@@ -24,7 +26,12 @@ class MonthItemDeviation
         int $plan,
         int $actual,
         bool $hasPositiveAmount,
+        int $collectedAtStart = 0,
     ): ?int {
+        if ($type === CategoryType::Expense && $rhythm === Rhythm::Irregular) {
+            return CollectedCalculator::surplusMinorUnits($collectedAtStart, $plan, $actual);
+        }
+
         if (self::hasSettlementRhythm($type, $rhythm) && ! $hasPositiveAmount) {
             return null;
         }
@@ -34,7 +41,7 @@ class MonthItemDeviation
 
     /**
      * A Fixed Charge is paid, or an income received, once it has a positive amount in the month.
-     * Running and Even Annual expenses are never settled. Server-only: the live preview does not show it.
+     * Running, Even Annual and Irregular expenses are never settled. Server-only: the live preview does not show it.
      */
     public static function isSettled(CategoryType $type, ?Rhythm $rhythm, bool $hasPositiveAmount): bool
     {
@@ -43,7 +50,8 @@ class MonthItemDeviation
 
     /**
      * An expense is over plan when its actual exceeds the plan, also at plan 0. An Even Annual
-     * expense is over plan when the Execution of the year exceeds its Current Plan (ADR-0066).
+     * expense is over plan when the Execution of the year exceeds its Current Plan; an Irregular
+     * expense when the bill exceeds the Collected plus the rate (ADR-0066).
      */
     public static function isOverPlan(
         CategoryType $type,
@@ -52,6 +60,7 @@ class MonthItemDeviation
         int $actual,
         int $yearExecution,
         int $currentPlan,
+        int $collectedAtStart = 0,
     ): bool {
         if ($type !== CategoryType::Expense) {
             return false;
@@ -59,6 +68,10 @@ class MonthItemDeviation
 
         if ($rhythm === Rhythm::EvenAnnual) {
             return $yearExecution > $currentPlan;
+        }
+
+        if ($rhythm === Rhythm::Irregular) {
+            return CollectedCalculator::surplusMinorUnits($collectedAtStart, $plan, $actual) > 0;
         }
 
         return $actual > $plan;

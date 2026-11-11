@@ -542,33 +542,33 @@ Historia US-02 przechodzi w przeglądarce, dokumenty i reguły opisują stan po 
 
 #### Automated
 
-- [x] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL
-- [x] 2.2 Testy snapshotu v10 i restore v9 przechodzą na PostgreSQL
-- [x] 2.3 Testy kitchen sinków i literałów UI przechodzą
-- [x] 2.4 E2E „Kategorii” przechodzi
-- [x] 2.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL — 3086f91
+- [x] 2.2 Testy snapshotu v10 i restore v9 przechodzą na PostgreSQL — 3086f91
+- [x] 2.3 Testy kitchen sinków i literałów UI przechodzą — 3086f91
+- [x] 2.4 E2E „Kategorii” przechodzi — 3086f91
+- [x] 2.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — 3086f91
 
 #### Manual
 
-- [x] 2.6 Na dev oznaczenie „Rekolekcji” jako nieregularnej z zebranym startowym 300,00 zapisuje się i wraca w oknie
-- [x] 2.7 `/dev/ui/dialogs` pokazuje trzy nowe stany, a cztery opcje rytmu mieszczą się na 390 px
+- [x] 2.6 Na dev oznaczenie „Rekolekcji” jako nieregularnej z zebranym startowym 300,00 zapisuje się i wraca w oknie — 3086f91
+- [x] 2.7 `/dev/ui/dialogs` pokazuje trzy nowe stany, a cztery opcje rytmu mieszczą się na 390 px — 3086f91
 
 ### Phase 3: Plan miesiąca: stawka, „zebrane” i „do wydania”
 
 #### Automated
 
-- [ ] 3.1 Testy jednostkowe par przechodzą
-- [ ] 3.2 Testy planu miesiąca, propozycji, „do wydania” i powiadomień przechodzą na PostgreSQL
-- [ ] 3.3 Testy literałów UI planu przechodzą
-- [ ] 3.4 E2E przechodzi
-- [ ] 3.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 3.1 Testy jednostkowe par przechodzą
+- [x] 3.2 Testy planu miesiąca, propozycji, „do wydania” i powiadomień przechodzą na PostgreSQL
+- [x] 3.3 Testy literałów UI planu przechodzą
+- [x] 3.4 E2E przechodzi
+- [x] 3.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 3.6 Na dev listopad i grudzień 2026 pokazują stawkę i „zebrane” dla „Rekolekcji”, a „do wydania” listopada się nie zmienia
-- [ ] 3.7 Wydatek ponad zebrane daje nadwyżkę w planie i „Ponad plan” na Dashboardzie
-- [ ] 3.8 „Zmień plan” nie podnosi stawki do rachunku i przelicza „zebrane” na żywo
-- [ ] 3.9 `/dev/month-plan` pokazuje nowe stany w obu trybach, w 1280 i 390 px
+- [x] 3.6 Na dev listopad i grudzień 2026 pokazują stawkę i „zebrane” dla „Rekolekcji”, a „do wydania” listopada się nie zmienia
+- [x] 3.7 Wydatek ponad zebrane daje nadwyżkę w planie i „Ponad plan” na Dashboardzie
+- [x] 3.8 „Zmień plan” nie podnosi stawki do rachunku i przelicza „zebrane” na żywo
+- [x] 3.9 `/dev/month-plan` pokazuje nowe stany w obu trybach, w 1280 i 390 px
 
 ### Phase 4: Dashboard, Budżet i ostrzeżenia przy wpisie i w Imporcie
 

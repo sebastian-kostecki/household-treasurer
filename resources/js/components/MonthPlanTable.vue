@@ -26,6 +26,8 @@ export type MonthPlanRowState = {
     deviation: number | null;
     overPlan: boolean;
     status: MonthItemStatus | null;
+    /** The Collected at the end of the month of an irregular row (live while typing); null for any other row. */
+    collectedMinorUnits: number | null;
     yearStale: boolean;
     invalid: boolean;
     /** Button or marker "plan = actual" in change mode (ADR-0062). */
@@ -155,6 +157,7 @@ const expenseRowsEmpty = computed(
             :deviation="rowState(row).deviation"
             :over-plan="rowState(row).overPlan"
             :status="rowState(row).status"
+            :collected-minor-units="rowState(row).collectedMinorUnits"
             :year-stale="rowState(row).yearStale"
             :invalid="rowState(row).invalid"
             :match-actual="rowState(row).matchActual"
@@ -207,6 +210,7 @@ const expenseRowsEmpty = computed(
             :deviation="rowState(row).deviation"
             :over-plan="rowState(row).overPlan"
             :status="rowState(row).status"
+            :collected-minor-units="rowState(row).collectedMinorUnits"
             :year-stale="rowState(row).yearStale"
             :invalid="rowState(row).invalid"
             :match-actual="rowState(row).matchActual"
@@ -250,6 +254,7 @@ const expenseRowsEmpty = computed(
                     :deviation="rowState(row).deviation"
                     :over-plan="rowState(row).overPlan"
                     :status="rowState(row).status"
+                    :collected-minor-units="rowState(row).collectedMinorUnits"
                     :year-stale="rowState(row).yearStale"
                     :invalid="rowState(row).invalid"
                     :match-actual="rowState(row).matchActual"

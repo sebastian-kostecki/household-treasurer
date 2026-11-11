@@ -1617,6 +1617,37 @@ class DashboardTest extends TestCase
             );
     }
 
+    public function test_dashboard_notices_an_irregular_bill_only_above_the_collected_and_with_the_surplus(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $covered = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Covered', 'sort_order' => 1, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $above = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Above', 'sort_order' => 2, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $covered->category->rhythms()->update(['start_month' => 9, 'opening_collected_minor_units' => 30_000]);
+        $above->category->rhythms()->update(['start_month' => 9, 'opening_collected_minor_units' => 30_000]);
+        $this->approvedMonthPlan($budget, 9, [$covered->id => 15_000, $above->id => 15_000]);
+        $this->recordOperation($user, $account, $budget, $covered, '2026-09-05', 40_000);
+        $this->recordOperation($user, $account, $budget, $above, '2026-09-06', 60_000);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->where('kind', 'month_item_over_plan')
+                    ->map(fn ($notice) => [$notice['name'], $notice['amount_minor_units']])
+                    ->values()
+                    ->all() === [['Above', -15_000]]),
+            );
+    }
+
     /**
      * @param  array<int, int>  $amounts  category id => amount planned for the month
      */

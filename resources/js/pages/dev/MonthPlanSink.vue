@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import { collectedAtEndMinorUnits } from '@/lib/collected-calculator';
 import { minorUnitsToMoneyInput } from '@/lib/format';
 import {
     isMonthItemOverPlan,
@@ -58,6 +59,10 @@ const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
         where: 'Każda sekcja poniżej: wiersz tytułu z odznakami, pasek miesięcy z kropkami wszystkich stanów, panel miar (domyślny, ujemny, podgląd na żywo, końcowe, tempo w normie, wyprzedzające z notatką, bez procentu, przyszły miesiąc), tabela w odczycie i edycji, podsumowanie minionego miesiąca, pasek edycji i stany puste.',
+    },
+    {
+        state: 'irregular',
+        where: 'Wiersze nieregularnej (Serwis auta: zebrane 450,00 przed rachunkiem; Rekolekcje: rachunek pokryty, zebrane 50,00; Remont: nadwyżka 150,00 ze statusem „ponad plan”, zebrane 0,00; Naprawa dachu: „Poza planem”, stawka 0; przyszły miesiąc: prognoza zebranego) w tabelach odczytu, edycji, przyszłego i minionego miesiąca. W trybie zmian nieregularna startuje ze stawką i nigdy nie ma „Ustaw plan na wydatki”; zmiana stawki w polu od razu zmienia „zebrane”, odchylenie i status.',
     },
     {
         state: 'match-actual',
@@ -271,12 +276,34 @@ function readingOf(
         currentPlan: row.current_plan_minor_units,
         actual: row.actual_minor_units,
         hasPositiveAmount: row.has_positive_amount,
+        collectedAtStart: row.collected?.start_minor_units ?? 0,
     };
 
     return {
         deviation: monthItemDeviationMinorUnits(item),
         overPlan: isMonthItemOverPlan(item),
     };
+}
+
+/** The Collected at the end of the month; an editable table follows the typed rate like the page does. */
+function collectedOf(
+    config: TableConfig,
+    row: MonthPlanItem,
+    fieldAmount: number | null,
+): number | null {
+    if (row.collected === null) {
+        return null;
+    }
+
+    if (!config.editable || fieldAmount === null) {
+        return config.editable ? null : row.collected.end_minor_units;
+    }
+
+    return collectedAtEndMinorUnits(
+        row.collected.start_minor_units,
+        fieldAmount,
+        row.actual_minor_units,
+    );
 }
 
 function stateOf(
@@ -300,6 +327,7 @@ function stateOf(
                     : row.plan_minor_units,
                 isClosed: !config.showSetAside,
             }),
+            collectedMinorUnits: collectedOf(config, row, fieldAmount),
             yearStale: config.yearStale,
             invalid: config.invalidIds.includes(row.category_id),
             matchActual: config.editable

@@ -50,6 +50,11 @@ final class IrregularCollected
         return new self($user->id, $rhythms);
     }
 
+    public static function forUserId(int $userId, CategoryRhythms $rhythms): self
+    {
+        return new self($userId, $rhythms);
+    }
+
     /**
      * The Collected on the first day of the month; 0 when the month is not in an Irregular period.
      */

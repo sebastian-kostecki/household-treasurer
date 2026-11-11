@@ -212,3 +212,53 @@ test('an even annual item counts at the greater of plan and actual', () => {
 
     expect(breakdown.expenseMinorUnits).toBe(19_833 + 238_000);
 });
+
+test.each([
+    ['no bill', 0, 15_000],
+    ['bill covered by the Collected', 40_000, 15_000],
+    ['bill above the Collected', 60_000, 30_000],
+    ['refund counts net', -5_000, 15_000],
+])(
+    'an irregular item counts at its rate plus the surplus (%s)',
+    (_name, actual, expected) => {
+        const breakdown = toSpendBreakdown(
+            [
+                {
+                    type: 'expense',
+                    rhythm: 'irregular',
+                    plan: 15_000,
+                    actual,
+                    hasPositiveAmount: actual > 0,
+                    collectedAtStart: 30_000,
+                },
+            ],
+            0,
+        );
+
+        expect(breakdown.expenseMinorUnits).toBe(expected);
+    },
+);
+
+test.each([
+    ['bill below the rate', 10_000, 15_000],
+    ['bill above the rate', 60_000, 60_000],
+])(
+    'an irregular item with nothing collected counts at the greater of plan and actual (%s)',
+    (_name, actual, expected) => {
+        const breakdown = toSpendBreakdown(
+            [
+                {
+                    type: 'expense',
+                    rhythm: 'irregular',
+                    plan: 15_000,
+                    actual,
+                    hasPositiveAmount: actual > 0,
+                    collectedAtStart: 0,
+                },
+            ],
+            0,
+        );
+
+        expect(breakdown.expenseMinorUnits).toBe(expected);
+    },
+);

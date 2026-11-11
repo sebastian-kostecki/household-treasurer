@@ -129,3 +129,27 @@ test('breakdown satisfies income minus expense minus set-aside for a set-aside a
     'set-aside' => [50_000],
     'draw' => [-30_000],
 ]);
+
+test('an irregular item counts at its rate plus the surplus of the bill over the Collected', function (int $actual, int $expected) {
+    $breakdown = ToSpendCalculator::breakdown([
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Irregular, 'plan' => 15_000, 'actual' => $actual, 'has_positive_amount' => $actual > 0, 'collected_at_start' => 30_000],
+    ], 0);
+
+    expect($breakdown['expense_minor_units'])->toBe($expected);
+})->with([
+    'no bill' => [0, 15_000],
+    'bill covered by the Collected' => [40_000, 15_000],
+    'bill above the Collected' => [60_000, 30_000],
+    'refund counts net' => [-5_000, 15_000],
+]);
+
+test('an irregular item with nothing collected counts at the greater of plan and actual', function (int $actual, int $expected) {
+    $breakdown = ToSpendCalculator::breakdown([
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Irregular, 'plan' => 15_000, 'actual' => $actual, 'has_positive_amount' => $actual > 0, 'collected_at_start' => 0],
+    ], 0);
+
+    expect($breakdown['expense_minor_units'])->toBe($expected);
+})->with([
+    'bill below the rate' => [10_000, 15_000],
+    'bill above the rate' => [60_000, 60_000],
+]);

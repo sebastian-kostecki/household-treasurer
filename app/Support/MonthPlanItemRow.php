@@ -30,6 +30,7 @@ use Carbon\CarbonImmutable;
  *     even_annual_remaining: array{available_limit_minor_units: int, months_left: int}|null,
  *     approved_minor_units: int|null,
  *     is_join_candidate: bool,
+ *     collected: array{start_minor_units: int, end_minor_units: int}|null,
  *     year_comparison: YearComparison|null,
  * }
  */
@@ -47,6 +48,7 @@ final class MonthPlanItemRow
         $plan = $amounts['plan_minor_units'];
         $actual = $amounts['actual_minor_units'];
         $hasPositiveAmount = $amounts['has_positive_amount'];
+        $collectedAtStart = $amounts['collected_at_start_minor_units'];
 
         return [
             'category_id' => $category->category_id,
@@ -66,6 +68,7 @@ final class MonthPlanItemRow
                 $plan,
                 $actual,
                 $hasPositiveAmount,
+                $collectedAtStart,
             ),
             'is_over_plan' => MonthItemDeviation::isOverPlan(
                 $category->category->type,
@@ -74,6 +77,7 @@ final class MonthPlanItemRow
                 $actual,
                 $category->execution_minor_units,
                 $category->planned_amount_minor_units,
+                $collectedAtStart,
             ),
             'is_settled' => MonthItemDeviation::isSettled($category->category->type, $rhythm, $hasPositiveAmount),
             'is_idle_even_annual' => $isEvenAnnual && $plan === 0 && ! $toSpend->actuals->hasOperations($category->id),
@@ -82,6 +86,12 @@ final class MonthPlanItemRow
             'current_plan_minor_units' => $category->planned_amount_minor_units,
             'even_annual_remaining' => $isEvenAnnual
                 ? self::evenAnnualRemaining($category->planned_amount_minor_units, $category->execution_minor_units, $timing, $toSpend->proposal->budgetYear(), $today)
+                : null,
+            'collected' => $rhythm === Rhythm::Irregular
+                ? [
+                    'start_minor_units' => $collectedAtStart,
+                    'end_minor_units' => CollectedCalculator::collectedAtEndMinorUnits($collectedAtStart, $plan, $actual),
+                ]
                 : null,
             'year_comparison' => $timing === 'current'
                 ? MonthYearComparison::forCategory($category, $amounts, $rhythm)

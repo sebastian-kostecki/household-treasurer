@@ -48,3 +48,15 @@ test('an even annual expense is never settled and waits for nothing', function (
     expect(MonthItemDeviation::deviationMinorUnits(CategoryType::Expense, Rhythm::EvenAnnual, 10_000, 0, false))->toBe(-10_000)
         ->and(MonthItemDeviation::isSettled(CategoryType::Expense, Rhythm::EvenAnnual, true))->toBeFalse();
 });
+
+test('an irregular expense deviates by the surplus over the Collected plus the rate and is never settled', function (int $actual, int $collectedAtStart, int $surplus) {
+    expect(MonthItemDeviation::deviationMinorUnits(CategoryType::Expense, Rhythm::Irregular, 15_000, $actual, $actual > 0, $collectedAtStart))->toBe($surplus)
+        ->and(MonthItemDeviation::isOverPlan(CategoryType::Expense, Rhythm::Irregular, 15_000, $actual, 0, 0, $collectedAtStart))->toBe($surplus > 0)
+        ->and(MonthItemDeviation::isSettled(CategoryType::Expense, Rhythm::Irregular, $actual > 0))->toBeFalse();
+})->with([
+    'no bill' => [0, 30_000, 0],
+    'bill covered by the Collected' => [40_000, 30_000, 0],
+    'bill above the Collected' => [60_000, 30_000, 15_000],
+    'bill above the rate with nothing collected' => [60_000, 0, 45_000],
+    'refund' => [-5_000, 30_000, 0],
+]);

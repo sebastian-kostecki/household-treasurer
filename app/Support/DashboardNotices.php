@@ -141,16 +141,21 @@ class DashboardNotices
                     $amounts['actual_minor_units'],
                     $category->execution_minor_units,
                     $category->planned_amount_minor_units,
+                    $amounts['collected_at_start_minor_units'],
                 )) {
                     continue;
                 }
+
+                $overPlanMinorUnits = $rhythm === Rhythm::Irregular
+                    ? -CollectedCalculator::surplusMinorUnits($amounts['collected_at_start_minor_units'], $amounts['plan_minor_units'], $amounts['actual_minor_units'])
+                    : $amounts['plan_minor_units'] - $amounts['actual_minor_units'];
 
                 $overPlanAlerts[] = [
                     'budget_order' => $budgetOrder,
                     'id' => $category->category_id,
                     'name' => $category->category->name,
                     ...CategoryAppearance::fields($category),
-                    'amount_minor_units' => $amounts['plan_minor_units'] - $amounts['actual_minor_units'],
+                    'amount_minor_units' => $overPlanMinorUnits,
                 ];
             }
 

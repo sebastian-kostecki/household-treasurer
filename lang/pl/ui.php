@@ -489,6 +489,7 @@ return [
         'settled_income' => 'Wpłynęło',
         'even_annual_remaining' => 'zostało :amount na :months mies.',
         'year_line' => 'W roku',
+        'collected' => 'zebrane',
         'year_of' => 'z',
         'year_remaining' => 'zostaje',
         'year_over_expense' => 'ponad rok o',

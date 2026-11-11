@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, minorUnitsToMoneyInput } from '@/lib/format';
 import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
+import { collectedAtEndMinorUnits } from '@/lib/collected-calculator';
 import { parsePlanAmountInput } from '@/lib/month-plan-amount';
 import {
     isMonthItemOverPlan,
@@ -291,6 +292,7 @@ const toSpendReading = computed<{
             plan: isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0,
             actual: row.actual_minor_units,
             hasPositiveAmount: row.has_positive_amount,
+            collectedAtStart: row.collected?.start_minor_units ?? 0,
         })),
         formSetAsideMinorUnits.value ?? 0,
     );
@@ -401,6 +403,7 @@ function rowReading(row: MonthPlanItem): {
         currentPlan: row.current_plan_minor_units,
         actual: row.actual_minor_units,
         hasPositiveAmount: row.has_positive_amount,
+        collectedAtStart: row.collected?.start_minor_units ?? 0,
     };
 
     return {
@@ -416,6 +419,30 @@ function yearStale(row: MonthPlanItem): boolean {
         isEditableRow(row) &&
         parsedAmount(row) !== row.plan_minor_units
     );
+}
+
+/**
+ * The Collected at the end of the month: the server value, or while amounts are
+ * typed the same rule in TS from the typed rate (ADR-0073).
+ */
+function collectedAtEnd(row: MonthPlanItem): number | null {
+    if (row.collected === null) {
+        return null;
+    }
+
+    if (!isEditable.value || !isEditableRow(row)) {
+        return row.collected.end_minor_units;
+    }
+
+    const plan = parsedAmount(row);
+
+    return plan === null
+        ? null
+        : collectedAtEndMinorUnits(
+              row.collected.start_minor_units,
+              plan,
+              row.actual_minor_units,
+          );
 }
 
 function rowState(row: MonthPlanItem): MonthPlanRowState {
@@ -434,6 +461,7 @@ function rowState(row: MonthPlanItem): MonthPlanRowState {
                 : row.plan_minor_units,
             isClosed: props.monthPlan?.summary != null,
         }),
+        collectedMinorUnits: collectedAtEnd(row),
         yearStale: yearStale(row),
         invalid: isAmountFlagged(row),
         matchActual: isChanging.value

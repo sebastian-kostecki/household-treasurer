@@ -48,6 +48,11 @@ export type MonthPlanItem = {
     } | null;
     approved_minor_units: number | null;
     is_join_candidate: boolean;
+    /** The Collected of an irregular item at the start and at the end of the viewed month (ADR-0073); null for any other Rhythm. */
+    collected: {
+        start_minor_units: number;
+        end_minor_units: number;
+    } | null;
     year_comparison: MonthYearComparison | null;
 };
 

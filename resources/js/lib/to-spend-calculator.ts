@@ -1,4 +1,5 @@
 import type { Rhythm } from '../types/rhythm';
+import { collectedSurplusMinorUnits } from './collected-calculator';
 
 export type ToSpendItem = {
     type: 'income' | 'expense';
@@ -7,6 +8,8 @@ export type ToSpendItem = {
     plan: number;
     actual: number;
     hasPositiveAmount: boolean;
+    /** The Collected on the first day of the month; 0 for any Rhythm but irregular and for an income. */
+    collectedAtStart?: number;
 };
 
 /**
@@ -40,6 +43,18 @@ export function toSpendBreakdown(
             expenseMinorUnits += item.hasPositiveAmount
                 ? item.actual
                 : item.plan;
+
+            continue;
+        }
+
+        if (item.rhythm === 'irregular') {
+            expenseMinorUnits +=
+                item.plan +
+                collectedSurplusMinorUnits(
+                    item.collectedAtStart ?? 0,
+                    item.plan,
+                    item.actual,
+                );
 
             continue;
         }

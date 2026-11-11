@@ -45,6 +45,21 @@ describe('monthItemStatus', () => {
         ).toEqual({ key: 'status_due', variant: 'neutral' });
     });
 
+    it('gives an irregular expense only the over-plan badge', () => {
+        const row = {
+            type: 'expense',
+            rhythm: 'irregular',
+            is_settled: false,
+        } as const;
+
+        expect(monthItemStatus(row, open)).toBeNull();
+        expect(monthItemStatus(row, { ...open, isClosed: true })).toBeNull();
+        expect(monthItemStatus(row, { ...open, overPlan: true })).toEqual({
+            key: 'status_over_plan',
+            variant: 'destructive-soft',
+        });
+    });
+
     it('gives a running expense within plan no badge', () => {
         expect(
             monthItemStatus(

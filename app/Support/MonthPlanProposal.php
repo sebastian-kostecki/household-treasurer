@@ -85,6 +85,14 @@ class MonthPlanProposal
         return $this->rhythms->rhythmIn($line->category_id, $this->budget->year, $month);
     }
 
+    /**
+     * The Rhythm entries already loaded for the Categories of the budget and the previous one.
+     */
+    public function rhythms(): CategoryRhythms
+    {
+        return $this->rhythms;
+    }
+
     public function reading(int $month): MonthPlanReading
     {
         return $this->planFor(false, $month);
@@ -199,7 +207,7 @@ class MonthPlanProposal
     {
         $rhythm = $this->rhythms->rhythmIn($category->category_id, $budget->year, $month);
 
-        if ($rhythm === Rhythm::EvenAnnual) {
+        if ($rhythm === Rhythm::EvenAnnual || $rhythm === Rhythm::Irregular) {
             return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
         }
 
