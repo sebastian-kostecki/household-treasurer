@@ -529,14 +529,14 @@ Historia US-02 przechodzi w przeglądarce, dokumenty i reguły opisują stan po 
 
 #### Automated
 
-- [ ] 1.1 Testy jednostkowe kalkulatora łańcucha przechodzą
-- [ ] 1.2 Testy odczytu rytmu i zebranego przechodzą na PostgreSQL
-- [ ] 1.3 Migracja kolumny i `down()` przechodzą na PostgreSQL
-- [ ] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Testy jednostkowe kalkulatora łańcucha przechodzą
+- [x] 1.2 Testy odczytu rytmu i zebranego przechodzą na PostgreSQL
+- [x] 1.3 Migracja kolumny i `down()` przechodzą na PostgreSQL
+- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 1.5 ADR-0073 i słownik opisują pięć decyzji z planowania i przypadek F9 (a) bez sprzeczności z ADR-0066 i ADR-0072
+- [x] 1.5 ADR-0073 i słownik opisują pięć decyzji z planowania i przypadek F9 (a) bez sprzeczności z ADR-0066 i ADR-0072
 
 ### Phase 2: „Kategorie”: nieregularna i zebrane startowe, snapshot v10
 

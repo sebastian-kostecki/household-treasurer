@@ -41,7 +41,7 @@ trait CategoryValidationRules
             'color' => ['required', 'string', Rule::in(CategoryColors::values())],
             'type' => ['required', Rule::enum(CategoryType::class)],
             'description' => ['nullable', 'string', 'max:500'],
-            'rhythm' => ['required_if:type,expense', 'prohibited_if:type,income', 'nullable', Rule::enum(Rhythm::class)],
+            'rhythm' => ['required_if:type,expense', 'prohibited_if:type,income', 'nullable', Rule::enum(Rhythm::class)->except(Rhythm::Irregular)],
         ];
     }
 

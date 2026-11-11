@@ -116,3 +116,70 @@ test('the category relation lists the history by start month', function () {
 
     expect($category->rhythms->map(fn (CategoryRhythm $entry): int => $entry->start_month)->all())->toBe([1, 9]);
 });
+
+/**
+ * @param  list<array{0: int, 1: int, 2: Rhythm, 3: int|null}>  $entries  year, month, Rhythm, opening Collected
+ */
+function irregularCategoryWithHistory(User $user, array $entries): Category
+{
+    $category = Category::factory()->for($user)->expense()->withoutRhythm()->create();
+
+    foreach ($entries as [$year, $month, $rhythm, $opening]) {
+        $factory = CategoryRhythm::factory()->starting($year, $month);
+        $factory = $rhythm === Rhythm::Irregular ? $factory->irregular($opening ?? 0) : $factory->rhythm($rhythm);
+        $factory->create(['category_id' => $category->id]);
+    }
+
+    return $category;
+}
+
+test('an irregular entry starts a period with its opening collected', function () {
+    $category = irregularCategoryWithHistory(User::factory()->create(), [
+        [2026, 3, Rhythm::Irregular, 30_000],
+        [2026, 9, Rhythm::Running, null],
+        [2026, 11, Rhythm::Irregular, 5_000],
+    ]);
+
+    $rhythms = CategoryRhythms::forCategoryIds([$category->id]);
+
+    expect($rhythms->irregularPeriodIn($category->id, 2026, 3))->toBe(['start_year' => 2026, 'start_month' => 3, 'opening_collected_minor_units' => 30_000])
+        ->and($rhythms->irregularPeriodIn($category->id, 2026, 8))->toBe(['start_year' => 2026, 'start_month' => 3, 'opening_collected_minor_units' => 30_000])
+        ->and($rhythms->irregularPeriodIn($category->id, 2026, 9))->toBeNull()
+        ->and($rhythms->irregularPeriodIn($category->id, 2027, 1))->toBe(['start_year' => 2026, 'start_month' => 11, 'opening_collected_minor_units' => 5_000]);
+});
+
+test('a month before the first entry belongs to no irregular period though it reads as irregular', function () {
+    $category = irregularCategoryWithHistory(User::factory()->create(), [[2026, 11, Rhythm::Irregular, 0]]);
+
+    $rhythms = CategoryRhythms::forCategoryIds([$category->id]);
+
+    expect($rhythms->rhythmIn($category->id, 2026, 10))->toBe(Rhythm::Irregular)
+        ->and($rhythms->irregularPeriodIn($category->id, 2026, 10))->toBeNull()
+        ->and($rhythms->irregularPeriodIn($category->id, 2026, 11))->not->toBeNull();
+});
+
+test('a category without an irregular entry or an income has no period', function () {
+    $user = User::factory()->create();
+    $running = expenseCategoryWithHistory($user, [[2026, 1, Rhythm::Running]]);
+    $income = Category::factory()->for($user)->income()->create();
+
+    $rhythms = CategoryRhythms::forCategoryIds([$running->id, $income->id]);
+
+    expect($rhythms->irregularPeriodIn($running->id, 2026, 5))->toBeNull()
+        ->and($rhythms->irregularPeriodIn($income->id, 2026, 5))->toBeNull();
+});
+
+test('the loaded categories with any irregular entry are listed, with one query', function () {
+    $user = User::factory()->create();
+    $running = expenseCategoryWithHistory($user, [[2026, 1, Rhythm::Running]]);
+    $past = irregularCategoryWithHistory($user, [[2026, 1, Rhythm::Irregular, 0], [2026, 5, Rhythm::Running, null]]);
+    $current = irregularCategoryWithHistory($user, [[2026, 6, Rhythm::Irregular, 100]]);
+
+    DB::enableQueryLog();
+    $rhythms = CategoryRhythms::forCategoryIds([$running->id, $past->id, $current->id]);
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($queries)->toBe(1)
+        ->and($rhythms->irregularCategoryIds())->toBe([$past->id, $current->id]);
+});

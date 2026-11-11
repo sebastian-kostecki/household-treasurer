@@ -22,7 +22,7 @@ final class CategoryRhythms
 {
     /**
      * @param  array<int, CategoryType>  $types  category id => type
-     * @param  array<int, list<array{start: int, rhythm: Rhythm}>>  $entries  category id => entries, oldest first
+     * @param  array<int, list<array{start: int, rhythm: Rhythm, opening: int|null}>>  $entries  category id => entries, oldest first
      */
     private function __construct(
         private readonly array $types,
@@ -80,6 +80,7 @@ final class CategoryRhythms
                 'category_rhythms.start_year',
                 'category_rhythms.start_month',
                 'category_rhythms.rhythm',
+                'category_rhythms.opening_collected_minor_units',
             ]);
 
         foreach ($rows as $row) {
@@ -90,6 +91,9 @@ final class CategoryRhythms
                 $entries[$row->id][] = [
                     'start' => self::monthIndex((int) $row->getAttribute('start_year'), (int) $row->getAttribute('start_month')),
                     'rhythm' => Rhythm::from((string) $row->getAttribute('rhythm')),
+                    'opening' => $row->getAttribute('opening_collected_minor_units') === null
+                        ? null
+                        : (int) $row->getAttribute('opening_collected_minor_units'),
                 ];
             }
         }
@@ -121,6 +125,80 @@ final class CategoryRhythms
         }
 
         return $rhythm;
+    }
+
+    /**
+     * The Irregular period in force in a month (ADR-0073): the entry that started
+     * it and its opening Collected. Null when the Rhythm of the month is not
+     * Irregular, and for a month before the first entry, which belongs to no
+     * period (its Collected is 0 and its bills stay out of the chain).
+     *
+     * @return array{start_year: int, start_month: int, opening_collected_minor_units: int}|null
+     */
+    public function irregularPeriodIn(int $categoryId, int $year, int $month): ?array
+    {
+        if ($this->typeOf($categoryId) !== CategoryType::Expense) {
+            return null;
+        }
+
+        $index = self::monthIndex($year, $month);
+        $found = null;
+
+        foreach ($this->entries[$categoryId] ?? [] as $entry) {
+            if ($entry['start'] > $index) {
+                break;
+            }
+
+            $found = $entry;
+        }
+
+        if ($found === null || $found['rhythm'] !== Rhythm::Irregular) {
+            return null;
+        }
+
+        return [
+            'start_year' => intdiv($found['start'] - 1, 12),
+            'start_month' => ($found['start'] - 1) % 12 + 1,
+            'opening_collected_minor_units' => $found['opening'] ?? 0,
+        ];
+    }
+
+    /**
+     * The loaded Categories that have any Irregular entry, in any month.
+     *
+     * @return list<int>
+     */
+    public function irregularCategoryIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->entries as $categoryId => $entries) {
+            foreach ($entries as $entry) {
+                if ($entry['rhythm'] === Rhythm::Irregular) {
+                    $ids[] = $categoryId;
+
+                    break;
+                }
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * The first month of the first Irregular entry of a loaded Category; null when it has none.
+     *
+     * @return array{year: int, month: int}|null
+     */
+    public function firstIrregularStart(int $categoryId): ?array
+    {
+        foreach ($this->entries[$categoryId] ?? [] as $entry) {
+            if ($entry['rhythm'] === Rhythm::Irregular) {
+                return ['year' => intdiv($entry['start'] - 1, 12), 'month' => ($entry['start'] - 1) % 12 + 1];
+            }
+        }
+
+        return null;
     }
 
     /**

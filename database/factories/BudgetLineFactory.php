@@ -156,16 +156,27 @@ class BudgetLineFactory extends Factory
     }
 
     /**
+     * An expense line whose Category is Irregular from January of the Budget year (ADR-0066, ADR-0073).
+     */
+    public function irregular(int $openingCollectedMinorUnits = 0): static
+    {
+        return $this->state(fn (): array => [
+            'type' => CategoryType::Expense,
+        ])->afterCreating(fn (BudgetLine $line) => $this->setRhythm($line, Rhythm::Irregular, $openingCollectedMinorUnits));
+    }
+
+    /**
      * The Rhythm lives on the line's Category: its history becomes a single entry from
      * January of the Budget year.
      */
-    private function setRhythm(BudgetLine $line, Rhythm $rhythm): void
+    private function setRhythm(BudgetLine $line, Rhythm $rhythm, ?int $openingCollectedMinorUnits = null): void
     {
         $line->category->rhythms()->delete();
         $line->category->rhythms()->create([
             'start_year' => $line->budget->year,
             'start_month' => 1,
             'rhythm' => $rhythm,
+            'opening_collected_minor_units' => $openingCollectedMinorUnits,
         ]);
     }
 }

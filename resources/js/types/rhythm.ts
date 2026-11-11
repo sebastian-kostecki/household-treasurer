@@ -3,4 +3,4 @@
  * Category has none. The only declaration of its values in TypeScript, the
  * counterpart of `App\Enums\Rhythm`.
  */
-export type Rhythm = 'fixed_charge' | 'running' | 'even_annual';
+export type Rhythm = 'fixed_charge' | 'running' | 'even_annual' | 'irregular';

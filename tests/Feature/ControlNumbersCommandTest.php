@@ -45,6 +45,8 @@ function controlNumbersMigrationFiles(): array
         database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
         // The old shape carries the flags that the S-24 drop removes.
         database_path('migrations/2026_11_10_120002_drop_rhythm_flags_from_budget_lines.php'),
+        // S-26: a column of the history table the S-18 rollback drops.
+        database_path('migrations/2026_11_11_073254_add_opening_collected_to_category_rhythms.php'),
     ];
 }
 

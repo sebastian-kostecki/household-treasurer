@@ -200,7 +200,7 @@ class MonthPlanProposal
         $rhythm = $this->rhythms->rhythmIn($category->category_id, $budget->year, $month);
 
         if ($rhythm === Rhythm::EvenAnnual) {
-            return $this->averageFromAnnual($category->planned_amount_minor_units, $month);
+            return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
         }
 
         if ($rhythm === Rhythm::FixedCharge) {
@@ -212,7 +212,7 @@ class MonthPlanProposal
         }
 
         if ($source === null) {
-            return $this->averageFromAnnual($category->planned_amount_minor_units, $month);
+            return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
         }
 
         if ($month > 1) {
@@ -222,7 +222,7 @@ class MonthPlanProposal
         $matched = $this->matchPreviousCategory($category);
 
         if ($matched === null) {
-            return $this->averageFromAnnual($category->planned_amount_minor_units, $month);
+            return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
         }
 
         return $source->amounts[$matched->id] ?? 0;
@@ -281,29 +281,5 @@ class MonthPlanProposal
     {
         return ($this->previousCategories ?? collect())
             ->first(fn (BudgetLine $candidate): bool => $candidate->category_id === $category->category_id);
-    }
-
-    private function averageFromAnnual(int $annualMinorUnits, int $month): int
-    {
-        $monthlyFloor = $this->floorDivide($annualMinorUnits, 12);
-
-        if ($month <= 11) {
-            return $monthlyFloor;
-        }
-
-        return $annualMinorUnits - (11 * $monthlyFloor);
-    }
-
-    private function floorDivide(int $numerator, int $denominator): int
-    {
-        if ($denominator <= 0) {
-            throw new \InvalidArgumentException('Denominator must be positive.');
-        }
-
-        if ($numerator >= 0) {
-            return intdiv($numerator, $denominator);
-        }
-
-        return -intdiv(-$numerator + $denominator - 1, $denominator);
     }
 }

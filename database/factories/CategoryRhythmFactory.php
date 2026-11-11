@@ -34,6 +34,17 @@ class CategoryRhythmFactory extends Factory
         ]);
     }
 
+    /**
+     * An Irregular entry: it starts a period with the given opening Collected (ADR-0073).
+     */
+    public function irregular(int $openingCollectedMinorUnits = 0): static
+    {
+        return $this->state(fn (): array => [
+            'rhythm' => Rhythm::Irregular,
+            'opening_collected_minor_units' => $openingCollectedMinorUnits,
+        ]);
+    }
+
     public function rhythm(Rhythm $rhythm): static
     {
         return $this->state(fn (): array => [

@@ -227,7 +227,7 @@ class DashboardController extends Controller
      *     percent_complete: int|null,
      *     is_over_limit: bool,
      *     is_archived: bool,
-     *     rhythm?: 'fixed_charge'|'running'|'even_annual'|null,
+     *     rhythm?: 'fixed_charge'|'running'|'even_annual'|'irregular'|null,
      * }
      */
     private function categoryPayload(
