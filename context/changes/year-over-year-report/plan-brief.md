@@ -26,7 +26,7 @@ Gdy użytkownik ma budżet roku `N − 1` w wykonaniu, raport roku albo miesiąc
 | Wykres | Dwa słupki na wiersz: bieżący okres w kolorze typu, rok wcześniej w stonowanym szarym (`--chart-2`), z legendą | Widać skalę obu lat, a kolor nadal znaczy typ |
 | Panel miar | Pod każdą kwotą „rok: kwota” i różnica | Jedyne miejsce z porównaniem Wyniku |
 | Mock roku poprzedniego | Polecenie artisan (tylko `local`) kopiuje operacje bieżącego roku o rok wstecz ze stałym procentem 85–115 na kategorię, bez zmiany sald, z `--remove` | Działa na danych z Importu i na demo, zawsze na tych samych kategoriach listy |
-| Domyślny rok | Bieżący rok kalendarzowy, potem najnowszy nie późniejszy niż dziś, potem najstarszy (ADR-0074) | Z dwoma latami świeże logowanie otwierałoby stary rok, na devie od razu, na produkcji w 2027 |
+| Domyślny rok | Bieżący rok kalendarzowy, potem najnowszy nie późniejszy niż dziś, potem najstarszy (ADR-0075) | Z dwoma latami świeże logowanie otwierałoby stary rok, na devie od razu, na produkcji w 2027 |
 | Z czym porównujemy | Dokładnie budżet `N − 1` w wykonaniu; inaczej brak porównania | PRD mówi „rok wcześniej”; tak samo liczy propozycja planu stycznia |
 | Bieżąca kolumna | Nie jest cięta na dziś | Zostaje równa kafelkom i wykonaniu w Budżecie |
 | Notka o zakresie | Tylko dla okresu w toku, pod panelem miar | Dla okresu zakończonego wystarcza rok w nagłówku kolumny |
@@ -35,7 +35,7 @@ Gdy użytkownik ma budżet roku `N − 1` w wykonaniu, raport roku albo miesiąc
 ## Scope
 
 **In scope:**
-- słownik (Period Report, Budget), ADR-0073 (porównanie) i ADR-0074 (domyślny rok);
+- słownik (Period Report, Budget), ADR-0074 (porównanie) i ADR-0075 (domyślny rok);
 - odczyt po zakresie dat, `ReportComparisonPeriod`, porównanie w `PeriodReport`, propsy i typy;
 - polecenie `demo:seed-previous-year` z seederem, wpis w README;
 - nowa reguła w `SelectedBudgetYear`;
@@ -58,8 +58,8 @@ Kontroler wyznacza przez `ReportComparisonPeriod::resolve` budżet roku wcześni
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Reguły i odczyt porównania na serwerze | Słownik, ADR-0073, odczyt zakresu, porównanie w propsach, testy równości i 2 s | Rozjazd kwot roku wcześniej z raportem tego roku; czas przy dwóch latach po 10 000 operacji |
-| 2. Mock roku poprzedniego i domyślny rok | Polecenie z `--remove`, README, ADR-0074, nowa reguła roku | Mock niespójny z licznikiem wykonania albo usuwający prawdziwe dane |
+| 1. Reguły i odczyt porównania na serwerze | Słownik, ADR-0074, odczyt zakresu, porównanie w propsach, testy równości i 2 s | Rozjazd kwot roku wcześniej z raportem tego roku; czas przy dwóch latach po 10 000 operacji |
+| 2. Mock roku poprzedniego i domyślny rok | Polecenie z `--remove`, README, ADR-0075, nowa reguła roku | Mock niespójny z licznikiem wykonania albo usuwający prawdziwe dane |
 | 3. Tabela i panel miar | Kolumny, druga linia na telefonie, kolor różnicy, kafelki, notka, kitchen sink | Pięć kolumn obok sidebara; nowe znaczenie koloru wbrew regule „destructive to przekroczenie” |
 | 4. Wykres i E2E | `--chart-2`, dwie serie, legenda, test E2E, poprawka dwóch testów | Kontrast i czytelność drugiej serii; baza E2E wymaga mocka |
 
@@ -72,7 +72,7 @@ Kontroler wyznacza przez `ReportComparisonPeriod::resolve` budżet roku wcześni
 - Każdy wzrost wydatku nieregularnego świeci na czerwono, także sezonowy (świadomy koszt koloru według korzyści).
 - Mock zostawia w 2025 operacje sprzed daty otwarcia kont; edycja daty otwarcia konta na devie może przez to dać błąd walidacji do czasu `--remove`.
 - Budżet 2025 z mocka zasila propozycję planu stycznia 2026, jeśli ten plan jeszcze nie istnieje (na devie już jest).
-- Numery ADR-0073 i 0074 może zająć równoległa zmiana `irregular-expense-collected`; sprawdzić przed zapisem.
+- Numery ADR-0073 i 0074 może zająć równoległa zmiana `irregular-expense-collected`; sprawdzić przed zapisem. (S-26 zajęła 0073, więc S-29 ma 0074 i 0075.)
 - Zakładamy, że próg szerokości dla pięciu kolumn da się dobrać tak, by okno 1280 px miało jedną linię; jeśli nie, układ dwuliniowy obejmie też to okno.
 
 ## Success Criteria (Summary)

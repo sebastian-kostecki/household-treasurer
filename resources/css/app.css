@@ -1425,7 +1425,7 @@
     }
 
     /**
-     * Period Report table with the year-over-year comparison (ADR-0073): one
+     * Period Report table with the year-over-year comparison (ADR-0074): one
      * markup on every width, switched by the width of the table's own card
      * (`.report-table`), not the window. From 36rem (576 px) one line holds
      * Kategoria | rok | rok wcześniej | Różnica | Udział: the card beside the

@@ -66,13 +66,13 @@ Weryfikacja:
 
 ## Implementation Approach
 
-Najpierw reguły na papierze (słownik, ADR-0073), potem odczyt z testami równości i propsy strony. Druga faza daje dane do oglądania: mock roku poprzedniego i poprawny domyślny rok. Dopiero wtedy tabela i panel miar, a na końcu druga seria wykresu z nowym tokenem i E2E. Serwer liczy wszystkie kwoty i różnice w minor units; klient formatuje, koloruje i rysuje.
+Najpierw reguły na papierze (słownik, ADR-0074), potem odczyt z testami równości i propsy strony. Druga faza daje dane do oglądania: mock roku poprzedniego i poprawny domyślny rok. Dopiero wtedy tabela i panel miar, a na końcu druga seria wykresu z nowym tokenem i E2E. Serwer liczy wszystkie kwoty i różnice w minor units; klient formatuje, koloruje i rysuje.
 
-Numery ADR: 0073 (porównanie rok do roku) i 0074 (domyślny rok budżetu). Przed zapisem sprawdź, czy równoległa zmiana `irregular-expense-collected` ich nie zajęła; jeśli tak, weź kolejne wolne i popraw odsyłacze.
+Numery ADR: 0074 (porównanie rok do roku) i 0075 (domyślny rok budżetu). Przed zapisem sprawdź, czy równoległa zmiana `irregular-expense-collected` ich nie zajęła; jeśli tak, weź kolejne wolne i popraw odsyłacze. (S-26 zajęła 0073, więc numery przesunięto przed merge.)
 
 ## Critical Implementation Details
 
-**Reguły porównania (ustalone z użytkownikiem, zapisywane w ADR-0073):**
+**Reguły porównania (ustalone z użytkownikiem, zapisywane w ADR-0074):**
 
 - **Z czym porównujemy.** Z budżetem tego samego użytkownika dla roku `N − 1` w fazie wykonania. Brak takiego budżetu oznacza brak porównania (`comparison: null`) i stronę jak przed zmianą.
 - **Zakres roku wcześniej.** Okres zakończony albo przyszły: cały odpowiednik (cały rok `N − 1` albo cały miesiąc M roku `N − 1`). Okres w toku (`is_in_progress`): od początku odpowiednika do dnia `dziś − 1 rok` bez przepełnienia (29 lutego daje 28 lutego). `is_partial` jest prawdą tylko wtedy, gdy ten dzień jest wcześniejszy niż koniec odpowiednika. „Dziś” jest tym samym `CarbonImmutable::today('UTC')`, którego kontroler używa dla `is_in_progress`.
@@ -91,20 +91,20 @@ Numery ADR: 0073 (porównanie rok do roku) i 0074 (domyślny rok budżetu). Prze
 
 ### Overview
 
-Zapisuje reguły w słowniku i ADR-0073, dodaje odczyt po zakresie dat, rozszerza `PeriodReport` o porównanie i podaje je stronie jako część propsa `report`. Po tej fazie dane porównania są w propsach i udowodnione testami, a strona wygląda jak dotąd.
+Zapisuje reguły w słowniku i ADR-0074, dodaje odczyt po zakresie dat, rozszerza `PeriodReport` o porównanie i podaje je stronie jako część propsa `report`. Po tej fazie dane porównania są w propsach i udowodnione testami, a strona wygląda jak dotąd.
 
 ### Changes Required:
 
 #### 1. Słownik i ADR
 
-**File**: `context/foundation/glossary.md`, `context/foundation/adr/0073-period-report-year-over-year.md`
+**File**: `context/foundation/glossary.md`, `context/foundation/adr/0074-period-report-year-over-year.md`
 
 **Intent**: Nazwać porównanie i zmianę reguły wierszy, zanim powstanie kod (AGENTS.md). ADR zapisuje decyzje z „Critical Implementation Details” z uzasadnieniem i odrzuconymi opcjami: cały okres dla okresu w toku, cięcie na końcu miesiąca, wiersze tylko z bieżącego okresu, wiersz zbiorczy, procent zmiany, brak koloru, przełącznik porównania, wykres różnic.
 
 **Contract**:
 - Wpis **Period Report** dostaje akapit o porównaniu: rok wcześniej to Budget roku `N − 1` w wykonaniu, zakres dla okresu w toku, reguła wierszy z dwóch zakresów, różnica i jej znak. Polskie teksty UI: „Różnica”, nagłówki kolumn to lata. _Avoid_ dopisuje: „zmiana %”, łączenie lat po nazwie.
 - Przy okazji usuwa z wpisu nieaktualne „one-off” (flaga usunięta w ADR-0072).
-- ADR-0073 w formacie sąsiednich ADR, z odsyłaczami do ADR-0060 (ton według korzyści), ADR-0063, ADR-0070 i ADR-0071. Zapisuje też: rozszerzenie znaczenia `success` / `destructive` na różnicę rok do roku, token `--chart-2` jako seria „rok wcześniej” oraz układ tabeli przełączany po szerokości karty.
+- ADR-0074 w formacie sąsiednich ADR, z odsyłaczami do ADR-0060 (ton według korzyści), ADR-0063, ADR-0070 i ADR-0071. Zapisuje też: rozszerzenie znaczenia `success` / `destructive` na różnicę rok do roku, token `--chart-2` jako seria „rok wcześniej” oraz układ tabeli przełączany po szerokości karty.
 
 #### 2. Odczyt po zakresie dat
 
@@ -188,7 +188,7 @@ Zapisuje reguły w słowniku i ADR-0073, dodaje odczyt po zakresie dat, rozszerz
 
 #### Manual Verification:
 
-- ADR-0073 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu (ten sam dzień dla okresu w toku, wiersze z dwóch zakresów, różnica i jej kolor)
+- ADR-0074 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu (ten sam dzień dla okresu w toku, wiersze z dwóch zakresów, różnica i jej kolor)
 
 **Implementation Note**: Po tej fazie i zielonej weryfikacji automatycznej zatrzymaj się na potwierdzenie ręcznej weryfikacji przez człowieka.
 
@@ -229,7 +229,7 @@ Dodaje polecenie, które na devie buduje budżet roku poprzedniego z operacji bi
 
 #### 3. Domyślny rok budżetu
 
-**File**: `context/foundation/adr/0074-default-budget-year-is-the-current-one.md`, `context/foundation/glossary.md`, `app/Support/SelectedBudgetYear.php`
+**File**: `context/foundation/adr/0075-default-budget-year-is-the-current-one.md`, `context/foundation/glossary.md`, `app/Support/SelectedBudgetYear.php`
 
 **Intent**: Bez wyboru w sesji otwierać rok, w którym użytkownik żyje, a nie najstarszy. Dotyczy Budżetu, Planu miesiąca, Raportów, powłoki i palety poleceń.
 
@@ -237,7 +237,7 @@ Dodaje polecenie, które na devie buduje budżet roku poprzedniego z operacji bi
 - Kolejność: rok z sesji, jeśli ma budżet (bez zmian); inaczej bieżący rok kalendarzowy, jeśli ma budżet; inaczej najnowszy rok nie późniejszy niż bieżący; inaczej najstarszy.
 - Przykłady z planowania: `[2025, 2026]` w 2026 → 2026; `[2026, 2027 w przygotowaniu]` w grudniu 2026 → 2026; `[2025, 2026]` w styczniu 2027 → 2026; `[2027, 2028]` w 2026 → 2027.
 - „Dziś” w UTC, jak w `ReportController`.
-- Wpis **Budget** w słowniku dostaje jedno zdanie o domyślnym roku z odsyłaczem do ADR-0074; ADR odnotowuje związek z ADR-0031 (Dashboard zawsze pokazuje bieżący rok).
+- Wpis **Budget** w słowniku dostaje jedno zdanie o domyślnym roku z odsyłaczem do ADR-0075; ADR odnotowuje związek z ADR-0031 (Dashboard zawsze pokazuje bieżący rok).
 
 #### 4. Testy mocka i domyślnego roku
 
@@ -336,7 +336,7 @@ Pokazuje porównanie w tabelach i w panelu miar: kolumny roku wcześniej i róż
 - Nowe scenariusze: rok w toku z porównaniem i notką; miesiąc zamknięty z porównaniem; kategoria tylko rok wcześniej i tylko w bieżącym okresie; grupa z samymi kategoriami z roku wcześniej; zarchiwizowana kategoria z porównaniem; bieżący okres bez operacji przy operacjach rok wcześniej; telefon z porównaniem. Dotychczasowe scenariusze zostają jako „bez porównania”.
 - Macierz stanów dostaje wiersz o porównaniu.
 - `.ai/rules/reports.md`: zdanie o kolumnach i regule „porównanie liczy serwer, łączenie po kategorii listy”. Potem `php artisan boost:index-rules`, jeśli zmieniły się `paths:`.
-- `design-system.md`: w sekcji o kolorze dopisek, że `success` / `destructive` oznaczają też różnicę rok do roku według korzyści (ADR-0073); przy tabelach opis układu Raportów z drugą linią.
+- `design-system.md`: w sekcji o kolorze dopisek, że `success` / `destructive` oznaczają też różnicę rok do roku według korzyści (ADR-0074); przy tabelach opis układu Raportów z drugą linią.
 
 ### Success Criteria:
 

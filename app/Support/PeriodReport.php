@@ -16,7 +16,7 @@ use App\Support\CategoryList\CategoryListOrder;
  * amounts are minor units; the share of an expense row is an integer in tenths
  * of a percent of the period's expense total.
  *
- * With a `ReportComparisonPeriod` (ADR-0073) every row also carries the amount
+ * With a `ReportComparisonPeriod` (ADR-0074) every row also carries the amount
  * of the same Category (by list Category id) in the Budget of the year before
  * and the difference, and a Category has a row when it has an operation in
  * either range.

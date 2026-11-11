@@ -3,7 +3,7 @@ import type { PlanChangeTone } from '@/lib/plan-change-direction';
 export type ReportMeasureKind = 'income' | 'expense' | 'result';
 
 /**
- * Whether a year-over-year difference is good for the household (ADR-0073):
+ * Whether a year-over-year difference is good for the household (ADR-0074):
  * fewer expenses, more income and a higher result are favorable. Null for
  * zero and for a missing difference, which stay uncoloured.
  */

@@ -37,7 +37,7 @@ class SelectedBudgetYear
 
     /**
      * The current calendar year when it has a Budget, else the newest year not
-     * later than it, else the oldest (ADR-0074).
+     * later than it, else the oldest (ADR-0075).
      *
      * @param  list<int>  $years  ascending, not empty
      */

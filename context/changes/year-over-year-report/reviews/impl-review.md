@@ -26,7 +26,7 @@
 - `vendor/bin/sloppy ci` (in the Sail image): 0 findings.
 - `npm run test` for report-difference and report-chart: 11/11. `npm run check:ui`: clean. `npm run types:check`: clean.
 - `npm run build`: passed with a PHP 8.5 shim on PATH. Host PHP 8.3 fails Composer's platform check, which is a known agent-shell limitation, not a code problem.
-- Unplanned changes: `roadmap.md` and `change.md` (status changes only). The `CommandPaletteCategoriesTest` assertion moved from 2025 to 2026; this is justified because the requirement itself changed in ADR-0074.
+- Unplanned changes: `roadmap.md` and `change.md` (status changes only). The `CommandPaletteCategoriesTest` assertion moved from 2025 to 2026; this is justified because the requirement itself changed in ADR-0075.
 
 ## Findings
 

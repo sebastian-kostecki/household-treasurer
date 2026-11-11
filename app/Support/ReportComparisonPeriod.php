@@ -7,7 +7,7 @@ use App\Models\Budget;
 use Carbon\CarbonImmutable;
 
 /**
- * The comparison range of the Period Report (ADR-0073): the Budget of the
+ * The comparison range of the Period Report (ADR-0074): the Budget of the
  * year before the selected one, when the User has it in execution, and the days
  * of that year the selected period is compared with. A finished or future
  * period is compared with the whole equivalent; a period in progress is cut on
