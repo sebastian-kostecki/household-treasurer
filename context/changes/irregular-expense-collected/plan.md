@@ -574,26 +574,26 @@ Historia US-02 przechodzi w przeglądarce, dokumenty i reguły opisują stan po 
 
 #### Automated
 
-- [x] 4.1 Testy TS ostrzeżeń i kreski roku przechodzą
-- [x] 4.2 Testy payloadu ostrzeżeń i wydajności przechodzą na PostgreSQL
-- [x] 4.3 E2E przechodzi
-- [x] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Testy TS ostrzeżeń i kreski roku przechodzą — 70774f0
+- [x] 4.2 Testy payloadu ostrzeżeń i wydajności przechodzą na PostgreSQL — 70774f0
+- [x] 4.3 E2E przechodzi — 70774f0
+- [x] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — 70774f0
 
 #### Manual
 
-- [x] 4.5 Dashboard i Budżet pokazują nieregularną bez kreski „Postęp roku”
-- [x] 4.6 Wpis pokryty zebranym nie ostrzega, a wpis ponad zebrane ostrzega
-- [x] 4.7 Kitchen sinki pokazują ostrzeżenie z nazwą późniejszego miesiąca
+- [x] 4.5 Dashboard i Budżet pokazują nieregularną bez kreski „Postęp roku” — 70774f0
+- [x] 4.6 Wpis pokryty zebranym nie ostrzega, a wpis ponad zebrane ostrzega — 70774f0
+- [x] 4.7 Kitchen sinki pokazują ostrzeżenie z nazwą późniejszego miesiąca — 70774f0
 
 ### Phase 5: E2E, dokumenty i bramka
 
 #### Automated
 
-- [ ] 5.1 E2E historii US-02 przechodzi
-- [ ] 5.2 Pełna bramka na PostgreSQL
+- [x] 5.1 E2E historii US-02 przechodzi
+- [x] 5.2 Pełna bramka na PostgreSQL
 - [ ] 5.3 `vendor/bin/sloppy ci` i `npx playwright test` przechodzą
 
 #### Manual
 
-- [ ] 5.4 Słownik, ADR-0073, reguły i roadmapa opisują stan po S-26 bez sprzeczności
-- [ ] 5.5 Historia US-02 przechodzi na dev od oznaczenia kategorii do rachunku ponad zebrane
+- [x] 5.4 Słownik, ADR-0073, reguły i roadmapa opisują stan po S-26 bez sprzeczności
+- [x] 5.5 Historia US-02 przechodzi na dev od oznaczenia kategorii do rachunku ponad zebrane

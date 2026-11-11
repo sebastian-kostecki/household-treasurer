@@ -179,6 +179,17 @@ const deviationClass = computed(() => {
                             <template v-if="showsYearLine">· </template
                             >{{ evenAnnualRemainingText }}
                         </span>
+                        <span
+                            v-if="
+                                showsCollected && collectedMinorUnits !== null
+                            "
+                            class="tabular-nums"
+                            data-collected
+                        >
+                            <template v-if="showsYearLine">· </template
+                            >{{ t.month_plan.collected }}
+                            {{ formatMoneyAmount(collectedMinorUnits) }}
+                        </span>
                     </span>
                 </template>
             </CategoryChip>

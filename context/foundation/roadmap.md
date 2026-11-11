@@ -234,7 +234,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Prerequisites:** F-05, S-24
 - **Parallel with:** S-19, S-20, S-21, S-22, S-23, S-25, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
-- **Unknowns:** z przeglądu implementacji F-05 (F9): (a) rachunek w miesiącu budżetu-szkicu albo roku bez budżetu, (b) zatwierdzony miesiąc bez pozycji nieregularnej, (c) miesiące przed pierwszym wpisem rytmu kategorii oznaczonej nieregularną przy utworzeniu
+- **Unknowns:** — (F9 (a)–(c) z przeglądu F-05 rozstrzygnięte w ADR-0073)
 - **Risk:** Jedyna zmiana reguły „do wydania”: stawka i rachunek to jedna reguła, której nie da się dostarczyć osobno bez podwójnego obniżenia w miesiącu rachunku. Zebrane jest odczytem z operacji (zwroty netto), nie zapisaną liczbą; salda i Spendable Liquidity bez zmian, a Wynik miesiąca liczy faktyczny rachunek.
 - **Status:** in-progress
 
@@ -247,6 +247,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Parallel with:** S-19, S-21, S-22, S-23, S-25, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
 - **Unknowns:** —
+- **Uwaga po S-26:** łańcuch zebranego przechodzi przez 31 grudnia już od S-26 (ADR-0073); S-27 dodaje tylko odczyt „zebranego startowego” i jego pokazanie w nowym budżecie.
 - **Risk:** Zebrane startowe to odczyt stanu na 31 grudnia, nie liczba zapisana przy tworzeniu budżetu, bo budżet 2027 powstanie w grudniu, kiedy zebrane jeszcze się zmienia. Pierwsze przejście roku z prawdziwymi danymi wypada już na przełomie 2026 i 2027.
 - **Status:** proposed
 
