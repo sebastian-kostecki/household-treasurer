@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\ChangeCategoryRhythm;
 use App\Enums\Rhythm;
 use App\Models\Category;
 use App\Models\CategoryRhythm;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -291,4 +293,36 @@ test('changing the type to income removes irregular entries', function () {
     $this->actingAs($user)->patch(route('categories.list.update', $category), $income)->assertSessionHasNoErrors();
 
     expect(rhythmEntriesWithOpening($category))->toBe([]);
+});
+
+function startPeriod(Category $category, int $opening): void
+{
+    app(ChangeCategoryRhythm::class)->startIrregularPeriod($category, CarbonImmutable::create(2026, 11, 10), $opening);
+}
+
+test('a new period after an irregular entry from january leaves two entries (ADR-0078)', function () {
+    $category = expenseWithHistory(User::factory()->create(), [[2026, 1, Rhythm::Irregular]]);
+    $category->rhythms()->update(['opening_collected_minor_units' => 45_000]);
+
+    startPeriod($category, 85_000);
+
+    expect(rhythmEntriesWithOpening($category))->toBe([['irregular', 2026, 1, 45_000], ['irregular', 2026, 11, 85_000]]);
+});
+
+test('a new period replaces the entry that starts in the current month', function () {
+    $category = expenseWithHistory(User::factory()->create(), [[2026, 1, Rhythm::Running], [2026, 11, Rhythm::Irregular]]);
+    $category->rhythms()->where('start_month', 11)->update(['opening_collected_minor_units' => 10_000]);
+
+    startPeriod($category, 85_000);
+
+    expect(rhythmEntriesWithOpening($category))->toBe([['running', 2026, 1, null], ['irregular', 2026, 11, 85_000]]);
+});
+
+test('a new period removes an entry from a future month', function () {
+    $category = expenseWithHistory(User::factory()->create(), [[2026, 1, Rhythm::Irregular], [2027, 1, Rhythm::Running]]);
+    $category->rhythms()->where('start_year', 2026)->update(['opening_collected_minor_units' => 0]);
+
+    startPeriod($category, 5_000);
+
+    expect(rhythmEntriesWithOpening($category))->toBe([['irregular', 2026, 1, 0], ['irregular', 2026, 11, 5_000]]);
 });

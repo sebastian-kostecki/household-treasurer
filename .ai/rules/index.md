@@ -4,7 +4,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 
 | Applies to | Rule file |
 | --- | --- |
-| app/Actions/*Budget*.php, app/Actions/*Categor*.php, app/Models/Category*.php, app/Models/BudgetLine.php, app/Support/BudgetLineResolver.php, app/Support/CategoryList/**/*.php, app/Support/MonthPlanProposal.php, app/Support/Operations*.php, app/Support/CsvImport/ImportCategory*.php, app/Http/Requests/*Categor*.php, app/Http/Requests/IndexOperationsRequest.php, app/Http/Controllers/CategoryController.php, app/Concerns/CategoryValidationRules.php | .ai/rules/categories.md |
+| app/Actions/*Budget*.php, app/Actions/*Categor*.php, app/Models/Category*.php, app/Models/BudgetLine.php, app/Support/BudgetLineResolver.php, app/Support/CategoryList/**/*.php, app/Support/MonthPlanProposal.php, app/Support/Operations*.php, app/Support/CsvImport/ImportCategory*.php, app/Http/Requests/*Categor*.php, app/Http/Requests/IndexOperationsRequest.php, app/Http/Controllers/CategoryController.php, app/Http/Controllers/CategoryMergeController.php, app/Concerns/CategoryValidationRules.php | .ai/rules/categories.md |
 | resources/css/app.css | .ai/rules/css.md |
 | resources/js/**/*.test.ts, vite.config.ts, package.json, tsconfig.json | .ai/rules/frontend-toolchain.md |
 | app/Http/Controllers/**/*.php, resources/js/pages/**/*.vue | .ai/rules/inertia-props.md |

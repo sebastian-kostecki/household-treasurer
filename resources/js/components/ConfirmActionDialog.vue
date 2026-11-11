@@ -23,6 +23,8 @@ defineProps<{
     confirmLabel: string;
     cancelLabel: string;
     destructive?: boolean;
+    /** Keeps the confirm button disabled, e.g. until a preview has loaded. */
+    confirmDisabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -78,7 +80,7 @@ function onOpenChange(next: boolean): void {
                     <Button
                         type="submit"
                         :variant="destructive ? 'destructive' : 'default'"
-                        :disabled="processing"
+                        :disabled="processing || confirmDisabled"
                     >
                         <Spinner v-if="processing" />
                         {{ confirmLabel }}

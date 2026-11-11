@@ -3,6 +3,7 @@ import type {
     CategoriesPageProps,
     CategoryGroupItem,
     CategoryListItem,
+    CategoryMergePreviewData,
 } from '@/types/categories';
 
 const categoryAppearanceOptions: CategoriesPageProps['categoryAppearanceOptions'] =
@@ -391,3 +392,90 @@ export const categoriesScenarios: CategoriesScenario[] = [
         },
     },
 ];
+
+const noMonthPlanItems: CategoryMergePreviewData['month_plan_items'] = {
+    count: 0,
+    first: null,
+    last: null,
+};
+
+/** The production pair: the source lives only in 2026, the target has no line there yet. */
+export const mergeMovePreview: CategoryMergePreviewData = {
+    source: { id: 1, name: 'Jedzenie poza domem', archived: false },
+    target: { id: 2, name: 'Restauracje' },
+    budgets: [
+        {
+            year: 2026,
+            phase: 'execution',
+            operations_count: 48,
+            target_plan_before_minor_units: 0,
+            target_plan_after_minor_units: 300000,
+        },
+    ],
+    operations_count: 48,
+    month_plan_items: noMonthPlanItems,
+    collected: null,
+    restored_budget_year: null,
+};
+
+/** Both Categories have a line in 2026 (their plans add up) and the 2027 draft only has the source. */
+export const mergeFoldPreview: CategoryMergePreviewData = {
+    source: { id: 1, name: 'Jedzenie poza domem', archived: false },
+    target: { id: 2, name: 'Restauracje' },
+    budgets: [
+        {
+            year: 2026,
+            phase: 'execution',
+            operations_count: 48,
+            target_plan_before_minor_units: 150000,
+            target_plan_after_minor_units: 450000,
+        },
+        {
+            year: 2027,
+            phase: 'draft',
+            operations_count: 0,
+            target_plan_before_minor_units: 0,
+            target_plan_after_minor_units: 300000,
+        },
+    ],
+    operations_count: 48,
+    month_plan_items: {
+        count: 11,
+        first: { year: 2026, month: 1 },
+        last: { year: 2026, month: 11 },
+    },
+    collected: null,
+    restored_budget_year: null,
+};
+
+/** Both Categories are Irregular: the target starts a new period with the sum of their Collected. */
+export const mergeCollectedPreview: CategoryMergePreviewData = {
+    ...mergeMovePreview,
+    source: { id: 1, name: 'Energia', archived: false },
+    target: { id: 2, name: 'Prąd' },
+    collected: {
+        source_minor_units: 40000,
+        target_minor_units: 45000,
+        after_minor_units: 85000,
+        since: { year: 2026, month: 11 },
+    },
+};
+
+/** The target is not Irregular, so the source's Collected is lost. */
+export const mergeCollectedLostPreview: CategoryMergePreviewData = {
+    ...mergeCollectedPreview,
+    collected: {
+        source_minor_units: 40000,
+        target_minor_units: null,
+        after_minor_units: null,
+        since: { year: 2026, month: 11 },
+    },
+};
+
+/** An archived source whose 2026 line comes back to the Budget totals. */
+export const mergeArchivedSourcePreview: CategoryMergePreviewData = {
+    ...mergeMovePreview,
+    source: { id: 1, name: 'Wakacje', archived: true },
+    target: { id: 2, name: 'Urlop' },
+    restored_budget_year: 2026,
+};

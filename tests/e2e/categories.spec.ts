@@ -131,7 +131,9 @@ test('a Category is created with a description, edited, archived, restored and d
     await expect(row).toContainText(description);
 
     // Edit the description.
-    await row.getByRole('button', { name: 'Edytuj' }).click();
+    const rowMenu = `Więcej działań kategorii ${name}`;
+    await row.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Edytuj' }).click();
     await dialog.getByLabel('Opis').fill(editedDescription);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
     await expect(dialog).toHaveCount(0);
@@ -139,7 +141,8 @@ test('a Category is created with a description, edited, archived, restored and d
     await expect(row).not.toContainText(description);
 
     // Archive: the row leaves the panel and lands in the collapsed archive.
-    await row.getByRole('button', { name: 'Archiwizuj' }).click();
+    await row.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
     await dialog.getByRole('button', { name: 'Archiwizuj' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toHaveCount(0);
@@ -155,13 +158,15 @@ test('a Category is created with a description, edited, archived, restored and d
     );
 
     // Restore: back in the Wydatki panel.
-    await archivedRow.getByRole('button', { name: 'Przywróć' }).click();
+    await archivedRow.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Przywróć' }).click();
     await dialog.getByRole('button', { name: 'Przywróć' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toContainText(editedDescription);
 
     // Delete the fresh Category (no operations, so it can be deleted).
-    await row.getByRole('button', { name: 'Usuń' }).click();
+    await row.getByRole('button', { name: rowMenu }).click();
+    await page.getByRole('menuitem', { name: 'Usuń' }).click();
     await dialog.getByRole('button', { name: 'Usuń' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toHaveCount(0);
@@ -407,4 +412,144 @@ test('dragging a Category onto an empty group saves the membership', async ({
     } finally {
         await deleteGroup(page, group);
     }
+});
+
+// Category Merge (S-21, ADR-0078). Risk it protects: the first dialog that loads
+// a preview from the server before it confirms. The menu does not open the
+// dialog, the preview does not show the operations that will move, "Scal" is not
+// held back until the preview is there, or the operations stay on the source
+// Category (which is gone) instead of the target. The test creates two fresh
+// expense Categories and one operation, and cleans up through the UI; the
+// target ends archived, because a Category with a line in a Budget in execution
+// cannot be deleted (the same as in irregular-collected.spec.ts).
+test('a Category is merged into another from the menu, with the preview, and its operation follows', async ({
+    page,
+}) => {
+    const stamp = Date.now();
+    const source = `E2E scalana ${stamp}`;
+    const target = `E2E docelowa ${stamp}`;
+    const description = `E2E operacja scalenia ${stamp}`;
+    const consoleErrors: string[] = [];
+    page.on('console', (message) => {
+        if (message.type() === 'error') {
+            consoleErrors.push(message.text());
+        }
+    });
+
+    await page.goto('/categories');
+    for (const name of [source, target]) {
+        await page
+            .getByRole('button', { name: 'Dodaj kategorię: Wydatki' })
+            .click();
+        const createDialog = page.getByRole('dialog');
+        await createDialog.getByLabel('Nazwa').fill(name);
+        await createDialog.getByRole('button', { name: 'Zapisz' }).click();
+        await expect(createDialog).toHaveCount(0);
+    }
+
+    // One operation on the source Category, booked on the Operations page.
+    await page.goto('/operations');
+    await page.getByRole('button', { name: 'Dodaj operację' }).click();
+    await page.getByRole('menuitem', { name: 'Wydatek' }).click();
+    const expenseDialog = page.getByRole('dialog', { name: 'Dodaj wydatek' });
+    await expect(expenseDialog).toBeVisible();
+    await expenseDialog.getByRole('textbox', { name: 'Kwota' }).fill('12,34');
+    await expenseDialog
+        .getByRole('combobox', { name: 'Kategoria wydatkowa' })
+        .click();
+    await page.getByRole('option', { name: source }).click();
+    await expenseDialog
+        .getByRole('textbox', { name: 'Opis' })
+        .fill(description);
+    await expenseDialog.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(expenseDialog).toBeHidden();
+
+    try {
+        await page.goto('/categories');
+        await categoryRow(page, source)
+            .getByRole('button', { name: `Więcej działań kategorii ${source}` })
+            .click();
+        await page.getByRole('menuitem', { name: 'Scal z inną…' }).click();
+
+        const dialog = page.getByRole('dialog', {
+            name: `Scal kategorię „${source}”`,
+        });
+        await expect(dialog).toBeVisible();
+        // No target yet, so there is no preview and "Scal" is held back.
+        const confirm = dialog.getByRole('button', {
+            name: 'Scal',
+            exact: true,
+        });
+        await expect(confirm).toBeDisabled();
+
+        await dialog.getByRole('combobox', { name: 'Scal z' }).click();
+        await page.getByRole('option', { name: target }).click();
+
+        // The preview comes from the server: the total row counts the operation.
+        await expect(
+            dialog.getByRole('heading', { name: `Na „${target}” przejdzie` }),
+        ).toBeVisible();
+        const total = dialog
+            .getByRole('row')
+            .filter({ has: page.getByText('Razem', { exact: true }) });
+        await expect(total.getByRole('cell').nth(1)).toHaveText('1');
+        await expect(confirm).toBeEnabled();
+
+        await confirm.click();
+        await expect(dialog).toHaveCount(0);
+        await expect(page.getByText('Kategorie scalone.')).toBeVisible();
+        await expect(categoryRow(page, source)).toHaveCount(0);
+        await expect(categoryRow(page, target)).toHaveCount(1);
+
+        // The operation is under the target Category, over all years.
+        await categoryRow(page, target)
+            .getByRole('link', {
+                name: new RegExp(`^Operacje kategorii ${target}`),
+            })
+            .click();
+        await expect(page).toHaveURL(/\/operations\?/);
+        await expect(
+            page.getByText(description, { exact: true }),
+        ).toBeVisible();
+    } finally {
+        await page.goto('/operations');
+        const row = page
+            .locator('div')
+            .filter({ has: page.getByText(description, { exact: true }) })
+            .filter({ has: page.getByRole('button', { name: 'Więcej akcji' }) })
+            .last();
+        if ((await row.count()) > 0) {
+            await row.getByRole('button', { name: 'Więcej akcji' }).click();
+            await page.getByRole('menuitem', { name: 'Usuń' }).click();
+            await page
+                .getByRole('dialog', { name: 'Usunąć wydatek?' })
+                .getByRole('button', { name: 'Usuń' })
+                .click();
+            await expect(
+                page.getByText(description, { exact: true }),
+            ).toBeHidden();
+        }
+
+        await page.goto('/categories');
+        for (const name of [source, target]) {
+            const leftover = categoryRow(page, name);
+            if ((await leftover.count()) > 0) {
+                await leftover
+                    .getByRole('button', {
+                        name: `Więcej działań kategorii ${name}`,
+                    })
+                    .click();
+                await page
+                    .getByRole('menuitem', { name: 'Archiwizuj' })
+                    .click();
+                await page
+                    .getByRole('dialog')
+                    .getByRole('button', { name: 'Archiwizuj' })
+                    .click();
+                await expect(page.getByRole('dialog')).toHaveCount(0);
+            }
+        }
+    }
+
+    expect(consoleErrors).toEqual([]);
 });
