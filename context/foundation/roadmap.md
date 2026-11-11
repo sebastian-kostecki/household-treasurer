@@ -54,7 +54,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
 | S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | ready    |
 | S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | done |
-| S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | in-progress |
+| S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | done        |
 | S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | done     |
 | S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | done     |
 | S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | ready    |
@@ -249,7 +249,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Unknowns:** —
 - **Uwaga po S-26:** łańcuch zebranego przechodzi przez 31 grudnia już od S-26 (ADR-0073); S-27 dodaje tylko odczyt „zebranego startowego” i jego pokazanie w wierszu Budżetu, w szkicu i w realizacji (ADR-0076).
 - **Risk:** Zebrane startowe to odczyt stanu na 31 grudnia, nie liczba zapisana przy tworzeniu budżetu, bo budżet 2027 powstanie w grudniu, kiedy zebrane jeszcze się zmienia. Pierwsze przejście roku z prawdziwymi danymi wypada już na przełomie 2026 i 2027.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-28: Raport okresu po grupach
 
@@ -400,3 +400,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-24: użytkownik może zobaczyć rytm nadany istniejącym kategoriom z dzisiejszych flag, poprawić go, a propozycja planu miesiąca liczy kwotę z rytmu (stała opłata, bieżąca, równomierna roczna z odczytem „zostało X na Y mies.”)** — Archived 2026-11-10 → `context/archive/2026-11-10-category-rhythm/`. Lesson: —.
 - **S-29: użytkownik może porównać okres raportu z tym samym okresem rok wcześniej (kwota, różnica) na tej samej kategorii listy** — Archived 2026-11-11 → `context/archive/2026-11-11-year-over-year-report/`. Lesson: —.
 - **S-26: użytkownik może oznaczyć kategorię jako nieregularną i podać zebrane startowe, widzieć w planie miesiąca i w Podsumowaniu miesiąca stawkę oraz „zebrane”, a rachunek zużywa zebrane i obniża „do wydania” tylko o nadwyżkę; „odkładam / dobieram” działa jak dotąd** — Archived 2026-11-11 → `context/archive/2026-11-11-irregular-expense-collected/`. Lesson: —.
+- **S-27: użytkownik może zobaczyć w nowym budżecie zebrane startowe kategorii nieregularnej przeniesione ze stanu na 31 grudnia, a stawka nowego roku wynika z nowego planu rocznego** — Archived 2026-11-11 → `context/archive/2026-11-11-collected-carry-over-new-year/`. Lesson: —.
