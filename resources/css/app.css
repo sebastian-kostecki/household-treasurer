@@ -1114,6 +1114,25 @@
         grid-template-areas: 'category plan actions';
     }
 
+    /*
+     * Wiersz kategorii szkicu poniżej md: nazwa (i „zebrane startowe”, ADR-0076)
+     * z akcjami na całą szerokość, plan w drugiej linii. W jednej linii kolumna
+     * kategorii ma ~60 px przy 390 px i `truncate` zjada nazwę.
+     */
+    @variant max-md {
+        .budget-category-row.budget-category-grid-draft {
+            grid-template-areas:
+                'handle category category actions'
+                'handle . plan .';
+        }
+
+        .budget-category-row.budget-category-grid-draft.budget-category-grid-no-handle {
+            grid-template-areas:
+                'category category actions'
+                '. plan .';
+        }
+    }
+
     @variant md {
         .budget-category-grid-draft {
             grid-template-columns: 2.5rem minmax(0, 1fr) 7rem 8rem 4.5rem;
