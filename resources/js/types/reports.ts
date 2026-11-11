@@ -58,7 +58,7 @@ export type PeriodReportData = {
     income_minor_units: number;
     expense_minor_units: number;
     result_minor_units: number;
-    /** The report has at least one row. */
+    /** The report has at least one row, from either range (unlike a row's `has_operations`, which is the current period only). */
     has_operations: boolean;
     comparison: PeriodReportComparison | null;
     income: PeriodReportEntry[];

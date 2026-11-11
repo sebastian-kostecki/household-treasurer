@@ -47,12 +47,19 @@ final class ReportComparisonPeriod
             ? CarbonImmutable::create($previous->year, 12, 31)->startOfDay()
             : $from->endOfMonth()->startOfDay();
 
-        $isInProgress = $today->year === $budget->year
-            && ($month === null || $today->month === $month);
+        $isInProgress = self::isInProgress($budget->year, $month, $today);
         $cut = $today->startOfDay()->subYearNoOverflow();
 
         $through = $isInProgress && $cut->lessThan($end) ? $cut : $end;
 
         return new self($previous, $from, $through, $through->lessThan($end));
+    }
+
+    /**
+     * The selected period (a year, or a month of it) contains `$today`.
+     */
+    public static function isInProgress(int $year, ?int $month, CarbonImmutable $today): bool
+    {
+        return $today->year === $year && ($month === null || $today->month === $month);
     }
 }

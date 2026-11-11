@@ -50,8 +50,7 @@ class ReportController extends Controller
                 'kind' => $month === null ? 'year' : 'month',
                 'month' => $month,
                 'default_month' => BudgetViewedMonth::defaultForYear($budget->year, $today),
-                'is_in_progress' => $today->year === $budget->year
-                    && ($month === null || $today->month === $month),
+                'is_in_progress' => ReportComparisonPeriod::isInProgress($budget->year, $month, $today),
             ],
             'report' => $budget->isExecution() ? $this->report($budget, $month, $today) : null,
         ]);

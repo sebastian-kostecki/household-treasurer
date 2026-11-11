@@ -506,6 +506,11 @@ Brak migracji schematu i danych. Na produkcji w 2026 nie ma budżetu 2025, więc
 - Wzorce testów: `tests/Feature/PeriodReportTest.php`, `tests/Feature/ReportsPageTest.php`, `tests/Feature/Nfr/NfrPerfReportTest.php`, `tests/Feature/SeedDemoHouseholdCommandTest.php`, `tests/e2e/reports.spec.ts`
 - Design system: `context/foundation/design-system.md` (sekcje Kolor, Kwoty, Wykresy)
 
+## Addendum (przegląd implementacji, 2026-11-11)
+
+- **Faza 3 §4, notka o okresie w toku.** `<Alert variant="note">` z zakresem porównania stoi w `ReportStatPanel.vue` pod `StatPanel`, a nie w `Reports.vue`. Notka objaśnia kwoty panelu, więc należy do niego; na stronie wygląda tak samo.
+- **Faza 3 §6, scenariusze kitchen sinka.** Siedem stanów z planu mieści się w pięciu scenariuszach `compared-*`: `compared-one-side-only` łączy kategorię tylko z roku wcześniej, kategorię tylko z bieżącego okresu i grupę z samych kategorii roku wcześniej, a zarchiwizowana kategoria z porównaniem jest w `compared-month-closed`.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

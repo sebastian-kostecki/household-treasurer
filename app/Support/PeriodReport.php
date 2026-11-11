@@ -25,6 +25,9 @@ use App\Support\CategoryList\CategoryListOrder;
  * the User's Category Groups and `MonthCategoryActuals`; a comparison adds the
  * lines of the previous Budget and one range read.
  *
+ * `has_operations` of the report means "has at least one row" (from either
+ * range); on a row or group it means "has operations in the current period".
+ *
  * @phpstan-type ReportCategory array{id: int, name: string, icon: string|null, color: string, amount_minor_units: int, share_tenths_percent: int|null, is_archived: bool, has_operations: bool, previous_minor_units: int|null, difference_minor_units: int|null}
  * @phpstan-type ReportGroup array{kind: 'group', id: int, name: string, amount_minor_units: int, share_tenths_percent: int|null, has_operations: bool, previous_minor_units: int|null, difference_minor_units: int|null, categories: list<ReportCategory>}
  * @phpstan-type ReportEntry ReportGroup|array{kind: 'category', id: int, name: string, icon: string|null, color: string, amount_minor_units: int, share_tenths_percent: int|null, is_archived: bool, has_operations: bool, previous_minor_units: int|null, difference_minor_units: int|null}
