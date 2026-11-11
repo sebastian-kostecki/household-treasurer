@@ -4,7 +4,7 @@ Aplikacja webowa do rocznego budżetu domowego: plan kategorii kontra rzeczywist
 
 Dwie płaszczyzny produktu:
 
-- **Budżet** — plan początkowy, plan aktualny i wykonanie. Każda kategoria wydatkowa ma rytm (_Rhythm_): stała opłata, bieżąca albo równomierna roczna.
+- **Budżet** — plan początkowy, plan aktualny i wykonanie. Każda kategoria wydatkowa ma rytm (_Rhythm_): stała opłata, bieżąca, równomierna roczna albo nieregularna (stawka miesięczna i „zebrane”, które zużywa rachunek).
 - **Płynność** — _Spendable Liquidity_ (salda kont) i _Total funds_ (te salda plus lokaty).
 
 Konta logowania tworzy administrator. Samodzielna rejestracja jest wyłączona. Każdy użytkownik widzi wyłącznie własne dane.
@@ -197,6 +197,10 @@ Dla dni pracy na nowym schemacie przywrócenie kopii nie wchodzi w grę (traci w
 Kolejność jest istotna. Cofnięcie kodu przed `migrate:rollback` usuwa pliki migracji, a właśnie ich `down()` jest potrzebny. Pominięcie `git pull` przed skryptem uruchamia jeszcze `deploy.sh` z S-18: jego `user:backup` w kontenerze S-18 nie znajdzie `budget_lines`, a `app:control-numbers` nie ma w cofniętym kodzie, więc `set -e` przerwie wdrożenie.
 
 Snapshot wersji 6, zrobiony po wdrożeniu, nie wczyta się w starym kodzie (`user:restore` zna wtedy wersje 1–5). Drogą powrotu jest `down()`; snapshoty wersji 5 sprzed migracji są zapasem, a kopia instancji z kroku 6 `deploy.sh` ostatecznością (tracą zmiany po wdrożeniu).
+
+#### Wycofanie S-26 po wdrożeniu
+
+Migracja S-26 dodaje jedną kolumnę (`category_rhythms.opening_collected_minor_units`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` jest stratny: zamienia wpisy rytmu `irregular` na `even_annual` i usuwa kolumnę, więc giną zebrane startowe i oznaczenia nieregularnych; operacje, plany i kwoty zostają. Wycofanie idzie jak w „Wycofanie S-18”: `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`. Snapshot wersji 10 (`user:backup` po S-26) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()`, nie restore nowego snapshotu w starym kodzie.
 
 #### Migracja przerwana w trakcie
 

@@ -27,10 +27,14 @@ final class MonthPlanJoinCandidates
         $rows = ['income' => [], 'expense' => []];
         $candidates = self::categoriesWithoutLine($user, $budget);
         $rhythms = CategoryRhythms::forCategoryIds(array_map(fn (Category $category): int => $category->id, $candidates));
+        $collected = IrregularCollected::forUser($user, $rhythms);
 
         foreach ($candidates as $category) {
             $rhythm = $rhythms->rhythmIn($category->id, $budget->year, $month);
-            $row = self::row($category, $rhythm, $timing, $budget->year, $today);
+            $collectedAtStart = $rhythm === Rhythm::Irregular
+                ? $collected->collectedAtStartOfMonth($category->id, $budget->year, $month)
+                : 0;
+            $row = self::row($category, $rhythm, $timing, $budget->year, $today, $collectedAtStart);
 
             $rows[$category->type === CategoryType::Income ? 'income' : 'expense'][] = $row;
         }
@@ -62,7 +66,7 @@ final class MonthPlanJoinCandidates
      * @param  'past'|'current'|'future'  $timing
      * @return MonthPlanRow
      */
-    private static function row(Category $category, ?Rhythm $rhythm, string $timing, int $budgetYear, CarbonImmutable $today): array
+    private static function row(Category $category, ?Rhythm $rhythm, string $timing, int $budgetYear, CarbonImmutable $today, int $collectedAtStart): array
     {
         $isEvenAnnual = $rhythm === Rhythm::EvenAnnual;
 
@@ -78,8 +82,8 @@ final class MonthPlanJoinCandidates
             'in_plan' => false,
             'approved_minor_units' => null,
             'is_join_candidate' => true,
-            'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits($category->type, $rhythm, 0, 0, false),
-            'is_over_plan' => MonthItemDeviation::isOverPlan($category->type, $rhythm, 0, 0, 0, 0),
+            'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits($category->type, $rhythm, 0, 0, false, $collectedAtStart),
+            'is_over_plan' => MonthItemDeviation::isOverPlan($category->type, $rhythm, 0, 0, 0, 0, $collectedAtStart),
             'is_settled' => MonthItemDeviation::isSettled($category->type, $rhythm, false),
             'is_idle_even_annual' => $isEvenAnnual,
             'rhythm' => $rhythm?->value,
@@ -87,6 +91,9 @@ final class MonthPlanJoinCandidates
             'current_plan_minor_units' => 0,
             'even_annual_remaining' => $isEvenAnnual
                 ? MonthPlanItemRow::evenAnnualRemaining(0, 0, $timing, $budgetYear, $today)
+                : null,
+            'collected' => $rhythm === Rhythm::Irregular
+                ? ['start_minor_units' => $collectedAtStart, 'end_minor_units' => $collectedAtStart]
                 : null,
             'year_comparison' => $timing === 'current'
                 ? ['year_minor_units' => 0, 'annual_plan_minor_units' => 0, 'remaining_minor_units' => 0, 'is_over_year' => false]

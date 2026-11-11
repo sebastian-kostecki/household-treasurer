@@ -23,7 +23,7 @@ class CategoryListController extends Controller
 
     public function store(StoreListCategoryRequest $request, CreateListCategory $createListCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null, opening_collected_minor_units?: int|null} $attributes */
         $attributes = $request->validated();
         $createListCategory->handle($request->user(), $attributes, CarbonImmutable::today('UTC'));
 
@@ -37,7 +37,7 @@ class CategoryListController extends Controller
 
     public function update(UpdateListCategoryRequest $request, Category $category, UpdateListCategory $updateListCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null, opening_collected_minor_units?: int|null} $attributes */
         $attributes = $request->validated();
         $updateListCategory->handle($category, $attributes, CarbonImmutable::today('UTC'));
 

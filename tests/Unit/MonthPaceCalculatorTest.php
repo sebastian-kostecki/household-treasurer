@@ -12,6 +12,7 @@ function canonicalPaceItems(): array
         ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 150_000, 'actual' => 60_000],
         ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 40_000, 'actual' => 52_000],
         ['type' => CategoryType::Expense, 'rhythm' => Rhythm::EvenAnnual, 'plan' => 100_000, 'actual' => 30_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Irregular, 'plan' => 50_000, 'actual' => 90_000],
     ];
 }
 

@@ -32,6 +32,8 @@ function categoryRhythmMigrationArtisan(string $command): void
         '--path' => [
             database_path('migrations/2026_11_10_120000_create_category_rhythms_table.php'),
             database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
+            // S-26: the opening Collected column; its `down()` runs first and keeps the table the old shape.
+            database_path('migrations/2026_11_11_073254_add_opening_collected_to_category_rhythms.php'),
         ],
         '--realpath' => true,
         '--force' => true,

@@ -25,7 +25,7 @@ class UpdateListCategory
     public function __construct(private readonly ChangeCategoryRhythm $changeCategoryRhythm) {}
 
     /**
-     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null}  $attributes
+     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null, opening_collected_minor_units?: int|null}  $attributes
      */
     public function handle(Category $category, array $attributes, ?CarbonImmutable $today = null): Category
     {
@@ -81,14 +81,19 @@ class UpdateListCategory
      * request names one, an income loses its history) and a `rhythm` sent with
      * the request; the Budget page sends none and leaves it as it is (ADR-0072).
      *
-     * @param  array{rhythm?: string|null, ...}  $attributes
+     * @param  array{rhythm?: string|null, opening_collected_minor_units?: int|null, ...}  $attributes
      */
     private function writeRhythm(Category $category, CategoryType $type, array $attributes, CarbonImmutable $today): void
     {
         $requested = isset($attributes['rhythm']) ? Rhythm::from($attributes['rhythm']) : null;
 
         if ($category->wasChanged('type') || ($type === CategoryType::Expense && $requested !== null)) {
-            $this->changeCategoryRhythm->handle($category, $type === CategoryType::Expense ? $requested : null, $today);
+            $this->changeCategoryRhythm->handle(
+                $category,
+                $type === CategoryType::Expense ? $requested : null,
+                $today,
+                $attributes['opening_collected_minor_units'] ?? null,
+            );
         }
     }
 

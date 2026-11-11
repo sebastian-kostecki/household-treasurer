@@ -39,6 +39,8 @@ function categoryListMigrationFiles(): array
         // S-24: the Rhythm history points at the new `categories`, which the S-18 rollback drops.
         database_path('migrations/2026_11_10_120000_create_category_rhythms_table.php'),
         database_path('migrations/2026_11_10_120001_backfill_category_rhythms.php'),
+        // S-26: a column of the history table the S-18 rollback drops.
+        database_path('migrations/2026_11_11_073254_add_opening_collected_to_category_rhythms.php'),
     ];
 }
 

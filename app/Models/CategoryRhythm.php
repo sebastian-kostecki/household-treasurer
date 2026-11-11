@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property int $start_year
  * @property int $start_month
  * @property Rhythm $rhythm
+ * @property int|null $opening_collected_minor_units
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
     'start_year',
     'start_month',
     'rhythm',
+    'opening_collected_minor_units',
 ])]
 class CategoryRhythm extends Model
 {
@@ -42,6 +44,7 @@ class CategoryRhythm extends Model
             'start_year' => 'integer',
             'start_month' => 'integer',
             'rhythm' => Rhythm::class,
+            'opening_collected_minor_units' => 'integer',
         ];
     }
 

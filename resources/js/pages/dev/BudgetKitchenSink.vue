@@ -184,6 +184,10 @@ const executionExpense = [
             rhythm: 'even_annual',
         },
     ),
+    // Nieregularna (ADR-0066): bez kreski "Postęp roku".
+    executionRow(216, 'Rekolekcje', 'expense', 120000, 120000, 45000, 'tag', {
+        rhythm: 'irregular',
+    }),
 ];
 
 // Budżet z grupami (ADR-0069): "Opłaty stałe" (Czynsz, Prąd), Jedzenie bez

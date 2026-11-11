@@ -50,7 +50,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(9, $snapshot['version']);
+        $this->assertSame(10, $snapshot['version']);
         $this->assertSame([], $snapshot['category_groups']);
         $this->assertNull($snapshot['categories'][0]['category_group_id']);
         $this->assertSame([], $snapshot['month_plans']);
@@ -233,7 +233,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(9, $snapshot['version']);
+        $this->assertSame(10, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -811,7 +811,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(9, $snapshot['version']);
+        $this->assertSame(10, $snapshot['version']);
         $this->assertCount(1, $snapshot['category_groups']);
         $this->assertSame(
             ['id', 'name', 'type', 'sort_order', 'created_at', 'updated_at'],
@@ -963,7 +963,10 @@ class UserSnapshotCommandTest extends TestCase
         $byName = collect($snapshot['categories'])->keyBy('name');
 
         $this->assertSame(
-            [['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 3], ['rhythm' => 'fixed_charge', 'start_year' => 2026, 'start_month' => 11]],
+            [
+                ['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 3, 'opening_collected_minor_units' => null],
+                ['rhythm' => 'fixed_charge', 'start_year' => 2026, 'start_month' => 11, 'opening_collected_minor_units' => null],
+            ],
             $byName['Czynsz']['rhythms'],
         );
         $this->assertCount(1, $byName['Żywność']['rhythms']);
@@ -1189,6 +1192,145 @@ class UserSnapshotCommandTest extends TestCase
         }
     }
 
+    public function test_snapshot_v10_round_trips_an_irregular_category_with_its_opening_collected_and_month(): void
+    {
+        Storage::fake('local');
+        $this->travelTo('2026-03-10');
+
+        $sourceUser = User::factory()->create();
+        $irregular = Category::factory()->for($sourceUser)->expense()->create(['name' => 'Serwis auta']);
+        Category::factory()->for($sourceUser)->expense()->create(['name' => 'Żywność']);
+        app(ChangeCategoryRhythm::class)->handle($irregular, Rhythm::Irregular, CarbonImmutable::parse('2026-07-02'), 50000);
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+        $byName = collect($snapshot['categories'])->keyBy('name');
+
+        $this->assertSame(10, $snapshot['version']);
+        $this->assertSame(
+            [
+                ['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 3, 'opening_collected_minor_units' => null],
+                ['rhythm' => 'irregular', 'start_year' => 2026, 'start_month' => 7, 'opening_collected_minor_units' => 50000],
+            ],
+            $byName['Serwis auta']['rhythms'],
+        );
+        $this->assertNull($byName['Żywność']['rhythms'][0]['opening_collected_minor_units']);
+
+        $targetUser = User::factory()->create();
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restored = $targetUser->categories()->with('rhythms')->get()->keyBy('name');
+
+        $this->assertSame(
+            [[Rhythm::Running, 2026, 3, null], [Rhythm::Irregular, 2026, 7, 50000]],
+            $restored['Serwis auta']->rhythms
+                ->map(fn (CategoryRhythm $entry): array => [$entry->rhythm, $entry->start_year, $entry->start_month, $entry->opening_collected_minor_units])
+                ->all(),
+        );
+        $this->assertNull($restored['Żywność']->rhythms->sole()->opening_collected_minor_units);
+    }
+
+    public function test_restore_command_rejects_an_inconsistent_v10_snapshot(): void
+    {
+        Storage::fake('local');
+        $this->travelTo('2026-03-10');
+
+        $sourceUser = User::factory()->create();
+        $irregular = Category::factory()->for($sourceUser)->expense()->create(['name' => 'Serwis auta', 'sort_order' => 1]);
+        Category::factory()->for($sourceUser)->expense()->create(['name' => 'Czynsz', 'sort_order' => 2]);
+        app(ChangeCategoryRhythm::class)->handle($irregular, Rhythm::Irregular, CarbonImmutable::parse('2026-07-02'), 50000);
+        $valid = json_decode(file_get_contents(app(BackupUserData::class)->handle($sourceUser)), true);
+        $irregularIndex = collect($valid['categories'])->search(fn (array $category): bool => $category['name'] === 'Serwis auta');
+        $otherIndex = collect($valid['categories'])->search(fn (array $category): bool => $category['name'] === 'Czynsz');
+
+        $mutations = [
+            'irregular without an amount' => function (array $snapshot) use ($irregularIndex): array {
+                $snapshot['categories'][$irregularIndex]['rhythms'][1]['opening_collected_minor_units'] = null;
+
+                return $snapshot;
+            },
+            'negative amount' => function (array $snapshot) use ($irregularIndex): array {
+                $snapshot['categories'][$irregularIndex]['rhythms'][1]['opening_collected_minor_units'] = -1;
+
+                return $snapshot;
+            },
+            'non-numeric amount' => function (array $snapshot) use ($irregularIndex): array {
+                $snapshot['categories'][$irregularIndex]['rhythms'][1]['opening_collected_minor_units'] = '500';
+
+                return $snapshot;
+            },
+            'amount on another rhythm' => function (array $snapshot) use ($otherIndex): array {
+                $snapshot['categories'][$otherIndex]['rhythms'][0]['opening_collected_minor_units'] = 100;
+
+                return $snapshot;
+            },
+        ];
+
+        foreach ($mutations as $label => $mutate) {
+            $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/broken-opening.json');
+            file_put_contents($brokenPath, json_encode($mutate($valid), JSON_THROW_ON_ERROR));
+            $targetUser = User::factory()->create();
+
+            $exitCode = Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $brokenPath, '--force' => true]);
+
+            $this->assertSame(1, $exitCode, $label);
+            $this->assertSame(0, $targetUser->categories()->count(), $label);
+        }
+    }
+
+    public function test_restore_command_restores_the_v9_fixture_with_the_rhythm_history_and_no_opening_collected(): void
+    {
+        $this->travelTo('2026-11-10');
+        $targetUser = User::factory()->create();
+
+        $exitCode = Artisan::call('user:restore', [
+            'user' => $targetUser->email,
+            'path' => base_path('tests/Fixtures/snapshots/v9-category-list.json'),
+            '--force' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(
+            [
+                'Czynsz' => [['running', 2026, 1], ['fixed_charge', 2026, 11]],
+                'Pensja' => [],
+                'Rekolekcje' => [['even_annual', 2026, 1]],
+            ],
+            $this->rhythmsByName($targetUser),
+        );
+        $this->assertSame(
+            0,
+            CategoryRhythm::query()->whereIn('category_id', $targetUser->categories()->select('id'))->whereNotNull('opening_collected_minor_units')->count(),
+        );
+    }
+
+    public function test_restore_command_restores_a_v9_snapshot_written_by_the_current_code_and_refuses_an_irregular_entry_in_it(): void
+    {
+        Storage::fake('local');
+        $this->travelTo('2026-03-10');
+
+        $sourceUser = User::factory()->create();
+        Category::factory()->for($sourceUser)->expense()->create(['name' => 'Czynsz']);
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $valid = $this->asV9Snapshot(json_decode(file_get_contents($path), true));
+        $v9Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v9.json');
+        file_put_contents($v9Path, json_encode($valid, JSON_THROW_ON_ERROR));
+
+        $this->assertSame(9, $valid['version']);
+        $this->assertArrayNotHasKey('opening_collected_minor_units', $valid['categories'][0]['rhythms'][0]);
+
+        $targetUser = User::factory()->create();
+        $this->assertSame(0, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $v9Path, '--force' => true]), Artisan::output());
+        $this->assertSame(['Czynsz' => [['running', 2026, 3]]], $this->rhythmsByName($targetUser));
+
+        $valid['categories'][0]['rhythms'][0]['rhythm'] = 'irregular';
+        file_put_contents($v9Path, json_encode($valid, JSON_THROW_ON_ERROR));
+        $otherUser = User::factory()->create();
+
+        $this->assertSame(1, Artisan::call('user:restore', ['user' => $otherUser->email, 'path' => $v9Path, '--force' => true]));
+        $this->assertSame(0, $otherUser->categories()->count());
+    }
+
     public function test_a_v8_one_off_flag_restores_as_even_annual(): void
     {
         Storage::fake('local');
@@ -1249,6 +1391,29 @@ class UserSnapshotCommandTest extends TestCase
         ksort($result);
 
         return $result;
+    }
+
+    /**
+     * Turns a snapshot written by the current code into version 9: the Rhythm
+     * history without Opening Collected.
+     *
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function asV9Snapshot(array $snapshot): array
+    {
+        $snapshot['categories'] = array_map(function (array $category): array {
+            $category['rhythms'] = array_map(function (array $entry): array {
+                unset($entry['opening_collected_minor_units']);
+
+                return $entry;
+            }, $category['rhythms']);
+
+            return $category;
+        }, $snapshot['categories']);
+        $snapshot['version'] = 9;
+
+        return $snapshot;
     }
 
     /**

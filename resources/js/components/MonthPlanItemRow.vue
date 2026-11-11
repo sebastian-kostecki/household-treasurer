@@ -21,12 +21,15 @@ const props = withDefaults(
         deviation: number | null;
         overPlan: boolean;
         status: MonthItemStatus | null;
+        /** The Collected at the end of the month (live while the rate is typed); null for a row that is not irregular. */
+        collectedMinorUnits?: number | null;
         yearStale?: boolean;
         invalid?: boolean;
         /** Button or marker "plan = actual" in change mode (ADR-0062). */
         matchActual?: MatchActualState;
     }>(),
     {
+        collectedMinorUnits: null,
         yearStale: false,
         invalid: false,
         matchActual: null,
@@ -64,8 +67,16 @@ const showsYearLine = computed(
     () => props.row.year_comparison !== null && !props.row.is_idle_even_annual,
 );
 
+const showsCollected = computed(
+    () =>
+        props.row.rhythm === 'irregular' && props.collectedMinorUnits !== null,
+);
+
 const hasSubtitle = computed(
-    () => showsYearLine.value || props.row.even_annual_remaining !== null,
+    () =>
+        showsYearLine.value ||
+        props.row.even_annual_remaining !== null ||
+        showsCollected.value,
 );
 
 const rhythmLabel = computed(() => {
@@ -76,6 +87,8 @@ const rhythmLabel = computed(() => {
             return t.month_plan.rhythm_running;
         case 'even_annual':
             return t.month_plan.rhythm_even_annual;
+        case 'irregular':
+            return t.month_plan.rhythm_irregular;
         default:
             return '';
     }
@@ -165,6 +178,17 @@ const deviationClass = computed(() => {
                         >
                             <template v-if="showsYearLine">· </template
                             >{{ evenAnnualRemainingText }}
+                        </span>
+                        <span
+                            v-if="
+                                showsCollected && collectedMinorUnits !== null
+                            "
+                            class="tabular-nums"
+                            data-collected
+                        >
+                            <template v-if="showsYearLine">· </template
+                            >{{ t.month_plan.collected }}
+                            {{ formatMoneyAmount(collectedMinorUnits) }}
                         </span>
                     </span>
                 </template>

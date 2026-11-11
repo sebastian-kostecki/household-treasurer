@@ -13,19 +13,20 @@ import {
 /**
  * Walks the selected import rows in index order. Each income, expense or
  * refund row with a category is compared against the month plan together with
- * the rows above it (`pending`). Interest of a capital movement adds an income
+ * the rows above it (`pending`); a row warns for every month it pushes below
+ * zero, also a later month of an Irregular period. Interest of a capital movement adds an income
  * change to `pending` but never warns on its own row.
  */
 export function computeImportToSpendWarnings(
     rows: ImportRow[],
     selections: Record<number, RowSelection>,
     inputs: EntryToSpendInputs,
-): Record<number, ToSpendWarning | null> {
-    const warnings: Record<number, ToSpendWarning | null> = {};
+): Record<number, ToSpendWarning[]> {
+    const warnings: Record<number, ToSpendWarning[]> = {};
     const pending: ToSpendEntryChange[] = [];
 
     for (const row of rows) {
-        warnings[row.index] = null;
+        warnings[row.index] = [];
 
         const selection = selections[row.index];
 
@@ -77,8 +78,7 @@ export function computeImportToSpendWarnings(
             direction: 'add',
         };
 
-        warnings[row.index] =
-            previewToSpendWarnings(inputs, [change], pending)[0] ?? null;
+        warnings[row.index] = previewToSpendWarnings(inputs, [change], pending);
         pending.push(change);
     }
 

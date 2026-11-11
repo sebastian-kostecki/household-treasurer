@@ -55,6 +55,10 @@ describe('showsYearElapsedMark', () => {
         expect(showsYearElapsedMark('expense', 'even_annual')).toBe(true);
     });
 
+    it('has no mark for an irregular expense', () => {
+        expect(showsYearElapsedMark('expense', 'irregular')).toBe(false);
+    });
+
     it('stays silent for an expense without a rhythm', () => {
         expect(showsYearElapsedMark('expense', null)).toBe(false);
         expect(showsYearElapsedMark('expense', undefined)).toBe(false);

@@ -75,6 +75,10 @@ const expenseCategories = [
     category(5, 'Transport', 'car', DEFAULT_CATEGORY_COLOR, 60000, 25000, {
         rhythm: 'running',
     }),
+    // Nieregularna (ADR-0066): bez kreski "Postęp roku".
+    category(6, 'Rekolekcje', 'tag', DEFAULT_CATEGORY_COLOR, 120000, 45000, {
+        rhythm: 'irregular',
+    }),
 ];
 
 const defaultProps: DashboardPageProps = {

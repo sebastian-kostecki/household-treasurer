@@ -24,6 +24,7 @@ import {
     dialogAccounts,
     dialogCapitalMovement,
     dialogEntryToSpend,
+    dialogPreviousMonthDate,
     dialogExpenseCategories,
     dialogExpenseOperation,
     dialogHandEntryMonthRemaining,
@@ -54,6 +55,9 @@ const states = [
     'category-list-rhythm',
     'category-list-income',
     'category-list-rhythm-error',
+    'category-list-irregular-new',
+    'category-list-irregular-edit',
+    'category-list-irregular-bad-amount',
     'category-group-new',
     'category-group-rename-error',
     'budget-create',
@@ -79,6 +83,7 @@ const states = [
     'expense-edit',
     'expense-refund-edit',
     'expense-warnings',
+    'expense-later-month-warning',
     'expense-month-without-plan',
     'expense-bad-amount',
     'expense-errors',
@@ -115,6 +120,12 @@ const labels: Record<SinkState, string> = {
         'Kategoria listy: edycja rytmu (równomierna roczna)',
     'category-list-income': 'Kategoria listy: przychód (bez pola Rytm)',
     'category-list-rhythm-error': 'Kategoria listy: błąd pola Rytm',
+    'category-list-irregular-new':
+        'Kategoria listy: nowe oznaczenie nieregularnej (zebrane startowe)',
+    'category-list-irregular-edit':
+        'Kategoria listy: edycja istniejącej nieregularnej',
+    'category-list-irregular-bad-amount':
+        'Kategoria listy: zła kwota zebranego startowego',
     'budget-create': 'Utwórz budżet: szkic z planem z poprzedniego roku',
     'budget-create-no-source': 'Utwórz budżet: bez wcześniejszego budżetu',
     'budget-create-empty': 'Utwórz budżet: pusta lista kategorii',
@@ -141,6 +152,8 @@ const labels: Record<SinkState, string> = {
     'expense-edit': 'Wydatek: edycja (przed = po)',
     'expense-refund-edit': 'Wydatek: edycja zwrotu (trzy typy)',
     'expense-warnings': 'Wydatek: ostrzeżenia w podglądzie',
+    'expense-later-month-warning':
+        'Wydatek: ostrzeżenie o późniejszym miesiącu (nieregularna)',
     'expense-month-without-plan': 'Wydatek: miesiąc bez planu',
     'expense-bad-amount': 'Wydatek: zła kwota',
     'expense-errors': 'Wydatek: zapis i błędy (wybierz Dochód)',
@@ -202,6 +215,8 @@ const listCategory: CategoryListItem = {
     description:
         'Zakupy spożywcze, chemia domowa i drobiazgi z osiedlowego sklepu.',
     rhythm: 'running',
+    opening_collected_minor_units: null,
+    irregular_since: null,
     budget_years: [2026],
     can_change_type: true,
     can_delete: true,
@@ -213,6 +228,19 @@ const rhythmChangeMonth = { year: 2026, month: 11 };
 const evenAnnualListCategory: CategoryListItem = {
     ...listCategory,
     rhythm: 'even_annual',
+};
+
+const irregularListCategory: CategoryListItem = {
+    ...listCategory,
+    name: 'Serwis auta',
+    rhythm: 'irregular',
+    opening_collected_minor_units: 50000,
+    irregular_since: { year: 2026, month: 8 },
+};
+
+const newlyIrregularListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'irregular',
 };
 
 const incomeListCategory: CategoryListItem = {
@@ -233,6 +261,14 @@ const warningOperation = {
     ...dialogExpenseOperation,
     account_id: 2,
     category_id: 2,
+};
+
+/** An overdue bill of an Irregular category from the previous month uses up the Collected of the current one. */
+const laterMonthOperation = {
+    ...dialogExpenseOperation,
+    operation_date: dialogPreviousMonthDate,
+    amount_minor_units: 1000,
+    category_id: 5,
 };
 
 /** The current month has no plan, so Month Remaining warnings replace To Spend. */
@@ -449,6 +485,35 @@ function setOpen(state: SinkState, value: boolean): void {
             :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-rhythm-error', $event)"
         />
+        <!-- A new marking: „nieregularna” chosen, no period yet, so the hint is the one for a new marking. -->
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-new')"
+            mode="edit"
+            default-type="expense"
+            :category="newlyIrregularListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-new', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-edit')"
+            mode="edit"
+            default-type="expense"
+            :category="irregularListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-edit', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-bad-amount')"
+            mode="edit"
+            default-type="expense"
+            :category="irregularListCategory"
+            initial-opening-collected-input="12,345"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-bad-amount', $event)"
+        />
         <CategoryGroupFormDialog
             :open="isOpen('category-group-new')"
             mode="create"
@@ -587,6 +652,18 @@ function setOpen(state: SinkState, value: boolean): void {
             :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
             :entry-to-spend="dialogEntryToSpend"
             @update:open="setOpen('expense-warnings', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-later-month-warning')"
+            mode="edit"
+            :operation="laterMonthOperation"
+            initial-amount-input="200,00"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-later-month-warning', $event)"
         />
         <ExpenseFormDialog
             :open="isOpen('expense-month-without-plan')"

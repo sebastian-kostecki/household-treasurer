@@ -1366,6 +1366,176 @@ class MonthPlanPageTest extends TestCase
     }
 
     /**
+     * US-02: an Irregular expense with 300,00 collected on 1 July 2027 and a rate of 150,00 (plan 1 800,00).
+     *
+     * @return array{0: User, 1: Budget, 2: BudgetLine}
+     */
+    private function irregularJuly(?int $approvedRate = 15_000): array
+    {
+        $this->travelTo('2027-07-15');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        $service = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Serwis auta', 'sort_order' => 1, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $service->category->rhythms()->update(['start_month' => 7, 'opening_collected_minor_units' => 30_000]);
+
+        if ($approvedRate !== null) {
+            $plan = MonthPlan::factory()->for($budget)->create(['month' => 7]);
+            MonthPlanItem::query()->create([
+                'month_plan_id' => $plan->id,
+                'budget_line_id' => $service->id,
+                'approved_amount_minor_units' => $approvedRate,
+                'current_amount_minor_units' => $approvedRate,
+            ]);
+        }
+
+        return [$user, $budget, $service];
+    }
+
+    public function test_a_bill_covered_by_the_collected_leaves_the_rest_and_costs_only_the_rate(): void
+    {
+        [$user, $budget, $service] = $this->irregularJuly();
+        $this->operation($user, $budget, $service, '2027-07-10', 40_000);
+        $service->update(['execution_minor_units' => 40_000]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.to_spend_minor_units', -15_000)
+                ->where('monthPlan.expense_items.0.rhythm', 'irregular')
+                ->where('monthPlan.expense_items.0.plan_minor_units', 15_000)
+                ->where('monthPlan.expense_items.0.actual_minor_units', 40_000)
+                ->where('monthPlan.expense_items.0.collected', ['start_minor_units' => 30_000, 'end_minor_units' => 5_000])
+                ->where('monthPlan.expense_items.0.deviation_minor_units', 0)
+                ->where('monthPlan.expense_items.0.is_over_plan', false)
+                ->where('monthPlan.expense_items.0.is_settled', false)
+                ->where('monthPlan.expense_items.0.is_idle_even_annual', false)
+                ->where('monthPlan.expense_items.0.even_annual_remaining', null)
+                ->where('monthPlan.expense_items.0.year_comparison.year_minor_units', 40_000),
+            );
+    }
+
+    public function test_a_bill_above_the_collected_shows_the_surplus_and_lowers_to_spend_by_it(): void
+    {
+        [$user, $budget, $service] = $this->irregularJuly();
+        $this->operation($user, $budget, $service, '2027-07-10', 60_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.to_spend_minor_units', -30_000)
+                ->where('monthPlan.expense_items.0.collected', ['start_minor_units' => 30_000, 'end_minor_units' => 0])
+                ->where('monthPlan.expense_items.0.deviation_minor_units', 15_000)
+                ->where('monthPlan.expense_items.0.is_over_plan', true),
+            );
+    }
+
+    public function test_other_rhythms_have_no_collected(): void
+    {
+        [$user] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.0.collected', null)
+                ->where('monthPlan.expense_items.1.collected', null)
+                ->where('monthPlan.income_items.0.collected', null),
+            );
+    }
+
+    public function test_a_future_month_shows_the_forecast_of_the_collected_with_the_rate_of_the_formula(): void
+    {
+        [$user, $budget, $service] = $this->irregularJuly();
+        $this->operation($user, $budget, $service, '2027-07-10', 40_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan', ['month' => 8]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'future')
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.expense_items.0.plan_minor_units', 15_000)
+                ->where('monthPlan.expense_items.0.collected', ['start_minor_units' => 5_000, 'end_minor_units' => 20_000]),
+            );
+    }
+
+    public function test_a_past_month_shows_the_collected_at_its_end_and_the_surplus_while_the_summary_stays_a_plain_sum(): void
+    {
+        [$user, $budget, $service] = $this->irregularJuly();
+        $this->operation($user, $budget, $service, '2027-07-10', 60_000);
+        $this->travelTo('2027-08-10');
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan', ['month' => 7]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'past')
+                ->where('monthPlan.expense_items.0.collected', ['start_minor_units' => 30_000, 'end_minor_units' => 0])
+                ->where('monthPlan.expense_items.0.deviation_minor_units', 15_000)
+                ->where('monthPlan.expense_items.0.is_over_plan', true)
+                ->where('monthPlan.summary.expense.approved_minor_units', 15_000)
+                ->where('monthPlan.summary.expense.actual_minor_units', 60_000),
+            );
+    }
+
+    public function test_an_approved_month_without_an_item_has_the_rate_zero_and_the_row_outside_the_plan(): void
+    {
+        [$user, $budget, $service] = $this->irregularJuly(approvedRate: null);
+        $other = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Jedzenie', 'sort_order' => 2]);
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 7]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'budget_line_id' => $other->id,
+            'approved_amount_minor_units' => 10_000,
+            'current_amount_minor_units' => 10_000,
+        ]);
+        $this->operation($user, $budget, $service, '2027-07-10', 20_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items.0.name', 'Serwis auta')
+                ->where('monthPlan.expense_items.0.in_plan', false)
+                ->where('monthPlan.expense_items.0.plan_minor_units', 0)
+                ->where('monthPlan.expense_items.0.collected', ['start_minor_units' => 30_000, 'end_minor_units' => 10_000]),
+            );
+    }
+
+    public function test_a_join_candidate_of_an_irregular_category_carries_the_collected(): void
+    {
+        [$user, $budget, $service] = $this->irregularJuly();
+        $candidate = Category::factory()->for($user)->expense()->create(['name' => 'Naprawa dachu']);
+        $candidate->rhythms()->delete();
+        $candidate->rhythms()->create(['start_year' => 2027, 'start_month' => 7, 'rhythm' => Rhythm::Irregular, 'opening_collected_minor_units' => 25_000]);
+        $this->operation($user, $budget, $service, '2027-07-10', 40_000);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('month-plan', ['month' => 8]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', function ($items) {
+                    $join = collect($items)->firstWhere('name', 'Naprawa dachu');
+
+                    return $join['is_join_candidate'] === true
+                        && $join['rhythm'] === 'irregular'
+                        && $join['collected'] === ['start_minor_units' => 25_000, 'end_minor_units' => 25_000]
+                        && $join['is_idle_even_annual'] === false;
+                }),
+            );
+    }
+
+    /**
      * @param  array<string, BudgetLine>  $categories
      */
     private function approveJune(User $user, Budget $budget, array $categories): void

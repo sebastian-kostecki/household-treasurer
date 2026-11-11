@@ -275,6 +275,13 @@ export const sampleToSpendWarning: ToSpendWarning = {
     toSpendAfterMinorUnits: -45_000,
 };
 
+/** A later month of an Irregular period, pushed below zero by the Collected the row used up. */
+export const sampleLaterMonthToSpendWarning: ToSpendWarning = {
+    year: 2026,
+    month: 11,
+    toSpendAfterMinorUnits: -20_000,
+};
+
 export const sampleMonthRemainingWarning: MonthRemainingWarningState = {
     showCategoryWarning: true,
     showPoolWarning: true,

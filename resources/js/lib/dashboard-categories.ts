@@ -55,8 +55,9 @@ export function showsYearElapsedMark(
         return true;
     }
 
-    // Every expense Rhythm has the mark; the irregular one (S-26) will not.
-    return rhythm !== null && rhythm !== undefined;
+    // Every expense Rhythm has the mark but the irregular one (ADR-0066): its
+    // bill is not spread over the year, so "Postęp roku" would say nothing.
+    return rhythm !== null && rhythm !== undefined && rhythm !== 'irregular';
 }
 
 export function progressWidth(percentComplete: number | null): string {

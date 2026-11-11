@@ -7,6 +7,7 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CategoryRhythm;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -95,6 +96,7 @@ class NfrPerf03ImportPreviewTest extends TestCase
         }
 
         $this->insertHistory($user, $account, $budgetIdsByYear, $categoryIdsByYear, $dominantShop);
+        $this->seedIrregularCategory($user, $account, $budgetIdsByYear);
 
         $csv = $this->buildCsv($dominantShop);
 
@@ -133,6 +135,53 @@ class NfrPerf03ImportPreviewTest extends TestCase
 
                 $this->assertGreaterThanOrEqual(1, $suggested, 'No preview row received a category suggestion.');
             });
+    }
+
+    /**
+     * An Irregular Category with bills in every month of both years: the entry
+     * warnings of the preview read its Collected chain (ADR-0073).
+     *
+     * @param  array<int, int>  $budgetIdsByYear
+     */
+    private function seedIrregularCategory(User $user, Account $account, array $budgetIdsByYear): void
+    {
+        $now = now();
+        $rows = [];
+        $categoryId = null;
+
+        foreach ($budgetIdsByYear as $year => $budgetId) {
+            $line = BudgetLine::factory()->expense()->create([
+                'budget_id' => $budgetId,
+                'name' => 'Rekolekcje',
+                'planned_amount_minor_units' => 1_200_000,
+                ...($categoryId === null ? [] : ['category_id' => $categoryId]),
+            ]);
+
+            if ($categoryId === null) {
+                $categoryId = $line->category_id;
+                $line->category->rhythms()->delete();
+                CategoryRhythm::factory()->starting(2025, 1)->irregular(50_000)->create(['category_id' => $categoryId]);
+            }
+
+            foreach (range(1, 12) as $month) {
+                foreach ([5, 15, 25] as $day) {
+                    $rows[] = [
+                        'user_id' => $user->id,
+                        'type' => FinancialOperationType::Expense->value,
+                        'account_id' => $account->id,
+                        'budget_line_id' => $line->id,
+                        'budget_id' => $budgetId,
+                        'operation_date' => sprintf('%d-%02d-%02d', $year, $month, $day),
+                        'amount_minor_units' => 20_000 + $month * 100,
+                        'description' => "Irregular bill {$year}-{$month}-{$day}",
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+            }
+        }
+
+        DB::table('financial_operations')->insert($rows);
     }
 
     /**

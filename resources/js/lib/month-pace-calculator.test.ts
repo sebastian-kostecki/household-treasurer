@@ -39,6 +39,12 @@ function canonicalItems(): MonthPaceItem[] {
             plan: 100_000,
             actual: 30_000,
         },
+        {
+            type: 'expense',
+            rhythm: 'irregular',
+            plan: 50_000,
+            actual: 90_000,
+        },
     ];
 }
 

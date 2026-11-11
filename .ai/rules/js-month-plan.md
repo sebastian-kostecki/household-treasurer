@@ -16,6 +16,8 @@ The grid is `.month-plan-grid` with the rows `.month-plan-header-row` (applies t
 
 The "Faktycznie" cell (`.month-plan-cell-actual`) lays out like "Zatwierdzony" (caption, control, amount). `MonthPlanMatchActual` (the button "Ustaw plan na wydatki" or the marker "Plan podniesiony do wydatków", never both) stands before the amount, below `xl` in the caption line; its hit area comes from the named class `.month-plan-match-actual` in app.css (at least 24 px, WCAG 2.5.8). After the click the row moves focus to the plan field, because the button turns into the marker. The state comes from `matchActualState` (`lib/month-plan-match-actual.ts`), not from page state (ADR-0062).
 
+An irregular row (ADR-0066, ADR-0073) shows the rate in the „Plan” column, the bill in „Faktycznie”, the excess in „Odchylenie” and the caption `zebrane X` (`data-collected`) under the name, after the „W roku” line and a „·”; X is the Collected at the end of the month, computed live from the typed rate by the TS copy of `CollectedCalculator`. Change mode starts from the saved rate and never offers „Ustaw plan na wydatki” for it (`matchActualState`).
+
 ## Status badges come from monthItemStatus
 
 The table has a Status column (ADR-0042). The badge comes from `monthItemStatus` (resources/js/lib/month-plan-status.ts), called in the page's `rowState` with the live plan amount and whether the month is closed (`summary !== null`): nothing planned and nothing settled has no badge, and a closed month says „niezapłacone” / „nie wpłynęło” instead of „do zapłaty” / „czeka”. Badge `brand` marks the approved plan, `outline` a closed past month („Końcowy”).

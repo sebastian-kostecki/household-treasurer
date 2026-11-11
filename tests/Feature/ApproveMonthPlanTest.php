@@ -8,6 +8,8 @@ use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\User;
+use App\Support\CategoryRhythms;
+use App\Support\IrregularCollected;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -237,6 +239,24 @@ class ApproveMonthPlanTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
+    public function test_approving_freezes_the_rate_of_an_irregular_category_for_the_collected_of_the_next_month(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $service = BudgetLine::factory()->for($budget)->irregular()->create(['planned_amount_minor_units' => 180_000]);
+        $service->category->rhythms()->update(['start_month' => 11, 'opening_collected_minor_units' => 30_000]);
+
+        $this->approve($budget, 11, [$service->category_id => 15_000]);
+        $service->update(['planned_amount_minor_units' => 360_000]);
+
+        $rhythms = CategoryRhythms::forCategoryIds([$service->category_id]);
+
+        $this->assertSame(
+            45_000,
+            IrregularCollected::forUser($user, $rhythms)->collectedAtStartOfMonth($service->category_id, 2026, 12),
+        );
+    }
+
     private function approve(Budget $budget, int $month, array $amounts, int $setAside = 0): MonthPlan
     {
         return app(ApproveMonthPlan::class)->handle(

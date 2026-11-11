@@ -11,6 +11,8 @@ use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
+use App\Support\CategoryRhythms;
+use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -344,6 +346,22 @@ class ChangeMonthPlanTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
+    public function test_changing_the_rate_of_an_irregular_category_changes_the_collected_of_the_following_months(): void
+    {
+        $service = BudgetLine::factory()->for($this->budget)->irregular()->create(['planned_amount_minor_units' => 180_000]);
+        $service->category->rhythms()->update(['start_month' => 6, 'opening_collected_minor_units' => 0]);
+        $this->approvedPlan(6, [$service->id => 15_000]);
+
+        $collected = fn (): int => IrregularCollected::forUser($this->user, CategoryRhythms::forCategoryIds([$service->category_id]))
+            ->collectedAtStartOfMonth($service->category_id, 2026, 7);
+
+        $this->assertSame(15_000, $collected());
+
+        $this->change(6, [$service->category_id => 25_000]);
+
+        $this->assertSame(25_000, $collected());
+    }
+
     private function change(int $month, array $amounts): MonthPlan
     {
         return app(ChangeMonthPlan::class)->handle(

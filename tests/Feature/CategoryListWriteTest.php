@@ -317,6 +317,44 @@ class CategoryListWriteTest extends TestCase
         $this->assertFalse($category->fresh()->isArchived());
     }
 
+    public function test_a_category_created_as_irregular_keeps_the_opening_collected_and_the_edit_can_correct_it(): void
+    {
+        $this->travelTo('2026-11-10');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('categories.list.store'), $this->fields(['name' => 'Serwis auta', 'rhythm' => 'irregular', 'opening_collected_minor_units' => 50000]))
+            ->assertSessionHasNoErrors();
+
+        $category = Category::query()->where('user_id', $user->id)->where('name', 'Serwis auta')->sole();
+        $entry = $category->rhythms()->sole();
+
+        $this->assertSame([50000, 2026, 11], [$entry->opening_collected_minor_units, $entry->start_year, $entry->start_month]);
+
+        $this->travelTo('2026-12-02');
+        $this->actingAs($user)
+            ->patch(route('categories.list.update', $category), $this->fields(['name' => 'Serwis auta', 'rhythm' => 'irregular', 'opening_collected_minor_units' => 20000]))
+            ->assertSessionHasNoErrors();
+
+        $entry = $category->rhythms()->sole();
+
+        $this->assertSame([20000, 2026, 11], [$entry->opening_collected_minor_units, $entry->start_year, $entry->start_month]);
+    }
+
+    public function test_the_opening_collected_is_refused_for_a_category_that_is_not_irregular(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('categories.list.store'), $this->fields(['rhythm' => 'running', 'opening_collected_minor_units' => 100]))
+            ->assertSessionHasErrors('opening_collected_minor_units');
+        $this->actingAs($user)
+            ->post(route('categories.list.store'), $this->fields(['rhythm' => 'irregular', 'opening_collected_minor_units' => -5]))
+            ->assertSessionHasErrors('opening_collected_minor_units');
+
+        $this->assertSame(0, Category::query()->where('user_id', $user->id)->count());
+    }
+
     public function test_guests_are_redirected_to_the_login_page(): void
     {
         $this->post(route('categories.list.store'), $this->fields())->assertRedirect(route('login'));

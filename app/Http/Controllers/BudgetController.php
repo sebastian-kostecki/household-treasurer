@@ -194,7 +194,7 @@ class BudgetController extends Controller
      *     icon: string,
      *     color: string,
      *     type: string,
-     *     rhythm: 'fixed_charge'|'running'|'even_annual'|null,
+     *     rhythm: 'fixed_charge'|'running'|'even_annual'|'irregular'|null,
      *     group_id: int|null,
      *     sort_order: int,
      *     planned_amount_minor_units: int,

@@ -13,6 +13,10 @@ export type CategoryListItem = {
     description: string | null;
     /** The Rhythm in the current month (ADR-0072), null for an income Category. */
     rhythm: Rhythm | null;
+    /** Opening Collected of the Irregular period in force (ADR-0073), null for any other Rhythm. */
+    opening_collected_minor_units: number | null;
+    /** The month the Irregular period in force started in, null for any other Rhythm. */
+    irregular_since: { year: number; month: number } | null;
     budget_years: number[];
     can_change_type: boolean;
     can_delete: boolean;

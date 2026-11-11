@@ -131,3 +131,24 @@ test('an even annual item has no settlement, a fixed charge waits for payment', 
         monthItemDeviationMinorUnits(expense('fixed_charge', 10_000, 0, false)),
     ).toBeNull();
 });
+
+test.each([
+    ['no bill', 0, 30_000, 0],
+    ['bill covered by the Collected', 40_000, 30_000, 0],
+    ['bill above the Collected', 60_000, 30_000, 15_000],
+    ['bill above the rate with nothing collected', 60_000, 0, 45_000],
+    ['refund', -5_000, 30_000, 0],
+])(
+    'an irregular expense deviates by the surplus (%s)',
+    (_name, actual, collectedAtStart, surplus) => {
+        const item = {
+            ...expense('irregular', 15_000, actual, actual > 0),
+            collectedAtStart,
+        };
+
+        expect(monthItemDeviationMinorUnits(item)).toBe(surplus);
+        expect(
+            isMonthItemOverPlan({ ...item, yearExecution: 0, currentPlan: 0 }),
+        ).toBe(surplus > 0);
+    },
+);

@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 9;
+    public const SNAPSHOT_VERSION = 10;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -185,6 +185,7 @@ class BackupUserData
                     'rhythm' => $entry->rhythm->value,
                     'start_year' => $entry->start_year,
                     'start_month' => $entry->start_month,
+                    'opening_collected_minor_units' => $entry->opening_collected_minor_units,
                 ])
                 ->all(),
             'sort_order' => $category->sort_order,

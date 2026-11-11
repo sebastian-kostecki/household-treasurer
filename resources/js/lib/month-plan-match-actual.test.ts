@@ -29,6 +29,7 @@ function row(overrides: Partial<MonthPlanItem> = {}): MonthPlanItem {
         even_annual_remaining: null,
         approved_minor_units: 10000,
         is_join_candidate: false,
+        collected: null,
         year_comparison: null,
         ...overrides,
     };
@@ -129,5 +130,21 @@ describe('matchActualState', () => {
         expect(
             matchActualState(row({ actual_minor_units: 10000 }), 10000, true),
         ).toBeNull();
+    });
+});
+
+describe('irregular rows', () => {
+    const irregular = row({
+        rhythm: 'irregular',
+        plan_minor_units: 15000,
+        actual_minor_units: 40000,
+        collected: { start_minor_units: 30000, end_minor_units: 5000 },
+    });
+
+    it('starts change mode with the saved rate and offers no button or marker', () => {
+        expect(raisesToActualOnChange(irregular)).toBe(false);
+        expect(changeModeAmountInputs([irregular])).toEqual({ 1: '150,00' });
+        expect(matchActualState(irregular, 15000, true)).toBeNull();
+        expect(matchActualState(irregular, 40000, true)).toBeNull();
     });
 });

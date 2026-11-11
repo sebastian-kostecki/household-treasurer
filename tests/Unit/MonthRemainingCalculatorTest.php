@@ -176,5 +176,6 @@ test('the pool holds fixed charges and running categories, not even annual ones'
     expect(MonthRemainingCalculator::isPoolRhythm(Rhythm::FixedCharge))->toBeTrue()
         ->and(MonthRemainingCalculator::isPoolRhythm(Rhythm::Running))->toBeTrue()
         ->and(MonthRemainingCalculator::isPoolRhythm(Rhythm::EvenAnnual))->toBeFalse()
+        ->and(MonthRemainingCalculator::isPoolRhythm(Rhythm::Irregular))->toBeFalse()
         ->and(MonthRemainingCalculator::isPoolRhythm(null))->toBeFalse();
 });
