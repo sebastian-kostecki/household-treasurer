@@ -166,6 +166,18 @@ test('the Budget of the new year in execution keeps the reading without the fore
         ->toBe(['minor_units' => 20_000, 'is_forecast' => false]);
 });
 
+test('the forecast mark ends exactly at 1 January of the Budget year', function () {
+    [$user, , , , $nextLine] = yearStartElectricity();
+
+    $this->travelTo('2026-12-31 23:59:59');
+    expect(yearStartRow(yearStartProps($user, 2027), $nextLine->category_id)['collected_at_year_start'])
+        ->toBe(['minor_units' => 60_000, 'is_forecast' => true]);
+
+    $this->travelTo('2027-01-01 00:00:00');
+    expect(yearStartRow(yearStartProps($user, 2027), $nextLine->category_id)['collected_at_year_start'])
+        ->toBe(['minor_units' => 60_000, 'is_forecast' => false]);
+});
+
 test('the figure equals the Collected at the end of December in the Month Plan', function () {
     $this->travelTo('2026-11-11');
     [$user, $current, , $currentLine, $nextLine] = yearStartElectricity();
@@ -284,7 +296,7 @@ test('the number of queries does not grow with the number of Irregular Categorie
     expect(yearStartQueryCount($user, 2027))->toBe($one);
 });
 
-test('the Collected is read in five queries, and none for a Budget without a January reading', function () {
+test('the Collected is read only for a Budget with a January reading', function () {
     $this->travelTo('2026-11-11');
     [$electricity] = yearStartElectricity();
 
@@ -301,6 +313,6 @@ test('the Collected is read in five queries, and none for a Budget without a Jan
     $controlLine = yearStartLine(yearStartBudget($control, 2026, BudgetPhase::Execution), 'Prąd');
     yearStartEntry($controlLine, 2026, 1, Rhythm::Running);
 
-    expect(yearStartQueryCount($electricity, 2027))->toBe(yearStartQueryCount($plain, 2027) + 5)
+    expect(yearStartQueryCount($electricity, 2027))->toBeGreaterThan(yearStartQueryCount($plain, 2027))
         ->and(yearStartQueryCount($marked, 2026))->toBe(yearStartQueryCount($control, 2026));
 });

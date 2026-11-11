@@ -7,7 +7,7 @@ import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue'
 import CategoryChip from '@/components/CategoryChip.vue';
 import ExecutionMeter from '@/components/ExecutionMeter.vue';
 import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeVariants } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { executionClass, remainingClass } from '@/lib/budget-category-cells';
 import { showsYearElapsedMark } from '@/lib/dashboard-categories';
@@ -39,6 +39,26 @@ const showsOverLimitBadge = computed(
         props.categoryType === 'expense' &&
         props.category.is_over_limit &&
         !props.category.is_archived,
+);
+
+/** Badges next to the Category name; both chip sizes render this one list. */
+const nameBadges = computed(
+    (): { variant: BadgeVariants['variant']; label: string }[] => {
+        if (isArchived.value) {
+            return [{ variant: 'neutral', label: t.budget.archived_badge }];
+        }
+
+        if (showsOverLimitBadge.value) {
+            return [
+                {
+                    variant: 'destructive-soft',
+                    label: t.budget.over_limit_badge,
+                },
+            ];
+        }
+
+        return [];
+    },
 );
 
 const kindLabel = computed(() => {
@@ -103,14 +123,12 @@ const remainingLabel = computed(() =>
                 size="lg"
             >
                 <template #badges>
-                    <Badge v-if="isArchived" variant="neutral">
-                        {{ t.budget.archived_badge }}
-                    </Badge>
                     <Badge
-                        v-else-if="showsOverLimitBadge"
-                        variant="destructive-soft"
+                        v-for="badge in nameBadges"
+                        :key="badge.label"
+                        :variant="badge.variant"
                     >
-                        {{ t.budget.over_limit_badge }}
+                        {{ badge.label }}
                     </Badge>
                 </template>
 
@@ -121,10 +139,18 @@ const remainingLabel = computed(() =>
                         :title="collectedAtYearStartHint"
                     >
                         {{ t.budget.collected_at_year_start }}
-                        {{ formatMoneyAmount(collectedAtYearStart.minor_units)
-                        }}<template v-if="collectedAtYearStart.is_forecast">
-                            · {{ t.budget.collected_at_year_start_forecast }}
-                        </template>
+                        <span class="whitespace-nowrap"
+                            >{{
+                                formatMoneyAmount(
+                                    collectedAtYearStart.minor_units,
+                                )
+                            }}<template v-if="collectedAtYearStart.is_forecast">
+                                ·
+                                {{
+                                    t.budget.collected_at_year_start_forecast
+                                }}</template
+                            ></span
+                        >
                     </span>
                 </template>
             </CategoryChip>
@@ -134,14 +160,12 @@ const remainingLabel = computed(() =>
                     :icon="category.icon"
                     :color="category.color"
                 />
-                <Badge v-if="isArchived" variant="neutral">
-                    {{ t.budget.archived_badge }}
-                </Badge>
                 <Badge
-                    v-else-if="showsOverLimitBadge"
-                    variant="destructive-soft"
+                    v-for="badge in nameBadges"
+                    :key="badge.label"
+                    :variant="badge.variant"
                 >
-                    {{ t.budget.over_limit_badge }}
+                    {{ badge.label }}
                 </Badge>
             </template>
         </div>

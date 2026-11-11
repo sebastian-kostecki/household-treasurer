@@ -449,7 +449,7 @@ const noop = (): void => undefined;
 const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
-        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, stała opłata, bieżąca i równomierna roczna (każda z kreską roku), nieregularna z podpisem „zebrane startowe” i bez podpisu (sekcja „Zebrane startowe”). Szkic: kolumna „Typ”.',
+        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, stała opłata, bieżąca i równomierna roczna (każda z kreską roku), nieregularna z podpisem „zebrane startowe” i bez podpisu (sekcja „Zebrane startowe”). Szkic: kolumna „Typ”; w sekcji „Zebrane startowe” podpis z prognozą, prognoza 0,00, długa nazwa, wiersz pod grupą, zarchiwizowana z podpisem i nieregularna bez podpisu; poniżej md wiersz kategorii szkicu ma dwie linie (nazwa z podpisem, potem plan).',
     },
     {
         state: 'hover',
@@ -581,8 +581,9 @@ const stateMatrix: { state: string; where: string }[] = [
             <h2 id="ks-collected" class="section-title">
                 Zebrane startowe (ADR-0076): szkic z prognozą „Prąd” 600,00,
                 prognoza 0,00, długa nazwa, wiersz pod grupą „Dom”, „Naprawa
-                dachu” bez podpisu; realizacja „Rekolekcje” 200,00 bez prognozy;
-                zarchiwizowana z podpisem
+                dachu” bez podpisu (poniżej md wiersz szkicu ma dwie linie);
+                realizacja z zarchiwizowaną z podpisem („Rekolekcje” 200,00 bez
+                prognozy są w sekcji „Realizacja wydatków”)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"
