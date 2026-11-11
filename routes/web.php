@@ -6,6 +6,7 @@ use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryGroupController;
 use App\Http\Controllers\CategoryListController;
+use App\Http\Controllers\CategoryMergeController;
 use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
@@ -86,6 +87,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('categories', [CategoryListController::class, 'store'])->name('categories.list.store');
     Route::patch('categories/{category}', [CategoryListController::class, 'update'])->name('categories.list.update');
     Route::delete('categories/{category}', [CategoryListController::class, 'destroy'])->name('categories.list.destroy');
+    Route::get('categories/{category}/merge-preview', [CategoryMergeController::class, 'show'])->name('categories.merge.preview');
+    Route::post('categories/{category}/merge', [CategoryMergeController::class, 'store'])->name('categories.merge');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
     Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);

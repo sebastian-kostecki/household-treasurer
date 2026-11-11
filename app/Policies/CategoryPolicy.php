@@ -31,6 +31,15 @@ class CategoryPolicy
         return $this->ownsCategory($user, $category) && $category->isArchived();
     }
 
+    /**
+     * Ownership of the source only (it may be archived); the target and its
+     * state are checked by `MergeCategoryRequest`.
+     */
+    public function merge(User $user, Category $category): bool
+    {
+        return $this->ownsCategory($user, $category);
+    }
+
     private function ownsCategory(User $user, Category $category): bool
     {
         return $user->id === $category->user_id;

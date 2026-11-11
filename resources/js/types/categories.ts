@@ -42,3 +42,32 @@ export type CategoriesPageProps = {
     /** The month a Rhythm change made on the list starts in (the current month). */
     rhythmChangeMonth: { year: number; month: number };
 };
+
+/** The preview of merging one Category into another (ADR-0076): `CategoryMergeReading::toArray()`. */
+export type CategoryMergePreviewData = {
+    source: { id: number; name: string; archived: boolean };
+    target: { id: number; name: string };
+    /** Budgets the source has a Budget Line in, oldest year first. */
+    budgets: {
+        year: number;
+        phase: 'draft' | 'execution';
+        operations_count: number;
+        target_plan_before_minor_units: number;
+        target_plan_after_minor_units: number;
+    }[];
+    operations_count: number;
+    month_plan_items: {
+        count: number;
+        first: { year: number; month: number } | null;
+        last: { year: number; month: number } | null;
+    };
+    /** Null when the source has no Collected and the target is not Irregular. */
+    collected: {
+        source_minor_units: number;
+        target_minor_units: number | null;
+        after_minor_units: number | null;
+        since: { year: number; month: number };
+    } | null;
+    /** The year of the Budget Line an archived source gets back, null otherwise. */
+    restored_budget_year: number | null;
+};

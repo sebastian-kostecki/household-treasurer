@@ -566,26 +566,26 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [x] 2.1 Testy odczytu, akcji i zapisu rytmu przechodzą na PostgreSQL
-- [x] 2.2 Testy „zebranego” i snapshotu nadal przechodzą na PostgreSQL
-- [x] 2.3 Formatowanie i bramka
+- [x] 2.1 Testy odczytu, akcji i zapisu rytmu przechodzą na PostgreSQL — 3085eaa
+- [x] 2.2 Testy „zebranego” i snapshotu nadal przechodzą na PostgreSQL — 3085eaa
+- [x] 2.3 Formatowanie i bramka — 3085eaa
 
 #### Manual
 
-- [x] 2.4 Przegląd MergeCategories: kolejność kroków, brak zapisu w pętli, brak catch bez report
+- [x] 2.4 Przegląd MergeCategories: kolejność kroków, brak zapisu w pętli, brak catch bez report — 3085eaa
 
 ### Phase 3: Granica HTTP
 
 #### Automated
 
-- [ ] 3.1 Testy HTTP przechodzą na PostgreSQL
-- [ ] 3.2 Trasy istnieją
-- [ ] 3.3 Wayfinder i typy
-- [ ] 3.4 Formatowanie i bramka
+- [x] 3.1 Testy HTTP przechodzą na PostgreSQL
+- [x] 3.2 Trasy istnieją
+- [x] 3.3 Wayfinder i typy
+- [x] 3.4 Formatowanie i bramka
 
 #### Manual
 
-- [ ] 3.5 Podgląd JSON na dev zwraca liczby zgodne z „Budżetem” i „Operacjami”
+- [x] 3.5 Podgląd JSON na dev zwraca liczby zgodne z „Budżetem” i „Operacjami”
 
 ### Phase 4: Okno scalania i menu wiersza
 
