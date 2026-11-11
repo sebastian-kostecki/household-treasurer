@@ -65,8 +65,55 @@ export type PeriodReportData = {
     expense: PeriodReportEntry[];
 };
 
+/** Mirror of `App\Support\ReportTrend::toArray()` (ADR-0076). Cells are minor units; null is a month without an operation. */
+
+export type ReportTrendCategory = {
+    /** Id of the list Category (not of the budget line). */
+    id: number;
+    name: string;
+    icon: string | null;
+    color: string;
+    is_archived: boolean;
+    amount_minor_units: number;
+    /** 12 cells, January first. */
+    months: (number | null)[];
+};
+
+export type ReportTrendGroupEntry = {
+    kind: 'group';
+    id: number;
+    name: string;
+    amount_minor_units: number;
+    months: (number | null)[];
+    categories: ReportTrendCategory[];
+};
+
+export type ReportTrendEntry =
+    | ReportTrendGroupEntry
+    | (ReportTrendCategory & { kind: 'category' });
+
+export type ReportTrendMonth = {
+    /** 1 to 12. */
+    month: number;
+    income_minor_units: number | null;
+    expense_minor_units: number | null;
+    result_minor_units: number | null;
+};
+
+export type ReportTrendData = {
+    income_minor_units: number;
+    expense_minor_units: number;
+    result_minor_units: number;
+    has_operations: boolean;
+    /** Month of today when the Budget year is the current one. */
+    in_progress_month: number | null;
+    months: ReportTrendMonth[];
+    income: ReportTrendEntry[];
+    expense: ReportTrendEntry[];
+};
+
 export type ReportPeriod = {
-    kind: 'year' | 'month';
+    kind: 'year' | 'month' | 'trend';
     month: number | null;
     default_month: number;
     is_in_progress: boolean;
@@ -77,4 +124,5 @@ export type ReportsPageProps = {
     budgetPhase: 'draft' | 'execution' | null;
     period: ReportPeriod;
     report: PeriodReportData | null;
+    trend: ReportTrendData | null;
 };

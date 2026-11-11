@@ -9,6 +9,8 @@ import {
     formatOperationDaySum,
     formatSignedMoney,
     formatSignedMoneyAmount,
+    formatWholeMoney,
+    formatWholeMoneyAmount,
     operationDaySumClass,
     parseMoneyInputToMinorUnits,
 } from './format';
@@ -153,5 +155,31 @@ describe('formatDayLabel', () => {
         expect(formatDayLabel('2025-12-31', today)).toBe(
             'środa, 31 grudnia 2025',
         );
+    });
+});
+
+describe('formatWholeMoneyAmount', () => {
+    it('rounds half away from zero to whole zloty', () => {
+        expect(formatWholeMoneyAmount(149)).toBe('1');
+        expect(formatWholeMoneyAmount(150)).toBe('2');
+        expect(formatWholeMoneyAmount(-150)).toBe('-2');
+        expect(formatWholeMoneyAmount(-149)).toBe('-1');
+    });
+
+    it('never shows a negative zero', () => {
+        expect(formatWholeMoneyAmount(49)).toBe('0');
+        expect(formatWholeMoneyAmount(-49)).toBe('0');
+        expect(formatWholeMoneyAmount(0)).toBe('0');
+    });
+
+    it('groups thousands with a space', () => {
+        expect(formatWholeMoneyAmount(1234567)).toBe('12 346');
+    });
+});
+
+describe('formatWholeMoney', () => {
+    it('adds the unit', () => {
+        expect(formatWholeMoney(1234567)).toBe('12 346 zł');
+        expect(formatWholeMoney(-49)).toBe('0 zł');
     });
 });

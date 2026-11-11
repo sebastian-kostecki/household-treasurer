@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Support\BudgetViewedMonth;
 use App\Support\PeriodReport;
 use App\Support\ReportComparisonPeriod;
+use App\Support\ReportTrend;
 use App\Support\SelectedBudgetYear;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -35,25 +36,37 @@ class ReportController extends Controller
                     'is_in_progress' => false,
                 ],
                 'report' => null,
+                'trend' => null,
             ]);
         }
 
         $this->authorize('view', $budget);
 
         $today = CarbonImmutable::today('UTC');
-        $month = $this->requestedMonth($request->query('month'));
+        $isTrend = $request->query('view') === 'trend';
+        $month = $isTrend ? null : $this->requestedMonth($request->query('month'));
 
         return Inertia::render('Reports', [
             'budgetYear' => $budget->year,
             'budgetPhase' => $budget->phase->value,
             'period' => [
-                'kind' => $month === null ? 'year' : 'month',
+                'kind' => $this->periodKind($isTrend, $month),
                 'month' => $month,
                 'default_month' => BudgetViewedMonth::defaultForYear($budget->year, $today),
                 'is_in_progress' => ReportComparisonPeriod::isInProgress($budget->year, $month, $today),
             ],
-            'report' => $budget->isExecution() ? $this->report($budget, $month, $today) : null,
+            'report' => $budget->isExecution() && ! $isTrend ? $this->report($budget, $month, $today) : null,
+            'trend' => $budget->isExecution() && $isTrend ? $this->trend($budget, $today) : null,
         ]);
+    }
+
+    private function periodKind(bool $isTrend, ?int $month): string
+    {
+        return match (true) {
+            $isTrend => 'trend',
+            $month === null => 'year',
+            default => 'month',
+        };
     }
 
     /**
@@ -81,5 +94,15 @@ class ReportController extends Controller
             : PeriodReport::forMonth($budget, $month, $comparison);
 
         return $report->toArray();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function trend(Budget $budget, CarbonImmutable $today): array
+    {
+        $inProgressMonth = $budget->year === $today->year ? $today->month : null;
+
+        return ReportTrend::forYear($budget, $inProgressMonth)->toArray();
     }
 }

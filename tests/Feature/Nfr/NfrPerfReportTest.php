@@ -16,7 +16,7 @@ use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
- * NFR-PERF-01 for the Period Report (S-28, S-29): a year and a month report
+ * NFR-PERF-01 for the Period Report (S-28, S-29): a year, a month and a trend report
  * open in two seconds at 10,000 operations, also compared with the year before
  * (a second Budget with 10,000 operations on the same list Categories).
  *
@@ -77,6 +77,19 @@ class NfrPerfReportTest extends TestCase
                     ->where('report.comparison.year', 2025)
                     ->has('report.expense')),
             'Month report',
+        );
+
+        $this->assertRequestWithinSeconds(
+            fn () => $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('reports', ['view' => 'trend']))
+                ->assertOk()
+                ->assertInertia(fn ($page) => $page
+                    ->where('period.kind', 'trend')
+                    ->where('trend.in_progress_month', 12)
+                    ->has('trend.months', 12)
+                    ->has('trend.expense')),
+            'Trend report',
         );
     }
 

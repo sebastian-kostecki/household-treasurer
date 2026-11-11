@@ -16,6 +16,37 @@ export function formatMoneyAmount(minorUnits: number): string {
 }
 
 /**
+ * Round minor units to whole zloty for display, half away from zero, on
+ * integers (ADR-0076). Never returns -0.
+ */
+function wholeZloty(minorUnits: number): number {
+    const zloty =
+        Math.sign(minorUnits) * Math.floor((Math.abs(minorUnits) + 50) / 100);
+
+    return zloty === 0 ? 0 : zloty;
+}
+
+/**
+ * Format minor units as whole zloty without the unit, e.g. 1234567 -> "12 346"
+ * (the Report Trend tables, ADR-0076).
+ */
+export function formatWholeMoneyAmount(minorUnits: number): string {
+    const zloty = wholeZloty(minorUnits);
+    const formatted = Math.abs(zloty)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+    return zloty < 0 ? `-${formatted}` : formatted;
+}
+
+/**
+ * Like formatWholeMoneyAmount, with the unit (the trend chart axis).
+ */
+export function formatWholeMoney(minorUnits: number): string {
+    return `${formatWholeMoneyAmount(minorUnits)} ${MONEY_UNIT}`;
+}
+
+/**
  * Format minor units as Polish PLN string, e.g. 123456 -> "1 234,56 zł"
  */
 export function formatMoney(minorUnits: number): string {

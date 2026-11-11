@@ -429,35 +429,35 @@ Brak migracji schematu i danych. Nowy parametr adresu i nowy cel zmiany roku są
 
 #### Automated
 
-- [x] 1.1 Testy trendu i raportu okresu przechodzą na SQLite
-- [x] 1.2 Te same testy przechodzą na PostgreSQL (worktree)
-- [x] 1.3 Formatowanie PHP
-- [x] 1.4 Analiza statyczna i reszta bramki w worktree
-- [x] 1.5 Sloppy bez nowych znalezisk
+- [x] 1.1 Testy trendu i raportu okresu przechodzą na SQLite — ba7cbff
+- [x] 1.2 Te same testy przechodzą na PostgreSQL (worktree) — ba7cbff
+- [x] 1.3 Formatowanie PHP — ba7cbff
+- [x] 1.4 Analiza statyczna i reszta bramki w worktree — ba7cbff
+- [x] 1.5 Sloppy bez nowych znalezisk — ba7cbff
 
 #### Manual
 
-- [x] 1.6 ADR-0076 i akapit o trendzie w słowniku czyta się zgodnie z decyzjami tego planu
+- [x] 1.6 ADR-0076 i akapit o trendzie w słowniku czyta się zgodnie z decyzjami tego planu — ba7cbff
 
 ### Phase 2: Widok „Trend” z tabelami
 
 #### Automated
 
-- [ ] 2.1 Testy jednostkowe frontu przechodzą
-- [ ] 2.2 Wayfinder, build i typy
-- [ ] 2.3 Strażnik literałów UI
-- [ ] 2.4 Testy strony, zmiany roku i strażników przechodzą na PostgreSQL
-- [ ] 2.5 Test wydajności trendu przechodzi na PostgreSQL
-- [ ] 2.6 Pełna bramka w worktree
-- [ ] 2.7 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy jednostkowe frontu przechodzą
+- [x] 2.2 Wayfinder, build i typy
+- [x] 2.3 Strażnik literałów UI
+- [x] 2.4 Testy strony, zmiany roku i strażników przechodzą na PostgreSQL
+- [x] 2.5 Test wydajności trendu przechodzi na PostgreSQL
+- [x] 2.6 Pełna bramka w worktree
+- [x] 2.7 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 2.8 Segment „Trend” otwiera widok z kafelkami i trzema tabelami, a kwoty zgadzają się z widokami Rok i Miesiąc
-- [ ] 2.9 Przy oknie 1280 px tabele trendu mieszczą się bez przewijania w poziomie
-- [ ] 2.10 Na telefonie tabele przewijają się z przypiętą nazwą, także z klawiatury
-- [ ] 2.11 Grupy startują zwinięte, miesiąc w toku ma podpis, puste komórki mają „—”, kolor ma tylko Wynik
-- [ ] 2.12 Zmiana roku zostawia „Trend”, Rok i Miesiąc bez zmian, kitchen sink w obu trybach
+- [x] 2.8 Segment „Trend” otwiera widok z kafelkami i trzema tabelami, a kwoty zgadzają się z widokami Rok i Miesiąc
+- [x] 2.9 Przy oknie 1280 px tabele trendu mieszczą się bez przewijania w poziomie
+- [x] 2.10 Na telefonie tabele przewijają się z przypiętą nazwą, także z klawiatury
+- [x] 2.11 Grupy startują zwinięte, miesiąc w toku ma podpis, puste komórki mają „—”, kolor ma tylko Wynik
+- [x] 2.12 Zmiana roku zostawia „Trend”, Rok i Miesiąc bez zmian, kitchen sink w obu trybach
 
 ### Phase 3: Wykres i E2E
 
