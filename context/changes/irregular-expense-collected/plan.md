@@ -589,11 +589,11 @@ Historia US-02 przechodzi w przeglądarce, dokumenty i reguły opisują stan po 
 
 #### Automated
 
-- [x] 5.1 E2E historii US-02 przechodzi
-- [x] 5.2 Pełna bramka na PostgreSQL
+- [x] 5.1 E2E historii US-02 przechodzi — b7207ee
+- [x] 5.2 Pełna bramka na PostgreSQL — b7207ee
 - [ ] 5.3 `vendor/bin/sloppy ci` i `npx playwright test` przechodzą
 
 #### Manual
 
-- [x] 5.4 Słownik, ADR-0073, reguły i roadmapa opisują stan po S-26 bez sprzeczności
-- [x] 5.5 Historia US-02 przechodzi na dev od oznaczenia kategorii do rachunku ponad zebrane
+- [x] 5.4 Słownik, ADR-0073, reguły i roadmapa opisują stan po S-26 bez sprzeczności — b7207ee
+- [x] 5.5 Historia US-02 przechodzi na dev od oznaczenia kategorii do rachunku ponad zebrane — b7207ee
