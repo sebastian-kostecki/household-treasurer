@@ -3,7 +3,7 @@ project: 'Household Treasurer'
 version: 3
 status: draft
 created: 2026-11-02
-updated: 2026-11-10
+updated: 2026-11-11
 prd_version: 3
 main_goal: quality
 top_blocker: decisions
@@ -52,15 +52,15 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
 | S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
-| S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | proposed |
-| S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | proposed |
+| S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | ready    |
+| S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | ready    |
 | S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | proposed |
 | S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | done     |
-| S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | proposed |
-| S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | proposed |
-| S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | proposed |
-| S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | proposed |
-| S-33 | default-set-aside-percent            | użytkownik może ustawić domyślny procent przychodów, który propozycja planu wpisuje jako „odkładam”                 | S-24          | FR-024                                   | proposed |
+| S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | ready    |
+| S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | ready    |
+| S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | ready    |
+| S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | ready    |
+| S-33 | default-set-aside-percent            | użytkownik może ustawić domyślny procent przychodów, który propozycja planu wpisuje jako „odkładam”                 | S-24          | FR-024                                   | ready    |
 
 ## Streams
 
@@ -224,7 +224,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Stoi po S-24, bo sygnał przekroczenia na wierszu grupy zbiera sygnały kategorii, które zależą od rytmu (bieżąca wobec miesiąca, równomierna roczna wobec roku).
-- **Status:** proposed
+- **Status:** ready
 
 ### S-26: Wydatek nieregularny i „zebrane”
 
@@ -236,7 +236,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** z przeglądu implementacji F-05 (F9): (a) rachunek w miesiącu budżetu-szkicu albo roku bez budżetu, (b) zatwierdzony miesiąc bez pozycji nieregularnej, (c) miesiące przed pierwszym wpisem rytmu kategorii oznaczonej nieregularną przy utworzeniu
 - **Risk:** Jedyna zmiana reguły „do wydania”: stawka i rachunek to jedna reguła, której nie da się dostarczyć osobno bez podwójnego obniżenia w miesiącu rachunku. Zebrane jest odczytem z operacji (zwroty netto), nie zapisaną liczbą; salda i Spendable Liquidity bez zmian, a Wynik miesiąca liczy faktyczny rachunek.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-27: Zebrane przez 31 grudnia
 
@@ -273,7 +273,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Na produkcji porównanie lat działa dopiero od 2027, więc tu powstaje mock budżetu 2025 z operacjami (tylko dev). Porównanie idzie po kategorii listy, nie po nazwie.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-30: Trend w miesiącach roku
 
@@ -285,7 +285,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Element opcjonalny (nice-to-have). Wynik każdego miesiąca musi równać się Wynikowi miesiąca bez zapytań w pętli po miesiącach (Sloppy); sezonowość wydatków nieregularnych łatwo odczytać jako alarm.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-31: Z raportu do operacji
 
@@ -297,7 +297,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Element opcjonalny (nice-to-have). Filtr Operacji przechodzi z nazwy i typu na kategorię listy i grupę (zmiana ADR-0016); lista musi pokazać to, co raport liczy (zwroty netto, bez transferów własnych).
-- **Status:** proposed
+- **Status:** ready
 
 ### S-32: Ostatnie 12 miesięcy
 
@@ -309,7 +309,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Element opcjonalny (nice-to-have). Okres przechodzi przez dwa budżety, więc suma nie ma jednego odpowiednika w Budżecie rocznym; zgodność sprawdza się jako suma Wyników miesięcy.
-- **Status:** proposed
+- **Status:** ready
 
 ### S-33: Domyślny procent „odkładam”
 
@@ -321,7 +321,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Element opcjonalny (nice-to-have). Stoi po S-24, bo oba zmieniają propozycję planu miesiąca; reguła „odkładam / dobieram” (FR-013) się nie zmienia, zmienia się tylko kwota startowa.
-- **Status:** proposed
+- **Status:** ready
 
 ## Backlog Handoff
 
@@ -337,15 +337,15 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-groups/` |
 | S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | yes                   | Run `/10x-plan import-suggestions-on-category-list`; pomiar trafności po porządkach w danych (pytanie 4) |
 | S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-rhythm/`; przed wdrożeniem na produkcję próba na kopii (`reviews/production-rehearsal.md` w archiwum) |
-| S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | no                    | Czeka na S-24 (S-22 done)                            |
-| S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | no                    | Czeka na S-24                                 |
-| S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Czeka na S-26 (S-20 done)                            |
-| S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | yes                   | Run `/10x-plan period-report-by-group` |
-| S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | no                    | Czeka na S-28                                        |
-| S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | no                    | Opcjonalne; czeka na S-28                            |
-| S-31       | report-to-operations                | Raporty: przejście z kategorii do operacji                              | no                    | Opcjonalne; czeka na S-28                            |
-| S-32       | rolling-twelve-month-report         | Raporty: okres „ostatnie 12 miesięcy”                                   | no                    | Opcjonalne; czeka na S-28                            |
-| S-33       | default-set-aside-percent           | Domyślny procent „odkładam” w propozycji planu                          | no                    | Opcjonalne; czeka na S-24                            |
+| S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | yes                   | Run `/10x-plan month-plan-groups`; po S-26, bo oba zmieniają plan miesiąca |
+| S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | yes                   | Run `/10x-plan irregular-expense-collected`; przypadki brzegowe F9 z przeglądu F-05 do rozstrzygnięcia w planie |
+| S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Czeka na S-26 (S-20 done); musi zdążyć przed przełomem 2026/2027 |
+| S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | done                  | Zarchiwizowane: `context/archive/2026-11-10-period-report-by-group/` |
+| S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | yes                   | Run `/10x-plan year-over-year-report`; tworzy mock budżetu 2025 (dev) dla S-30…S-32 |
+| S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | yes                   | Opcjonalne; run `/10x-plan report-trend-by-month` |
+| S-31       | report-to-operations                | Raporty: przejście z kategorii do operacji                              | yes                   | Opcjonalne; run `/10x-plan report-to-operations` |
+| S-32       | rolling-twelve-month-report         | Raporty: okres „ostatnie 12 miesięcy”                                   | yes                   | Opcjonalne; run `/10x-plan rolling-twelve-month-report` |
+| S-33       | default-set-aside-percent           | Domyślny procent „odkładam” w propozycji planu                          | yes                   | Opcjonalne; run `/10x-plan default-set-aside-percent` |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
 
