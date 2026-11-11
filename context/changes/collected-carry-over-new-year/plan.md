@@ -241,13 +241,13 @@ Brak migracji, zmiany snapshotu i zmiany zapisanych danych. Wycofanie to cofnię
 
 #### Automated
 
-- [ ] 1.1 Testy odczytu i propsów Budżetu przechodzą na PostgreSQL
-- [ ] 1.2 Typy i build przechodzą
-- [ ] 1.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Testy odczytu i propsów Budżetu przechodzą na PostgreSQL
+- [x] 1.2 Typy i build przechodzą
+- [x] 1.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 1.4 ADR-0076 i słownik opisują cztery decyzje z planowania bez sprzeczności z ADR-0066, ADR-0073, ADR-0060 i ADR-0037
+- [x] 1.4 ADR-0076 i słownik opisują cztery decyzje z planowania bez sprzeczności z ADR-0066, ADR-0073, ADR-0060 i ADR-0037
 
 ### Phase 2: Podpis w wierszu, kitchen sink, E2E i bramka
 

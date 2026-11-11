@@ -43,6 +43,7 @@ function row(overrides: RowOverrides): BudgetCategoryRow {
         can_restore: false,
         can_align_current_plan: false,
         rhythm: overrides.type === 'expense' ? 'running' : null,
+        collected_at_year_start: null,
         ...overrides,
     };
 }

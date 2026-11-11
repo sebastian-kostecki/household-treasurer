@@ -10,6 +10,7 @@ use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\BudgetCollectedAtYearStart;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
 use App\Support\BudgetViewedMonth;
@@ -74,6 +75,7 @@ class BudgetController extends Controller
 
         $rhythms = CategoryRhythms::forCategoryIds($categories->pluck('category_id'));
         $viewedMonth = BudgetViewedMonth::defaultForYear($budget->year, $today);
+        $collectedAtYearStart = new BudgetCollectedAtYearStart($budget, $rhythms, $today);
 
         return Inertia::render('Budget', [
             'budget' => [
@@ -87,12 +89,12 @@ class BudgetController extends Controller
             'incomeCategories' => $categories
                 ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Income))
                 ->values()
-                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth, $collectedAtYearStart))
                 ->all(),
             'expenseCategories' => $categories
                 ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Expense))
                 ->values()
-                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth, $collectedAtYearStart))
                 ->all(),
             'incomeGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Income),
             'expenseGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Expense),
@@ -188,6 +190,7 @@ class BudgetController extends Controller
      *
      * @param  list<int>  $typeLockedIds  list Category ids whose type cannot change
      * @param  int  $viewedMonth  the month whose Rhythm the row shows (BudgetViewedMonth)
+     * @param  BudgetCollectedAtYearStart  $collectedAtYearStart  the „zebrane startowe” reading (ADR-0076)
      * @return array{
      *     id: int,
      *     name: string,
@@ -211,9 +214,10 @@ class BudgetController extends Controller
      *     can_archive: bool,
      *     can_restore: bool,
      *     can_align_current_plan: bool,
+     *     collected_at_year_start: array{minor_units: int, is_forecast: bool}|null,
      * }
      */
-    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds, CategoryRhythms $rhythms, int $viewedMonth): array
+    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds, CategoryRhythms $rhythms, int $viewedMonth, BudgetCollectedAtYearStart $collectedAtYearStart): array
     {
         $category = $line->category;
         $currentPlanMinorUnits = $line->planned_amount_minor_units;
@@ -254,6 +258,7 @@ class BudgetController extends Controller
             'can_align_current_plan' => $budget->isExecution()
                 && ! $line->isArchived()
                 && $remainingMinorUnits !== 0,
+            'collected_at_year_start' => $collectedAtYearStart->forCategory($category->id),
         ];
     }
 }

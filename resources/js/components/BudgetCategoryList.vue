@@ -62,6 +62,15 @@ export type BudgetCategoryRow = {
     can_restore: boolean;
     can_align_current_plan: boolean;
     rhythm: Rhythm | null;
+    /**
+     * „Zebrane startowe” (ADR-0076): the Collected of an Irregular Category on
+     * 1 January of the Budget year, a reading. Null when January lies in no
+     * Irregular period; `is_forecast` while the Budget year is still to come.
+     */
+    collected_at_year_start: {
+        minor_units: number;
+        is_forecast: boolean;
+    } | null;
 };
 
 /** A Category Group with at least one active line in the Budget (ADR-0069). */
