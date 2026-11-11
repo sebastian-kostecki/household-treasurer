@@ -555,12 +555,12 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [ ] 1.1 Indeks reguł jest aktualny
-- [ ] 1.2 Bramka przechodzi
+- [x] 1.1 Indeks reguł jest aktualny
+- [x] 1.2 Bramka przechodzi
 
 #### Manual
 
-- [ ] 1.3 ADR-0076 i słownik opisują dziewięć reguł i cztery przykłady bez sprzeczności z wcześniejszymi ADR-ami
+- [x] 1.3 ADR-0076 i słownik opisują dziewięć reguł i cztery przykłady bez sprzeczności z wcześniejszymi ADR-ami
 
 ### Phase 2: Odczyt scalenia i akcja
 
