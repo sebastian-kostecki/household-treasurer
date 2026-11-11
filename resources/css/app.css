@@ -1591,8 +1591,10 @@
         @apply pl-4;
     }
 
+    /* The pinned cell also covers the row's left padding and the gap after it,
+       so a scrolled name keeps its inset and no amount touches it. */
     .report-trend-name {
-        @apply bg-card sticky left-0 z-10 flex min-w-0 items-center gap-2 self-stretch;
+        @apply bg-card sticky left-0 z-10 -mr-2 -ml-4 flex min-w-0 items-center gap-2 self-stretch pr-2 pl-4;
     }
 
     .report-group-row .report-trend-name {
@@ -1600,7 +1602,7 @@
     }
 
     .report-row-nested .report-trend-name {
-        @apply pl-6;
+        @apply pl-10;
     }
 
     .report-trend-head-cell {

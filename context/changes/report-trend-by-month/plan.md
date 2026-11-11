@@ -339,6 +339,8 @@ Dodaje wykres miesięcy do karty „Miesiące”, opisuje go w design systemie i
 
 **Contract**: Nowy test: klik „Trend” daje adres z `view=trend` i tytuł „Trend <rok>”; widać kartę „Miesiące” z wykresem (`svg` w `report-trend-chart`) i wierszami Przychody, Wydatki, Wynik; tabela Wydatki ma 12 nagłówków miesięcy i „Razem”; grupa jest zwinięta, a po rozwinięciu pokazuje swoje kategorie; stopka mówi o zaokrągleniu. Drugi test, wzorem istniejącego testu zmiany roku (`tests/e2e/reports.spec.ts:255`): zmiana roku w sidebarze zostawia `view=trend` w adresie.
 
+**Odstępstwo (implementacja):** dane demo nie mają grupy wydatków, więc zwijanie i rozwijanie grupy sprawdza osobny test, który tworzy „Grupa E2E trend”, przenosi do niej „Rozrywka”, dodaje operację i w `finally` usuwa operację i grupę (`DeleteCategoryGroup` zdejmuje przynależność; pozycja kategorii na liście może się po nim różnić od seeda).
+
 ### Success Criteria:
 
 #### Automated Verification:

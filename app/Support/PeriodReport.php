@@ -188,43 +188,34 @@ final class PeriodReport
      */
     private static function entriesOfType(CategoryType $type, array $rows, array $groups, bool $hasComparison): array
     {
-        $categories = [];
-        $byCategoryId = [];
-        foreach ($rows as $row) {
-            if ($row['category']->type !== $type) {
-                continue;
-            }
+        $nodes = ReportCategoryTree::entryNodesOfType($type, $rows, $groups, fn (array $row): array => self::categoryEntry($row, $hasComparison));
 
-            $categories[] = $row['category'];
-            $byCategoryId[$row['category']->id] = self::categoryEntry($row, $hasComparison);
-        }
+        return array_map(fn (array $node): array => $node['kind'] === 'category'
+            ? ['kind' => 'category'] + $node['entry']
+            : self::groupEntry($node['group'], $node['entries'], $hasComparison), $nodes);
+    }
 
-        $entries = [];
-        foreach (ReportCategoryTree::ofType($type, $categories, $groups) as $node) {
-            if ($node['kind'] === 'category') {
-                $entries[] = ['kind' => 'category'] + $byCategoryId[$node['category']->id];
+    /**
+     * @param  list<ReportCategory>  $members
+     * @return ReportGroup
+     */
+    private static function groupEntry(CategoryGroup $group, array $members, bool $hasComparison): array
+    {
+        $amount = array_sum(array_column($members, 'amount_minor_units'));
+        $previousAmounts = array_filter(array_column($members, 'previous_minor_units'), fn (?int $value): bool => $value !== null);
+        $previous = $previousAmounts === [] ? null : array_sum($previousAmounts);
 
-                continue;
-            }
-
-            $members = array_map(fn (Category $category): array => $byCategoryId[$category->id], $node['categories']);
-            $amount = array_sum(array_column($members, 'amount_minor_units'));
-            $previousAmounts = array_filter(array_column($members, 'previous_minor_units'), fn (?int $value): bool => $value !== null);
-            $previous = $previousAmounts === [] ? null : array_sum($previousAmounts);
-            $entries[] = [
-                'kind' => 'group',
-                'id' => $node['group']->id,
-                'name' => $node['group']->name,
-                'amount_minor_units' => $amount,
-                'share_tenths_percent' => null,
-                'has_operations' => in_array(true, array_column($members, 'has_operations'), true),
-                'previous_minor_units' => $previous,
-                'difference_minor_units' => $hasComparison ? $amount - ($previous ?? 0) : null,
-                'categories' => $members,
-            ];
-        }
-
-        return $entries;
+        return [
+            'kind' => 'group',
+            'id' => $group->id,
+            'name' => $group->name,
+            'amount_minor_units' => $amount,
+            'share_tenths_percent' => null,
+            'has_operations' => in_array(true, array_column($members, 'has_operations'), true),
+            'previous_minor_units' => $previous,
+            'difference_minor_units' => $hasComparison ? $amount - ($previous ?? 0) : null,
+            'categories' => $members,
+        ];
     }
 
     /**

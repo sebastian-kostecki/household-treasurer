@@ -115,37 +115,18 @@ final class ReportTrend
      */
     private static function entriesOfType(CategoryType $type, array $rows, array $groups): array
     {
-        $categories = [];
-        $byCategoryId = [];
-        foreach ($rows as $row) {
-            if ($row['category']->type !== $type) {
-                continue;
-            }
+        $nodes = ReportCategoryTree::entryNodesOfType($type, $rows, $groups, fn (array $row): array => self::categoryEntry($row));
 
-            $categories[] = $row['category'];
-            $byCategoryId[$row['category']->id] = self::categoryEntry($row);
-        }
-
-        $entries = [];
-        foreach (ReportCategoryTree::ofType($type, $categories, $groups) as $node) {
-            if ($node['kind'] === 'category') {
-                $entries[] = ['kind' => 'category'] + $byCategoryId[$node['category']->id];
-
-                continue;
-            }
-
-            $members = array_map(fn (Category $category): array => $byCategoryId[$category->id], $node['categories']);
-            $entries[] = [
+        return array_map(fn (array $node): array => $node['kind'] === 'category'
+            ? ['kind' => 'category'] + $node['entry']
+            : [
                 'kind' => 'group',
                 'id' => $node['group']->id,
                 'name' => $node['group']->name,
-                'amount_minor_units' => array_sum(array_column($members, 'amount_minor_units')),
-                'months' => self::sumMonths(array_column($members, 'months')),
-                'categories' => $members,
-            ];
-        }
-
-        return $entries;
+                'amount_minor_units' => array_sum(array_column($node['entries'], 'amount_minor_units')),
+                'months' => self::sumMonths(array_column($node['entries'], 'months')),
+                'categories' => $node['entries'],
+            ], $nodes);
     }
 
     /**

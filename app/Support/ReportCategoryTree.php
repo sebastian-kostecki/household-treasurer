@@ -76,4 +76,40 @@ final class ReportCategoryTree
 
         return $nodes;
     }
+
+    /**
+     * The first level of a type's report rows in list order, every row already
+     * turned into its entry by the caller: a Category without a group carries
+     * its entry, a group carries the entries of its rows. It is the walk that
+     * Period Report and Report Trend share, so only their entry shapes differ.
+     *
+     * @template TRow of array{category: Category}
+     * @template TEntry
+     *
+     * @param  array<int, TRow>  $rows  any type; those of another type are skipped
+     * @param  list<CategoryGroup>  $groups  any type; those of another type are skipped
+     * @param  callable(TRow): TEntry  $categoryEntry
+     * @return list<array{kind: 'category', entry: TEntry}|array{kind: 'group', group: CategoryGroup, entries: list<TEntry>}>
+     */
+    public static function entryNodesOfType(CategoryType $type, array $rows, array $groups, callable $categoryEntry): array
+    {
+        $categories = [];
+        $byCategoryId = [];
+        foreach ($rows as $row) {
+            if ($row['category']->type !== $type) {
+                continue;
+            }
+
+            $categories[] = $row['category'];
+            $byCategoryId[$row['category']->id] = $categoryEntry($row);
+        }
+
+        return array_map(fn (array $node): array => $node['kind'] === 'category'
+            ? ['kind' => 'category', 'entry' => $byCategoryId[$node['category']->id]]
+            : [
+                'kind' => 'group',
+                'group' => $node['group'],
+                'entries' => array_map(fn (Category $category): mixed => $byCategoryId[$category->id], $node['categories']),
+            ], self::ofType($type, $categories, $groups));
+    }
 }

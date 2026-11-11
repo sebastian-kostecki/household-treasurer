@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -299,6 +300,7 @@ class ReportsPageTest extends TestCase
         $this->travelTo('2026-06-15');
         $user = User::factory()->create();
         $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $food = Category::query()->where('user_id', $user->id)->where('name', 'Żywność')->firstOrFail();
 
         $this->actingAs($user)
             ->get(route('reports', ['view' => 'trend']))
@@ -320,13 +322,47 @@ class ReportsPageTest extends TestCase
                 ->where('trend.months.0.expense_minor_units', null)
                 ->has('trend.expense', 1, fn (Assert $entry) => $entry
                     ->where('kind', 'category')
+                    ->where('id', $food->id)
                     ->where('name', 'Żywność')
+                    ->where('icon', $food->icon)
+                    ->where('color', $food->color)
+                    ->where('is_archived', false)
                     ->where('amount_minor_units', 12000)
                     ->has('months', 12)
                     ->where('months.2', 12000)
-                    ->where('months.3', null)
-                    ->etc())
+                    ->where('months.3', null))
                 ->where('trend.income', []));
+    }
+
+    public function test_the_trend_passes_a_group_with_its_categories(): void
+    {
+        $this->travelTo('2026-06-15');
+        $user = User::factory()->create();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        $rent = Category::factory()->for($user)->expense()->create(['name' => 'Czynsz', 'category_group_id' => $group->id]);
+        $this->bookExpense($user, 2026, 'Czynsz', '2026-03-10', 250000);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'trend']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('trend.expense', 1, fn (Assert $entry) => $entry
+                    ->where('kind', 'group')
+                    ->where('id', $group->id)
+                    ->where('name', 'Dom')
+                    ->where('amount_minor_units', 250000)
+                    ->has('months', 12)
+                    ->where('months.2', 250000)
+                    ->where('months.3', null)
+                    ->has('categories', 1, fn (Assert $category) => $category
+                        ->where('id', $rent->id)
+                        ->where('name', 'Czynsz')
+                        ->where('icon', $rent->icon)
+                        ->where('color', $rent->color)
+                        ->where('is_archived', false)
+                        ->where('amount_minor_units', 250000)
+                        ->has('months', 12)
+                        ->where('months.2', 250000))));
     }
 
     public function test_the_trend_of_another_year_has_no_month_in_progress(): void

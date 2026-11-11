@@ -105,6 +105,7 @@ function valueLabel(tick: number | Date): string {
                         type="x"
                         :tick-values="monthIndexes"
                         :tick-format="monthLabel"
+                        :tick-text-hide-overlapping="true"
                         :tick-line="false"
                         :domain-line="false"
                     />
