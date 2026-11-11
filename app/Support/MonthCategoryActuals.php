@@ -59,6 +59,32 @@ class MonthCategoryActuals
         return array_map(fn (array $byCategory): self => new self($byCategory), $byMonth);
     }
 
+    /**
+     * Reads the actuals of the budget for the days from `$from` to `$through`,
+     * both included, with a single query. The range is not tied to month
+     * boundaries, so a period in progress can be cut on a given day.
+     */
+    public static function forRange(Budget $budget, CarbonImmutable $from, CarbonImmutable $through): self
+    {
+        $rows = FinancialOperation::query()
+            ->where('budget_id', $budget->id)
+            ->where('operation_date', '>=', $from->toDateString())
+            ->where('operation_date', '<', $through->addDay()->toDateString())
+            ->groupBy('budget_line_id')
+            ->selectRaw('budget_line_id, SUM(amount_minor_units) as actual_total, SUM(CASE WHEN amount_minor_units > 0 THEN 1 ELSE 0 END) as positive_count')
+            ->get();
+
+        $byCategory = [];
+        foreach ($rows as $row) {
+            $byCategory[(int) $row->getAttribute('budget_line_id')] = [
+                'actual' => (int) $row->getAttribute('actual_total'),
+                'positive_count' => (int) $row->getAttribute('positive_count'),
+            ];
+        }
+
+        return new self($byCategory);
+    }
+
     public function actual(int $categoryId): int
     {
         return $this->byCategory[$categoryId]['actual'] ?? 0;

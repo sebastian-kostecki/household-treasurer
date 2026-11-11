@@ -202,6 +202,98 @@ class ReportsPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->where('budgetYear', 2024));
     }
 
+    public function test_it_passes_the_year_over_year_comparison_for_a_year_in_progress(): void
+    {
+        $this->travelTo('2026-11-11');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($user, 2025, 'Żywność', '2025-03-10', 10000);
+        $this->bookExpense($user, 2025, 'Żywność', '2025-11-12', 777, false);
+        $this->bookExpense($user, 2025, 'Prezenty', '2025-05-01', 1500, false);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('reports'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.comparison.year', 2025)
+                ->where('report.comparison.from', '2025-01-01')
+                ->where('report.comparison.through', '2025-11-11')
+                ->where('report.comparison.is_partial', true)
+                ->where('report.comparison.expense_minor_units', 11500)
+                ->where('report.comparison.expense_difference_minor_units', 12000 - 11500)
+                ->where('report.comparison.income_minor_units', 0)
+                ->where('report.comparison.result_minor_units', -11500)
+                ->where('report.comparison.result_difference_minor_units', -500)
+                ->has('report.expense', 2)
+                ->has('report.expense.1', fn (Assert $entry) => $entry
+                    ->where('name', 'Żywność')
+                    ->where('has_operations', true)
+                    ->where('previous_minor_units', 10000)
+                    ->where('difference_minor_units', 2000)
+                    ->etc()));
+    }
+
+    public function test_it_passes_the_comparison_for_a_month_and_a_row_that_exists_only_a_year_earlier(): void
+    {
+        $this->travelTo('2026-11-11');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($user, 2025, 'Prezenty', '2025-03-10', 1500);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('reports', ['month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.comparison.from', '2025-03-01')
+                ->where('report.comparison.through', '2025-03-31')
+                ->where('report.comparison.is_partial', false)
+                ->has('report.expense', 2)
+                ->has('report.expense.1', fn (Assert $entry) => $entry
+                    ->where('name', 'Żywność')
+                    ->where('previous_minor_units', null)
+                    ->where('difference_minor_units', 12000)
+                    ->etc())
+                ->has('report.expense.0', fn (Assert $entry) => $entry
+                    ->where('name', 'Prezenty')
+                    ->where('has_operations', false)
+                    ->where('amount_minor_units', 0)
+                    ->where('share_tenths_percent', null)
+                    ->where('previous_minor_units', 1500)
+                    ->where('difference_minor_units', -1500)
+                    ->etc()));
+    }
+
+    public function test_there_is_no_comparison_without_a_budget_of_the_year_before(): void
+    {
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        $this->actingAs($user)
+            ->get(route('reports'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.comparison', null)
+                ->has('report.expense', 1, fn (Assert $entry) => $entry
+                    ->where('has_operations', true)
+                    ->where('previous_minor_units', null)
+                    ->where('difference_minor_units', null)
+                    ->etc()));
+    }
+
+    public function test_another_users_budget_of_the_year_before_is_not_compared(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $this->bookExpense($owner, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($other, 2025, 'Żywność', '2025-03-10', 9999);
+
+        $this->actingAs($owner)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('reports'))
+            ->assertInertia(fn (Assert $page) => $page->where('report.comparison', null));
+    }
+
     /**
      * Books one expense through the factories: enough for a report, which reads
      * the operations and does not use the line's Execution counter.

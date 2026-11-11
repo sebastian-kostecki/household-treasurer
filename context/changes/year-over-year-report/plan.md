@@ -514,16 +514,16 @@ Brak migracji schematu i danych. Na produkcji w 2026 nie ma budżetu 2025, więc
 
 #### Automated
 
-- [ ] 1.1 Testy odczytu i zakresu przechodzą na SQLite
-- [ ] 1.2 Te same testy przechodzą na PostgreSQL (worktree)
-- [ ] 1.3 Test wydajności raportu z dwoma latami przechodzi na PostgreSQL
-- [ ] 1.4 Typy i build
-- [ ] 1.5 Formatowanie PHP
-- [ ] 1.6 Sloppy bez nowych znalezisk
+- [x] 1.1 Testy odczytu i zakresu przechodzą na SQLite
+- [x] 1.2 Te same testy przechodzą na PostgreSQL (worktree)
+- [x] 1.3 Test wydajności raportu z dwoma latami przechodzi na PostgreSQL
+- [x] 1.4 Typy i build
+- [x] 1.5 Formatowanie PHP
+- [x] 1.6 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 1.7 ADR-0073 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu
+- [x] 1.7 ADR-0073 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu
 
 ### Phase 2: Mock roku poprzedniego i domyślny rok
 

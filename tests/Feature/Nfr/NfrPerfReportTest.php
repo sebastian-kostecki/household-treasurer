@@ -16,8 +16,9 @@ use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**
- * NFR-PERF-01 for the Period Report (S-28): a year and a month report open in
- * two seconds at 10,000 operations.
+ * NFR-PERF-01 for the Period Report (S-28, S-29): a year and a month report
+ * open in two seconds at 10,000 operations, also compared with the year before
+ * (a second Budget with 10,000 operations on the same list Categories).
  *
  * Run in Sail on PostgreSQL:
  * ./vendor/bin/sail artisan test --group=nfr --configuration=phpunit.nfr.xml
@@ -55,17 +56,26 @@ class NfrPerfReportTest extends TestCase
 
         $this->assertRequestWithinSeconds(
             fn () => $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
                 ->get(route('reports'))
                 ->assertOk()
-                ->assertInertia(fn ($page) => $page->where('period.kind', 'year')->has('report.expense')),
+                ->assertInertia(fn ($page) => $page
+                    ->where('period.kind', 'year')
+                    ->where('period.is_in_progress', true)
+                    ->where('report.comparison.year', 2025)
+                    ->has('report.expense')),
             'Year report',
         );
 
         $this->assertRequestWithinSeconds(
             fn () => $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
                 ->get(route('reports', ['month' => 6]))
                 ->assertOk()
-                ->assertInertia(fn ($page) => $page->where('period.kind', 'month')->has('report.expense')),
+                ->assertInertia(fn ($page) => $page
+                    ->where('period.kind', 'month')
+                    ->where('report.comparison.year', 2025)
+                    ->has('report.expense')),
             'Month report',
         );
     }
@@ -101,6 +111,18 @@ class NfrPerfReportTest extends TestCase
         $incomeLine = $this->budgetLine($user, $budget, 'Salary', null, false);
 
         $this->insertOperations($user, $account, $budget, $lines, $incomeLine);
+
+        $previousBudget = Budget::factory()->for($user)->create([
+            'year' => 2025,
+            'phase' => BudgetPhase::Execution,
+        ]);
+        $previousLines = array_map(
+            fn (BudgetLine $line): BudgetLine => BudgetLine::factory()->for($previousBudget)->create(['category_id' => $line->category_id]),
+            $lines,
+        );
+        $previousIncomeLine = BudgetLine::factory()->for($previousBudget)->create(['category_id' => $incomeLine->category_id]);
+
+        $this->insertOperations($user, $account, $previousBudget, $previousLines, $previousIncomeLine);
 
         return $user;
     }
@@ -138,7 +160,7 @@ class NfrPerfReportTest extends TestCase
                 'account_id' => $account->id,
                 'budget_line_id' => $line->id,
                 'budget_id' => $budget->id,
-                'operation_date' => sprintf('2026-%02d-%02d', $month, $day),
+                'operation_date' => sprintf('%d-%02d-%02d', $budget->year, $month, $day),
                 'amount_minor_units' => ($isRefund ? -1 : 1) * (1000 + ($index % 100)),
                 'description' => "Seeded operation {$index}",
                 'created_at' => $now,

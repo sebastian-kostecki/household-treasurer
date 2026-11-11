@@ -32,6 +32,9 @@ function category(
         amount_minor_units: amount,
         share_tenths_percent: share,
         is_archived: isArchived,
+        has_operations: true,
+        previous_minor_units: null,
+        difference_minor_units: null,
     };
 }
 
@@ -57,6 +60,7 @@ const yearReport: PeriodReportData = {
     expense_minor_units: 150000,
     result_minor_units: 630000,
     has_operations: true,
+    comparison: null,
     expense: [
         { kind: 'category', ...food },
         {
@@ -65,6 +69,9 @@ const yearReport: PeriodReportData = {
             name: 'Dom',
             amount_minor_units: 60000,
             share_tenths_percent: 400,
+            has_operations: true,
+            previous_minor_units: null,
+            difference_minor_units: null,
             categories: [media, furniture, electronics],
         },
         { kind: 'category', ...cinema },
@@ -80,6 +87,7 @@ const archivedInGroupReport: PeriodReportData = {
     expense_minor_units: 162000,
     result_minor_units: 538000,
     has_operations: true,
+    comparison: null,
     expense: [
         {
             kind: 'group',
@@ -87,6 +95,9 @@ const archivedInGroupReport: PeriodReportData = {
             name: 'Abonamenty',
             amount_minor_units: 62000,
             share_tenths_percent: 383,
+            has_operations: true,
+            previous_minor_units: null,
+            difference_minor_units: null,
             categories: [
                 category(9, 'Streaming', 'tv', 'red', 50000, 309),
                 oldSubscription,
@@ -102,6 +113,7 @@ const refundReport: PeriodReportData = {
     expense_minor_units: 150000,
     result_minor_units: -150000,
     has_operations: true,
+    comparison: null,
     expense: yearReport.expense,
     income: [],
 };
@@ -111,6 +123,7 @@ const nonPositiveExpenseReport: PeriodReportData = {
     expense_minor_units: -20000,
     result_minor_units: 520000,
     has_operations: true,
+    comparison: null,
     expense: [
         {
             kind: 'category',
@@ -125,6 +138,7 @@ const emptyReport: PeriodReportData = {
     expense_minor_units: 0,
     result_minor_units: 0,
     has_operations: false,
+    comparison: null,
     expense: [],
     income: [],
 };

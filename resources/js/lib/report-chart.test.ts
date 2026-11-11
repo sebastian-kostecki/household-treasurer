@@ -12,6 +12,9 @@ function category(id: number, name: string, amount: number): PeriodReportEntry {
         amount_minor_units: amount,
         share_tenths_percent: null,
         is_archived: false,
+        has_operations: true,
+        previous_minor_units: null,
+        difference_minor_units: null,
     };
 }
 
