@@ -69,7 +69,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 
 | Stream | Theme                        | Chain                                                    | Note                                                                                                                       |
 | ------ | ---------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| A      | Lista kategorii i migracja   | `F-03` + `F-04` → `S-18` → `S-19` → `S-20` → `S-21` → `S-23` | Kroki 1–2 z PRD; przy celu „jakość” najpierw siatka bezpieczeństwa migracji. Po `S-18` wycinki `S-19`…`S-23` są od siebie niezależne. |
+| A      | Lista kategorii i migracja   | `F-03` + `F-04` → `S-18` → `S-19` → `S-20` → `S-21` + `F-06` → `S-23` | Kroki 1–2 z PRD; przy celu „jakość” najpierw siatka bezpieczeństwa migracji. `F-06` daje drogę powrotu dla scalania par na produkcji, a pomiar trafności Importu w `S-23` idzie po tych porządkach. Po `S-18` wycinki `S-19`…`S-23` są od siebie niezależne. |
 | B      | Grupy i raporty              | `S-22` → `S-28` → `S-29` → `S-30` → `S-31` → `S-32`       | Dołącza do A przy `S-18`. Krok 5 z PRD; `S-30`…`S-32` to elementy opcjonalne.                                               |
 | C      | Rytm i wydatki nieregularne  | `F-05` → `S-24` → `S-25` → `S-26` → `S-27` → `S-33`       | Kroki 3–4 z PRD, jedyna zmiana reguły „do wydania”. Dołącza do A przy `S-18`; `S-25` łączy się z B przy `S-22`, `S-27` z A przy `S-20`. |
 
@@ -358,7 +358,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | done                  | Zarchiwizowane: `context/archive/2026-11-11-collected-carry-over-new-year/`; odczyt w wierszu Budżetu (ADR-0076) |
 | S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | done                  | Zarchiwizowane: `context/archive/2026-11-10-period-report-by-group/` |
 | S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | done                  | Zarchiwizowane: `context/archive/2026-11-11-year-over-year-report/`; mock budżetu 2025 (dev) gotowy dla S-30…S-32 |
-| S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | yes                   | Opcjonalne; run `/10x-plan report-trend-by-month` |
+| S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | done                  | Zarchiwizowane: `context/archive/2026-11-11-report-trend-by-month/` |
 | S-31       | report-to-operations                | Raporty: przejście z kategorii do operacji                              | yes                   | Opcjonalne; run `/10x-plan report-to-operations` |
 | S-32       | rolling-twelve-month-report         | Raporty: okres „ostatnie 12 miesięcy”                                   | yes                   | Opcjonalne; run `/10x-plan rolling-twelve-month-report` |
 | S-33       | default-set-aside-percent           | Domyślny procent „odkładam” w propozycji planu                          | yes                   | Opcjonalne; run `/10x-plan default-set-aside-percent` |
