@@ -1,7 +1,7 @@
 ---
 change_id: year-over-year-report
 title: Year over year report
-status: new
+status: planned
 created: 2026-11-11
 updated: 2026-11-11
 archived_at: null
