@@ -253,12 +253,12 @@ Brak migracji, zmiany snapshotu i zmiany zapisanych danych. Wycofanie to cofnię
 
 #### Automated
 
-- [x] 2.1 Testy literałów UI i kluczy tłumaczeń przechodzą
+- [x] 2.1 Testy literałów UI i kluczy tłumaczeń przechodzą — e690a61
 - [ ] 2.2 E2E historii FR-012 i cały zestaw przechodzą
-- [x] 2.3 Pełna bramka na PostgreSQL
+- [x] 2.3 Pełna bramka na PostgreSQL — e690a61
 
 #### Manual
 
-- [x] 2.4 Na dev szkic 2027 pokazuje przy „Rekolekcjach” podpis równy „zebranemu” z planu grudnia 2026, a budżet 2026 go nie ma
-- [x] 2.5 `/dev/kitchen-sink/budget` pokazuje nowe stany w obu motywach, w 1280 i 390 px
-- [x] 2.6 Reguły, `design-system.md` i roadmapa opisują stan po S-27 bez sprzeczności z ADR-0076
+- [x] 2.4 Na dev szkic 2027 pokazuje przy „Rekolekcjach” podpis równy „zebranemu” z planu grudnia 2026, a budżet 2026 go nie ma — e690a61
+- [x] 2.5 `/dev/kitchen-sink/budget` pokazuje nowe stany w obu motywach, w 1280 i 390 px — e690a61
+- [x] 2.6 Reguły, `design-system.md` i roadmapa opisują stan po S-27 bez sprzeczności z ADR-0076 — e690a61
