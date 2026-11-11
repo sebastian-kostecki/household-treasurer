@@ -463,15 +463,15 @@ Brak migracji schematu i danych. Nowy parametr adresu i nowy cel zmiany roku są
 
 #### Automated
 
-- [x] 3.1 Test danych wykresu przechodzi
-- [x] 3.2 Wayfinder, build i typy
-- [x] 3.3 Strażnik literałów UI
-- [x] 3.4 Testy E2E przechodzą
-- [x] 3.5 Pełna bramka w worktree
-- [x] 3.6 Sloppy bez nowych znalezisk
+- [x] 3.1 Test danych wykresu przechodzi — 17cca24
+- [x] 3.2 Wayfinder, build i typy — 17cca24
+- [x] 3.3 Strażnik literałów UI — 17cca24
+- [x] 3.4 Testy E2E przechodzą — 17cca24
+- [x] 3.5 Pełna bramka w worktree — 17cca24
+- [x] 3.6 Sloppy bez nowych znalezisk — 17cca24
 
 #### Manual
 
-- [x] 3.7 Każdy miesiąc ma dwa słupki zgodne z tabelą miar, legenda pokazuje serie i miesiąc w toku
-- [x] 3.8 Wykres czytelny w trybie jasnym i ciemnym i mieści się na telefonie
-- [x] 3.9 Rok zakończony nie ma notki „w toku”, rok bez operacji nie ma wykresu
+- [x] 3.7 Każdy miesiąc ma dwa słupki zgodne z tabelą miar, legenda pokazuje serie i miesiąc w toku — 17cca24
+- [x] 3.8 Wykres czytelny w trybie jasnym i ciemnym i mieści się na telefonie — 17cca24
+- [x] 3.9 Rok zakończony nie ma notki „w toku”, rok bez operacji nie ma wykresu — 17cca24
