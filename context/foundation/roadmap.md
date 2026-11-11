@@ -49,7 +49,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | done |
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | done |
-| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | in-progress |
+| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | done |
 | S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
 | S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
@@ -138,7 +138,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Parallel with:** S-21, S-23, S-25, S-30, S-31, S-32, S-33
 - **Blockers:** —
 - **Unknowns:** Czy to jedyne pola z id konta w snapshocie, których restore nie mapuje (próba S-21 sprawdziła operacje i przelewy w kodzie, nie wszystkie tabele).
-- **Risk:** Błąd jest w `main` (`app/Actions/RestoreUserData.php`), nie w S-21; wykryty w próbie na kopii produkcji (`context/changes/category-merge/merge-trial.md`, O1): snapshot produkcji ma to pole wypełnione w 1269 z 1280 operacji, a `user:restore` na istniejącego użytkownika kończy się błędem klucza obcego (SQLSTATE 23503). Do pustej bazy restore przechodzi. Poprawka musi wejść przed wdrożeniem, bo `deploy.sh` robi snapshoty, a scalenie jest nieodwracalne w aplikacji.
+- **Risk:** Błąd jest w `main` (`app/Actions/RestoreUserData.php`), nie w S-21; wykryty w próbie na kopii produkcji (`context/archive/2026-11-11-category-merge/merge-trial.md`, O1): snapshot produkcji ma to pole wypełnione w 1269 z 1280 operacji, a `user:restore` na istniejącego użytkownika kończy się błędem klucza obcego (SQLSTATE 23503). Do pustej bazy restore przechodzi. Poprawka musi wejść przed wdrożeniem, bo `deploy.sh` robi snapshoty, a scalenie jest nieodwracalne w aplikacji.
 - **Status:** ready
 
 ## Slices
@@ -188,8 +188,8 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Parallel with:** F-05, S-19, S-20, S-22, S-23, S-24, S-25, S-26, S-27, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
 - **Unknowns:** —
-- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Co się dzieje z zebranym przy scaleniu, rozstrzyga ADR-0076. Kod i próba na kopii produkcji są gotowe (`context/changes/category-merge/merge-trial.md`); scalenie obu par na produkcji idzie po F-06 i po wdrożeniu: F-06 → `scripts/deploy.sh` → `user:backup` → scalenie w UI → `app:control-numbers`.
-- **Status:** in-progress
+- **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Co się dzieje z zebranym przy scaleniu, rozstrzyga ADR-0076. Kod i próba na kopii produkcji są gotowe (`context/archive/2026-11-11-category-merge/merge-trial.md`); scalenie obu par na produkcji idzie po F-06 i po wdrożeniu: F-06 → `scripts/deploy.sh` → `user:backup` → scalenie w UI → `app:control-numbers`.
+- **Status:** done
 
 ### S-22: Grupy kategorii
 
@@ -349,7 +349,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-18       | category-list-after-migration       | Jedna lista kategorii po migracji i widok „Kategorie”                   | done                  | Zarchiwizowane: `context/archive/2026-11-09-category-list-after-migration/` |
 | S-19       | category-edit-and-archive           | Edycja, archiwum i przywracanie kategorii                               | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-edit-and-archive/` |
 | S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                | done                  | Zarchiwizowane: `context/archive/2026-11-10-new-budget-from-category-list/` |
-| S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | yes                   | Run `/10x-plan category-merge` |
+| S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | done                  | Zarchiwizowane: `context/archive/2026-11-11-category-merge/`; scalenie par na produkcji po F-06 i wdrożeniu |
 | S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-groups/` |
 | S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | yes                   | Run `/10x-plan import-suggestions-on-category-list`; pomiar trafności po porządkach w danych (pytanie 4) |
 | S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-rhythm/`; przed wdrożeniem na produkcję próba na kopii (`reviews/production-rehearsal.md` w archiwum) |
@@ -415,3 +415,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-24: użytkownik może zobaczyć rytm nadany istniejącym kategoriom z dzisiejszych flag, poprawić go, a propozycja planu miesiąca liczy kwotę z rytmu (stała opłata, bieżąca, równomierna roczna z odczytem „zostało X na Y mies.”)** — Archived 2026-11-10 → `context/archive/2026-11-10-category-rhythm/`. Lesson: —.
 - **S-29: użytkownik może porównać okres raportu z tym samym okresem rok wcześniej (kwota, różnica) na tej samej kategorii listy** — Archived 2026-11-11 → `context/archive/2026-11-11-year-over-year-report/`. Lesson: —.
 - **S-26: użytkownik może oznaczyć kategorię jako nieregularną i podać zebrane startowe, widzieć w planie miesiąca i w Podsumowaniu miesiąca stawkę oraz „zebrane”, a rachunek zużywa zebrane i obniża „do wydania” tylko o nadwyżkę; „odkładam / dobieram” działa jak dotąd** — Archived 2026-11-11 → `context/archive/2026-11-11-irregular-expense-collected/`. Lesson: —.
+- **S-21: użytkownik może scalić dwie kategorie listy w jedną po podglądzie liczb (ile operacji, jakie plany), a operacje, plany i zebrane przechodzą na kategorię docelową.** — Archived 2026-11-11 → `context/archive/2026-11-11-category-merge/`. Lesson: —. Scalenie par na produkcji po F-06 i wdrożeniu.
