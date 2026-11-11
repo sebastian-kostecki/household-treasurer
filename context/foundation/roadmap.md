@@ -48,7 +48,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-18 | category-list-after-migration        | użytkownik może otworzyć „Kategorie” i zobaczyć jedną listę przez lata, na którą migracja przepięła dane            | F-03, F-04    | US-01, FR-001, FR-006, FR-022            | done |
 | S-19 | category-edit-and-archive            | użytkownik może edytować kategorię z opisem, zarchiwizować ją i przywrócić                                          | S-18          | FR-002, FR-003, FR-019, FR-022           | done |
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | done |
-| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | ready    |
+| S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | planning |
 | S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
 | S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
@@ -175,7 +175,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Nieodwracalne, więc podgląd liczb jest częścią wycinka, nie ozdobą. To narzędzie porządków (literówki, dane testowe), które kończą się przed pomiarem trafności Importu „przed” w S-23. Jeśli zebrane jeszcze nie istnieje, scalenie przenosi tylko operacje i plany, a S-26 dopisze zebrane.
-- **Status:** ready
+- **Status:** planning
 
 ### S-22: Grupy kategorii
 
