@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\DB;
  * `null`. Identical consecutive entries are not merged: only the migration does
  * that. An income Category has no entries; an expense Category written with
  * `null` is Running.
+ *
+ * A Category Merge into an Irregular target starts a new period instead
+ * (`startIrregularPeriod()`), because `handle()` would only correct the amount
+ * on the entry that started the old one (ADR-0076).
  */
 class ChangeCategoryRhythm
 {
@@ -71,20 +75,47 @@ class ChangeCategoryRhythm
                 return;
             }
 
-            CategoryRhythm::query()
-                ->where('category_id', $category->id)
-                ->where(fn ($query) => $query
-                    ->where('start_year', '>', $year)
-                    ->orWhere(fn ($same) => $same->where('start_year', $year)->where('start_month', '>=', $month)))
-                ->delete();
-
-            CategoryRhythm::query()->create([
-                'category_id' => $category->id,
-                'start_year' => $year,
-                'start_month' => $month,
-                'rhythm' => $rhythm,
-                'opening_collected_minor_units' => $rhythm === Rhythm::Irregular ? ($openingCollectedMinorUnits ?? 0) : null,
-            ]);
+            $this->replaceFromCurrentMonth($category, $rhythm, $today, $openingCollectedMinorUnits);
         });
+    }
+
+    /**
+     * Starts a new Irregular period from the current month with the given
+     * Opening Collected, whatever the Rhythm in force: entries starting in the
+     * current month or later are replaced by one, earlier entries stay and their
+     * period ends the month before (ADR-0076, the merge of two Categories).
+     */
+    public function startIrregularPeriod(Category $category, CarbonImmutable $today, int $openingCollectedMinorUnits): void
+    {
+        DB::transaction(function () use ($category, $today, $openingCollectedMinorUnits): void {
+            $category = Category::query()->lockForUpdate()->findOrFail($category->id);
+
+            $this->replaceFromCurrentMonth($category, Rhythm::Irregular, $today, $openingCollectedMinorUnits);
+        });
+    }
+
+    private function replaceFromCurrentMonth(
+        Category $category,
+        Rhythm $rhythm,
+        CarbonImmutable $today,
+        ?int $openingCollectedMinorUnits,
+    ): void {
+        $year = $today->year;
+        $month = $today->month;
+
+        CategoryRhythm::query()
+            ->where('category_id', $category->id)
+            ->where(fn ($query) => $query
+                ->where('start_year', '>', $year)
+                ->orWhere(fn ($same) => $same->where('start_year', $year)->where('start_month', '>=', $month)))
+            ->delete();
+
+        CategoryRhythm::query()->create([
+            'category_id' => $category->id,
+            'start_year' => $year,
+            'start_month' => $month,
+            'rhythm' => $rhythm,
+            'opening_collected_minor_units' => $rhythm === Rhythm::Irregular ? ($openingCollectedMinorUnits ?? 0) : null,
+        ]);
     }
 }

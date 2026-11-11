@@ -555,24 +555,24 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [x] 1.1 Indeks reguł jest aktualny
-- [x] 1.2 Bramka przechodzi
+- [x] 1.1 Indeks reguł jest aktualny — a25a1f1
+- [x] 1.2 Bramka przechodzi — a25a1f1
 
 #### Manual
 
-- [x] 1.3 ADR-0076 i słownik opisują dziewięć reguł i cztery przykłady bez sprzeczności z wcześniejszymi ADR-ami
+- [x] 1.3 ADR-0076 i słownik opisują dziewięć reguł i cztery przykłady bez sprzeczności z wcześniejszymi ADR-ami — a25a1f1
 
 ### Phase 2: Odczyt scalenia i akcja
 
 #### Automated
 
-- [ ] 2.1 Testy odczytu, akcji i zapisu rytmu przechodzą na PostgreSQL
-- [ ] 2.2 Testy „zebranego” i snapshotu nadal przechodzą na PostgreSQL
-- [ ] 2.3 Formatowanie i bramka
+- [x] 2.1 Testy odczytu, akcji i zapisu rytmu przechodzą na PostgreSQL
+- [x] 2.2 Testy „zebranego” i snapshotu nadal przechodzą na PostgreSQL
+- [x] 2.3 Formatowanie i bramka
 
 #### Manual
 
-- [ ] 2.4 Przegląd MergeCategories: kolejność kroków, brak zapisu w pętli, brak catch bez report
+- [x] 2.4 Przegląd MergeCategories: kolejność kroków, brak zapisu w pętli, brak catch bez report
 
 ### Phase 3: Granica HTTP
 
