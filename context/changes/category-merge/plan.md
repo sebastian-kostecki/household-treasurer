@@ -625,7 +625,7 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Manual
 
-- [ ] 6.2 Podgląd w oknie pokazał 48 i 20 operacji oraz plany zgodne z „Budżetem” 2026
-- [ ] 6.3 Po scaleniu lista ma 39 kategorii, operacje obu par są pod kategoriami docelowymi
-- [ ] 6.4 Po user:restore z pliku zapisanego przez pierwsze scalenie lista ma 41 kategorii, sumy, liczba operacji i salda równe stanowi „przed”
+- [x] 6.2 Podgląd w oknie pokazał 48 i 20 operacji oraz plany zgodne z „Budżetem” 2026 — 111fdd2
+- [x] 6.3 Po scaleniu lista ma 39 kategorii, operacje obu par są pod kategoriami docelowymi — 111fdd2
+- [x] 6.4 Po user:restore z pliku zapisanego przez pierwsze scalenie lista ma 41 kategorii, sumy, liczba operacji i salda równe stanowi „przed” — 111fdd2
 - [ ] 6.5 merge-trial.md zapisany, użytkownik potwierdził gotowość do scalenia par na produkcji
