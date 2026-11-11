@@ -97,6 +97,7 @@ const title = computed(() => {
                 :result-minor-units="report.result_minor_units"
                 :period-kind="period.kind"
                 :is-in-progress="period.is_in_progress"
+                :comparison="report.comparison"
             />
 
             <IndexEmptyState
@@ -112,6 +113,14 @@ const title = computed(() => {
                     :title="t.reports.expense"
                     :entries="report.expense"
                     :total-minor-units="report.expense_minor_units"
+                    :budget-year="budgetYear"
+                    :comparison-year="report.comparison?.year"
+                    :previous-total-minor-units="
+                        report.comparison?.expense_minor_units
+                    "
+                    :difference-total-minor-units="
+                        report.comparison?.expense_difference_minor_units
+                    "
                 />
                 <ReportBarChart type="income" :entries="report.income" />
                 <ReportEntryTable
@@ -119,6 +128,14 @@ const title = computed(() => {
                     :title="t.reports.income"
                     :entries="report.income"
                     :total-minor-units="report.income_minor_units"
+                    :budget-year="budgetYear"
+                    :comparison-year="report.comparison?.year"
+                    :previous-total-minor-units="
+                        report.comparison?.income_minor_units
+                    "
+                    :difference-total-minor-units="
+                        report.comparison?.income_difference_minor_units
+                    "
                 />
             </template>
         </template>

@@ -529,34 +529,34 @@ Brak migracji schematu i danych. Na produkcji w 2026 nie ma budżetu 2025, więc
 
 #### Automated
 
-- [x] 2.1 Testy mocka i domyślnego roku przechodzą na SQLite
-- [x] 2.2 Te same testy przechodzą na PostgreSQL (worktree)
-- [x] 2.3 Pełna bramka w worktree
-- [x] 2.4 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy mocka i domyślnego roku przechodzą na SQLite — c4362dd
+- [x] 2.2 Te same testy przechodzą na PostgreSQL (worktree) — c4362dd
+- [x] 2.3 Pełna bramka w worktree — c4362dd
+- [x] 2.4 Sloppy bez nowych znalezisk — c4362dd
 
 #### Manual
 
-- [x] 2.5 Mock dokłada budżet 2025 na devie, salda kont bez zmian
-- [x] 2.6 Budżet 2025 pokazuje wykonanie, a po świeżym zalogowaniu otwiera się 2026
-- [x] 2.7 --remove usuwa mock, a ponowne uruchomienie odtwarza te same kwoty
+- [x] 2.5 Mock dokłada budżet 2025 na devie, salda kont bez zmian — c4362dd
+- [x] 2.6 Budżet 2025 pokazuje wykonanie, a po świeżym zalogowaniu otwiera się 2026 — c4362dd
+- [x] 2.7 --remove usuwa mock, a ponowne uruchomienie odtwarza te same kwoty — c4362dd
 
 ### Phase 3: Tabela i panel miar
 
 #### Automated
 
-- [ ] 3.1 Testy jednostkowe frontu przechodzą
-- [ ] 3.2 Wayfinder, build i typy
-- [ ] 3.3 Strażnik literałów UI
-- [ ] 3.4 Testy strony i strażników przechodzą na PostgreSQL
-- [ ] 3.5 Pełna bramka w worktree
+- [x] 3.1 Testy jednostkowe frontu przechodzą
+- [x] 3.2 Wayfinder, build i typy
+- [x] 3.3 Strażnik literałów UI
+- [x] 3.4 Testy strony i strażników przechodzą na PostgreSQL
+- [x] 3.5 Pełna bramka w worktree
 
 #### Manual
 
-- [ ] 3.6 Raport roku 2026 pokazuje kolumny obu lat, a Razem 2025 zamkniętego miesiąca równa się raportowi 2025
-- [ ] 3.7 Okres w toku pokazuje notkę z zakresem, okres zakończony jej nie ma
-- [ ] 3.8 Różnica ma kolor według korzyści, zero i wiersze zarchiwizowane bez koloru
-- [ ] 3.9 Kafelki pokazują rok wcześniej i różnicę, raport 2025 wygląda jak przed zmianą
-- [ ] 3.10 Telefon ma wiersz w dwóch liniach bez przewijania w poziomie, kitchen sink we wszystkich scenariuszach
+- [x] 3.6 Raport roku 2026 pokazuje kolumny obu lat, a Razem 2025 zamkniętego miesiąca równa się raportowi 2025
+- [x] 3.7 Okres w toku pokazuje notkę z zakresem, okres zakończony jej nie ma
+- [x] 3.8 Różnica ma kolor według korzyści, zero i wiersze zarchiwizowane bez koloru
+- [x] 3.9 Kafelki pokazują rok wcześniej i różnicę, raport 2025 wygląda jak przed zmianą
+- [x] 3.10 Telefon ma wiersz w dwóch liniach bez przewijania w poziomie, kitchen sink we wszystkich scenariuszach
 
 ### Phase 4: Wykres i E2E
 
