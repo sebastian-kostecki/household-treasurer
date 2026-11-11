@@ -53,7 +53,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
 | S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | ready    |
-| S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | ready    |
+| S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | planning |
 | S-27 | collected-carry-over-new-year        | użytkownik może zobaczyć w nowym budżecie zebrane startowe przeniesione z 31 grudnia                               | S-20, S-26    | FR-012                                   | proposed |
 | S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | done     |
 | S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | ready    |
@@ -236,7 +236,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** z przeglądu implementacji F-05 (F9): (a) rachunek w miesiącu budżetu-szkicu albo roku bez budżetu, (b) zatwierdzony miesiąc bez pozycji nieregularnej, (c) miesiące przed pierwszym wpisem rytmu kategorii oznaczonej nieregularną przy utworzeniu
 - **Risk:** Jedyna zmiana reguły „do wydania”: stawka i rachunek to jedna reguła, której nie da się dostarczyć osobno bez podwójnego obniżenia w miesiącu rachunku. Zebrane jest odczytem z operacji (zwroty netto), nie zapisaną liczbą; salda i Spendable Liquidity bez zmian, a Wynik miesiąca liczy faktyczny rachunek.
-- **Status:** ready
+- **Status:** planning
 
 ### S-27: Zebrane przez 31 grudnia
 
