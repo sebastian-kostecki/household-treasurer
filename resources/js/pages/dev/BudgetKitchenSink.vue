@@ -186,7 +186,13 @@ const executionExpense = [
         },
     ),
     // Nieregularna (ADR-0066): bez kreski "Postęp roku".
+    // Nieregularna ze styczniem w okresie: podpis "zebrane startowe" (ADR-0076).
     executionRow(216, 'Rekolekcje', 'expense', 120000, 120000, 45000, 'tag', {
+        rhythm: 'irregular',
+        collected_at_year_start: { minor_units: 20000, is_forecast: false },
+    }),
+    // Nieregularna oznaczona w trakcie roku: styczeń poza okresem, bez podpisu.
+    executionRow(217, 'Naprawa dachu', 'expense', 60000, 60000, 0, 'tag', {
         rhythm: 'irregular',
     }),
 ];
@@ -360,6 +366,69 @@ const withArchived = [
     }),
 ];
 
+// Zebrane startowe (ADR-0076): szkic następnego roku z prognozą, prognoza 0,00,
+// długa nazwa, wiersz pod grupą i wiersz bez podpisu (oznaczona w trakcie roku).
+const collectedDraftExpense = [
+    draftRow(811, 'Prąd', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+        collected_at_year_start: { minor_units: 60000, is_forecast: true },
+    }),
+    draftRow(812, 'Wywóz szamba', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+        collected_at_year_start: { minor_units: 0, is_forecast: true },
+    }),
+    draftRow(
+        813,
+        'Przegląd i konserwacja kotła gazowego wraz z kominiarzem',
+        'expense',
+        0,
+        'tag',
+        {
+            rhythm: 'irregular',
+            collected_at_year_start: { minor_units: 123456, is_forecast: true },
+        },
+    ),
+    draftRow(814, 'Naprawa dachu', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+    }),
+    draftRow(815, 'Czynsz', 'expense', 250000, 'building', {
+        rhythm: 'fixed_charge',
+        group_id: 81,
+        sort_order: 20,
+    }),
+    draftRow(816, 'Ubezpieczenie domu', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+        group_id: 81,
+        sort_order: 21,
+        collected_at_year_start: { minor_units: 45000, is_forecast: true },
+    }),
+];
+const collectedDraftExpenseGroups = [
+    groupOf(81, 'Dom', 19, collectedDraftExpense, true),
+];
+
+const collectedWithArchived = [
+    executionRow(231, 'Czynsz', 'expense', 250000, 250000, 250000, 'building'),
+    row({
+        id: 232,
+        name: 'Stare ubezpieczenie',
+        type: 'expense',
+        rhythm: 'irregular',
+        is_archived: true,
+        can_archive: false,
+        can_restore: true,
+        can_delete: false,
+        planned_amount_minor_units: 12000,
+        initial_plan_minor_units: 12000,
+        current_plan_minor_units: 12000,
+        execution_minor_units: 15000,
+        remaining_minor_units: -3000,
+        percent_complete: 125,
+        is_over_limit: true,
+        collected_at_year_start: { minor_units: 8000, is_forecast: false },
+    }),
+];
+
 const manyCategories = Array.from({ length: 14 }, (_, index) =>
     draftRow(
         300 + index,
@@ -380,7 +449,7 @@ const noop = (): void => undefined;
 const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
-        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, stała opłata, bieżąca i równomierna roczna (każda z kreską roku). Szkic: kolumna „Typ”.',
+        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, stała opłata, bieżąca i równomierna roczna (każda z kreską roku), nieregularna z podpisem „zebrane startowe” i bez podpisu (sekcja „Zebrane startowe”). Szkic: kolumna „Typ”.',
     },
     {
         state: 'hover',
@@ -501,6 +570,41 @@ const stateMatrix: { state: string; where: string }[] = [
                 category-type="expense"
                 phase="execution"
                 :totals="totalsOf(executionExpense, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-collected">
+            <h2 id="ks-collected" class="section-title">
+                Zebrane startowe (ADR-0076): szkic z prognozą „Prąd” 600,00,
+                prognoza 0,00, długa nazwa, wiersz pod grupą „Dom”, „Naprawa
+                dachu” bez podpisu; realizacja „Rekolekcje” 200,00 bez prognozy;
+                zarchiwizowana z podpisem
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="collectedDraftExpense"
+                :groups="collectedDraftExpenseGroups"
+                :budget-id="1"
+                category-type="expense"
+                phase="draft"
+                :totals="totalsOf(collectedDraftExpense, true)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="null"
+                @edit="noop"
+            />
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="collectedWithArchived"
+                :groups="[]"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(collectedWithArchived, false)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
                 :year-elapsed-percent="YEAR_ELAPSED_PERCENT"

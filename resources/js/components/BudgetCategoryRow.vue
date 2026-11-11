@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { executionClass, remainingClass } from '@/lib/budget-category-cells';
 import { showsYearElapsedMark } from '@/lib/dashboard-categories';
+import { formatMoneyAmount } from '@/lib/format';
 
 const props = defineProps<{
     category: BudgetCategoryRow;
@@ -54,6 +55,16 @@ const meterYearElapsedPercent = computed(() =>
         : null,
 );
 
+const collectedAtYearStart = computed(
+    () => props.category.collected_at_year_start,
+);
+
+const collectedAtYearStartHint = computed(() =>
+    collectedAtYearStart.value?.is_forecast
+        ? t.budget.collected_at_year_start_forecast_hint
+        : t.budget.collected_at_year_start_hint,
+);
+
 const remainingLabel = computed(() =>
     props.categoryType === 'income'
         ? t.budget.remaining_income
@@ -85,16 +96,54 @@ const remainingLabel = computed(() =>
 
         <div class="budget-category-cell-category flex items-center gap-2">
             <CategoryChip
+                v-if="collectedAtYearStart !== null"
                 :name="category.name"
                 :icon="category.icon"
                 :color="category.color"
-            />
-            <Badge v-if="isArchived" variant="neutral">
-                {{ t.budget.archived_badge }}
-            </Badge>
-            <Badge v-else-if="showsOverLimitBadge" variant="destructive-soft">
-                {{ t.budget.over_limit_badge }}
-            </Badge>
+                size="lg"
+            >
+                <template #badges>
+                    <Badge v-if="isArchived" variant="neutral">
+                        {{ t.budget.archived_badge }}
+                    </Badge>
+                    <Badge
+                        v-else-if="showsOverLimitBadge"
+                        variant="destructive-soft"
+                    >
+                        {{ t.budget.over_limit_badge }}
+                    </Badge>
+                </template>
+
+                <template #subtitle>
+                    <span
+                        class="meta text-muted-foreground tabular-nums"
+                        data-collected-at-year-start
+                        :title="collectedAtYearStartHint"
+                    >
+                        {{ t.budget.collected_at_year_start }}
+                        {{ formatMoneyAmount(collectedAtYearStart.minor_units)
+                        }}<template v-if="collectedAtYearStart.is_forecast">
+                            · {{ t.budget.collected_at_year_start_forecast }}
+                        </template>
+                    </span>
+                </template>
+            </CategoryChip>
+            <template v-else>
+                <CategoryChip
+                    :name="category.name"
+                    :icon="category.icon"
+                    :color="category.color"
+                />
+                <Badge v-if="isArchived" variant="neutral">
+                    {{ t.budget.archived_badge }}
+                </Badge>
+                <Badge
+                    v-else-if="showsOverLimitBadge"
+                    variant="destructive-soft"
+                >
+                    {{ t.budget.over_limit_badge }}
+                </Badge>
+            </template>
         </div>
 
         <div v-if="isDraft" class="budget-category-cell-kind">

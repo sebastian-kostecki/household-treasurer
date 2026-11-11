@@ -241,24 +241,24 @@ Brak migracji, zmiany snapshotu i zmiany zapisanych danych. Wycofanie to cofnię
 
 #### Automated
 
-- [x] 1.1 Testy odczytu i propsów Budżetu przechodzą na PostgreSQL
-- [x] 1.2 Typy i build przechodzą
-- [x] 1.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Testy odczytu i propsów Budżetu przechodzą na PostgreSQL — 2b8fcf5
+- [x] 1.2 Typy i build przechodzą — 2b8fcf5
+- [x] 1.3 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — 2b8fcf5
 
 #### Manual
 
-- [x] 1.4 ADR-0076 i słownik opisują cztery decyzje z planowania bez sprzeczności z ADR-0066, ADR-0073, ADR-0060 i ADR-0037
+- [x] 1.4 ADR-0076 i słownik opisują cztery decyzje z planowania bez sprzeczności z ADR-0066, ADR-0073, ADR-0060 i ADR-0037 — 2b8fcf5
 
 ### Phase 2: Podpis w wierszu, kitchen sink, E2E i bramka
 
 #### Automated
 
-- [ ] 2.1 Testy literałów UI i kluczy tłumaczeń przechodzą
+- [x] 2.1 Testy literałów UI i kluczy tłumaczeń przechodzą
 - [ ] 2.2 E2E historii FR-012 i cały zestaw przechodzą
-- [ ] 2.3 Pełna bramka na PostgreSQL
+- [x] 2.3 Pełna bramka na PostgreSQL
 
 #### Manual
 
-- [ ] 2.4 Na dev szkic 2027 pokazuje przy „Rekolekcjach” podpis równy „zebranemu” z planu grudnia 2026, a budżet 2026 go nie ma
-- [ ] 2.5 `/dev/kitchen-sink/budget` pokazuje nowe stany w obu motywach, w 1280 i 390 px
-- [ ] 2.6 Reguły, `design-system.md` i roadmapa opisują stan po S-27 bez sprzeczności z ADR-0076
+- [x] 2.4 Na dev szkic 2027 pokazuje przy „Rekolekcjach” podpis równy „zebranemu” z planu grudnia 2026, a budżet 2026 go nie ma
+- [x] 2.5 `/dev/kitchen-sink/budget` pokazuje nowe stany w obu motywach, w 1280 i 390 px
+- [x] 2.6 Reguły, `design-system.md` i roadmapa opisują stan po S-27 bez sprzeczności z ADR-0076

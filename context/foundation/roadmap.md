@@ -247,7 +247,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Parallel with:** S-19, S-21, S-22, S-23, S-25, S-28, S-29, S-30, S-31, S-32, S-33
 - **Blockers:** —
 - **Unknowns:** —
-- **Uwaga po S-26:** łańcuch zebranego przechodzi przez 31 grudnia już od S-26 (ADR-0073); S-27 dodaje tylko odczyt „zebranego startowego” i jego pokazanie w nowym budżecie.
+- **Uwaga po S-26:** łańcuch zebranego przechodzi przez 31 grudnia już od S-26 (ADR-0073); S-27 dodaje tylko odczyt „zebranego startowego” i jego pokazanie w wierszu Budżetu, w szkicu i w realizacji (ADR-0076).
 - **Risk:** Zebrane startowe to odczyt stanu na 31 grudnia, nie liczba zapisana przy tworzeniu budżetu, bo budżet 2027 powstanie w grudniu, kiedy zebrane jeszcze się zmienia. Pierwsze przejście roku z prawdziwymi danymi wypada już na przełomie 2026 i 2027.
 - **Status:** in-progress
 
@@ -340,7 +340,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-rhythm/`; przed wdrożeniem na produkcję próba na kopii (`reviews/production-rehearsal.md` w archiwum) |
 | S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | yes                   | Run `/10x-plan month-plan-groups`; po S-26, bo oba zmieniają plan miesiąca |
 | S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | yes                   | Run `/10x-plan irregular-expense-collected`; przypadki brzegowe F9 z przeglądu F-05 do rozstrzygnięcia w planie |
-| S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Czeka na S-26 (S-20 done); musi zdążyć przed przełomem 2026/2027 |
+| S-27       | collected-carry-over-new-year       | Zebrane startowe z 31 grudnia w nowym budżecie                          | no                    | Zebrane startowe jako odczyt w wierszu Budżetu (ADR-0076); S-20 i S-26 done; musi zdążyć przed przełomem 2026/2027 |
 | S-28       | period-report-by-group              | Raporty: miesiąc albo rok po grupach i kategoriach                      | done                  | Zarchiwizowane: `context/archive/2026-11-10-period-report-by-group/` |
 | S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | yes                   | Run `/10x-plan year-over-year-report`; tworzy mock budżetu 2025 (dev) dla S-30…S-32 |
 | S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | yes                   | Opcjonalne; run `/10x-plan report-trend-by-month` |
