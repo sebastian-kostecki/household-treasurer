@@ -54,6 +54,9 @@ const states = [
     'category-list-rhythm',
     'category-list-income',
     'category-list-rhythm-error',
+    'category-list-irregular-new',
+    'category-list-irregular-edit',
+    'category-list-irregular-bad-amount',
     'category-group-new',
     'category-group-rename-error',
     'budget-create',
@@ -115,6 +118,12 @@ const labels: Record<SinkState, string> = {
         'Kategoria listy: edycja rytmu (równomierna roczna)',
     'category-list-income': 'Kategoria listy: przychód (bez pola Rytm)',
     'category-list-rhythm-error': 'Kategoria listy: błąd pola Rytm',
+    'category-list-irregular-new':
+        'Kategoria listy: nowe oznaczenie nieregularnej (zebrane startowe)',
+    'category-list-irregular-edit':
+        'Kategoria listy: edycja istniejącej nieregularnej',
+    'category-list-irregular-bad-amount':
+        'Kategoria listy: zła kwota zebranego startowego',
     'budget-create': 'Utwórz budżet: szkic z planem z poprzedniego roku',
     'budget-create-no-source': 'Utwórz budżet: bez wcześniejszego budżetu',
     'budget-create-empty': 'Utwórz budżet: pusta lista kategorii',
@@ -202,6 +211,8 @@ const listCategory: CategoryListItem = {
     description:
         'Zakupy spożywcze, chemia domowa i drobiazgi z osiedlowego sklepu.',
     rhythm: 'running',
+    opening_collected_minor_units: null,
+    irregular_since: null,
     budget_years: [2026],
     can_change_type: true,
     can_delete: true,
@@ -213,6 +224,19 @@ const rhythmChangeMonth = { year: 2026, month: 11 };
 const evenAnnualListCategory: CategoryListItem = {
     ...listCategory,
     rhythm: 'even_annual',
+};
+
+const irregularListCategory: CategoryListItem = {
+    ...listCategory,
+    name: 'Serwis auta',
+    rhythm: 'irregular',
+    opening_collected_minor_units: 50000,
+    irregular_since: { year: 2026, month: 8 },
+};
+
+const newlyIrregularListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'irregular',
 };
 
 const incomeListCategory: CategoryListItem = {
@@ -448,6 +472,35 @@ function setOpen(state: SinkState, value: boolean): void {
             :category-appearance-options="categoryAppearanceOptions"
             :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-rhythm-error', $event)"
+        />
+        <!-- A new marking: „nieregularna” chosen, no period yet, so the hint is the one for a new marking. -->
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-new')"
+            mode="edit"
+            default-type="expense"
+            :category="newlyIrregularListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-new', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-edit')"
+            mode="edit"
+            default-type="expense"
+            :category="irregularListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-edit', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-bad-amount')"
+            mode="edit"
+            default-type="expense"
+            :category="irregularListCategory"
+            initial-opening-collected-input="12,345"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-bad-amount', $event)"
         />
         <CategoryGroupFormDialog
             :open="isOpen('category-group-new')"

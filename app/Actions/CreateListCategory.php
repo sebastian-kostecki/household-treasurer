@@ -27,7 +27,7 @@ class CreateListCategory
     ) {}
 
     /**
-     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null}  $attributes
+     * @param  array{name: string, icon: string, color: string, type: string, description?: string|null, rhythm?: string|null, opening_collected_minor_units?: int|null}  $attributes
      */
     public function handle(User $user, array $attributes, ?CarbonImmutable $today = null): Category
     {
@@ -59,6 +59,7 @@ class CreateListCategory
                         $category,
                         isset($attributes['rhythm']) ? Rhythm::from($attributes['rhythm']) : Rhythm::Running,
                         $today ?? CarbonImmutable::today('UTC'),
+                        $attributes['opening_collected_minor_units'] ?? null,
                     );
                 }
 

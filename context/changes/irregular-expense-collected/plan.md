@@ -529,29 +529,29 @@ Historia US-02 przechodzi w przeglądarce, dokumenty i reguły opisują stan po 
 
 #### Automated
 
-- [x] 1.1 Testy jednostkowe kalkulatora łańcucha przechodzą
-- [x] 1.2 Testy odczytu rytmu i zebranego przechodzą na PostgreSQL
-- [x] 1.3 Migracja kolumny i `down()` przechodzą na PostgreSQL
-- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Testy jednostkowe kalkulatora łańcucha przechodzą — 312795a
+- [x] 1.2 Testy odczytu rytmu i zebranego przechodzą na PostgreSQL — 312795a
+- [x] 1.3 Migracja kolumny i `down()` przechodzą na PostgreSQL — 312795a
+- [x] 1.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — 312795a
 
 #### Manual
 
-- [x] 1.5 ADR-0073 i słownik opisują pięć decyzji z planowania i przypadek F9 (a) bez sprzeczności z ADR-0066 i ADR-0072
+- [x] 1.5 ADR-0073 i słownik opisują pięć decyzji z planowania i przypadek F9 (a) bez sprzeczności z ADR-0066 i ADR-0072 — 312795a
 
 ### Phase 2: „Kategorie”: nieregularna i zebrane startowe, snapshot v10
 
 #### Automated
 
-- [ ] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL
-- [ ] 2.2 Testy snapshotu v10 i restore v9 przechodzą na PostgreSQL
-- [ ] 2.3 Testy kitchen sinków i literałów UI przechodzą
-- [ ] 2.4 E2E „Kategorii” przechodzi
-- [ ] 2.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Testy zapisu rytmu i propsów „Kategorii” przechodzą na PostgreSQL
+- [x] 2.2 Testy snapshotu v10 i restore v9 przechodzą na PostgreSQL
+- [x] 2.3 Testy kitchen sinków i literałów UI przechodzą
+- [x] 2.4 E2E „Kategorii” przechodzi
+- [x] 2.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 2.6 Na dev oznaczenie „Rekolekcji” jako nieregularnej z zebranym startowym 300,00 zapisuje się i wraca w oknie
-- [ ] 2.7 `/dev/ui/dialogs` pokazuje trzy nowe stany, a cztery opcje rytmu mieszczą się na 390 px
+- [x] 2.6 Na dev oznaczenie „Rekolekcji” jako nieregularnej z zebranym startowym 300,00 zapisuje się i wraca w oknie
+- [x] 2.7 `/dev/ui/dialogs` pokazuje trzy nowe stany, a cztery opcje rytmu mieszczą się na 390 px
 
 ### Phase 3: Plan miesiąca: stawka, „zebrane” i „do wydania”
 

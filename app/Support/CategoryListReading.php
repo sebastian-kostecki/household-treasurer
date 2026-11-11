@@ -27,9 +27,9 @@ class CategoryListReading
 {
     /**
      * @return array{
-     *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
-     *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
-     *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     incomeCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, opening_collected_minor_units: int|null, irregular_since: array{year: int, month: int}|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     expenseCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, opening_collected_minor_units: int|null, irregular_since: array{year: int, month: int}|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
+     *     archivedCategories: list<array{id: int, name: string, icon: string, color: string, type: string, group_id: int|null, sort_order: int, description: string|null, rhythm: string|null, opening_collected_minor_units: int|null, irregular_since: array{year: int, month: int}|null, budget_years: list<int>, can_change_type: bool, can_delete: bool, archived_at: string|null}>,
      *     incomeGroups: list<array{id: int, name: string, sort_order: int, archived_count: int}>,
      *     expenseGroups: list<array{id: int, name: string, sort_order: int, archived_count: int}>
      * }
@@ -54,21 +54,27 @@ class CategoryListReading
         $rhythms = CategoryRhythms::forCategoryIds($categoryIds);
 
         $categories = $categories
-            ->map(fn (Category $category): array => [
-                'id' => $category->id,
-                'name' => $category->name,
-                'icon' => $category->icon,
-                'color' => $category->color,
-                'type' => $category->type->value,
-                'group_id' => $category->category_group_id,
-                'sort_order' => $category->sort_order,
-                'description' => $category->description,
-                'rhythm' => $rhythms->rhythmIn($category->id, $today->year, $today->month)?->value,
-                'budget_years' => $yearsByCategory[$category->id] ?? [],
-                'can_change_type' => ! isset($lockedIds[$category->id]),
-                'can_delete' => ! isset($lockedIds[$category->id]),
-                'archived_at' => $category->archived_at?->toDateString(),
-            ]);
+            ->map(function (Category $category) use ($yearsByCategory, $lockedIds, $rhythms, $today): array {
+                $period = $rhythms->irregularPeriodIn($category->id, $today->year, $today->month);
+
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'icon' => $category->icon,
+                    'color' => $category->color,
+                    'type' => $category->type->value,
+                    'group_id' => $category->category_group_id,
+                    'sort_order' => $category->sort_order,
+                    'description' => $category->description,
+                    'rhythm' => $rhythms->rhythmIn($category->id, $today->year, $today->month)?->value,
+                    'opening_collected_minor_units' => $period['opening_collected_minor_units'] ?? null,
+                    'irregular_since' => $period === null ? null : ['year' => $period['start_year'], 'month' => $period['start_month']],
+                    'budget_years' => $yearsByCategory[$category->id] ?? [],
+                    'can_change_type' => ! isset($lockedIds[$category->id]),
+                    'can_delete' => ! isset($lockedIds[$category->id]),
+                    'archived_at' => $category->archived_at?->toDateString(),
+                ];
+            });
 
         $groups = $user->categoryGroups()
             ->orderBy('sort_order')

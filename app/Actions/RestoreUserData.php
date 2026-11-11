@@ -27,11 +27,20 @@ class RestoreUserData
 {
     /**
      * Versions holding the User's Category list and Budget Lines (6; 7 with the
-     * description; 8 with the Category Groups; 9 with the Rhythm history).
+     * description; 8 with the Category Groups; 9 with the Rhythm history; 10 with the Opening
+     * Collected on Irregular entries).
      *
      * @var list<int>
      */
-    private const LIST_FORMAT_VERSIONS = [6, 7, 8, BackupUserData::SNAPSHOT_VERSION];
+    private const LIST_FORMAT_VERSIONS = [6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION];
+
+    /**
+     * Versions that carry the Rhythm history; older ones are converted from the
+     * flags of their Budget Lines.
+     *
+     * @var list<int>
+     */
+    private const RHYTHM_VERSIONS = [9, BackupUserData::SNAPSHOT_VERSION];
 
     /**
      * The flags of the Budget Lines of a snapshot of version 1 to 8, kept only
@@ -63,7 +72,7 @@ class RestoreUserData
             $categoryIdMap = $isCurrentFormat
                 ? $this->restoreBudgetLines($targetUser, $snapshot['category_groups'] ?? [], $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap, $snapshot['version'])
                 : $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
-            if ($snapshot['version'] < BackupUserData::SNAPSHOT_VERSION) {
+            if (! in_array($snapshot['version'], self::RHYTHM_VERSIONS, true)) {
                 $this->restoreLegacyRhythms($targetUser);
             }
 
@@ -112,7 +121,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -122,15 +131,15 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, 6, 7, 8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
@@ -138,7 +147,7 @@ class RestoreUserData
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
         }
 
-        if (in_array($version, [8, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
+        if (in_array($version, [8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: category_groups');
         }
 
@@ -288,7 +297,7 @@ class RestoreUserData
 
             $seenInBudget[$budgetId][$listCategory->id] = true;
 
-            if ($version < BackupUserData::SNAPSHOT_VERSION) {
+            if (! in_array($version, self::RHYTHM_VERSIONS, true)) {
                 $this->rememberLegacyFlags($budgetId, $listCategory->id, [...$lineData, 'type' => $listCategory->type->value]);
             }
 
@@ -413,8 +422,8 @@ class RestoreUserData
 
             $restored[$categoryData['id']] = $category;
 
-            if ($version === BackupUserData::SNAPSHOT_VERSION) {
-                $this->restoreCategoryRhythms($category, $categoryData);
+            if (in_array($version, self::RHYTHM_VERSIONS, true)) {
+                $this->restoreCategoryRhythms($category, $categoryData, $version);
             }
         }
 
@@ -422,13 +431,15 @@ class RestoreUserData
     }
 
     /**
-     * The Rhythm history of a version 9 Category: an expense has at least one
-     * entry, an income none, each entry a known Rhythm and a month 1 to 12, and
-     * no start twice (ADR-0072).
+     * The Rhythm history of a version 9 or 10 Category: an expense has at least
+     * one entry, an income none, each entry a known Rhythm and a month 1 to 12,
+     * and no start twice (ADR-0072). Version 10 carries the Opening Collected
+     * (ADR-0073): a number >= 0 on an Irregular entry, `null` on the others;
+     * version 9 never wrote an Irregular entry nor an amount.
      *
      * @param  array<string, mixed>  $categoryData
      */
-    private function restoreCategoryRhythms(Category $category, array $categoryData): void
+    private function restoreCategoryRhythms(Category $category, array $categoryData, int $version): void
     {
         $entries = $categoryData['rhythms'] ?? null;
 
@@ -469,18 +480,55 @@ class RestoreUserData
                 throw new UserSnapshotException("Snapshot category {$categoryData['id']} has two rhythms starting in one month.");
             }
 
+            $opening = $this->openingCollectedOf($entry, $rhythm, $version, $categoryData['id']);
+
             $seenStarts[$year * 12 + $month] = true;
             $rows[] = [
                 'category_id' => $category->id,
                 'start_year' => $year,
                 'start_month' => $month,
                 'rhythm' => $rhythm->value,
+                'opening_collected_minor_units' => $opening,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
         }
 
         CategoryRhythm::query()->insert($rows);
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    private function openingCollectedOf(array $entry, Rhythm $rhythm, int $version, mixed $categoryId): ?int
+    {
+        $opening = $entry['opening_collected_minor_units'] ?? null;
+
+        if ($version === 9) {
+            if ($rhythm === Rhythm::Irregular) {
+                throw new UserSnapshotException("Snapshot category {$categoryId} has an irregular rhythm, which version 9 never wrote.");
+            }
+
+            return null;
+        }
+
+        if ($rhythm !== Rhythm::Irregular) {
+            if ($opening !== null) {
+                throw new UserSnapshotException("Snapshot category {$categoryId} has an opening collected amount on a rhythm that is not irregular.");
+            }
+
+            return null;
+        }
+
+        if ($opening === null) {
+            throw new UserSnapshotException("Snapshot category {$categoryId} has an irregular rhythm without an opening collected amount.");
+        }
+
+        if (! is_int($opening) || $opening < 0) {
+            throw new UserSnapshotException("Snapshot category {$categoryId} has an invalid opening collected amount.");
+        }
+
+        return $opening;
     }
 
     /**

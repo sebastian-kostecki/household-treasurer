@@ -22,6 +22,8 @@ type CategoryFixtureOptions = Partial<
         CategoryListItem,
         | 'description'
         | 'rhythm'
+        | 'opening_collected_minor_units'
+        | 'irregular_since'
         | 'can_change_type'
         | 'can_delete'
         | 'archived_at'
@@ -59,6 +61,9 @@ function category(
         sort_order: options.sort_order ?? id,
         description: options.description ?? null,
         rhythm: options.rhythm ?? (type === 'expense' ? 'running' : null),
+        opening_collected_minor_units:
+            options.opening_collected_minor_units ?? null,
+        irregular_since: options.irregular_since ?? null,
         budget_years: budgetYears,
         can_change_type: options.can_change_type ?? true,
         can_delete: options.can_delete ?? true,
@@ -130,6 +135,19 @@ export const expenseCategories: CategoryListItem[] = [
         DEFAULT_CATEGORY_COLOR,
         [],
         { rhythm: 'fixed_charge' },
+    ),
+    category(
+        24,
+        'Serwis auta',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        {
+            rhythm: 'irregular',
+            opening_collected_minor_units: 50000,
+            irregular_since: { year: 2026, month: 11 },
+        },
     ),
 ];
 

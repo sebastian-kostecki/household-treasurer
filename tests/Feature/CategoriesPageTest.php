@@ -62,6 +62,8 @@ class CategoriesPageTest extends TestCase
                     'sort_order' => 0,
                     'description' => null,
                     'rhythm' => null,
+                    'opening_collected_minor_units' => null,
+                    'irregular_since' => null,
                     'budget_years' => [2026, 2027],
                     'can_change_type' => false,
                     'can_delete' => false,
@@ -103,6 +105,29 @@ class CategoriesPageTest extends TestCase
                 ->where('expenseCategories.1.id', $changed->id)
                 ->where('expenseCategories.1.rhythm', 'fixed_charge')
                 ->where('incomeCategories.0.rhythm', null),
+            );
+    }
+
+    public function test_an_irregular_category_carries_its_opening_collected_and_the_month_the_period_started_in(): void
+    {
+        $this->travelTo('2026-11-10');
+        $user = User::factory()->create();
+        $irregular = Category::factory()->for($user)->expense()->withoutRhythm()->create(['name' => 'Rekolekcje', 'sort_order' => 0]);
+        CategoryRhythm::factory()->starting(2026, 1)->rhythm(Rhythm::Running)->create(['category_id' => $irregular->id]);
+        CategoryRhythm::factory()->starting(2026, 8)->irregular(30000)->create(['category_id' => $irregular->id]);
+        CategoryRhythm::factory()->starting(2027, 1)->irregular(99000)->create(['category_id' => $irregular->id]);
+        $running = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 1]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.id', $irregular->id)
+                ->where('expenseCategories.0.rhythm', 'irregular')
+                ->where('expenseCategories.0.opening_collected_minor_units', 30000)
+                ->where('expenseCategories.0.irregular_since', ['year' => 2026, 'month' => 8])
+                ->where('expenseCategories.1.id', $running->id)
+                ->where('expenseCategories.1.opening_collected_minor_units', null)
+                ->where('expenseCategories.1.irregular_since', null),
             );
     }
 
