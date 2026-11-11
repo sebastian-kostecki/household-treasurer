@@ -544,33 +544,33 @@ Brak migracji schematu i danych. Na produkcji w 2026 nie ma budżetu 2025, więc
 
 #### Automated
 
-- [x] 3.1 Testy jednostkowe frontu przechodzą
-- [x] 3.2 Wayfinder, build i typy
-- [x] 3.3 Strażnik literałów UI
-- [x] 3.4 Testy strony i strażników przechodzą na PostgreSQL
-- [x] 3.5 Pełna bramka w worktree
+- [x] 3.1 Testy jednostkowe frontu przechodzą — a7d7afd
+- [x] 3.2 Wayfinder, build i typy — a7d7afd
+- [x] 3.3 Strażnik literałów UI — a7d7afd
+- [x] 3.4 Testy strony i strażników przechodzą na PostgreSQL — a7d7afd
+- [x] 3.5 Pełna bramka w worktree — a7d7afd
 
 #### Manual
 
-- [x] 3.6 Raport roku 2026 pokazuje kolumny obu lat, a Razem 2025 zamkniętego miesiąca równa się raportowi 2025
-- [x] 3.7 Okres w toku pokazuje notkę z zakresem, okres zakończony jej nie ma
-- [x] 3.8 Różnica ma kolor według korzyści, zero i wiersze zarchiwizowane bez koloru
-- [x] 3.9 Kafelki pokazują rok wcześniej i różnicę, raport 2025 wygląda jak przed zmianą
-- [x] 3.10 Telefon ma wiersz w dwóch liniach bez przewijania w poziomie, kitchen sink we wszystkich scenariuszach
+- [x] 3.6 Raport roku 2026 pokazuje kolumny obu lat, a Razem 2025 zamkniętego miesiąca równa się raportowi 2025 — a7d7afd
+- [x] 3.7 Okres w toku pokazuje notkę z zakresem, okres zakończony jej nie ma — a7d7afd
+- [x] 3.8 Różnica ma kolor według korzyści, zero i wiersze zarchiwizowane bez koloru — a7d7afd
+- [x] 3.9 Kafelki pokazują rok wcześniej i różnicę, raport 2025 wygląda jak przed zmianą — a7d7afd
+- [x] 3.10 Telefon ma wiersz w dwóch liniach bez przewijania w poziomie, kitchen sink we wszystkich scenariuszach — a7d7afd
 
 ### Phase 4: Wykres i E2E
 
 #### Automated
 
-- [ ] 4.1 Test danych wykresu przechodzi
-- [ ] 4.2 Wayfinder, build i typy
-- [ ] 4.3 Strażnik literałów UI
+- [x] 4.1 Test danych wykresu przechodzi
+- [x] 4.2 Wayfinder, build i typy
+- [x] 4.3 Strażnik literałów UI
 - [ ] 4.4 Testy E2E przechodzą na bazie z mockiem
-- [ ] 4.5 Pełna bramka w worktree
-- [ ] 4.6 Sloppy bez nowych znalezisk
+- [x] 4.5 Pełna bramka w worktree
+- [x] 4.6 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 4.7 Każdy wiersz wykresu ma dwa słupki zgodne z tabelą, legenda pokazuje oba lata
-- [ ] 4.8 Słupek roku wcześniej czytelny w trybie jasnym i ciemnym
-- [ ] 4.9 Wykres mieści się na telefonie, raport bez porównania ma wykres jak przed zmianą
+- [x] 4.7 Każdy wiersz wykresu ma dwa słupki zgodne z tabelą, legenda pokazuje oba lata
+- [x] 4.8 Słupek roku wcześniej czytelny w trybie jasnym i ciemnym
+- [x] 4.9 Wykres mieści się na telefonie, raport bez porównania ma wykres jak przed zmianą

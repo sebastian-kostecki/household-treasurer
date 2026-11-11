@@ -107,7 +107,12 @@ const title = computed(() => {
             />
 
             <template v-else>
-                <ReportBarChart type="expense" :entries="report.expense" />
+                <ReportBarChart
+                    type="expense"
+                    :entries="report.expense"
+                    :budget-year="budgetYear"
+                    :comparison-year="report.comparison?.year"
+                />
                 <ReportEntryTable
                     type="expense"
                     :title="t.reports.expense"
@@ -122,7 +127,12 @@ const title = computed(() => {
                         report.comparison?.expense_difference_minor_units
                     "
                 />
-                <ReportBarChart type="income" :entries="report.income" />
+                <ReportBarChart
+                    type="income"
+                    :entries="report.income"
+                    :budget-year="budgetYear"
+                    :comparison-year="report.comparison?.year"
+                />
                 <ReportEntryTable
                     type="income"
                     :title="t.reports.income"

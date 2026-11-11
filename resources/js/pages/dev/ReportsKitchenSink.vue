@@ -175,6 +175,8 @@ const stateMatrix = [
                         <ReportBarChart
                             type="expense"
                             :entries="scenario.report.expense"
+                            :budget-year="2026"
+                            :comparison-year="scenario.report.comparison?.year"
                         />
                         <ReportEntryTable
                             type="expense"
@@ -196,6 +198,8 @@ const stateMatrix = [
                         <ReportBarChart
                             type="income"
                             :entries="scenario.report.income"
+                            :budget-year="2026"
+                            :comparison-year="scenario.report.comparison?.year"
                         />
                         <ReportEntryTable
                             type="income"
