@@ -607,21 +607,21 @@ Odczyt i akcja mają stałą liczbę zapytań niezależnie od liczby budżetów 
 
 #### Automated
 
-- [x] 5.1 Cały zestaw E2E przechodzi
-- [x] 5.2 Pełna bramka na PostgreSQL przechodzi
-- [x] 5.3 Sloppy bez nowych znalezisk
+- [x] 5.1 Cały zestaw E2E przechodzi — f5f9e0d
+- [x] 5.2 Pełna bramka na PostgreSQL przechodzi — f5f9e0d
+- [x] 5.3 Sloppy bez nowych znalezisk — f5f9e0d
 
 #### Manual
 
-- [x] 5.4 Na dev scalenie dwóch kategorii z jednego budżetu daje jedną pozycję z sumami, suma planu budżetu bez zmian
-- [x] 5.5 Na dev scalenie nieregularnej do nieregularnej daje „zebrane” równe sumie z podglądu
-- [x] 5.6 README opisuje powrót tak, że da się go wykonać bez czytania kodu
+- [x] 5.4 Na dev scalenie dwóch kategorii z jednego budżetu daje jedną pozycję z sumami, suma planu budżetu bez zmian — f5f9e0d
+- [x] 5.5 Na dev scalenie nieregularnej do nieregularnej daje „zebrane” równe sumie z podglądu — f5f9e0d
+- [x] 5.6 README opisuje powrót tak, że da się go wykonać bez czytania kodu — f5f9e0d
 
 ### Phase 6: Próba na kopii produkcji
 
 #### Automated
 
-- [ ] 6.1 Liczby kontrolne po obu scaleniach nie różnią się od stanu „przed”
+- [x] 6.1 Liczby kontrolne po obu scaleniach nie różnią się od stanu „przed”
 
 #### Manual
 
