@@ -1,10 +1,10 @@
 ---
 change_id: irregular-expense-collected
 title: Irregular expense collected
-status: implemented
+status: archived
 created: 2026-11-11
 updated: 2026-11-11
-archived_at: null
+archived_at: 2026-11-11T17:40:56Z
 ---
 
 ## Notes
