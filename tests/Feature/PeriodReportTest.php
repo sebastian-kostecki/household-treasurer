@@ -12,7 +12,10 @@ use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
 use App\Support\BudgetMonthResult;
+use App\Support\MonthCategoryActuals;
 use App\Support\PeriodReport;
+use App\Support\ReportComparisonPeriod;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
@@ -306,6 +309,301 @@ test('the report uses a constant number of queries', function () {
         DB::flushQueryLog();
         DB::enableQueryLog();
         PeriodReport::forYear($budget)->toArray();
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
+    };
+
+    expect($countQueries(24))->toBe($countQueries(2));
+});
+
+/**
+ * A line of the same list Category in another Budget of the same User.
+ */
+function reportLineOfCategory(Budget $budget, BudgetLine $line, bool $archivedLine = false): BudgetLine
+{
+    $factory = BudgetLine::factory()->for($budget);
+
+    return ($archivedLine ? $factory->archived() : $factory)->create(['category_id' => $line->category_id]);
+}
+
+/**
+ * @param  list<array<string, mixed>>  $entries
+ * @return array<string, array<string, mixed>>
+ */
+function reportRowsByName(array $entries): array
+{
+    $rows = [];
+    foreach ($entries as $entry) {
+        $rows[$entry['name']] = $entry;
+        foreach ($entry['categories'] ?? [] as $category) {
+            $rows[$category['name']] = $category;
+        }
+    }
+
+    return $rows;
+}
+
+function reportComparison(Budget $budget, ?int $month = null, string $today = '2027-06-01'): ReportComparisonPeriod
+{
+    return ReportComparisonPeriod::resolve($budget, $month, CarbonImmutable::parse($today, 'UTC'))
+        ?? throw new RuntimeException('No comparison period.');
+}
+
+test('without a comparison the report has no comparison and its rows are in the absent state', function () {
+    [$user, $account, $budget] = reportFixture();
+    $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom', 'sort_order' => 1]);
+    $food = reportLine($user, $budget, 'expense', 'Żywność', ['sort_order' => 0]);
+    $rent = reportLine($user, $budget, 'expense', 'Czynsz', ['sort_order' => 2, 'category_group_id' => $group->id]);
+    reportOperation($user, $account, $food, '2026-03-05', 1_000);
+    reportOperation($user, $account, $rent, '2026-03-05', 3_000);
+
+    $report = PeriodReport::forYear($budget)->toArray();
+    [$foodRow, $groupRow] = $report['expense'];
+
+    expect($report['comparison'])->toBeNull()
+        ->and($foodRow['has_operations'])->toBeTrue()
+        ->and($foodRow['previous_minor_units'])->toBeNull()
+        ->and($foodRow['difference_minor_units'])->toBeNull()
+        ->and($groupRow['has_operations'])->toBeTrue()
+        ->and($groupRow['previous_minor_units'])->toBeNull()
+        ->and($groupRow['difference_minor_units'])->toBeNull()
+        ->and($groupRow['categories'][0]['previous_minor_units'])->toBeNull()
+        ->and($groupRow['categories'][0]['difference_minor_units'])->toBeNull();
+});
+
+test('a full year compared with the year before equals the report of that year to the grosz', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $income = reportLine($user, $budget, 'income', 'Pensja');
+    $food = reportLine($user, $budget, 'expense', 'Żywność');
+    $home = reportLine($user, $budget, 'expense', 'Dom');
+    $previousLines = [
+        $income->category_id => reportLineOfCategory($previous, $income),
+        $food->category_id => reportLineOfCategory($previous, $food),
+        $home->category_id => reportLineOfCategory($previous, $home),
+    ];
+
+    foreach ([1, 5, 9, 12] as $month) {
+        bookReportOperation($user, $account, $income, sprintf('2026-%02d-10', $month), 210_000);
+        bookReportOperation($user, $account, $food, sprintf('2026-%02d-11', $month), 31_000 + $month);
+        bookReportOperation($user, $account, $previousLines[$income->category_id], sprintf('2025-%02d-10', $month), 200_000 + $month);
+        bookReportOperation($user, $account, $previousLines[$food->category_id], sprintf('2025-%02d-11', $month), 29_000 + $month);
+        bookReportOperation($user, $account, $previousLines[$home->category_id], sprintf('2025-%02d-12', $month), 4_000);
+    }
+    bookReportOperation($user, $account, $previousLines[$food->category_id], '2025-07-01', -1_500);
+
+    $report = PeriodReport::forYear($budget, reportComparison($budget))->toArray();
+    $previousReport = PeriodReport::forYear($previous)->toArray();
+    $byCategory = [];
+    foreach ([...$report['income'], ...$report['expense']] as $entry) {
+        $byCategory[$entry['id']] = $entry;
+    }
+
+    foreach ($previousLines as $categoryId => $line) {
+        expect($byCategory[$categoryId]['previous_minor_units'])->toBe($line->refresh()->execution_minor_units)
+            ->and($byCategory[$categoryId]['difference_minor_units'])->toBe($byCategory[$categoryId]['amount_minor_units'] - $line->execution_minor_units);
+    }
+
+    expect($report['comparison'])->toMatchArray([
+        'year' => 2025,
+        'from' => '2025-01-01',
+        'through' => '2025-12-31',
+        'is_partial' => false,
+        'income_minor_units' => $previousReport['income_minor_units'],
+        'expense_minor_units' => $previousReport['expense_minor_units'],
+        'result_minor_units' => $previousReport['result_minor_units'],
+        'income_difference_minor_units' => $report['income_minor_units'] - $previousReport['income_minor_units'],
+        'expense_difference_minor_units' => $report['expense_minor_units'] - $previousReport['expense_minor_units'],
+        'result_difference_minor_units' => $report['result_minor_units'] - $previousReport['result_minor_units'],
+    ]);
+});
+
+test('a month compared with the same month a year earlier equals its Month Result', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $income = reportLine($user, $budget, 'income', 'Pensja');
+    $food = reportLine($user, $budget, 'expense', 'Żywność');
+    $previousIncome = reportLineOfCategory($previous, $income);
+    $previousFood = reportLineOfCategory($previous, $food);
+
+    foreach ([2, 3] as $month) {
+        bookReportOperation($user, $account, $income, sprintf('2026-%02d-01', $month), 100_000);
+        bookReportOperation($user, $account, $previousIncome, sprintf('2025-%02d-01', $month), 90_000 + $month);
+        bookReportOperation($user, $account, $previousFood, date('Y-m-t', strtotime(sprintf('2025-%02d-01', $month))), 12_000 + $month);
+        bookReportOperation($user, $account, $previousFood, sprintf('2025-%02d-15', $month), 3_000);
+    }
+
+    $report = PeriodReport::forMonth($budget, 2, reportComparison($budget, 2))->toArray();
+    $previousResult = BudgetMonthResult::forViewedMonth($previous, 2);
+
+    expect($report['comparison']['from'])->toBe('2025-02-01')
+        ->and($report['comparison']['through'])->toBe('2025-02-28')
+        ->and($report['comparison']['income_minor_units'])->toBe($previousResult['income_execution_minor_units'])
+        ->and($report['comparison']['expense_minor_units'])->toBe($previousResult['expense_execution_minor_units'])
+        ->and($report['comparison']['result_minor_units'])->toBe($previousResult['month_result_minor_units']);
+});
+
+test('a period in progress is compared up to the same day a year earlier', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $food = reportLine($user, $budget, 'expense', 'Żywność');
+    $previousFood = reportLineOfCategory($previous, $food);
+    reportOperation($user, $account, $food, '2026-11-02', 100);
+    reportOperation($user, $account, $previousFood, '2025-03-01', 1_000);
+    reportOperation($user, $account, $previousFood, '2025-11-10', 20);
+    reportOperation($user, $account, $previousFood, '2025-11-11', 300);
+    reportOperation($user, $account, $previousFood, '2025-11-12', 4_000);
+    reportOperation($user, $account, $previousFood, '2025-12-31', 50_000);
+
+    $year = PeriodReport::forYear($budget, reportComparison($budget, null, '2026-11-11'))->toArray();
+    $month = PeriodReport::forMonth($budget, 11, reportComparison($budget, 11, '2026-11-11'))->toArray();
+
+    expect($year['comparison']['through'])->toBe('2025-11-11')
+        ->and($year['comparison']['is_partial'])->toBeTrue()
+        ->and($year['expense'][0]['previous_minor_units'])->toBe(1_320)
+        ->and($year['comparison']['expense_minor_units'])->toBe(1_320)
+        ->and($month['comparison']['from'])->toBe('2025-11-01')
+        ->and($month['comparison']['through'])->toBe('2025-11-11')
+        ->and($month['expense'][0]['previous_minor_units'])->toBe(320)
+        ->and($month['expense'][0]['difference_minor_units'])->toBe(100 - 320);
+});
+
+test('rows come from both ranges, a missing side is absent and differences are current minus previous', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Wydatki własne', 'sort_order' => 0]);
+    $clothes = reportLine($user, $budget, 'expense', 'Ubrania', ['category_group_id' => $group->id, 'sort_order' => 1]);
+    $gifts = reportLine($user, $budget, 'expense', 'Prezenty', ['category_group_id' => $group->id, 'sort_order' => 2]);
+    $ai = reportLine($user, $budget, 'expense', 'Subskrypcje AI', ['category_group_id' => $group->id, 'sort_order' => 3]);
+    $untouched = reportLine($user, $budget, 'expense', 'Bez operacji', ['sort_order' => 4]);
+    reportOperation($user, $account, $clothes, '2026-02-01', 5_900);
+    reportOperation($user, $account, $ai, '2026-02-01', 300);
+    reportOperation($user, $account, reportLineOfCategory($previous, $clothes), '2025-02-01', 6_547);
+    reportOperation($user, $account, reportLineOfCategory($previous, $gifts), '2025-02-01', 1_500);
+    reportLineOfCategory($previous, $untouched);
+
+    $expense = PeriodReport::forYear($budget, reportComparison($budget))->toArray()['expense'];
+    $rows = reportRowsByName($expense);
+
+    expect(reportNames($expense))->toBe(['Wydatki własne'])
+        ->and(reportNames($expense[0]['categories']))->toBe(['Ubrania', 'Prezenty', 'Subskrypcje AI'])
+        ->and($rows['Ubrania'])->toMatchArray(['amount_minor_units' => 5_900, 'previous_minor_units' => 6_547, 'difference_minor_units' => -647, 'has_operations' => true])
+        ->and($rows['Prezenty'])->toMatchArray(['amount_minor_units' => 0, 'previous_minor_units' => 1_500, 'difference_minor_units' => -1_500, 'has_operations' => false, 'share_tenths_percent' => null])
+        ->and($rows['Subskrypcje AI'])->toMatchArray(['amount_minor_units' => 300, 'previous_minor_units' => null, 'difference_minor_units' => 300, 'has_operations' => true])
+        ->and($expense[0])->toMatchArray(['amount_minor_units' => 6_200, 'previous_minor_units' => 8_047, 'difference_minor_units' => -1_847, 'has_operations' => true])
+        ->and($rows)->not->toHaveKey('Bez operacji');
+});
+
+test('a group with only previous-year categories has a row and a group without operations in either range has none', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $onlyBefore = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Tylko dawniej', 'sort_order' => 0]);
+    $empty = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Pusta', 'sort_order' => 1]);
+    $old = reportLine($user, $budget, 'expense', 'Dawna', ['category_group_id' => $onlyBefore->id]);
+    reportLine($user, $budget, 'expense', 'Nic', ['category_group_id' => $empty->id]);
+    reportOperation($user, $account, reportLineOfCategory($previous, $old), '2025-04-04', 2_000);
+
+    $expense = PeriodReport::forYear($budget, reportComparison($budget))->toArray()['expense'];
+
+    expect(reportNames($expense))->toBe(['Tylko dawniej'])
+        ->and($expense[0])->toMatchArray(['amount_minor_units' => 0, 'has_operations' => false, 'previous_minor_units' => 2_000, 'difference_minor_units' => -2_000, 'share_tenths_percent' => null]);
+});
+
+test('an empty period with operations a year earlier still has rows; with none in both ranges it has none', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $food = reportLine($user, $budget, 'expense', 'Żywność');
+    reportOperation($user, $account, reportLineOfCategory($previous, $food), '2025-05-05', 700);
+
+    $may = PeriodReport::forMonth($budget, 5, reportComparison($budget, 5))->toArray();
+    $june = PeriodReport::forMonth($budget, 6, reportComparison($budget, 6))->toArray();
+
+    expect($may['has_operations'])->toBeTrue()
+        ->and($may['expense_minor_units'])->toBe(0)
+        ->and($may['comparison']['expense_minor_units'])->toBe(700)
+        ->and($june['has_operations'])->toBeFalse()
+        ->and($june['expense'])->toBe([])
+        ->and($june['comparison']['expense_minor_units'])->toBe(0);
+});
+
+test('categories are joined by list category id, not by name', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $renamed = reportLine($user, $budget, 'expense', 'Stara nazwa', ['sort_order' => 0]);
+    $renamed->category->update(['name' => 'Nowa nazwa']);
+    $lookalike = reportLine($user, $budget, 'expense', 'Paliwo', ['sort_order' => 1]);
+    $otherLookalike = reportLine($user, $previous, 'expense', 'Paliwo 2', ['sort_order' => 2]);
+    reportOperation($user, $account, $renamed, '2026-01-05', 500);
+    reportOperation($user, $account, $lookalike, '2026-01-05', 100);
+    reportOperation($user, $account, reportLineOfCategory($previous, $renamed), '2025-01-05', 450);
+    reportOperation($user, $account, $otherLookalike, '2025-01-05', 999);
+
+    $expense = PeriodReport::forYear($budget, reportComparison($budget))->toArray()['expense'];
+    $rows = array_column($expense, null, 'id');
+
+    expect($expense)->toHaveCount(3)
+        ->and($rows[$renamed->category_id])->toMatchArray(['name' => 'Nowa nazwa', 'previous_minor_units' => 450, 'difference_minor_units' => 50])
+        ->and($rows[$lookalike->category_id])->toMatchArray(['previous_minor_units' => null, 'difference_minor_units' => 100])
+        ->and($rows[$otherLookalike->category_id])->toMatchArray(['amount_minor_units' => 0, 'previous_minor_units' => 999]);
+});
+
+test('the archived mark of a comparison row comes from the selected budget line, else from the list', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+    $withLine = reportLine($user, $budget, 'expense', 'Z linią', ['sort_order' => 0]);
+    $withoutLine = reportLine($user, $previous, 'expense', 'Bez linii', ['sort_order' => 1, 'archived_at' => now()]);
+    $withoutLineActive = reportLine($user, $previous, 'expense', 'Bez linii aktywna', ['sort_order' => 2]);
+    reportOperation($user, $account, reportLineOfCategory($previous, $withLine, archivedLine: true), '2025-01-05', 100);
+    reportOperation($user, $account, $withoutLine, '2025-01-05', 100);
+    reportOperation($user, $account, $withoutLineActive, '2025-01-05', 100);
+
+    $rows = reportRowsByName(PeriodReport::forYear($budget, reportComparison($budget))->toArray()['expense']);
+
+    expect($rows['Z linią']['is_archived'])->toBeFalse()
+        ->and($rows['Bez linii']['is_archived'])->toBeTrue()
+        ->and($rows['Bez linii aktywna']['is_archived'])->toBeFalse();
+});
+
+test('a range read equals the month read for a full month and the sum of months for a full year', function () {
+    [$user, $account, $budget] = reportFixture(2026);
+    $food = reportLine($user, $budget, 'expense', 'Żywność');
+    $home = reportLine($user, $budget, 'expense', 'Dom');
+    foreach ([1, 3, 3, 12] as $i => $month) {
+        reportOperation($user, $account, $food, sprintf('2026-%02d-%02d', $month, 1 + $i), 1_000 + $i);
+    }
+    reportOperation($user, $account, $food, '2026-03-31', -50);
+    reportOperation($user, $account, $home, '2026-03-01', 70);
+
+    $range = MonthCategoryActuals::forRange($budget, CarbonImmutable::parse('2026-03-01'), CarbonImmutable::parse('2026-03-31'));
+    $month = MonthCategoryActuals::forMonth($budget, 3);
+    $wholeYear = MonthCategoryActuals::forRange($budget, CarbonImmutable::parse('2026-01-01'), CarbonImmutable::parse('2026-12-31'));
+    $months = MonthCategoryActuals::forMonths($budget, range(1, 12));
+
+    foreach ([$food, $home] as $line) {
+        expect($range->actual($line->id))->toBe($month->actual($line->id))
+            ->and($range->hasOperations($line->id))->toBe($month->hasOperations($line->id))
+            ->and($wholeYear->actual($line->id))->toBe(array_sum(array_map(fn (MonthCategoryActuals $actuals): int => $actuals->actual($line->id), $months)));
+    }
+    expect($range->categoryIds())->toEqualCanonicalizing($month->categoryIds());
+});
+
+test('the report with a comparison uses a constant number of queries', function () {
+    $countQueries = function (int $categories): int {
+        [$user, $account, $budget] = reportFixture(2026);
+        $previous = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create();
+        foreach (range(1, $categories) as $i) {
+            $line = reportLine($user, $budget, 'expense', "Kategoria $i", ['category_group_id' => $i % 2 === 0 ? $group->id : null, 'sort_order' => $i]);
+            reportOperation($user, $account, $line, sprintf('2026-%02d-05', ($i % 12) + 1), 100 * $i);
+            reportOperation($user, $account, reportLineOfCategory($previous, $line), sprintf('2025-%02d-05', ($i % 12) + 1), 90 * $i);
+        }
+        $comparison = reportComparison($budget);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        PeriodReport::forYear($budget, $comparison)->toArray();
         $count = count(DB::getQueryLog());
         DB::disableQueryLog();
 

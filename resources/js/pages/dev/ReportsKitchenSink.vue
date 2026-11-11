@@ -31,6 +31,10 @@ const stateMatrix = [
         where: 'Scenariusze year-in-progress, month-closed, archived-in-group, refund-negative-share, non-positive-expenses poniżej.',
     },
     {
+        state: 'comparison',
+        where: 'Scenariusze compared-year-in-progress (z notką), compared-month-closed, compared-one-side-only, compared-empty-current i compared-phone (dwie linie wiersza); scenariusze bez przedrostka compared- to raport bez porównania.',
+    },
+    {
         state: 'empty',
         where: 'Scenariusze no-operations, draft i no-budget poniżej.',
     },
@@ -158,6 +162,7 @@ const stateMatrix = [
                         :result-minor-units="scenario.report.result_minor_units"
                         :period-kind="scenario.period.kind"
                         :is-in-progress="scenario.period.is_in_progress"
+                        :comparison="scenario.report.comparison"
                     />
 
                     <IndexEmptyState
@@ -170,6 +175,8 @@ const stateMatrix = [
                         <ReportBarChart
                             type="expense"
                             :entries="scenario.report.expense"
+                            :budget-year="2026"
+                            :comparison-year="scenario.report.comparison?.year"
                         />
                         <ReportEntryTable
                             type="expense"
@@ -178,10 +185,21 @@ const stateMatrix = [
                             :total-minor-units="
                                 scenario.report.expense_minor_units
                             "
+                            :budget-year="2026"
+                            :comparison-year="scenario.report.comparison?.year"
+                            :previous-total-minor-units="
+                                scenario.report.comparison?.expense_minor_units
+                            "
+                            :difference-total-minor-units="
+                                scenario.report.comparison
+                                    ?.expense_difference_minor_units
+                            "
                         />
                         <ReportBarChart
                             type="income"
                             :entries="scenario.report.income"
+                            :budget-year="2026"
+                            :comparison-year="scenario.report.comparison?.year"
                         />
                         <ReportEntryTable
                             type="income"
@@ -189,6 +207,15 @@ const stateMatrix = [
                             :entries="scenario.report.income"
                             :total-minor-units="
                                 scenario.report.income_minor_units
+                            "
+                            :budget-year="2026"
+                            :comparison-year="scenario.report.comparison?.year"
+                            :previous-total-minor-units="
+                                scenario.report.comparison?.income_minor_units
+                            "
+                            :difference-total-minor-units="
+                                scenario.report.comparison
+                                    ?.income_difference_minor_units
                             "
                         />
                     </template>

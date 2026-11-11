@@ -1,5 +1,6 @@
 import type {
     PeriodReportCategory,
+    PeriodReportComparison,
     PeriodReportData,
     ReportPeriod,
 } from '@/types/reports';
@@ -32,6 +33,9 @@ function category(
         amount_minor_units: amount,
         share_tenths_percent: share,
         is_archived: isArchived,
+        has_operations: true,
+        previous_minor_units: null,
+        difference_minor_units: null,
     };
 }
 
@@ -57,6 +61,7 @@ const yearReport: PeriodReportData = {
     expense_minor_units: 150000,
     result_minor_units: 630000,
     has_operations: true,
+    comparison: null,
     expense: [
         { kind: 'category', ...food },
         {
@@ -65,6 +70,9 @@ const yearReport: PeriodReportData = {
             name: 'Dom',
             amount_minor_units: 60000,
             share_tenths_percent: 400,
+            has_operations: true,
+            previous_minor_units: null,
+            difference_minor_units: null,
             categories: [media, furniture, electronics],
         },
         { kind: 'category', ...cinema },
@@ -80,6 +88,7 @@ const archivedInGroupReport: PeriodReportData = {
     expense_minor_units: 162000,
     result_minor_units: 538000,
     has_operations: true,
+    comparison: null,
     expense: [
         {
             kind: 'group',
@@ -87,6 +96,9 @@ const archivedInGroupReport: PeriodReportData = {
             name: 'Abonamenty',
             amount_minor_units: 62000,
             share_tenths_percent: 383,
+            has_operations: true,
+            previous_minor_units: null,
+            difference_minor_units: null,
             categories: [
                 category(9, 'Streaming', 'tv', 'red', 50000, 309),
                 oldSubscription,
@@ -102,6 +114,7 @@ const refundReport: PeriodReportData = {
     expense_minor_units: 150000,
     result_minor_units: -150000,
     has_operations: true,
+    comparison: null,
     expense: yearReport.expense,
     income: [],
 };
@@ -111,6 +124,7 @@ const nonPositiveExpenseReport: PeriodReportData = {
     expense_minor_units: -20000,
     result_minor_units: 520000,
     has_operations: true,
+    comparison: null,
     expense: [
         {
             kind: 'category',
@@ -125,8 +139,209 @@ const emptyReport: PeriodReportData = {
     expense_minor_units: 0,
     result_minor_units: 0,
     has_operations: false,
+    comparison: null,
     expense: [],
     income: [],
+};
+
+/** A category with the previous-year amount; no current operations when `hasOperations` is false. */
+function compared(
+    base: PeriodReportCategory,
+    previous: number | null,
+    hasOperations = true,
+): PeriodReportCategory {
+    const current = hasOperations ? base.amount_minor_units : 0;
+
+    return {
+        ...base,
+        amount_minor_units: current,
+        share_tenths_percent: hasOperations ? base.share_tenths_percent : null,
+        has_operations: hasOperations,
+        previous_minor_units: previous,
+        difference_minor_units: current - (previous ?? 0),
+    };
+}
+
+function comparison(
+    values: Pick<
+        PeriodReportComparison,
+        | 'from'
+        | 'through'
+        | 'is_partial'
+        | 'income_minor_units'
+        | 'expense_minor_units'
+        | 'result_minor_units'
+    >,
+    current: { income: number; expense: number },
+): PeriodReportComparison {
+    return {
+        year: 2025,
+        ...values,
+        income_difference_minor_units:
+            current.income - values.income_minor_units,
+        expense_difference_minor_units:
+            current.expense - values.expense_minor_units,
+        result_difference_minor_units:
+            current.income - current.expense - values.result_minor_units,
+    };
+}
+
+const comparedYearReport: PeriodReportData = {
+    income_minor_units: 780000,
+    expense_minor_units: 160000,
+    result_minor_units: 620000,
+    has_operations: true,
+    comparison: comparison(
+        {
+            from: '2025-01-01',
+            through: '2025-11-11',
+            is_partial: true,
+            income_minor_units: 690000,
+            expense_minor_units: 151000,
+            result_minor_units: 539000,
+        },
+        { income: 780000, expense: 160000 },
+    ),
+    expense: [
+        { kind: 'category', ...compared(food, 91000) },
+        {
+            kind: 'group',
+            id: 10,
+            name: 'Dom',
+            amount_minor_units: 60000,
+            share_tenths_percent: 375,
+            has_operations: true,
+            previous_minor_units: 45000,
+            difference_minor_units: 15000,
+            categories: [
+                compared(media, 35000),
+                compared(furniture, null),
+                compared(electronics, 10000),
+            ],
+        },
+        { kind: 'category', ...compared(cinema, 15000, false) },
+    ],
+    income: [
+        { kind: 'category', ...compared(salary, 690000) },
+        { kind: 'category', ...compared(bonus, null) },
+    ],
+};
+
+const comparedMonthReport: PeriodReportData = {
+    income_minor_units: 700000,
+    expense_minor_units: 162000,
+    result_minor_units: 538000,
+    has_operations: true,
+    comparison: comparison(
+        {
+            from: '2025-03-01',
+            through: '2025-03-31',
+            is_partial: false,
+            income_minor_units: 700000,
+            expense_minor_units: 170000,
+            result_minor_units: 530000,
+        },
+        { income: 700000, expense: 162000 },
+    ),
+    expense: [
+        {
+            kind: 'group',
+            id: 11,
+            name: 'Abonamenty',
+            amount_minor_units: 62000,
+            share_tenths_percent: 383,
+            has_operations: true,
+            previous_minor_units: 60000,
+            difference_minor_units: 2000,
+            categories: [
+                compared(
+                    category(9, 'Streaming', 'tv', 'red', 50000, 309),
+                    48000,
+                ),
+                compared(oldSubscription, 12000),
+            ],
+        },
+        { kind: 'category', ...compared(food, 110000) },
+    ],
+    income: [{ kind: 'category', ...compared(salary, 700000) }],
+};
+
+const comparedOnlyOneSideReport: PeriodReportData = {
+    income_minor_units: 700000,
+    expense_minor_units: 130000,
+    result_minor_units: 570000,
+    has_operations: true,
+    comparison: comparison(
+        {
+            from: '2025-01-01',
+            through: '2025-12-31',
+            is_partial: false,
+            income_minor_units: 700000,
+            expense_minor_units: 171000,
+            result_minor_units: 529000,
+        },
+        { income: 700000, expense: 130000 },
+    ),
+    expense: [
+        { kind: 'category', ...compared(food, 91000) },
+        {
+            kind: 'group',
+            id: 12,
+            name: 'Auto',
+            amount_minor_units: 0,
+            share_tenths_percent: null,
+            has_operations: false,
+            previous_minor_units: 80000,
+            difference_minor_units: -80000,
+            categories: [
+                compared(
+                    category(10, 'Paliwo', 'fuel', 'orange', 0, null),
+                    50000,
+                    false,
+                ),
+                compared(
+                    category(11, 'Ubezpieczenie', 'shield', 'blue', 0, null),
+                    30000,
+                    false,
+                ),
+            ],
+        },
+        {
+            kind: 'category',
+            ...compared(
+                category(
+                    12,
+                    'Subskrypcje AI',
+                    'sparkles',
+                    'purple',
+                    30000,
+                    231,
+                ),
+                null,
+            ),
+        },
+    ],
+    income: [{ kind: 'category', ...compared(salary, 700000) }],
+};
+
+const comparedEmptyCurrentReport: PeriodReportData = {
+    income_minor_units: 0,
+    expense_minor_units: 0,
+    result_minor_units: 0,
+    has_operations: true,
+    comparison: comparison(
+        {
+            from: '2025-01-01',
+            through: '2025-01-31',
+            is_partial: false,
+            income_minor_units: 690000,
+            expense_minor_units: 91000,
+            result_minor_units: 599000,
+        },
+        { income: 0, expense: 0 },
+    ),
+    expense: [{ kind: 'category', ...compared(food, 91000, false) }],
+    income: [{ kind: 'category', ...compared(salary, 690000, false) }],
 };
 
 export const reportScenarios: ReportScenario[] = [
@@ -238,5 +453,70 @@ export const reportScenarios: ReportScenario[] = [
             is_in_progress: true,
         },
         report: archivedInGroupReport,
+    },
+    {
+        key: 'compared-year-in-progress',
+        caption:
+            'Rok w toku z porównaniem: notka o zakresie, kategoria tylko rok wcześniej („—” w bieżącej), tylko w bieżącym („—” w roku wcześniej)',
+        kind: 'report',
+        period: {
+            kind: 'year',
+            month: null,
+            default_month: 11,
+            is_in_progress: true,
+        },
+        report: comparedYearReport,
+    },
+    {
+        key: 'compared-month-closed',
+        caption:
+            'Miesiąc zamknięty z porównaniem, zarchiwizowana kategoria wyciszona razem z różnicą',
+        kind: 'report',
+        period: {
+            kind: 'month',
+            month: 3,
+            default_month: 11,
+            is_in_progress: false,
+        },
+        report: comparedMonthReport,
+    },
+    {
+        key: 'compared-one-side-only',
+        caption:
+            'Grupa z samymi kategoriami z roku wcześniej oraz kategoria tylko w bieżącym okresie',
+        kind: 'report',
+        period: {
+            kind: 'year',
+            month: null,
+            default_month: 11,
+            is_in_progress: false,
+        },
+        report: comparedOnlyOneSideReport,
+    },
+    {
+        key: 'compared-empty-current',
+        caption:
+            'Bieżący okres bez operacji przy operacjach rok wcześniej: tabele z „—” w kolumnie bieżącej',
+        kind: 'report',
+        period: {
+            kind: 'month',
+            month: 1,
+            default_month: 11,
+            is_in_progress: false,
+        },
+        report: comparedEmptyCurrentReport,
+    },
+    {
+        key: 'compared-phone',
+        caption: 'Telefon (ramka 22rem) z porównaniem: druga linia wiersza',
+        phone: true,
+        kind: 'report',
+        period: {
+            kind: 'year',
+            month: null,
+            default_month: 11,
+            is_in_progress: true,
+        },
+        report: comparedYearReport,
     },
 ];

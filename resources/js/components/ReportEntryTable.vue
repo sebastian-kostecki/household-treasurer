@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { reactive, useId } from 'vue';
+import { computed, reactive, useId } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
 import ReportCategoryRow from '@/components/ReportCategoryRow.vue';
 import ReportGroupRow from '@/components/ReportGroupRow.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoneyAmount } from '@/lib/format';
+import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import { formatShareTenths } from '@/lib/format-share';
+import { planChangeToneClass } from '@/lib/plan-change-direction';
+import { reportDifferenceTone } from '@/lib/report-difference';
 import type { PeriodReportEntry } from '@/types/reports';
 
 const props = defineProps<{
@@ -13,12 +15,38 @@ const props = defineProps<{
     title: string;
     entries: PeriodReportEntry[];
     totalMinorUnits: number;
+    /** Year of the viewed Budget; heads the amount column with a comparison. */
+    budgetYear: number;
+    /** Year of the compared Budget; the comparison columns show only when set. */
+    comparisonYear?: number;
+    /** Previous-year total of this type (with `comparisonYear`). */
+    previousTotalMinorUnits?: number;
+    /** Current minus previous total of this type (with `comparisonYear`). */
+    differenceTotalMinorUnits?: number;
 }>();
 
 const t = useTranslations();
 
 const showShare = props.type === 'expense';
 const tableId = useId();
+
+const compared = computed(() => props.comparisonYear !== undefined);
+
+const totalToneClass = computed(() => {
+    const tone = reportDifferenceTone(
+        props.differenceTotalMinorUnits ?? null,
+        props.type,
+    );
+
+    return tone === null ? '' : planChangeToneClass(tone, false);
+});
+
+const previousLabel = computed(() =>
+    t.reports.previous_year_label.replace(
+        ':year',
+        String(props.comparisonYear),
+    ),
+);
 
 /** Groups start open; a collapsed id is remembered only for this visit. */
 const collapsed = reactive(new Set<number>());
@@ -46,14 +74,31 @@ function bodyId(groupId: number): string {
             <h2 class="section-title">{{ title }}</h2>
         </template>
 
-        <div v-if="entries.length > 0">
+        <div v-if="entries.length > 0" class="report-table">
             <div
                 class="report-grid report-header-row"
-                :class="{ 'report-grid-no-share': !showShare }"
+                :class="{
+                    'report-grid-no-share': !showShare,
+                    'report-grid-compare': compared,
+                }"
             >
-                <div>{{ t.reports.category }}</div>
-                <div class="text-right">{{ t.reports.amount }}</div>
-                <div v-if="showShare" class="text-right">
+                <div class="report-area-name">{{ t.reports.category }}</div>
+                <div class="report-area-amount text-right">
+                    {{ compared ? budgetYear : t.reports.amount }}
+                </div>
+                <div
+                    v-if="compared"
+                    class="report-area-previous report-head-previous text-right"
+                >
+                    {{ comparisonYear }}
+                </div>
+                <div
+                    v-if="compared"
+                    class="report-area-difference report-head-difference text-right"
+                >
+                    {{ t.reports.difference }}
+                </div>
+                <div v-if="showShare" class="report-area-share text-right">
                     {{ t.reports.share }}
                 </div>
             </div>
@@ -66,11 +111,15 @@ function bodyId(groupId: number): string {
                     v-if="entry.kind === 'category'"
                     :category="entry"
                     :show-share="showShare"
+                    :type="type"
+                    :comparison-year="comparisonYear"
                 />
                 <div v-else>
                     <ReportGroupRow
                         :group="entry"
                         :show-share="showShare"
+                        :type="type"
+                        :comparison-year="comparisonYear"
                         :open="isOpen(entry.id)"
                         :controls="bodyId(entry.id)"
                         @toggle="toggle(entry.id)"
@@ -82,6 +131,8 @@ function bodyId(groupId: number): string {
                             nested
                             :category="category"
                             :show-share="showShare"
+                            :type="type"
+                            :comparison-year="comparisonYear"
                         />
                     </div>
                 </div>
@@ -89,13 +140,39 @@ function bodyId(groupId: number): string {
 
             <div
                 class="report-grid report-total-row"
-                :class="{ 'report-grid-no-share': !showShare }"
+                :class="{
+                    'report-grid-no-share': !showShare,
+                    'report-grid-compare': compared,
+                }"
             >
-                <div class="section-title">{{ t.reports.totals }}</div>
-                <div class="report-cell-amount amount-sum">
+                <div class="report-area-name section-title">
+                    {{ t.reports.totals }}
+                </div>
+                <div class="report-area-amount report-cell-amount amount-sum">
                     {{ formatMoneyAmount(totalMinorUnits) }}
                 </div>
-                <div v-if="showShare" class="report-cell-share">
+                <div
+                    v-if="compared"
+                    class="report-area-previous report-cell-previous amount-sum"
+                >
+                    <span class="report-previous-label">{{
+                        previousLabel
+                    }}</span
+                    >{{ formatMoneyAmount(previousTotalMinorUnits ?? 0) }}
+                </div>
+                <div
+                    v-if="compared"
+                    class="report-area-difference report-cell-difference amount-sum"
+                    :class="totalToneClass"
+                >
+                    {{
+                        formatSignedMoneyAmount(differenceTotalMinorUnits ?? 0)
+                    }}
+                </div>
+                <div
+                    v-if="showShare"
+                    class="report-area-share report-cell-share"
+                >
                     {{ formatShareTenths(totalMinorUnits > 0 ? 1000 : null) }}
                 </div>
             </div>

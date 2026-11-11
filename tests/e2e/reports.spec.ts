@@ -7,6 +7,8 @@
 // The test user has the demo household (demo:seed-household). The tests that
 // need rows create their own operations and a group and delete them at the end
 // through the UI, also when an assertion fails.
+// The year-over-year test needs the mock of the previous year in the E2E
+// database (`demo:seed-previous-year`, see README, section „Uruchomienie”).
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
 function chart(page: Page, type: 'income' | 'expense'): Locator {
@@ -122,6 +124,53 @@ test('shortcut 8 opens Raporty with the measures, both charts and both tables', 
     }
 });
 
+test('Raporty of the current year compare it with the year before and drop the comparison for the oldest year', async ({
+    page,
+}) => {
+    await page.goto('/reports');
+
+    const heading = page.getByRole('heading', {
+        level: 1,
+        name: /^Raport roku \d{4}$/,
+    });
+    await expect(heading).toBeVisible();
+    const year = Number((await heading.textContent())?.match(/\d{4}/)?.[0]);
+    expect(year).toBeGreaterThan(2000);
+    const previousYear = year - 1;
+
+    // Column headers of both years and the difference.
+    const headerRow = page.locator('.report-header-row').first();
+    await expect(headerRow).toContainText(String(year));
+    await expect(headerRow).toContainText(String(previousYear));
+    await expect(headerRow).toContainText('Różnica');
+
+    // The previous-year line in the measures panel.
+    await expect(
+        page.getByText(new RegExp(`^${previousYear}:`)).first(),
+    ).toBeVisible();
+
+    // The chart legend names both years.
+    const legend = page.getByTestId('report-chart-legend-expense');
+    await expect(legend).toContainText(`Rok ${year}`);
+    await expect(legend).toContainText(`Rok ${previousYear}`);
+
+    // The previous year has no year before it: no comparison.
+    await yearSegments(page)
+        .filter({ hasText: String(previousYear) })
+        .first()
+        .click();
+    await expect(
+        page.getByRole('heading', {
+            level: 1,
+            name: `Raport roku ${previousYear}`,
+        }),
+    ).toBeVisible();
+    await expect(page.getByText('Różnica', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('report-chart-legend-expense')).toHaveCount(
+        0,
+    );
+});
+
 test('switching to Miesiąc and picking a month puts ?month=N in the URL', async ({
     page,
 }) => {
@@ -208,6 +257,7 @@ test('changing the budget year in the sidebar stays on Raporty', async ({
 }) => {
     await page.goto('/budget');
 
+    const initialSegmentCount = await yearSegments(page).count();
     const createSegment = yearSegments(page).last();
     const createLabel = (await createSegment.getAttribute('aria-label')) ?? '';
     const newYear = Number(createLabel.match(/\d{4}/)?.[0]);
@@ -255,7 +305,7 @@ test('changing the budget year in the sidebar stays on Raporty', async ({
                 .getByRole('dialog', { name: 'Usunąć budżet?' })
                 .getByRole('button', { name: 'Usuń budżet' })
                 .click();
-            await expect(yearSegments(page)).toHaveCount(2);
+            await expect(yearSegments(page)).toHaveCount(initialSegmentCount);
         }
     }
 });

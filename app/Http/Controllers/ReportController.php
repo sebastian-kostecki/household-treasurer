@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Support\BudgetViewedMonth;
 use App\Support\PeriodReport;
+use App\Support\ReportComparisonPeriod;
 use App\Support\SelectedBudgetYear;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -49,10 +50,9 @@ class ReportController extends Controller
                 'kind' => $month === null ? 'year' : 'month',
                 'month' => $month,
                 'default_month' => BudgetViewedMonth::defaultForYear($budget->year, $today),
-                'is_in_progress' => $today->year === $budget->year
-                    && ($month === null || $today->month === $month),
+                'is_in_progress' => ReportComparisonPeriod::isInProgress($budget->year, $month, $today),
             ],
-            'report' => $budget->isExecution() ? $this->report($budget, $month) : null,
+            'report' => $budget->isExecution() ? $this->report($budget, $month, $today) : null,
         ]);
     }
 
@@ -73,11 +73,12 @@ class ReportController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function report(Budget $budget, ?int $month): array
+    private function report(Budget $budget, ?int $month, CarbonImmutable $today): array
     {
+        $comparison = ReportComparisonPeriod::resolve($budget, $month, $today);
         $report = $month === null
-            ? PeriodReport::forYear($budget)
-            : PeriodReport::forMonth($budget, $month);
+            ? PeriodReport::forYear($budget, $comparison)
+            : PeriodReport::forMonth($budget, $month, $comparison);
 
         return $report->toArray();
     }
