@@ -562,15 +562,15 @@ Brak migracji schematu i danych. Na produkcji w 2026 nie ma budżetu 2025, więc
 
 #### Automated
 
-- [x] 4.1 Test danych wykresu przechodzi
-- [x] 4.2 Wayfinder, build i typy
-- [x] 4.3 Strażnik literałów UI
-- [ ] 4.4 Testy E2E przechodzą na bazie z mockiem
-- [x] 4.5 Pełna bramka w worktree
-- [x] 4.6 Sloppy bez nowych znalezisk
+- [x] 4.1 Test danych wykresu przechodzi — afb0e47
+- [x] 4.2 Wayfinder, build i typy — afb0e47
+- [x] 4.3 Strażnik literałów UI — afb0e47
+- [x] 4.4 Testy E2E przechodzą na bazie z mockiem — afb0e47
+- [x] 4.5 Pełna bramka w worktree — afb0e47
+- [x] 4.6 Sloppy bez nowych znalezisk — afb0e47
 
 #### Manual
 
-- [x] 4.7 Każdy wiersz wykresu ma dwa słupki zgodne z tabelą, legenda pokazuje oba lata
-- [x] 4.8 Słupek roku wcześniej czytelny w trybie jasnym i ciemnym
-- [x] 4.9 Wykres mieści się na telefonie, raport bez porównania ma wykres jak przed zmianą
+- [x] 4.7 Każdy wiersz wykresu ma dwa słupki zgodne z tabelą, legenda pokazuje oba lata — afb0e47
+- [x] 4.8 Słupek roku wcześniej czytelny w trybie jasnym i ciemnym — afb0e47
+- [x] 4.9 Wykres mieści się na telefonie, raport bez porównania ma wykres jak przed zmianą — afb0e47
