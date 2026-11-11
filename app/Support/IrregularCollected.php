@@ -85,6 +85,63 @@ final class IrregularCollected
         return $chain === [] ? $opening : $chain[array_key_last($chain)]['end'];
     }
 
+    /**
+     * The Irregular periods of the loaded Categories up to the month of $today,
+     * with the rate and the actual of each month (the inputs of the chain), for
+     * a reading that recomputes the Collected before an operation is saved.
+     * A period that starts after $today has no month yet and is left out.
+     *
+     * @return list<array{
+     *     category_id: int,
+     *     start_year: int,
+     *     start_month: int,
+     *     opening_minor_units: int,
+     *     months: list<array{year: int, month: int, rate_minor_units: int, actual_minor_units: int}>,
+     * }>
+     */
+    public function periodsUntil(CarbonImmutable $today): array
+    {
+        $last = self::monthIndex($today->year, $today->month);
+        $periods = [];
+
+        foreach ($this->rhythms->irregularCategoryIds() as $categoryId) {
+            foreach ($this->rhythms->irregularPeriods($categoryId) as $period) {
+                $first = self::monthIndex($period['start_year'], $period['start_month']);
+                $end = $period['end_year'] === null
+                    ? $last
+                    : min($last, self::monthIndex($period['end_year'], $period['end_month']));
+
+                if ($first > $end) {
+                    continue;
+                }
+
+                $months = [];
+
+                for ($index = $first; $index <= $end; $index++) {
+                    $year = intdiv($index - 1, 12);
+                    $month = ($index - 1) % 12 + 1;
+
+                    $months[] = [
+                        'year' => $year,
+                        'month' => $month,
+                        'rate_minor_units' => $this->rateMinorUnits($categoryId, $year, $month),
+                        'actual_minor_units' => $this->actualMinorUnits($categoryId, $year, $month),
+                    ];
+                }
+
+                $periods[] = [
+                    'category_id' => $categoryId,
+                    'start_year' => $period['start_year'],
+                    'start_month' => $period['start_month'],
+                    'opening_minor_units' => $period['opening_collected_minor_units'],
+                    'months' => $months,
+                ];
+            }
+        }
+
+        return $periods;
+    }
+
     private function rateMinorUnits(int $categoryId, int $year, int $month): int
     {
         $data = $this->loaded();

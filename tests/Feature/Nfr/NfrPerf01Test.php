@@ -7,6 +7,7 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CategoryRhythm;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -112,6 +113,8 @@ class NfrPerf01Test extends TestCase
             'execution_minor_units' => 0,
         ]);
 
+        $this->seedIrregularCategory($user, $account, $budget);
+
         $sourceAccount = Account::factory()->for($user)->bank()->create([
             'opening_date' => '2026-01-01',
         ]);
@@ -139,6 +142,42 @@ class NfrPerf01Test extends TestCase
             'account' => $account,
             'expenseCategory' => $expenseCategory,
         ];
+    }
+
+    /**
+     * An Irregular Category with bills in every month of the year: the Collected
+     * chain and the entry warnings read it on the Operations page (ADR-0073).
+     */
+    private function seedIrregularCategory(User $user, Account $account, Budget $budget): void
+    {
+        $line = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Rekolekcje',
+            'planned_amount_minor_units' => 1_200_000,
+        ]);
+        $line->category->rhythms()->delete();
+        CategoryRhythm::factory()->starting(2026, 1)->irregular(50_000)->create(['category_id' => $line->category_id]);
+
+        $now = now();
+        $rows = [];
+
+        foreach (range(1, 12) as $month) {
+            foreach ([5, 15, 25] as $day) {
+                $rows[] = [
+                    'user_id' => $user->id,
+                    'type' => FinancialOperationType::Expense->value,
+                    'account_id' => $account->id,
+                    'budget_line_id' => $line->id,
+                    'budget_id' => $budget->id,
+                    'operation_date' => sprintf('2026-%02d-%02d', $month, $day),
+                    'amount_minor_units' => 20_000 + $month * 100,
+                    'description' => "Irregular bill {$month}-{$day}",
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        DB::table('financial_operations')->insert($rows);
     }
 
     private function insertFinancialOperations(

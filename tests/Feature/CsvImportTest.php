@@ -81,7 +81,8 @@ CSV;
                 ->where('entryToSpend.budgets.0.categories', [
                     ['id' => $incomeCategory->category_id, 'type' => 'income', 'rhythms' => null],
                     ['id' => $expenseCategory->category_id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'running')],
-                ]),
+                ])
+                ->where('entryToSpend.irregular_periods', []),
             );
     }
 

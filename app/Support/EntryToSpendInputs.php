@@ -31,6 +31,13 @@ class EntryToSpendInputs
      *             }>,
      *         }>,
      *     }>,
+     *     irregular_periods: list<array{
+     *         category_id: int,
+     *         start_year: int,
+     *         start_month: int,
+     *         opening_minor_units: int,
+     *         months: list<array{year: int, month: int, rate_minor_units: int, actual_minor_units: int}>,
+     *     }>,
      * }
      */
     public static function forUser(User $user, ?CarbonImmutable $today = null): array
@@ -57,6 +64,7 @@ class EntryToSpendInputs
                     $joiningIncomes[$budget->id],
                 ))
                 ->all()),
+            'irregular_periods' => IrregularCollected::forUser($user, $rhythms)->periodsUntil($today),
         ];
     }
 

@@ -4,6 +4,7 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\HandEntryMonthRemainingInputs;
@@ -61,7 +62,42 @@ test('operations page includes hand entry month remaining inputs', function () {
                 'type' => 'expense',
                 'rhythms' => array_fill_keys(range(1, 12), 'running'),
             ])
-            ->where('entryToSpend.budgets.0.months.0.month', 6),
+            ->where('entryToSpend.budgets.0.months.0.month', 6)
+            ->where('entryToSpend.irregular_periods', []),
+        );
+});
+
+test('operations page carries the Irregular periods of the entry warnings', function () {
+    $this->travelTo('2026-06-15');
+
+    $user = User::factory()->create();
+    Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+    $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+    $bills = BudgetLine::factory()->for($budget)->expense()->create(['planned_amount_minor_units' => 120_000]);
+    $bills->category->rhythms()->delete();
+    CategoryRhythm::factory()->starting(2026, 5)->irregular(6_000)->create(['category_id' => $bills->category_id]);
+    FinancialOperation::factory()->for($user)->for($budget)->create([
+        'type' => FinancialOperationType::Expense,
+        'budget_line_id' => $bills->id,
+        'operation_date' => '2026-05-10',
+        'amount_minor_units' => 4_000,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('operations'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('entryToSpend.irregular_periods', 1)
+            ->where('entryToSpend.irregular_periods.0', [
+                'category_id' => $bills->category_id,
+                'start_year' => 2026,
+                'start_month' => 5,
+                'opening_minor_units' => 6_000,
+                'months' => [
+                    ['year' => 2026, 'month' => 5, 'rate_minor_units' => 10_000, 'actual_minor_units' => 4_000],
+                    ['year' => 2026, 'month' => 6, 'rate_minor_units' => 10_000, 'actual_minor_units' => 0],
+                ],
+            ]),
         );
 });
 

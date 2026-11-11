@@ -213,5 +213,6 @@ test('the pool holds fixed charges and running categories, not even annual ones'
     expect(isPoolRhythm('fixed_charge')).toBe(true);
     expect(isPoolRhythm('running')).toBe(true);
     expect(isPoolRhythm('even_annual')).toBe(false);
+    expect(isPoolRhythm('irregular')).toBe(false);
     expect(isPoolRhythm(null)).toBe(false);
 });

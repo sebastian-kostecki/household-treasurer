@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -149,7 +150,7 @@ class EntryToSpendInputsTest extends TestCase
         Budget::factory()->for($this->user)->create(['year' => 2026]);
 
         $this->assertSame(
-            ['budgets' => []],
+            ['budgets' => [], 'irregular_periods' => []],
             EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10)),
         );
     }
@@ -226,6 +227,77 @@ class EntryToSpendInputsTest extends TestCase
         $this->assertSame($ofTheProposals + 1, $rhythmQueries);
     }
 
+    public function test_an_irregular_category_brings_its_period_with_the_rate_and_actual_of_each_month(): void
+    {
+        $budget = $this->budget(2026);
+        $bills = $this->irregularLine($budget, 120_000, 6_000, 9);
+        $this->operation($budget, $bills, '2026-10-12', 4_000);
+        $this->operation($budget, $bills, '2026-10-20', -500);
+
+        $periods = EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['irregular_periods'];
+
+        $this->assertSame([[
+            'category_id' => $bills->category_id,
+            'start_year' => 2026,
+            'start_month' => 9,
+            'opening_minor_units' => 6_000,
+            'months' => [
+                ['year' => 2026, 'month' => 9, 'rate_minor_units' => 10_000, 'actual_minor_units' => 0],
+                ['year' => 2026, 'month' => 10, 'rate_minor_units' => 10_000, 'actual_minor_units' => 3_500],
+                ['year' => 2026, 'month' => 11, 'rate_minor_units' => 10_000, 'actual_minor_units' => 0],
+            ],
+        ]], $periods);
+    }
+
+    public function test_a_period_ends_before_the_next_entry_and_crosses_the_year(): void
+    {
+        $budget = $this->budget(2026);
+        $next = $this->budget(2027);
+        $bills = $this->irregularLine($budget, 120_000, 0, 11);
+        BudgetLine::factory()->for($next)->expense()->create([
+            'category_id' => $bills->category_id,
+            'name' => $bills->name,
+            'planned_amount_minor_units' => 240_000,
+        ]);
+        CategoryRhythm::factory()->starting(2027, 2)->create(['category_id' => $bills->category_id]);
+
+        $periods = EntryToSpendInputs::forUser($this->user, $this->day(2027, 4, 10))['irregular_periods'];
+
+        $this->assertCount(1, $periods);
+        $this->assertSame(
+            [[2026, 11, 10_000], [2026, 12, 10_000], [2027, 1, 20_000]],
+            array_map(fn (array $month): array => [$month['year'], $month['month'], $month['rate_minor_units']], $periods[0]['months']),
+        );
+    }
+
+    public function test_a_period_that_starts_after_today_is_left_out(): void
+    {
+        $budget = $this->budget(2026);
+        $this->irregularLine($budget, 120_000, 0, 12);
+
+        $this->assertSame([], EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10))['irregular_periods']);
+    }
+
+    public function test_irregular_periods_add_a_constant_number_of_queries_whatever_the_number_of_months(): void
+    {
+        $budget = $this->budget(2026);
+        $this->food($budget);
+        $withoutIrregular = $this->countQueries();
+
+        $bills = $this->irregularLine($budget, 120_000, 0, 10);
+        $short = $this->countQueries();
+
+        $other = $this->irregularLine($budget, 60_000, 1_000, 1, 'Wakacje');
+        foreach (range(1, 10) as $month) {
+            $this->operation($budget, $other, sprintf('2026-%02d-05', $month), 100);
+        }
+        $this->operation($budget, $bills, '2026-10-05', 100);
+        $long = $this->countQueries();
+
+        $this->assertGreaterThan($withoutIrregular, $short);
+        $this->assertSame($short, $long);
+    }
+
     private function countQueries(): int
     {
         $queries = 0;
@@ -254,6 +326,15 @@ class EntryToSpendInputsTest extends TestCase
             'name' => 'Jedzenie',
             'planned_amount_minor_units' => 100_001,
         ]);
+    }
+
+    private function irregularLine(Budget $budget, int $planned, int $opening, int $startMonth, string $name = 'Rekolekcje'): BudgetLine
+    {
+        $line = BudgetLine::factory()->for($budget)->expense()->create(['name' => $name, 'planned_amount_minor_units' => $planned]);
+        $line->category->rhythms()->delete();
+        CategoryRhythm::factory()->starting($budget->year, $startMonth)->irregular($opening)->create(['category_id' => $line->category_id]);
+
+        return $line;
     }
 
     private function operation(Budget $budget, BudgetLine $category, string $date, int $amount): void

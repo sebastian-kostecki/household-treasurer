@@ -21,6 +21,7 @@ import {
     noTermDeposits,
     otherAccounts,
     sampleMonthRemainingWarning,
+    sampleLaterMonthToSpendWarning,
     sampleToSpendWarning,
     termDeposits,
 } from '@/lib/import-preview-fixtures';
@@ -352,11 +353,14 @@ const sampleErrors = {
                                 ? sampleMonthRemainingWarning
                                 : undefined
                         "
-                        :to-spend-warning="
+                        :to-spend-warnings="
                             section.withWarnings &&
                             row.index - section.offset === 1
-                                ? sampleToSpendWarning
-                                : null
+                                ? [
+                                      sampleToSpendWarning,
+                                      sampleLaterMonthToSpendWarning,
+                                  ]
+                                : []
                         "
                     />
                 </div>

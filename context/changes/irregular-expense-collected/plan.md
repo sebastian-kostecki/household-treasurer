@@ -557,33 +557,33 @@ Historia US-02 przechodzi w przeglądarce, dokumenty i reguły opisują stan po 
 
 #### Automated
 
-- [x] 3.1 Testy jednostkowe par przechodzą
-- [x] 3.2 Testy planu miesiąca, propozycji, „do wydania” i powiadomień przechodzą na PostgreSQL
-- [x] 3.3 Testy literałów UI planu przechodzą
-- [x] 3.4 E2E przechodzi
-- [x] 3.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 3.1 Testy jednostkowe par przechodzą — 8f154b4
+- [x] 3.2 Testy planu miesiąca, propozycji, „do wydania” i powiadomień przechodzą na PostgreSQL — 8f154b4
+- [x] 3.3 Testy literałów UI planu przechodzą — 8f154b4
+- [x] 3.4 E2E przechodzi — 8f154b4
+- [x] 3.5 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci` — 8f154b4
 
 #### Manual
 
-- [x] 3.6 Na dev listopad i grudzień 2026 pokazują stawkę i „zebrane” dla „Rekolekcji”, a „do wydania” listopada się nie zmienia
-- [x] 3.7 Wydatek ponad zebrane daje nadwyżkę w planie i „Ponad plan” na Dashboardzie
-- [x] 3.8 „Zmień plan” nie podnosi stawki do rachunku i przelicza „zebrane” na żywo
-- [x] 3.9 `/dev/month-plan` pokazuje nowe stany w obu trybach, w 1280 i 390 px
+- [x] 3.6 Na dev listopad i grudzień 2026 pokazują stawkę i „zebrane” dla „Rekolekcji”, a „do wydania” listopada się nie zmienia — 8f154b4
+- [x] 3.7 Wydatek ponad zebrane daje nadwyżkę w planie i „Ponad plan” na Dashboardzie — 8f154b4
+- [x] 3.8 „Zmień plan” nie podnosi stawki do rachunku i przelicza „zebrane” na żywo — 8f154b4
+- [x] 3.9 `/dev/month-plan` pokazuje nowe stany w obu trybach, w 1280 i 390 px — 8f154b4
 
 ### Phase 4: Dashboard, Budżet i ostrzeżenia przy wpisie i w Imporcie
 
 #### Automated
 
-- [ ] 4.1 Testy TS ostrzeżeń i kreski roku przechodzą
-- [ ] 4.2 Testy payloadu ostrzeżeń i wydajności przechodzą na PostgreSQL
-- [ ] 4.3 E2E przechodzi
-- [ ] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Testy TS ostrzeżeń i kreski roku przechodzą
+- [x] 4.2 Testy payloadu ostrzeżeń i wydajności przechodzą na PostgreSQL
+- [x] 4.3 E2E przechodzi
+- [x] 4.4 Bramka: `composer ci:check`, `npm run build && npm run types:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 4.5 Dashboard i Budżet pokazują nieregularną bez kreski „Postęp roku”
-- [ ] 4.6 Wpis pokryty zebranym nie ostrzega, a wpis ponad zebrane ostrzega
-- [ ] 4.7 Kitchen sinki pokazują ostrzeżenie z nazwą późniejszego miesiąca
+- [x] 4.5 Dashboard i Budżet pokazują nieregularną bez kreski „Postęp roku”
+- [x] 4.6 Wpis pokryty zebranym nie ostrzega, a wpis ponad zebrane ostrzega
+- [x] 4.7 Kitchen sinki pokazują ostrzeżenie z nazwą późniejszego miesiąca
 
 ### Phase 5: E2E, dokumenty i bramka
 

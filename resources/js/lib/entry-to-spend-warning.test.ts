@@ -539,3 +539,204 @@ test('the Rhythm of the operation month decides the To Spend rule', () => {
         },
     ]);
 });
+
+const BILLS = 7;
+
+function period(
+    startYear: number,
+    startMonth: number,
+    opening: number,
+    months: [number, number, number][],
+    categoryId = BILLS,
+): NonNullable<EntryToSpendInputs['irregular_periods']>[number] {
+    return {
+        category_id: categoryId,
+        start_year: startYear,
+        start_month: startMonth,
+        opening_minor_units: opening,
+        months: months.map(([year, month, actual]) => ({
+            year,
+            month,
+            rate_minor_units: 0,
+            actual_minor_units: actual,
+        })),
+    };
+}
+
+/**
+ * September and November have a plan; the bills category is Irregular with
+ * 600 collected on 1 September and a 700 bill already paid in November. Income
+ * 300, so November's To Spend is 300 − 100 (surplus) = 200 before any change.
+ */
+function irregularInputs(): EntryToSpendInputs {
+    const irregularCategories: EntryToSpendCategory[] = [
+        { id: SALARY, type: 'income', rhythms: null },
+        { id: BILLS, type: 'expense', rhythms: allMonths('irregular') },
+    ];
+
+    return {
+        budgets: [
+            {
+                year: 2026,
+                categories: irregularCategories,
+                months: [
+                    {
+                        month: 9,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 0, 30_000), item(BILLS, 0)],
+                    },
+                    {
+                        month: 11,
+                        set_aside_minor_units: 0,
+                        items: [
+                            item(SALARY, 0, 30_000),
+                            item(BILLS, 0, 70_000),
+                        ],
+                    },
+                ],
+            },
+        ],
+        irregular_periods: [
+            period(2026, 9, 60_000, [
+                [2026, 9, 0],
+                [2026, 10, 0],
+                [2026, 11, 70_000],
+            ]),
+        ],
+    };
+}
+
+test('irregular: a bill covered by the Collected does not warn', () => {
+    expect(
+        previewToSpendWarnings(irregularInputs(), [
+            change(BILLS, 10_000, 'add', '2026-09-10'),
+        ]),
+    ).toEqual([]);
+});
+
+test('irregular: an overdue September bill warns for November and not for September', () => {
+    const changes = [change(BILLS, 40_000, 'add', '2026-09-10')];
+
+    expect(previewToSpendReadings(irregularInputs(), changes)).toEqual([
+        {
+            year: 2026,
+            month: 9,
+            beforeMinorUnits: 30_000,
+            afterMinorUnits: 30_000,
+        },
+        {
+            year: 2026,
+            month: 11,
+            beforeMinorUnits: 20_000,
+            afterMinorUnits: -20_000,
+        },
+    ]);
+    expect(previewToSpendWarnings(irregularInputs(), changes)).toEqual([
+        { year: 2026, month: 11, toSpendAfterMinorUnits: -20_000 },
+    ]);
+});
+
+test('irregular: removing or reducing a bill does not warn', () => {
+    expect(
+        previewToSpendWarnings(irregularInputs(), [
+            change(BILLS, 40_000, 'remove', '2026-09-10'),
+        ]),
+    ).toEqual([]);
+    expect(
+        previewToSpendWarnings(irregularInputs(), [
+            change(BILLS, 40_000, 'remove', '2026-09-10'),
+            change(BILLS, 10_000, 'add', '2026-09-10'),
+        ]),
+    ).toEqual([]);
+});
+
+test('irregular: pending changes are part of the baseline through the chain', () => {
+    const pending = [change(BILLS, 40_000, 'add', '2026-09-10')];
+
+    // November is already at -200 with the pending bill; one more 100 in
+    // September lowers it again (Collected 200 -> 100).
+    expect(
+        previewToSpendWarnings(
+            irregularInputs(),
+            [change(BILLS, 10_000, 'add', '2026-10-05')],
+            pending,
+        ),
+    ).toEqual([{ year: 2026, month: 11, toSpendAfterMinorUnits: -30_000 }]);
+});
+
+test('irregular: a December bill is read in January of the next budget', () => {
+    const inputs: EntryToSpendInputs = {
+        budgets: [
+            {
+                year: 2026,
+                categories: [
+                    { id: SALARY, type: 'income', rhythms: null },
+                    {
+                        id: BILLS,
+                        type: 'expense',
+                        rhythms: allMonths('irregular'),
+                    },
+                ],
+                months: [
+                    {
+                        month: 12,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 0, 30_000), item(BILLS, 0)],
+                    },
+                ],
+            },
+            {
+                year: 2027,
+                categories: [
+                    { id: SALARY, type: 'income', rhythms: null },
+                    {
+                        id: BILLS,
+                        type: 'expense',
+                        rhythms: allMonths('irregular'),
+                    },
+                ],
+                months: [
+                    {
+                        month: 1,
+                        set_aside_minor_units: 0,
+                        items: [
+                            item(SALARY, 0, 30_000),
+                            item(BILLS, 0, 70_000),
+                        ],
+                    },
+                ],
+            },
+        ],
+        irregular_periods: [
+            period(2026, 12, 60_000, [
+                [2026, 12, 0],
+                [2027, 1, 70_000],
+            ]),
+        ],
+    };
+
+    expect(
+        previewToSpendWarnings(inputs, [
+            change(BILLS, 40_000, 'add', '2026-12-20'),
+        ]),
+    ).toEqual([{ year: 2027, month: 1, toSpendAfterMinorUnits: -20_000 }]);
+});
+
+test('irregular: a month before the period reads 0 Collected and leaves the chain alone', () => {
+    const inputs = irregularInputs();
+    inputs.budgets[0].categories = [
+        { id: SALARY, type: 'income', rhythms: null },
+        {
+            id: BILLS,
+            type: 'expense',
+            rhythms: { ...allMonths('irregular'), 9: 'running', 10: 'running' },
+        },
+    ];
+    inputs.irregular_periods = [period(2026, 11, 60_000, [[2026, 11, 70_000]])];
+
+    expect(
+        previewToSpendWarnings(inputs, [
+            change(BILLS, 40_000, 'add', '2026-09-10'),
+        ]),
+    ).toEqual([{ year: 2026, month: 9, toSpendAfterMinorUnits: -10_000 }]);
+});

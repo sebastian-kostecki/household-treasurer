@@ -24,6 +24,7 @@ import {
     dialogAccounts,
     dialogCapitalMovement,
     dialogEntryToSpend,
+    dialogPreviousMonthDate,
     dialogExpenseCategories,
     dialogExpenseOperation,
     dialogHandEntryMonthRemaining,
@@ -82,6 +83,7 @@ const states = [
     'expense-edit',
     'expense-refund-edit',
     'expense-warnings',
+    'expense-later-month-warning',
     'expense-month-without-plan',
     'expense-bad-amount',
     'expense-errors',
@@ -150,6 +152,8 @@ const labels: Record<SinkState, string> = {
     'expense-edit': 'Wydatek: edycja (przed = po)',
     'expense-refund-edit': 'Wydatek: edycja zwrotu (trzy typy)',
     'expense-warnings': 'Wydatek: ostrzeżenia w podglądzie',
+    'expense-later-month-warning':
+        'Wydatek: ostrzeżenie o późniejszym miesiącu (nieregularna)',
     'expense-month-without-plan': 'Wydatek: miesiąc bez planu',
     'expense-bad-amount': 'Wydatek: zła kwota',
     'expense-errors': 'Wydatek: zapis i błędy (wybierz Dochód)',
@@ -257,6 +261,14 @@ const warningOperation = {
     ...dialogExpenseOperation,
     account_id: 2,
     category_id: 2,
+};
+
+/** An overdue bill of an Irregular category from the previous month uses up the Collected of the current one. */
+const laterMonthOperation = {
+    ...dialogExpenseOperation,
+    operation_date: dialogPreviousMonthDate,
+    amount_minor_units: 1000,
+    category_id: 5,
 };
 
 /** The current month has no plan, so Month Remaining warnings replace To Spend. */
@@ -640,6 +652,18 @@ function setOpen(state: SinkState, value: boolean): void {
             :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
             :entry-to-spend="dialogEntryToSpend"
             @update:open="setOpen('expense-warnings', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-later-month-warning')"
+            mode="edit"
+            :operation="laterMonthOperation"
+            initial-amount-input="200,00"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-later-month-warning', $event)"
         />
         <ExpenseFormDialog
             :open="isOpen('expense-month-without-plan')"

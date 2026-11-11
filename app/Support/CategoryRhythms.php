@@ -164,6 +164,41 @@ final class CategoryRhythms
     }
 
     /**
+     * Every Irregular period of a loaded Category, oldest first (ADR-0073): the
+     * month an Irregular entry started, its opening Collected and the last
+     * month before the next entry (null while it is open).
+     *
+     * @return list<array{start_year: int, start_month: int, opening_collected_minor_units: int, end_year: int|null, end_month: int|null}>
+     */
+    public function irregularPeriods(int $categoryId): array
+    {
+        if ($this->typeOf($categoryId) !== CategoryType::Expense) {
+            return [];
+        }
+
+        $entries = $this->entries[$categoryId] ?? [];
+        $periods = [];
+
+        foreach ($entries as $position => $entry) {
+            if ($entry['rhythm'] !== Rhythm::Irregular) {
+                continue;
+            }
+
+            $next = $entries[$position + 1]['start'] ?? null;
+
+            $periods[] = [
+                'start_year' => intdiv($entry['start'] - 1, 12),
+                'start_month' => ($entry['start'] - 1) % 12 + 1,
+                'opening_collected_minor_units' => $entry['opening'] ?? 0,
+                'end_year' => $next === null ? null : intdiv($next - 2, 12),
+                'end_month' => $next === null ? null : ($next - 2) % 12 + 1,
+            ];
+        }
+
+        return $periods;
+    }
+
+    /**
      * The loaded Categories that have any Irregular entry, in any month.
      *
      * @return list<int>

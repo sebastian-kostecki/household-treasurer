@@ -108,13 +108,15 @@ test('accumulates selected rows in index order and warns from the row that cross
         inputs(),
     );
 
-    expect(result[0]).toBeNull();
-    expect(result[1]).toEqual({
-        year: 2026,
-        month: 11,
-        toSpendAfterMinorUnits: -2_000,
-    });
-    expect(result[2]).toBeNull();
+    expect(result[0]).toEqual([]);
+    expect(result[1]).toEqual([
+        {
+            year: 2026,
+            month: 11,
+            toSpendAfterMinorUnits: -2_000,
+        },
+    ]);
+    expect(result[2]).toEqual([]);
 });
 
 test('skips unselected, uncategorised and own transfer rows without feeding pending', () => {
@@ -135,10 +137,10 @@ test('skips unselected, uncategorised and own transfer rows without feeding pend
         inputs(),
     );
 
-    expect(result[0]).toBeNull();
-    expect(result[1]).toBeNull();
-    expect(result[2]).toBeNull();
-    expect(result[3]).toBeNull();
+    expect(result[0]).toEqual([]);
+    expect(result[1]).toEqual([]);
+    expect(result[2]).toEqual([]);
+    expect(result[3]).toEqual([]);
 });
 
 test('capital movement interest changes the baseline of a later row but does not warn itself', () => {
@@ -158,9 +160,9 @@ test('capital movement interest changes the baseline of a later row but does not
         inputs(),
     );
 
-    expect(result[0]).toBeNull();
+    expect(result[0]).toEqual([]);
     // 50 zł + 20 zł interest = 70 zł; minus 40 zł = 30 zł: no warning.
-    expect(result[1]).toBeNull();
+    expect(result[1]).toEqual([]);
 
     const without = computeImportToSpendWarnings(
         [row(0, -6_000)],
@@ -169,7 +171,7 @@ test('capital movement interest changes the baseline of a later row but does not
     );
 
     // Without interest 50 zł − 60 zł is negative.
-    expect(without[0]?.toSpendAfterMinorUnits).toBe(-1_000);
+    expect(without[0]?.[0]?.toSpendAfterMinorUnits).toBe(-1_000);
 });
 
 test('a refund is counted with a negative sign and never warns', () => {
@@ -179,7 +181,7 @@ test('a refund is counted with a negative sign and never warns', () => {
         inputs(),
     );
 
-    expect(result[0]).toBeNull();
+    expect(result[0]).toEqual([]);
 });
 
 test('rows from different months do not affect each other', () => {
@@ -190,8 +192,8 @@ test('rows from different months do not affect each other', () => {
         inputs(),
     );
 
-    expect(result[0]).toBeNull();
-    expect(result[1]).toBeNull();
+    expect(result[0]).toEqual([]);
+    expect(result[1]).toEqual([]);
 });
 
 test('invalid rows and rows without date are ignored', () => {
@@ -201,6 +203,98 @@ test('invalid rows and rows without date are ignored', () => {
         inputs(),
     );
 
-    expect(result[0]).toBeNull();
-    expect(result[1]).toBeNull();
+    expect(result[0]).toEqual([]);
+    expect(result[1]).toEqual([]);
+});
+
+function irregularInputs(): EntryToSpendInputs {
+    return {
+        budgets: [
+            {
+                year: 2026,
+                categories: [
+                    ...categories,
+                    { id: 7, type: 'expense', rhythms: allMonths('irregular') },
+                ],
+                months: [
+                    {
+                        month: 9,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 0, 30_000), item(7, 0)],
+                    },
+                    {
+                        month: 11,
+                        set_aside_minor_units: 0,
+                        items: [item(SALARY, 0, 30_000), item(7, 0, 70_000)],
+                    },
+                ],
+            },
+        ],
+        irregular_periods: [
+            {
+                category_id: 7,
+                start_year: 2026,
+                start_month: 9,
+                opening_minor_units: 60_000,
+                months: [
+                    {
+                        year: 2026,
+                        month: 9,
+                        rate_minor_units: 0,
+                        actual_minor_units: 0,
+                    },
+                    {
+                        year: 2026,
+                        month: 10,
+                        rate_minor_units: 0,
+                        actual_minor_units: 0,
+                    },
+                    {
+                        year: 2026,
+                        month: 11,
+                        rate_minor_units: 0,
+                        actual_minor_units: 70_000,
+                    },
+                ],
+            },
+        ],
+    };
+}
+
+test('an overdue Irregular bill warns for the later month it uses the Collected of, not for its own', () => {
+    const result = computeImportToSpendWarnings(
+        [row(0, -40_000, '2026-09-10')],
+        { 0: selection({ category_id: 7 }) },
+        irregularInputs(),
+    );
+
+    // November: Collected 600 -> 200, the 700 bill costs 500 above it: 300 - 500.
+    expect(result[0]).toEqual([
+        { year: 2026, month: 11, toSpendAfterMinorUnits: -20_000 },
+    ]);
+});
+
+test('a bill covered by the Collected does not warn', () => {
+    const result = computeImportToSpendWarnings(
+        [row(0, -10_000, '2026-09-10')],
+        { 0: selection({ category_id: 7 }) },
+        irregularInputs(),
+    );
+
+    expect(result[0]).toEqual([]);
+});
+
+test('two rows of one import move the chain together', () => {
+    const result = computeImportToSpendWarnings(
+        [row(0, -10_000, '2026-09-10'), row(1, -30_000, '2026-10-10')],
+        { 0: selection({ category_id: 7 }), 1: selection({ category_id: 7 }) },
+        irregularInputs(),
+    );
+
+    // The first row alone leaves 500 collected (November 100, no warning);
+    // the second one brings the Collected to 200 and November below zero.
+    expect(result[0]).toEqual([]);
+    expect(result[1]).toEqual([
+        { year: 2026, month: 11, toSpendAfterMinorUnits: -20_000 },
+    ]);
 });
