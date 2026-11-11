@@ -514,31 +514,31 @@ Brak migracji schematu i danych. Na produkcji w 2026 nie ma budżetu 2025, więc
 
 #### Automated
 
-- [x] 1.1 Testy odczytu i zakresu przechodzą na SQLite
-- [x] 1.2 Te same testy przechodzą na PostgreSQL (worktree)
-- [x] 1.3 Test wydajności raportu z dwoma latami przechodzi na PostgreSQL
-- [x] 1.4 Typy i build
-- [x] 1.5 Formatowanie PHP
-- [x] 1.6 Sloppy bez nowych znalezisk
+- [x] 1.1 Testy odczytu i zakresu przechodzą na SQLite — 8c87fa4
+- [x] 1.2 Te same testy przechodzą na PostgreSQL (worktree) — 8c87fa4
+- [x] 1.3 Test wydajności raportu z dwoma latami przechodzi na PostgreSQL — 8c87fa4
+- [x] 1.4 Typy i build — 8c87fa4
+- [x] 1.5 Formatowanie PHP — 8c87fa4
+- [x] 1.6 Sloppy bez nowych znalezisk — 8c87fa4
 
 #### Manual
 
-- [x] 1.7 ADR-0073 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu
+- [x] 1.7 ADR-0073 i wpis Period Report w słowniku czyta się zgodnie z decyzjami tego planu — 8c87fa4
 
 ### Phase 2: Mock roku poprzedniego i domyślny rok
 
 #### Automated
 
-- [ ] 2.1 Testy mocka i domyślnego roku przechodzą na SQLite
-- [ ] 2.2 Te same testy przechodzą na PostgreSQL (worktree)
-- [ ] 2.3 Pełna bramka w worktree
-- [ ] 2.4 Sloppy bez nowych znalezisk
+- [x] 2.1 Testy mocka i domyślnego roku przechodzą na SQLite
+- [x] 2.2 Te same testy przechodzą na PostgreSQL (worktree)
+- [x] 2.3 Pełna bramka w worktree
+- [x] 2.4 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 2.5 Mock dokłada budżet 2025 na devie, salda kont bez zmian
-- [ ] 2.6 Budżet 2025 pokazuje wykonanie, a po świeżym zalogowaniu otwiera się 2026
-- [ ] 2.7 --remove usuwa mock, a ponowne uruchomienie odtwarza te same kwoty
+- [x] 2.5 Mock dokłada budżet 2025 na devie, salda kont bez zmian
+- [x] 2.6 Budżet 2025 pokazuje wykonanie, a po świeżym zalogowaniu otwiera się 2026
+- [x] 2.7 --remove usuwa mock, a ponowne uruchomienie odtwarza te same kwoty
 
 ### Phase 3: Tabela i panel miar
 

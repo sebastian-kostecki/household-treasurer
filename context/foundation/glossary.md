@@ -21,7 +21,7 @@ The named institution of a bank Account or Term Deposit: Alior, BNP Paribas, ING
 _Avoid_: Import format, Connector, Integration, BankAccount (as this field’s name)
 
 **Budget**:
-The User’s plan and execution for one calendar year. At most one Budget per User per year. Lives in draft, then execution. Year Close does not end execution: later Financial Operations dated in that year remain allowed. A new Budget gets a Budget Line for every active Category of the list, with the plan from the newest earlier Budget (a draft counts), and plan 0 when there is none (ADR-0068). The Rhythm is not copied: it is the history of the Category (ADR-0066).
+The User’s plan and execution for one calendar year. At most one Budget per User per year. Without a choice in the session the app opens the current calendar year when it has a Budget, else the newest year not later than it, else the oldest (ADR-0074). Lives in draft, then execution. Year Close does not end execution: later Financial Operations dated in that year remain allowed. A new Budget gets a Budget Line for every active Category of the list, with the plan from the newest earlier Budget (a draft counts), and plan 0 when there is none (ADR-0068). The Rhythm is not copied: it is the history of the Category (ADR-0066).
 _Avoid_: Year, Period, Wallet
 
 **Initial Plan**:

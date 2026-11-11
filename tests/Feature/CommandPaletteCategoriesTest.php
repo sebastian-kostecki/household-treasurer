@@ -52,6 +52,7 @@ class CommandPaletteCategoriesTest extends TestCase
 
     public function test_it_reads_the_default_year_without_a_session(): void
     {
+        $this->travelTo('2026-06-15');
         $user = User::factory()->create();
         $oldest = Budget::factory()->for($user)->create(['year' => 2025]);
         $newest = Budget::factory()->for($user)->create(['year' => 2026]);
@@ -61,8 +62,8 @@ class CommandPaletteCategoriesTest extends TestCase
         $this->actingAs($user)
             ->getJson(route('command-palette.categories'))
             ->assertOk()
-            ->assertJsonPath('budget_year', 2025)
-            ->assertJsonPath('categories.0.name', 'Najstarsza')
+            ->assertJsonPath('budget_year', 2026)
+            ->assertJsonPath('categories.0.name', 'Najnowsza')
             ->assertJsonCount(1, 'categories');
     }
 

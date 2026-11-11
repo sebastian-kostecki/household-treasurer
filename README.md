@@ -94,6 +94,14 @@ Dane demonstracyjne:
 
 Gdy użytkownik ma już dane domenowe, dodaj `--fresh` (i `--force`, żeby pominąć potwierdzenie).
 
+Opcjonalnie, po `demo:seed-household`: budżet roku poprzedniego do porównań rok do roku.
+
+```bash
+./vendor/bin/sail artisan demo:seed-previous-year you@example.com
+```
+
+Polecenie działa tylko w środowiskach `local` i `testing`. Kwoty roku poprzedniego są pochodną operacji bieżącego roku (stały procent 85-115 na kategorię), nie prawdziwymi danymi; salda kont się nie zmieniają. `--remove` (z `--force` bez potwierdzenia) usuwa taki budżet. Baza `household_treasurer_e2e` dostaje mock raz, tym samym poleceniem.
+
 ## Testy i jakość
 
 ```bash
@@ -110,15 +118,16 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 ## Komendy administracyjne
 
-| Komenda                      | Działanie                                                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `user:create`                | Konto logowania                                                                                                          |
-| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 9)                                                                               |
-| `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
-| `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
-| `demo:seed-household {user}` | Dane demo                                                                                                                |
-| `backup:restore {path}`      | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie) |
-| `app:control-numbers`        | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                  |
+| Komenda                          | Działanie                                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `user:create`                    | Konto logowania                                                                                                          |
+| `user:backup {user}`             | Snapshot JSON danych domenowych (wersja 9)                                                                               |
+| `user:restore {user} {path}`     | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
+| `user:reset-data {user}`         | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
+| `demo:seed-household {user}`     | Dane demo                                                                                                                |
+| `demo:seed-previous-year {user}` | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                    |
+| `backup:restore {path}`          | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie) |
+| `app:control-numbers`            | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                  |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
 
