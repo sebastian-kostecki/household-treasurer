@@ -7,7 +7,6 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\CategoryGroup;
-use App\Support\CategoryList\CategoryListOrder;
 
 /**
  * The Period Report of one Budget (ADR-0070): Execution of a month or of the
@@ -192,51 +191,30 @@ final class PeriodReport
         $categories = [];
         $byCategoryId = [];
         foreach ($rows as $row) {
-            $category = $row['category'];
-            if ($category->type !== $type) {
+            if ($row['category']->type !== $type) {
                 continue;
             }
 
-            $categories[] = [
-                'id' => $category->id,
-                'group_id' => $category->category_group_id,
-                'sort_order' => $category->sort_order,
-                'name_key' => $category->name_key,
-            ];
-            $byCategoryId[$category->id] = self::categoryEntry($row, $hasComparison);
-        }
-
-        $typeGroups = [];
-        $groupsById = [];
-        foreach ($groups as $group) {
-            if ($group->type !== $type) {
-                continue;
-            }
-
-            $typeGroups[] = ['id' => $group->id, 'sort_order' => $group->sort_order, 'name_key' => $group->name_key];
-            $groupsById[$group->id] = $group;
+            $categories[] = $row['category'];
+            $byCategoryId[$row['category']->id] = self::categoryEntry($row, $hasComparison);
         }
 
         $entries = [];
-        foreach (CategoryListOrder::tree($typeGroups, $categories) as $node) {
+        foreach (ReportCategoryTree::ofType($type, $categories, $groups) as $node) {
             if ($node['kind'] === 'category') {
-                $entries[] = ['kind' => 'category'] + $byCategoryId[$node['id']];
+                $entries[] = ['kind' => 'category'] + $byCategoryId[$node['category']->id];
 
                 continue;
             }
 
-            if ($node['category_ids'] === []) {
-                continue;
-            }
-
-            $members = array_map(fn (int $id): array => $byCategoryId[$id], $node['category_ids']);
+            $members = array_map(fn (Category $category): array => $byCategoryId[$category->id], $node['categories']);
             $amount = array_sum(array_column($members, 'amount_minor_units'));
             $previousAmounts = array_filter(array_column($members, 'previous_minor_units'), fn (?int $value): bool => $value !== null);
             $previous = $previousAmounts === [] ? null : array_sum($previousAmounts);
             $entries[] = [
                 'kind' => 'group',
-                'id' => $node['id'],
-                'name' => $groupsById[$node['id']]->name,
+                'id' => $node['group']->id,
+                'name' => $node['group']->name,
                 'amount_minor_units' => $amount,
                 'share_tenths_percent' => null,
                 'has_operations' => in_array(true, array_column($members, 'has_operations'), true),

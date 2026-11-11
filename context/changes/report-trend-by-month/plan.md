@@ -429,15 +429,15 @@ Brak migracji schematu i danych. Nowy parametr adresu i nowy cel zmiany roku są
 
 #### Automated
 
-- [ ] 1.1 Testy trendu i raportu okresu przechodzą na SQLite
-- [ ] 1.2 Te same testy przechodzą na PostgreSQL (worktree)
-- [ ] 1.3 Formatowanie PHP
-- [ ] 1.4 Analiza statyczna i reszta bramki w worktree
-- [ ] 1.5 Sloppy bez nowych znalezisk
+- [x] 1.1 Testy trendu i raportu okresu przechodzą na SQLite
+- [x] 1.2 Te same testy przechodzą na PostgreSQL (worktree)
+- [x] 1.3 Formatowanie PHP
+- [x] 1.4 Analiza statyczna i reszta bramki w worktree
+- [x] 1.5 Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 1.6 ADR-0076 i akapit o trendzie w słowniku czyta się zgodnie z decyzjami tego planu
+- [x] 1.6 ADR-0076 i akapit o trendzie w słowniku czyta się zgodnie z decyzjami tego planu
 
 ### Phase 2: Widok „Trend” z tabelami
 
