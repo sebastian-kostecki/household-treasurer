@@ -60,7 +60,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | done     |
 | S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | done     |
 | S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | done        |
-| S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | ready    |
+| S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | done     |
 | S-33 | default-set-aside-percent            | użytkownik może ustawić domyślny procent przychodów, który propozycja planu wpisuje jako „odkładam”                 | S-24          | FR-024                                   | ready    |
 
 ## Streams
@@ -324,7 +324,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Element opcjonalny (nice-to-have). Okres przechodzi przez dwa budżety, więc suma nie ma jednego odpowiednika w Budżecie rocznym; zgodność sprawdza się jako suma Wyników miesięcy.
-- **Status:** ready
+- **Status:** done
 
 ### S-33: Domyślny procent „odkładam”
 
@@ -421,3 +421,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-31: użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie** — Archived 2026-11-12 → `context/archive/2026-11-12-report-to-operations/`. Lesson: —.
 - **S-25: użytkownik może zobaczyć w planie miesiąca kategorie w zwijanych grupach z sumą grupy i kategorie bez grupy osobno, a przekroczenie kategorii widać też na wierszu zwiniętej grupy** — Archived 2026-11-12 → `context/archive/2026-11-12-month-plan-groups/`. Lesson: —.
 - **F-06: (foundation) `user:restore` wczytuje snapshot także na użytkownika z danymi: id konta w tożsamości importu idzie przez mapę kont, a digest jest liczony od nowa (ADR-0080).** — Archived 2026-11-12 → `context/archive/2026-11-12-restore-import-identity-accounts/`. Lesson: —.
+- **S-32: użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”** — Archived 2026-11-12 → `context/archive/2026-11-12-rolling-twelve-month-report/`. Lesson: —.
