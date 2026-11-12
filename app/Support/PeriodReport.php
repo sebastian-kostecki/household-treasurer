@@ -9,8 +9,9 @@ use App\Models\Category;
 use App\Models\CategoryGroup;
 
 /**
- * The Period Report of one Budget (ADR-0070): Execution of a month or of the
- * whole year, by type, in the order of the Category list, with Category Groups
+ * The Period Report (ADR-0070): Execution of a month or of the whole year of one
+ * Budget, or (ADR-0081) of the last twelve closed months across the Budgets
+ * that cover them, by type, in the order of the Category list, with Category Groups
  * summing all their Categories that have a row, archived ones included. All
  * amounts are minor units; the share of an expense row is an integer in tenths
  * of a percent of the period's expense total.
@@ -23,6 +24,11 @@ use App\Models\CategoryGroup;
  * It reads, whatever the period: the Budget Lines (with their list Category),
  * the User's Category Groups and `MonthCategoryActuals`; a comparison adds the
  * lines of the previous Budget and one range read.
+ *
+ * The twelve-month window has no comparison. Its rows are joined by list
+ * Category id from one range read per covering Budget; the archived mark of a
+ * row follows the Category's line in the newest covering Budget, or the list
+ * Category when that Budget has no line of it.
  *
  * `has_operations` of the report means "has at least one row" (from either
  * range); on a row or group it means "has operations in the current period".
@@ -52,6 +58,21 @@ final class PeriodReport
     }
 
     /**
+     * The last twelve closed months across the Budgets in `$window` (ADR-0081).
+     * Without a covering Budget the report is empty and reads nothing.
+     */
+    public static function forWindow(ReportTwelveMonthWindow $window): self
+    {
+        if ($window->budgets === []) {
+            return self::fromRows([], [], null);
+        }
+
+        $groups = CategoryGroup::query()->where('user_id', $window->budgets[0]->user_id)->get();
+
+        return self::fromRows(ReportWindowRows::of($window), array_values($groups->all()), null);
+    }
+
+    /**
      * @return ReportShape
      */
     public function toArray(): array
@@ -68,8 +89,15 @@ final class PeriodReport
 
         $groups = CategoryGroup::query()->where('user_id', $budget->user_id)->get();
 
-        $groupList = array_values($groups->all());
+        return self::fromRows($rows, array_values($groups->all()), $comparison);
+    }
 
+    /**
+     * @param  array<int, ReportRow>  $rows
+     * @param  list<CategoryGroup>  $groupList
+     */
+    private static function fromRows(array $rows, array $groupList, ?ReportComparisonPeriod $comparison): self
+    {
         $hasComparison = $comparison !== null;
         $income = self::entriesOfType(CategoryType::Income, $rows, $groupList, $hasComparison);
         $expense = self::entriesOfType(CategoryType::Expense, $rows, $groupList, $hasComparison);

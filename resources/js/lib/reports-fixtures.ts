@@ -3,6 +3,7 @@ import type {
     PeriodReportComparison,
     PeriodReportData,
     ReportPeriod,
+    ReportWindow,
     ReportTrendCategory,
     ReportTrendData,
     ReportTrendEntry,
@@ -15,7 +16,7 @@ export type ReportScenario = {
     caption: string;
     /** Rendered in a phone-wide frame. */
     phone?: boolean;
-    kind: 'report' | 'trend' | 'draft' | 'no-budget';
+    kind: 'report' | 'last-12' | 'trend' | 'draft' | 'no-budget';
     period: ReportPeriod;
     report: PeriodReportData | null;
     trend: ReportTrendData | null;
@@ -588,6 +589,51 @@ const trendNegativeResult = buildTrend(
     11,
 );
 
+const windowFull: ReportWindow = {
+    from: '2025-11-01',
+    through: '2026-10-31',
+    covered_from: '2025-11-01',
+    covered_through: '2026-10-31',
+    covered_month_count: 12,
+    missing_from: null,
+    missing_through: null,
+};
+
+const windowPartial: ReportWindow = {
+    ...windowFull,
+    covered_from: '2026-01-01',
+    covered_month_count: 10,
+    missing_from: '2025-11-01',
+    missing_through: '2025-12-31',
+};
+
+const windowPartialEnd: ReportWindow = {
+    ...windowFull,
+    covered_through: '2025-12-31',
+    covered_month_count: 2,
+    missing_from: '2026-01-01',
+    missing_through: '2026-10-31',
+};
+
+const windowNoCoverage: ReportWindow = {
+    ...windowFull,
+    covered_from: null,
+    covered_through: null,
+    covered_month_count: 0,
+    missing_from: '2025-11-01',
+    missing_through: '2026-10-31',
+};
+
+function lastTwelvePeriod(window: ReportWindow): ReportPeriod {
+    return {
+        kind: 'last-12',
+        month: null,
+        default_month: 11,
+        is_in_progress: false,
+        window,
+    };
+}
+
 const trendEmpty = buildTrend([], [], 11);
 
 const trendPeriod: ReportPeriod = {
@@ -595,11 +641,13 @@ const trendPeriod: ReportPeriod = {
     month: null,
     default_month: 11,
     is_in_progress: true,
+    window: null,
 };
 
 const trendClosedPeriod: ReportPeriod = {
     ...trendPeriod,
     is_in_progress: false,
+    window: null,
 };
 
 export const reportScenarios: ReportScenario[] = [
@@ -613,6 +661,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 11,
             is_in_progress: true,
+            window: null,
         },
         report: yearReport,
         trend: null,
@@ -627,6 +676,7 @@ export const reportScenarios: ReportScenario[] = [
             month: 3,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: archivedInGroupReport,
         trend: null,
@@ -640,6 +690,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: archivedInGroupReport,
         trend: null,
@@ -653,6 +704,7 @@ export const reportScenarios: ReportScenario[] = [
             month: 5,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: refundReport,
         trend: null,
@@ -666,6 +718,7 @@ export const reportScenarios: ReportScenario[] = [
             month: 6,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: nonPositiveExpenseReport,
         trend: null,
@@ -679,6 +732,7 @@ export const reportScenarios: ReportScenario[] = [
             month: 1,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: emptyReport,
         trend: null,
@@ -692,6 +746,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 1,
             is_in_progress: false,
+            window: null,
         },
         report: null,
         trend: null,
@@ -705,6 +760,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 1,
             is_in_progress: false,
+            window: null,
         },
         report: null,
         trend: null,
@@ -719,6 +775,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 11,
             is_in_progress: true,
+            window: null,
         },
         report: archivedInGroupReport,
         trend: null,
@@ -733,6 +790,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 11,
             is_in_progress: true,
+            window: null,
         },
         report: comparedYearReport,
         trend: null,
@@ -747,6 +805,7 @@ export const reportScenarios: ReportScenario[] = [
             month: 3,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: comparedMonthReport,
         trend: null,
@@ -761,6 +820,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: comparedOnlyOneSideReport,
         trend: null,
@@ -775,6 +835,7 @@ export const reportScenarios: ReportScenario[] = [
             month: 1,
             default_month: 11,
             is_in_progress: false,
+            window: null,
         },
         report: comparedEmptyCurrentReport,
         trend: null,
@@ -789,6 +850,7 @@ export const reportScenarios: ReportScenario[] = [
             month: null,
             default_month: 11,
             is_in_progress: true,
+            window: null,
         },
         report: comparedYearReport,
         trend: null,
@@ -854,5 +916,59 @@ export const reportScenarios: ReportScenario[] = [
         period: trendPeriod,
         report: null,
         trend: trendInProgress,
+    },
+    {
+        key: 'last-12-full',
+        caption:
+            '12 miesięcy w pełni pokryte, bez paska miesięcy i bez porównania; kwoty to suma miesięcy z obu Budżetów, policzona na serwerze, nazwa kategorii to link do operacji całego okna',
+        kind: 'last-12',
+        period: lastTwelvePeriod(windowFull),
+        report: yearReport,
+        trend: null,
+    },
+    {
+        key: 'last-12-partial',
+        caption:
+            'Pokryte 10 z 12 miesięcy (brak na początku okna): notka nad panelem miar',
+        kind: 'last-12',
+        period: lastTwelvePeriod(windowPartial),
+        report: yearReport,
+        trend: null,
+    },
+    {
+        key: 'last-12-partial-end',
+        caption:
+            'Pokryte 2 miesiące na początku okna, brak na końcu: notka nazywa brakujący koniec',
+        kind: 'last-12',
+        period: lastTwelvePeriod(windowPartialEnd),
+        report: archivedInGroupReport,
+        trend: null,
+    },
+    {
+        key: 'last-12-no-coverage',
+        caption:
+            'Żaden miesiąc okna nie ma budżetu w realizacji: stan pusty zamiast panelu i tabel',
+        kind: 'last-12',
+        period: lastTwelvePeriod(windowNoCoverage),
+        report: emptyReport,
+        trend: null,
+    },
+    {
+        key: 'last-12-no-operations',
+        caption: 'Okno w pełni pokryte, ale bez operacji',
+        kind: 'last-12',
+        period: lastTwelvePeriod(windowFull),
+        report: emptyReport,
+        trend: null,
+    },
+    {
+        key: 'last-12-phone',
+        caption:
+            'Telefon (ramka 22rem): cztery segmenty przełącznika mieszczą się bez poziomego przewijania, notka pokrycia',
+        phone: true,
+        kind: 'last-12',
+        period: lastTwelvePeriod(windowPartial),
+        report: yearReport,
+        trend: null,
     },
 ];
