@@ -468,22 +468,22 @@ Bez migracji i bez zmiany snapshotu: `category_groups` i `categories.category_gr
 
 #### Automated
 
-- [x] 1.1 ADR-0079 istnieje i jest jedynym plikiem z numerem 0079
-- [x] 1.2 Wpis Category Group w słowniku odwołuje się do ADR-0079
+- [x] 1.1 ADR-0079 istnieje i jest jedynym plikiem z numerem 0079 — 25ede1b
+- [x] 1.2 Wpis Category Group w słowniku odwołuje się do ADR-0079 — 25ede1b
 
 #### Manual
 
-- [x] 1.3 ADR-0079 i wpis w słowniku opisują dokładnie decyzje z tego planu
+- [x] 1.3 ADR-0079 i wpis w słowniku opisują dokładnie decyzje z tego planu — 25ede1b
 
 ### Phase 2: Dane grup w propsach
 
 #### Automated
 
-- [ ] 2.1 Testy strony planu miesiąca przechodzą na PostgreSQL
-- [ ] 2.2 Testy zatwierdzania, zmiany i propozycji przechodzą
-- [ ] 2.3 Kontrola typów przechodzi
-- [ ] 2.4 Formatowanie PHP
-- [ ] 2.5 Sloppy bez nowych zgłoszeń
+- [x] 2.1 Testy strony planu miesiąca przechodzą na PostgreSQL
+- [x] 2.2 Testy zatwierdzania, zmiany i propozycji przechodzą
+- [x] 2.3 Kontrola typów przechodzi
+- [x] 2.4 Formatowanie PHP
+- [x] 2.5 Sloppy bez nowych zgłoszeń
 
 ### Phase 3: Drzewo i sumy grup w TS
 

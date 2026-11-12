@@ -75,6 +75,8 @@ final class MonthPlanJoinCandidates
             'name' => $category->name,
             ...CategoryAppearance::fields($category),
             'type' => $category->type->value,
+            'group_id' => $category->category_group_id,
+            'sort_order' => $category->sort_order,
             'is_archived' => false,
             'plan_minor_units' => 0,
             'actual_minor_units' => 0,

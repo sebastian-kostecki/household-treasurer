@@ -25,6 +25,10 @@ export type MonthPlanItem = {
     icon: string;
     color: string;
     type: 'income' | 'expense';
+    /** Category Group of the Category on the list; null when it stands outside any group. */
+    group_id: number | null;
+    /** Place of the Category in the one order of its type (`categories.sort_order`). */
+    sort_order: number;
     is_archived: boolean;
     plan_minor_units: number;
     actual_minor_units: number;
@@ -54,6 +58,12 @@ export type MonthPlanItem = {
         end_minor_units: number;
     } | null;
     year_comparison: MonthYearComparison | null;
+};
+
+export type MonthPlanGroup = {
+    id: number;
+    name: string;
+    sort_order: number;
 };
 
 export type MonthSummaryTotals = {
@@ -89,6 +99,8 @@ export type MonthPlanReading = {
     month_pace: MonthPace | null;
     income_items: MonthPlanItem[];
     expense_items: MonthPlanItem[];
+    income_groups: MonthPlanGroup[];
+    expense_groups: MonthPlanGroup[];
     year_totals: {
         income: MonthYearComparison;
         expense: MonthYearComparison;

@@ -14,6 +14,8 @@ function row(overrides: Partial<MonthPlanItem> = {}): MonthPlanItem {
         icon: 'utensils',
         color: 'brand',
         type: 'expense',
+        group_id: null,
+        sort_order: 0,
         is_archived: false,
         plan_minor_units: 10000,
         actual_minor_units: 15000,
