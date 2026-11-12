@@ -1,6 +1,6 @@
 # Wczytanie na produkcji — notatki z 2026-11-12
 
-Stan na chwilę przerwania przez użytkownika. Niczego z arkusza nie wczytano na produkcji.
+Lata 2022–2025 wczytane na produkcji 2026-11-12 ok. 19:30 UTC (sekcja „Wczytanie na produkcji” na końcu). Wcześniejsze sekcje opisują drogę do tego stanu.
 
 ## Produkcja (halina175, `/srv/apps/household-treasurer`)
 
@@ -60,7 +60,12 @@ Odczyt każdego pliku ok. 22 s. Kategorie z mapowania sprawdza na bazie dopiero 
 - Wycofanie 2025 → 2022 (`budget:unload-sheet --force`, przy 2022 także „Kosmetyki”), potem `app:control-numbers --compare` bez `--allow-additions`: „Control numbers match: no differences”. Ponowne wczytanie czterech lat i znów „Only additions” z tymi samymi licznikami.
 - Sprzątanie: podgląd zatrzymany, baza usunięta, `storage/app` worktree przywrócony, archiwum i pliki xlsx usunięte z worktree.
 
-## Dalsze kroki
+## Wczytanie na produkcji (7.4)
 
-1. Scalenie do `development` i `main`, wdrożenie `scripts/deploy.sh` (bez nowych migracji).
-2. Na produkcji nowy `user:backup` i plik „przed” (aplikacja mogła być używana od 18:20), `--dry-run` czterech plików (kod 0, kategorie zgodne), wczytanie 2022 → 2025, `app:control-numbers --compare=<przed> --allow-additions`, przegląd salda „Konto Osobiste” i Budżetów 2026/2027.
+- Kod: `development` `3f40ce6`, `main` `747db10`. `scripts/deploy.sh` (uruchomiony przez użytkownika): snapshot `1-20261112192644.json`, liczby `20261112-192653-before.json`, kopia instancji, „Nothing to migrate”, „Control numbers match”, aplikacja live, `/up` 200.
+- Przed wczytaniem: `user:backup 1` → `storage/app/private/user-snapshots/1-20261112192727.json`; `app:control-numbers` → `storage/app/private/control-numbers/20261112-sheet-before-2.json` (plik „przed” do wycofania; starszy `20261112-sheet-load-before.json` jest sprzed wdrożenia poprawek).
+- `--dry-run` czterech plików: kod 0, sumy zgodne z „Analizą”, kategorie zgodne, ostrzeżenia jak na próbie.
+- Wczytanie 2022 → 2025 (`--force`): Budżety 3–6, konta 12–15 „Arkusz RRRR”, 438 / 432 / 398 / 381 operacji.
+- `app:control-numbers --compare=storage/app/private/control-numbers/20261112-sheet-before-2.json --allow-additions`: kod 0, „Only additions: budgets +4, lines +131, accounts +4, categories +1, financial_operations +1649”.
+- Baza: „Konto Osobiste” 391 016 / 688 672 gr (bez zmian), pozostałe konta bez zmian; konta arkusza zarchiwizowane, saldo bieżące 0, otwarcie −5 014,55 / 4 268,09 / 16 201,17 / 181,65 zł; Budżet 2026 (39 linii) i szkic 2027 (38 linii) bez zmian; „Kosmetyki” id 42, zarchiwizowana.
+- Wycofanie, gdyby było potrzebne: `scripts/artisan.sh budget:unload-sheet 1 <rok> --force` od 2025 do 2022, potem `app:control-numbers --compare=storage/app/private/control-numbers/20261112-sheet-before-2.json` bez `--allow-additions` (README, „Wczytanie arkusza”).
