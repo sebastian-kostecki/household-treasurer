@@ -10,9 +10,12 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney } from '@/lib/format';
 import {
     REPORT_CHART_NAME_WIDTH_PX,
+    REPORT_CHART_PREVIOUS_COLOR,
     REPORT_CHART_VALUE_TICKS,
     reportChartBars,
+    reportChartColor,
     reportChartHeightRem,
+    reportChartLegend,
 } from '@/lib/report-chart';
 import type { ReportChartBar } from '@/lib/report-chart';
 import type { PeriodReportEntry } from '@/types/reports';
@@ -42,11 +45,9 @@ const bars = computed<Bar[]>(() =>
     reportChartBars(props.entries, compared.value),
 );
 
-const color = computed(() =>
-    props.type === 'income' ? 'var(--success)' : 'var(--chart-1)',
-);
+const color = computed(() => reportChartColor(props.type));
 
-const PREVIOUS_COLOR = 'var(--chart-2)';
+const PREVIOUS_COLOR = REPORT_CHART_PREVIOUS_COLOR;
 
 const config = computed<ChartConfig>(() => ({
     value: { color: color.value },
@@ -69,22 +70,14 @@ const maxValue = computed(() =>
     ),
 );
 
-function legendLabel(year: number | null | undefined): string {
-    return t.reports.chart_legend_previous.replace(':year', String(year ?? ''));
-}
-
-const legend = computed(() => [
-    {
-        key: 'current',
-        color: color.value,
-        label: legendLabel(props.budgetYear),
-    },
-    {
-        key: 'previous',
-        color: PREVIOUS_COLOR,
-        label: legendLabel(props.comparisonYear),
-    },
-]);
+const legend = computed(() =>
+    reportChartLegend(
+        props.type,
+        t.reports.chart_legend_previous,
+        props.budgetYear,
+        props.comparisonYear,
+    ),
+);
 
 const chartStyle = computed(() => ({
     height: `${reportChartHeightRem(bars.value.length, compared.value)}rem`,

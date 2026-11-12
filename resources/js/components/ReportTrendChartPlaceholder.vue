@@ -3,7 +3,11 @@ import { computed } from 'vue';
 import ReportChartLegend from '@/components/ReportChartLegend.vue';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslations } from '@/composables/useTranslations';
-import { reportTrendChartBars } from '@/lib/report-trend-chart';
+import {
+    reportTrendChartBars,
+    reportTrendInProgressNote,
+    reportTrendLegend,
+} from '@/lib/report-trend-chart';
 import type { ReportTrendMonth } from '@/types/reports';
 
 /**
@@ -19,20 +23,10 @@ const t = useTranslations();
 
 const hasBars = computed(() => reportTrendChartBars(props.months).length > 0);
 
-const legend = computed(() => [
-    { key: 'income', color: 'var(--success)', label: t.reports.income },
-    { key: 'expense', color: 'var(--chart-1)', label: t.reports.expense },
-]);
+const legend = computed(() => reportTrendLegend(t.reports));
 
 const inProgressNote = computed(() =>
-    props.inProgressMonth === null
-        ? null
-        : t.reports.trend_legend_in_progress.replace(
-              ':month',
-              t.budget[
-                  `month_name_${props.inProgressMonth}` as keyof typeof t.budget
-              ],
-          ),
+    reportTrendInProgressNote(props.inProgressMonth, t.reports, t.budget),
 );
 </script>
 

@@ -4,7 +4,11 @@ import ListSurface from '@/components/ListSurface.vue';
 import ReportChartLegend from '@/components/ReportChartLegend.vue';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslations } from '@/composables/useTranslations';
-import { reportChartBars, reportChartHeightRem } from '@/lib/report-chart';
+import {
+    reportChartBars,
+    reportChartHeightRem,
+    reportChartLegend,
+} from '@/lib/report-chart';
 import type { PeriodReportEntry } from '@/types/reports';
 
 /**
@@ -27,22 +31,14 @@ const barCount = computed(
     () => reportChartBars(props.entries, compared.value).length,
 );
 
-function legendLabel(year: number | null | undefined): string {
-    return t.reports.chart_legend_previous.replace(':year', String(year ?? ''));
-}
-
-const legend = computed(() => [
-    {
-        key: 'current',
-        color: props.type === 'income' ? 'var(--success)' : 'var(--chart-1)',
-        label: legendLabel(props.budgetYear),
-    },
-    {
-        key: 'previous',
-        color: 'var(--chart-2)',
-        label: legendLabel(props.comparisonYear),
-    },
-]);
+const legend = computed(() =>
+    reportChartLegend(
+        props.type,
+        t.reports.chart_legend_previous,
+        props.budgetYear,
+        props.comparisonYear,
+    ),
+);
 
 const skeletonStyle = computed(() => ({
     height: `${reportChartHeightRem(barCount.value, compared.value)}rem`,

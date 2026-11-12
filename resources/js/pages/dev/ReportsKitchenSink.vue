@@ -10,6 +10,9 @@ import {
     yearReport,
 } from '@/lib/reports-fixtures';
 
+// Lazy on purpose: a static import would fold Reports.vue into this chunk and
+// drop it from the Vite manifest, so Inertia could no longer render /reports
+// ("Unable to locate file in Vite manifest").
 const Reports = defineAsyncComponent(() => import('@/pages/Reports.vue'));
 
 const stateMatrix = [

@@ -4,7 +4,9 @@
 // the 12-month window, reachable from the period switch, has no way back.
 // The states are read from /dev/ui/reports: the kitchen sink renders the real
 // page (Reports.vue) with the fixture props, and the E2E database has neither a
-// draft Budget nor a user without a Budget.
+// draft Budget nor a user without a Budget. The sink answers 404 outside
+// APP_ENV=local (the E2E server reads the project's .env), which would show up
+// here as a missing heading.
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
 function scenario(page: Page, key: string): Locator {
@@ -74,27 +76,33 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
 // The chart is a lazy fragment: until it arrives the table must already stand
 // where it will stay, so the page does not jump when the chart appears.
 test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
+    // Holds the requests matching `pattern` until `release()`. `held()` counts
+    // them: a test asserts it is above zero, so a renamed chunk (the pattern
+    // matching nothing) fails loudly instead of measuring a page whose chart
+    // has already loaded.
     async function holdFragment(
         page: Page,
         pattern: string,
-    ): Promise<() => void> {
+    ): Promise<{ release: () => void; held: () => number }> {
         let release: () => void = () => {};
+        let heldCount = 0;
         const released = new Promise<void>((resolve) => {
             release = resolve;
         });
 
         await page.route(pattern, async (route) => {
+            heldCount += 1;
             await released;
             await route.continue();
         });
 
-        return release;
+        return { release, held: () => heldCount };
     }
 
     test('słupkowy: tabela Wydatki nie przeskakuje po doładowaniu wykresu', async ({
         page,
     }) => {
-        const release = await holdFragment(
+        const { release, held } = await holdFragment(
             page,
             '**/build/assets/ReportBarChart-*.js',
         );
@@ -105,6 +113,12 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
             .getByRole('heading', { name: 'Wydatki', exact: true })
             .first();
         await expect(heading).toBeVisible();
+        // The chart is still in flight: the placeholder stands in its place.
+        await expect(
+            page.getByTestId('report-chart-placeholder-expense'),
+        ).toBeVisible();
+        await expect(page.getByTestId('report-chart-expense')).toHaveCount(0);
+        expect(held()).toBeGreaterThan(0);
         const before = (await heading.boundingBox())!.y;
 
         release();
@@ -117,7 +131,7 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
     test('Trend: tabela miar nie przeskakuje po doładowaniu wykresu', async ({
         page,
     }) => {
-        const release = await holdFragment(
+        const { release, held } = await holdFragment(
             page,
             '**/build/assets/ReportTrendChart-*.js',
         );
@@ -128,6 +142,12 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
             '[data-trend-table="summary"] .report-trend-scroll',
         );
         await expect(table).toBeVisible();
+        // The chart is still in flight: the placeholder stands in its place.
+        await expect(
+            page.getByTestId('report-trend-chart-placeholder'),
+        ).toBeVisible();
+        await expect(page.getByTestId('report-trend-chart')).toHaveCount(0);
+        expect(held()).toBeGreaterThan(0);
         const before = (await table.boundingBox())!.y;
 
         release();
@@ -138,9 +158,11 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
     });
 });
 
-// In the 22rem phone frame the card is about 288 px wide: the Udział column
-// must not take the name's room, so the share goes under the amount and the
-// archived Badge under the name (ADR-0083).
+// In the 22rem phone frame the card is about 320 px wide and a row holds about
+// 288 px of content: the Udział column must not take the name's room, so the
+// share goes under the amount and the archived Badge under the name (ADR-0083).
+// The Badge test assumes the real fonts (the build serves them), so a failure
+// there can come from font loading, not from the CSS.
 test.describe('Raporty: wąska karta pokazuje pełne nazwy i Udział pod kwotą', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/dev/ui/reports');

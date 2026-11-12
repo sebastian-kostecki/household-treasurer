@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vite-plus/test';
 import type { PeriodReportEntry } from '../types/reports';
-import { reportChartBars, reportChartHeightRem } from './report-chart';
+import {
+    REPORT_CHART_PREVIOUS_COLOR,
+    reportChartBars,
+    reportChartColor,
+    reportChartHeightRem,
+    reportChartLegend,
+} from './report-chart';
 
 function category(
     id: number,
@@ -120,5 +126,25 @@ describe('reportChartHeightRem', () => {
     it('is zero without bars, so no chart and no placeholder take room', () => {
         expect(reportChartHeightRem(0, false)).toBe(0);
         expect(reportChartHeightRem(0, true)).toBe(0);
+    });
+});
+
+describe('reportChartLegend', () => {
+    it('names the current year and the year before, with the token colours', () => {
+        expect(reportChartLegend('expense', 'Rok :year', 2026, 2025)).toEqual([
+            { key: 'current', color: 'var(--chart-1)', label: 'Rok 2026' },
+            {
+                key: 'previous',
+                color: REPORT_CHART_PREVIOUS_COLOR,
+                label: 'Rok 2025',
+            },
+        ]);
+    });
+
+    it('colours income with the success token, like the chart', () => {
+        expect(reportChartColor('income')).toBe('var(--success)');
+        expect(
+            reportChartLegend('income', 'Rok :year', 2026, 2025)[0].color,
+        ).toBe('var(--success)');
     });
 });

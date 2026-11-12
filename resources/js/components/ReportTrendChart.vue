@@ -7,7 +7,13 @@ import { ChartContainer } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatWholeMoney } from '@/lib/format';
-import { reportTrendChartBars } from '@/lib/report-trend-chart';
+import {
+    REPORT_TREND_EXPENSE_COLOR,
+    REPORT_TREND_INCOME_COLOR,
+    reportTrendChartBars,
+    reportTrendInProgressNote,
+    reportTrendLegend,
+} from '@/lib/report-trend-chart';
 import type { ReportTrendChartBar } from '@/lib/report-trend-chart';
 import type { ReportTrendMonth } from '@/types/reports';
 
@@ -29,28 +35,18 @@ type Bar = ReportTrendChartBar;
 /** Empty when no month has a positive amount: then only the table is shown. */
 const bars = computed<Bar[]>(() => reportTrendChartBars(props.months));
 
-const INCOME_COLOR = 'var(--success)';
-const EXPENSE_COLOR = 'var(--chart-1)';
+const INCOME_COLOR = REPORT_TREND_INCOME_COLOR;
+const EXPENSE_COLOR = REPORT_TREND_EXPENSE_COLOR;
 
 const config: ChartConfig = {
     income: { color: INCOME_COLOR },
     expense: { color: EXPENSE_COLOR },
 };
 
-const legend = computed(() => [
-    { key: 'income', color: INCOME_COLOR, label: t.reports.income },
-    { key: 'expense', color: EXPENSE_COLOR, label: t.reports.expense },
-]);
+const legend = computed(() => reportTrendLegend(t.reports));
 
 const inProgressNote = computed(() =>
-    props.inProgressMonth === null
-        ? null
-        : t.reports.trend_legend_in_progress.replace(
-              ':month',
-              t.budget[
-                  `month_name_${props.inProgressMonth}` as keyof typeof t.budget
-              ],
-          ),
+    reportTrendInProgressNote(props.inProgressMonth, t.reports, t.budget),
 );
 
 const VALUE_TICKS = 4;
