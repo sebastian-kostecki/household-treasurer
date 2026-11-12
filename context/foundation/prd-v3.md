@@ -196,7 +196,7 @@ Zakres i czas: cztery części — moduł zarządzania kategoriami, migracja ist
 - [new] FR-015: User can zobaczyć przychody, wydatki, wynik oraz grupy i kategorie z kwotą (i udziałem % dla wydatków) w wybranym okresie, jako wykres i tabelę, z rozwinięciem grupy do kategorii. Priority: must-have.
   > Socratic: Kontrargument: udział % przychodów bez sensu. Rozstrzygnięcie: udział % tylko dla wydatków; FR zaktualizowany.
 - [new] FR-016: User can porównać okres z tym samym okresem rok wcześniej (kwota, różnica) na tej samej kategorii listy. Priority: must-have.
-  > Socratic: Kontrargument: 2025 jest w Excelu, nie w aplikacji. Rozstrzygnięcie: mock 2025 tylko na devie (seeder); na produkcji porównanie lat działa od 2027.
+  > Socratic: Kontrargument: 2025 jest w Excelu, nie w aplikacji. Rozstrzygnięcie: mock 2025 tylko na devie (seeder); na produkcji porównanie lat działa od 2027. _Zmienione przez ADR-0083: lata 2022–2025 wczytane z arkusza (legacy-budget-import)._
 - [new] FR-017: User can zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku (trend). Priority: nice-to-have.
   > Socratic: Kontrargument: sezonowość nieregularnych (0, 0, 430, 0) psuje wykres. Rozstrzygnięcie: trend domyślnie po grupach, rozwinięcie do kategorii na życzenie.
 - [new] FR-018: User can przejść z kategorii w raporcie do jej operacji w wybranym okresie. Priority: nice-to-have.
@@ -253,7 +253,7 @@ Nie mogą się zepsuć:
 ### Wymogi istniejącego systemu
 
 - Zmiana reguły „do wydania”, zasady „kategoria należy do jednego budżetu” (słownik: Category, _Avoid_ „a Category identity that spans years”) i kopiowania kategorii (ADR-0014) wymaga wpisów w `context/foundation/glossary.md` i nowych ADR przed kodem; dotknięte też ADR-0016 (filtr Operacji), ADR-0034 (podpowiedzi Importu), ADR-0024/0033 (pula równomiernych, plan miesiąca).
-- Dane 2025 tylko w środowisku deweloperskim, do sprawdzenia porównania lat; produkcja porównuje lata od 2027.
+- Dane 2025 tylko w środowisku deweloperskim, do sprawdzenia porównania lat; produkcja porównuje lata od 2027. _Zmienione przez ADR-0083: lata 2022–2025 wczytane z arkusza (legacy-budget-import)._
 - Każdy nowy widok (Kategorie, Raporty) i zmieniony (plan miesiąca, Budżet, selektor kategorii) jest zgodny z design systemem (`context/foundation/design-system.md`) w każdym swoim stanie; brak w design systemie, który przy tym wyjdzie, jest poprawiany w nim (Secondary).
 
 ## Business Logic Changes
@@ -284,7 +284,7 @@ Obecny model: konta tworzy administrator (`user:create`), samodzielna rejestracj
 ## Non-Goals
 
 - **Plan na grupie i więcej niż dwa poziomy.** Grupa tylko sumuje kategorie; bez limitu grupy, bez podgrup. Pula „Zmienne” to suma planów jej kategorii.
-- **Import arkusza budżetu, liczniki mediów, wynagrodzenia.** Zakładki „Roczny”, „Media” i „Janeczka” nie mają odpowiednika w aplikacji; dane 2025 wchodzą tylko jako mock na devie.
+- **Import arkusza budżetu, liczniki mediów, wynagrodzenia.** Zakładki „Roczny”, „Media” i „Janeczka” nie mają odpowiednika w aplikacji; dane 2025 wchodzą tylko jako mock na devie. _Zmienione przez ADR-0083: lata 2022–2025 wczytane z arkusza (legacy-budget-import); liczniki mediów i wynagrodzenia zostają poza zakresem._
 - **Cele długoterminowe i nazwane pozycje odkładania.** IKE, poduszka, fundusz awaryjny jako byty z kwotą docelową — użytkownik ich nie używa („generalnie tylko odkładam jakieś 10 % z miesiąca”); „odkładam / dobieram” zostaje jedną kwotą.
 - **Funkcje nice-to-have poza must-have zakresem tej zmiany:** trend (FR-017), przejście z raportu do operacji (FR-018), domyślny procent „odkładam” (FR-024), okres „ostatnie 12 miesięcy” (FR-025) — powstają po wycinkach must-have.
 

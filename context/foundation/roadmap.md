@@ -376,7 +376,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 ## Parked
 
 - **Plan na grupie i więcej niż dwa poziomy** — Why parked: PRD v3 §Non-Goals; grupa tylko sumuje kategorie.
-- **Import arkusza budżetu, liczniki mediów, wynagrodzenia** — Why parked: PRD v3 §Non-Goals; dane 2025 wchodzą tylko jako mock na devie (S-29).
+- **Liczniki mediów, wynagrodzenia** — Why parked: PRD v3 §Non-Goals. Import arkusza budżetu wyszedł z parkingu: ADR-0083 (zmiana legacy-budget-import).
 - **Cele długoterminowe i nazwane pozycje odkładania** — Why parked: PRD v3 §Non-Goals; „odkładam / dobieram” zostaje jedną kwotą.
 - **Domyślna kwota miesięczna kategorii** — Why parked: PRD v3, decyzja strukturalna 2; kwota wynika z planu rocznego i rytmu.
 - **Podział jednej kategorii na kilka** — Why parked: PRD v3 daje tylko scalanie (FR-023); podgrupy to kategorie w grupie.

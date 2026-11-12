@@ -177,3 +177,29 @@ Do not change: `IrregularCollected` chains start at the Irregular period start (
 6. **Operation dates:** first or last day of the month (affects the in-progress month comparison), and whether irregular items become one operation each.
 7. **Accepted reading changes:** the last-12-months report and the 2026 comparison change by design; confirm with the user.
 8. **Name** of the loader (not "Import") and the ADR 0083 scope, plus the PRD/roadmap update.
+
+## Addendum 2026-11-12: earlier years (2022, 2023, 2024)
+
+The files arrived after the first pass (`storage/app/private/Budżet_{2022,2023,2024}.xlsx`, main checkout). Each was read the same way as 2025 (whole workbook, cached values, `sail-8.5/app`); scripts and cell dumps live outside the repo in the job's tmp directory. Every year's totals, without the savings deposit row (B "Oszczędności długoterminowe") and the "oszczędności" income row, equal the sheet's own `Analiza!B16`/`C16`.
+
+| Year | Income | Expense | Net | Irregular list | Layout vs 2025 |
+| --- | --- | --- | --- | --- | --- |
+| 2022 | 106 233,93 | 101 219,38 | +5 014,55 | 117 items / 12 550,48 itemised; D31 total 16 633,69 | different (below) |
+| 2023 | 117 847,66 | 122 115,75 | −4 268,09 | 165 / 23 505,55 | same geometry |
+| 2024 | 110 559,17 | 126 760,34 | −16 201,17 | 175 / 18 358,90 | same geometry |
+| 2025 | 134 670,58 | 134 852,23 | −181,65 | 159 / 23 638,15 | reference |
+
+**Rules that hold in all four years:** month sheets by name (`styczeń`…`grudzień`); the irregular list starts under J "kategoria" and ends at J "Opieka zdrowotna"; the medical list sits under "Leczenie prywatne" (header "data | nazwa | plan | wydatek") and the Badania list under "Badania"; no operation row carries a date (one exception: `2022 sierpień!J24` = 2022-08-01); no cached error in a month sheet with the whole workbook loaded; the savings deposit and the "oszczędności" income row are transfers; `**` rows (Prąd, Ubezpieczenie auta, Fundusz remontowy) are set-asides to the PNB sejf, real bills only as yearly totals in `Oszczędności!T`; Roczny is hand-maintained and wrong in places (not a cross-check).
+
+**Rules that must change from the 2025 spec:**
+
+1. Totals by label, not row: the irregular total is the B "Wydatki nieregularne" row (2022 D31, others D30); the balance check is the row after it (2022 D32 "Pozostałe", others D31); the expense range may contain empty rows (2022 rows 25, 30; 2024 rows 24, 29). The irregular total formula subtracts I16/I17 "Wydatki z funduszu" (0 everywhere).
+2. Income block by label: 2022 has 8 sources (G3–G10, with "przychody nieregularne"), others 7; H (plan) is empty in 2022 January–June; never assert H = I (2023 grudzień 5500 vs 5500,60).
+3. Labels vary between years and inside a year (2022): Opłaty/Opłaty stałe, Żłobek / „Żłobek/przedszkole” / Przedszkole, „praca:”/„work:”, pozostałe/inne, G7 = odsetki / „Ukraina” (luty) / „handel” (kwiecień 42,00); 2022 items Środki czystości\*, Jedzenie poza domem, „Kosmetyczka i fryzjer”; 2022 has a Codzienne breakdown in G25:I31 (Jedzenie, Słodycze i inne, Higiena i kosmetyki, Pieluchy, Środki czystości, Pomoce kuchenne). Trailing `*` is stripped before matching. Mapping is per year.
+4. Inside the irregular list: skip rows with no K/L/M and rows whose K or M is dashes, anywhere (2022 sierpień row 4 is a "---" above all items); J "-" or blank is "no category" (2023: 43 items / 8 614,09; 2024 blank 32 / 5 266,57 and "-" 3 / 471,25; 2022 blank 30 / 3 339,36); an item may lack a name (2022 czerwiec r6, 2023 sierpień K13). Categories are free text with year-specific vocabulary: 2022 lower-case wyposażenie / „wyposażanie” (typo) / meble / kosmetyki; 2023 Eksploatacja; 2024 Elektronika.
+5. Negative amounts exist: refunds in the list (2023 marzec M7 −129,00, lipiec M7 −337,30) and negative income (2023 czerwiec Jana −293,68); 2022 darowizny carries money between months (maj −1 029,70 etc.).
+6. Assertions that fail and need a decision, not an abort: 2022 czerwiec D31 typed 4 244,37 vs list 161,16 (gap 4 083,21), D13 2 154,77 vs breakdown 674,52 (gap 1 480,25), D19 430 vs medical list 230, D17 66 vs empty Badania list; 2024 wrzesień balance 86,58 (D11 Codzienne ends `-86.58`, I9 carries 86,58 into październik). In every case D is what Analiza sums.
+7. Interest is also inside the savings deposit in 2023 (about 8 months) and 2025 (sierpień); not in 2024.
+8. Income "pozostałe" holds named one-offs: 2023 luty 6 831,07 (unnamed), 2024 luty 5 823,20 Zwrot podatku and październik 500 Bon energetyczny (per Roczny), 2025 luty 5 790,12 tax refund.
+
+**Account option consequence:** the per-year nets sum to −15 636,36 (2022–2025). A technical Account per year with opening balance −net (option B) raises `liquidityAtYearStart(2027)` by +15 636,36 zł.
