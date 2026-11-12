@@ -34,6 +34,21 @@
 
 Pliki JSON (`2026-09-11-before.json`, `2026-09-11-after.json`) leżą w `storage/app/private/suggestion-accuracy/` (poza gitem, bez opisów).
 
-## Faza 4: odczyt na produkcji po porządkach
+## Produkcja po porządkach (2026-11-12)
 
-_Do uzupełnienia po scaleniach par kategorii przez S-21._
+- **Data odczytu:** 2026-11-12, zaraz po wdrożeniu `1976a57` (S-20–S-31, F-06, S-23) przez `scripts/deploy.sh`.
+- **Polecenie:** `scripts/artisan.sh import:suggestion-accuracy 1 --output=storage/app/private/suggestion-accuracy/2026-11-12-production.json` → kod wyjścia 0; plik JSON tylko na serwerze.
+- **Dane:** użytkownik 1, rok 2026, 1268 zaimportowanych wierszy (438 w okresie sierpień–listopad), czyli o 259 więcej niż kopia z 11.09.
+- **Scalenia przed odczytem:**
+  - „Eksploatacja” → „Utrzymanie domu”: wykonane (na produkcji nie ma już kategorii „Eksploatacja”).
+  - „Jedzenie poza domem” → „Restauracje”: **jeszcze nie** (obie kategorie aktywne).
+- **Liczby kontrolne:** `app:control-numbers` przed odczytem i `--compare` po nim → „Control numbers match: no differences.” Deploy osobno porównał je przed i po migracjach, też bez różnic.
+
+| Okres | Poziom | Wiersze | Z podpowiedzią | Trafne wśród podpowiedzianych | Top 3 |
+| --- | --- | --- | --- | --- | --- |
+| cały rok | model | 1268 | 77,8% (987/1268) | 92,9% (917/987) | 73,8% (936/1268) |
+| cały rok | suggestion | 1268 | 77,7% (985/1268) | 92,9% (915/985) | - |
+| sierpień–listopad | model | 438 | 80,1% (351/438) | 92,9% (326/351) | 76,5% (335/438) |
+| sierpień–listopad | suggestion | 438 | 80,1% (351/438) | 92,9% (326/351) | - |
+
+**Odczyt względem fazy 3 (informacyjnie, bez progu):** pokrycie wzrosło (cały rok 76,9% → 77,7%, sierpień–listopad 79,3% → 80,1%). Trafność cały rok 93,6% → 92,9% (−0,7 pkt), sierpień–listopad 96,5% → 92,9% (−3,6 pkt). To nie są te same wiersze: okres sierpień–listopad ma teraz 438 wierszy zamiast 179, w większości importy z września–listopada, których kopia z 11.09 nie miała. „Nie gorzej” rozstrzyga faza 3 (te same dane, 0 różniących się wierszy). Spadek w sierpniu–listopadzie to sygnał do obejrzenia po scaleniu „Jedzenie poza domem” → „Restauracje”, nie blokada.

@@ -420,9 +420,9 @@ Brak migracji schematu i danych. Wycofanie = `git revert` commitów fazy 1–2: 
 
 #### Automated
 
-- [ ] 4.1 Komenda na produkcji kończy się kodem 0 i nie zmienia liczb kontrolnych
+- [x] 4.1 Komenda na produkcji kończy się kodem 0 i nie zmienia liczb kontrolnych
 
 #### Manual
 
-- [ ] 4.2 Scalenia dwóch par wykonane przed odczytem (albo zapisane, że jeszcze nie)
-- [ ] 4.3 Tabela produkcyjna dopisana do measurements.md i przejrzana
+- [x] 4.2 Scalenia dwóch par wykonane przed odczytem (albo zapisane, że jeszcze nie)
+- [x] 4.3 Tabela produkcyjna dopisana do measurements.md i przejrzana
