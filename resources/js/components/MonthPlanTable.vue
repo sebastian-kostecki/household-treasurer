@@ -20,7 +20,10 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
 import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import { monthPlanGroupTree } from '@/lib/month-plan-groups';
-import type { MonthPlanTreeEntry } from '@/lib/month-plan-groups';
+import type {
+    MonthPlanGroupEntry,
+    MonthPlanTreeEntry,
+} from '@/lib/month-plan-groups';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type {
     MonthPlanGroup,
@@ -105,7 +108,18 @@ function isGroupOpen(groupId: number): boolean {
     return !collapsedGroupIds.value.includes(groupId);
 }
 
-function toggleGroup(groupId: number): void {
+/** An open group with an unreadable plan field stays open: the field blocks approval and must show. */
+function isGroupLocked(entry: MonthPlanGroupEntry): boolean {
+    return entry.hasUnreadablePlan && isGroupOpen(entry.group.id);
+}
+
+function toggleGroup(entry: MonthPlanGroupEntry): void {
+    if (isGroupLocked(entry)) {
+        return;
+    }
+
+    const groupId = entry.group.id;
+
     collapsedGroupIds.value = isGroupOpen(groupId)
         ? [...collapsedGroupIds.value, groupId]
         : collapsedGroupIds.value.filter((id) => id !== groupId);
@@ -196,8 +210,9 @@ const expenseRowsEmpty = computed(
                         :actual-minor-units="entry.actualMinorUnits"
                         :over-plan="entry.overPlan"
                         :open="isGroupOpen(entry.group.id)"
+                        :locked="isGroupLocked(entry)"
                         :controls="groupBodyId(prefix, entry.group.id)"
-                        @toggle="toggleGroup(entry.group.id)"
+                        @toggle="toggleGroup(entry)"
                     />
                     <div
                         :id="groupBodyId(prefix, entry.group.id)"
@@ -208,7 +223,7 @@ const expenseRowsEmpty = computed(
                             v-for="row in entry.rows"
                             :key="row.category_id"
                             :row="row"
-                            nested
+                            :nested="true"
                         />
                     </div>
                 </template>

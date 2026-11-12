@@ -29,7 +29,11 @@ import {
     changeModeAmountInputs,
     matchActualState,
 } from '@/lib/month-plan-match-actual';
-import { monthPlanGroupTree } from '@/lib/month-plan-groups';
+import {
+    monthPlanGroupTree,
+    unreadableGroupIds,
+    withoutUnreadableGroups,
+} from '@/lib/month-plan-groups';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import {
     allMonthStates,
@@ -373,32 +377,29 @@ function stateOf(
     };
 }
 
-/** Groups with an unreadable plan field, from the same tree the table draws (the page does the same). */
-function unreadableGroupIds(config: TableConfig): number[] {
+/** Groups with an unreadable plan field, from the same trees the table draws (the page does the same). */
+function unreadableIdsOf(config: TableConfig): number[] {
     if (!config.editable) {
         return [];
     }
 
     const state = stateOf(config);
 
-    return [
-        ...monthPlanGroupTree(config.incomeGroups, config.incomeRows, state),
-        ...monthPlanGroupTree(config.expenseGroups, config.expenseRows, state),
-    ].flatMap((entry) =>
-        entry.kind === 'group' && entry.hasUnreadablePlan
-            ? [entry.group.id]
-            : [],
+    return unreadableGroupIds(
+        monthPlanGroupTree(config.incomeGroups, config.incomeRows, state),
+        monthPlanGroupTree(config.expenseGroups, config.expenseRows, state),
     );
 }
 
 // Like the page: a group with an unreadable field opens by itself.
 watch(
-    () => tables.map(unreadableGroupIds),
+    () => tables.map(unreadableIdsOf),
     (idsByTable) => {
         idsByTable.forEach((ids, index) => {
-            tables[index].collapsedGroupIds = tables[
-                index
-            ].collapsedGroupIds.filter((id) => !ids.includes(id));
+            tables[index].collapsedGroupIds = withoutUnreadableGroups(
+                tables[index].collapsedGroupIds,
+                ids,
+            );
         });
     },
     { immediate: true },

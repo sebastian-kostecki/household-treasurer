@@ -20,7 +20,7 @@ An irregular row (ADR-0066, ADR-0073) shows the rate in the „Plan” column, t
 
 ## Category Group rows come from monthPlanGroupTree
 
-The tree of a type section and the sums of its group rows (Plan, Actual, count, „ponad plan”, unreadable plan) come from `monthPlanGroupTree` (`lib/month-plan-groups.ts`) over the page's `rowState`, never from the server and never from a rule of their own: the signal is "any shown row is over plan" by that row's Rhythm, so read mode and edit mode share one path (ADR-0079). Approved and Deviation stay empty on a group row. The collapse state belongs to the page (`collapsedGroupIds`), is reset on a change of month or Budget, and a group with an unreadable plan field opens by itself.
+The tree of a type section and the sums of its group rows (Plan, Actual, count, „ponad plan”, unreadable plan) come from `monthPlanGroupTree` (`lib/month-plan-groups.ts`) over the page's `rowState`, never from the server and never from a rule of their own: the signal is "any shown row is over plan" by that row's Rhythm, so read mode and edit mode share one path (ADR-0079). Approved and Deviation stay empty on a group row. The collapse state belongs to the page (`collapsedGroupIds`), is reset on a change of month or Budget, and a group with an unreadable plan field opens by itself and cannot be collapsed while the field is unreadable (`unreadableGroupIds` and `withoutUnreadableGroups` in `lib/month-plan-groups.ts`, shared by the page and the kitchen sink).
 
 ## Status badges come from monthItemStatus
 

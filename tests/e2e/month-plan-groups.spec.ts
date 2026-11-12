@@ -137,6 +137,10 @@ test('a collapsed month plan group keeps the over-plan signal and opens again', 
             'ponad plan',
         );
         await expect(planRow(page, category)).toBeVisible();
+        // A row in a group is indented under the group row.
+        await expect(planRow(page, category)).toHaveClass(
+            /month-plan-row-nested/,
+        );
 
         // Collapsed: the Category row goes, the signal stays on the group row.
         await groupRow

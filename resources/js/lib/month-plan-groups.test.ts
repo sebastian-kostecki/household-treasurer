@@ -4,6 +4,8 @@ import {
     monthPlanGroupTree,
     type MonthPlanRowReading,
     type MonthPlanTreeEntry,
+    unreadableGroupIds,
+    withoutUnreadableGroups,
 } from './month-plan-groups';
 
 const group = (id: number, sort_order: number): MonthPlanGroup => ({
@@ -207,5 +209,57 @@ describe('monthPlanGroupTree', () => {
         expect(entry.planMinorUnits).toBe(5_800_00);
         expect(entry.actualMinorUnits).toBe(5_200_00);
         expect(entry.overPlan).toBe(false);
+    });
+});
+
+/** A reading where a typed field of the given Category is wrong. */
+const readWithBadField =
+    (badCategoryId: number) =>
+    (item: MonthPlanItem): MonthPlanRowReading => ({
+        planMinorUnits:
+            item.category_id === badCategoryId ? null : item.plan_minor_units,
+        overPlan: false,
+    });
+
+describe('unreadableGroupIds', () => {
+    const groups = [group(1, 0), group(2, 1)];
+    const rows = [row(1, 1, 0), row(2, 2, 1), row(3, null, 2)];
+
+    it('lists only the groups that hold an unreadable plan field', () => {
+        const tree = monthPlanGroupTree(groups, rows, readWithBadField(2));
+
+        expect(unreadableGroupIds(tree)).toEqual([2]);
+    });
+
+    it('collects the ids of several trees, income and expense alike', () => {
+        const income = monthPlanGroupTree(
+            [group(7, 0)],
+            [row(1, 7, 0, { type: 'income' })],
+            readWithBadField(1),
+        );
+        const expense = monthPlanGroupTree(groups, rows, readWithBadField(1));
+
+        expect(unreadableGroupIds(income, expense)).toEqual([7, 1]);
+    });
+
+    it('is empty when every field reads, and ignores a bad field outside a group', () => {
+        expect(
+            unreadableGroupIds(monthPlanGroupTree(groups, rows, readAsSent)),
+        ).toEqual([]);
+        expect(
+            unreadableGroupIds(
+                monthPlanGroupTree(groups, rows, readWithBadField(3)),
+            ),
+        ).toEqual([]);
+    });
+});
+
+describe('withoutUnreadableGroups', () => {
+    it('opens the collapsed groups with an unreadable field and keeps the other collapsed', () => {
+        expect(withoutUnreadableGroups([1, 2, 3], [2])).toEqual([1, 3]);
+    });
+
+    it('changes nothing while every field reads', () => {
+        expect(withoutUnreadableGroups([1, 2], [])).toEqual([1, 2]);
     });
 });

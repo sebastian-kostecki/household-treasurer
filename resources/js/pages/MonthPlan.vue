@@ -31,7 +31,11 @@ import {
     changeModeAmountInputs,
     matchActualState,
 } from '@/lib/month-plan-match-actual';
-import { monthPlanGroupTree } from '@/lib/month-plan-groups';
+import {
+    monthPlanGroupTree,
+    unreadableGroupIds,
+    withoutUnreadableGroups,
+} from '@/lib/month-plan-groups';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import { toSpendBreakdown } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
@@ -509,36 +513,30 @@ watch(hasInvalidIdleAmount, (invalid) => {
     }
 });
 
-/** Groups with a plan field that cannot be read; the table's own tree, so a group has no second rule. */
-const unreadableGroupIds = computed<number[]>(() => {
-    if (!isEditable.value) {
-        return [];
-    }
-
-    return [
-        ...monthPlanGroupTree(
-            props.monthPlan?.income_groups ?? [],
-            incomeRows.value,
-            rowState,
-        ),
-        ...monthPlanGroupTree(
-            props.monthPlan?.expense_groups ?? [],
-            expenseRows.value,
-            rowState,
-        ),
-    ].flatMap((entry) =>
-        entry.kind === 'group' && entry.hasUnreadablePlan
-            ? [entry.group.id]
-            : [],
-    );
-});
+/** Groups with a plan field that cannot be read; the table's own trees, so a group has no second rule. */
+const unreadableGroupIdsNow = computed<number[]>(() =>
+    isEditable.value
+        ? unreadableGroupIds(
+              monthPlanGroupTree(
+                  props.monthPlan?.income_groups ?? [],
+                  incomeRows.value,
+                  rowState,
+              ),
+              monthPlanGroupTree(
+                  props.monthPlan?.expense_groups ?? [],
+                  expenseRows.value,
+                  rowState,
+              ),
+          )
+        : [],
+);
 
 // An invalid amount blocks approval, so open the group that holds it.
-watch(unreadableGroupIds, (ids) => {
-    if (ids.some((id) => collapsedGroupIds.value.includes(id))) {
-        collapsedGroupIds.value = collapsedGroupIds.value.filter(
-            (id) => !ids.includes(id),
-        );
+watch(unreadableGroupIdsNow, (ids) => {
+    const open = withoutUnreadableGroups(collapsedGroupIds.value, ids);
+
+    if (open.length !== collapsedGroupIds.value.length) {
+        collapsedGroupIds.value = open;
     }
 });
 

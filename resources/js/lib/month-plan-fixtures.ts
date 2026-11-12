@@ -597,9 +597,18 @@ export const negativeDrawReading = buildMonthPlanReading({
     month_pace: paceInNorm,
 });
 
-/** Current approved month with Category Groups: Codzienne (over plan), a Category without a group, Mieszkanie; the archived row at the end. */
+/**
+ * Current approved month with Category Groups: Codzienne (over plan), a Category
+ * without a group, Mieszkanie; the archived row still has its group (Codzienne)
+ * and stands at the end, outside the group's figures (ADR-0079).
+ */
 export const groupedReading = buildMonthPlanReading({
     ...approvedReading,
+    expense_items: approvedReading.expense_items.map((row) =>
+        row.category_id === archivedExpense.category_id
+            ? { ...row, group_id: 102 }
+            : row,
+    ),
     income_groups: incomeGroups,
     expense_groups: expenseGroups,
 });

@@ -10,7 +10,7 @@ The signal. „Ponad plan” of the group is „any of its rows is over plan”,
 
 Which rows a group holds. Active Categories that are not idle Even Annual rows. Archived rows stand at the end of their type section without a group, also when the Category still has one, and they are in no sum, count or signal. Idle Even Annual rows stay in their own collapsed section (ADR-0072), outside the groups. Join candidates (change mode and an editable proposal) stand in their group and count in its sums like any shown row. A group without a shown row has no row.
 
-Where the sums come from. The client computes them from the reading of each shown row (`rowState` of the page), not from the server, so in edit mode they follow the typed plan. A row with an unreadable plan field reads as „—”, so the group Plan is „—” while the field is unreadable, and a collapsed group with such a field opens by itself, like the section of idle rows. The server sends only each row's `group_id` and `sort_order` and the lists of groups of both types.
+Where the sums come from. The client computes them from the reading of each shown row (`rowState` of the page), not from the server, so in edit mode they follow the typed plan. A row with an unreadable plan field reads as „—”, so the group Plan is „—” while the field is unreadable, and a collapsed group with such a field opens by itself, like the section of idle rows. While the field is unreadable the group cannot be collapsed (its toggle is disabled), because an invalid amount blocks approval and the field that causes it must stay in view. The server sends only each row's `group_id` and `sort_order` and the lists of groups of both types.
 
 State. Groups start expanded. A collapse is kept for the visit only: it is reset by a reload, a change of month or of Budget, and it is never stored in the browser or on the server.
 
@@ -21,4 +21,5 @@ We rejected:
 - archived and idle Even Annual rows inside the group (the group sums would count a row the User cannot act on, and a second idle section would appear inside every group);
 - groups that start collapsed (the over-plan Category would be hidden on entry), and remembering the collapse between visits (a stale state would hide a Category the User has forgotten about);
 - sums computed on the server as in the Budget (they would follow the typed plan only in read mode);
-- a status other than „ponad plan” on the group row.
+- a status other than „ponad plan” on the group row;
+- letting the User collapse a group with an unreadable field (the red field would leave the view while „Zatwierdź” stays blocked).

@@ -14,6 +14,8 @@ const props = defineProps<{
     actualMinorUnits: number;
     overPlan: boolean;
     open: boolean;
+    /** The group cannot collapse: a plan field in it is unreadable and blocks approval. */
+    locked?: boolean;
     /** Id of the element the toggle controls (the group's body). */
     controls: string;
 }>();
@@ -43,6 +45,7 @@ const toggleLabel = computed(() =>
                 class="budget-category-group-toggle"
                 :aria-expanded="open"
                 :aria-controls="controls"
+                :disabled="locked"
                 :aria-label="toggleLabel"
                 @click="emit('toggle')"
             >

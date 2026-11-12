@@ -87,3 +87,29 @@ export function monthPlanGroupTree(
 
     return entries;
 }
+
+/**
+ * Ids of the groups whose plan cannot be read now (a field typed wrongly in
+ * change mode). The page and the kitchen sink both ask the trees the table
+ * draws, so a group has no second rule.
+ */
+export function unreadableGroupIds(...trees: MonthPlanTreeEntry[][]): number[] {
+    return trees.flatMap((tree) =>
+        tree.flatMap((entry) =>
+            entry.kind === 'group' && entry.hasUnreadablePlan
+                ? [entry.group.id]
+                : [],
+        ),
+    );
+}
+
+/**
+ * The collapsed ids left once the groups with an unreadable plan are opened:
+ * an invalid amount blocks approval, so the field that causes it must show.
+ */
+export function withoutUnreadableGroups(
+    collapsedIds: number[],
+    unreadableIds: number[],
+): number[] {
+    return collapsedIds.filter((id) => !unreadableIds.includes(id));
+}
