@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * legacy-budget-import (ADR-0083): `accounts.sheet_year`, the year whose
+ * legacy-budget-import (ADR-0085): `accounts.sheet_year`, the year whose
  * operations a Sheet Account holds, or null for every other Account. `up()`
  * changes no row, so the control numbers before and after are identical.
  *

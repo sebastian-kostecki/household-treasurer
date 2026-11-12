@@ -176,7 +176,7 @@ Do not change: `IrregularCollected` chains start at the Irregular period start (
 5. **Plan values** of the loaded Budget Lines: 12 × Ustawienia default, actual sum, or 0.
 6. **Operation dates:** first or last day of the month (affects the in-progress month comparison), and whether irregular items become one operation each.
 7. **Accepted reading changes:** the last-12-months report and the 2026 comparison change by design; confirm with the user.
-8. **Name** of the loader (not "Import") and the ADR 0083 scope, plus the PRD/roadmap update.
+8. **Name** of the loader (not "Import") and the ADR 0085 scope, plus the PRD/roadmap update.
 
 ## Addendum 2026-11-12: earlier years (2022, 2023, 2024)
 

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
  * itself is reported per id under `categories` (null on the old shape) and is compared only
  * when both documents carry it.
  *
- * `ControlNumberAdditions` is the check of the legacy budget import (ADR-0083).
+ * `ControlNumberAdditions` is the check of the legacy budget import (ADR-0085).
  * No Eloquent models: "before" is computed by new code on the old schema.
  */
 final class ControlNumbers

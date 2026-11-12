@@ -9,15 +9,15 @@ The person who signs in. Owns an isolated data space. Not shared with household 
 _Avoid_: Account (for the login identity), Customer, Member
 
 **Account**:
-A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank. An Account named by a Cash Expectation cannot be deleted; archive is allowed (existing Cash Expectations keep pointing; new ones cannot use the archived Account). Opening date cannot be later than the earliest Cash Expectation, Financial Operation, Own Transfer, or Capital Movement on that Account. A Sheet Account is the archived Account of a year loaded from a sheet (ADR-0083).
+A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank. An Account named by a Cash Expectation cannot be deleted; archive is allowed (existing Cash Expectations keep pointing; new ones cannot use the archived Account). Opening date cannot be later than the earliest Cash Expectation, Financial Operation, Own Transfer, or Capital Movement on that Account. A Sheet Account is the archived Account of a year loaded from a sheet (ADR-0085).
 _Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User, Term Deposit
 
 **Sheet Account**:
-The archived Account of one past year written by a Sheet Load, named „Arkusz RRRR” and marked by `sheet_year` (ADR-0083). Opens on 1 January of the year; the opening balance is −(income − expense of the year) and the current balance is 0 after the load. It is left out of the liquidity at the start of the year, Spendable Liquidity and Total funds, is not shown on the dashboard or the Accounts page, appears in the Operations Account filter, and cannot be edited, restored or deleted. Polish UI copy: „Arkusz 2025”.
+The archived Account of one past year written by a Sheet Load, named „Arkusz RRRR” and marked by `sheet_year` (ADR-0085). Opens on 1 January of the year; the opening balance is −(income − expense of the year) and the current balance is 0 after the load. It is left out of the liquidity at the start of the year, Spendable Liquidity and Total funds, is not shown on the dashboard or the Accounts page, appears in the Operations Account filter, and cannot be edited, restored or deleted. Polish UI copy: „Arkusz 2025”.
 _Avoid_: technical account, Import account, historical account
 
 **Sheet Load**:
-A one-off administrative command that writes a past year from an `xlsx` sheet as a Budget in execution with ordinary Financial Operations on a Sheet Account (ADR-0083). Not an Import: no preview in the UI, no Raw Statement Description, no Import identity. It changes no balance of a real Account and no value of the Budgets 2026 and 2027; `--dry-run` is the only preview and `budget:unload-sheet` undoes one year. A loaded year is closed for hand-entry and Import. Polish UI copy: „wczytanie arkusza”.
+A one-off administrative command that writes a past year from an `xlsx` sheet as a Budget in execution with ordinary Financial Operations on a Sheet Account (ADR-0085). Not an Import: no preview in the UI, no Raw Statement Description, no Import identity. It changes no balance of a real Account and no value of the Budgets 2026 and 2027; `--dry-run` is the only preview and `budget:unload-sheet` undoes one year. A loaded year is closed for hand-entry and Import. Polish UI copy: „wczytanie arkusza”.
 _Avoid_: Import, migration, archival data
 
 **Term Deposit**:

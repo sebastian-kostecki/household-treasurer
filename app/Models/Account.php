@@ -129,7 +129,7 @@ class Account extends Model
     }
 
     /**
-     * The archived Account of a year loaded from a sheet (ADR-0083).
+     * The archived Account of a year loaded from a sheet (ADR-0085).
      */
     public function isSheetAccount(): bool
     {

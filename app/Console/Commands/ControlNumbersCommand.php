@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use JsonException;
 
-#[Signature('app:control-numbers {--output= : Write the control numbers to this JSON file} {--compare= : Compare with a JSON file written earlier; exit code 1 on any difference} {--allow-additions : With --compare, accept only the rows the legacy budget import adds (ADR-0083)}')]
+#[Signature('app:control-numbers {--output= : Write the control numbers to this JSON file} {--compare= : Compare with a JSON file written earlier; exit code 1 on any difference} {--allow-additions : With --compare, accept only the rows the legacy budget import adds (ADR-0085)}')]
 #[Description('Print control numbers (row counts, sums per budget and per budget line, balances) and compare them with an earlier file')]
 class ControlNumbersCommand extends Command
 {

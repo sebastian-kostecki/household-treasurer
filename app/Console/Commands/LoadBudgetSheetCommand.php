@@ -20,7 +20,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 #[Signature('budget:load-sheet {user : The target user ID or email address} {path : Path to the Budżet_RRRR.xlsx file} {--dry-run : Only print the plan; nothing is written} {--force : Write without confirmation}')]
-#[Description('Load a past year from the old budget sheet (ADR-0083); --dry-run only prints the plan')]
+#[Description('Load a past year from the old budget sheet (ADR-0085); --dry-run only prints the plan')]
 class LoadBudgetSheetCommand extends Command
 {
     use ResolvesConsoleUser;

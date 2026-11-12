@@ -18,7 +18,7 @@ use App\Support\BudgetLineResolver;
  * an unchanged Category of an existing operation also passes when it is
  * archived, as long as the year's Budget has its line. A year loaded from a
  * sheet (the User has a Sheet Account for it) is closed to new operations
- * (ADR-0083).
+ * (ADR-0085).
  */
 final class OperationCategoryChoice
 {

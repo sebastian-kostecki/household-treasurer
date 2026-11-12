@@ -25,7 +25,7 @@ use Tests\Support\SheetWorkbookFactory;
 uses(RefreshDatabase::class);
 
 /**
- * ADR-0083, phase 6: the Sheet Load writes only additions and the unload takes them back.
+ * ADR-0085, phase 6: the Sheet Load writes only additions and the unload takes them back.
  *
  * @return array{0: User, 1: Account, 2: BudgetLine}
  */
@@ -116,7 +116,7 @@ function readingsOf(User $user): array
     foreach (['dashboard', 'accounts.index'] as $route) {
         test()->actingAs($user)->get(route($route))->assertOk()->assertInertia(function (Assert $page) use (&$props, $route): void {
             $props[$route] = $page->toArray()['props'];
-            // The year selector lists the loaded years: the accepted change of ADR-0083.
+            // The year selector lists the loaded years: the accepted change of ADR-0085.
             unset($props[$route]['shell']['budgetYears']);
         });
     }

@@ -34,7 +34,7 @@
   - Tradeoff: dodatkowe testy; przycisk edycji zostaje i kończy się 403.
   - Confidence: HIGH — potwierdzone w kodzie.
   - Blind spot: komunikat 403 w UI nie sprawdzony.
-- **Fix B**: zaakceptować ryzyko i opisać je w ADR-0083 i README
+- **Fix B**: zaakceptować ryzyko i opisać je w ADR-0085 i README
   - Strength: zero kodu.
   - Tradeoff: jedna data i jeden import po cichu przesuwają saldo 2026.
   - Confidence: MED — zależy od dyscypliny użytkownika.

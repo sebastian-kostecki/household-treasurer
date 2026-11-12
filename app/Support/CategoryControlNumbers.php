@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * The `categories` section of the control numbers (ADR-0083): query builder only, like
+ * The `categories` section of the control numbers (ADR-0085): query builder only, like
  * `ControlNumbers`, so the reading also works on a schema that is older than the code.
  */
 final class CategoryControlNumbers

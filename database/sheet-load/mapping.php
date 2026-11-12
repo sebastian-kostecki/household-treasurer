@@ -3,7 +3,7 @@
 use App\Support\SheetLoad\SheetMapping;
 
 /*
- * The mapping of the old budget sheet to the Category list, accepted by the user (legacy-budget-import, ADR-0083).
+ * The mapping of the old budget sheet to the Category list, accepted by the user (legacy-budget-import, ADR-0085).
  * Labels are normalised: lower case, no trailing `*`, "work:" written as "praca:". A target is a Category id,
  * SheetMapping::SKIP (a transfer, not an operation) or SheetMapping::NEW_CATEGORY (the archived "Kosmetyki").
  * Ids 1-38 come from the production copy on dev; `categories` holds the name and type each id must have in the

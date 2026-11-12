@@ -16,7 +16,7 @@ use App\Support\SheetLoad\SheetMapping;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Undoes the Sheet Load of one year (ADR-0083): operations, lines, the Budget and the Sheet Account, plus the
+ * Undoes the Sheet Load of one year (ADR-0085): operations, lines, the Budget and the Sheet Account, plus the
  * archived "Kosmetyki" Category when the load created it and no Budget Line uses it.
  */
 class UnloadBudgetSheet

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * The `accounts` and `term_deposits` sections of the control numbers: opening and current
- * balance by id and, for Accounts, the archive flag and the sheet year (ADR-0083).
+ * balance by id and, for Accounts, the archive flag and the sheet year (ADR-0085).
  */
 final class BalanceControlNumbers
 {

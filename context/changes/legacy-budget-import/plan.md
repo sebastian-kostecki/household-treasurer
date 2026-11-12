@@ -25,7 +25,7 @@ Pełne ustalenia: `context/changes/legacy-budget-import/research.md` (sekcje 1�
 
 Na produkcji istnieją Budżety 2022, 2023, 2024 i 2025 w fazie execution. Każdy ma linie tylko dla kategorii z operacjami (Initial Plan = Current Plan = Execution = suma operacji linii) i operacje na koncie „Arkusz RRRR” (`sheet_year = RRRR`, otwarte 1 stycznia, zarchiwizowane, saldo otwarcia = −wynik roku, saldo bieżące 0). Suma przychodów i wydatków każdego roku równa się `Analiza!B16` / `C16` jego pliku. `app:control-numbers --compare=<przed> --allow-additions` przechodzi: nic istniejącego się nie zmieniło, doszły tylko nowe Budżety, ich linie, konta arkusza, operacje i jedna zarchiwizowana kategoria „Kosmetyki”.
 
-Zmieniają się celowo (zaakceptowane, ADR-0083): raport „ostatnie 12 miesięcy” (pełne pokrycie, bez uwagi), kolumna roku poprzedniego w raportach 2026 (i kolejnych lat wstecz), blokady „Usuń” i zmiany typu na kategoriach z historią, lata 2022–2027 w selektorze roku i pasku bocznym, lista operacji (domyślnie bez filtra roku, więc pokazuje operacje z arkusza i większe liczniki `OperationsSectionTotals`), propsy wpisu i Importu (`EntryToSpendInputs`, `HandEntryMonthRemainingInputs`, `ImportMonthRemainingContext` mają wpis na każdy wczytany Budget; kształt bez zmian), odmowa wpisu i Importu z datą w roku wczytanym. Bez zmian: salda, płynność i fundusze, dashboard, strona kont, Budżety 2026/2027, plany miesięcy, zebrane, ostrzeżenie o deficycie 2027, domyślny rok.
+Zmieniają się celowo (zaakceptowane, ADR-0085): raport „ostatnie 12 miesięcy” (pełne pokrycie, bez uwagi), kolumna roku poprzedniego w raportach 2026 (i kolejnych lat wstecz), blokady „Usuń” i zmiany typu na kategoriach z historią, lata 2022–2027 w selektorze roku i pasku bocznym, lista operacji (domyślnie bez filtra roku, więc pokazuje operacje z arkusza i większe liczniki `OperationsSectionTotals`), propsy wpisu i Importu (`EntryToSpendInputs`, `HandEntryMonthRemainingInputs`, `ImportMonthRemainingContext` mają wpis na każdy wczytany Budget; kształt bez zmian), odmowa wpisu i Importu z datą w roku wczytanym. Bez zmian: salda, płynność i fundusze, dashboard, strona kont, Budżety 2026/2027, plany miesięcy, zebrane, ostrzeżenie o deficycie 2027, domyślny rok.
 
 ### Key Discoveries:
 
@@ -83,9 +83,9 @@ Zapisuje odwrócenie decyzji PRD v3 i nowe terminy przed kodem.
 
 ### Changes Required:
 
-#### 1. ADR-0083
+#### 1. ADR-0085
 
-**File**: `context/foundation/adr/0083-sheet-load-of-past-years.md`
+**File**: `context/foundation/adr/0085-sheet-load-of-past-years.md`
 
 **Intent**: Zapisuje, dlaczego i jak lata 2022–2025 wchodzą z arkusza na produkcję wbrew PRD v3, z rejestrem decyzji 1–8 z „Implementation Approach”, konsekwencjami (zmienione odczyty, operacje z arkusza nieedytowalne w UI, rok wczytany zamknięty dla wpisu i Importu, poprawka przez wycofanie i ponowne wczytanie) i odrzuconymi wariantami (historia na prawdziwych kontach, konto techniczne bez flagi, pomijanie kont zarchiwizowanych przed 1 stycznia, kategoria „Codzienne wydatki”, plan 0 i 12 × Ustawienia, pierwszy i piętnasty dzień miesiąca).
 
@@ -103,7 +103,7 @@ Zapisuje odwrócenie decyzji PRD v3 i nowe terminy przed kodem.
 
 **File**: `context/foundation/prd-v3.md`, `context/foundation/roadmap.md`
 
-**Intent**: Wpisy mówiące, że dane 2025 wchodzą tylko jako mock na devie i produkcja porównuje lata od 2027 (`prd-v3.md:199`, `:256`, `:287`), dostają adnotację „zmienione przez ADR-0083: lata 2022–2025 wczytane z arkusza (legacy-budget-import)”; pozycja parkingu „Import arkusza budżetu, liczniki mediów, wynagrodzenia” (`roadmap.md:379`) traci część o arkuszu budżetu i dostaje odwołanie do ADR-0083.
+**Intent**: Wpisy mówiące, że dane 2025 wchodzą tylko jako mock na devie i produkcja porównuje lata od 2027 (`prd-v3.md:199`, `:256`, `:287`), dostają adnotację „zmienione przez ADR-0085: lata 2022–2025 wczytane z arkusza (legacy-budget-import)”; pozycja parkingu „Import arkusza budżetu, liczniki mediów, wynagrodzenia” (`roadmap.md:379`) traci część o arkuszu budżetu i dostaje odwołanie do ADR-0085.
 
 **Contract**: Treść pozostałych wymagań bez zmian; liczniki mediów i wynagrodzenia zostają w parkingu.
 
@@ -111,12 +111,12 @@ Zapisuje odwrócenie decyzji PRD v3 i nowe terminy przed kodem.
 
 #### Automated Verification:
 
-- ADR istnieje i ma kolejny wolny numer: `ls context/foundation/adr/0083-*.md`
+- ADR istnieje i ma kolejny wolny numer: `ls context/foundation/adr/0085-*.md`
 - Glosariusz definiuje oba terminy: `grep -n "^\*\*Sheet Account\*\*\|^\*\*Sheet Load\*\*" context/foundation/glossary.md`
 
 #### Manual Verification:
 
-- ADR-0083 i wpisy glosariusza oddają decyzje 1–8 bez sprzeczności z PRD v3 i roadmapą
+- ADR-0085 i wpisy glosariusza oddają decyzje 1–8 bez sprzeczności z PRD v3 i roadmapą
 
 **Implementation Note**: Po fazie i zielonych kontrolach automatycznych zatrzymaj się na ręczne potwierdzenie przed kolejną fazą.
 
@@ -462,7 +462,7 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Manual
 
-- [x] 1.3 ADR-0083 i wpisy glosariusza oddają decyzje 1–8 bez sprzeczności z PRD v3 i roadmapą — baf4405
+- [x] 1.3 ADR-0085 i wpisy glosariusza oddają decyzje 1–8 bez sprzeczności z PRD v3 i roadmapą — baf4405
 
 ### Phase 2: Konto arkusza
 

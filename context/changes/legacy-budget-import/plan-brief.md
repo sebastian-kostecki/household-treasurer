@@ -34,7 +34,7 @@ Na produkcji są Budżety 2022–2025 z operacjami na zarchiwizowanych kontach �
 ## Scope
 
 **In scope:**
-- ADR-0083, glosariusz (Sheet Account, Sheet Load), PRD v3 i roadmapa
+- ADR-0085, glosariusz (Sheet Account, Sheet Load), PRD v3 i roadmapa
 - Migracja `sheet_year`, odczyty płynności, ukrycie i blokady konta arkusza, blokada wpisu i Importu w roku wczytanym, snapshot v12
 - Sekcja kategorii i tryb „tylko dodano” w numerach kontrolnych
 - Czytnik xlsx, plik mapowania, plan wczytania, `budget:load-sheet` i `budget:unload-sheet`
@@ -54,7 +54,7 @@ Na produkcji są Budżety 2022–2025 z operacjami na zarchiwizowanych kontach �
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Decyzja i słownik | ADR-0083, terminy, PRD v3 i roadmapa | Sprzeczność z resztą PRD v3 |
+| 1. Decyzja i słownik | ADR-0085, terminy, PRD v3 i roadmapa | Sprzeczność z resztą PRD v3 |
 | 2. Konto arkusza | `sheet_year`, płynność, ukrycie, blokady, snapshot v12 | Pominięte miejsce, które pokazuje konta zarchiwizowane |
 | 3. Numery kontrolne | `--allow-additions` i sekcja kategorii | Klasyfikator przepuści linię w istniejącym Budżecie |
 | 4. Czytnik arkusza | Odczyt obu układów po etykietach | Etykieta lub granica listy inna niż w czterech plikach |

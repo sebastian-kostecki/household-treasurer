@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\File;
 
 /*
  * `app:control-numbers --compare=<file> --allow-additions` is the proof of the legacy
- * budget import (ADR-0083): the import adds rows and changes no existing value.
+ * budget import (ADR-0085): the import adds rows and changes no existing value.
  */
 uses(RefreshDatabase::class);
 

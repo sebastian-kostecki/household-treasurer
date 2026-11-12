@@ -3,7 +3,7 @@
 namespace App\Support;
 
 /**
- * The proof of the legacy budget import (ADR-0083, `app:control-numbers --allow-additions`):
+ * The proof of the legacy budget import (ADR-0085, `app:control-numbers --allow-additions`):
  * between two control number documents the import may only add rows. Everything that exists
  * before must read the same after; `ControlNumbers::differences()` decides "the same".
  */

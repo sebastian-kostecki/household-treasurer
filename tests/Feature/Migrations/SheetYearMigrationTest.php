@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * legacy-budget-import migration (ADR-0083): `accounts.sheet_year`. PostgreSQL
+ * legacy-budget-import migration (ADR-0085): `accounts.sheet_year`. PostgreSQL
  * only, as the column type and the unique index are what is under test
  * (.ai/rules/migrations.md). Only this migration is rolled back.
  */

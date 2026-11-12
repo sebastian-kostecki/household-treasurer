@@ -176,7 +176,7 @@ class RestoreUserData
     }
 
     /**
-     * Version 12 (ADR-0083): `sheet_year` is null or a whole year from 1 to
+     * Version 12 (ADR-0085): `sheet_year` is null or a whole year from 1 to
      * 9999, and no two Accounts share a year.
      *
      * @param  list<array<string, mixed>>  $accounts

@@ -8,7 +8,7 @@ class SpendableLiquidity
 {
     /**
      * Sum of the current balances of all the user's accounts, archived ones included,
-     * Sheet Accounts left out (ADR-0083).
+     * Sheet Accounts left out (ADR-0085).
      */
     public static function forUser(User $user): int
     {

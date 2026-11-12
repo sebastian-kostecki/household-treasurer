@@ -215,7 +215,7 @@ Migracja `add_sheet_year_to_accounts_table` dodaje jedną nullable kolumnę (`ac
 
 #### Wczytanie arkusza (lata 2022–2025)
 
-Decyzja: [ADR-0083](context/foundation/adr/0083-sheet-load-of-past-years.md). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
+Decyzja: [ADR-0085](context/foundation/adr/0085-sheet-load-of-past-years.md). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
 
 Procedura na produkcji (`{user}` to e-mail albo ID):
 
@@ -239,7 +239,7 @@ Procedura na produkcji (`{user}` to e-mail albo ID):
     ```
 5. Wczytanie, po jednym roku (komenda pyta o potwierdzenie; `--force` pomija pytanie): `budget:load-sheet {user} <plik>` dla 2022, 2023, 2024, 2025. Błąd kończy się kodem 1 z nazwą arkusza i komórki, a transakcja się cofa.
 6. Dowód „tylko dodano”: `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<plik-przed> --allow-additions` ma dać kod 0 i podsumowanie dodań (Budżety, ich linie, konta arkusza, operacje, ewentualnie kategoria „Kosmetyki”). Każde naruszenie to STOP i wycofanie.
-7. Przegląd w aplikacji: saldo „Na kontach”, dashboard i szkic 2027 bez zmian; raport „ostatnie 12 miesięcy”, raport 2026 z kolumną 2025, Budżet 2024 i „Kategorie”. Zmieniają się celowo (ADR-0083): lata 2022–2027 w selektorze roku, kolumny roku poprzedniego, blokady „Usuń” na kategoriach z historią.
+7. Przegląd w aplikacji: saldo „Na kontach”, dashboard i szkic 2027 bez zmian; raport „ostatnie 12 miesięcy”, raport 2026 z kolumną 2025, Budżet 2024 i „Kategorie”. Zmieniają się celowo (ADR-0085): lata 2022–2027 w selektorze roku, kolumny roku poprzedniego, blokady „Usuń” na kategoriach z historią.
 
 Operacje z arkusza nie mają edycji w UI, a rok wczytany jest zamknięty dla wpisu ręcznego i Importu. Błąd w mapowaniu poprawia się przez wycofanie roku i ponowne wczytanie.
 

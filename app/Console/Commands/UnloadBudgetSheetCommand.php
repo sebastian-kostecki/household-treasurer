@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 #[Signature('budget:unload-sheet {user : The target user ID or email address} {year : The sheet year to remove} {--force : Remove without confirmation}')]
-#[Description('Remove a year loaded from the old budget sheet: its operations, lines, Budget and Sheet Account (ADR-0083)')]
+#[Description('Remove a year loaded from the old budget sheet: its operations, lines, Budget and Sheet Account (ADR-0085)')]
 class UnloadBudgetSheetCommand extends Command
 {
     use ResolvesConsoleUser;
