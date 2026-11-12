@@ -29,7 +29,9 @@ const describedBy = computed(() => {
 });
 
 const invalid = computed(() => (props.error ? ('true' as const) : undefined));
-const unitLabel = computed(() => props.unit ?? (props.money ? MONEY_UNIT : null));
+const unitLabel = computed(
+    () => props.unit ?? (props.money ? MONEY_UNIT : null),
+);
 const controlClass = computed(() =>
     unitLabel.value ? 'pr-8 text-right font-mono tabular-nums' : '',
 );

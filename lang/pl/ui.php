@@ -494,6 +494,8 @@ return [
         'set_aside_save' => 'Odkładam',
         'set_aside_draw' => 'Dobieram',
         'set_aside_amount' => 'Kwota',
+        'set_aside_default_basis' => ':percent % planowanych przychodów (:amount)',
+        'set_aside_default_change' => 'Zmień w ustawieniach',
         'set_aside_hint' => 'Odkładanie zmniejsza kwotę do wydania, dobieranie ją zwiększa. Nie przenosi pieniędzy między kontami.',
         'draw_warning' => 'Dobierasz :draw, więcej niż dzisiejsza płynność dysponowalna (:liquidity).',
         'income_table' => 'Dochody',
