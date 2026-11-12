@@ -58,6 +58,7 @@ const FILES = [
     'resources/js/pages/settings/Profile.vue',
     'resources/js/pages/settings/Security.vue',
     'resources/js/pages/settings/Appearance.vue',
+    'resources/js/pages/settings/MonthPlan.vue',
     'resources/js/components/DeleteUser.vue',
     'resources/js/components/AppearanceTabs.vue',
     'resources/js/pages/dev/SettingsKitchenSink.vue',

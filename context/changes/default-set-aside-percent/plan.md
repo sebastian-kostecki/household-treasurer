@@ -328,25 +328,25 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia żadnego wiersza, więc `
 
 #### Automated
 
-- [x] 1.1 ADR-0081 istnieje, a słownik odwołuje się do niego: `grep -n "ADR-0081" context/foundation/glossary.md`
+- [x] 1.1 ADR-0081 istnieje, a słownik odwołuje się do niego: `grep -n "ADR-0081" context/foundation/glossary.md` — bf253bb
 
 #### Manual
 
-- [x] 1.2 Hasła Set-aside i Default Set-aside Percent zgadzają się z decyzjami planu (zastępuje kopiowanie, 0–100, w dół do złotego, puste = kopiowanie)
+- [x] 1.2 Hasła Set-aside i Default Set-aside Percent zgadzają się z decyzjami planu (zastępuje kopiowanie, 0–100, w dół do złotego, puste = kopiowanie) — bf253bb
 
 ### Phase 2: Ustawienie procentu
 
 #### Automated
 
-- [ ] 2.1 Testy fazy przechodzą na PostgreSQL (worktree, `DB_DATABASE=testing_default_set_aside_percent`): `artisan test --compact tests/Feature/Settings/MonthPlanSettingsTest.php tests/Feature/Migrations/DefaultSetAsidePercentMigrationTest.php tests/Feature/UserSnapshotCommandTest.php tests/Feature/ResetUserDataCommandTest.php tests/Feature/SettingsKitchenSinkTest.php tests/Unit/SettingsHardcodedUiTest.php`
-- [ ] 2.2 `npm run build` i `npm run types:check` przechodzą (nowa trasa Wayfinder)
-- [ ] 2.3 `npm run check:ui` przechodzi z nową stroną na liście
-- [ ] 2.4 `vendor/bin/pint --dirty --format agent` nie zostawia zmian, a `vendor/bin/sloppy ci` nie zgłasza nowych znalezisk
+- [x] 2.1 Testy fazy przechodzą na PostgreSQL (worktree, `DB_DATABASE=testing_default_set_aside_percent`): `artisan test --compact tests/Feature/Settings/MonthPlanSettingsTest.php tests/Feature/Migrations/DefaultSetAsidePercentMigrationTest.php tests/Feature/UserSnapshotCommandTest.php tests/Feature/ResetUserDataCommandTest.php tests/Feature/SettingsKitchenSinkTest.php tests/Unit/SettingsHardcodedUiTest.php`
+- [x] 2.2 `npm run build` i `npm run types:check` przechodzą (nowa trasa Wayfinder)
+- [x] 2.3 `npm run check:ui` przechodzi z nową stroną na liście
+- [x] 2.4 `vendor/bin/pint --dirty --format agent` nie zostawia zmian, a `vendor/bin/sloppy ci` nie zgłasza nowych znalezisk
 
 #### Manual
 
-- [ ] 2.5 W `/settings/month-plan` zapis 10 pokazuje toast i wartość po przeładowaniu; puste pole wraca jako puste; 101 pokazuje błąd pola
-- [ ] 2.6 `/dev/ui/settings` pokazuje nową zakładkę we wszystkich stanach w trybie jasnym i ciemnym
+- [x] 2.5 W `/settings/month-plan` zapis 10 pokazuje toast i wartość po przeładowaniu; puste pole wraca jako puste; 101 pokazuje błąd pola
+- [x] 2.6 `/dev/ui/settings` pokazuje nową zakładkę we wszystkich stanach w trybie jasnym i ciemnym
 
 ### Phase 3: Propozycja liczy procent
 

@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 10;
+    public const SNAPSHOT_VERSION = 11;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -33,6 +33,7 @@ class BackupUserData
             ],
             'created_at' => now()->toIso8601String(),
             'first_run_checklist_dismissed_at' => $user->first_run_checklist_dismissed_at?->toIso8601String(),
+            'default_set_aside_percent' => $user->default_set_aside_percent,
             'accounts' => $user->accounts()
                 ->orderBy('id')
                 ->get()

@@ -21,6 +21,10 @@ const Appearance = defineAsyncComponent(
     () => import('@/pages/settings/Appearance.vue'),
 );
 
+const MonthPlanSettings = defineAsyncComponent(
+    () => import('@/pages/settings/MonthPlan.vue'),
+);
+
 const t = useTranslations();
 
 const passwordRules = 'minlength: 8;';
@@ -54,7 +58,7 @@ function setOpen(state: DialogState, value: boolean): void {
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Sekcje poniżej: Profil, Bezpieczeństwo (bez panelu 2FA i kluczy dostępu, potem z nimi) i Wygląd, osadzone w układzie ustawień.',
+        where: 'Sekcje poniżej: Profil, Bezpieczeństwo (bez panelu 2FA i kluczy dostępu, potem z nimi), Wygląd i Plan miesiąca (pusty i 10 %), osadzone w układzie ustawień.',
     },
     {
         state: 'hover',
@@ -173,6 +177,95 @@ const stateMatrix = [
                     default: Wygląd
                 </h2>
                 <Appearance />
+            </section>
+
+            <section class="space-y-3" data-section="month-plan">
+                <h2
+                    class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                >
+                    default, empty: Plan miesiąca bez procentu
+                </h2>
+                <MonthPlanSettings :default-set-aside-percent="null" />
+            </section>
+
+            <section class="space-y-3" data-section="month-plan-set">
+                <h2
+                    class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                >
+                    default: Plan miesiąca z procentem 10
+                </h2>
+                <MonthPlanSettings :default-set-aside-percent="10" />
+            </section>
+
+            <section class="space-y-3" data-section="month-plan-error">
+                <h2
+                    class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                >
+                    error: Plan miesiąca, błąd pola
+                </h2>
+                <SettingsPanel
+                    :title="t.settings.month_plan"
+                    :description="t.settings.month_plan_description"
+                >
+                    <FormField
+                        id="sink-error-percent"
+                        :label="t.settings.default_set_aside_percent"
+                        :hint="t.settings.default_set_aside_percent_help"
+                        error="Wartość musi być między 0 a 100."
+                        unit="%"
+                        v-slot="{ id, describedBy, invalid, controlClass }"
+                    >
+                        <Input
+                            :id="id"
+                            :class="controlClass"
+                            :aria-describedby="describedBy"
+                            :aria-invalid="invalid"
+                            type="number"
+                            name="default_set_aside_percent"
+                            default-value="101"
+                        />
+                    </FormField>
+                    <template #footer>
+                        <Button type="button">{{ t.settings.save }}</Button>
+                    </template>
+                </SettingsPanel>
+            </section>
+
+            <section class="space-y-3" data-section="month-plan-saving">
+                <h2
+                    class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+                >
+                    disabled, loading: Plan miesiąca, zapis w toku
+                </h2>
+                <SettingsPanel
+                    :title="t.settings.month_plan"
+                    :description="t.settings.month_plan_description"
+                >
+                    <FormField
+                        id="sink-saving-percent"
+                        :label="t.settings.default_set_aside_percent"
+                        :hint="t.settings.default_set_aside_percent_help"
+                        unit="%"
+                        v-slot="{ id, describedBy, invalid, controlClass }"
+                    >
+                        <Input
+                            :id="id"
+                            :class="controlClass"
+                            :aria-describedby="describedBy"
+                            :aria-invalid="invalid"
+                            type="number"
+                            name="default_set_aside_percent"
+                            default-value="10"
+                            disabled
+                        />
+                    </FormField>
+                    <template #footer>
+                        <Button type="button" disabled>
+                            <Spinner />
+                            {{ t.settings.save }}
+                        </Button>
+                    </template>
+                </SettingsPanel>
             </section>
 
             <section class="space-y-3" data-section="field-error">

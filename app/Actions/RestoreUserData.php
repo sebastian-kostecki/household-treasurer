@@ -29,11 +29,11 @@ class RestoreUserData
     /**
      * Versions holding the User's Category list and Budget Lines (6; 7 with the
      * description; 8 with the Category Groups; 9 with the Rhythm history; 10 with the Opening
-     * Collected on Irregular entries).
+     * Collected on Irregular entries; 11 with the Default Set-aside Percent).
      *
      * @var list<int>
      */
-    private const LIST_FORMAT_VERSIONS = [6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION];
+    private const LIST_FORMAT_VERSIONS = [6, 7, 8, 9, 10, BackupUserData::SNAPSHOT_VERSION];
 
     /**
      * Versions that carry the Rhythm history; older ones are converted from the
@@ -41,7 +41,7 @@ class RestoreUserData
      *
      * @var list<int>
      */
-    private const RHYTHM_VERSIONS = [9, BackupUserData::SNAPSHOT_VERSION];
+    private const RHYTHM_VERSIONS = [9, 10, BackupUserData::SNAPSHOT_VERSION];
 
     /**
      * The flags of the Budget Lines of a snapshot of version 1 to 8, kept only
@@ -94,6 +94,7 @@ class RestoreUserData
                 'first_run_checklist_dismissed_at' => isset($snapshot['first_run_checklist_dismissed_at'])
                     ? Carbon::parse($snapshot['first_run_checklist_dismissed_at'])
                     : null,
+                'default_set_aside_percent' => $snapshot['default_set_aside_percent'] ?? null,
             ])->save();
         });
     }
@@ -125,7 +126,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -135,15 +136,15 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, 9, 10, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, 7, 8, 9, 10, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, 7, 8, 9, 10, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
@@ -151,8 +152,20 @@ class RestoreUserData
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
         }
 
-        if (in_array($version, [8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
+        if (in_array($version, [8, 9, 10, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: category_groups');
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION) {
+            $percent = $snapshot['default_set_aside_percent'] ?? null;
+
+            if (! array_key_exists('default_set_aside_percent', $snapshot)) {
+                throw new UserSnapshotException('Snapshot is missing required key: default_set_aside_percent');
+            }
+
+            if ($percent !== null && (! is_int($percent) || $percent < 0 || $percent > 100)) {
+                throw new UserSnapshotException('Snapshot default_set_aside_percent must be a whole number from 0 to 100 or null.');
+            }
         }
 
         return $snapshot;
