@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 11;
+    public const SNAPSHOT_VERSION = 12;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -115,6 +115,7 @@ class BackupUserData
             'opening_date' => $account->opening_date->toDateString(),
             'opening_balance_minor_units' => $account->opening_balance_minor_units,
             'current_balance_minor_units' => $account->current_balance_minor_units,
+            'sheet_year' => $account->sheet_year,
             'archived_at' => $account->archived_at?->toIso8601String(),
             'created_at' => $account->created_at?->toIso8601String(),
             'updated_at' => $account->updated_at?->toIso8601String(),

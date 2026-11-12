@@ -60,6 +60,20 @@ class AccountFactory extends Factory
         });
     }
 
+    public function sheetAccount(int $year = 2025): static
+    {
+        return $this->state(fn (): array => [
+            'name' => 'Arkusz '.$year,
+            'type' => AccountType::Bank,
+            'bank' => Bank::Other,
+            'opening_date' => $year.'-01-01',
+            'opening_balance_minor_units' => -150000,
+            'current_balance_minor_units' => 0,
+            'archived_at' => now(),
+            'sheet_year' => $year,
+        ]);
+    }
+
     public function archived(): static
     {
         return $this->state(fn (): array => [

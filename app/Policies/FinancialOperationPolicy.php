@@ -24,7 +24,8 @@ class FinancialOperationPolicy
 
     public function update(User $user, FinancialOperation $financialOperation): bool
     {
-        return $this->ownsFinancialOperation($user, $financialOperation);
+        return $this->ownsFinancialOperation($user, $financialOperation)
+            && ! $financialOperation->account->isSheetAccount();
     }
 
     public function delete(User $user, FinancialOperation $financialOperation): bool

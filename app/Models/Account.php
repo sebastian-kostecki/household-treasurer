@@ -6,6 +6,7 @@ use App\Enums\AccountType;
 use App\Enums\Bank;
 use Database\Factories\AccountFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $opening_date
  * @property int $opening_balance_minor_units
  * @property int $current_balance_minor_units
+ * @property int|null $sheet_year
  * @property Carbon|null $archived_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -34,6 +36,7 @@ use Illuminate\Support\Carbon;
     'opening_balance_minor_units',
     'current_balance_minor_units',
     'archived_at',
+    'sheet_year',
 ])]
 class Account extends Model
 {
@@ -52,6 +55,7 @@ class Account extends Model
             'opening_balance_minor_units' => 'integer',
             'current_balance_minor_units' => 'integer',
             'archived_at' => 'datetime',
+            'sheet_year' => 'integer',
         ];
     }
 
@@ -122,6 +126,25 @@ class Account extends Model
     public function isArchived(): bool
     {
         return $this->archived_at !== null;
+    }
+
+    /**
+     * The archived Account of a year loaded from a sheet (ADR-0085).
+     */
+    public function isSheetAccount(): bool
+    {
+        return $this->sheet_year !== null;
+    }
+
+    /**
+     * Accounts that are not Sheet Accounts.
+     *
+     * @param  Builder<Account>  $query
+     * @return Builder<Account>
+     */
+    public function scopeWithoutSheetAccounts(Builder $query): Builder
+    {
+        return $query->whereNull('sheet_year');
     }
 
     public function isNegative(): bool

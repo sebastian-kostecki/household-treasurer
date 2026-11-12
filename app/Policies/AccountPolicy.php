@@ -24,24 +24,27 @@ class AccountPolicy
 
     public function update(User $user, Account $account): bool
     {
-        return $this->ownsAccount($user, $account);
+        return $this->ownsAccount($user, $account) && ! $account->isSheetAccount();
     }
 
     public function delete(User $user, Account $account): bool
     {
-        return $this->ownsAccount($user, $account);
+        return $this->ownsAccount($user, $account) && ! $account->isSheetAccount();
     }
 
     public function archive(User $user, Account $account): bool
     {
         return $this->ownsAccount($user, $account)
+            && ! $account->isSheetAccount()
             && $account->hasFinancialHistory()
             && ! $account->isArchived();
     }
 
     public function restore(User $user, Account $account): bool
     {
-        return $this->ownsAccount($user, $account) && $account->isArchived();
+        return $this->ownsAccount($user, $account)
+            && ! $account->isSheetAccount()
+            && $account->isArchived();
     }
 
     private function ownsAccount(User $user, Account $account): bool

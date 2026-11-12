@@ -20,5 +20,6 @@
     "Only categories of the same type can be merged.": "Można scalać tylko kategorie tego samego typu.",
     "Restore the target category before merging.": "Przywróć kategorię docelową przed scaleniem.",
     "The safety copy could not be saved, so nothing was merged.": "Nie udało się zapisać kopii zapasowej, więc nic nie zostało scalone.",
-    "Categories merged.": "Kategorie scalone."
+    "Categories merged.": "Kategorie scalone.",
+    "This year was loaded from a sheet and is closed for new operations.": "Ten rok został wczytany z arkusza i jest zamknięty na nowe operacje."
 }
