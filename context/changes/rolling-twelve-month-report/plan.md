@@ -518,32 +518,32 @@ Bez migracji i bez zmian danych. Produkcja od wdrożenia pokazuje okno z notką 
 
 #### Automated
 
-- [x] 1.1 Testy okna, odczytu i strony przechodzą na SQLite
-- [x] 1.2 Te same testy przechodzą na PostgreSQL
-- [x] 1.3 Test NFR okna przechodzi na PostgreSQL
-- [x] 1.4 Typy kompilują się
-- [x] 1.5 Bramka przechodzi (ci:check, sloppy, pint)
+- [x] 1.1 Testy okna, odczytu i strony przechodzą na SQLite — 81fc0e9
+- [x] 1.2 Te same testy przechodzą na PostgreSQL — 81fc0e9
+- [x] 1.3 Test NFR okna przechodzi na PostgreSQL — 81fc0e9
+- [x] 1.4 Typy kompilują się — 81fc0e9
+- [x] 1.5 Bramka przechodzi (ci:check, sloppy, pint) — 81fc0e9
 
 #### Manual
 
-- [x] 1.6 Słownik i ADR-0081 opisują okno, pokrycie, wynik i odrzucone warianty
-- [x] 1.7 Na devie prop okna ma 12 pokrytych miesięcy i wynik równy sumie Wyników miesięcy
+- [x] 1.6 Słownik i ADR-0081 opisują okno, pokrycie, wynik i odrzucone warianty — 81fc0e9
+- [x] 1.7 Na devie prop okna ma 12 pokrytych miesięcy i wynik równy sumie Wyników miesięcy — 81fc0e9
 
 ### Phase 2: Widok „12 miesięcy” i linki
 
 #### Automated
 
-- [ ] 2.1 Vitest przechodzi
-- [ ] 2.2 Typy i build
-- [ ] 2.3 Strażnicy UI
-- [ ] 2.4 Testy strony z fazy 1 dalej przechodzą na PostgreSQL
-- [ ] 2.5 E2E raportów przechodzi
-- [ ] 2.6 Bramka przechodzi (ci:check, sloppy)
+- [x] 2.1 Vitest przechodzi
+- [x] 2.2 Typy i build
+- [x] 2.3 Strażnicy UI
+- [x] 2.4 Testy strony z fazy 1 dalej przechodzą na PostgreSQL
+- [x] 2.5 E2E raportów przechodzi
+- [x] 2.6 Bramka przechodzi (ci:check, sloppy)
 
 #### Manual
 
-- [ ] 2.7 Na devie z Budżetami 2025 i 2026 okno pokazuje zakres, Wynik 12 miesięcy, wykres i tabele bez porównania
-- [ ] 2.8 Bez mocka notka nazywa brakujące miesiące i liczbę pokrytych
-- [ ] 2.9 Link kategorii otwiera Operacje z zakresem okna i sumą równą raportowi
-- [ ] 2.10 Zmiana roku z okna prowadzi do raportu wybranego roku
-- [ ] 2.11 Kitchen sink pokazuje wszystkie scenariusze okna w obu motywach i na telefonie
+- [x] 2.7 Na devie z Budżetami 2025 i 2026 okno pokazuje zakres, Wynik 12 miesięcy, wykres i tabele bez porównania
+- [x] 2.8 Bez mocka notka nazywa brakujące miesiące i liczbę pokrytych
+- [x] 2.9 Link kategorii otwiera Operacje z zakresem okna i sumą równą raportowi
+- [x] 2.10 Zmiana roku z okna prowadzi do raportu wybranego roku
+- [x] 2.11 Kitchen sink pokazuje wszystkie scenariusze okna w obu motywach i na telefonie

@@ -471,3 +471,88 @@ test('changing the budget year in the sidebar stays on the Trend', async ({
         }
     }
 });
+
+/** "listopad 2025 – październik 2026": the 12 closed months before today (UTC). */
+function expectedWindowRange(): string {
+    const months = [
+        'styczeń',
+        'luty',
+        'marzec',
+        'kwiecień',
+        'maj',
+        'czerwiec',
+        'lipiec',
+        'sierpień',
+        'wrzesień',
+        'październik',
+        'listopad',
+        'grudzień',
+    ];
+    const now = new Date();
+    const through = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+    );
+    const from = new Date(
+        Date.UTC(through.getUTCFullYear(), through.getUTCMonth() - 11, 1),
+    );
+    const label = (date: Date): string =>
+        `${months[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+
+    return `${label(from)} – ${label(through)}`;
+}
+
+test('the 12 months view opens from the switch with the window range and no month bar', async ({
+    page,
+}) => {
+    await page.goto('/reports');
+    await page
+        .getByRole('button', { name: '12 miesięcy', exact: true })
+        .click();
+
+    await expect(page).toHaveURL(/\/reports\?view=last-12$/);
+    await expect(
+        page.getByRole('heading', {
+            level: 1,
+            name: 'Raport: ostatnie 12 miesięcy',
+        }),
+    ).toBeVisible();
+    await expect(page.getByTestId('report-window-range')).toHaveText(
+        expectedWindowRange(),
+    );
+
+    // Depending on the seeded Budgets the window is covered or empty.
+    await expect(
+        page
+            .getByText('Wynik 12 miesięcy')
+            .or(page.getByText('Brak budżetu w realizacji w tym okresie')),
+    ).toBeVisible();
+    await expect(page.getByText('Wynik roku')).toHaveCount(0);
+    await expect(page.getByText('Budżet w przygotowaniu')).toHaveCount(0);
+});
+
+test('changing the budget year in the sidebar from the 12 months view leads to the year report', async ({
+    page,
+}) => {
+    await page.goto('/reports');
+    const heading = page.getByRole('heading', {
+        level: 1,
+        name: /^Raport roku \d{4}$/,
+    });
+    await expect(heading).toBeVisible();
+    const year = Number((await heading.textContent())?.match(/\d{4}/)?.[0]);
+    const previousYear = year - 1;
+
+    await page.goto('/reports?view=last-12');
+    await yearSegments(page)
+        .filter({ hasText: String(previousYear) })
+        .first()
+        .click();
+
+    await expect(page).toHaveURL(/\/reports$/);
+    await expect(
+        page.getByRole('heading', {
+            level: 1,
+            name: `Raport roku ${previousYear}`,
+        }),
+    ).toBeVisible();
+});

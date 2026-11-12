@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import ReportCoverageNote from '@/components/ReportCoverageNote.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
@@ -10,7 +11,9 @@ import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
+import { reportWindowLabel } from '@/lib/report-window';
 import { reportScenarios } from '@/lib/reports-fixtures';
+import type { ReportRange, ReportWindow } from '@/types/reports';
 
 const ReportBarChart = defineAsyncComponent(
     () => import('@/components/ReportBarChart.vue'),
@@ -21,8 +24,26 @@ const t = useTranslations();
 const periodOptions = [
     { value: 'year' as const, label: t.reports.period_year },
     { value: 'month' as const, label: t.reports.period_month },
+    { value: 'last-12' as const, label: t.reports.period_last_12 },
     { value: 'trend' as const, label: t.reports.period_trend },
 ];
+
+const monthNames = Array.from(
+    { length: 12 },
+    (_, index) => t.budget[`month_name_${index + 1}` as keyof typeof t.budget],
+);
+
+function windowLabel(window: ReportWindow): string {
+    return reportWindowLabel(window, monthNames, t.reports.window_range);
+}
+
+function windowRange(window: ReportWindow): ReportRange {
+    return {
+        from: window.from,
+        through: window.through,
+        label: windowLabel(window),
+    };
+}
 
 function trendMonths(
     months: {
@@ -52,8 +73,12 @@ const stateMatrix = [
         where: 'Scenariusze trend-in-progress (miesiąc „w toku”, miesiące przyszłe z „—”), trend-closed, trend-irregular-and-zero (kategoria nieregularna, netto 0, ujemna komórka), trend-negative-result, trend-archived-in-group, trend-no-operations i trend-phone (przewijanie z przypiętą nazwą). Grupy startują zwinięte.',
     },
     {
+        state: 'last-12',
+        where: 'Scenariusze last-12-full (pełne pokrycie, kategoria w obu latach), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (cztery segmenty w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
+    },
+    {
         state: 'empty',
-        where: 'Scenariusze no-operations, trend-no-operations, draft i no-budget poniżej.',
+        where: 'Scenariusze no-operations, trend-no-operations, last-12-no-coverage, last-12-no-operations, draft i no-budget poniżej.',
     },
     {
         state: 'loading',
@@ -138,6 +163,98 @@ const stateMatrix = [
                     v-else-if="scenario.kind === 'draft'"
                     kind="draft"
                 />
+
+                <template
+                    v-else-if="
+                        scenario.kind === 'last-12' &&
+                        scenario.period.window !== null &&
+                        scenario.report !== null
+                    "
+                >
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3"
+                    >
+                        <div class="grid gap-1">
+                            <p class="page-title">
+                                {{ t.reports.title_last_12 }}
+                            </p>
+                            <p class="meta text-muted-foreground">
+                                {{ windowLabel(scenario.period.window) }}
+                            </p>
+                        </div>
+                        <SegmentedControl
+                            model-value="last-12"
+                            :options="periodOptions"
+                            :ariaLabel="t.reports.period_label"
+                            tone="neutral"
+                        />
+                    </div>
+
+                    <IndexEmptyState
+                        v-if="scenario.period.window.covered_month_count === 0"
+                        :title="t.reports.no_coverage_title"
+                        :description="t.reports.no_coverage_description"
+                    />
+
+                    <template v-else>
+                        <ReportCoverageNote :window="scenario.period.window" />
+
+                        <ReportStatPanel
+                            :income-minor-units="
+                                scenario.report.income_minor_units
+                            "
+                            :expense-minor-units="
+                                scenario.report.expense_minor_units
+                            "
+                            :result-minor-units="
+                                scenario.report.result_minor_units
+                            "
+                            period-kind="last-12"
+                            :is-in-progress="false"
+                        />
+
+                        <IndexEmptyState
+                            v-if="!scenario.report.has_operations"
+                            :title="t.reports.no_operations_title"
+                            :description="t.reports.no_operations_description"
+                        />
+
+                        <template v-else>
+                            <ReportBarChart
+                                type="expense"
+                                :entries="scenario.report.expense"
+                                :budget-year="2026"
+                            />
+                            <ReportEntryTable
+                                type="expense"
+                                :title="t.reports.expense"
+                                :entries="scenario.report.expense"
+                                :total-minor-units="
+                                    scenario.report.expense_minor_units
+                                "
+                                :budget-year="2026"
+                                :month="null"
+                                :range="windowRange(scenario.period.window)"
+                            />
+                            <ReportBarChart
+                                type="income"
+                                :entries="scenario.report.income"
+                                :budget-year="2026"
+                            />
+                            <ReportEntryTable
+                                type="income"
+                                :title="t.reports.income"
+                                :entries="scenario.report.income"
+                                :total-minor-units="
+                                    scenario.report.income_minor_units
+                                "
+                                :budget-year="2026"
+                                :month="null"
+                                :range="windowRange(scenario.period.window)"
+                            />
+                        </template>
+                    </template>
+                </template>
 
                 <template
                     v-else-if="

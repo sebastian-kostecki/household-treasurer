@@ -127,6 +127,13 @@ export type ReportWindow = {
     missing_through: string | null;
 };
 
+/** A date range a report row links to in Operations; `label` names it for screen readers. */
+export type ReportRange = {
+    from: string;
+    through: string;
+    label: string;
+};
+
 export type ReportPeriod = {
     kind: 'year' | 'month' | 'last-12' | 'trend';
     month: number | null;
