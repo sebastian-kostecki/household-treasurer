@@ -51,9 +51,16 @@ Stan na chwilę przerwania przez użytkownika. Niczego z arkusza nie wczytano na
 
 Odczyt każdego pliku ok. 22 s. Kategorie z mapowania sprawdza na bazie dopiero `--dry-run` na produkcji lub próba.
 
+## Próba na kopii produkcji (7.2, 7.3)
+
+- Archiwum `backup:run` z `deploy.sh` (`2026-11-12-18-18-37.zip`, sprzed migracji `sheet_year`, bez hasła) odtworzone kodem worktree do osobnej bazy `restore_trial_sheet_load` (`db:show` pokazał ją z 0 tabel przed restore), potem `migrate` (dwie migracje dnia). Konta i Budżety jak na produkcji: „Konto Osobiste” 6 886,72 zł, 2026 execution, 2027 draft, 0 kont arkusza, 1277 operacji. Pliki xlsx identyczne z produkcyjnymi (SHA-256).
+- `--dry-run` najpierw odmówił we wszystkich latach: oczekiwane nazwy kategorii 19, 24, 35, 36, 37 w `mapping.php` („Ubezpieczenia”, „Restaruacje”, „Eksploatacja”, „Elektronika”, „Dom i wyposażenie”) nie były nazwami produkcji. Snapshoty z archiwum (2026-11-10 … 2026-11-12 18:18) mają pod tymi id od początku „Ubezpieczenia na życie”, „Jedzenie poza domem”, „Eksploatacja domu”, „Elektronika i AGD”, „Wyposażenie domu”, czyli te same kategorie (dev ma pod 19/24 starsze nazwy, a pod 35 „Utrzymanie domu”). Id, czyli zaakceptowane mapowanie, bez zmian; poprawione tylko oczekiwane nazwy (plan przewidział ich potwierdzenie próbą, `plan.md:291`). Po poprawce `--dry-run` kod 0 dla czterech lat.
+- Wczytanie 2022 → 2025: 26–33 s na rok. `app:control-numbers --compare … --allow-additions`: kod 0, „Only additions: budgets +4, lines +131, accounts +4, categories +1, financial_operations +1649”. Konta „Arkusz RRRR” zarchiwizowane, saldo bieżące 0, saldo otwarcia −5 014,55 / 4 268,09 / 16 201,17 / 181,65 zł; Kosmetyki (zarchiwizowana) z jednym wpisem Running od 2022-01.
+- Przegląd (podgląd `php -S` na bazie próby, zrzuty Playwright, 0 błędów konsoli): dashboard płynność 16 703,03 zł = suma sald bieżących zwykłych kont, Konta i dashboard bez kont arkusza; raport 2026 z kolumną 2025 (do 12.11.2025); raport 2024 z porównaniem do 2023; Budżet 2024 z wykonaniem = plan = „Analiza”; „12 miesięcy” listopad 2025 – październik 2026.
+- Wycofanie 2025 → 2022 (`budget:unload-sheet --force`, przy 2022 także „Kosmetyki”), potem `app:control-numbers --compare` bez `--allow-additions`: „Control numbers match: no differences”. Ponowne wczytanie czterech lat i znów „Only additions” z tymi samymi licznikami.
+- Sprzątanie: podgląd zatrzymany, baza usunięta, `storage/app` worktree przywrócony, archiwum i pliki xlsx usunięte z worktree.
+
 ## Dalsze kroki
 
-1. Plan na czterech prawdziwych plikach lokalnie: sumy = „Analiza”, ostrzeżenia 2022 czerwiec i 2024 wrzesień.
-2. Commit poprawek (`fix(legacy-budget-import): …`), pełna bramka (`ci:check` na `testing_legacy_budget_import`, Sloppy), scalenie do `development` i `main`, `scripts/deploy.sh` (bez migracji).
-3. Na produkcji `--dry-run` czterech plików (kod 0, kategorie zgodne), wczytanie 2022 → 2025 po potwierdzeniu użytkownika, `app:control-numbers --compare=storage/app/private/control-numbers/20261112-sheet-load-before.json --allow-additions`, przegląd w aplikacji.
-4. Jeśli między krokiem 2 a 3 ktoś pracował w aplikacji, zrobić nowy snapshot i nowy plik „przed”.
+1. Scalenie do `development` i `main`, wdrożenie `scripts/deploy.sh` (bez nowych migracji).
+2. Na produkcji nowy `user:backup` i plik „przed” (aplikacja mogła być używana od 18:20), `--dry-run` czterech plików (kod 0, kategorie zgodne), wczytanie 2022 → 2025, `app:control-numbers --compare=<przed> --allow-additions`, przegląd salda „Konto Osobiste” i Budżetów 2026/2027.
