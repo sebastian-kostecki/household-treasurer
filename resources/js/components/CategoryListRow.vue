@@ -2,30 +2,24 @@
 import { GripVertical } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
-import CategoryGroupPicker from '@/components/CategoryGroupPicker.vue';
 import CategoryListRowActions from '@/components/CategoryListRowActions.vue';
-import TextLink from '@/components/TextLink.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import {
-    categoryAllYearsOperationsQuery,
-    categoryYearsLabel,
-} from '@/lib/category-list';
+import { categoryYearsLabel } from '@/lib/category-list';
 import { formatDate } from '@/lib/format';
-import { operations } from '@/routes';
 import type { CategoryGroupItem, CategoryListItem } from '@/types/categories';
 
 const props = defineProps<{
     category: CategoryListItem;
     /** An archive row: muted, with the archive date under the name. */
     archived?: boolean;
-    /** The groups of the Category's type; with it an active row gets "Grupa…" and a drag handle. */
+    /** The groups of the Category's type; with it an active row gets a drag handle and „Zmień grupę…” in the menu. */
     groups?: CategoryGroupItem[];
     /** The row stands under a group: indented. */
     nested?: boolean;
-    /** Only the kitchen sink opens the "Grupa…" menu on mount. */
-    pickerOpen?: boolean;
     /** Whether another active Category of the type exists to merge into. */
     canMerge?: boolean;
+    /** The order is being saved: „Zmień grupę…” is disabled meanwhile. */
+    reorderSaving?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -34,10 +28,6 @@ const emit = defineEmits<{
 }>();
 
 const t = useTranslations();
-
-const href = computed(() =>
-    operations({ query: categoryAllYearsOperationsQuery(props.category) }),
-);
 
 const yearsLabel = computed(() =>
     categoryYearsLabel(props.category.budget_years),
@@ -107,30 +97,12 @@ const caption = computed(() =>
             </template>
         </p>
 
-        <div class="categories-cell-link">
-            <TextLink
-                :href="href"
-                :aria-label="
-                    t.categories.operations_link_label.replace(
-                        ':name',
-                        category.name,
-                    )
-                "
-            >
-                {{ t.categories.operations_link }}
-            </TextLink>
-            <CategoryGroupPicker
-                v-if="groups !== undefined"
-                :category="category"
-                :groups="groups"
-                :default-open="pickerOpen"
-            />
-        </div>
-
         <CategoryListRowActions
             :category="category"
             :archived="archived"
             :can-merge="canMerge"
+            :groups="groups"
+            :reorder-saving="reorderSaving"
             @edit="emit('edit')"
             @merge="emit('merge')"
         />

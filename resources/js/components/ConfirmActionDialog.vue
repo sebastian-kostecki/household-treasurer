@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { FormComponentOptions } from '@inertiajs/core';
 import { Form } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
@@ -25,6 +26,8 @@ defineProps<{
     destructive?: boolean;
     /** Keeps the confirm button disabled, e.g. until a preview has loaded. */
     confirmDisabled?: boolean;
+    /** Visit options passed to the Form, e.g. `preserveScroll`. */
+    options?: FormComponentOptions;
 }>();
 
 const emit = defineEmits<{
@@ -50,6 +53,7 @@ function onOpenChange(next: boolean): void {
         <DialogContent :show-close-button="!busy">
             <Form
                 v-bind="form"
+                :options="options"
                 class="grid gap-4"
                 @start="busy = true"
                 @finish="busy = false"

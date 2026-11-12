@@ -43,29 +43,28 @@ const deleteCopy = {
     group_delete_archived: t.categories.group_delete_archived,
 };
 
-const pickerCategory = groupedExpenseCategories[3];
 const mergeableCategory = { ...groupedExpenseCategories[3], can_delete: true };
 
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusz default poniżej: Badge „aktywnych” w tytule, sekcje Przychody i Wydatki z przyciskiem „Dodaj kategorię” w tytule i nagłówkiem kolumn (od md), uchwyt przeciągania i jedno menu „⋯” w każdym wierszu (pozycje „Edytuj”, „Archiwizuj”, „Scal z inną…” i, tylko przy can_delete, „Usuń” w kolorze destrukcyjnym; archiwizacja i usunięcie otwierają potwierdzenie z menu; potwierdzenie usunięcia otwiera się z menu; „Scal z inną…” otwiera okno z /dev/ui/dialogs, stany Scalanie: …), lata pozycji w kolejności rosnącej, kreska z tekstem dla czytnika ekranu przy kategorii bez pozycji i link „Operacje →”. Rytm wydatku jako pierwszy człon przygaszonej drugiej linii pod nazwą (stała opłata: Bez pozycji w budżecie, Czynsz; bieżąca: Żywność, Rozrywka; równomierna roczna: Rekolekcje, Woda; nieregularna: Serwis auta, tylko etykieta rytmu, bez kwoty zebranego), przychód bez rytmu; w oknie kategorii pole „Rytm” tylko dla wydatku, z podpowiedzią „Zmiana działa od listopada 2026” (/dev/ui/dialogs: Kategoria listy: nowa, edycja, edycja rytmu, nowe oznaczenie nieregularnej, edycja nieregularnej, zła kwota zebranego startowego, przychód bez pola, błąd pola). Opis jako przygaszona druga linia pod nazwą: krótki (Wynagrodzenie) i długi, ucięty z pełnym tekstem w `title` (Żywność). „Usuń” w menu „⋯” tylko przy can_delete (Odsetki, Rekolekcje, Bez pozycji), reszta ma w menu „Edytuj”, „Archiwizuj” i „Scal z inną…”; typ zablokowany (can_change_type) w dialogu edycji Wynagrodzenia i Żywności (/dev/ui/dialogs). Scenariusze with-archive (zwinięte archiwum) i archive-open (rozwinięte: data archiwizacji pod nazwą i menu „⋯” z „Przywróć”, „Scal z inną…” oraz „Usuń” gdy can_delete, bez uchwytu i edycji), one-type-empty i only-archived.',
+        where: 'Scenariusz default poniżej: Badge „aktywnych” w tytule, sekcje Przychody i Wydatki z przyciskiem „Dodaj kategorię” w tytule i nagłówkiem kolumn (od md), uchwyt przeciągania i jedno menu „⋯” w każdym wierszu (pozycje „Operacje” z separatorem, „Edytuj”, „Zmień grupę…” (otwiera okno z listą radio, stany w /dev/ui/dialogs), „Archiwizuj”, „Scal z inną…” i, tylko przy can_delete, „Usuń” w kolorze destrukcyjnym; archiwizacja i usunięcie otwierają potwierdzenie z menu; potwierdzenie usunięcia otwiera się z menu; „Scal z inną…” otwiera okno z /dev/ui/dialogs, stany Scalanie: …), lata pozycji w kolejności rosnącej, kreska z tekstem dla czytnika ekranu przy kategorii bez pozycji. Rytm wydatku jako pierwszy człon przygaszonej drugiej linii pod nazwą (stała opłata: Bez pozycji w budżecie, Czynsz; bieżąca: Żywność, Rozrywka; równomierna roczna: Rekolekcje, Woda; nieregularna: Serwis auta, tylko etykieta rytmu, bez kwoty zebranego), przychód bez rytmu; w oknie kategorii pole „Rytm” tylko dla wydatku, z podpowiedzią „Zmiana działa od listopada 2026” (/dev/ui/dialogs: Kategoria listy: nowa, edycja, edycja rytmu, nowe oznaczenie nieregularnej, edycja nieregularnej, zła kwota zebranego startowego, przychód bez pola, błąd pola). Opis jako przygaszona druga linia pod nazwą: krótki (Wynagrodzenie) i długi, ucięty z pełnym tekstem w `title` (Żywność). „Usuń” w menu „⋯” tylko przy can_delete (Odsetki, Rekolekcje, Bez pozycji), reszta ma w menu „Edytuj”, „Archiwizuj” i „Scal z inną…”; typ zablokowany (can_change_type) w dialogu edycji Wynagrodzenia i Żywności (/dev/ui/dialogs). Scenariusze with-archive (zwinięte archiwum) i archive-open (rozwinięte: data archiwizacji pod nazwą i menu „⋯” z „Operacje”, „Przywróć”, „Scal z inną…” oraz „Usuń” gdy can_delete, bez uchwytu i edycji), one-type-empty i only-archived.',
     },
     {
         state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): tło wiersza `secondary`, kolor uchwytu `foreground`, tło przycisku „⋯” i podkreślenie linku „Operacje →”.',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): tło wiersza `secondary`, kolor uchwytu `foreground`, tło przycisku „⋯” i pozycji menu.',
     },
     {
         state: 'focus-visible',
-        where: 'Zrzuty z działającej aplikacji po Tab: przyciski „Dodaj kategorię”, przycisk „⋯” wiersza (obrys `ring`), link „Operacje →” i przycisk rozwijający archiwum; uchwyt przeciągania ma `tabindex=-1` (kolejność zmienia się myszą lub dotykiem).',
+        where: 'Zrzuty z działającej aplikacji po Tab: przyciski „Dodaj kategorię”, przycisk „⋯” wiersza (obrys `ring`), pozycje menu i przycisk rozwijający archiwum; uchwyt przeciągania ma `tabindex=-1` (kolejność zmienia się myszą lub dotykiem).',
     },
     {
         state: 'groups',
-        where: 'Scenariusz with-groups: wiersz grupy (tło `muted`, nazwa, liczba kategorii, menu ⋯), kategorie wcięte pod grupą, grupa rozwinięta z wieloma kategoriami (Opłaty stałe), pusta grupa z podpowiedzią i strefą upuszczenia (Podróże), kategorie bez grupy na poziomie typu. Sekcja „Okna i menu grup” poniżej: menu „Grupa…”, okno „Dodaj grupę”, „Zmień nazwę” z błędem nazwy po zapisie, potwierdzenie usunięcia (z liczbą kategorii, które zostaną bez grupy, także zarchiwizowanych; grupa z samymi zarchiwizowanymi nie jest „pusta”) i wiersz grupy z przyciskami W górę / W dół wyłączonymi na brzegach. Scenariusz only-empty-group: sekcja z samą pustą grupą.',
+        where: 'Scenariusz with-groups: wiersz grupy (tło `muted`, nazwa, liczba kategorii, menu ⋯), kategorie wcięte pod grupą, grupa rozwinięta z wieloma kategoriami (Opłaty stałe), pusta grupa z podpowiedzią i strefą upuszczenia (Podróże), kategorie bez grupy na poziomie typu. Sekcja „Okna i menu grup” poniżej: okno „Dodaj grupę”, „Zmień nazwę” z błędem nazwy po zapisie, potwierdzenie usunięcia (z liczbą kategorii, które zostaną bez grupy, także zarchiwizowanych; grupa z samymi zarchiwizowanymi nie jest „pusta”) i wiersz grupy z przyciskami W górę / W dół wyłączonymi na brzegach. Scenariusz only-empty-group: sekcja z samą pustą grupą.',
     },
     {
         state: 'disabled',
-        where: 'Sekcja „Menu wiersza” poniżej: „Scal z inną…” wyłączone, gdy nie ma innej aktywnej kategorii tego typu (też w scenariuszu one-type-empty i przy jednej kategorii typu). Typ zablokowany w dialogu edycji (SegmentedControl wyłączony z podpowiedzią, /dev/ui/dialogs: Kategoria listy: typ zablokowany); przeciąganie wyłączone na czas zapisu kolejności (`reorderHttp.processing`); „Usuń” nie pojawia się, gdy nie można usunąć (can_delete wył. w default). Sekcja „Okna i menu grup”: wiersz grupy na pierwszym miejscu ma „W górę” wyłączone, na ostatnim „W dół”. Uchwyt przeciągania jest ukryty poniżej md (na telefonie kategorię przenosi menu „Grupa…”).',
+        where: 'Sekcja „Menu wiersza” poniżej: „Scal z inną…” wyłączone, gdy nie ma innej aktywnej kategorii tego typu (też w scenariuszu one-type-empty i przy jednej kategorii typu); „Zmień grupę…” wyłączone, gdy typ nie ma grup i w trakcie zapisu kolejności. Typ zablokowany w dialogu edycji (SegmentedControl wyłączony z podpowiedzią, /dev/ui/dialogs: Kategoria listy: typ zablokowany); przeciąganie wyłączone na czas zapisu kolejności (`reorderHttp.processing`); „Usuń” nie pojawia się, gdy nie można usunąć (can_delete wył. w default). Sekcja „Okna i menu grup”: wiersz grupy na pierwszym miejscu ma „W górę” wyłączone, na ostatnim „W dół”. Uchwyt przeciągania jest ukryty poniżej md (na telefonie kategorię przenosi okno „Zmień grupę…”).',
     },
     {
         state: 'error',
@@ -90,9 +89,9 @@ const stateMatrix = [
             <h1 class="page-title">Categories kitchen sink</h1>
             <p class="text-muted-foreground text-sm">
                 Strona deweloperska (tylko środowisko local). Widok Kategorie w
-                każdym scenariuszu danych. Linki „Operacje →” prowadzą do
-                prawdziwych /operations z filtrem po id, którego fixture'y nie
-                mają w bazie.
+                każdym scenariuszu danych. Pozycje „Operacje” w menu wierszy
+                prowadzą do prawdziwych /operations z filtrem po id, którego
+                fixture'y nie mają w bazie.
             </p>
         </header>
 
@@ -142,8 +141,7 @@ const stateMatrix = [
             <h2
                 class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
             >
-                group-states: okna i menu grup (menu „Grupa…” otwarte, wiersz
-                grupy na brzegach)
+                group-states: okna grup (wiersz grupy na brzegach)
             </h2>
             <ListSurface flush>
                 <template #header>
@@ -160,8 +158,7 @@ const stateMatrix = [
                 />
                 <CategoryListRow
                     nested
-                    picker-open
-                    :category="pickerCategory"
+                    :category="mergeableCategory"
                     :groups="expenseGroups"
                     :can-merge="true"
                 />
@@ -253,14 +250,32 @@ const stateMatrix = [
             <h2
                 class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
             >
-                row-menu: menu „⋯” wiersza (z „Scal z inną…” i „Usuń”, tylko
-                „Scal z inną…” wyłączone)
+                row-menu: menu „⋯” wiersza (z „Operacje”, „Zmień grupę…”, „Scal
+                z inną…” i „Usuń”; typ bez grup i zapis kolejności w toku
+                wyłączają „Zmień grupę…”, brak innej kategorii wyłącza „Scal z
+                inną…”)
             </h2>
             <ListSurface flush>
-                <CategoryListRow :category="mergeableCategory" can-merge />
+                <CategoryListRow
+                    :category="mergeableCategory"
+                    :groups="expenseGroups"
+                    can-merge
+                />
                 <CategoryListRow
                     :category="{ ...mergeableCategory, can_delete: false }"
+                    :groups="expenseGroups"
                     :can-merge="false"
+                />
+                <CategoryListRow
+                    :category="mergeableCategory"
+                    :groups="[]"
+                    can-merge
+                />
+                <CategoryListRow
+                    :category="mergeableCategory"
+                    :groups="expenseGroups"
+                    can-merge
+                    reorder-saving
                 />
             </ListSurface>
         </section>

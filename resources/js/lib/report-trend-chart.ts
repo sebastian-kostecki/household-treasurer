@@ -7,6 +7,52 @@ export type ReportTrendChartBar = {
     expense: number;
 };
 
+/** Income `--success`, expense `--chart-1` (tokens, ADR-0077). */
+export const REPORT_TREND_INCOME_COLOR = 'var(--success)';
+export const REPORT_TREND_EXPENSE_COLOR = 'var(--chart-1)';
+
+/**
+ * Legend of the Trend chart. The one source for the chart and for its
+ * placeholder, so the legend has the same height before and after the lazy
+ * fragment arrives. `labels` is `t.reports` (`income`, `expense`).
+ */
+export function reportTrendLegend(labels: Record<string, string>): {
+    key: string;
+    color: string;
+    label: string;
+}[] {
+    return [
+        {
+            key: 'income',
+            color: REPORT_TREND_INCOME_COLOR,
+            label: labels.income,
+        },
+        {
+            key: 'expense',
+            color: REPORT_TREND_EXPENSE_COLOR,
+            label: labels.expense,
+        },
+    ];
+}
+
+/**
+ * The legend note "<month> w toku", or null when no month is in progress.
+ * `reports` is `t.reports` (`trend_legend_in_progress`), `budget` is
+ * `t.budget` (`month_name_N`).
+ */
+export function reportTrendInProgressNote(
+    inProgressMonth: number | null,
+    reports: Record<string, string>,
+    budget: Record<string, string>,
+): string | null {
+    return inProgressMonth === null
+        ? null
+        : reports.trend_legend_in_progress.replace(
+              ':month',
+              budget[`month_name_${inProgressMonth}`],
+          );
+}
+
 /**
  * Bars of the Trend chart (ADR-0077): two values per month, taken from the
  * same `months` as the Przychody and Wydatki rows of the measures table. A
