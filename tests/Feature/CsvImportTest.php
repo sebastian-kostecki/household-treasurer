@@ -227,6 +227,36 @@ CSV;
             );
     }
 
+    public function test_preview_suggests_a_category_without_a_line_in_the_row_year_that_the_selector_offers(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $withoutLine = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+        FinancialOperation::factory()->for($user)->for($account)->create([
+            'type' => FinancialOperationType::Expense,
+            'budget_line_id' => $withoutLine->id,
+            'budget_id' => $budget2025->id,
+            'operation_date' => '2025-05-10',
+            'amount_minor_units' => 1000,
+            'description' => 'BIEDRONKA WARSZAWA',
+            'raw_statement_description' => 'PLATNOSC KARTA BIEDRONKA WARSZAWA',
+        ]);
+
+        $this->previewCsv($user, $account, "date,description,amount\n2026-03-15,Biedronka 4521,-45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.category_suggestion.expense', $withoutLine->category_id)
+                ->where('expenseCategories', fn ($options): bool => collect($options)->contains(
+                    fn (array $option): bool => $option['id'] === $withoutLine->category_id && $option['budget_year'] === 2026,
+                )),
+            );
+    }
+
     public function test_preview_category_options_carry_the_category_group(): void
     {
         $this->travelTo('2026-06-01');

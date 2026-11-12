@@ -51,7 +51,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-20 | new-budget-from-category-list        | użytkownik może utworzyć budżet z aktywnych kategorii listy z kwotami podpowiedzianymi z poprzedniego roku          | S-18          | FR-005                                   | done |
 | S-21 | category-merge                       | użytkownik może scalić dwie kategorie listy po podglądzie liczb                                                     | S-18          | FR-023                                   | done |
 | S-22 | category-groups                      | użytkownik może grupować kategorie i widzieć sumy grup w Budżecie i w selektorze kategorii                          | S-18          | FR-004, FR-019, FR-021, FR-022           | done |
-| S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | ready    |
+| S-23 | import-suggestions-on-category-list  | użytkownik może importować z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej jak przed zmianą     | S-18          | FR-020                                   | done |
 | S-24 | category-rhythm                      | użytkownik może zobaczyć i poprawić rytm kategorii, a propozycja planu miesiąca liczy kwotę z rytmu                 | F-05, S-18    | FR-007, FR-009, FR-022                   | done     |
 | S-25 | month-plan-groups                    | użytkownik może zobaczyć plan miesiąca w zwijanych grupach z sumą i sygnałem przekroczenia                          | S-22, S-24    | FR-008                                   | done |
 | S-26 | irregular-expense-collected          | użytkownik może oznaczyć wydatek jako nieregularny i widzieć stawkę oraz „zebrane”, które zużywa rachunek           | F-05, S-24    | US-02, FR-010, FR-011, FR-013, FR-022    | done |
@@ -213,8 +213,9 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:**
   - Kiedy porządki w danych: przed wdrożeniem S-18 czy po, przez S-21 i zmianę kategorii operacji (Otwarte pytanie 4)? Od tego zależy moment pomiaru trafności „przed”. — Owner: user. Block: no.
+    - _Rozstrzygnięte:_ porządki idą po migracji, przez S-21. „Nie gorzej” rozstrzyga kopia z 11.09 na starym i nowym kodzie; odczyt po scaleniach jest informacyjny.
 - **Risk:** Pomiar przed i po musi iść na tych samych danych (istnieje próg z `import-category-suggestions`). Gorsze podpowiedzi to jeden z najszybszych sygnałów awarii wskazanych w PRD.
-- **Status:** ready
+- **Status:** done
 
 ### S-24: Rytm kategorii w propozycji planu
 
@@ -423,3 +424,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **F-06: (foundation) `user:restore` wczytuje snapshot także na użytkownika z danymi: id konta w tożsamości importu idzie przez mapę kont, a digest jest liczony od nowa (ADR-0080).** — Archived 2026-11-12 → `context/archive/2026-11-12-restore-import-identity-accounts/`. Lesson: —.
 - **S-32: użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”** — Archived 2026-11-12 → `context/archive/2026-11-12-rolling-twelve-month-report/`. Lesson: —.
 - **S-33: użytkownik może ustawić domyślny procent planowanych przychodów, który propozycja planu wpisuje jako „odkładam”** — Archived 2026-11-12 → `context/archive/2026-11-12-default-set-aside-percent/`. Lesson: —.
+- **S-23: użytkownik może importować operacje z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej tak jak przed zmianą** — Archived 2026-11-12 → `context/archive/2026-11-12-import-suggestions-on-category-list/`. Lesson: —.
