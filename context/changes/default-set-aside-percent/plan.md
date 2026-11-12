@@ -364,12 +364,12 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia żadnego wiersza, więc `
 
 #### Automated
 
-- [x] 4.1 Testy propu przechodzą na PostgreSQL: `artisan test --compact tests/Feature/MonthPlanPageTest.php tests/Feature/DevMonthPlanSinkTest.php tests/Unit/MonthPlanHardcodedUiTest.php`
-- [x] 4.2 `npm run build`, `npm run types:check`, `npm run check:ui` i testy Vitest planu miesiąca przechodzą
-- [x] 4.3 Pełna bramka przechodzi na PostgreSQL (`ci:check` w worktree, `testing_default_set_aside_percent`) plus `vendor/bin/sloppy ci` na hoście
+- [x] 4.1 Testy propu przechodzą na PostgreSQL: `artisan test --compact tests/Feature/MonthPlanPageTest.php tests/Feature/DevMonthPlanSinkTest.php tests/Unit/MonthPlanHardcodedUiTest.php` — c828422
+- [x] 4.2 `npm run build`, `npm run types:check`, `npm run check:ui` i testy Vitest planu miesiąca przechodzą — c828422
+- [x] 4.3 Pełna bramka przechodzi na PostgreSQL (`ci:check` w worktree, `testing_default_set_aside_percent`) plus `vendor/bin/sloppy ci` na hoście — c828422
 
 #### Manual
 
-- [x] 4.4 Propozycja z procentem 10 pokazuje „10 % planowanych przychodów (9 000,00) · Zmień w ustawieniach”, a link otwiera zakładkę „Plan miesiąca”
-- [x] 4.5 Po poprawce przychodów w formularzu „odkładam” się nie zmienia, a podpowiedź pokazuje starą podstawę
-- [x] 4.6 Zatwierdzony plan, tryb zmiany i propozycja bez procentu nie pokazują podpowiedzi; `/dev/month-plan` pokazuje nowy stan w trybie jasnym i ciemnym
+- [x] 4.4 Propozycja z procentem 10 pokazuje „10 % planowanych przychodów (9 000,00) · Zmień w ustawieniach”, a link otwiera zakładkę „Plan miesiąca” — c828422
+- [x] 4.5 Po poprawce przychodów w formularzu „odkładam” się nie zmienia, a podpowiedź pokazuje starą podstawę — c828422
+- [x] 4.6 Zatwierdzony plan, tryb zmiany i propozycja bez procentu nie pokazują podpowiedzi; `/dev/month-plan` pokazuje nowy stan w trybie jasnym i ciemnym — c828422

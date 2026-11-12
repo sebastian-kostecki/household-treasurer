@@ -1,7 +1,7 @@
 ---
 change_id: default-set-aside-percent
 title: Default set aside percent
-status: implementing
+status: implemented
 created: 2026-11-12
 updated: 2026-11-12
 archived_at: null
