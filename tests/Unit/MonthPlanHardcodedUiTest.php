@@ -14,6 +14,7 @@ const MONTH_PLAN_VIEW_FILES = [
     'resources/js/components/ColumnHeaderHint.vue',
     'resources/js/components/MonthPlanStatPanel.vue',
     'resources/js/components/MonthPlanTable.vue',
+    'resources/js/components/MonthPlanGroupRow.vue',
     'resources/js/components/MonthPlanTitleRow.vue',
     'resources/js/components/StatPanel.vue',
     'resources/js/components/MonthSummaryCard.vue',

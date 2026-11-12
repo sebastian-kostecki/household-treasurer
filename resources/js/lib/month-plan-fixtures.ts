@@ -1,5 +1,6 @@
 import type {
     MonthPace,
+    MonthPlanGroup,
     MonthPlanItem,
     MonthPlanReading,
     MonthSummary,
@@ -38,6 +39,8 @@ function item(overrides: Partial<MonthPlanItem>): MonthPlanItem {
 
 export const runningExpense = item({
     category_id: 1,
+    group_id: 102,
+    sort_order: 10,
     name: 'Jedzenie',
     plan_minor_units: 200_000,
     actual_minor_units: 80_000,
@@ -54,6 +57,8 @@ export const runningExpense = item({
 
 export const paidBill = item({
     category_id: 2,
+    group_id: 101,
+    sort_order: 20,
     name: 'Czynsz',
     rhythm: 'fixed_charge',
     plan_minor_units: 150_000,
@@ -72,6 +77,8 @@ export const paidBill = item({
 
 export const settledIncome = item({
     category_id: 3,
+    group_id: 201,
+    sort_order: 10,
     name: 'Wynagrodzenie',
     type: 'income',
     rhythm: null,
@@ -91,6 +98,8 @@ export const settledIncome = item({
 
 export const waitingIncome = item({
     category_id: 10,
+    group_id: 201,
+    sort_order: 20,
     name: 'Premia',
     type: 'income',
     rhythm: null,
@@ -101,6 +110,7 @@ export const waitingIncome = item({
 
 export const idleEvenAnnual = item({
     category_id: 4,
+    sort_order: 150,
     name: 'Prezent urodzinowy',
     rhythm: 'even_annual',
     is_idle_even_annual: true,
@@ -114,6 +124,7 @@ export const idleEvenAnnual = item({
 /** Even Annual in the current month, with a year line and the rest of the year (X > 0). */
 export const evenAnnualLeft = item({
     category_id: 12,
+    sort_order: 80,
     name: 'Rekolekcje',
     year_execution_minor_units: 100_000,
     current_plan_minor_units: 238_000,
@@ -136,6 +147,7 @@ export const evenAnnualLeft = item({
 /** Even Annual with the year plan used up (X = 0). */
 export const evenAnnualUsedUp = item({
     category_id: 13,
+    sort_order: 90,
     name: 'Ubezpieczenie samochodu',
     year_execution_minor_units: 54_100,
     current_plan_minor_units: 54_100,
@@ -155,6 +167,7 @@ export const evenAnnualUsedUp = item({
 /** Even Annual over the year plan (X < 0). */
 export const evenAnnualOver = item({
     category_id: 14,
+    sort_order: 100,
     name: 'Wakacje',
     year_execution_minor_units: 130_000,
     current_plan_minor_units: 120_000,
@@ -180,6 +193,7 @@ export const evenAnnualOver = item({
 /** Even Annual in a future month: no year line, only "zostało X na Y mies." (X > 0, X = 0, X < 0). */
 export const evenAnnualFutureLeft = item({
     category_id: 15,
+    sort_order: 170,
     name: 'Prezenty świąteczne',
     rhythm: 'even_annual',
     plan_minor_units: 25_000,
@@ -191,6 +205,7 @@ export const evenAnnualFutureLeft = item({
 
 export const evenAnnualFutureUsedUp = item({
     category_id: 16,
+    sort_order: 180,
     name: 'Przegląd roczny',
     rhythm: 'even_annual',
     plan_minor_units: 5_000,
@@ -199,6 +214,7 @@ export const evenAnnualFutureUsedUp = item({
 
 export const evenAnnualFutureOver = item({
     category_id: 17,
+    sort_order: 190,
     name: 'Naprawy',
     rhythm: 'even_annual',
     plan_minor_units: 8_000,
@@ -211,6 +227,7 @@ export const evenAnnualFutureOver = item({
 /** Irregular before any bill: the Collected at the end is the opening 300,00 plus the rate (450,00). */
 export const irregularBeforeBill = item({
     category_id: 20,
+    sort_order: 110,
     name: 'Serwis auta',
     rhythm: 'irregular',
     plan_minor_units: 15_000,
@@ -229,6 +246,7 @@ export const irregularBeforeBill = item({
 /** Irregular with a bill covered by the Collected (400,00 against 300,00 + 150,00): Collected 50,00, no surplus. */
 export const irregularCovered = item({
     category_id: 21,
+    sort_order: 120,
     name: 'Rekolekcje',
     rhythm: 'irregular',
     plan_minor_units: 15_000,
@@ -250,6 +268,7 @@ export const irregularCovered = item({
 /** Irregular with a surplus (600,00 against 300,00 + 150,00): Collected 0,00, surplus 150,00, over plan. */
 export const irregularSurplus = item({
     category_id: 22,
+    sort_order: 130,
     name: 'Remont',
     rhythm: 'irregular',
     plan_minor_units: 15_000,
@@ -272,6 +291,7 @@ export const irregularSurplus = item({
 /** Irregular outside the plan (rate 0): joins with an amount above 0, nothing collected. */
 export const irregularOutsidePlan = item({
     category_id: 23,
+    sort_order: 140,
     name: 'Naprawa dachu',
     rhythm: 'irregular',
     in_plan: false,
@@ -283,6 +303,7 @@ export const irregularOutsidePlan = item({
 /** Irregular in a future month: the forecast of the Collected with the bills that already exist. */
 export const irregularFuture = item({
     category_id: 24,
+    sort_order: 200,
     name: 'Serwis auta',
     rhythm: 'irregular',
     plan_minor_units: 15_000,
@@ -292,6 +313,7 @@ export const irregularFuture = item({
 
 export const archivedExpense = item({
     category_id: 5,
+    sort_order: 70,
     name: 'Siłownia',
     is_archived: true,
     plan_minor_units: 12_000,
@@ -303,6 +325,7 @@ export const archivedExpense = item({
 
 export const outsidePlanExpense = item({
     category_id: 6,
+    sort_order: 60,
     name: 'Zakupy dodatkowe',
     in_plan: false,
     actual_minor_units: 4_500,
@@ -312,6 +335,8 @@ export const outsidePlanExpense = item({
 
 export const overPlanExpense = item({
     category_id: 7,
+    group_id: 102,
+    sort_order: 30,
     name: 'Paliwo',
     year_execution_minor_units: 372_000,
     current_plan_minor_units: 360_000,
@@ -331,6 +356,7 @@ export const overPlanExpense = item({
 
 export const longNameExpense = item({
     category_id: 8,
+    sort_order: 40,
     name: 'Bardzo długa nazwa kategorii, która sprawdza zawijanie w wąskiej kolumnie',
     plan_minor_units: 99_900,
     actual_minor_units: 10_000,
@@ -340,6 +366,8 @@ export const longNameExpense = item({
 
 export const fixedChargeUnpaid = item({
     category_id: 9,
+    group_id: 101,
+    sort_order: 50,
     name: 'Ubezpieczenie',
     rhythm: 'fixed_charge',
     plan_minor_units: 25_000,
@@ -349,6 +377,7 @@ export const fixedChargeUnpaid = item({
 /** A list category without a budget line: plan 0, joins the plan only with an amount above 0. */
 export const joinCandidateExpense = item({
     category_id: 11,
+    sort_order: 160,
     name: 'Domeny',
     in_plan: false,
     is_join_candidate: true,
@@ -359,6 +388,16 @@ export const joinCandidateExpense = item({
         is_over_year: false,
     },
 });
+
+/** Category Groups of the expense list: Codzienne first, Mieszkanie after the ungrouped „Bardzo długa nazwa…”. */
+export const expenseGroups: MonthPlanGroup[] = [
+    { id: 102, name: 'Codzienne', sort_order: 10 },
+    { id: 101, name: 'Mieszkanie', sort_order: 50 },
+];
+
+export const incomeGroups: MonthPlanGroup[] = [
+    { id: 201, name: 'Wynagrodzenia', sort_order: 10 },
+];
 
 export const incomeRows: MonthPlanItem[] = [settledIncome, waitingIncome];
 
@@ -556,4 +595,11 @@ export const negativeDrawReading = buildMonthPlanReading({
     set_aside_minor_units: -600_000,
     spendable_liquidity_minor_units: 500_000,
     month_pace: paceInNorm,
+});
+
+/** Current approved month with Category Groups: Codzienne (over plan), a Category without a group, Mieszkanie; the archived row at the end. */
+export const groupedReading = buildMonthPlanReading({
+    ...approvedReading,
+    income_groups: incomeGroups,
+    expense_groups: expenseGroups,
 });

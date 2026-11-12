@@ -137,6 +137,7 @@ const FILES = [
     'resources/js/components/PlanChangeArrow.vue',
     'resources/js/components/MonthPlanMatchActual.vue',
     'resources/js/components/MonthPlanTable.vue',
+    'resources/js/components/MonthPlanGroupRow.vue',
     'resources/js/components/MonthPlanTitleRow.vue',
     'resources/js/components/MonthPlanStatPanel.vue',
     'resources/js/components/MonthPlanEditBar.vue',
