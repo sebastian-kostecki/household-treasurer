@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\CsvImport\DefaultPaymentInstrumentNumberOmitter;
 use App\Support\CsvImport\PaymentInstrumentNumberOmitter;
+use App\Support\SheetLoad\SheetMapping;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
             PaymentInstrumentNumberOmitter::class,
             DefaultPaymentInstrumentNumberOmitter::class,
         );
+
+        $this->app->singleton(SheetMapping::class, fn (): SheetMapping => SheetMapping::fromFile());
     }
 
     /**

@@ -489,21 +489,21 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [x] 4.1 Testy czytnika przechodzą dla obu układów i przypadków brzegowych
-- [x] 4.2 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 4.1 Testy czytnika przechodzą dla obu układów i przypadków brzegowych — a3cc98f
+- [x] 4.2 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci — a3cc98f
 
 ### Phase 5: Mapowanie i plan wczytania
 
 #### Automated
 
-- [ ] 5.1 Testy planu wczytania przechodzą
-- [ ] 5.2 Test komendy --dry-run nie zmienia numerów kontrolnych
-- [ ] 5.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 5.1 Testy planu wczytania przechodzą
+- [x] 5.2 Test komendy --dry-run nie zmienia numerów kontrolnych
+- [x] 5.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
 
 #### Manual
 
-- [ ] 5.4 --dry-run czterech prawdziwych plików daje sumy z tabeli addendum
-- [ ] 5.5 Ostrzeżenia obejmują 2022 czerwiec i 2024 wrzesień, sumy per kategoria sensowne
+- [x] 5.4 --dry-run czterech prawdziwych plików daje sumy z tabeli addendum
+- [x] 5.5 Ostrzeżenia obejmują 2022 czerwiec i 2024 wrzesień, sumy per kategoria sensowne
 
 ### Phase 6: Zapis i wycofanie
 
