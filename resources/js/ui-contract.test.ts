@@ -538,6 +538,13 @@ describe('the Categories view follows the Atrament surface blocks', () => {
             expect(source).not.toContain('href="/operations');
         }
 
+        const row = readFileSync(
+            join(JS_ROOT, 'components/ReportCategoryRow.vue'),
+            'utf8',
+        );
+
+        expect(row).toContain('reportRangeOperationsQuery');
+
         const group = readFileSync(
             join(JS_ROOT, 'components/ReportGroupRow.vue'),
             'utf8',

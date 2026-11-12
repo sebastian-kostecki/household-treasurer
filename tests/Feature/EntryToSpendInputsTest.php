@@ -228,7 +228,7 @@ class EntryToSpendInputsTest extends TestCase
     }
 
     /**
-     * The proposal reads the Default Set-aside Percent from the Budget's owner (ADR-0081);
+     * The proposal reads the Default Set-aside Percent from the Budget's owner (ADR-0082);
      * budgets from `User::budgets()` carry that owner by chaperone, so no Budget queries for it.
      */
     public function test_budgets_in_execution_read_their_owner_without_a_users_query(): void

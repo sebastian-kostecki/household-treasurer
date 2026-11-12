@@ -18,6 +18,7 @@ const REPORTS_VIEW_FILES = [
     'resources/js/components/ReportTrendChart.vue',
     'resources/js/components/ReportBarChart.vue',
     'resources/js/components/ReportEmptyState.vue',
+    'resources/js/components/ReportCoverageNote.vue',
 ];
 
 const REPORTS_FORBIDDEN_PATTERNS = [

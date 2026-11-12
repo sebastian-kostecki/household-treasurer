@@ -20,7 +20,7 @@ Użytkownik odkłada co miesiąc ok. 10 % dochodu (PRD v3 `:65`, `:150`), a dzi�
 - Przy ustawionym procencie `p` każda propozycja (każdy miesiąc w stanie proposal, także w poprzednim budżecie, gdy służy za źródło) ma „odkładam” = `floor(P × p / 100 / 100 zł)` w pełnych złotych, gdzie `P` to suma planowanych przychodów tej propozycji. Przykład: `p = 10`, `P = 8 437,55 zł` → 843,00 zł; `P = 9 000 zł` → 900,00 zł; `p = 0` → 0. Przy braku procentu (`null`) zachowanie jest jak dziś. Zatwierdzone plany i kwota wpisana ręcznie przed zatwierdzeniem się nie zmieniają.
 - W propozycji z ustawionym procentem pod polem „odkładam” widać „10 % planowanych przychodów (9 000,00) · Zmień w ustawieniach”, z linkiem do nowej zakładki. W zatwierdzonym planie, w trybie zmiany i bez procentu tej linii nie ma.
 - `user:backup` zapisuje procent w snapshocie wersji 11. Restore wersji 11 go odtwarza, wersje 1–10 przywracają `null`, a wartość spoza 0–100 albo niebędąca liczbą całkowitą odrzuca snapshot. `user:reset-data` zeruje procent.
-- Słownik (Set-aside) i ADR-0081 opisują nową regułę propozycji.
+- Słownik (Set-aside) i ADR-0082 opisują nową regułę propozycji.
 
 ### Key Discoveries:
 
@@ -43,7 +43,7 @@ Użytkownik odkłada co miesiąc ok. 10 % dochodu (PRD v3 `:65`, `:150`), a dzi�
 
 ## Implementation Approach
 
-Najpierw decyzja w dokumentach (słownik, ADR-0081), bo zmienia się reguła słownika (AGENTS.md). Potem ustawienie z trwałością (kolumna, zakładka Ustawień, snapshot, reset), które jeszcze niczego nie zmienia w planie. Następnie reguła w `MonthPlanProposal` z testami regresji. Na końcu podpowiedź w planie miesiąca, czyli prop PHP i TS w jednym commicie. Każda faza kończy się zielonymi testami i osobnym commitem `feat(default-set-aside-percent): …`.
+Najpierw decyzja w dokumentach (słownik, ADR-0082), bo zmienia się reguła słownika (AGENTS.md). Potem ustawienie z trwałością (kolumna, zakładka Ustawień, snapshot, reset), które jeszcze niczego nie zmienia w planie. Następnie reguła w `MonthPlanProposal` z testami regresji. Na końcu podpowiedź w planie miesiąca, czyli prop PHP i TS w jednym commicie. Każda faza kończy się zielonymi testami i osobnym commitem `feat(default-set-aside-percent): …`.
 
 ## Critical Implementation Details
 
@@ -51,7 +51,7 @@ Najpierw decyzja w dokumentach (słownik, ADR-0081), bo zmienia się reguła sł
 
 Procent czyta się raz w `MonthPlanProposal::forBudget` z relacji `$budget->user`, a nie w `computePlan`, bo `computePlan` jest wołane rekurencyjnie dla 12 + 12 miesięcy (Sloppy flaguje zapytania w pętli). Żaden wywołujący nie ma dziś załadowanego `$budget->user`, a `EntryToSpendInputs::budgetPayload` woła `forBudget` dla każdego budżetu w `map` (`app/Support/EntryToSpendInputs.php:56-62`, `:86`). Dlatego `User::budgets()` dostaje `->chaperone()` (`app/Models/User.php:81-84`): budżety z `$user->budgets()` (`MonthPlanController.php:43`, `DashboardController.php:174`, `EntryToSpendInputs.php:46`) mają właściciela bez zapytania, a Approve (budżet z wiązania trasy) robi jedno zapytanie raz na żądanie. Sygnatura `forBudget` się nie zmienia. Kwotę liczy się po zbudowaniu `$amounts`, z tych samych kwot, które widzi użytkownik, czyli bez linii zarchiwizowanych.
 
-## Faza 1: Słownik i ADR-0081
+## Faza 1: Słownik i ADR-0082
 
 ### Overview
 
@@ -61,7 +61,7 @@ Zapisuje nową regułę propozycji Set-aside, zanim powstanie kod (AGENTS.md, �
 
 #### 1. ADR
 
-**File**: `context/foundation/adr/0081-proposal-set-aside-from-default-percent.md`
+**File**: `context/foundation/adr/0082-proposal-set-aside-from-default-percent.md`
 
 **Intent**: Decyzja: domyślny procent użytkownika (całkowity 0–100 albo brak) zastępuje w propozycji kopiowanie dodatniego Set-aside ze źródła. Kwota to procent sumy planowanych przychodów tej propozycji, w dół do pełnego złotego. Brak procentu zostawia regułę ADR-0033:5. Uzasadnienie i odrzucone warianty z tego planu: procent tylko przy braku źródła, większa z dwóch kwot, procent na budżet, procent dziesiętny i do grosza, przeliczanie na żywo, migracja z 10 %.
 
@@ -73,13 +73,13 @@ Zapisuje nową regułę propozycji Set-aside, zanim powstanie kod (AGENTS.md, �
 
 **Intent**: Hasło Set-aside mówi, że propozycja wpisuje Default Set-aside Percent planowanych przychodów, gdy jest ustawiony, a w przeciwnym razie kopiuje dodatni Set-aside ze źródła. Dochodzi polski tekst UI ustawienia.
 
-**Contract**: Zmienione zdanie w **Set-aside** (`:109`) z odwołaniem do ADR-0081. Nowe hasło **Default Set-aside Percent**: ustawienie użytkownika, całkowite 0–100 albo brak, podstawa to suma planowanych przychodów propozycji (Proposal), w dół do pełnego złotego, działa tylko na propozycje, Polish UI copy: „domyślne odkładam”, „% planowanych przychodów”; _Avoid_: Savings rate, Reserve, Irregular Rate. W haśle **Month Plan** (`:85`) odwołanie do ADR-0081 obok ADR-0033 i ADR-0066.
+**Contract**: Zmienione zdanie w **Set-aside** (`:109`) z odwołaniem do ADR-0082. Nowe hasło **Default Set-aside Percent**: ustawienie użytkownika, całkowite 0–100 albo brak, podstawa to suma planowanych przychodów propozycji (Proposal), w dół do pełnego złotego, działa tylko na propozycje, Polish UI copy: „domyślne odkładam”, „% planowanych przychodów”; _Avoid_: Savings rate, Reserve, Irregular Rate. W haśle **Month Plan** (`:85`) odwołanie do ADR-0082 obok ADR-0033 i ADR-0066.
 
 ### Success Criteria:
 
 #### Automated Verification:
 
-- ADR-0081 istnieje, a słownik odwołuje się do niego: `grep -n "ADR-0081" context/foundation/glossary.md`
+- ADR-0082 istnieje, a słownik odwołuje się do niego: `grep -n "ADR-0082" context/foundation/glossary.md`
 
 #### Manual Verification:
 
@@ -190,7 +190,7 @@ Kolumna na `users`, zakładka Ustawienia → „Plan miesiąca” z zapisem i wa
 
 **Intent**: W `forBudget` odczytać procent użytkownika budżetu (raz, z `$budget->user`; `User::budgets()` z `->chaperone()`, patrz State sequencing). W `computePlan`, w gałęzi propozycji, przy niepustym procencie zsumować `$amounts` linii przychodów i wpisać `intdiv(max(0, P) × p, 10 000) × 100` jako Set-aside (w dół do pełnego złotego). Bez procentu zostaje `max(0, $source->setAsideMinorUnits ?? 0)`. To samo obowiązuje dla propozycji poprzedniego budżetu, bo procent należy do użytkownika.
 
-**Contract**: Nowe pole konstruktora `?int $defaultSetAsidePercent`. `forBudget(Budget, CarbonImmutable)` bez zmiany sygnatury. Gałęzie `approved` i `none` bez zmian. Docblock klasy z odwołaniem do ADR-0081.
+**Contract**: Nowe pole konstruktora `?int $defaultSetAsidePercent`. `forBudget(Budget, CarbonImmutable)` bez zmiany sygnatury. Gałęzie `approved` i `none` bez zmian. Docblock klasy z odwołaniem do ADR-0082.
 
 #### 3. Testy
 
@@ -315,7 +315,7 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia żadnego wiersza, więc `
 ## Addendum (impl-review 2026-11-12)
 
 - Reguła procentu siedzi w `app/Support/DefaultSetAside.php` (`plannedIncome()` i `amount()`, czyste funkcje bez zapytań), a `MonthPlanProposal::computePlan` buduje z nich `MonthPlanReading`, jak w gałęzi bez procentu (impl-review F3).
-- Podpowiedź opisuje kwotę startową propozycji i pokazuje się tylko przy edytowalnym polu (`proposal` z `can_approve`, poza trybem zmiany). Propozycja, której nie da się zatwierdzić, pokazuje kwotę z procentu bez podpowiedzi, a po ręcznej zmianie „odkładam” podpowiedź zostaje ze starą podstawą. Oba zachowania są zamierzone, zgodnie z ADR-0081 (bez przeliczania na żywo) (impl-review F4).
+- Podpowiedź opisuje kwotę startową propozycji i pokazuje się tylko przy edytowalnym polu (`proposal` z `can_approve`, poza trybem zmiany). Propozycja, której nie da się zatwierdzić, pokazuje kwotę z procentu bez podpowiedzi, a po ręcznej zmianie „odkładam” podpowiedź zostaje ze starą podstawą. Oba zachowania są zamierzone, zgodnie z ADR-0082 (bez przeliczania na żywo) (impl-review F4).
 - Trasy `month-plan-settings.*` stoją w grupie `auth` + `verified` obok Wyglądu, tak jak plan miesiąca; profil zostaje w samym `auth`. Dziś `verified` niczego nie blokuje, bo `User` nie implementuje `MustVerifyEmail`, więc to tylko spójność grup tras (impl-review F5).
 
 ## References
@@ -330,11 +330,11 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia żadnego wiersza, więc `
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
 
-### Phase 1: Słownik i ADR-0081
+### Phase 1: Słownik i ADR-0082
 
 #### Automated
 
-- [x] 1.1 ADR-0081 istnieje, a słownik odwołuje się do niego: `grep -n "ADR-0081" context/foundation/glossary.md` — bf253bb
+- [x] 1.1 ADR-0082 istnieje, a słownik odwołuje się do niego: `grep -n "ADR-0082" context/foundation/glossary.md` — bf253bb
 
 #### Manual
 

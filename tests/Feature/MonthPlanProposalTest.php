@@ -441,7 +441,7 @@ class MonthPlanProposalTest extends TestCase
 
         // Two more than the lines alone (the list Category of each Budget's lines is eager loaded),
         // plus one for the Rhythm entries and one actuals query per Budget, whatever the months read.
-        // One more reads the owner of the Budget for the Default Set-aside Percent (ADR-0081; the factory
+        // One more reads the owner of the Budget for the Default Set-aside Percent (ADR-0082; the factory
         // Budget has no loaded user, budgets from $user->budgets() get it by chaperone without a query).
         $this->assertLessThanOrEqual(11, $queries);
     }

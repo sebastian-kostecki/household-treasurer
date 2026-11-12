@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
- * S-33 migration (ADR-0081): `users.default_set_aside_percent`. PostgreSQL only,
+ * S-33 migration (ADR-0082): `users.default_set_aside_percent`. PostgreSQL only,
  * as the column type is what is under test (.ai/rules/migrations.md). Only this
  * migration is rolled back, not the whole database.
  */

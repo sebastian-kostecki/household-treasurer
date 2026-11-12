@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 /**
  * The Set-aside of a proposal taken from the User's Default Set-aside Percent: the percent of the
- * planned income of that proposal, rounded down to a whole zloty (ADR-0081).
+ * planned income of that proposal, rounded down to a whole zloty (ADR-0082).
  */
 final class DefaultSetAside
 {

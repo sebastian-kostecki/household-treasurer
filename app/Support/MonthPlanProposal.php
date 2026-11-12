@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
  *
  * A proposal's Set-aside is the User's Default Set-aside Percent of the planned income of that
  * proposal, rounded down to a whole zloty; only without a percent is the positive Set-aside of the
- * source month copied (ADR-0081, which narrows ADR-0033). The percent is read once, from the
+ * source month copied (ADR-0082, which narrows ADR-0033). The percent is read once, from the
  * Budget's owner (`User::budgets()` sets the owner by chaperone), never per month.
  */
 class MonthPlanProposal

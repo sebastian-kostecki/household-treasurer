@@ -49,7 +49,7 @@ Weryfikacja automatyczna (worktree, obraz `sail-8.5/app`, PostgreSQL `testing_de
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Scope Discipline
 - **Location**: app/Support/DefaultSetAside.php:19-35
-- **Detail**: Plan umieszcza regułę w `MonthPlanProposal::computePlan`. Implementacja wydziela `DefaultSetAside::reading()`, który sumuje przychody, liczy kwotę i zwraca kompletny `MonthPlanReading` z zakodowanym stanem `'proposal'`. To jedyne miejsce poza `MonthPlanProposal`, które tworzy odczyt planu, więc budowa stanu propozycji jest w dwóch plikach. Sąsiednie helpery statyczne (np. `AnnualPlanShare::forMonth`) zwracają liczbę. Funkcja jest czysta, bez zapytań, z odwołaniem do ADR-0081, a commit a606ba0 ją nazywa, ale plan jej nie opisuje. `MonthPlanProposal.php` ma 307 linii.
+- **Detail**: Plan umieszcza regułę w `MonthPlanProposal::computePlan`. Implementacja wydziela `DefaultSetAside::reading()`, który sumuje przychody, liczy kwotę i zwraca kompletny `MonthPlanReading` z zakodowanym stanem `'proposal'`. To jedyne miejsce poza `MonthPlanProposal`, które tworzy odczyt planu, więc budowa stanu propozycji jest w dwóch plikach. Sąsiednie helpery statyczne (np. `AnnualPlanShare::forMonth`) zwracają liczbę. Funkcja jest czysta, bez zapytań, z odwołaniem do ADR-0082, a commit a606ba0 ją nazywa, ale plan jej nie opisuje. `MonthPlanProposal.php` ma 307 linii.
 - **Fix A ⭐ Recommended**: `DefaultSetAside` zwraca tylko kwotę i podstawę (`array{percent, income_minor_units, set_aside_minor_units}` albo dwie metody), a `computePlan` buduje `MonthPlanReading` jak w gałęzi bez procentu
   - Strength: Stan odczytu powstaje w jednym pliku; helper ma kształt sąsiadów z `app/Support`, a test reguły nadal może go wołać.
   - Tradeoff: Mała przeróbka i ponowne przejście `MonthPlanProposalTest` + Sloppy.
@@ -70,7 +70,7 @@ Weryfikacja automatyczna (worktree, obraz `sail-8.5/app`, PostgreSQL `testing_de
 - **Location**: resources/js/components/MonthPlanTable.vue:138-140, resources/js/pages/MonthPlan.vue:85-98
 - **Detail**: Podpowiedź wymaga `editable` (`state === 'proposal' && can_approve`), zgodnie z planem. Skutek, którego plan nie omawia: propozycja, której nie da się zatwierdzić (np. przyszły miesiąc przed zatwierdzeniem poprzedniego), pokazuje „odkładam” z procentu bez wyjaśnienia skąd. Podpowiedź zostaje też po ręcznej zmianie „odkładam”, więc „10 % planowanych przychodów (9 000,00)” stoi obok innej kwoty. Plan rozstrzyga tylko edycję przychodów (krok 4.5). Wiersz podpowiedzi nie ma testu Vitest ani E2E (jest tylko w sinku i jako prop w `MonthPlanPageTest`).
 - **Fix**: Uznać obecne zachowanie za zamierzone i dopisać to zdanie do planu (podpowiedź opisuje kwotę startową propozycji, tylko gdy pole jest edytowalne)
-  - Strength: Bez zmian w kodzie; spójne z ADR-0081 (bez przeliczania na żywo).
+  - Strength: Bez zmian w kodzie; spójne z ADR-0082 (bez przeliczania na żywo).
   - Tradeoff: Nieedytowalna propozycja nadal nie wyjaśnia kwoty.
   - Confidence: MED — to decyzja UX, nie błąd.
   - Blind spot: Jak często użytkownik ogląda przyszłą, niezatwierdzalną propozycję.

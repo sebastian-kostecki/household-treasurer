@@ -28,7 +28,7 @@ W Ustawieniach jest zakładka „Plan miesiąca” z polem „Domyślne odkłada
 ## Scope
 
 **In scope:**
-- ADR-0081 i słownik (Set-aside, nowe hasło Default Set-aside Percent)
+- ADR-0082 i słownik (Set-aside, nowe hasło Default Set-aside Percent)
 - Kolumna, zakładka Ustawień z walidacją i toastem, stan w `/dev/ui/settings`
 - Snapshot v11 (v1–10 przywracają `null`), zerowanie w `user:reset-data`, README „Wycofanie S-33”
 - Reguła w `MonthPlanProposal` z testami regresji
@@ -47,7 +47,7 @@ Procent czyta się raz w `MonthPlanProposal::forBudget`. W gałęzi propozycji `
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Słownik i ADR-0081 | Reguła zapisana przed kodem | Rozjazd słów ADR z decyzjami planu |
+| 1. Słownik i ADR-0082 | Reguła zapisana przed kodem | Rozjazd słów ADR z decyzjami planu |
 | 2. Ustawienie procentu | Kolumna, zakładka Ustawień, snapshot v11, reset | Lista wersji w `RestoreUserData` bez 10 → starsze backupy nie wczytają się |
 | 3. Propozycja liczy procent | Nowa kwota startowa „odkładam” z testami | Zapytanie w rekurencyjnym `computePlan` (Sloppy) |
 | 4. Podpowiedź w planie miesiąca | Linia „10 % planowanych przychodów (…) · Zmień w ustawieniach” | Prop PHP/TS rozjechany bez `assertInertia` |
