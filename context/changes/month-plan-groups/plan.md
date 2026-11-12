@@ -479,19 +479,19 @@ Bez migracji i bez zmiany snapshotu: `category_groups` i `categories.category_gr
 
 #### Automated
 
-- [x] 2.1 Testy strony planu miesiąca przechodzą na PostgreSQL
-- [x] 2.2 Testy zatwierdzania, zmiany i propozycji przechodzą
-- [x] 2.3 Kontrola typów przechodzi
-- [x] 2.4 Formatowanie PHP
-- [x] 2.5 Sloppy bez nowych zgłoszeń
+- [x] 2.1 Testy strony planu miesiąca przechodzą na PostgreSQL — 49addc5
+- [x] 2.2 Testy zatwierdzania, zmiany i propozycji przechodzą — 49addc5
+- [x] 2.3 Kontrola typów przechodzi — 49addc5
+- [x] 2.4 Formatowanie PHP — 49addc5
+- [x] 2.5 Sloppy bez nowych zgłoszeń — 49addc5
 
 ### Phase 3: Drzewo i sumy grup w TS
 
 #### Automated
 
-- [ ] 3.1 Testy Vitest drzewa przechodzą
-- [ ] 3.2 Cały zestaw Vitest przechodzi
-- [ ] 3.3 Kontrola typów przechodzi
+- [x] 3.1 Testy Vitest drzewa przechodzą
+- [x] 3.2 Cały zestaw Vitest przechodzi
+- [x] 3.3 Kontrola typów przechodzi
 
 ### Phase 4: Wiersz grupy w tabeli i kitchen sinku
 
