@@ -12,6 +12,7 @@ const CATEGORIES_VIEW_FILES = [
     'resources/js/components/CategoryListFormDialog.vue',
     'resources/js/components/CategoryAppearanceFields.vue',
     'resources/js/components/CategoryGroupRow.vue',
+    'resources/js/components/CategoryGroupAssignDialog.vue',
     'resources/js/components/CategoryGroupFormDialog.vue',
     'resources/js/components/CategoryGroupPicker.vue',
     'resources/js/components/CategoryMergeDialog.vue',

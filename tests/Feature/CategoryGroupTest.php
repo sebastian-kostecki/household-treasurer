@@ -134,6 +134,20 @@ class CategoryGroupTest extends TestCase
         $this->assertSame([$group->id, 1], [$loose->fresh()->category_group_id, $loose->fresh()->sort_order]);
     }
 
+    public function test_an_empty_string_takes_a_category_out_of_its_group_like_null(): void
+    {
+        $user = User::factory()->create();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['sort_order' => 0]);
+        $member = Category::factory()->for($user)->expense()->create(['category_group_id' => $group->id, 'name' => 'Apteka', 'sort_order' => 1]);
+        Category::factory()->for($user)->expense()->create(['name' => 'Rozrywka', 'sort_order' => 2]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.group', $member), ['category_group_id' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame([null, 2], [$member->fresh()->category_group_id, $member->fresh()->sort_order]);
+    }
+
     public function test_a_group_of_another_type_is_refused(): void
     {
         $user = User::factory()->create();

@@ -477,6 +477,7 @@ const CATEGORIES_VIEW_FILES = [
     'components/CategoryListRow.vue',
     'components/CategoryArchiveSection.vue',
     'components/CategoryGroupRow.vue',
+    'components/CategoryGroupAssignDialog.vue',
     'components/CategoryGroupFormDialog.vue',
     'components/CategoryGroupPicker.vue',
 ];
@@ -508,6 +509,16 @@ describe('the Categories view follows the Atrament surface blocks', () => {
     it('builds the merge dialog on ConfirmActionDialog, not on its own DialogContent', () => {
         const dialog = readFileSync(
             join(JS_ROOT, 'components/CategoryMergeDialog.vue'),
+            'utf8',
+        );
+
+        expect(dialog).toContain('<ConfirmActionDialog');
+        expect(dialog).not.toContain('DialogContent');
+    });
+
+    it('builds the group assign dialog on ConfirmActionDialog, not on its own DialogContent', () => {
+        const dialog = readFileSync(
+            join(JS_ROOT, 'components/CategoryGroupAssignDialog.vue'),
             'utf8',
         );
 
