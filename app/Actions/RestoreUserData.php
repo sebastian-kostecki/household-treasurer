@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\LegacyCategoryConversion;
 use App\Support\CategoryList\LegacyRhythmConversion;
+use App\Support\UserSnapshot\RestoredImportIdentity;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
@@ -50,7 +51,10 @@ class RestoreUserData
      */
     private array $legacyFlagLines = [];
 
-    public function __construct(private ResetUserData $resetUserData) {}
+    public function __construct(
+        private ResetUserData $resetUserData,
+        private RestoredImportIdentity $restoredImportIdentity,
+    ) {}
 
     public function handle(User $targetUser, string $path): void
     {
@@ -787,6 +791,20 @@ class RestoreUserData
                 throw new UserSnapshotException('Snapshot financial operation references a budget line of another budget.');
             }
 
+            $rawStatementDescription = $operationData['raw_statement_description'] ?? null;
+            $identity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $operationData['import_identity_account_id'] ?? null,
+                    'date' => $operationData['import_identity_date'] ?? null,
+                    'amount_minor_units' => $operationData['import_identity_amount_minor_units'] ?? null,
+                    'digest' => $operationData['import_identity_digest'] ?? null,
+                ],
+                $rawStatementDescription,
+                'financial operation '.($operationData['id'] ?? '?'),
+            );
+
             $targetUser->financialOperations()->create([
                 'type' => FinancialOperationType::from($operationData['type']),
                 'account_id' => $accountId,
@@ -796,11 +814,11 @@ class RestoreUserData
                 'amount_minor_units' => $operationData['amount_minor_units'],
                 'description' => $operationData['description'],
                 'counterparty' => $operationData['counterparty'] ?? null,
-                'raw_statement_description' => $operationData['raw_statement_description'] ?? null,
-                'import_identity_account_id' => $operationData['import_identity_account_id'] ?? null,
-                'import_identity_date' => $operationData['import_identity_date'] ?? null,
-                'import_identity_amount_minor_units' => $operationData['import_identity_amount_minor_units'] ?? null,
-                'import_identity_digest' => $operationData['import_identity_digest'] ?? null,
+                'raw_statement_description' => $rawStatementDescription,
+                'import_identity_account_id' => $identity['account_id'],
+                'import_identity_date' => $identity['date'],
+                'import_identity_amount_minor_units' => $identity['amount_minor_units'],
+                'import_identity_digest' => $identity['digest'],
                 'created_at' => isset($operationData['created_at']) ? Carbon::parse($operationData['created_at']) : now(),
                 'updated_at' => isset($operationData['updated_at']) ? Carbon::parse($operationData['updated_at']) : now(),
             ]);
@@ -821,24 +839,51 @@ class RestoreUserData
                 throw new UserSnapshotException('Snapshot references unknown own transfer account relations.');
             }
 
+            $sourceRaw = $transferData['source_raw_statement_description']
+                ?? $transferData['raw_statement_description']
+                ?? null;
+            $destinationRaw = $transferData['destination_raw_statement_description'] ?? null;
+            $sourceIdentity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $transferData['source_import_identity_account_id'] ?? null,
+                    'date' => $transferData['source_import_identity_date'] ?? null,
+                    'amount_minor_units' => $transferData['source_import_identity_amount_minor_units'] ?? null,
+                    'digest' => $transferData['source_import_identity_digest'] ?? null,
+                ],
+                $sourceRaw,
+                'own transfer '.($transferData['id'] ?? '?').' source',
+            );
+            $destinationIdentity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $transferData['destination_import_identity_account_id'] ?? null,
+                    'date' => $transferData['destination_import_identity_date'] ?? null,
+                    'amount_minor_units' => $transferData['destination_import_identity_amount_minor_units'] ?? null,
+                    'digest' => $transferData['destination_import_identity_digest'] ?? null,
+                ],
+                $destinationRaw,
+                'own transfer '.($transferData['id'] ?? '?').' destination',
+            );
+
             $targetUser->ownTransfers()->create([
                 'source_account_id' => $sourceAccountId,
                 'destination_account_id' => $destinationAccountId,
                 'transfer_date' => $transferData['transfer_date'],
                 'amount_minor_units' => $transferData['amount_minor_units'],
                 'description' => $transferData['description'],
-                'source_raw_statement_description' => $transferData['source_raw_statement_description']
-                    ?? $transferData['raw_statement_description']
-                    ?? null,
-                'destination_raw_statement_description' => $transferData['destination_raw_statement_description'] ?? null,
-                'source_import_identity_account_id' => $transferData['source_import_identity_account_id'] ?? null,
-                'source_import_identity_date' => $transferData['source_import_identity_date'] ?? null,
-                'source_import_identity_amount_minor_units' => $transferData['source_import_identity_amount_minor_units'] ?? null,
-                'source_import_identity_digest' => $transferData['source_import_identity_digest'] ?? null,
-                'destination_import_identity_account_id' => $transferData['destination_import_identity_account_id'] ?? null,
-                'destination_import_identity_date' => $transferData['destination_import_identity_date'] ?? null,
-                'destination_import_identity_amount_minor_units' => $transferData['destination_import_identity_amount_minor_units'] ?? null,
-                'destination_import_identity_digest' => $transferData['destination_import_identity_digest'] ?? null,
+                'source_raw_statement_description' => $sourceRaw,
+                'destination_raw_statement_description' => $destinationRaw,
+                'source_import_identity_account_id' => $sourceIdentity['account_id'],
+                'source_import_identity_date' => $sourceIdentity['date'],
+                'source_import_identity_amount_minor_units' => $sourceIdentity['amount_minor_units'],
+                'source_import_identity_digest' => $sourceIdentity['digest'],
+                'destination_import_identity_account_id' => $destinationIdentity['account_id'],
+                'destination_import_identity_date' => $destinationIdentity['date'],
+                'destination_import_identity_amount_minor_units' => $destinationIdentity['amount_minor_units'],
+                'destination_import_identity_digest' => $destinationIdentity['digest'],
                 'created_at' => isset($transferData['created_at']) ? Carbon::parse($transferData['created_at']) : now(),
                 'updated_at' => isset($transferData['updated_at']) ? Carbon::parse($transferData['updated_at']) : now(),
             ]);
@@ -864,16 +909,19 @@ class RestoreUserData
                 throw new UserSnapshotException('Snapshot references unknown capital movement relations.');
             }
 
-            $importIdentityAccountId = isset($movementData['import_identity_account_id'])
-                ? ($accountIdMap[$movementData['import_identity_account_id']] ?? null)
-                : null;
-
-            if (
-                isset($movementData['import_identity_account_id'])
-                && $importIdentityAccountId === null
-            ) {
-                throw new UserSnapshotException('Snapshot references unknown capital movement import identity account.');
-            }
+            $rawStatementDescription = $movementData['raw_statement_description'] ?? null;
+            $identity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $movementData['import_identity_account_id'] ?? null,
+                    'date' => $movementData['import_identity_date'] ?? null,
+                    'amount_minor_units' => $movementData['import_identity_amount_minor_units'] ?? null,
+                    'digest' => $movementData['import_identity_digest'] ?? null,
+                ],
+                $rawStatementDescription,
+                'capital movement '.($movementData['id'] ?? '?'),
+            );
 
             $targetUser->capitalMovements()->create([
                 'account_id' => $accountId,
@@ -882,11 +930,11 @@ class RestoreUserData
                 'amount_minor_units' => $movementData['amount_minor_units'],
                 'direction' => CapitalMovementDirection::from($movementData['direction']),
                 'description' => $movementData['description'],
-                'raw_statement_description' => $movementData['raw_statement_description'] ?? null,
-                'import_identity_account_id' => $importIdentityAccountId,
-                'import_identity_date' => $movementData['import_identity_date'] ?? null,
-                'import_identity_amount_minor_units' => $movementData['import_identity_amount_minor_units'] ?? null,
-                'import_identity_digest' => $movementData['import_identity_digest'] ?? null,
+                'raw_statement_description' => $rawStatementDescription,
+                'import_identity_account_id' => $identity['account_id'],
+                'import_identity_date' => $identity['date'],
+                'import_identity_amount_minor_units' => $identity['amount_minor_units'],
+                'import_identity_digest' => $identity['digest'],
                 'created_at' => isset($movementData['created_at']) ? Carbon::parse($movementData['created_at']) : now(),
                 'updated_at' => isset($movementData['updated_at']) ? Carbon::parse($movementData['updated_at']) : now(),
             ]);

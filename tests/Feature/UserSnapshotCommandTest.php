@@ -23,11 +23,15 @@ use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\CategoryList\LegacyRhythmConversion;
+use App\Support\CsvImport\ImportDuplicateDetector;
+use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
 use Database\Seeders\DemoHouseholdSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class UserSnapshotCommandTest extends TestCase
@@ -487,6 +491,10 @@ class UserSnapshotCommandTest extends TestCase
 
         $this->assertNull($restoredOperation->import_identity_digest);
         $this->assertNull($restoredTransfer->source_import_identity_digest);
+        $this->assertSame(
+            $targetUser->accounts()->where('name', 'Main bank')->value('id'),
+            $restoredTransfer->source_import_identity_account_id,
+        );
     }
 
     public function test_restore_action_preserves_domain_values_with_new_ids(): void
@@ -518,16 +526,153 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame($sourceCategory->execution_minor_units, $restoredCategory->execution_minor_units);
         $this->assertSame($sourceOperation->amount_minor_units, $restoredOperation->amount_minor_units);
         $this->assertSame($sourceOperation->raw_statement_description, $restoredOperation->raw_statement_description);
-        $this->assertSame($sourceOperation->import_identity_digest, $restoredOperation->import_identity_digest);
+        $this->assertSame($this->expectedDigest($targetUser, $restoredAccount->id, $restoredOperation->import_identity_date->toDateString(), $restoredOperation->import_identity_amount_minor_units, $restoredOperation->raw_statement_description), $restoredOperation->import_identity_digest);
+        $this->assertNotSame($sourceOperation->import_identity_digest, $restoredOperation->import_identity_digest);
+        $this->assertSame($restoredAccount->id, $restoredOperation->import_identity_account_id);
         $this->assertSame($sourceOperation->import_identity_amount_minor_units, $restoredOperation->import_identity_amount_minor_units);
         $this->assertSame($sourceTransfer->amount_minor_units, $restoredTransfer->amount_minor_units);
-        $this->assertSame($sourceTransfer->source_import_identity_digest, $restoredTransfer->source_import_identity_digest);
-        $this->assertSame($sourceTransfer->destination_import_identity_digest, $restoredTransfer->destination_import_identity_digest);
+        $restoredDestinationAccount = $targetUser->accounts()->where('name', $sourceTransfer->destinationAccount->name)->firstOrFail();
+        $this->assertSame($this->expectedDigest($targetUser, $restoredAccount->id, $restoredTransfer->source_import_identity_date->toDateString(), $restoredTransfer->source_import_identity_amount_minor_units, $restoredTransfer->source_raw_statement_description), $restoredTransfer->source_import_identity_digest);
+        $this->assertSame($this->expectedDigest($targetUser, $restoredDestinationAccount->id, $restoredTransfer->destination_import_identity_date->toDateString(), $restoredTransfer->destination_import_identity_amount_minor_units, $restoredTransfer->destination_raw_statement_description), $restoredTransfer->destination_import_identity_digest);
+        $this->assertSame($restoredAccount->id, $restoredTransfer->source_import_identity_account_id);
+        $this->assertSame($restoredDestinationAccount->id, $restoredTransfer->destination_import_identity_account_id);
         $this->assertSame($sourceTransfer->source_raw_statement_description, $restoredTransfer->source_raw_statement_description);
         $this->assertSame($sourceTransfer->destination_raw_statement_description, $restoredTransfer->destination_raw_statement_description);
         $this->assertSame($restoredAccount->id, $restoredOperation->account_id);
         $this->assertSame($restoredCategory->id, $restoredOperation->budget_line_id);
         $this->assertSame($restoredBudget->id, $restoredOperation->budget_id);
+    }
+
+    public function test_restore_action_restores_import_identity_onto_user_with_existing_data(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->createUserWithImportIdentities();
+        $path = app(BackupUserData::class)->handle($user);
+
+        app(RestoreUserData::class)->handle($user, $path);
+
+        $mainBank = $user->accounts()->where('name', 'Main bank')->firstOrFail();
+        $cash = $user->accounts()->where('name', 'Cash')->firstOrFail();
+        $operation = $user->financialOperations()->firstOrFail();
+        $transfer = $user->ownTransfers()->firstOrFail();
+        $movement = $user->capitalMovements()->firstOrFail();
+
+        $this->assertSame($mainBank->id, $operation->import_identity_account_id);
+        $this->assertSame($this->expectedDigest($user, $mainBank->id, '2026-03-01', 150000, 'ACME PAYROLL'), $operation->import_identity_digest);
+        $this->assertSame($mainBank->id, $transfer->source_import_identity_account_id);
+        $this->assertSame($this->expectedDigest($user, $mainBank->id, '2026-03-02', -50000, 'ATM WDL'), $transfer->source_import_identity_digest);
+        $this->assertSame($cash->id, $transfer->destination_import_identity_account_id);
+        $this->assertSame($this->expectedDigest($user, $cash->id, '2026-03-03', 50000, 'Cash deposit row'), $transfer->destination_import_identity_digest);
+        $this->assertSame($mainBank->id, $movement->import_identity_account_id);
+        $this->assertSame($this->expectedDigest($user, $mainBank->id, '2026-03-04', 75000, 'DEPOSIT ROW'), $movement->import_identity_digest);
+    }
+
+    public function test_import_preview_flags_restored_operation_as_duplicate(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->createUserWithImportIdentities();
+        $path = app(BackupUserData::class)->handle($user);
+
+        app(RestoreUserData::class)->handle($user, $path);
+
+        $mainBank = $user->accounts()->where('name', 'Main bank')->firstOrFail();
+        $cash = $user->accounts()->where('name', 'Cash')->firstOrFail();
+        $detector = app(ImportDuplicateDetector::class);
+
+        $operationRows = $detector->annotateRows($user, $mainBank->id, [
+            ['operation_date' => '2026-03-01', 'amount_minor_units' => 150000, 'raw_statement_description' => 'ACME PAYROLL', 'valid' => true],
+            ['operation_date' => '2026-03-01', 'amount_minor_units' => 150001, 'raw_statement_description' => 'ACME PAYROLL', 'valid' => true],
+        ]);
+        $legRows = $detector->annotateRows($user, $cash->id, [
+            ['operation_date' => '2026-03-03', 'amount_minor_units' => 50000, 'raw_statement_description' => 'Cash deposit row', 'valid' => true],
+        ]);
+
+        $this->assertTrue($operationRows[0]['import_duplicate']);
+        $this->assertFalse($operationRows[1]['import_duplicate']);
+        $this->assertTrue($legRows[0]['import_duplicate']);
+    }
+
+    /**
+     * @return array<string, array{string, string, bool}>
+     */
+    public static function importIdentityRefusals(): array
+    {
+        $cases = [];
+
+        foreach (['operation', 'source leg', 'destination leg', 'capital movement'] as $kind) {
+            foreach (['raw statement description', 'identity date', 'identity amount', 'identity account'] as $gap) {
+                $cases["{$kind}: missing {$gap} with digest"] = [$kind, $gap, true];
+            }
+
+            $cases["{$kind}: identity account outside snapshot without digest"] = [$kind, 'identity account', false];
+        }
+
+        return $cases;
+    }
+
+    #[DataProvider('importIdentityRefusals')]
+    public function test_restore_action_refuses_incomplete_import_identity(string $kind, string $gap, bool $withDigest): void
+    {
+        Storage::fake('local');
+
+        $user = $this->createUserWithImportIdentities();
+        $path = app(BackupUserData::class)->handle($user);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        [$list, $prefix, $rawKey] = match ($kind) {
+            'operation' => ['financial_operations', '', 'raw_statement_description'],
+            'source leg' => ['own_transfers', 'source_', 'source_raw_statement_description'],
+            'destination leg' => ['own_transfers', 'destination_', 'destination_raw_statement_description'],
+            'capital movement' => ['capital_movements', '', 'raw_statement_description'],
+        };
+
+        if (! $withDigest) {
+            unset($snapshot[$list][0][$prefix.'import_identity_digest']);
+        }
+
+        match ($gap) {
+            'raw statement description' => $snapshot[$list][0][$rawKey] = null,
+            'identity date' => $snapshot[$list][0][$prefix.'import_identity_date'] = null,
+            'identity amount' => $snapshot[$list][0][$prefix.'import_identity_amount_minor_units'] = null,
+            'identity account' => $snapshot[$list][0][$prefix.'import_identity_account_id'] = 999999,
+        };
+
+        $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/refused-identity.json');
+        file_put_contents($brokenPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $accountIds = $user->accounts()->orderBy('id')->pluck('id')->all();
+        $operationId = $user->financialOperations()->value('id');
+
+        try {
+            app(RestoreUserData::class)->handle($user, $brokenPath);
+            $this->fail('The restore should have refused the snapshot.');
+        } catch (UserSnapshotException) {
+            $this->assertSame($accountIds, $user->accounts()->orderBy('id')->pluck('id')->all());
+            $this->assertSame(1, $user->financialOperations()->count());
+            $this->assertSame($operationId, $user->financialOperations()->value('id'));
+        }
+    }
+
+    private function expectedDigest(User $user, int $accountId, string $date, int $amountMinorUnits, ?string $rawStatementDescription): string
+    {
+        return app(ImportIdentityDigest::class)->compute($user->id, $accountId, $date, $amountMinorUnits, $rawStatementDescription)['digest'];
+    }
+
+    private function createUserWithImportIdentities(): User
+    {
+        $user = $this->createUserWithDomainData();
+
+        $user->capitalMovements()->firstOrFail()->forceFill([
+            'raw_statement_description' => 'DEPOSIT ROW',
+            'import_identity_account_id' => $user->accounts()->where('name', 'Main bank')->value('id'),
+            'import_identity_date' => '2026-03-04',
+            'import_identity_amount_minor_units' => 75000,
+            'import_identity_digest' => 'digest-deposit',
+        ])->save();
+
+        return $user;
     }
 
     public function test_restore_command_rejects_v6_snapshot_without_budget_lines(): void

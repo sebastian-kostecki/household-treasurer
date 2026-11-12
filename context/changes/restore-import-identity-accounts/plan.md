@@ -255,27 +255,27 @@ Brak migracji i nowej wersji snapshotu. Snapshoty zapisane wcześniej (także pr
 
 #### Automated
 
-- [x] 1.1 ADR-0079 istnieje i nie ma drugiego pliku z numerem 0079
-- [x] 1.2 Wpis „Import duplicate” w glosariuszu odwołuje się do ADR-0079
-- [x] 1.3 Reguła snapshot opisuje mapowanie i przeliczanie tożsamości, indeks reguł bez zmian
+- [x] 1.1 ADR-0079 istnieje i nie ma drugiego pliku z numerem 0079 — 36f74b1
+- [x] 1.2 Wpis „Import duplicate” w glosariuszu odwołuje się do ADR-0079 — 36f74b1
+- [x] 1.3 Reguła snapshot opisuje mapowanie i przeliczanie tożsamości, indeks reguł bez zmian — 36f74b1
 
 #### Manual
 
-- [x] 1.4 Użytkownik akceptuje treść ADR-0079
+- [x] 1.4 Użytkownik akceptuje treść ADR-0079 — 36f74b1
 
 ### Phase 2: Czerwony test → poprawka restore
 
 #### Automated
 
-- [ ] 2.1 Nowe testy restore czerwone na PostgreSQL przed poprawką, wynik zapisany
-- [ ] 2.2 Testy snapshotu przechodzą na PostgreSQL po poprawce
-- [ ] 2.3 Testy importu przechodzą na PostgreSQL
-- [ ] 2.4 Bramka composer ci:check przechodzi
-- [ ] 2.5 Pint bez zmian i Sloppy bez nowych znalezisk
+- [x] 2.1 Nowe testy restore czerwone na PostgreSQL przed poprawką, wynik zapisany
+- [x] 2.2 Testy snapshotu przechodzą na PostgreSQL po poprawce
+- [x] 2.3 Testy importu przechodzą na PostgreSQL
+- [x] 2.4 Bramka composer ci:check przechodzi
+- [x] 2.5 Pint bez zmian i Sloppy bez nowych znalezisk
 
 #### Manual
 
-- [ ] 2.6 Przegląd diffu: asercje osłabione tylko tam, gdzie zmieniło się wymaganie
+- [x] 2.6 Przegląd diffu: asercje osłabione tylko tam, gdzie zmieniło się wymaganie
 
 ### Phase 3: README i próba na kopii produkcji
 
