@@ -605,7 +605,8 @@ const trendClosedPeriod: ReportPeriod = {
 export const reportScenarios: ReportScenario[] = [
     {
         key: 'year-in-progress',
-        caption: 'Rok w toku: grupa rozwinięta, kategorie bez grupy',
+        caption:
+            'Rok w toku: grupa rozwinięta, kategorie bez grupy; nazwa kategorii to link do operacji roku',
         kind: 'report',
         period: {
             kind: 'year',
@@ -618,7 +619,8 @@ export const reportScenarios: ReportScenario[] = [
     },
     {
         key: 'month-closed',
-        caption: 'Miesiąc zamknięty',
+        caption:
+            'Miesiąc zamknięty: nazwa kategorii to link do operacji miesiąca',
         kind: 'report',
         period: {
             kind: 'month',
@@ -802,7 +804,8 @@ export const reportScenarios: ReportScenario[] = [
     },
     {
         key: 'trend-closed',
-        caption: 'Trend roku zakończonego: wszystkie miesiące z kwotami',
+        caption:
+            'Trend roku zakończonego: wszystkie miesiące z kwotami; nazwa kategorii to link do operacji roku',
         kind: 'trend',
         period: trendClosedPeriod,
         report: null,

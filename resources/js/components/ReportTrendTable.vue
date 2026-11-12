@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
 import { computed, reactive, useId } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
@@ -6,7 +7,12 @@ import ListSurface from '@/components/ListSurface.vue';
 import ReportTrendRow from '@/components/ReportTrendRow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
-import type { ReportTrendEntry } from '@/types/reports';
+import {
+    reportCategoryOperationsQuery,
+    reportOperationsLinkLabel,
+} from '@/lib/report-category-operations';
+import { operations } from '@/routes';
+import type { ReportTrendCategory, ReportTrendEntry } from '@/types/reports';
 
 const props = defineProps<{
     type: 'income' | 'expense';
@@ -17,6 +23,8 @@ const props = defineProps<{
     /** The type's total of the year. */
     totalMinorUnits: number;
     inProgressMonth: number | null;
+    /** Year of the viewed Budget; a category name links to Operations of it. */
+    budgetYear: number;
 }>();
 
 const t = useTranslations();
@@ -44,6 +52,18 @@ function toggle(groupId: number): void {
 
 function bodyId(groupId: number): string {
     return `${tableId}-group-${groupId}`;
+}
+
+function categoryOperationsQuery(category: ReportTrendCategory) {
+    return reportCategoryOperationsQuery(category, props.budgetYear, null);
+}
+
+function operationsLinkLabel(name: string): string {
+    return reportOperationsLinkLabel(
+        t.reports.operations_link_label,
+        name,
+        String(props.budgetYear),
+    );
 }
 
 function toggleLabel(name: string, open: boolean): string {
@@ -90,7 +110,24 @@ function toggleLabel(name: string, open: boolean): string {
                             :muted="entry.is_archived"
                             data-report-row="category"
                         >
+                            <Link
+                                v-if="categoryOperationsQuery(entry) !== null"
+                                :href="
+                                    operations({
+                                        query: categoryOperationsQuery(entry)!,
+                                    })
+                                "
+                                class="report-name-link"
+                                :aria-label="operationsLinkLabel(entry.name)"
+                            >
+                                <CategoryChip
+                                    :name="entry.name"
+                                    :icon="entry.icon ?? ''"
+                                    :color="entry.color"
+                                />
+                            </Link>
                             <CategoryChip
+                                v-else
                                 :name="entry.name"
                                 :icon="entry.icon ?? ''"
                                 :color="entry.color"
@@ -154,7 +191,32 @@ function toggleLabel(name: string, open: boolean): string {
                                     :muted="category.is_archived"
                                     data-report-row="category"
                                 >
+                                    <Link
+                                        v-if="
+                                            categoryOperationsQuery(
+                                                category,
+                                            ) !== null
+                                        "
+                                        :href="
+                                            operations({
+                                                query: categoryOperationsQuery(
+                                                    category,
+                                                )!,
+                                            })
+                                        "
+                                        class="report-name-link"
+                                        :aria-label="
+                                            operationsLinkLabel(category.name)
+                                        "
+                                    >
+                                        <CategoryChip
+                                            :name="category.name"
+                                            :icon="category.icon ?? ''"
+                                            :color="category.color"
+                                        />
+                                    </Link>
                                     <CategoryChip
+                                        v-else
                                         :name="category.name"
                                         :icon="category.icon ?? ''"
                                         :color="category.color"
