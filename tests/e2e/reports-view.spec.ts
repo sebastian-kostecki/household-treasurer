@@ -1,4 +1,4 @@
-// E2E test: the states of the „Raporty” view (change reports-view, ADR-0083).
+// E2E test: the states of the „Raporty” view (change reports-view, ADR-0084).
 // Risk it protects: a Reports state without a report (a draft Budget, no
 // Budget at all) loses the title row, so the view looks like another page, and
 // the 12-month window, reachable from the period switch, has no way back.
@@ -160,7 +160,7 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
 
 // In the 22rem phone frame the card is about 320 px wide and a row holds about
 // 288 px of content: the Udział column must not take the name's room, so the
-// share goes under the amount and the archived Badge under the name (ADR-0083).
+// share goes under the amount and the archived Badge under the name (ADR-0084).
 // The Badge test assumes the real fonts (the build serves them), so a failure
 // there can come from font loading, not from the CSS.
 test.describe('Raporty: wąska karta pokazuje pełne nazwy i Udział pod kwotą', () => {

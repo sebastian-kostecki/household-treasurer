@@ -1450,7 +1450,7 @@
     }
 
     /**
-     * Period Report table (ADR-0070, ADR-0074, ADR-0083): one markup on every
+     * Period Report table (ADR-0070, ADR-0074, ADR-0084): one markup on every
      * width, switched by the width of the table's own card (`.report-table`),
      * not the window. Columns Kategoria | Kwota | Udział; income has no Udział
      * column. A group is a `muted` band like in the Budget, its Categories
