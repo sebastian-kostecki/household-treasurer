@@ -82,7 +82,7 @@ class User extends Authenticatable implements PasskeyUser
      */
     public function budgets(): HasMany
     {
-        return $this->hasMany(Budget::class);
+        return $this->hasMany(Budget::class)->chaperone();
     }
 
     /**

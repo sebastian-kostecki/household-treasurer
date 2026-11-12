@@ -441,7 +441,9 @@ class MonthPlanProposalTest extends TestCase
 
         // Two more than the lines alone (the list Category of each Budget's lines is eager loaded),
         // plus one for the Rhythm entries and one actuals query per Budget, whatever the months read.
-        $this->assertLessThanOrEqual(10, $queries);
+        // One more reads the owner of the Budget for the Default Set-aside Percent (ADR-0081; the factory
+        // Budget has no loaded user, budgets from $user->budgets() get it by chaperone without a query).
+        $this->assertLessThanOrEqual(11, $queries);
     }
 
     public function test_an_irregular_category_is_proposed_with_the_rate_of_the_annual_plan(): void
@@ -455,6 +457,138 @@ class MonthPlanProposalTest extends TestCase
         $this->assertSame(15_000, $proposal->reading(6)->amounts[$service->id]);
         $this->assertSame(19_833, $proposal->reading(11)->amounts[$retreat->id]);
         $this->assertSame(19_837, $proposal->reading(12)->amounts[$retreat->id]);
+    }
+
+    public function test_default_percent_sets_aside_the_percent_of_planned_income_rounded_down_to_a_zloty(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $this->approve($budget, 10, [$salary->id => 843_755]);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(84_300, $proposal->reading(11)->setAsideMinorUnits);
+        $this->assertSame(['percent' => 10, 'income_minor_units' => 843_755], $proposal->reading(11)->setAsideDefault);
+
+        $other = $this->budget(2027);
+        $otherSalary = $this->income($other);
+        $this->approve($other, 10, [$otherSalary->id => 900_000]);
+
+        $this->assertSame(90_000, MonthPlanProposal::forBudget($other, $this->day(2027, 11, 10))->reading(11)->setAsideMinorUnits);
+    }
+
+    public function test_default_percent_replaces_copying_the_set_aside_of_an_approved_previous_month(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $this->approve($budget, 10, [$salary->id => 900_000], 150_000);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(90_000, $proposal->reading(11)->setAsideMinorUnits);
+        $this->assertSame(150_000, $proposal->reading(10)->setAsideMinorUnits);
+    }
+
+    public function test_default_percent_zero_sets_aside_nothing_even_with_a_positive_source(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(0)->create();
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $this->approve($budget, 10, [$salary->id => 900_000], 150_000);
+
+        $reading = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11);
+
+        $this->assertSame(0, $reading->setAsideMinorUnits);
+        $this->assertSame(['percent' => 0, 'income_minor_units' => 900_000], $reading->setAsideDefault);
+    }
+
+    public function test_without_a_default_percent_the_positive_set_aside_is_copied(): void
+    {
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $this->approve($budget, 10, [$salary->id => 900_000], 150_000);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10));
+
+        $this->assertSame(150_000, $proposal->reading(11)->setAsideMinorUnits);
+        $this->assertNull($proposal->reading(11)->setAsideDefault);
+    }
+
+    public function test_without_a_default_percent_a_draw_source_gives_zero(): void
+    {
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $this->approve($budget, 10, [$salary->id => 900_000], -50_000);
+
+        $this->assertSame(0, MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11)->setAsideMinorUnits);
+    }
+
+    public function test_january_without_a_previous_budget_uses_the_default_percent_of_january_income(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $budget = $this->budget(2027);
+        $this->income($budget, 12_000_000);
+
+        $reading = MonthPlanProposal::forBudget($budget, $this->day(2027, 1, 4))->reading(1);
+
+        $this->assertSame(100_000, $reading->setAsideMinorUnits);
+        $this->assertSame(1_000_000, $reading->setAsideDefault['income_minor_units']);
+    }
+
+    public function test_an_income_line_archived_before_the_month_is_left_out_of_the_base(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $old = $this->income($budget, 12_000_000, ['name' => 'Stara', 'archived_at' => '2026-10-31 10:00:00']);
+        $this->approve($budget, 10, [$salary->id => 900_000, $old->id => 500_000]);
+
+        $reading = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11);
+
+        $this->assertSame(90_000, $reading->setAsideMinorUnits);
+        $this->assertSame(900_000, $reading->setAsideDefault['income_minor_units']);
+    }
+
+    public function test_a_month_without_planned_income_sets_aside_zero(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $budget = $this->budget(2026);
+        $this->food($budget);
+
+        $reading = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(11);
+
+        $this->assertSame(0, $reading->setAsideMinorUnits);
+        $this->assertSame(['percent' => 10, 'income_minor_units' => 0], $reading->setAsideDefault);
+    }
+
+    public function test_an_approved_plan_keeps_its_set_aside_after_the_default_percent_is_set(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(20)->create();
+        $budget = $this->budget(2026);
+        $salary = $this->income($budget);
+        $this->approve($budget, 10, [$salary->id => 900_000], 90_000);
+
+        $reading = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 10))->reading(10);
+
+        $this->assertSame('approved', $reading->state);
+        $this->assertSame(90_000, $reading->setAsideMinorUnits);
+        $this->assertNull($reading->setAsideDefault);
+    }
+
+    public function test_the_previous_budget_proposal_also_uses_the_default_percent(): void
+    {
+        $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $previous = $this->budget(2026);
+        $salary = $this->income($previous);
+        $this->approve($previous, 11, [$salary->id => 900_000], 150_000);
+        $budget = $this->budget(2027);
+        $this->income($budget, 10_800_000, ['category_id' => $salary->category_id]);
+
+        $proposal = MonthPlanProposal::forBudget($budget, $this->day(2026, 11, 20));
+
+        $this->assertSame(90_000, $proposal->reading(1)->setAsideMinorUnits);
     }
 
     private function day(int $year, int $month, int $day): CarbonImmutable
@@ -475,6 +609,17 @@ class MonthPlanProposalTest extends TestCase
         return BudgetLine::factory()->for($budget)->expense()->create($attributes + [
             'name' => 'Jedzenie',
             'planned_amount_minor_units' => 100_001,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function income(Budget $budget, int $annualMinorUnits = 10_800_000, array $attributes = []): BudgetLine
+    {
+        return BudgetLine::factory()->for($budget)->income()->create($attributes + [
+            'name' => 'Pensja',
+            'planned_amount_minor_units' => $annualMinorUnits,
         ]);
     }
 

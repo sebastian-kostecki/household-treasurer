@@ -338,27 +338,27 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia żadnego wiersza, więc `
 
 #### Automated
 
-- [x] 2.1 Testy fazy przechodzą na PostgreSQL (worktree, `DB_DATABASE=testing_default_set_aside_percent`): `artisan test --compact tests/Feature/Settings/MonthPlanSettingsTest.php tests/Feature/Migrations/DefaultSetAsidePercentMigrationTest.php tests/Feature/UserSnapshotCommandTest.php tests/Feature/ResetUserDataCommandTest.php tests/Feature/SettingsKitchenSinkTest.php tests/Unit/SettingsHardcodedUiTest.php`
-- [x] 2.2 `npm run build` i `npm run types:check` przechodzą (nowa trasa Wayfinder)
-- [x] 2.3 `npm run check:ui` przechodzi z nową stroną na liście
-- [x] 2.4 `vendor/bin/pint --dirty --format agent` nie zostawia zmian, a `vendor/bin/sloppy ci` nie zgłasza nowych znalezisk
+- [x] 2.1 Testy fazy przechodzą na PostgreSQL (worktree, `DB_DATABASE=testing_default_set_aside_percent`): `artisan test --compact tests/Feature/Settings/MonthPlanSettingsTest.php tests/Feature/Migrations/DefaultSetAsidePercentMigrationTest.php tests/Feature/UserSnapshotCommandTest.php tests/Feature/ResetUserDataCommandTest.php tests/Feature/SettingsKitchenSinkTest.php tests/Unit/SettingsHardcodedUiTest.php` — c35bad7
+- [x] 2.2 `npm run build` i `npm run types:check` przechodzą (nowa trasa Wayfinder) — c35bad7
+- [x] 2.3 `npm run check:ui` przechodzi z nową stroną na liście — c35bad7
+- [x] 2.4 `vendor/bin/pint --dirty --format agent` nie zostawia zmian, a `vendor/bin/sloppy ci` nie zgłasza nowych znalezisk — c35bad7
 
 #### Manual
 
-- [x] 2.5 W `/settings/month-plan` zapis 10 pokazuje toast i wartość po przeładowaniu; puste pole wraca jako puste; 101 pokazuje błąd pola
-- [x] 2.6 `/dev/ui/settings` pokazuje nową zakładkę we wszystkich stanach w trybie jasnym i ciemnym
+- [x] 2.5 W `/settings/month-plan` zapis 10 pokazuje toast i wartość po przeładowaniu; puste pole wraca jako puste; 101 pokazuje błąd pola — c35bad7
+- [x] 2.6 `/dev/ui/settings` pokazuje nową zakładkę we wszystkich stanach w trybie jasnym i ciemnym — c35bad7
 
 ### Phase 3: Propozycja liczy procent
 
 #### Automated
 
-- [ ] 3.1 Nowe testy w `MonthPlanProposalTest.php` są czerwone przed zmianą `MonthPlanProposal.php` i zielone po niej
-- [ ] 3.2 Testy planu przechodzą na PostgreSQL: `artisan test --compact tests/Feature/MonthPlanProposalTest.php tests/Feature/MonthPlanPageTest.php tests/Feature/ApproveMonthPlanTest.php tests/Feature/ChangeMonthPlanTest.php tests/Feature/MonthToSpendTest.php tests/Feature/EntryToSpendInputsTest.php`
-- [ ] 3.3 `vendor/bin/pint --dirty --format agent` nie zostawia zmian, a `vendor/bin/sloppy ci` nie zgłasza nowych znalezisk (brak zapytania w `computePlan`)
+- [x] 3.1 Nowe testy w `MonthPlanProposalTest.php` są czerwone przed zmianą `MonthPlanProposal.php` i zielone po niej
+- [x] 3.2 Testy planu przechodzą na PostgreSQL: `artisan test --compact tests/Feature/MonthPlanProposalTest.php tests/Feature/MonthPlanPageTest.php tests/Feature/ApproveMonthPlanTest.php tests/Feature/ChangeMonthPlanTest.php tests/Feature/MonthToSpendTest.php tests/Feature/EntryToSpendInputsTest.php`
+- [x] 3.3 `vendor/bin/pint --dirty --format agent` nie zostawia zmian, a `vendor/bin/sloppy ci` nie zgłasza nowych znalezisk (brak zapytania w `computePlan`)
 
 #### Manual
 
-- [ ] 3.4 Na bazie podglądu z procentem 10 propozycja bieżącego lub następnego miesiąca pokazuje „odkładam” równe 10 % planowanych przychodów w dół do złotego, a zatwierdzony miesiąc pokazuje kwotę bez zmian
+- [x] 3.4 Na bazie podglądu z procentem 10 propozycja bieżącego lub następnego miesiąca pokazuje „odkładam” równe 10 % planowanych przychodów w dół do złotego, a zatwierdzony miesiąc pokazuje kwotę bez zmian
 
 ### Phase 4: Podpowiedź w planie miesiąca
 

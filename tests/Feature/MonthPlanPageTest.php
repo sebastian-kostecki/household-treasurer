@@ -198,6 +198,22 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_proposal_set_aside_equals_the_default_percent_of_planned_income(): void
+    {
+        [$user] = $this->canonicalBudget();
+        $user->forceFill(['default_set_aside_percent' => 10])->save();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.set_aside_minor_units', 80_000)
+                ->where('monthPlan.to_spend_minor_units', 373_000 - 80_000),
+            );
+    }
+
     public function test_to_spend_breakdown_and_set_aside_add_up_to_the_number(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();
