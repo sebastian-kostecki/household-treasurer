@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { categoryOperationsQuery } from './dashboard-categories';
-import { reportCategoryOperationsQuery } from './report-category-operations';
+import {
+    reportCategoryOperationsQuery,
+    reportOperationsLinkLabel,
+} from './report-category-operations';
 
 const food = { id: 5, has_operations: true };
 
@@ -83,5 +86,24 @@ describe('reportCategoryOperationsQuery', () => {
             expect(query?.term_deposit_id).toBeUndefined();
             expect(query?.section).toBeUndefined();
         }
+    });
+});
+
+describe('reportOperationsLinkLabel', () => {
+    const template = 'Operacje kategorii :name, :period';
+
+    it('fills the name and the period', () => {
+        expect(
+            reportOperationsLinkLabel(template, 'Jedzenie', 'marzec 2026'),
+        ).toBe('Operacje kategorii Jedzenie, marzec 2026');
+    });
+
+    it('keeps a user-supplied name literal', () => {
+        expect(reportOperationsLinkLabel(template, 'A$&B', '2026')).toBe(
+            'Operacje kategorii A$&B, 2026',
+        );
+        expect(
+            reportOperationsLinkLabel(template, 'Raty :period', '2026'),
+        ).toBe('Operacje kategorii Raty :period, 2026');
     });
 });

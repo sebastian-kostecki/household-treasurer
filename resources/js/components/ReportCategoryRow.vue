@@ -7,7 +7,10 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import { formatShareTenths } from '@/lib/format-share';
 import { planChangeToneClass } from '@/lib/plan-change-direction';
-import { reportCategoryOperationsQuery } from '@/lib/report-category-operations';
+import {
+    reportCategoryOperationsQuery,
+    reportOperationsLinkLabel,
+} from '@/lib/report-category-operations';
 import { reportDifferenceTone } from '@/lib/report-difference';
 import { operations } from '@/routes';
 import type { PeriodReportCategory } from '@/types/reports';
@@ -53,9 +56,11 @@ const operationsLinkLabel = computed(() => {
             ? String(props.budgetYear)
             : `${t.budget[`month_name_${props.month}` as keyof typeof t.budget]} ${props.budgetYear}`;
 
-    return t.reports.operations_link_label
-        .replace(':name', props.category.name)
-        .replace(':period', period);
+    return reportOperationsLinkLabel(
+        t.reports.operations_link_label,
+        props.category.name,
+        period,
+    );
 });
 
 const differenceToneClass = computed(() => {

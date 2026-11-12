@@ -41,3 +41,18 @@ export function reportCategoryOperationsQuery(
         DEFAULT_OPERATIONS_SECTION,
     );
 }
+
+/**
+ * Dostępna nazwa linku z szablonu `:name` / `:period`. Jedno przejście i
+ * funkcja zastępująca: nazwa kategorii od użytkownika nie jest ani
+ * interpretowana (`$&`), ani ponownie podstawiana (tekst `:period`).
+ */
+export function reportOperationsLinkLabel(
+    template: string,
+    name: string,
+    period: string,
+): string {
+    return template.replace(/:(name|period)/g, (_, key: string) =>
+        key === 'name' ? name : period,
+    );
+}

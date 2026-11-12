@@ -7,7 +7,10 @@ import ListSurface from '@/components/ListSurface.vue';
 import ReportTrendRow from '@/components/ReportTrendRow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
-import { reportCategoryOperationsQuery } from '@/lib/report-category-operations';
+import {
+    reportCategoryOperationsQuery,
+    reportOperationsLinkLabel,
+} from '@/lib/report-category-operations';
 import { operations } from '@/routes';
 import type { ReportTrendCategory, ReportTrendEntry } from '@/types/reports';
 
@@ -51,20 +54,16 @@ function bodyId(groupId: number): string {
     return `${tableId}-group-${groupId}`;
 }
 
-function categoryHref(category: ReportTrendCategory): string {
-    const query = reportCategoryOperationsQuery(
-        category,
-        props.budgetYear,
-        null,
-    );
-
-    return query === null ? '' : operations({ query }).url;
+function categoryOperationsQuery(category: ReportTrendCategory) {
+    return reportCategoryOperationsQuery(category, props.budgetYear, null);
 }
 
 function operationsLinkLabel(name: string): string {
-    return t.reports.operations_link_label
-        .replace(':name', name)
-        .replace(':period', String(props.budgetYear));
+    return reportOperationsLinkLabel(
+        t.reports.operations_link_label,
+        name,
+        String(props.budgetYear),
+    );
 }
 
 function toggleLabel(name: string, open: boolean): string {
@@ -112,7 +111,12 @@ function toggleLabel(name: string, open: boolean): string {
                             data-report-row="category"
                         >
                             <Link
-                                :href="categoryHref(entry)"
+                                v-if="categoryOperationsQuery(entry) !== null"
+                                :href="
+                                    operations({
+                                        query: categoryOperationsQuery(entry)!,
+                                    })
+                                "
                                 class="report-name-link"
                                 :aria-label="operationsLinkLabel(entry.name)"
                             >
@@ -122,6 +126,12 @@ function toggleLabel(name: string, open: boolean): string {
                                     :color="entry.color"
                                 />
                             </Link>
+                            <CategoryChip
+                                v-else
+                                :name="entry.name"
+                                :icon="entry.icon ?? ''"
+                                :color="entry.color"
+                            />
                             <Badge v-if="entry.is_archived" variant="neutral">
                                 {{ t.reports.archived_badge }}
                             </Badge>
@@ -182,7 +192,18 @@ function toggleLabel(name: string, open: boolean): string {
                                     data-report-row="category"
                                 >
                                     <Link
-                                        :href="categoryHref(category)"
+                                        v-if="
+                                            categoryOperationsQuery(
+                                                category,
+                                            ) !== null
+                                        "
+                                        :href="
+                                            operations({
+                                                query: categoryOperationsQuery(
+                                                    category,
+                                                )!,
+                                            })
+                                        "
                                         class="report-name-link"
                                         :aria-label="
                                             operationsLinkLabel(category.name)
@@ -194,6 +215,12 @@ function toggleLabel(name: string, open: boolean): string {
                                             :color="category.color"
                                         />
                                     </Link>
+                                    <CategoryChip
+                                        v-else
+                                        :name="category.name"
+                                        :icon="category.icon ?? ''"
+                                        :color="category.color"
+                                    />
                                     <Badge
                                         v-if="category.is_archived"
                                         variant="neutral"
