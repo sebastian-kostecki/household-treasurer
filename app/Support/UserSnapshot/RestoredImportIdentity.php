@@ -61,11 +61,19 @@ class RestoredImportIdentity
             }
         }
 
+        if (! is_string($date) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1) {
+            throw new UserSnapshotException("Snapshot {$recordLabel} has an import identity digest but an import identity date that is not Y-m-d.");
+        }
+
+        if (! is_int($amount)) {
+            throw new UserSnapshotException("Snapshot {$recordLabel} has an import identity digest but an import identity amount that is not an integer.");
+        }
+
         return $this->importIdentityDigest->compute(
             $targetUser->id,
             $accountId,
-            (string) $date,
-            (int) $amount,
+            $date,
+            $amount,
             $rawStatementDescription,
         );
     }

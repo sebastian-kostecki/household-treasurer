@@ -645,12 +645,71 @@ class UserSnapshotCommandTest extends TestCase
         $accountIds = $user->accounts()->orderBy('id')->pluck('id')->all();
         $operationId = $user->financialOperations()->value('id');
 
+        $recordLabel = match ($kind) {
+            'operation' => 'financial operation',
+            'source leg' => 'own transfer',
+            'destination leg' => 'own transfer',
+            'capital movement' => 'capital movement',
+        };
+        $legSuffix = match ($kind) {
+            'source leg' => ' source ',
+            'destination leg' => ' destination ',
+            default => ' ',
+        };
+        $reason = match ($gap) {
+            'raw statement description' => 'but no raw statement description',
+            'identity date' => 'but no import identity date',
+            'identity amount' => 'but no import identity amount',
+            'identity account' => 'references unknown import identity account id 999999',
+        };
+
         try {
             app(RestoreUserData::class)->handle($user, $brokenPath);
             $this->fail('The restore should have refused the snapshot.');
-        } catch (UserSnapshotException) {
+        } catch (UserSnapshotException $exception) {
+            $this->assertStringContainsString($recordLabel, $exception->getMessage());
+            $this->assertStringContainsString($legSuffix, $exception->getMessage());
+            $this->assertStringContainsString($reason, $exception->getMessage());
             $this->assertSame($accountIds, $user->accounts()->orderBy('id')->pluck('id')->all());
             $this->assertSame(1, $user->financialOperations()->count());
+            $this->assertSame($operationId, $user->financialOperations()->value('id'));
+        }
+    }
+
+    /**
+     * @return array<string, array{string, mixed, string}>
+     */
+    public static function malformedImportIdentityInputs(): array
+    {
+        return [
+            'date not Y-m-d' => ['import_identity_date', '12.03.2026', 'date that is not Y-m-d'],
+            'date with time' => ['import_identity_date', '2026-03-12 00:00:00', 'date that is not Y-m-d'],
+            'amount as string' => ['import_identity_amount_minor_units', '150000', 'amount that is not an integer'],
+            'amount as float' => ['import_identity_amount_minor_units', 1500.5, 'amount that is not an integer'],
+        ];
+    }
+
+    #[DataProvider('malformedImportIdentityInputs')]
+    public function test_restore_action_refuses_malformed_import_identity_input(string $key, mixed $value, string $reason): void
+    {
+        Storage::fake('local');
+
+        $user = $this->createUserWithImportIdentities();
+        $path = app(BackupUserData::class)->handle($user);
+        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot['financial_operations'][0][$key] = $value;
+
+        $brokenPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/malformed-identity.json');
+        file_put_contents($brokenPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $operationId = $user->financialOperations()->value('id');
+
+        try {
+            app(RestoreUserData::class)->handle($user, $brokenPath);
+            $this->fail('The restore should have refused the snapshot.');
+        } catch (UserSnapshotException $exception) {
+            $this->assertStringContainsString('financial operation', $exception->getMessage());
+            $this->assertStringContainsString($reason, $exception->getMessage());
             $this->assertSame($operationId, $user->financialOperations()->value('id'));
         }
     }
