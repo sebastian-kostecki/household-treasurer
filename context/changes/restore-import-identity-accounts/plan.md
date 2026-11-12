@@ -267,15 +267,15 @@ Brak migracji i nowej wersji snapshotu. Snapshoty zapisane wcześniej (także pr
 
 #### Automated
 
-- [x] 2.1 Nowe testy restore czerwone na PostgreSQL przed poprawką, wynik zapisany
-- [x] 2.2 Testy snapshotu przechodzą na PostgreSQL po poprawce
-- [x] 2.3 Testy importu przechodzą na PostgreSQL
-- [x] 2.4 Bramka composer ci:check przechodzi
-- [x] 2.5 Pint bez zmian i Sloppy bez nowych znalezisk
+- [x] 2.1 Nowe testy restore czerwone na PostgreSQL przed poprawką, wynik zapisany — f852cf8
+- [x] 2.2 Testy snapshotu przechodzą na PostgreSQL po poprawce — f852cf8
+- [x] 2.3 Testy importu przechodzą na PostgreSQL — f852cf8
+- [x] 2.4 Bramka composer ci:check przechodzi — f852cf8
+- [x] 2.5 Pint bez zmian i Sloppy bez nowych znalezisk — f852cf8
 
 #### Manual
 
-- [x] 2.6 Przegląd diffu: asercje osłabione tylko tam, gdzie zmieniło się wymaganie
+- [x] 2.6 Przegląd diffu: asercje osłabione tylko tam, gdzie zmieniło się wymaganie — f852cf8
 
 ### Phase 3: README i próba na kopii produkcji
 
