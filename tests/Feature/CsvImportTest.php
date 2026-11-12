@@ -8,15 +8,21 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
+use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
 use App\Models\User;
 use App\Support\AccountIdentity;
 use App\Support\CsvImport\ImportIdentityDigest;
+use App\Support\CsvImport\ImportMonthRemainingContext;
 use App\Support\CsvImport\ImportRowFields;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -71,7 +77,12 @@ CSV;
                 ->where('rows.1.amount_minor_units', -4550)
                 ->has('monthRemainingContext.budgets', 1)
                 ->has('entryToSpend.budgets', 1)
-                ->where('entryToSpend.budgets.0.year', 2026),
+                ->where('entryToSpend.budgets.0.year', 2026)
+                ->where('entryToSpend.budgets.0.categories', [
+                    ['id' => $incomeCategory->category_id, 'type' => 'income', 'rhythms' => null],
+                    ['id' => $expenseCategory->category_id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'running')],
+                ])
+                ->where('entryToSpend.irregular_periods', []),
             );
     }
 
@@ -213,6 +224,56 @@ CSV;
                 ->where('rows.0.category_suggestion.income', null)
                 ->where('rows.1.category_suggestion.expense', null)
                 ->where('rows.1.category_suggestion.income', null),
+            );
+    }
+
+    public function test_preview_suggests_a_category_without_a_line_in_the_row_year_that_the_selector_offers(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $withoutLine = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Zakupy']);
+        FinancialOperation::factory()->for($user)->for($account)->create([
+            'type' => FinancialOperationType::Expense,
+            'budget_line_id' => $withoutLine->id,
+            'budget_id' => $budget2025->id,
+            'operation_date' => '2025-05-10',
+            'amount_minor_units' => 1000,
+            'description' => 'BIEDRONKA WARSZAWA',
+            'raw_statement_description' => 'PLATNOSC KARTA BIEDRONKA WARSZAWA',
+        ]);
+
+        $this->previewCsv($user, $account, "date,description,amount\n2026-03-15,Biedronka 4521,-45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rows.0.category_suggestion.expense', $withoutLine->category_id)
+                ->where('expenseCategories', fn ($options): bool => collect($options)->contains(
+                    fn (array $option): bool => $option['id'] === $withoutLine->category_id && $option['budget_year'] === 2026,
+                )),
+            );
+    }
+
+    public function test_preview_category_options_carry_the_category_group(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseCategory] = $this->createImportFixture();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        $expenseCategory->category->update(['category_group_id' => $group->id]);
+
+        $this->previewCsv($user, $account, "date,description,amount\n2026-03-15,Biedronka 4521,-45.50");
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.id', $expenseCategory->category_id)
+                ->where('expenseCategories.0.group', ['id' => $group->id, 'name' => 'Dom'])
+                ->where('incomeCategories.0.group', null),
             );
     }
 
@@ -4159,5 +4220,66 @@ CSV);
             UPLOAD_ERR_OK,
             true,
         );
+    }
+
+    public function test_import_row_on_a_category_without_a_line_joins_the_budget_on_commit_and_the_options_offer_it(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account, , $expenseLine] = $this->createImportFixture();
+        $domains = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,OVH,80.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 2)
+                ->where('expenseCategories', fn ($options) => collect($options)->contains(
+                    fn ($option) => $option['id'] === $domains->id && $option['budget_year'] === 2026 && $option['rhythms'] === array_fill_keys(range(1, 12), 'running'),
+                ))
+                ->where('monthRemainingContext.budgets.0.categories', fn ($categories) => collect($categories)->contains(
+                    fn ($entry) => $entry['id'] === $domains->id && $entry['planned_amount_minor_units'] === 0 && $entry['rhythms'] === array_fill_keys(range(1, 12), 'running'),
+                )),
+            );
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [['index' => 0, 'selected' => true, 'type' => 'expense', 'category_id' => $domains->id]],
+            ])
+            ->assertRedirect(route('operations'));
+
+        $line = BudgetLine::query()->where('category_id', $domains->id)->firstOrFail();
+        $this->assertSame($expenseLine->budget_id, $line->budget_id);
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertSame(8000, $line->execution_minor_units);
+    }
+
+    public function test_month_remaining_context_reads_the_rhythm_history_once_for_every_budget_in_execution(): void
+    {
+        $user = User::factory()->create();
+
+        foreach ([2026, 2027] as $year) {
+            $budget = Budget::factory()->for($user)->execution()->create(['year' => $year]);
+            BudgetLine::factory()->for($budget)->expense()->create();
+        }
+
+        $rhythmQueries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$rhythmQueries): void {
+            if (str_contains($query->sql, 'category_rhythms')) {
+                $rhythmQueries++;
+            }
+        });
+
+        $context = ImportMonthRemainingContext::forUser($user, CarbonImmutable::create(2026, 6, 15));
+
+        $this->assertCount(2, $context['budgets']);
+        $this->assertSame(1, $rhythmQueries);
     }
 }

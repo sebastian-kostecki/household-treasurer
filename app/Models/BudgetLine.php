@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use Database\Factories\BudgetLineFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,8 +21,6 @@ use Illuminate\Support\Carbon;
  * @property int $budget_id
  * @property int $category_id
  * @property Category $category
- * @property bool $is_paced
- * @property MonthItemKind $month_item_kind
  * @property int $planned_amount_minor_units
  * @property int $initial_plan_minor_units
  * @property int $execution_minor_units
@@ -34,8 +31,6 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'budget_id',
     'category_id',
-    'is_paced',
-    'month_item_kind',
     'planned_amount_minor_units',
     'initial_plan_minor_units',
     'execution_minor_units',
@@ -60,8 +55,6 @@ class BudgetLine extends Model
     protected function casts(): array
     {
         return [
-            'is_paced' => 'boolean',
-            'month_item_kind' => MonthItemKind::class,
             'planned_amount_minor_units' => 'integer',
             'initial_plan_minor_units' => 'integer',
             'execution_minor_units' => 'integer',

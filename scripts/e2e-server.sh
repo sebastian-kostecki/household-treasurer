@@ -11,7 +11,9 @@ cd "${ROOT}"
 
 PORT="${1:?Usage: $0 <port>}"
 DB="${E2E_DB_DATABASE:-household_treasurer_e2e}"
-CONTAINER="household-treasurer-e2e"
+# Named after the port, so E2E runs of parallel worktrees (each on its own
+# E2E_PORT and E2E_DB_DATABASE) never remove each other's server.
+CONTAINER="household-treasurer-e2e-${PORT}"
 NETWORK="household-treasurer_sail"
 
 if [[ -f public/hot ]]; then

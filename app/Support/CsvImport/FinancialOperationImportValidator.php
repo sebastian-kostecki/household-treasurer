@@ -5,7 +5,7 @@ namespace App\Support\CsvImport;
 use App\Enums\CategoryType;
 use App\Models\Account;
 use App\Models\User;
-use App\Support\BudgetLineResolver;
+use App\Support\CategoryList\OperationCategoryChoice;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -46,24 +46,15 @@ class FinancialOperationImportValidator
                 );
             }
 
-            $category = (new BudgetLineResolver)->forYear($user, $data['category_id'], Carbon::parse($data['operation_date'])->year);
+            $message = OperationCategoryChoice::check(
+                $user,
+                $data['category_id'],
+                $type === 'income' ? CategoryType::Income : CategoryType::Expense,
+                Carbon::parse($data['operation_date'])->year,
+                null,
+            );
 
-            if ($category === null || $category->isArchived()) {
-                $validator->errors()->add(
-                    'category_id',
-                    $category === null
-                        ? __('The selected category does not belong to the budget for this operation year.')
-                        : __('The selected category is invalid.'),
-                );
-
-                return;
-            }
-
-            if (! $category->budget->isExecution()) {
-                $message = $type === 'income'
-                    ? __('Income can only be recorded for a budget in execution. Create or start a budget for this year.')
-                    : __('Expenses can only be recorded for a budget in execution. Create or start a budget for this year.');
-
+            if ($message !== null) {
                 $validator->errors()->add('category_id', $message);
             }
 
@@ -113,8 +104,7 @@ class FinancialOperationImportValidator
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('user_id', $user->id)
-                    ->where('type', CategoryType::Income->value)
-                    ->whereNull('archived_at'),
+                    ->where('type', CategoryType::Income->value),
             ],
         ];
     }
@@ -140,8 +130,7 @@ class FinancialOperationImportValidator
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('user_id', $user->id)
-                    ->where('type', CategoryType::Expense->value)
-                    ->whereNull('archived_at'),
+                    ->where('type', CategoryType::Expense->value),
             ],
         ];
     }

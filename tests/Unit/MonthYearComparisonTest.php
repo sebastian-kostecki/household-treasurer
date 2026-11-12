@@ -1,19 +1,17 @@
 <?php
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\BudgetLine;
 use App\Support\MonthYearComparison;
 
 function comparisonCategory(
     CategoryType $type,
-    ?MonthItemKind $kind,
     int $annualPlan,
     int $execution,
 ): BudgetLine {
     return unitBudgetLine([
         'type' => $type,
-        'month_item_kind' => $kind ?? MonthItemKind::Running,
         'planned_amount_minor_units' => $annualPlan,
         'execution_minor_units' => $execution,
     ]);
@@ -31,6 +29,23 @@ function comparisonAmounts(int $plan, int $actual, ?bool $hasPositiveAmount = nu
     ];
 }
 
+test('an irregular category compares the execution of the year, not the rate', function () {
+    $category = comparisonCategory(CategoryType::Expense, 180_000, 40_000);
+
+    expect(MonthYearComparison::forCategory($category, comparisonAmounts(15_000, 40_000), Rhythm::Irregular))->toBe([
+        'year_minor_units' => 40_000,
+        'annual_plan_minor_units' => 180_000,
+        'remaining_minor_units' => 140_000,
+        'is_over_year' => false,
+    ]);
+});
+
+test('an irregular category with no bill in the month counts only the bills before it', function () {
+    $category = comparisonCategory(CategoryType::Expense, 180_000, 25_000);
+
+    expect(MonthYearComparison::forCategory($category, comparisonAmounts(15_000, 0), Rhythm::Irregular)['year_minor_units'])->toBe(25_000);
+});
+
 dataset('food comparison cases', [
     'under plan' => [1_200_000, 1_000_000 + 40_000, 40_000, 1_100_000, 100_000, false],
     'over plan' => [1_200_000, 1_000_000 + 130_000, 130_000, 1_130_000, 70_000, false],
@@ -45,9 +60,9 @@ test('running category compares the year with the annual plan', function (
     int $remaining,
     bool $isOverYear,
 ) {
-    $food = comparisonCategory(CategoryType::Expense, MonthItemKind::Running, $annualPlan, $execution);
+    $food = comparisonCategory(CategoryType::Expense, $annualPlan, $execution);
 
-    expect(MonthYearComparison::forCategory($food, comparisonAmounts(100_000, $actual)))->toBe([
+    expect(MonthYearComparison::forCategory($food, comparisonAmounts(100_000, $actual), Rhythm::Running))->toBe([
         'year_minor_units' => $year,
         'annual_plan_minor_units' => $annualPlan,
         'remaining_minor_units' => $remaining,
@@ -57,9 +72,9 @@ test('running category compares the year with the annual plan', function (
 
 test('a net refund month counts at the plan and lowers the execution before the month', function () {
     // Execution 90 000 includes the month's net -10 000, so 100 000 was spent before the month.
-    $food = comparisonCategory(CategoryType::Expense, MonthItemKind::Running, 1_800_000, 90_000);
+    $food = comparisonCategory(CategoryType::Expense, 1_800_000, 90_000);
 
-    expect(MonthYearComparison::forCategory($food, comparisonAmounts(150_000, -10_000)))->toBe([
+    expect(MonthYearComparison::forCategory($food, comparisonAmounts(150_000, -10_000), Rhythm::Running))->toBe([
         'year_minor_units' => 250_000,
         'annual_plan_minor_units' => 1_800_000,
         'remaining_minor_units' => 1_550_000,
@@ -67,26 +82,26 @@ test('a net refund month counts at the plan and lowers the execution before the 
     ]);
 });
 
-test('bill counts at plan before payment and at the actual amount after it', function () {
-    $rent = comparisonCategory(CategoryType::Expense, MonthItemKind::Bill, 2_400_000, 1_000_000);
-    $paid = comparisonCategory(CategoryType::Expense, MonthItemKind::Bill, 2_400_000, 1_000_000 + 195_000);
+test('fixed charge counts at plan before payment and at the actual amount after it', function () {
+    $rent = comparisonCategory(CategoryType::Expense, 2_400_000, 1_000_000);
+    $paid = comparisonCategory(CategoryType::Expense, 2_400_000, 1_000_000 + 195_000);
 
-    expect(MonthYearComparison::forCategory($rent, comparisonAmounts(200_000, 0))['year_minor_units'])->toBe(1_200_000)
-        ->and(MonthYearComparison::forCategory($paid, comparisonAmounts(200_000, 195_000))['year_minor_units'])->toBe(1_195_000);
+    expect(MonthYearComparison::forCategory($rent, comparisonAmounts(200_000, 0), Rhythm::FixedCharge)['year_minor_units'])->toBe(1_200_000)
+        ->and(MonthYearComparison::forCategory($paid, comparisonAmounts(200_000, 195_000), Rhythm::FixedCharge)['year_minor_units'])->toBe(1_195_000);
 });
 
 test('income counts at plan before an inflow and at the actual amount after it', function () {
-    $before = comparisonCategory(CategoryType::Income, null, 9_600_000, 4_000_000);
-    $after = comparisonCategory(CategoryType::Income, null, 9_600_000, 4_000_000 + 780_000);
+    $before = comparisonCategory(CategoryType::Income, 9_600_000, 4_000_000);
+    $after = comparisonCategory(CategoryType::Income, 9_600_000, 4_000_000 + 780_000);
 
-    expect(MonthYearComparison::forCategory($before, comparisonAmounts(800_000, 0))['year_minor_units'])->toBe(4_800_000)
-        ->and(MonthYearComparison::forCategory($after, comparisonAmounts(800_000, 780_000))['year_minor_units'])->toBe(4_780_000);
+    expect(MonthYearComparison::forCategory($before, comparisonAmounts(800_000, 0), null)['year_minor_units'])->toBe(4_800_000)
+        ->and(MonthYearComparison::forCategory($after, comparisonAmounts(800_000, 780_000), null)['year_minor_units'])->toBe(4_780_000);
 });
 
 test('income above the annual plan is not flagged as over the year', function () {
-    $salary = comparisonCategory(CategoryType::Income, null, 9_000_000, 9_500_000);
+    $salary = comparisonCategory(CategoryType::Income, 9_000_000, 9_500_000);
 
-    expect(MonthYearComparison::forCategory($salary, comparisonAmounts(0, 0, false)))->toBe([
+    expect(MonthYearComparison::forCategory($salary, comparisonAmounts(0, 0, false), null))->toBe([
         'year_minor_units' => 9_500_000,
         'annual_plan_minor_units' => 9_000_000,
         'remaining_minor_units' => -500_000,
@@ -94,19 +109,19 @@ test('income above the annual plan is not flagged as over the year', function ()
     ]);
 });
 
-test('one-off with plan 0 leaves the annual available limit', function () {
-    $gift = comparisonCategory(CategoryType::Expense, MonthItemKind::Running, 100_000, 30_000);
+test('even annual with plan 0 leaves the annual available limit', function () {
+    $gift = comparisonCategory(CategoryType::Expense, 100_000, 30_000);
 
-    $comparison = MonthYearComparison::forCategory($gift, comparisonAmounts(0, 30_000));
+    $comparison = MonthYearComparison::forCategory($gift, comparisonAmounts(0, 30_000), Rhythm::EvenAnnual);
 
     expect($comparison['year_minor_units'])->toBe(30_000)
         ->and($comparison['remaining_minor_units'])->toBe(70_000);
 });
 
-test('one-off with a month plan and no spending counts the plan', function () {
-    $holiday = comparisonCategory(CategoryType::Expense, MonthItemKind::Running, 500_000, 200_000);
+test('even annual with a month plan and no spending counts the plan', function () {
+    $holiday = comparisonCategory(CategoryType::Expense, 500_000, 200_000);
 
-    $comparison = MonthYearComparison::forCategory($holiday, comparisonAmounts(100_000, 0));
+    $comparison = MonthYearComparison::forCategory($holiday, comparisonAmounts(100_000, 0), Rhythm::EvenAnnual);
 
     expect($comparison['year_minor_units'])->toBe(300_000)
         ->and($comparison['remaining_minor_units'])->toBe(200_000);

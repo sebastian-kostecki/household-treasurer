@@ -1,7 +1,8 @@
 import { expect, test } from 'vite-plus/test';
 import {
-    pacedMonthRemainingMinorUnits,
-    pacedPoolMonthRemainingMinorUnits,
+    isPoolRhythm,
+    poolCategoryMonthRemainingMinorUnits,
+    poolMonthRemainingMinorUnits,
 } from './month-remaining-calculator';
 import type { MonthRemainingCalculatorOptions } from './month-remaining-calculator';
 
@@ -18,25 +19,57 @@ const draftOptions: MonthRemainingCalculatorOptions = {
 
 test('draft splits paced current plan into twelfths', () => {
     expect(
-        pacedMonthRemainingMinorUnits(draftOptions, 120_000, 0, 0, 3, 0, 0),
+        poolCategoryMonthRemainingMinorUnits(
+            draftOptions,
+            120_000,
+            0,
+            0,
+            3,
+            0,
+            0,
+        ),
     ).toBe(10_000);
     expect(
-        pacedMonthRemainingMinorUnits(draftOptions, 120_000, 0, 0, 12, 0, 0),
+        poolCategoryMonthRemainingMinorUnits(
+            draftOptions,
+            120_000,
+            0,
+            0,
+            12,
+            0,
+            0,
+        ),
     ).toBe(10_000);
 });
 
 test('draft puts the remainder of the division in december', () => {
     expect(
-        pacedMonthRemainingMinorUnits(draftOptions, 120_005, 0, 0, 11, 0, 0),
+        poolCategoryMonthRemainingMinorUnits(
+            draftOptions,
+            120_005,
+            0,
+            0,
+            11,
+            0,
+            0,
+        ),
     ).toBe(10_000);
     expect(
-        pacedMonthRemainingMinorUnits(draftOptions, 120_005, 0, 0, 12, 0, 0),
+        poolCategoryMonthRemainingMinorUnits(
+            draftOptions,
+            120_005,
+            0,
+            0,
+            12,
+            0,
+            0,
+        ),
     ).toBe(10_005);
 });
 
 test('execution catch up subtracts paced execution in the viewed month', () => {
     expect(
-        pacedMonthRemainingMinorUnits(
+        poolCategoryMonthRemainingMinorUnits(
             executionOptions,
             120_000,
             25_000,
@@ -50,13 +83,21 @@ test('execution catch up subtracts paced execution in the viewed month', () => {
 
 test('execution floors leftover toward negative infinity', () => {
     expect(
-        pacedMonthRemainingMinorUnits(executionOptions, 0, 7, 0, 1, 0, 0),
+        poolCategoryMonthRemainingMinorUnits(
+            executionOptions,
+            0,
+            7,
+            0,
+            1,
+            0,
+            0,
+        ),
     ).toBe(-1);
 });
 
 test('execution december uses months left of one', () => {
     expect(
-        pacedMonthRemainingMinorUnits(
+        poolCategoryMonthRemainingMinorUnits(
             { ...executionOptions, today: '2026-12-20' },
             120_000,
             110_000,
@@ -70,7 +111,7 @@ test('execution december uses months left of one', () => {
 
 test('execution past budget year uses the viewed month', () => {
     expect(
-        pacedMonthRemainingMinorUnits(
+        poolCategoryMonthRemainingMinorUnits(
             { ...executionOptions, budgetYear: 2025 },
             120_000,
             20_000,
@@ -84,7 +125,7 @@ test('execution past budget year uses the viewed month', () => {
 
 test('execution future month shows current month plaster', () => {
     expect(
-        pacedMonthRemainingMinorUnits(
+        poolCategoryMonthRemainingMinorUnits(
             { ...executionOptions, today: '2026-03-15' },
             120_000,
             0,
@@ -98,7 +139,7 @@ test('execution future month shows current month plaster', () => {
 
 test('execution future budget year uses even plaster without catch up', () => {
     expect(
-        pacedMonthRemainingMinorUnits(
+        poolCategoryMonthRemainingMinorUnits(
             { ...executionOptions, budgetYear: 2027 },
             120_000,
             0,
@@ -111,7 +152,7 @@ test('execution future budget year uses even plaster without catch up', () => {
 });
 
 test('paced pool floors summed leftover once', () => {
-    const categoryRemaining = pacedMonthRemainingMinorUnits(
+    const categoryRemaining = poolCategoryMonthRemainingMinorUnits(
         executionOptions,
         50_001,
         0,
@@ -120,7 +161,7 @@ test('paced pool floors summed leftover once', () => {
         0,
         0,
     );
-    const poolRemaining = pacedPoolMonthRemainingMinorUnits(
+    const poolRemaining = poolMonthRemainingMinorUnits(
         executionOptions,
         100_002,
         0,
@@ -137,7 +178,7 @@ test('paced pool floors summed leftover once', () => {
 
 test('paced pool follows draft and future month rules', () => {
     expect(
-        pacedPoolMonthRemainingMinorUnits(
+        poolMonthRemainingMinorUnits(
             draftOptions,
             120_005,
             0,
@@ -149,7 +190,7 @@ test('paced pool follows draft and future month rules', () => {
         ),
     ).toBe(10_005);
     expect(
-        pacedPoolMonthRemainingMinorUnits(
+        poolMonthRemainingMinorUnits(
             executionOptions,
             120_000,
             0,
@@ -164,15 +205,14 @@ test('paced pool follows draft and future month rules', () => {
 
 test('empty paced pool month remaining is zero', () => {
     expect(
-        pacedPoolMonthRemainingMinorUnits(
-            executionOptions,
-            0,
-            0,
-            0,
-            6,
-            0,
-            0,
-            false,
-        ),
+        poolMonthRemainingMinorUnits(executionOptions, 0, 0, 0, 6, 0, 0, false),
     ).toBe(0);
+});
+
+test('the pool holds fixed charges and running categories, not even annual ones', () => {
+    expect(isPoolRhythm('fixed_charge')).toBe(true);
+    expect(isPoolRhythm('running')).toBe(true);
+    expect(isPoolRhythm('even_annual')).toBe(false);
+    expect(isPoolRhythm('irregular')).toBe(false);
+    expect(isPoolRhythm(null)).toBe(false);
 });

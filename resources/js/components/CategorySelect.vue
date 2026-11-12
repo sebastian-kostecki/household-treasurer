@@ -2,10 +2,13 @@
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import type { CategoryPickerOption } from '@/lib/category-appearance';
+import { groupSelectOptions } from '@/lib/category-tree';
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
@@ -41,6 +44,8 @@ const selectedCategoryId = computed({
     },
 });
 
+const blocks = computed(() => groupSelectOptions(props.categories));
+
 const selectedCategory = computed(() =>
     props.categories.find((category) => category.id === props.modelValue),
 );
@@ -67,18 +72,38 @@ const selectedCategory = computed(() =>
                 </SelectValue>
             </SelectTrigger>
             <SelectContent>
-                <SelectItem
-                    v-for="category in categories"
-                    :key="category.id"
-                    :value="String(category.id)"
+                <template
+                    v-for="block in blocks"
+                    :key="
+                        block.kind === 'group'
+                            ? `group-${block.group.id}-${block.options[0].id}`
+                            : block.option.id
+                    "
                 >
-                    <CategoryChip
-                        :name="category.name"
-                        :icon="category.icon"
-                        :color="category.color"
-                        size="sm"
-                    />
-                </SelectItem>
+                    <SelectGroup v-if="block.kind === 'group'">
+                        <SelectLabel>{{ block.group.name }}</SelectLabel>
+                        <SelectItem
+                            v-for="category in block.options"
+                            :key="category.id"
+                            :value="String(category.id)"
+                        >
+                            <CategoryChip
+                                :name="category.name"
+                                :icon="category.icon"
+                                :color="category.color"
+                                size="sm"
+                            />
+                        </SelectItem>
+                    </SelectGroup>
+                    <SelectItem v-else :value="String(block.option.id)">
+                        <CategoryChip
+                            :name="block.option.name"
+                            :icon="block.option.icon"
+                            :color="block.option.color"
+                            size="sm"
+                        />
+                    </SelectItem>
+                </template>
             </SelectContent>
         </Select>
         <input

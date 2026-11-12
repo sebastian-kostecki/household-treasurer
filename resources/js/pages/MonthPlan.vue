@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle, Check, Pencil } from '@lucide/vue';
-import { Form, Head, Link, router } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
-import CategoryController from '@/actions/App/Http/Controllers/CategoryController';
 import MonthPlanController from '@/actions/App/Http/Controllers/MonthPlanController';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -21,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, minorUnitsToMoneyInput } from '@/lib/format';
 import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
+import { collectedAtEndMinorUnits } from '@/lib/collected-calculator';
 import { parsePlanAmountInput } from '@/lib/month-plan-amount';
 import {
     isMonthItemOverPlan,
@@ -31,14 +31,15 @@ import {
     changeModeAmountInputs,
     matchActualState,
 } from '@/lib/month-plan-match-actual';
+import {
+    monthPlanGroupTree,
+    unreadableGroupIds,
+    withoutUnreadableGroups,
+} from '@/lib/month-plan-groups';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import { toSpendBreakdown } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
-import type {
-    MonthItemKind,
-    MonthPlanItem,
-    MonthPlanReading,
-} from '@/types/month-plan';
+import type { MonthPlanItem, MonthPlanReading } from '@/types/month-plan';
 
 const props = defineProps<{
     budget: {
@@ -55,10 +56,17 @@ const t = useTranslations();
 
 const isChanging = ref(false);
 
+/** Category Groups the visitor has collapsed; lasts until a change of month or Budget. */
+const collapsedGroupIds = ref<number[]>([]);
+
+/** Join rows show in change mode and in an editable proposal (ADR-0067). */
 function visibleRows(rows: MonthPlanItem[]): MonthPlanItem[] {
-    return isChanging.value
-        ? rows
-        : rows.filter((row) => !row.is_join_candidate);
+    const showsJoinRows =
+        isChanging.value ||
+        (props.monthPlan?.state === 'proposal' &&
+            props.monthPlan.can_approve === true);
+
+    return showsJoinRows ? rows : rows.filter((row) => !row.is_join_candidate);
 }
 
 const allRows = computed<MonthPlanItem[]>(() => [
@@ -129,6 +137,7 @@ watch(
     () => [props.viewedMonth, props.budget?.id],
     () => {
         isChanging.value = false;
+        collapsedGroupIds.value = [];
         amountInputs.value = initialAmountInputs();
         resetTouched();
     },
@@ -288,10 +297,11 @@ const toSpendReading = computed<{
     return toSpendBreakdown(
         allRows.value.map((row) => ({
             type: row.type,
-            kind: row.month_item_kind,
+            rhythm: row.rhythm,
             plan: isEditableRow(row) ? (parsedAmount(row) ?? 0) : 0,
             actual: row.actual_minor_units,
             hasPositiveAmount: row.has_positive_amount,
+            collectedAtStart: row.collected?.start_minor_units ?? 0,
         })),
         formSetAsideMinorUnits.value ?? 0,
     );
@@ -373,48 +383,6 @@ function monthUrl(month: number): string {
     return monthPlanRoute({ query: { month } }).url;
 }
 
-const kindPendingCategoryId = ref<number | null>(null);
-const kindError = ref<{ categoryId: number; message: string } | null>(null);
-
-function changeKind(row: MonthPlanItem, kind: MonthItemKind): void {
-    if (row.month_item_kind === kind) {
-        return;
-    }
-
-    kindError.value = null;
-    kindPendingCategoryId.value = row.category_id;
-
-    router.patch(
-        CategoryController.updateMonthItemKind.url({
-            budget: props.budget?.id ?? 0,
-            category: row.category_id,
-        }),
-        { month_item_kind: kind },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onError: (errors) => {
-                const message = Object.values(errors)[0];
-
-                kindError.value = message
-                    ? { categoryId: row.category_id, message }
-                    : null;
-            },
-            onFinish: () => {
-                if (kindPendingCategoryId.value === row.category_id) {
-                    kindPendingCategoryId.value = null;
-                }
-            },
-        },
-    );
-}
-
-function kindErrorFor(row: MonthPlanItem): string | undefined {
-    return kindError.value?.categoryId === row.category_id
-        ? kindError.value.message
-        : undefined;
-}
-
 /**
  * While the proposal is edited the deviation follows the typed plan amount;
  * otherwise the server reading is shown.
@@ -438,10 +406,13 @@ function rowReading(row: MonthPlanItem): {
 
     const item = {
         type: row.type,
-        kind: row.month_item_kind,
+        rhythm: row.rhythm,
         plan,
+        yearExecution: row.year_execution_minor_units,
+        currentPlan: row.current_plan_minor_units,
         actual: row.actual_minor_units,
         hasPositiveAmount: row.has_positive_amount,
+        collectedAtStart: row.collected?.start_minor_units ?? 0,
     };
 
     return {
@@ -457,6 +428,30 @@ function yearStale(row: MonthPlanItem): boolean {
         isEditableRow(row) &&
         parsedAmount(row) !== row.plan_minor_units
     );
+}
+
+/**
+ * The Collected at the end of the month: the server value, or while amounts are
+ * typed the same rule in TS from the typed rate (ADR-0073).
+ */
+function collectedAtEnd(row: MonthPlanItem): number | null {
+    if (row.collected === null) {
+        return null;
+    }
+
+    if (!isEditable.value || !isEditableRow(row)) {
+        return row.collected.end_minor_units;
+    }
+
+    const plan = parsedAmount(row);
+
+    return plan === null
+        ? null
+        : collectedAtEndMinorUnits(
+              row.collected.start_minor_units,
+              plan,
+              row.actual_minor_units,
+          );
 }
 
 function rowState(row: MonthPlanItem): MonthPlanRowState {
@@ -475,9 +470,9 @@ function rowState(row: MonthPlanItem): MonthPlanRowState {
                 : row.plan_minor_units,
             isClosed: props.monthPlan?.summary != null,
         }),
+        collectedMinorUnits: collectedAtEnd(row),
         yearStale: yearStale(row),
         invalid: isAmountFlagged(row),
-        kindError: kindErrorFor(row),
         matchActual: isChanging.value
             ? matchActualState(row, parsedAmount(row), isEditableRow(row))
             : null,
@@ -493,10 +488,10 @@ const expenseItems = computed(() =>
     visibleRows(props.monthPlan?.expense_items ?? []),
 );
 const expenseRows = computed(() =>
-    expenseItems.value.filter((row) => !row.is_idle_one_off),
+    expenseItems.value.filter((row) => !row.is_idle_even_annual),
 );
 const idleRows = computed(() =>
-    expenseItems.value.filter((row) => row.is_idle_one_off),
+    expenseItems.value.filter((row) => row.is_idle_even_annual),
 );
 
 /** A section total is built from the saved plan, so one stale row marks it too. */
@@ -515,6 +510,33 @@ const hasInvalidIdleAmount = computed(
 watch(hasInvalidIdleAmount, (invalid) => {
     if (invalid) {
         idleOpen.value = true;
+    }
+});
+
+/** Groups with a plan field that cannot be read; the table's own trees, so a group has no second rule. */
+const unreadableGroupIdsNow = computed<number[]>(() =>
+    isEditable.value
+        ? unreadableGroupIds(
+              monthPlanGroupTree(
+                  props.monthPlan?.income_groups ?? [],
+                  incomeRows.value,
+                  rowState,
+              ),
+              monthPlanGroupTree(
+                  props.monthPlan?.expense_groups ?? [],
+                  expenseRows.value,
+                  rowState,
+              ),
+          )
+        : [],
+);
+
+// An invalid amount blocks approval, so open the group that holds it.
+watch(unreadableGroupIdsNow, (ids) => {
+    const open = withoutUnreadableGroups(collapsedGroupIds.value, ids);
+
+    if (open.length !== collapsedGroupIds.value.length) {
+        collapsedGroupIds.value = open;
     }
 });
 
@@ -687,15 +709,17 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
 
                 <MonthPlanTable
                     v-model:idle-open="idleOpen"
+                    v-model:collapsed-group-ids="collapsedGroupIds"
                     v-model:set-aside-direction="setAsideDirection"
                     v-model:set-aside-input="setAsideInput"
                     :income-rows="incomeRows"
+                    :income-groups="monthPlan.income_groups"
+                    :expense-groups="monthPlan.expense_groups"
                     :expense-rows="expenseRows"
                     :idle-rows="idleRows"
                     :editable="isEditable"
                     :amount-inputs="amountInputs"
                     :row-state="rowState"
-                    :kind-pending-category-id="kindPendingCategoryId"
                     :year-totals="monthPlan.year_totals"
                     :year-totals-stale="yearTotalsStale"
                     :set-aside-minor-units="shownSetAsideMinorUnits"
@@ -704,7 +728,6 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                     :set-aside-error="errors.set_aside_minor_units"
                     @update-amount="updateAmount"
                     @amount-blur="touchAmount"
-                    @change-kind="changeKind"
                     @match-actual="matchActual"
                     @set-aside-blur="setAsideTouched = true"
                 />

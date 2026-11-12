@@ -7,6 +7,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\OwnTransfer;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 6;
+    public const SNAPSHOT_VERSION = 10;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -47,7 +48,13 @@ class BackupUserData
                 ->get()
                 ->map(fn ($budget): array => $this->serializeBudget($budget))
                 ->all(),
+            'category_groups' => $user->categoryGroups()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($group): array => $this->serializeCategoryGroup($group))
+                ->all(),
             'categories' => $user->categories()
+                ->with('rhythms')
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($category): array => $this->serializeCategory($category))
@@ -149,13 +156,38 @@ class BackupUserData
     /**
      * @return array<string, mixed>
      */
+    private function serializeCategoryGroup(CategoryGroup $group): array
+    {
+        return [
+            'id' => $group->id,
+            'name' => $group->name,
+            'type' => $group->type->value,
+            'sort_order' => $group->sort_order,
+            'created_at' => $group->created_at?->toIso8601String(),
+            'updated_at' => $group->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function serializeCategory(Category $category): array
     {
         return [
             'id' => $category->id,
+            'category_group_id' => $category->category_group_id,
             'name' => $category->name,
             'icon' => $category->icon,
             'color' => $category->color,
+            'description' => $category->description,
+            'rhythms' => $category->rhythms
+                ->map(fn ($entry): array => [
+                    'rhythm' => $entry->rhythm->value,
+                    'start_year' => $entry->start_year,
+                    'start_month' => $entry->start_month,
+                    'opening_collected_minor_units' => $entry->opening_collected_minor_units,
+                ])
+                ->all(),
             'sort_order' => $category->sort_order,
             'type' => $category->type->value,
             'archived_at' => $category->archived_at?->toIso8601String(),
@@ -173,8 +205,6 @@ class BackupUserData
             'id' => $budgetLine->id,
             'budget_id' => $budgetLine->budget_id,
             'category_id' => $budgetLine->category_id,
-            'is_paced' => $budgetLine->is_paced,
-            'month_item_kind' => $budgetLine->month_item_kind->value,
             'planned_amount_minor_units' => $budgetLine->planned_amount_minor_units,
             'initial_plan_minor_units' => $budgetLine->initial_plan_minor_units,
             'execution_minor_units' => $budgetLine->execution_minor_units,

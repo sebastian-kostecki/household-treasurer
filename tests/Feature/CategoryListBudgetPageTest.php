@@ -3,11 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\CsvImport\ImportCategoryOptions;
@@ -62,7 +62,6 @@ class CategoryListBudgetPageTest extends TestCase
                 'name' => 'REKOLEKCJE',
                 'type' => CategoryType::Expense->value,
                 'planned_amount_minor_units' => 45_000,
-                'is_paced' => '0',
             ]))
             ->assertSessionHasNoErrors();
 
@@ -71,7 +70,7 @@ class CategoryListBudgetPageTest extends TestCase
         $joined = $draft2027->budgetLines()->where('category_id', $existing->category_id)->sole();
 
         $this->assertSame(45_000, $joined->planned_amount_minor_units);
-        $this->assertFalse($joined->is_paced);
+        $this->assertSame(1, $existing->category->rhythms()->count());
         $this->assertSame(1, $budget2026->budgetLines()->count());
     }
 
@@ -191,13 +190,13 @@ class CategoryListBudgetPageTest extends TestCase
         $this->assertSame('Rozrywka', $line->category->fresh()->name);
     }
 
-    public function test_type_change_is_allowed_for_a_draft_only_category_resets_the_flags_and_is_visible_in_every_draft(): void
+    public function test_type_change_is_allowed_for_a_draft_only_category_removes_its_rhythm_and_is_visible_in_every_draft(): void
     {
         $user = User::factory()->create();
         $draft2026 = Budget::factory()->for($user)->create(['year' => 2026]);
         $draft2027 = Budget::factory()->for($user)->create(['year' => 2027]);
-        $line = BudgetLine::factory()->for($draft2026)->expense()->create(['name' => 'Premia', 'is_paced' => false, 'month_item_kind' => MonthItemKind::Bill]);
-        $other = BudgetLine::factory()->for($draft2027)->expense()->create(['category_id' => $line->category_id, 'is_paced' => false]);
+        $line = BudgetLine::factory()->for($draft2026)->fixedCharge()->create(['name' => 'Premia']);
+        $other = BudgetLine::factory()->for($draft2027)->expense()->create(['category_id' => $line->category_id]);
 
         $this->actingAs($user)
             ->patch(route('categories.update', [$draft2026, $line->category_id]), $this->categoryFields([
@@ -209,9 +208,10 @@ class CategoryListBudgetPageTest extends TestCase
 
         $this->assertSame(CategoryType::Income, $line->category->fresh()->type);
 
+        $this->assertSame(0, $line->category->rhythms()->count());
+
         foreach ([$line, $other] as $changed) {
-            $this->assertTrue($changed->fresh()->is_paced);
-            $this->assertSame(MonthItemKind::Running, $changed->fresh()->month_item_kind);
+            $this->assertTrue($changed->fresh()->hasType(CategoryType::Income));
         }
     }
 
@@ -268,6 +268,98 @@ class CategoryListBudgetPageTest extends TestCase
             ->assertSessionHasErrors('name');
     }
 
+    public function test_type_change_takes_the_category_off_its_group_and_puts_it_at_the_end_of_the_new_type(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $line = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Premia', 'sort_order' => 1]);
+        $line->category->update(['category_group_id' => $group->id]);
+        BudgetLine::factory()->for($budget)->income()->create(['name' => 'Pensja', 'sort_order' => 4]);
+        CategoryGroup::factory()->for($user)->income()->create(['name' => 'Etat', 'sort_order' => 7]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', [$budget, $line->category_id]), $this->categoryFields([
+                'name' => 'Premia',
+                'type' => CategoryType::Income->value,
+                'planned_amount_minor_units' => 10,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $category = $line->category->fresh();
+
+        $this->assertNull($category->category_group_id);
+        $this->assertSame(8, $category->sort_order);
+        $this->assertSame(0, $group->categories()->count());
+    }
+
+    public function test_a_type_change_that_keeps_the_type_keeps_the_group_and_the_place(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $line = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Apteka', 'sort_order' => 1]);
+        $line->category->update(['category_group_id' => $group->id]);
+
+        $this->actingAs($user)
+            ->patch(route('categories.update', [$budget, $line->category_id]), $this->categoryFields([
+                'name' => 'Apteka i leki',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 10,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $category = $line->category->fresh();
+
+        $this->assertSame($group->id, $category->category_group_id);
+        $this->assertSame(1, $category->sort_order);
+    }
+
+    public function test_a_new_category_goes_after_the_last_group_and_category_of_the_type(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026]);
+        CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 5]);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Kredyt', 'sort_order' => 2]);
+        CategoryGroup::factory()->for($user)->income()->create(['name' => 'Etat', 'sort_order' => 40]);
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $budget), $this->categoryFields([
+                'name' => 'Domeny',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 12_000,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $created = Category::query()->where('user_id', $user->id)->where('name', 'Domeny')->sole();
+
+        $this->assertSame(6, $created->sort_order);
+        $this->assertNull($created->category_group_id);
+    }
+
+    public function test_joining_an_existing_category_does_not_change_its_group(): void
+    {
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $draft2027 = Budget::factory()->for($user)->create(['year' => 2027]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $existing = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Apteka', 'sort_order' => 1]);
+        $existing->category->update(['category_group_id' => $group->id]);
+
+        $this->actingAs($user)
+            ->post(route('categories.store', $draft2027), $this->categoryFields([
+                'name' => 'Apteka',
+                'type' => CategoryType::Expense->value,
+                'planned_amount_minor_units' => 100,
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $category = $existing->category->fresh();
+
+        $this->assertSame($group->id, $category->category_group_id);
+        $this->assertSame(1, $category->sort_order);
+    }
+
     public function test_archiving_in_march_2027_follows_the_adr_example(): void
     {
         $this->travelTo('2027-03-10 12:00:00');
@@ -311,9 +403,9 @@ class CategoryListBudgetPageTest extends TestCase
         $this->actingAs($user)
             ->get(route('operations'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('expenseCategories', fn ($options) => collect($options)->pluck('id')->all() === [$other->category_id]));
+                ->where('expenseCategories', fn ($options) => collect($options)->pluck('id')->unique()->values()->all() === [$other->category_id]));
 
-        $this->assertSame([$other->category_id], array_column(ImportCategoryOptions::expense($user), 'id'));
+        $this->assertSame([$other->category_id], array_values(array_unique(array_column(ImportCategoryOptions::expense($user), 'id'))));
 
         $this->actingAs($user)
             ->post(route('expenses.store'), [
@@ -326,27 +418,13 @@ class CategoryListBudgetPageTest extends TestCase
             ->assertSessionHasErrors('category_id');
 
         $this->actingAs($user)
-            ->post(route('budgets.store'), ['year' => 2028, 'source_budget_id' => $budget2026->id])
+            ->post(route('budgets.store'), ['year' => 2028])
             ->assertSessionHasNoErrors();
 
         $this->assertSame(
             [$other->category_id],
             Budget::query()->where('user_id', $user->id)->where('year', 2028)->sole()->budgetLines()->pluck('category_id')->all(),
         );
-    }
-
-    public function test_a_source_budget_with_only_list_archived_categories_is_refused(): void
-    {
-        $this->travelTo('2027-03-10 12:00:00');
-
-        $user = User::factory()->create();
-        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $line2026 = BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Rekolekcje']);
-        $line2026->category->update(['archived_at' => now()]);
-
-        $this->actingAs($user)
-            ->post(route('budgets.store'), ['year' => 2028, 'source_budget_id' => $budget2026->id])
-            ->assertSessionHasErrors('source_budget_id');
     }
 
     public function test_restoring_clears_the_line_of_the_current_year_and_adds_plan_zero_lines_to_drafts(): void
@@ -356,7 +434,7 @@ class CategoryListBudgetPageTest extends TestCase
         $user = User::factory()->create();
         $budget2027 = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
         $draft2028 = Budget::factory()->for($user)->create(['year' => 2028]);
-        $line2027 = BudgetLine::factory()->for($budget2027)->expense()->archived()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 500, 'is_paced' => false]);
+        $line2027 = BudgetLine::factory()->for($budget2027)->evenAnnual()->archived()->create(['name' => 'Rekolekcje', 'planned_amount_minor_units' => 500]);
 
         $this->actingAs($user)
             ->post(route('categories.restore', $line2027->category_id))
@@ -368,7 +446,8 @@ class CategoryListBudgetPageTest extends TestCase
         $draftLine = $draft2028->budgetLines()->where('category_id', $line2027->category_id)->sole();
 
         $this->assertSame(0, $draftLine->planned_amount_minor_units);
-        $this->assertFalse($draftLine->is_paced);
+        // A restored Category keeps its Rhythm history (ADR-0072).
+        $this->assertSame(['even_annual'], $line2027->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
     }
 
     public function test_deleting_in_a_draft_removes_only_the_line_and_the_category_stays_on_the_list(): void
@@ -428,22 +507,20 @@ class CategoryListBudgetPageTest extends TestCase
                 ->where('expenseCategories.1.can_archive', false));
     }
 
-    public function test_a_new_budget_gets_lines_of_the_same_list_categories_without_copying_records(): void
+    public function test_a_new_budget_gets_lines_of_the_same_active_list_categories_without_copying_records(): void
     {
         $user = User::factory()->create();
         $source = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $active = BudgetLine::factory()->for($source)->expense()->create([
+        $active = BudgetLine::factory()->for($source)->fixedCharge()->create([
             'name' => 'Rozrywka',
             'planned_amount_minor_units' => 300_000,
             'initial_plan_minor_units' => 250_000,
             'execution_minor_units' => 120_000,
-            'is_paced' => false,
-            'month_item_kind' => MonthItemKind::Bill,
         ]);
         BudgetLine::factory()->for($source)->expense()->archived()->create(['name' => 'Wakacje']);
 
         $this->actingAs($user)
-            ->post(route('budgets.store'), ['year' => 2027, 'source_budget_id' => $source->id])
+            ->post(route('budgets.store'), ['year' => 2027])
             ->assertSessionHasNoErrors();
 
         $line = Budget::query()->where('user_id', $user->id)->where('year', 2027)->sole()->budgetLines()->sole();
@@ -452,8 +529,7 @@ class CategoryListBudgetPageTest extends TestCase
         $this->assertSame(300_000, $line->planned_amount_minor_units);
         $this->assertSame(0, $line->initial_plan_minor_units);
         $this->assertSame(0, $line->execution_minor_units);
-        $this->assertFalse($line->is_paced);
-        $this->assertSame(MonthItemKind::Bill, $line->month_item_kind);
+        $this->assertSame(['fixed_charge'], $active->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
         $this->assertSame(2, Category::query()->where('user_id', $user->id)->count());
     }
 }

@@ -73,14 +73,33 @@ class BudgetPlanSummary
      */
     public static function forType(Budget $budget, Collection $categories, CategoryType $type): array
     {
-        $typeCategories = $categories->filter(fn (BudgetLine $category): bool => $category->hasType($type));
+        return self::forLines(
+            $budget,
+            $categories->filter(fn (BudgetLine $category): bool => $category->hasType($type)),
+        );
+    }
 
-        $currentPlanMinorUnits = (int) $typeCategories->sum('planned_amount_minor_units');
-        $executionMinorUnits = (int) $typeCategories->sum('execution_minor_units');
-        $initialPlanMinorUnits = (int) $typeCategories->sum(
-            fn (BudgetLine $category): int => $budget->isExecution()
-                ? $category->initial_plan_minor_units
-                : $category->planned_amount_minor_units,
+    /**
+     * The totals of any set of lines; the type total and the total of a Category
+     * Group are the same sum over different lines (ADR-0069).
+     *
+     * @param  Collection<int, BudgetLine>  $lines
+     * @return array{
+     *     initial_plan_minor_units: int,
+     *     current_plan_minor_units: int,
+     *     execution_minor_units: int,
+     *     remaining_minor_units: int,
+     *     percent_complete: int|null,
+     * }
+     */
+    public static function forLines(Budget $budget, Collection $lines): array
+    {
+        $currentPlanMinorUnits = (int) $lines->sum('planned_amount_minor_units');
+        $executionMinorUnits = (int) $lines->sum('execution_minor_units');
+        $initialPlanMinorUnits = (int) $lines->sum(
+            fn (BudgetLine $line): int => $budget->isExecution()
+                ? $line->initial_plan_minor_units
+                : $line->planned_amount_minor_units,
         );
 
         return [
@@ -96,5 +115,59 @@ class BudgetPlanSummary
                 $executionMinorUnits,
             ),
         ];
+    }
+
+    /**
+     * The group rows of one type in the Budget: only the active lines of the
+     * collection count, so the groups, the Categories without a group and the
+     * archive section add up to the type total. A group with no active line has
+     * no row. The groups come in the order of the list (`sort_order`, `name_key`,
+     * id); `category.group` must be eager loaded.
+     *
+     * @param  Collection<int, BudgetLine>  $lines
+     * @return list<array{
+     *     id: int,
+     *     name: string,
+     *     sort_order: int,
+     *     totals: array{
+     *         initial_plan_minor_units: int,
+     *         current_plan_minor_units: int,
+     *         execution_minor_units: int,
+     *         remaining_minor_units: int,
+     *         percent_complete: int|null,
+     *     },
+     *     has_over_limit_category: bool,
+     * }>
+     */
+    public static function groupsOfType(Budget $budget, Collection $lines, CategoryType $type): array
+    {
+        $grouped = $lines
+            ->filter(fn (BudgetLine $line): bool => ! $line->isArchived()
+                && $line->hasType($type)
+                && $line->category->group !== null)
+            ->groupBy(fn (BudgetLine $line): int => $line->category->category_group_id);
+
+        return array_values($grouped
+            ->map(fn (Collection $groupLines): array => [
+                'group' => $groupLines->first()->category->group,
+                'lines' => $groupLines,
+            ])
+            ->sort(fn (array $a, array $b): int => $a['group']->sort_order <=> $b['group']->sort_order
+                ?: strcmp($a['group']->name_key, $b['group']->name_key)
+                ?: $a['group']->id <=> $b['group']->id)
+            ->map(fn (array $entry): array => [
+                'id' => $entry['group']->id,
+                'name' => $entry['group']->name,
+                'sort_order' => $entry['group']->sort_order,
+                'totals' => self::forLines($budget, $entry['lines']),
+                'has_over_limit_category' => $type === CategoryType::Expense
+                    && $entry['lines']->contains(
+                        fn (BudgetLine $line): bool => CategoryExecutionMetrics::isOverLimit(
+                            $line->planned_amount_minor_units,
+                            $line->execution_minor_units,
+                        ),
+                    ),
+            ])
+            ->all());
     }
 }

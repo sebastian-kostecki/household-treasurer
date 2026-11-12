@@ -3,10 +3,11 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 
 /**
  * Deviation of a month item from its plan (context/foundation/glossary.md: To Spend, "item over plan").
+ * The reading follows the Rhythm of the item's Category in the month (ADR-0066).
  *
  * Copy in resources/js/lib/month-item-deviation.ts, used for the live preview
  * while a month plan proposal is edited. Change both together.
@@ -14,17 +15,24 @@ use App\Enums\MonthItemKind;
 class MonthItemDeviation
 {
     /**
-     * Actual minus plan, or null when a bill or income has no positive amount yet
-     * (it is still waiting to be paid or received).
+     * Actual minus plan, or null when a Fixed Charge or income has no positive amount yet
+     * (it is still waiting to be paid or received). For an Irregular expense the deviation is the
+     * surplus of the bill over the Collected plus the rate, never null (ADR-0066);
+     * `$collectedAtStart` is the Collected on the first day of the month.
      */
     public static function deviationMinorUnits(
         CategoryType $type,
-        ?MonthItemKind $kind,
+        ?Rhythm $rhythm,
         int $plan,
         int $actual,
         bool $hasPositiveAmount,
+        int $collectedAtStart = 0,
     ): ?int {
-        if (self::hasSettlementKind($type, $kind) && ! $hasPositiveAmount) {
+        if ($type === CategoryType::Expense && $rhythm === Rhythm::Irregular) {
+            return CollectedCalculator::surplusMinorUnits($collectedAtStart, $plan, $actual);
+        }
+
+        if (self::hasSettlementRhythm($type, $rhythm) && ! $hasPositiveAmount) {
             return null;
         }
 
@@ -32,24 +40,45 @@ class MonthItemDeviation
     }
 
     /**
-     * A bill is paid, or an income received, once it has a positive amount in the month.
-     * Running expenses are never settled. Server-only: the live preview does not show it.
+     * A Fixed Charge is paid, or an income received, once it has a positive amount in the month.
+     * Running, Even Annual and Irregular expenses are never settled. Server-only: the live preview does not show it.
      */
-    public static function isSettled(CategoryType $type, ?MonthItemKind $kind, bool $hasPositiveAmount): bool
+    public static function isSettled(CategoryType $type, ?Rhythm $rhythm, bool $hasPositiveAmount): bool
     {
-        return self::hasSettlementKind($type, $kind) && $hasPositiveAmount;
+        return self::hasSettlementRhythm($type, $rhythm) && $hasPositiveAmount;
     }
 
     /**
-     * An expense is over plan when its actual exceeds the plan, of any kind and also at plan 0.
+     * An expense is over plan when its actual exceeds the plan, also at plan 0. An Even Annual
+     * expense is over plan when the Execution of the year exceeds its Current Plan; an Irregular
+     * expense when the bill exceeds the Collected plus the rate (ADR-0066).
      */
-    public static function isOverPlan(CategoryType $type, int $plan, int $actual): bool
-    {
-        return $type === CategoryType::Expense && $actual > $plan;
+    public static function isOverPlan(
+        CategoryType $type,
+        ?Rhythm $rhythm,
+        int $plan,
+        int $actual,
+        int $yearExecution,
+        int $currentPlan,
+        int $collectedAtStart = 0,
+    ): bool {
+        if ($type !== CategoryType::Expense) {
+            return false;
+        }
+
+        if ($rhythm === Rhythm::EvenAnnual) {
+            return $yearExecution > $currentPlan;
+        }
+
+        if ($rhythm === Rhythm::Irregular) {
+            return CollectedCalculator::surplusMinorUnits($collectedAtStart, $plan, $actual) > 0;
+        }
+
+        return $actual > $plan;
     }
 
-    private static function hasSettlementKind(CategoryType $type, ?MonthItemKind $kind): bool
+    private static function hasSettlementRhythm(CategoryType $type, ?Rhythm $rhythm): bool
     {
-        return $type === CategoryType::Income || $kind === MonthItemKind::Bill;
+        return $type === CategoryType::Income || $rhythm === Rhythm::FixedCharge;
     }
 }

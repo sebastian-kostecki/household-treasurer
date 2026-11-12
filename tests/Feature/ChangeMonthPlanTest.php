@@ -3,14 +3,19 @@
 namespace Tests\Feature;
 
 use App\Actions\ChangeMonthPlan;
+use App\Actions\JoinBudgetAtFirstUse;
 use App\Enums\CategoryType;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
 use App\Models\User;
+use App\Support\CategoryRhythms;
+use App\Support\IrregularCollected;
 use App\Support\MonthPlanProposal;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -39,7 +44,7 @@ class ChangeMonthPlanTest extends TestCase
         $this->user = User::factory()->create();
         $this->budget = Budget::factory()->for($this->user)->execution()->create(['year' => 2026]);
         $this->salary = BudgetLine::factory()->for($this->budget)->income()->create(['name' => 'Pensja']);
-        $this->rent = BudgetLine::factory()->for($this->budget)->bill()->create(['name' => 'Czynsz']);
+        $this->rent = BudgetLine::factory()->for($this->budget)->fixedCharge()->create(['name' => 'Czynsz']);
         $this->food = BudgetLine::factory()->for($this->budget)->expense()->create(['name' => 'Jedzenie']);
     }
 
@@ -117,6 +122,54 @@ class ChangeMonthPlanTest extends TestCase
             );
     }
 
+    public function test_an_active_list_category_without_a_line_joins_the_budget_with_plan_zero_and_an_item(): void
+    {
+        $plan = $this->approvedPlan(12, [$this->food->id => 100]);
+        $domains = Category::factory()->for($this->user)->expense()->create(['name' => 'Domeny']);
+
+        $this->change(12, [$domains->id => 80]);
+
+        $line = BudgetLine::query()->where('budget_id', $this->budget->id)->where('category_id', $domains->id)->firstOrFail();
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertSame(0, $line->execution_minor_units);
+        $this->assertItem($plan, $line, 0, 80);
+    }
+
+    public function test_an_amount_of_zero_on_a_category_without_a_line_creates_nothing(): void
+    {
+        $this->approvedPlan(12, [$this->food->id => 100]);
+        $domains = Category::factory()->for($this->user)->expense()->create(['name' => 'Domeny']);
+
+        $this->change(12, [$domains->id => 0]);
+
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $domains->id]);
+        $this->assertDatabaseCount('month_plan_items', 1);
+    }
+
+    public function test_it_rejects_an_archived_list_category_without_a_line_and_another_users_category(): void
+    {
+        $plan = $this->approvedPlan(12, [$this->food->id => 100]);
+        $archived = Category::factory()->for($this->user)->expense()->archived()->create();
+        $foreign = Category::factory()->expense()->create();
+
+        $this->assertItemsError(fn () => $this->change(12, [$this->food->category_id => 5, $archived->id => 10]));
+        $this->assertItemsError(fn () => $this->change(12, [$foreign->id => 10]));
+
+        $this->assertItem($plan, $this->food, 100, 100);
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $archived->id]);
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $foreign->id]);
+    }
+
+    public function test_it_rejects_a_list_archived_category_with_an_active_line_that_is_not_in_the_plan(): void
+    {
+        $this->approvedPlan(12, [$this->food->id => 100]);
+        $holiday = BudgetLine::factory()->for($this->budget)->expense()->create(['name' => 'Wakacje']);
+        $holiday->category->update(['archived_at' => now()]);
+
+        $this->assertItemsError(fn () => $this->change(12, [$holiday->category_id => 10]));
+        $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $holiday->id]);
+    }
+
     public function test_it_changes_a_future_approved_month(): void
     {
         $this->approvedPlan(6, [$this->food->id => 1]);
@@ -184,11 +237,10 @@ class ChangeMonthPlanTest extends TestCase
         $this->assertDatabaseMissing('month_plan_items', ['budget_line_id' => $archived->id]);
     }
 
-    public function test_route_rejects_a_category_with_no_line_in_the_budget(): void
+    public function test_route_rejects_a_category_of_another_user(): void
     {
         $plan = $this->approvedPlan(6, [$this->food->id => 100]);
-        $previous = Budget::factory()->for($this->user)->execution()->create(['year' => 2025]);
-        $outside = BudgetLine::factory()->for($previous)->expense()->create(['name' => 'Tylko 2025']);
+        $outside = BudgetLine::factory()->for(Budget::factory()->execution())->expense()->create(['name' => 'Cudza']);
 
         $this->actingAs($this->user)
             ->from(route('month-plan'))
@@ -294,6 +346,22 @@ class ChangeMonthPlanTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
+    public function test_changing_the_rate_of_an_irregular_category_changes_the_collected_of_the_following_months(): void
+    {
+        $service = BudgetLine::factory()->for($this->budget)->irregular()->create(['planned_amount_minor_units' => 180_000]);
+        $service->category->rhythms()->update(['start_month' => 6, 'opening_collected_minor_units' => 0]);
+        $this->approvedPlan(6, [$service->id => 15_000]);
+
+        $collected = fn (): int => IrregularCollected::forUser($this->user, CategoryRhythms::forCategoryIds([$service->category_id]))
+            ->collectedAtStartOfMonth($service->category_id, 2026, 7);
+
+        $this->assertSame(15_000, $collected());
+
+        $this->change(6, [$service->category_id => 25_000]);
+
+        $this->assertSame(25_000, $collected());
+    }
+
     private function change(int $month, array $amounts): MonthPlan
     {
         return app(ChangeMonthPlan::class)->handle(
@@ -332,5 +400,18 @@ class ChangeMonthPlanTest extends TestCase
         }
 
         $this->fail('Expected a ValidationException with an items error.');
+    }
+
+    public function test_joining_amounts_refuses_a_category_of_another_user_past_validation(): void
+    {
+        $budget = Budget::factory()->for(User::factory())->execution()->create(['year' => 2026]);
+        $foreign = Category::factory()->for(User::factory())->expense()->create(['name' => 'Cudza']);
+
+        try {
+            app(JoinBudgetAtFirstUse::class)->handleAmounts($budget, [$foreign->id => 8000]);
+            $this->fail('Expected joining to refuse a Category of another user.');
+        } catch (ModelNotFoundException) {
+            $this->assertDatabaseMissing('budget_lines', ['category_id' => $foreign->id]);
+        }
     }
 }

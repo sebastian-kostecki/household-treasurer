@@ -6,15 +6,10 @@ export type FirstRunState = {
     showChecklist: boolean;
 };
 
-export type CopyableBudgetSource = {
-    id: number;
-    year: number;
-};
-
 export type ShellState = {
     budgetYear: number | null;
     budgetYears: number[];
-    copyableBudgetSources: CopyableBudgetSource[];
+    activeCategoryCount: number;
     firstRun: FirstRunState;
 };
 
@@ -27,6 +22,7 @@ export type UiTranslations = {
         accounts: string;
         term_deposits: string;
         operations: string;
+        reports: string;
         menu: string;
     };
     shell: {
@@ -43,6 +39,7 @@ export type UiTranslations = {
     dashboard: Record<string, string>;
     budget: Record<string, string>;
     month_plan: Record<string, string>;
+    reports: Record<string, string>;
     accounts: Record<string, string>;
     categories: Record<string, string>;
     term_deposits: Record<string, string>;

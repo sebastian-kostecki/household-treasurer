@@ -2,17 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Rhythm;
+use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
+use App\Models\CategoryRhythm;
+use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\CategoryAppearance;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /**
- * The read-only „Kategorie” view (ADR-0063): the User's list Categories with the
- * years of their Budget Lines, no amounts.
+ * The „Kategorie” view (ADR-0063, ADR-0067): the User's list Categories with the
+ * years of their Budget Lines, the description and what a row may do, no amounts.
  */
 class CategoriesPageTest extends TestCase
 {
@@ -52,9 +58,19 @@ class CategoriesPageTest extends TestCase
                     'icon' => $salary->icon,
                     'color' => $salary->color,
                     'type' => 'income',
+                    'group_id' => null,
+                    'sort_order' => 0,
+                    'description' => null,
+                    'rhythm' => null,
+                    'opening_collected_minor_units' => null,
+                    'irregular_since' => null,
                     'budget_years' => [2026, 2027],
+                    'can_change_type' => false,
+                    'can_delete' => false,
                     'archived_at' => null,
                 ])
+                ->where('incomeGroups', [])
+                ->where('expenseGroups', [])
                 ->has('expenseCategories', 3)
                 ->where('expenseCategories.0.id', $food->id)
                 ->where('expenseCategories.0.budget_years', [2026])
@@ -64,7 +80,89 @@ class CategoriesPageTest extends TestCase
                 ->where('expenseCategories.1.budget_years', [2026, 2027])
                 ->where('expenseCategories.2.id', $withoutLines->id)
                 ->where('expenseCategories.2.budget_years', [])
-                ->where('archivedCategories', []),
+                ->where('archivedCategories', [])
+                ->where('categoryAppearanceOptions', CategoryAppearance::formOptions()),
+            );
+    }
+
+    public function test_each_expense_carries_the_rhythm_of_the_current_month_and_the_page_the_month_a_change_starts_in(): void
+    {
+        $this->travelTo('2026-11-10');
+        $user = User::factory()->create();
+        $running = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 0]);
+        $changed = Category::factory()->for($user)->expense()->withoutRhythm()->create(['name' => 'Czynsz', 'sort_order' => 1]);
+        CategoryRhythm::factory()->starting(2026, 1)->rhythm(Rhythm::Running)->create(['category_id' => $changed->id]);
+        CategoryRhythm::factory()->starting(2026, 11)->rhythm(Rhythm::FixedCharge)->create(['category_id' => $changed->id]);
+        CategoryRhythm::factory()->starting(2027, 1)->rhythm(Rhythm::EvenAnnual)->create(['category_id' => $changed->id]);
+        Category::factory()->for($user)->income()->create(['name' => 'Pensja']);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('rhythmChangeMonth', ['year' => 2026, 'month' => 11])
+                ->where('expenseCategories.0.id', $running->id)
+                ->where('expenseCategories.0.rhythm', 'running')
+                ->where('expenseCategories.1.id', $changed->id)
+                ->where('expenseCategories.1.rhythm', 'fixed_charge')
+                ->where('incomeCategories.0.rhythm', null),
+            );
+    }
+
+    public function test_an_irregular_category_carries_its_opening_collected_and_the_month_the_period_started_in(): void
+    {
+        $this->travelTo('2026-11-10');
+        $user = User::factory()->create();
+        $irregular = Category::factory()->for($user)->expense()->withoutRhythm()->create(['name' => 'Rekolekcje', 'sort_order' => 0]);
+        CategoryRhythm::factory()->starting(2026, 1)->rhythm(Rhythm::Running)->create(['category_id' => $irregular->id]);
+        CategoryRhythm::factory()->starting(2026, 8)->irregular(30000)->create(['category_id' => $irregular->id]);
+        CategoryRhythm::factory()->starting(2027, 1)->irregular(99000)->create(['category_id' => $irregular->id]);
+        $running = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 1]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.id', $irregular->id)
+                ->where('expenseCategories.0.rhythm', 'irregular')
+                ->where('expenseCategories.0.opening_collected_minor_units', 30000)
+                ->where('expenseCategories.0.irregular_since', ['year' => 2026, 'month' => 8])
+                ->where('expenseCategories.1.id', $running->id)
+                ->where('expenseCategories.1.opening_collected_minor_units', null)
+                ->where('expenseCategories.1.irregular_since', null),
+            );
+    }
+
+    public function test_each_category_carries_its_description_and_whether_its_type_and_deletion_are_free(): void
+    {
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
+        $execution = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $draft = Budget::factory()->for($user)->create(['year' => 2027]);
+        $free = Category::factory()->for($user)->expense()->create(['name' => 'Domeny', 'description' => 'OVH, home.pl', 'sort_order' => 0]);
+        $inExecution = BudgetLine::factory()->for($execution)->expense()->create(['name' => 'Żywność', 'sort_order' => 1]);
+        $withOperation = BudgetLine::factory()->for($draft)->expense()->create(['name' => 'Stara', 'sort_order' => 2]);
+        $archivedWithHistory = BudgetLine::factory()->for($execution)->expense()->archived()->create(['name' => 'Wakacje', 'sort_order' => 3]);
+        $archivedWithHistory->category->update(['archived_at' => now()]);
+        FinancialOperation::factory()->for($user)->create([
+            'account_id' => $account->id,
+            'budget_line_id' => $withOperation->id,
+            'budget_id' => $draft->id,
+            'operation_date' => '2027-01-10',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.id', $free->id)
+                ->where('expenseCategories.0.description', 'OVH, home.pl')
+                ->where('expenseCategories.0.can_change_type', true)
+                ->where('expenseCategories.0.can_delete', true)
+                ->where('expenseCategories.1.id', $inExecution->category_id)
+                ->where('expenseCategories.1.can_change_type', false)
+                ->where('expenseCategories.1.can_delete', false)
+                ->where('expenseCategories.2.id', $withOperation->category_id)
+                ->where('expenseCategories.2.can_delete', false)
+                ->where('archivedCategories.0.id', $archivedWithHistory->category_id)
+                ->where('archivedCategories.0.can_delete', false),
             );
     }
 
@@ -141,7 +239,66 @@ class CategoriesPageTest extends TestCase
                 ->component('Categories')
                 ->where('incomeCategories', [])
                 ->where('expenseCategories', [])
-                ->where('archivedCategories', []),
+                ->where('archivedCategories', [])
+                ->where('incomeGroups', [])
+                ->where('expenseGroups', []),
+            );
+    }
+
+    public function test_groups_and_membership_come_in_the_order_of_the_sequence_per_type(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $health = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 1]);
+        $fixed = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Opłaty', 'sort_order' => 3]);
+        $salary = CategoryGroup::factory()->for($user)->income()->create(['name' => 'Pensje', 'sort_order' => 0]);
+        CategoryGroup::factory()->for($other)->expense()->create(['name' => 'Cudza', 'sort_order' => 0]);
+        $food = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'sort_order' => 0]);
+        $pharmacy = Category::factory()->for($user)->expense()->create(['name' => 'Apteka', 'sort_order' => 2, 'category_group_id' => $health->id]);
+        $rent = Category::factory()->for($user)->expense()->create(['name' => 'Czynsz', 'sort_order' => 4, 'category_group_id' => $fixed->id]);
+        $wage = Category::factory()->for($user)->income()->create(['name' => 'Wynagrodzenie', 'sort_order' => 1, 'category_group_id' => $salary->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('incomeGroups', [['id' => $salary->id, 'name' => 'Pensje', 'sort_order' => 0, 'archived_count' => 0]])
+                ->where('expenseGroups', [
+                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 1, 'archived_count' => 0],
+                    ['id' => $fixed->id, 'name' => 'Opłaty', 'sort_order' => 3, 'archived_count' => 0],
+                ])
+                ->where('incomeCategories.0.id', $wage->id)
+                ->where('incomeCategories.0.group_id', $salary->id)
+                ->where('expenseCategories.0.id', $food->id)
+                ->where('expenseCategories.0.group_id', null)
+                ->where('expenseCategories.1.id', $pharmacy->id)
+                ->where('expenseCategories.1.group_id', $health->id)
+                ->where('expenseCategories.1.sort_order', 2)
+                ->where('expenseCategories.2.id', $rent->id)
+                ->where('expenseCategories.2.group_id', $fixed->id),
+            );
+    }
+
+    /**
+     * Deleting a group takes the group from its archived Categories too, so the
+     * confirmation needs their number; the view lists only active ones in a group.
+     */
+    public function test_a_group_counts_its_archived_categories(): void
+    {
+        $user = User::factory()->create();
+        $health = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie', 'sort_order' => 0]);
+        $empty = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Podróże', 'sort_order' => 3]);
+        Category::factory()->for($user)->expense()->create(['name' => 'Apteka', 'sort_order' => 1, 'category_group_id' => $health->id]);
+        Category::factory()->for($user)->expense()->archived()->create(['name' => 'Badania', 'sort_order' => 2, 'category_group_id' => $health->id]);
+
+        $this->actingAs($user)
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseGroups', [
+                    ['id' => $health->id, 'name' => 'Zdrowie', 'sort_order' => 0, 'archived_count' => 1],
+                    ['id' => $empty->id, 'name' => 'Podróże', 'sort_order' => 3, 'archived_count' => 0],
+                ])
+                ->count('expenseCategories', 1)
+                ->count('archivedCategories', 1),
             );
     }
 }

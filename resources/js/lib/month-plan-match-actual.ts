@@ -6,11 +6,14 @@ export type MatchActualState = 'offer' | 'raised' | null;
 
 /**
  * An in-plan, non-archived expense row whose actual amount exceeds the saved
- * plan and fits the plan field (ADR-0062). Change mode starts it raised.
+ * plan and fits the plan field (ADR-0062). Change mode starts it raised. An
+ * irregular row is the exception: its rate is not raised to the bill, the
+ * Collected covers it (ADR-0066).
  */
 export function raisesToActualOnChange(row: MonthPlanItem): boolean {
     return (
         row.type === 'expense' &&
+        row.rhythm !== 'irregular' &&
         row.in_plan &&
         !row.is_archived &&
         row.actual_minor_units > row.plan_minor_units &&
@@ -35,6 +38,8 @@ export function changeModeAmountInputs(
 }
 
 /**
+ * Always null for an irregular row (ADR-0066).
+ *
  * 'offer': the button "plan = actual" (expense with a field, readable amount
  * below the actual amount, which the field accepts); 'raised': the marker
  * (field equals the actual amount, which exceeds the saved plan).
@@ -44,7 +49,12 @@ export function matchActualState(
     fieldAmount: number | null,
     hasAmountField: boolean,
 ): MatchActualState {
-    if (row.type !== 'expense' || !hasAmountField || fieldAmount === null) {
+    if (
+        row.type !== 'expense' ||
+        row.rhythm === 'irregular' ||
+        !hasAmountField ||
+        fieldAmount === null
+    ) {
         return null;
     }
 

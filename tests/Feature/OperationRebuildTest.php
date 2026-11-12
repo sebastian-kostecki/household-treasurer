@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -657,5 +658,36 @@ class OperationRebuildTest extends TestCase
                 'convert_to_capital_movement' => true,
             ])
             ->assertSessionHasErrors('convert_to_capital_movement');
+    }
+
+    public function test_rebuilding_a_capital_movement_into_an_expense_joins_the_budget_with_the_category(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $termDeposit = TermDeposit::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $movement = CapitalMovement::factory()->for($user)->create([
+            'account_id' => $account->id,
+            'term_deposit_id' => $termDeposit->id,
+            'movement_date' => '2026-03-15',
+            'amount_minor_units' => 8000,
+            'direction' => CapitalMovementDirection::ToTermDeposit,
+        ]);
+
+        $this->actingAs($user)->patch(route('capital-movements.update', $movement), [
+            'movement_date' => '2026-03-15',
+            'amount_minor_units' => 8000,
+            'description' => 'OVH',
+            'account_id' => $account->id,
+            'category_id' => $category->id,
+            'convert_to_expense' => true,
+        ])->assertSessionHasNoErrors();
+
+        $line = BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', $category->id)->firstOrFail();
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertSame(8000, $line->execution_minor_units);
     }
 }

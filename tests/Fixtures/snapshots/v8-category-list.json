@@ -1,0 +1,174 @@
+{
+    "version": 8,
+    "source": {
+        "user_id": 900,
+        "email": "fixture@example.test"
+    },
+    "created_at": "2026-11-09T10:00:00+00:00",
+    "first_run_checklist_dismissed_at": null,
+    "accounts": [
+        {
+            "id": 1,
+            "name": "ROR",
+            "type": "bank",
+            "bank": null,
+            "opening_date": "2025-01-01",
+            "opening_balance_minor_units": 0,
+            "current_balance_minor_units": 0,
+            "archived_at": null
+        }
+    ],
+    "term_deposits": [],
+    "budgets": [
+        {
+            "id": 10,
+            "year": 2026,
+            "phase": "execution"
+        },
+        {
+            "id": 11,
+            "year": 2027,
+            "phase": "draft"
+        }
+    ],
+    "category_groups": [],
+    "categories": [
+        {
+            "id": 401,
+            "category_group_id": null,
+            "name": "Rekolekcje",
+            "icon": "tag",
+            "color": "#aa0000",
+            "description": null,
+            "sort_order": 1,
+            "type": "expense",
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 402,
+            "category_group_id": null,
+            "name": "Czynsz",
+            "icon": "home",
+            "color": "#00aa00",
+            "description": null,
+            "sort_order": 2,
+            "type": "expense",
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 403,
+            "category_group_id": null,
+            "name": "Prąd",
+            "icon": "zap",
+            "color": "#0000aa",
+            "description": null,
+            "sort_order": 3,
+            "type": "expense",
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 404,
+            "category_group_id": null,
+            "name": "Bez pozycji",
+            "icon": "tag",
+            "color": "#aaaa00",
+            "description": null,
+            "sort_order": 4,
+            "type": "expense",
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        },
+        {
+            "id": 405,
+            "category_group_id": null,
+            "name": "Pensja",
+            "icon": "wallet",
+            "color": "#00bb00",
+            "description": null,
+            "sort_order": 0,
+            "type": "income",
+            "archived_at": null,
+            "created_at": "2025-01-01T10:00:00+00:00",
+            "updated_at": "2025-01-01T10:00:00+00:00"
+        }
+    ],
+    "budget_lines": [
+        {
+            "id": 501,
+            "budget_id": 10,
+            "category_id": 401,
+            "is_paced": false,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 120000,
+            "initial_plan_minor_units": 120000,
+            "execution_minor_units": 0,
+            "archived_at": null
+        },
+        {
+            "id": 502,
+            "budget_id": 11,
+            "category_id": 401,
+            "is_paced": false,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 120000,
+            "initial_plan_minor_units": 0,
+            "execution_minor_units": 0,
+            "archived_at": null
+        },
+        {
+            "id": 503,
+            "budget_id": 10,
+            "category_id": 402,
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 300000,
+            "initial_plan_minor_units": 300000,
+            "execution_minor_units": 0,
+            "archived_at": null
+        },
+        {
+            "id": 504,
+            "budget_id": 11,
+            "category_id": 402,
+            "is_paced": true,
+            "month_item_kind": "bill",
+            "planned_amount_minor_units": 310000,
+            "initial_plan_minor_units": 0,
+            "execution_minor_units": 0,
+            "archived_at": null
+        },
+        {
+            "id": 505,
+            "budget_id": 10,
+            "category_id": 403,
+            "is_paced": false,
+            "month_item_kind": "bill",
+            "planned_amount_minor_units": 50000,
+            "initial_plan_minor_units": 50000,
+            "execution_minor_units": 0,
+            "archived_at": null
+        },
+        {
+            "id": 506,
+            "budget_id": 10,
+            "category_id": 405,
+            "is_paced": true,
+            "month_item_kind": "running",
+            "planned_amount_minor_units": 10200000,
+            "initial_plan_minor_units": 10200000,
+            "execution_minor_units": 0,
+            "archived_at": null
+        }
+    ],
+    "financial_operations": [],
+    "own_transfers": [],
+    "capital_movements": [],
+    "month_plans": []
+}

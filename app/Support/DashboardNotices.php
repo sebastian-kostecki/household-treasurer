@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\CategoryType;
 use App\Enums\DashboardNoticeSeverity;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\TermDeposit;
@@ -33,7 +34,7 @@ class DashboardNotices
      *     mark_url: string|null,
      *     amount_minor_units: int,
      * }|array{
-     *     kind: 'month_item_over_plan'|'one_off_over_limit',
+     *     kind: 'month_item_over_plan'|'even_annual_over_limit',
      *     severity: 'exceeded'|'warning',
      *     id: int,
      *     name: string,
@@ -125,22 +126,36 @@ class DashboardNotices
                     continue;
                 }
 
+                $rhythm = $monthReading->rhythmOf($category);
+
+                if ($rhythm === Rhythm::EvenAnnual) {
+                    continue;
+                }
+
                 $amounts = $monthReading->rowAmounts($category);
 
                 if (! MonthItemDeviation::isOverPlan(
                     $category->category->type,
+                    $rhythm,
                     $amounts['plan_minor_units'],
                     $amounts['actual_minor_units'],
+                    $category->execution_minor_units,
+                    $category->planned_amount_minor_units,
+                    $amounts['collected_at_start_minor_units'],
                 )) {
                     continue;
                 }
+
+                $overPlanMinorUnits = $rhythm === Rhythm::Irregular
+                    ? -CollectedCalculator::surplusMinorUnits($amounts['collected_at_start_minor_units'], $amounts['plan_minor_units'], $amounts['actual_minor_units'])
+                    : $amounts['plan_minor_units'] - $amounts['actual_minor_units'];
 
                 $overPlanAlerts[] = [
                     'budget_order' => $budgetOrder,
                     'id' => $category->category_id,
                     'name' => $category->category->name,
                     ...CategoryAppearance::fields($category),
-                    'amount_minor_units' => $amounts['plan_minor_units'] - $amounts['actual_minor_units'],
+                    'amount_minor_units' => $overPlanMinorUnits,
                 ];
             }
 
@@ -165,10 +180,12 @@ class DashboardNotices
                 ->ordered()
                 ->get();
 
-            $oneOffAlerts = [];
+            $rhythms = CategoryRhythms::forCategoryIds($expenseCategories->pluck('category_id'));
+            $evenAnnualAlerts = [];
 
             foreach ($expenseCategories->values() as $budgetOrder => $category) {
-                if ($category->isArchived() || $category->is_paced) {
+                if ($category->isArchived()
+                    || $rhythms->rhythmIn($category->category_id, $today->year, $today->month) !== Rhythm::EvenAnnual) {
                     continue;
                 }
 
@@ -181,7 +198,7 @@ class DashboardNotices
                     continue;
                 }
 
-                $oneOffAlerts[] = [
+                $evenAnnualAlerts[] = [
                     'budget_order' => $budgetOrder,
                     'id' => $category->category_id,
                     'name' => $category->category->name,
@@ -190,11 +207,11 @@ class DashboardNotices
                 ];
             }
 
-            $oneOffAlerts = self::sortByMostOverThenBudgetOrder($oneOffAlerts);
+            $evenAnnualAlerts = self::sortByMostOverThenBudgetOrder($evenAnnualAlerts);
 
-            foreach ($oneOffAlerts as $alert) {
+            foreach ($evenAnnualAlerts as $alert) {
                 $notices[] = [
-                    'kind' => 'one_off_over_limit',
+                    'kind' => 'even_annual_over_limit',
                     'severity' => DashboardNoticeSeverity::Exceeded->value,
                     'id' => $alert['id'],
                     'name' => $alert['name'],

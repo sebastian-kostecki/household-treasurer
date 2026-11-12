@@ -25,12 +25,13 @@ export type MonthItemStatusContext = {
  * Status badge of a month plan row, mapped from flags the server already
  * computes (`is_settled`), the over-plan reading and the row's plan amount.
  * A mapping, not a calculation, so there is no PHP copy. An expense over its
- * plan wins over "paid"; a running expense within plan has no badge; nothing
+ * plan wins over "paid"; a running, even annual or irregular expense within plan has no badge (an
+ * irregular one is over plan only by its surplus over the Collected); nothing
  * planned and nothing settled has no badge; a closed month says "niezapłacone"
  * or "nie wpłynęło" instead of "do zapłaty" or "czeka".
  */
 export function monthItemStatus(
-    row: Pick<MonthPlanItem, 'type' | 'month_item_kind' | 'is_settled'>,
+    row: Pick<MonthPlanItem, 'type' | 'rhythm' | 'is_settled'>,
     context: MonthItemStatusContext,
 ): MonthItemStatus | null {
     if (row.type === 'expense' && context.overPlan) {
@@ -51,7 +52,7 @@ export function monthItemStatus(
             : { key: 'status_waiting', variant: 'neutral' };
     }
 
-    if (row.month_item_kind === 'bill') {
+    if (row.rhythm === 'fixed_charge') {
         if (row.is_settled) {
             return { key: 'settled_bill', variant: 'ok' };
         }

@@ -17,6 +17,7 @@ export type HandEntryPreviewTermDeposit = {
 
 export type HandEntryPreviewCategory = {
     id: number;
+    budget_year: number;
     planned_amount_minor_units: number;
     execution_minor_units: number;
 };
@@ -34,6 +35,8 @@ export type HandEntryPreviewProposal = {
     kind: HandEntryPreviewKind;
     account_id: number;
     category_id?: number;
+    /** Year of the operation date: the category entry of that year's Budget. */
+    operation_year?: number;
     amount_minor_units: number;
     source_account_id?: number;
     term_deposit_id?: number;
@@ -75,12 +78,21 @@ function findAccount(
 function findCategory(
     categories: HandEntryPreviewCategory[] | undefined,
     categoryId: number | undefined,
+    operationYear: number | undefined,
 ): HandEntryPreviewCategory | undefined {
-    if (categoryId === undefined || categories === undefined) {
+    if (
+        categoryId === undefined ||
+        operationYear === undefined ||
+        categories === undefined
+    ) {
         return undefined;
     }
 
-    return categories.find((category) => category.id === categoryId);
+    return categories.find(
+        (category) =>
+            category.id === categoryId &&
+            category.budget_year === operationYear,
+    );
 }
 
 function findTermDeposit(
@@ -404,7 +416,11 @@ export function previewHandEntryWarnings(
     }
 
     const account = findAccount(accounts, proposal.account_id);
-    const category = findCategory(categories, proposal.category_id);
+    const category = findCategory(
+        categories,
+        proposal.category_id,
+        proposal.operation_year,
+    );
     const originalAccountId = editedRecord?.account_id ?? -1;
     const originalCategoryId = editedRecord?.category_id;
     const originalSignedAmount = editedRecord?.signed_amount_minor_units ?? 0;

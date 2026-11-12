@@ -25,3 +25,5 @@ The same pass aligns the rest of the view with the mock: the percentages in the 
 Superseded in part by ADR-0045: the metrics panel has three measures without Year Elapsed, budget execution is one panel with two tables (Dochody, Wydatki) and the Switch "Postęp roku" instead of tabs, group rows and the Plan and Status columns, and a notice card has the kind label, the identity and the value on the right. The Konta and Lokaty panels stay.
 
 Superseded in part by ADR-0061: the "fixed width" of the right column. `--aside-width` is a `clamp()` and grows with the window.
+
+Amended by ADR-0066: the Year Elapsed mark stands on income and on every expense Category except an Irregular one, instead of “Paced, not One-off”.

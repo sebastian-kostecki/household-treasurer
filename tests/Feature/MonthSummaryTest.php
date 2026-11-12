@@ -35,9 +35,9 @@ class MonthSummaryTest extends TestCase
     public function test_totals_compare_approved_final_and_actual(): void
     {
         $salary = BudgetLine::factory()->for($this->budget)->income()->create();
-        $rent = BudgetLine::factory()->for($this->budget)->bill()->create();
+        $rent = BudgetLine::factory()->for($this->budget)->fixedCharge()->create();
         $food = BudgetLine::factory()->for($this->budget)->expense()->create();
-        $bill = BudgetLine::factory()->for($this->budget)->bill()->create();
+        $bill = BudgetLine::factory()->for($this->budget)->fixedCharge()->create();
         $joinedLater = BudgetLine::factory()->for($this->budget)->expense()->create();
         $outside = BudgetLine::factory()->for($this->budget)->expense()->create();
 
@@ -150,6 +150,24 @@ class MonthSummaryTest extends TestCase
     private function toSpend(int $month): MonthToSpend
     {
         return MonthToSpend::forMonth($this->budget->fresh(), $month, CarbonImmutable::today('UTC'));
+    }
+
+    public function test_the_totals_stay_plain_sums_and_the_month_result_uses_the_actual_bill_of_an_irregular_category(): void
+    {
+        $service = BudgetLine::factory()->for($this->budget)->irregular()->create(['planned_amount_minor_units' => 180_000]);
+        $service->category->rhythms()->update(['start_month' => 3, 'opening_collected_minor_units' => 30_000]);
+        $plan = MonthPlan::factory()->for($this->budget)->create(['month' => 3]);
+        $this->item($plan, $service, 15_000, 15_000);
+        $this->operation($service, FinancialOperationType::Expense, '2026-03-05', 40_000);
+
+        $summary = $this->summary(3)->toArray();
+
+        $this->assertSame([
+            'approved_minor_units' => 15_000,
+            'final_minor_units' => 15_000,
+            'actual_minor_units' => 40_000,
+            'deviation_minor_units' => 25_000,
+        ], $summary['expense']);
     }
 
     private function item(MonthPlan $plan, BudgetLine $category, int $approved, int $current): void

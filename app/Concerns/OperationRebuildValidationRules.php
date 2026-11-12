@@ -8,7 +8,7 @@ use App\Models\Account;
 use App\Models\CapitalMovement;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
-use App\Support\BudgetLineResolver;
+use App\Support\CategoryList\OperationCategoryChoice;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Carbon;
@@ -131,8 +131,7 @@ trait OperationRebuildValidationRules
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('user_id', $userId)
-                    ->where('type', CategoryType::Income->value)
-                    ->whereNull('archived_at'),
+                    ->where('type', CategoryType::Income->value),
             ],
         ];
     }
@@ -170,8 +169,7 @@ trait OperationRebuildValidationRules
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('user_id', $userId)
-                    ->where('type', CategoryType::Expense->value)
-                    ->whereNull('archived_at'),
+                    ->where('type', CategoryType::Expense->value),
             ],
         ];
     }
@@ -355,31 +353,15 @@ trait OperationRebuildValidationRules
                 );
             }
 
-            $category = (new BudgetLineResolver)->forYear($this->user(), (int) $categoryId, Carbon::parse($operationDate)->year);
+            $message = OperationCategoryChoice::check(
+                $this->user(),
+                (int) $categoryId,
+                $categoryType,
+                Carbon::parse($operationDate)->year,
+                null,
+            );
 
-            if ($category === null) {
-                $validator->errors()->add(
-                    'category_id',
-                    __('The selected category does not belong to the budget for this operation year.'),
-                );
-
-                return;
-            }
-
-            if ($category->isArchived() || $category->category->type !== $categoryType) {
-                $validator->errors()->add(
-                    'category_id',
-                    __('The selected category is invalid.'),
-                );
-
-                return;
-            }
-
-            if (! $category->budget->isExecution()) {
-                $message = $categoryType === CategoryType::Income
-                    ? __('Income can only be recorded for a budget in execution. Create or start a budget for this year.')
-                    : __('Expenses can only be recorded for a budget in execution. Create or start a budget for this year.');
-
+            if ($message !== null) {
                 $validator->errors()->add('category_id', $message);
             }
         });

@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import BudgetCategoryList, {
+    type BudgetCategoryGroup,
     type BudgetCategoryRow,
 } from '@/components/BudgetCategoryList.vue';
 import BudgetEmptyState from '@/components/BudgetEmptyState.vue';
@@ -25,6 +26,8 @@ function row(overrides: RowOverrides): BudgetCategoryRow {
     return {
         icon: 'tag',
         color: DEFAULT_CATEGORY_COLOR,
+        group_id: null,
+        sort_order: overrides.id,
         planned_amount_minor_units: 0,
         initial_plan_minor_units: 0,
         current_plan_minor_units: 0,
@@ -39,8 +42,8 @@ function row(overrides: RowOverrides): BudgetCategoryRow {
         can_archive: true,
         can_restore: false,
         can_align_current_plan: false,
-        is_paced: true,
-        month_item_kind: 'running',
+        rhythm: overrides.type === 'expense' ? 'running' : null,
+        collected_at_year_start: null,
         ...overrides,
     };
 }
@@ -126,13 +129,35 @@ function totalsOf(
     };
 }
 
+function groupOf(
+    id: number,
+    name: string,
+    sortOrder: number,
+    rows: BudgetCategoryRow[],
+    isDraft: boolean,
+): BudgetCategoryGroup {
+    const members = rows.filter(
+        (category) => category.group_id === id && !category.is_archived,
+    );
+
+    return {
+        id,
+        name,
+        sort_order: sortOrder,
+        totals: totalsOf(members, isDraft),
+        has_over_limit_category: members.some(
+            (category) => category.type === 'expense' && category.is_over_limit,
+        ),
+    };
+}
+
 const draftIncome = [
     draftRow(101, 'Wynagrodzenie', 'income', 650000, 'banknote'),
     draftRow(102, 'Premia', 'income', 120000, 'coins'),
 ];
 const draftExpense = [
     draftRow(111, 'Czynsz', 'expense', 250000, 'building', {
-        month_item_kind: 'bill',
+        rhythm: 'fixed_charge',
     }),
     draftRow(112, 'Jedzenie', 'expense', 180000, 'apple'),
     draftRow(113, 'Transport', 'expense', 45000, 'bus'),
@@ -157,9 +182,153 @@ const executionExpense = [
         310000,
         'tag',
         {
-            is_paced: false,
+            rhythm: 'even_annual',
         },
     ),
+    // Nieregularna (ADR-0066): bez kreski "Postęp roku".
+    // Nieregularna ze styczniem w okresie: podpis "zebrane startowe" (ADR-0076).
+    executionRow(216, 'Rekolekcje', 'expense', 120000, 120000, 45000, 'tag', {
+        rhythm: 'irregular',
+        collected_at_year_start: { minor_units: 20000, is_forecast: false },
+    }),
+    // Nieregularna oznaczona w trakcie roku: styczeń poza okresem, bez podpisu.
+    executionRow(217, 'Naprawa dachu', 'expense', 60000, 60000, 0, 'tag', {
+        rhythm: 'irregular',
+    }),
+];
+
+// Budżet z grupami (ADR-0069): "Opłaty stałe" (Czynsz, Prąd), Jedzenie bez
+// grupy i "Zdrowie" (Apteka, Badania). Jedna sekwencja miejsc dla grup i kategorii.
+const groupedDraftExpense = [
+    draftRow(411, 'Czynsz', 'expense', 250000, 'building', {
+        rhythm: 'fixed_charge',
+        group_id: 41,
+        sort_order: 1,
+    }),
+    draftRow(412, 'Prąd', 'expense', 40000, 'tag', {
+        rhythm: 'fixed_charge',
+        group_id: 41,
+        sort_order: 2,
+    }),
+    draftRow(413, 'Jedzenie', 'expense', 180000, 'apple', { sort_order: 3 }),
+    draftRow(414, 'Apteka', 'expense', 120000, 'tag', {
+        group_id: 42,
+        sort_order: 5,
+    }),
+    draftRow(415, 'Badania', 'expense', 80000, 'tag', {
+        group_id: 42,
+        sort_order: 6,
+    }),
+];
+const groupedDraftExpenseGroups = [
+    groupOf(41, 'Opłaty stałe', 0, groupedDraftExpense, true),
+    groupOf(42, 'Zdrowie', 4, groupedDraftExpense, true),
+];
+
+// Zdrowie: Apteka 1 200 / 1 400 (ponad plan), Badania 800 / 300; grupa 2 000 /
+// 1 700, pozostało +300, a mimo to znacznik "ponad plan". Identyfikatory grup
+// są różne w każdej liście, bo id treści grupy trafia do DOM.
+function groupedExecutionExpenseFixture(base: number): {
+    rows: BudgetCategoryRow[];
+    groups: BudgetCategoryGroup[];
+} {
+    const fixed = base + 1;
+    const health = base + 2;
+    const rows = [
+        executionRow(
+            base + 11,
+            'Czynsz',
+            'expense',
+            250000,
+            250000,
+            250000,
+            'building',
+            {
+                group_id: fixed,
+                sort_order: 1,
+            },
+        ),
+        executionRow(base + 12, 'Prąd', 'expense', 40000, 40000, 31000, 'tag', {
+            group_id: fixed,
+            sort_order: 2,
+        }),
+        executionRow(
+            base + 13,
+            'Jedzenie',
+            'expense',
+            180000,
+            180000,
+            90000,
+            'apple',
+            {
+                sort_order: 3,
+            },
+        ),
+        executionRow(
+            base + 14,
+            'Apteka',
+            'expense',
+            120000,
+            120000,
+            140000,
+            'tag',
+            {
+                group_id: health,
+                sort_order: 5,
+            },
+        ),
+        executionRow(
+            base + 15,
+            'Badania',
+            'expense',
+            80000,
+            80000,
+            30000,
+            'tag',
+            {
+                group_id: health,
+                sort_order: 6,
+            },
+        ),
+    ];
+
+    return {
+        rows,
+        groups: [
+            groupOf(fixed, 'Opłaty stałe', 0, rows, false),
+            groupOf(health, 'Zdrowie', 4, rows, false),
+        ],
+    };
+}
+
+const groupedExecution = groupedExecutionExpenseFixture(500);
+const collapsedExecution = groupedExecutionExpenseFixture(600);
+const HEALTH_GROUP_COLLAPSED = 602;
+
+const groupedExecutionIncome = [
+    executionRow(
+        711,
+        'Wynagrodzenie',
+        'income',
+        650000,
+        650000,
+        650000,
+        'tag',
+        {
+            group_id: 701,
+            sort_order: 1,
+        },
+    ),
+    executionRow(712, 'Premia', 'income', 100000, 120000, 135000, 'coins', {
+        group_id: 701,
+        sort_order: 2,
+    }),
+    executionRow(713, 'Zwrot podatku', 'income', 80000, 60000, 20000, 'tag', {
+        sort_order: 3,
+    }),
+];
+const groupedExecutionIncomeGroups = [
+    groupOf(701, 'Praca', 0, groupedExecutionIncome, false),
 ];
 
 const withArchived = [
@@ -197,6 +366,69 @@ const withArchived = [
     }),
 ];
 
+// Zebrane startowe (ADR-0076): szkic następnego roku z prognozą, prognoza 0,00,
+// długa nazwa, wiersz pod grupą i wiersz bez podpisu (oznaczona w trakcie roku).
+const collectedDraftExpense = [
+    draftRow(811, 'Prąd', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+        collected_at_year_start: { minor_units: 60000, is_forecast: true },
+    }),
+    draftRow(812, 'Wywóz szamba', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+        collected_at_year_start: { minor_units: 0, is_forecast: true },
+    }),
+    draftRow(
+        813,
+        'Przegląd i konserwacja kotła gazowego wraz z kominiarzem',
+        'expense',
+        0,
+        'tag',
+        {
+            rhythm: 'irregular',
+            collected_at_year_start: { minor_units: 123456, is_forecast: true },
+        },
+    ),
+    draftRow(814, 'Naprawa dachu', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+    }),
+    draftRow(815, 'Czynsz', 'expense', 250000, 'building', {
+        rhythm: 'fixed_charge',
+        group_id: 81,
+        sort_order: 20,
+    }),
+    draftRow(816, 'Ubezpieczenie domu', 'expense', 0, 'tag', {
+        rhythm: 'irregular',
+        group_id: 81,
+        sort_order: 21,
+        collected_at_year_start: { minor_units: 45000, is_forecast: true },
+    }),
+];
+const collectedDraftExpenseGroups = [
+    groupOf(81, 'Dom', 19, collectedDraftExpense, true),
+];
+
+const collectedWithArchived = [
+    executionRow(231, 'Czynsz', 'expense', 250000, 250000, 250000, 'building'),
+    row({
+        id: 232,
+        name: 'Stare ubezpieczenie',
+        type: 'expense',
+        rhythm: 'irregular',
+        is_archived: true,
+        can_archive: false,
+        can_restore: true,
+        can_delete: false,
+        planned_amount_minor_units: 12000,
+        initial_plan_minor_units: 12000,
+        current_plan_minor_units: 12000,
+        execution_minor_units: 15000,
+        remaining_minor_units: -3000,
+        percent_complete: 125,
+        is_over_limit: true,
+        collected_at_year_start: { minor_units: 8000, is_forecast: false },
+    }),
+];
+
 const manyCategories = Array.from({ length: 14 }, (_, index) =>
     draftRow(
         300 + index,
@@ -217,7 +449,7 @@ const noop = (): void => undefined;
 const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'default',
-        where: 'Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, kategoria jednorazowa (bez kreski roku) i równomierna (z kreską). Szkic: kolumna „Typ”.',
+        where: 'Grupy: sekcje „Grupy w szkicu”, „Grupy w realizacji”, „Grupa zwinięta” i „Grupa przychodów”; listy bez grup to pozostałe sekcje. Realizacja: wiersze w normie, dochód ponad 100%, przekroczenie, zarchiwizowany, stała opłata, bieżąca i równomierna roczna (każda z kreską roku), nieregularna z podpisem „zebrane startowe” i bez podpisu (sekcja „Zebrane startowe”). Szkic: kolumna „Typ”; w sekcji „Zebrane startowe” podpis z prognozą, prognoza 0,00, długa nazwa, wiersz pod grupą, zarchiwizowana z podpisem i nieregularna bez podpisu; poniżej md wiersz kategorii szkicu ma dwie linie (nazwa z podpisem, potem plan).',
     },
     {
         state: 'hover',
@@ -279,6 +511,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.income_table"
                 :categories="draftIncome"
+                :groups="[]"
                 :budget-id="1"
                 category-type="income"
                 phase="draft"
@@ -291,6 +524,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="draftExpense"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"
@@ -310,6 +544,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.income_table"
                 :categories="executionIncome"
+                :groups="[]"
                 :budget-id="1"
                 category-type="income"
                 phase="execution"
@@ -324,16 +559,140 @@ const stateMatrix: { state: string; where: string }[] = [
         <section class="flex flex-col gap-3" aria-labelledby="ks-expense">
             <h2 id="ks-expense" class="section-title">
                 Realizacja wydatków (przekroczenie, plan zwiększony „Jedzenie” i
-                zmniejszony „Rozrywka”, bez zmiany „Czynsz”, równomierna z
-                kreską, jednorazowa „Remont łazienki” bez kreski)
+                zmniejszony „Rozrywka”, bez zmiany „Czynsz”, bieżąca z kreską,
+                równomierna roczna „Remont łazienki” z kreską)
             </h2>
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="executionExpense"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="execution"
                 :totals="totalsOf(executionExpense, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-collected">
+            <h2 id="ks-collected" class="section-title">
+                Zebrane startowe (ADR-0076): szkic z prognozą „Prąd” 600,00,
+                prognoza 0,00, długa nazwa, wiersz pod grupą „Dom”, „Naprawa
+                dachu” bez podpisu (poniżej md wiersz szkicu ma dwie linie);
+                realizacja z zarchiwizowaną z podpisem („Rekolekcje” 200,00 bez
+                prognozy są w sekcji „Realizacja wydatków”)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="collectedDraftExpense"
+                :groups="collectedDraftExpenseGroups"
+                :budget-id="1"
+                category-type="expense"
+                phase="draft"
+                :totals="totalsOf(collectedDraftExpense, true)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="null"
+                @edit="noop"
+            />
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="collectedWithArchived"
+                :groups="[]"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(collectedWithArchived, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-groups-draft">
+            <h2 id="ks-groups-draft" class="section-title">
+                Grupy w szkicu (wiersz grupy z kolumną planu: „Opłaty stałe”,
+                „Zdrowie”; „Jedzenie” bez grupy; przeciągnij kategorię do grupy:
+                prawdziwy PATCH)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="groupedDraftExpense"
+                :groups="groupedDraftExpenseGroups"
+                :budget-id="1"
+                category-type="expense"
+                phase="draft"
+                :totals="totalsOf(groupedDraftExpense, true)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="null"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-groups-exec">
+            <h2 id="ks-groups-exec" class="section-title">
+                Grupy w realizacji (wiersz grupy: początkowy, aktualny,
+                wykonanie, pozostało, miernik; „Zdrowie”: Apteka 1 200 / 1 400,
+                Badania 800 / 300, razem 2 000 / 1 700, pozostało +300, mimo to
+                „ponad plan”)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="groupedExecution.rows"
+                :groups="groupedExecution.groups"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(groupedExecution.rows, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section
+            class="flex flex-col gap-3"
+            aria-labelledby="ks-groups-collapsed"
+        >
+            <h2 id="ks-groups-collapsed" class="section-title">
+                Grupa zwinięta („Zdrowie” zwinięte, znacznik „ponad plan” widać
+                na wierszu grupy; przycisk z nazwą grupy rozwija i zwija)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="collapsedExecution.rows"
+                :groups="collapsedExecution.groups"
+                :initial-collapsed-group-ids="[HEALTH_GROUP_COLLAPSED]"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(collapsedExecution.rows, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-groups-income">
+            <h2 id="ks-groups-income" class="section-title">
+                Grupa przychodów w realizacji („Praca”: bez znacznika „ponad
+                plan”, nadwyżka dochodu nie jest przekroczeniem)
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.income_table"
+                :categories="groupedExecutionIncome"
+                :groups="groupedExecutionIncomeGroups"
+                :budget-id="1"
+                category-type="income"
+                phase="execution"
+                :totals="totalsOf(groupedExecutionIncome, false)"
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
                 :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
@@ -349,6 +708,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="withArchived"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="execution"
@@ -367,6 +727,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="[]"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"
@@ -389,6 +750,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="manyCategories"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"
@@ -407,6 +769,7 @@ const stateMatrix: { state: string; where: string }[] = [
             <BudgetCategoryList
                 :title="t.budget.expense_table"
                 :categories="draftExpense"
+                :groups="[]"
                 :budget-id="1"
                 category-type="expense"
                 phase="draft"

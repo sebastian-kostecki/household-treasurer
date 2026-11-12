@@ -9,12 +9,12 @@ use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CategoryGroup;
 use App\Models\User;
 use App\Support\BudgetViewedMonth;
-use App\Support\CategoryAppearance;
-use App\Support\CategoryExecutionMetrics;
-use App\Support\MonthItemDeviation;
 use App\Support\MonthPace;
+use App\Support\MonthPlanItemRow;
+use App\Support\MonthPlanJoinCandidates;
 use App\Support\MonthSummary;
 use App\Support\MonthToSpend;
 use App\Support\MonthYearComparison;
@@ -24,6 +24,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -146,6 +147,8 @@ class MonthPlanController extends Controller
      *     month_pace: array{as_of: string, elapsed_day: int, days_in_month: int, pool_plan_minor_units: int, pool_actual_minor_units: int, percent: int|null, is_ahead: bool}|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
+     *     income_groups: list<array{id: int, name: string, sort_order: int}>,
+     *     expense_groups: list<array{id: int, name: string, sort_order: int}>,
      *     year_totals: array{income: YearComparison, expense: YearComparison}|null,
      *     summary: array{
      *         income: array{approved_minor_units: int, final_minor_units: int, actual_minor_units: int, deviation_minor_units: int},
@@ -163,50 +166,26 @@ class MonthPlanController extends Controller
 
         $canChange = $reading->state === 'approved' && $timing !== 'past';
 
-        $categories = $toSpend->categories;
-        $joinCandidateIds = [];
+        $canApprove = $reading->state === 'proposal'
+            && $timing !== 'past'
+            && ! $toSpend->proposal->isBlockedByPreviousMonth($month);
 
-        if ($canChange) {
-            $knownIds = $categories->pluck('id')->all();
+        [$categories, $joinCandidateIds] = $this->categoriesWithJoinCandidates($budget, $toSpend->categories, $canChange);
 
-            $joinCandidateIds = $budget->budgetLines
-                ->whereNull('archived_at')
-                ->whereNotIn('id', $knownIds)
-                ->pluck('id')
-                ->all();
+        [$incomeItems, $expenseItems] = $this->itemRows($categories, $joinCandidateIds, $toSpend, $timing, $month, $today);
 
-            if ($joinCandidateIds !== []) {
-                $categories = $budget->budgetLines()
-                    ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
-                    ->ordered()
-                    ->get();
-            }
+        if ($canChange || $canApprove) {
+            $joining = MonthPlanJoinCandidates::rows($user, $budget, $timing, $month, $today);
+            $incomeItems = [...$incomeItems, ...$joining['income']];
+            $expenseItems = [...$expenseItems, ...$joining['expense']];
         }
 
-        $incomeItems = [];
-        $expenseItems = [];
-
-        foreach ($categories as $category) {
-            $row = $this->itemRow(
-                $category,
-                $toSpend,
-                $timing,
-                in_array($category->id, $joinCandidateIds, true),
-            );
-
-            if ($category->hasType(CategoryType::Income)) {
-                $incomeItems[] = $row;
-            } else {
-                $expenseItems[] = $row;
-            }
-        }
+        $groups = $this->groupsByType($user);
 
         return [
             'state' => $reading->state,
             'approved_at' => $reading->approvedAt?->toIso8601String(),
-            'can_approve' => $reading->state === 'proposal'
-                && $timing !== 'past'
-                && ! $toSpend->proposal->isBlockedByPreviousMonth($month),
+            'can_approve' => $canApprove,
             'can_change' => $canChange,
             'to_spend_minor_units' => $breakdown['to_spend_minor_units'] ?? null,
             'to_spend_income_minor_units' => $breakdown['income_minor_units'] ?? null,
@@ -221,11 +200,102 @@ class MonthPlanController extends Controller
                 : MonthPace::forMonth($toSpend, $budget->year, $month, $today),
             'income_items' => $incomeItems,
             'expense_items' => $expenseItems,
+            'income_groups' => $groups[CategoryType::Income->value] ?? [],
+            'expense_groups' => $groups[CategoryType::Expense->value] ?? [],
             'year_totals' => $timing === 'current'
                 ? $this->yearTotals($incomeItems, $expenseItems)
                 : null,
             'summary' => $timing === 'past' ? MonthSummary::forMonth($toSpend, $budget, $month)?->toArray() : null,
         ];
+    }
+
+    /**
+     * @return array<string, list<array{id: int, name: string, sort_order: int}>>
+     */
+    private function groupsByType(User $user): array
+    {
+        $groups = [];
+
+        $rows = CategoryGroup::query()
+            ->where('user_id', $user->id)
+            ->orderBy('sort_order')
+            ->orderBy('name_key')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($rows as $group) {
+            $groups[$group->type->value][] = [
+                'id' => $group->id,
+                'name' => $group->name,
+                'sort_order' => $group->sort_order,
+            ];
+        }
+
+        return $groups;
+    }
+
+    /**
+     * @param  Collection<int, BudgetLine>  $categories
+     * @return array{0: Collection<int, BudgetLine>, 1: list<int>}
+     */
+    private function categoriesWithJoinCandidates(Budget $budget, Collection $categories, bool $canChange): array
+    {
+        if (! $canChange) {
+            return [$categories, []];
+        }
+
+        $knownIds = $categories->pluck('id')->all();
+
+        $joinCandidateIds = $budget->budgetLines()
+            ->openForChoice()
+            ->whereNotIn('id', $knownIds)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->values()
+            ->all();
+
+        if ($joinCandidateIds === []) {
+            return [$categories, []];
+        }
+
+        return [
+            $budget->budgetLines()
+                ->whereIn('id', [...$knownIds, ...$joinCandidateIds])
+                ->ordered()
+                ->get(),
+            array_values($joinCandidateIds),
+        ];
+    }
+
+    /**
+     * @param  iterable<BudgetLine>  $categories
+     * @param  list<int>  $joinCandidateIds
+     * @param  'past'|'current'|'future'  $timing
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
+     */
+    private function itemRows(iterable $categories, array $joinCandidateIds, MonthToSpend $toSpend, string $timing, int $month, CarbonImmutable $today): array
+    {
+        $incomeItems = [];
+        $expenseItems = [];
+
+        foreach ($categories as $category) {
+            $row = MonthPlanItemRow::forLine(
+                $category,
+                $toSpend,
+                $timing,
+                in_array($category->id, $joinCandidateIds, true),
+                $month,
+                $today,
+            );
+
+            if ($category->hasType(CategoryType::Income)) {
+                $incomeItems[] = $row;
+            } else {
+                $expenseItems[] = $row;
+            }
+        }
+
+        return [$incomeItems, $expenseItems];
     }
 
     /**
@@ -238,78 +308,6 @@ class MonthPlanController extends Controller
         return [
             'income' => MonthYearComparison::totals(array_column($incomeItems, 'year_comparison'), CategoryType::Income),
             'expense' => MonthYearComparison::totals(array_column($expenseItems, 'year_comparison'), CategoryType::Expense),
-        ];
-    }
-
-    /**
-     * @param  'past'|'current'|'future'  $timing
-     * @return array{
-     *     category_id: int,
-     *     name: string,
-     *     icon: string,
-     *     color: string,
-     *     type: string,
-     *     month_item_kind: string|null,
-     *     is_one_off: bool,
-     *     is_archived: bool,
-     *     plan_minor_units: int,
-     *     actual_minor_units: int,
-     *     has_positive_amount: bool,
-     *     can_change_kind: bool,
-     *     in_plan: bool,
-     *     deviation_minor_units: int|null,
-     *     is_over_plan: bool,
-     *     is_settled: bool,
-     *     available_limit_minor_units: int|null,
-     *     is_idle_one_off: bool,
-     *     approved_minor_units: int|null,
-     *     is_join_candidate: bool,
-     *     year_comparison: YearComparison|null,
-     * }
-     */
-    private function itemRow(BudgetLine $category, MonthToSpend $toSpend, string $timing, bool $isJoinCandidate): array
-    {
-        $isExpense = $category->hasType(CategoryType::Expense);
-        $isOneOff = $isExpense && ! $category->is_paced;
-        $amounts = $toSpend->rowAmounts($category);
-        $plan = $amounts['plan_minor_units'];
-        $actual = $amounts['actual_minor_units'];
-        $hasPositiveAmount = $amounts['has_positive_amount'];
-
-        return [
-            'category_id' => $category->category_id,
-            'name' => $category->category->name,
-            ...CategoryAppearance::fields($category),
-            'type' => $category->category->type->value,
-            'month_item_kind' => $isExpense ? $category->month_item_kind->value : null,
-            'is_one_off' => $isOneOff,
-            'is_archived' => $category->isArchived(),
-            'plan_minor_units' => $plan,
-            'actual_minor_units' => $actual,
-            'has_positive_amount' => $hasPositiveAmount,
-            'can_change_kind' => $isExpense && ! $category->isArchived() && $timing !== 'past',
-            'in_plan' => array_key_exists($category->id, $toSpend->reading->amounts),
-            'approved_minor_units' => $toSpend->reading->approvedAmounts[$category->id] ?? null,
-            'is_join_candidate' => $isJoinCandidate,
-            'deviation_minor_units' => MonthItemDeviation::deviationMinorUnits(
-                $category->category->type,
-                $category->month_item_kind,
-                $plan,
-                $actual,
-                $hasPositiveAmount,
-            ),
-            'is_over_plan' => MonthItemDeviation::isOverPlan($category->category->type, $plan, $actual),
-            'is_settled' => MonthItemDeviation::isSettled($category->category->type, $category->month_item_kind, $hasPositiveAmount),
-            'available_limit_minor_units' => $isOneOff
-                ? CategoryExecutionMetrics::remainingMinorUnits(
-                    $category->planned_amount_minor_units,
-                    $category->execution_minor_units,
-                )
-                : null,
-            'is_idle_one_off' => $isOneOff && $plan === 0 && ! $toSpend->actuals->hasOperations($category->id),
-            'year_comparison' => $timing === 'current'
-                ? MonthYearComparison::forCategory($category, $amounts)
-                : null,
         ];
     }
 

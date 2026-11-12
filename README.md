@@ -4,7 +4,7 @@ Aplikacja webowa do rocznego budżetu domowego: plan kategorii kontra rzeczywist
 
 Dwie płaszczyzny produktu:
 
-- **Budżet** — plan początkowy, plan aktualny i wykonanie. Kategorie wydatkowe są równomierne (_Paced_) albo jednorazowe (_One-off_).
+- **Budżet** — plan początkowy, plan aktualny i wykonanie. Każda kategoria wydatkowa ma rytm (_Rhythm_): stała opłata, bieżąca, równomierna roczna albo nieregularna (stawka miesięczna i „zebrane”, które zużywa rachunek).
 - **Płynność** — _Spendable Liquidity_ (salda kont) i _Total funds_ (te salda plus lokaty).
 
 Konta logowania tworzy administrator. Samodzielna rejestracja jest wyłączona. Każdy użytkownik widzi wyłącznie własne dane.
@@ -94,6 +94,14 @@ Dane demonstracyjne:
 
 Gdy użytkownik ma już dane domenowe, dodaj `--fresh` (i `--force`, żeby pominąć potwierdzenie).
 
+Opcjonalnie, po `demo:seed-household`: budżet roku poprzedniego do porównań rok do roku.
+
+```bash
+./vendor/bin/sail artisan demo:seed-previous-year you@example.com
+```
+
+Polecenie działa tylko w środowiskach `local` i `testing`. Kwoty roku poprzedniego są pochodną operacji bieżącego roku (stały procent 85-115 na kategorię), nie prawdziwymi danymi; salda kont się nie zmieniają. `--remove` (z `--force` bez potwierdzenia) usuwa taki budżet. Baza `household_treasurer_e2e` dostaje mock raz, tym samym poleceniem.
+
 ## Testy i jakość
 
 ```bash
@@ -110,15 +118,17 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 ## Komendy administracyjne
 
-| Komenda                      | Działanie                                                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `user:create`                | Konto logowania                                                                                                          |
-| `user:backup {user}`         | Snapshot JSON danych domenowych (wersja 6)                                                                               |
-| `user:restore {user} {path}` | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
-| `user:reset-data {user}`     | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
-| `demo:seed-household {user}` | Dane demo                                                                                                                |
-| `backup:restore {path}`      | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie) |
-| `app:control-numbers`        | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                  |
+| Komenda                             | Działanie                                                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `user:create`                       | Konto logowania                                                                                                                 |
+| `user:backup {user}`                | Snapshot JSON danych domenowych (wersja 9)                                                                                      |
+| `user:restore {user} {path}`        | Przywrócenie snapshotu na istniejącego użytkownika                                                                              |
+| `user:reset-data {user}`            | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                        |
+| `demo:seed-household {user}`        | Dane demo                                                                                                                       |
+| `demo:seed-previous-year {user}`    | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                           |
+| `backup:restore {path}`             | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie)        |
+| `app:control-numbers`               | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                         |
+| `import:suggestion-accuracy {user}` | Trafność podpowiedzi Importu (tylko odczyt); zob. [Pomiar trafności podpowiedzi Importu](#pomiar-trafności-podpowiedzi-importu) |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
 
@@ -148,7 +158,7 @@ Skrypt aktualizuje sam siebie w kroku 1, więc pierwsze wdrożenie po zmianie `d
 
 Migracje S-18 dzielą dawne `categories` na listę użytkownika i pozycje budżetu (`budget_lines`) bez zmiany żadnej kwoty. Wykonaj je w tej kolejności:
 
-1. Zmiana jest na `main`, a próba na kopii produkcji zatwierdzona (`context/changes/category-list-after-migration/migration-trial.md`).
+1. Zmiana jest na `main`, a próba na kopii produkcji zatwierdzona (`context/archive/2026-11-09-category-list-after-migration/migration-trial.md`).
 2. Na serwerze: `git pull --ff-only origin main`. Dopiero potem skrypt. Bez tego migracja przejdzie starym `deploy.sh` bez snapshotów, trybu serwisowego i liczb kontrolnych.
 3. `scripts/deploy.sh`. Log musi pokazać kolejno: tryb serwisowy, snapshoty użytkowników („Snapshotted N user(s).” z N równym liczbie użytkowników), liczby „przed”, kopię instancji, migracje, „Control numbers match” i wyjście z trybu serwisowego.
 4. Sprawdź `/up`, Budżet 2026, plan miesiąca i widok „Kategorie”. Zachowaj plik `…-before.json` poza serwerem: jest wzorcem do porównań przy wycofaniu.
@@ -165,7 +175,7 @@ Gdy wdrożenie się nie powiodło albo coś psuje się zaraz po nim. Przywrócen
 
 #### Przywrócenie produkcji
 
-Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba F-04](context/archive/2026-11-09-safe-first-data-migration/restore-trial.md)). Kroki 3–4 przeszły w próbie S-18 na bazie testowej po migracji: powrót z kopii sprzed migracji dał liczby kontrolne bez różnic ([próba S-18](context/changes/category-list-after-migration/migration-trial.md)). Kroków 1, 2, 5 i 6 nie da się przećwiczyć lokalnie, bo dzieją się na serwerze.
+Sprawdzone lokalnie: archiwum z produkcji wczytało się do osobnej bazy, a liczby kontrolne się zgodziły ([próba F-04](context/archive/2026-11-09-safe-first-data-migration/restore-trial.md)). Kroki 3–4 przeszły w próbie S-18 na bazie testowej po migracji: powrót z kopii sprzed migracji dał liczby kontrolne bez różnic ([próba S-18](context/archive/2026-11-09-category-list-after-migration/migration-trial.md)). Kroków 1, 2, 5 i 6 nie da się przećwiczyć lokalnie, bo dzieją się na serwerze.
 
 1. `scripts/artisan.sh down` (tryb serwisowy).
 2. Lokalnie na `main`: `git revert` zmiany z migracją i `git push origin main`. Skrypt wdrożenia robi `git pull --ff-only origin main`, więc revert zrobiony tylko na VPS rozjedzie się z origin i zablokuje następne wdrożenie. Stary schemat nie działa z nowym kodem, więc kod musi wrócić razem z bazą. Na serwerze jeszcze nie rób `git pull`: kontener ma nadal nowy kod, a on zna `app:control-numbers`.
@@ -188,6 +198,14 @@ Dla dni pracy na nowym schemacie przywrócenie kopii nie wchodzi w grę (traci w
 Kolejność jest istotna. Cofnięcie kodu przed `migrate:rollback` usuwa pliki migracji, a właśnie ich `down()` jest potrzebny. Pominięcie `git pull` przed skryptem uruchamia jeszcze `deploy.sh` z S-18: jego `user:backup` w kontenerze S-18 nie znajdzie `budget_lines`, a `app:control-numbers` nie ma w cofniętym kodzie, więc `set -e` przerwie wdrożenie.
 
 Snapshot wersji 6, zrobiony po wdrożeniu, nie wczyta się w starym kodzie (`user:restore` zna wtedy wersje 1–5). Drogą powrotu jest `down()`; snapshoty wersji 5 sprzed migracji są zapasem, a kopia instancji z kroku 6 `deploy.sh` ostatecznością (tracą zmiany po wdrożeniu).
+
+#### Wycofanie S-26 po wdrożeniu
+
+Migracja S-26 dodaje jedną kolumnę (`category_rhythms.opening_collected_minor_units`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` jest stratny: zamienia wpisy rytmu `irregular` na `even_annual` i usuwa kolumnę, więc giną zebrane startowe i oznaczenia nieregularnych; operacje, plany i kwoty zostają. Wycofanie idzie jak w „Wycofanie S-18”: `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`. Snapshot wersji 10 (`user:backup` po S-26) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()`, nie restore nowego snapshotu w starym kodzie.
+
+#### Scalanie kategorii
+
+Decyzja: [ADR-0078](context/foundation/adr/0078-category-merge.md). Scalenie („Kategorie” → „⋯” → „Scal z inną…”) nie ma migracji, więc liczby kontrolne przed i po wdrożeniu są identyczne. W aplikacji nie da się go cofnąć, ale akcja zapisuje snapshot użytkownika w `storage/app/private/user-snapshots/<id>-<RRRRMMDDGGMMSS>.json` **przed** pierwszym zapisem i niczego nie scala, gdy snapshot się nie uda. Ścieżka pliku jest w logu aplikacji (`storage/logs`, wpis o scaleniu kategorii z id i nazwami obu kategorii). Powrót ma dziś dwie drogi. (1) Pełna kopia instancji sprzed scalenia, czyli `backup:restore` z kroku 6 `deploy.sh` (zob. „Przywrócenie produkcji”); cofa wszystko od czasu archiwum. (2) Snapshot ze ścieżki z logu: `user:restore {user} storage/app/private/user-snapshots/<plik>.json` działa na pustą bazę i na użytkownika, który ma już dane. Przywraca tożsamość importu z nowymi id kont i liczy jej digest od nowa dla użytkownika docelowego ([ADR-0080](context/foundation/adr/0080-restore-re-derives-import-identity.md)), więc ponowny import wyciągu nadal oznacza duplikaty. Snapshot, w którym rekord z digestem nie ma surowego opisu, daty lub kwoty tożsamości albo wskazuje konto spoza snapshotu, jest odrzucany w całości. Przywrócenie cofa także wszystko, co wpisano po scaleniu, i nadaje rekordom nowe id, więc rób je od razu po pomyłce.
 
 #### Migracja przerwana w trakcie
 
@@ -227,3 +245,16 @@ scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-num
 Ścieżki względne liczą się od katalogu głównego aplikacji. `deploy.sh` robi to automatycznie: pliki `<RRRRMMDD-GGMMSS>-before.json` i `-after.json` leżą w `storage/app/private/control-numbers/`. Po wdrożeniu zachowaj kopię pliku „przed” poza serwerem.
 
 Lokalnie, w `restore_trial` (po `config:clear` i sprawdzeniu `db:show`, jak w próbie lokalnej): `docker compose exec -e DB_DATABASE=restore_trial laravel.test php artisan app:control-numbers --output=storage/app/restore-trial/before.json`, a po migracji i po `migrate:rollback` to samo z `--compare=storage/app/restore-trial/before.json`. Komendy nie ma na `main` sprzed S-18, więc próba biegnie na gałęzi S-18.
+
+#### Pomiar trafności podpowiedzi Importu
+
+Komenda `import:suggestion-accuracy {user}` odtwarza historię zaimportowanych wierszy chronologicznie: każdy wiersz dostaje podpowiedź zbudowaną tylko z wierszy wcześniejszych, tym samym kodem co podgląd Importu. Drukuje dla okresów „cały rok” i „sierpień–listopad” oraz poziomów `model` (głos) i `suggestion` (cel po regule oferty selektora) odsetek wierszy z podpowiedzią i odsetek trafnych wśród nich (dla modelu także top 3). Komenda tylko czyta bazę, więc można ją uruchomić na produkcji.
+
+Mierz po zmianie modelu podpowiedzi, po zmianie kategorii albo po scaleniach kategorii (S-21). Dwa przebiegi porównuje `--compare`: kod wyjścia 1 przy każdym spadku (ułamki, nie zaokrąglone procenty), z listą okresów, poziomów i różniących się operacji; przy różnych zbiorach `operation_id` w obu plikach to błąd, a nie „brak spadku”.
+
+```bash
+scripts/artisan.sh import:suggestion-accuracy 1 --year=2026 --output=storage/app/private/suggestion-accuracy/RRRR-MM-DD-before.json
+scripts/artisan.sh import:suggestion-accuracy 1 --year=2026 --compare=storage/app/private/suggestion-accuracy/RRRR-MM-DD-before.json
+```
+
+Pliki wyniku zawierają id operacji, ale nie opisy; kładziemy je w `storage/app/private/suggestion-accuracy/` (poza repozytorium).

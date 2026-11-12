@@ -4,6 +4,9 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryGroupController;
+use App\Http\Controllers\CategoryListController;
+use App\Http\Controllers\CategoryMergeController;
 use App\Http\Controllers\CommandPaletteCategoryController;
 use App\Http\Controllers\CsvImportController;
 use App\Http\Controllers\DashboardController;
@@ -14,6 +17,7 @@ use App\Http\Controllers\Dev\DashboardKitchenSinkController;
 use App\Http\Controllers\Dev\DialogsKitchenSinkController;
 use App\Http\Controllers\Dev\ImportPreviewKitchenSinkController;
 use App\Http\Controllers\Dev\ImportStartKitchenSinkController;
+use App\Http\Controllers\Dev\ReportsKitchenSinkController;
 use App\Http\Controllers\Dev\SettingsKitchenSinkController;
 use App\Http\Controllers\Dev\SidebarKitchenSinkController;
 use App\Http\Controllers\Dev\TermDepositsKitchenSinkController;
@@ -23,6 +27,7 @@ use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthPlanController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OwnTransferController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TermDepositController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dev/ui/dialogs', [DialogsKitchenSinkController::class, 'show'])->name('dev.ui.dialogs');
     Route::post('dev/ui/dialogs/validate', [DialogsKitchenSinkController::class, 'validate'])->name('dev.ui.dialogs.validate');
     Route::get('dev/ui/settings', [SettingsKitchenSinkController::class, 'show'])->name('dev.ui.settings');
+    Route::get('dev/ui/reports', [ReportsKitchenSinkController::class, 'show'])->name('dev.ui.reports');
     Route::get('dev/ui/sidebar', [SidebarKitchenSinkController::class, 'show'])->name('dev.ui.sidebar');
     Route::get('dev/ui/term-deposits', [TermDepositsKitchenSinkController::class, 'show'])->name('dev.ui.term-deposits');
     Route::post('dashboard/first-run-checklist/dismiss', [DashboardController::class, 'dismissFirstRunChecklist'])
@@ -56,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budget/year', [BudgetController::class, 'selectYear'])->name('budget.select-year');
     Route::get('command-palette/categories', CommandPaletteCategoryController::class)->name('command-palette.categories');
     Route::get('month-plan', [MonthPlanController::class, 'show'])->name('month-plan');
+    Route::get('reports', [ReportController::class, 'show'])->name('reports');
     if (app()->environment('local')) {
         Route::inertia('dev/month-plan', 'dev/MonthPlanSink');
         Route::inertia('dev/operations', 'dev/OperationsSink');
@@ -67,12 +74,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('month')
         ->name('month-plans.update');
     Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('categories/groups', [CategoryGroupController::class, 'store'])->name('category-groups.store');
+    Route::patch('categories/groups/{categoryGroup}', [CategoryGroupController::class, 'update'])->name('category-groups.update');
+    Route::delete('categories/groups/{categoryGroup}', [CategoryGroupController::class, 'destroy'])->name('category-groups.destroy');
+    Route::patch('categories/reorder', [CategoryGroupController::class, 'reorder'])->name('categories.reorder-list');
+    Route::patch('categories/{category}/group', [CategoryGroupController::class, 'assign'])->name('categories.group');
     Route::post('budgets/{budget}/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::patch('budgets/{budget}/categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::patch('budgets/{budget}/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::patch('budgets/{budget}/categories/{category}/month-item-kind', [CategoryController::class, 'updateMonthItemKind'])->name('categories.month-item-kind');
     Route::delete('budgets/{budget}/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::post('budgets/{budget}/categories/{category}/align-current-plan', [CategoryController::class, 'alignCurrentPlan'])->name('categories.align-current-plan');
+    Route::post('categories', [CategoryListController::class, 'store'])->name('categories.list.store');
+    Route::patch('categories/{category}', [CategoryListController::class, 'update'])->name('categories.list.update');
+    Route::delete('categories/{category}', [CategoryListController::class, 'destroy'])->name('categories.list.destroy');
+    Route::get('categories/{category}/merge-preview', [CategoryMergeController::class, 'show'])->name('categories.merge.preview');
+    Route::post('categories/{category}/merge', [CategoryMergeController::class, 'store'])->name('categories.merge');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
     Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);

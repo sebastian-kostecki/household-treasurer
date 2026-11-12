@@ -28,11 +28,14 @@ import {
 } from '@/lib/entry-to-spend-warning';
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
+import { withSelectedCategory } from '@/lib/operations-category-options';
+import type { SelectedOperationCategory } from '@/lib/operations-category-options';
 import {
     buildOperationPreview,
     monthNamesLocativeFrom,
 } from '@/lib/operation-dialog-preview';
 import type { AccountPickerOption } from '@/lib/account-identity';
+import type { CategoryPickerGroup } from '@/lib/category-appearance';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
 
@@ -46,6 +49,7 @@ export type IncomeFormCategory = {
     name: string;
     icon: string;
     color: string;
+    group?: CategoryPickerGroup | null;
     budget_year: number;
 };
 
@@ -63,6 +67,10 @@ export type IncomeFormOperation = {
     raw_statement_description?: string | null;
     account_id: number;
     category_id: number;
+    category_label?: string;
+    category_icon?: string;
+    category_color?: string;
+    category_archived?: boolean;
 };
 
 const props = defineProps<{
@@ -119,6 +127,12 @@ const typeOptions = computed(() => [
 const { amountInvalid, amountMinorUnits, showPreview } =
     useOperationAmountInput(amountInput);
 
+const operationYear = computed(() =>
+    operationDate.value === ''
+        ? undefined
+        : Number(operationDate.value.slice(0, 4)),
+);
+
 const warningPreview = computed(() => {
     const proposalKind =
         props.mode === 'edit' && isExpenseRefund.value ? 'refund' : 'income';
@@ -132,6 +146,7 @@ const warningPreview = computed(() => {
                 kind: proposalKind,
                 account_id: 0,
                 category_id: 0,
+                operation_year: operationYear.value,
                 amount_minor_units: 0,
             },
         });
@@ -157,6 +172,7 @@ const warningPreview = computed(() => {
             kind: proposalKind,
             account_id: accountId.value,
             category_id: categoryId.value === '' ? undefined : categoryId.value,
+            operation_year: operationYear.value,
             amount_minor_units: amountMinorUnits.value,
         },
     });
@@ -185,7 +201,7 @@ const toSpendReadings = computed(() =>
     ),
 );
 
-const availableCategories = computed(() => {
+const yearCategories = computed(() => {
     if (!operationDate.value) {
         return [];
     }
@@ -202,6 +218,40 @@ const availableCategories = computed(() => {
         (category) => category.budget_year === year,
     );
 });
+
+const selectedOperationCategory = computed<SelectedOperationCategory | null>(
+    () => {
+        const operation = props.operation;
+
+        if (
+            props.mode !== 'edit' ||
+            operation === null ||
+            operation === undefined ||
+            operation.category_label === undefined ||
+            operation.category_icon === undefined ||
+            operation.category_color === undefined ||
+            categoryId.value !== operation.category_id
+        ) {
+            return null;
+        }
+
+        return {
+            id: operation.category_id,
+            name: operation.category_label,
+            icon: operation.category_icon,
+            color: operation.category_color,
+            archived: operation.category_archived === true,
+        };
+    },
+);
+
+const availableCategories = computed(() =>
+    withSelectedCategory(
+        yearCategories.value,
+        selectedOperationCategory.value,
+        t.operations.category_archived_suffix,
+    ),
+);
 
 const selectedExpenseCategory = computed(() => {
     if (!isExpenseRefund.value) {

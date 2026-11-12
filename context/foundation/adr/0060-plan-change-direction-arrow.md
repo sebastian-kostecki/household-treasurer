@@ -1,5 +1,7 @@
 # Plan change direction arrow and the "Zatwierdzony" column
 
+Amended by ADR-0076: a Budget row that carries „zebrane startowe” uses the large `CategoryChip` with a subtitle; the clause that the Budget keeps the small chip holds for the other rows.
+
 A plan can change after it was fixed: in the Budget the current plan differs from the initial plan, and in the Month Plan the plan in change mode differs from the approved plan. Until now the Budget showed this only with a `History` icon in `brand-text` (`PlanChangedHint`), which does not say which way the plan moved, and the Month Plan showed the approved amount as a caption "Zatwierdzono: … zł" under the plan. This ADR gives the change a direction and a colour meaning, and the approved amount a column.
 
 Arrow. `ArrowUp` or `ArrowDown` (`@lucide/vue`) stands next to the reference amount: the initial plan in the Budget ("Plan początkowy"), the approved plan in the Month Plan ("Zatwierdzony"). The direction is the current plan against the reference. In the Month Plan in change mode the arrow compares the approved amount with the amount the row shows at that moment (the value of the field), the same value from which the deviation is computed, and not the `plan_minor_units` from the server, so the arrow reacts to editing.

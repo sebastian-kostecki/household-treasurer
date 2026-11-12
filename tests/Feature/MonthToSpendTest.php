@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\FinancialOperation;
@@ -12,6 +13,7 @@ use App\Models\User;
 use App\Support\MonthToSpend;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MonthToSpendTest extends TestCase
@@ -91,6 +93,92 @@ class MonthToSpendTest extends TestCase
         $this->assertSame(353_000, $toSpend->toSpendMinorUnits());
     }
 
+    public function test_the_rhythm_of_each_month_decides_how_the_item_counts(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $subscription = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Abonament', 'planned_amount_minor_units' => 1_200_000,
+        ]);
+        $subscription->category->rhythms()->delete();
+        $subscription->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::Running]);
+        $subscription->category->rhythms()->create(['start_year' => 2026, 'start_month' => 6, 'rhythm' => Rhythm::FixedCharge]);
+
+        foreach ([5 => '2026-05-10', 6 => '2026-06-10'] as $month => $date) {
+            $plan = MonthPlan::factory()->for($budget)->create(['month' => $month]);
+            MonthPlanItem::query()->create([
+                'month_plan_id' => $plan->id,
+                'budget_line_id' => $subscription->id,
+                'approved_amount_minor_units' => 100_000,
+                'current_amount_minor_units' => 100_000,
+            ]);
+            $this->operation($user, $budget, $subscription, $date, 80_000);
+        }
+
+        $this->assertSame(-100_000, MonthToSpend::forMonth($budget, 5, $this->today)->toSpendMinorUnits());
+        $this->assertSame(-80_000, MonthToSpend::forMonth($budget, 6, $this->today)->toSpendMinorUnits());
+    }
+
+    public function test_an_irregular_item_counts_at_the_rate_plus_the_surplus_and_exposes_the_collected(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $service = BudgetLine::factory()->for($budget)->irregular()->create(['planned_amount_minor_units' => 180_000]);
+        $service->category->rhythms()->update(['start_month' => 6, 'opening_collected_minor_units' => 30_000]);
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 6]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'budget_line_id' => $service->id,
+            'approved_amount_minor_units' => 15_000,
+            'current_amount_minor_units' => 15_000,
+        ]);
+
+        $toSpend = MonthToSpend::forMonth($budget, 6, $this->today);
+        $this->assertSame(30_000, $toSpend->rowAmounts($service)['collected_at_start_minor_units']);
+        $this->assertSame(-15_000, $toSpend->toSpendMinorUnits());
+
+        $this->operation($user, $budget, $service, '2026-06-10', 60_000);
+
+        $toSpend = MonthToSpend::forMonth($budget, 6, $this->today);
+        $this->assertSame(-30_000, $toSpend->toSpendMinorUnits());
+    }
+
+    public function test_the_number_of_queries_is_fixed_without_irregular_categories(): void
+    {
+        [, $budget] = $this->canonicalBudget();
+
+        $queries = 0;
+        DB::listen(function () use (&$queries): void {
+            $queries++;
+        });
+
+        $toSpend = MonthToSpend::forMonth($budget, 6, $this->today);
+        $toSpend->toSpendBreakdown();
+
+        // Fixed by the reading itself; the Collected adds no query without an Irregular entry.
+        $this->assertSame(9, $queries);
+    }
+
+    public function test_an_irregular_category_adds_a_fixed_number_of_queries_whatever_the_months(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $first = BudgetLine::factory()->for($budget)->irregular(10_000)->create(['name' => 'Serwis', 'planned_amount_minor_units' => 180_000]);
+        $second = BudgetLine::factory()->for($budget)->irregular()->create(['name' => 'Remont', 'planned_amount_minor_units' => 120_000]);
+        $this->operation($user, $budget, $first, '2026-02-10', 5_000);
+        $this->operation($user, $budget, $second, '2026-03-10', 5_000);
+
+        $queries = 0;
+        DB::listen(function () use (&$queries): void {
+            $queries++;
+        });
+
+        $toSpend = MonthToSpend::forMonth($budget, 6, $this->today);
+        $toSpend->toSpendBreakdown();
+
+        $this->assertLessThanOrEqual(9 + 5, $queries);
+    }
+
     /**
      * @return array{0: User, 1: Budget, 2: array<string, BudgetLine>}
      */
@@ -103,7 +191,7 @@ class MonthToSpendTest extends TestCase
             'salary' => BudgetLine::factory()->for($budget)->income()->create([
                 'name' => 'Pensja', 'sort_order' => 0, 'planned_amount_minor_units' => 9_600_000,
             ]),
-            'rent' => BudgetLine::factory()->for($budget)->bill()->create([
+            'rent' => BudgetLine::factory()->for($budget)->fixedCharge()->create([
                 'name' => 'Czynsz', 'sort_order' => 0, 'planned_amount_minor_units' => 2_400_000,
             ]),
             'food' => BudgetLine::factory()->for($budget)->expense()->create([
@@ -112,7 +200,7 @@ class MonthToSpendTest extends TestCase
             'fuel' => BudgetLine::factory()->for($budget)->expense()->create([
                 'name' => 'Paliwo', 'sort_order' => 2, 'planned_amount_minor_units' => 480_000,
             ]),
-            'gift' => BudgetLine::factory()->for($budget)->oneOff()->create([
+            'gift' => BudgetLine::factory()->for($budget)->evenAnnual()->create([
                 'name' => 'Prezent', 'sort_order' => 3, 'planned_amount_minor_units' => 100_000,
             ]),
         ];

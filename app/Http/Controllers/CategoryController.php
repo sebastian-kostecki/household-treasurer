@@ -10,12 +10,13 @@ use App\Actions\UpdateCategory;
 use App\Enums\CategoryType;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryMonthItemKindRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Support\CategoryAppearance;
 use App\Support\CategoryListReading;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,12 +34,18 @@ class CategoryController extends Controller
 
     public function index(Request $request): InertiaResponse
     {
-        return Inertia::render('Categories', CategoryListReading::forUser($request->user()));
+        $today = CarbonImmutable::today('UTC');
+
+        return Inertia::render('Categories', [
+            ...CategoryListReading::forUser($request->user()),
+            'rhythmChangeMonth' => ['year' => $today->year, 'month' => $today->month],
+            'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
+        ]);
     }
 
     public function store(StoreCategoryRequest $request, Budget $budget, CreateCategory $createCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int} $attributes */
         $attributes = $request->validated();
         $joinedExisting = $createCategory->handle($request->user(), $budget, $attributes);
 
@@ -52,7 +59,7 @@ class CategoryController extends Controller
 
     public function update(UpdateCategoryRequest $request, Budget $budget, Category $category, UpdateCategory $updateCategory): RedirectResponse
     {
-        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string} $attributes */
+        /** @var array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int} $attributes */
         $attributes = $request->validated();
         $updateCategory->handle($this->lineOf($budget, $category), $attributes);
 
@@ -62,13 +69,6 @@ class CategoryController extends Controller
         ]);
 
         return to_route('budget');
-    }
-
-    public function updateMonthItemKind(UpdateCategoryMonthItemKindRequest $request, Budget $budget, Category $category): RedirectResponse
-    {
-        $this->lineOf($budget, $category)->update($request->safe()->only(['month_item_kind']));
-
-        return back();
     }
 
     public function destroy(Budget $budget, Category $category): RedirectResponse
@@ -87,7 +87,7 @@ class CategoryController extends Controller
         return to_route('budget');
     }
 
-    public function archive(Request $request, Category $category, ArchiveCategory $archiveCategory): RedirectResponse
+    public function archive(Category $category, ArchiveCategory $archiveCategory): RedirectResponse
     {
         $this->authorize('archive', $category);
 
@@ -98,10 +98,10 @@ class CategoryController extends Controller
             'message' => __('Category archived.'),
         ]);
 
-        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return back();
     }
 
-    public function restore(Request $request, Category $category, RestoreCategory $restoreCategory): RedirectResponse
+    public function restore(Category $category, RestoreCategory $restoreCategory): RedirectResponse
     {
         $this->authorize('restore', $category);
 
@@ -112,7 +112,7 @@ class CategoryController extends Controller
             'message' => __('Category restored.'),
         ]);
 
-        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return back();
     }
 
     public function alignCurrentPlan(Request $request, Budget $budget, Category $category): RedirectResponse
@@ -138,12 +138,13 @@ class CategoryController extends Controller
         Budget $budget,
         ReorderCategories $reorderCategories,
     ): Response {
+        /** @var array{type: string, items: list<array{kind: 'group', id: int, category_ids: list<int>}|array{kind: 'category', id: int}>} $validated */
         $validated = $request->validated();
 
         $reorderCategories->handle(
             $budget,
             CategoryType::from($validated['type']),
-            $validated['category_ids'],
+            $validated['items'],
         );
 
         return response()->noContent();

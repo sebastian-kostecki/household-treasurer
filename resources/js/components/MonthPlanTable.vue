@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
+import { createReusableTemplate } from '@vueuse/core';
 import { computed } from 'vue';
 import ColumnHeaderHint from '@/components/ColumnHeaderHint.vue';
 import InputError from '@/components/InputError.vue';
 import ListSurface from '@/components/ListSurface.vue';
+import MonthPlanGroupRow from '@/components/MonthPlanGroupRow.vue';
 import MonthPlanItemRow from '@/components/MonthPlanItemRow.vue';
 import MonthYearSummary from '@/components/MonthYearSummary.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
@@ -17,9 +19,14 @@ import {
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
 import type { MatchActualState } from '@/lib/month-plan-match-actual';
+import { monthPlanGroupTree } from '@/lib/month-plan-groups';
+import type {
+    MonthPlanGroupEntry,
+    MonthPlanTreeEntry,
+} from '@/lib/month-plan-groups';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type {
-    MonthItemKind,
+    MonthPlanGroup,
     MonthPlanItem,
     MonthYearComparison,
 } from '@/types/month-plan';
@@ -30,9 +37,10 @@ export type MonthPlanRowState = {
     deviation: number | null;
     overPlan: boolean;
     status: MonthItemStatus | null;
+    /** The Collected at the end of the month of an irregular row (live while typing); null for any other row. */
+    collectedMinorUnits: number | null;
     yearStale: boolean;
     invalid: boolean;
-    kindError?: string;
     /** Button or marker "plan = actual" in change mode (ADR-0062). */
     matchActual: MatchActualState;
 };
@@ -41,14 +49,15 @@ export type SetAsideDirection = 'set_aside' | 'draw';
 
 const props = defineProps<{
     incomeRows: MonthPlanItem[];
-    /** Expense rows without the idle one-offs, which sit in the collapsible. */
+    incomeGroups: MonthPlanGroup[];
+    expenseGroups: MonthPlanGroup[];
+    /** Expense rows without the idle Even Annual items, which sit in the collapsible. */
     expenseRows: MonthPlanItem[];
     idleRows: MonthPlanItem[];
     editable: boolean;
     /** Typed amounts by category id; the table never writes to it. */
     amountInputs: Record<number, string>;
     rowState: (row: MonthPlanItem) => MonthPlanRowState;
-    kindPendingCategoryId: number | null;
     yearTotals: {
         income: MonthYearComparison;
         expense: MonthYearComparison;
@@ -65,7 +74,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     'update-amount': [categoryId: number, value: string];
     'amount-blur': [categoryId: number];
-    'change-kind': [row: MonthPlanItem, kind: MonthItemKind];
     'set-aside-blur': [];
     'match-actual': [categoryId: number];
 }>();
@@ -75,14 +83,53 @@ const setAsideDirection = defineModel<SetAsideDirection>('setAsideDirection', {
     default: 'set_aside',
 });
 const setAsideInput = defineModel<string>('setAsideInput', { default: '' });
+/** Ids of the Category Groups the visitor has collapsed; the page owns it and resets it. */
+const collapsedGroupIds = defineModel<number[]>('collapsedGroupIds', {
+    default: () => [],
+});
+
+const [DefineRow, ReuseRow] = createReusableTemplate<{
+    row: MonthPlanItem;
+    nested?: boolean;
+}>();
+const [DefineTree, ReuseTree] = createReusableTemplate<{
+    tree: MonthPlanTreeEntry[];
+    prefix: string;
+}>();
+
+const incomeTree = computed(() =>
+    monthPlanGroupTree(props.incomeGroups, props.incomeRows, props.rowState),
+);
+const expenseTree = computed(() =>
+    monthPlanGroupTree(props.expenseGroups, props.expenseRows, props.rowState),
+);
+
+function isGroupOpen(groupId: number): boolean {
+    return !collapsedGroupIds.value.includes(groupId);
+}
+
+/** An open group with an unreadable plan field stays open: the field blocks approval and must show. */
+function isGroupLocked(entry: MonthPlanGroupEntry): boolean {
+    return entry.hasUnreadablePlan && isGroupOpen(entry.group.id);
+}
+
+function toggleGroup(entry: MonthPlanGroupEntry): void {
+    if (isGroupLocked(entry)) {
+        return;
+    }
+
+    const groupId = entry.group.id;
+
+    collapsedGroupIds.value = isGroupOpen(groupId)
+        ? [...collapsedGroupIds.value, groupId]
+        : collapsedGroupIds.value.filter((id) => id !== groupId);
+}
+
+function groupBodyId(prefix: string, groupId: number): string {
+    return `month-plan-group-body-${prefix}-${groupId}`;
+}
 
 const t = useTranslations();
-
-const showsKindScopeNote = computed(() =>
-    [...props.expenseRows, ...props.idleRows].some(
-        (row) => row.can_change_kind,
-    ),
-);
 
 const setAsideDirectionOptions = computed(() =>
     (['set_aside', 'draw'] as SetAsideDirection[]).map((direction) => ({
@@ -125,12 +172,64 @@ const expenseRowsEmpty = computed(
 
 <template>
     <ListSurface flush>
-        <p
-            v-if="showsKindScopeNote"
-            class="month-plan-footer meta text-muted-foreground"
-        >
-            {{ t.month_plan.kind_scope_note }}
-        </p>
+        <DefineRow v-slot="{ row, nested }">
+            <MonthPlanItemRow
+                :class="nested ? 'month-plan-row-nested' : ''"
+                :model-value="amountInputs[row.category_id]"
+                :row="row"
+                :editable="editable"
+                :plan-minor-units="rowState(row).planMinorUnits"
+                :deviation="rowState(row).deviation"
+                :over-plan="rowState(row).overPlan"
+                :status="rowState(row).status"
+                :collected-minor-units="rowState(row).collectedMinorUnits"
+                :year-stale="rowState(row).yearStale"
+                :invalid="rowState(row).invalid"
+                :match-actual="rowState(row).matchActual"
+                @update:model-value="
+                    emit('update-amount', row.category_id, $event ?? '')
+                "
+                @amount-blur="emit('amount-blur', row.category_id)"
+                @match-actual="emit('match-actual', row.category_id)"
+            />
+        </DefineRow>
+        <DefineTree v-slot="{ tree, prefix }">
+            <template
+                v-for="entry in tree"
+                :key="
+                    entry.kind === 'group'
+                        ? `group-${entry.group.id}`
+                        : `category-${entry.row.category_id}`
+                "
+            >
+                <template v-if="entry.kind === 'group'">
+                    <MonthPlanGroupRow
+                        :name="entry.group.name"
+                        :count="entry.rows.length"
+                        :plan-minor-units="entry.planMinorUnits"
+                        :actual-minor-units="entry.actualMinorUnits"
+                        :over-plan="entry.overPlan"
+                        :open="isGroupOpen(entry.group.id)"
+                        :locked="isGroupLocked(entry)"
+                        :controls="groupBodyId(prefix, entry.group.id)"
+                        @toggle="toggleGroup(entry)"
+                    />
+                    <div
+                        :id="groupBodyId(prefix, entry.group.id)"
+                        v-show="isGroupOpen(entry.group.id)"
+                        class="month-plan-category-group-body"
+                    >
+                        <ReuseRow
+                            v-for="row in entry.rows"
+                            :key="row.category_id"
+                            :row="row"
+                            :nested="true"
+                        />
+                    </div>
+                </template>
+                <ReuseRow v-else :row="entry.row" />
+            </template>
+        </DefineTree>
 
         <div class="month-plan-grid month-plan-header-row">
             <span class="month-plan-cell-category">
@@ -165,28 +264,7 @@ const expenseRowsEmpty = computed(
         >
             {{ t.month_plan.empty_list }}
         </p>
-        <MonthPlanItemRow
-            v-for="row in incomeRows"
-            :key="row.category_id"
-            :model-value="amountInputs[row.category_id]"
-            :row="row"
-            :editable="editable"
-            :plan-minor-units="rowState(row).planMinorUnits"
-            :deviation="rowState(row).deviation"
-            :over-plan="rowState(row).overPlan"
-            :status="rowState(row).status"
-            :year-stale="rowState(row).yearStale"
-            :kind-pending="kindPendingCategoryId === row.category_id"
-            :kind-error="rowState(row).kindError"
-            :invalid="rowState(row).invalid"
-            :match-actual="rowState(row).matchActual"
-            @update:model-value="
-                emit('update-amount', row.category_id, $event ?? '')
-            "
-            @change-kind="emit('change-kind', row, $event)"
-            @amount-blur="emit('amount-blur', row.category_id)"
-            @match-actual="emit('match-actual', row.category_id)"
-        />
+        <ReuseTree :tree="incomeTree" prefix="income" />
         <div
             v-if="yearTotals !== null && !incomeRowsEmpty"
             class="month-plan-total-row"
@@ -220,28 +298,7 @@ const expenseRowsEmpty = computed(
         >
             {{ t.month_plan.empty_list }}
         </p>
-        <MonthPlanItemRow
-            v-for="row in expenseRows"
-            :key="row.category_id"
-            :model-value="amountInputs[row.category_id]"
-            :row="row"
-            :editable="editable"
-            :plan-minor-units="rowState(row).planMinorUnits"
-            :deviation="rowState(row).deviation"
-            :over-plan="rowState(row).overPlan"
-            :status="rowState(row).status"
-            :year-stale="rowState(row).yearStale"
-            :kind-pending="kindPendingCategoryId === row.category_id"
-            :kind-error="rowState(row).kindError"
-            :invalid="rowState(row).invalid"
-            :match-actual="rowState(row).matchActual"
-            @update:model-value="
-                emit('update-amount', row.category_id, $event ?? '')
-            "
-            @change-kind="emit('change-kind', row, $event)"
-            @amount-blur="emit('amount-blur', row.category_id)"
-            @match-actual="emit('match-actual', row.category_id)"
-        />
+        <ReuseTree :tree="expenseTree" prefix="expense" />
         <Collapsible v-if="idleRows.length > 0" v-model:open="idleOpen">
             <div class="month-plan-idle-row">
                 <CollapsibleTrigger as-child>
@@ -252,7 +309,7 @@ const expenseRowsEmpty = computed(
                         class="-ml-3 gap-2"
                     >
                         <span class="table-header">
-                            {{ t.month_plan.idle_one_offs }}
+                            {{ t.month_plan.idle_even_annuals }}
                         </span>
                         <Badge variant="neutral">
                             {{ idleRows.length }}
@@ -266,27 +323,10 @@ const expenseRowsEmpty = computed(
                 </CollapsibleTrigger>
             </div>
             <CollapsibleContent>
-                <MonthPlanItemRow
+                <ReuseRow
                     v-for="row in idleRows"
                     :key="row.category_id"
-                    :model-value="amountInputs[row.category_id]"
                     :row="row"
-                    :editable="editable"
-                    :plan-minor-units="rowState(row).planMinorUnits"
-                    :deviation="rowState(row).deviation"
-                    :over-plan="rowState(row).overPlan"
-                    :status="rowState(row).status"
-                    :year-stale="rowState(row).yearStale"
-                    :kind-pending="kindPendingCategoryId === row.category_id"
-                    :kind-error="rowState(row).kindError"
-                    :invalid="rowState(row).invalid"
-                    :match-actual="rowState(row).matchActual"
-                    @update:model-value="
-                        emit('update-amount', row.category_id, $event ?? '')
-                    "
-                    @change-kind="emit('change-kind', row, $event)"
-                    @amount-blur="emit('amount-blur', row.category_id)"
-                    @match-actual="emit('match-actual', row.category_id)"
                 />
             </CollapsibleContent>
         </Collapsible>

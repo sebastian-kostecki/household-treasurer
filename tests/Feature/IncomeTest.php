@@ -7,8 +7,10 @@ use App\Enums\FinancialOperationType;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\EntryToSpendInputs;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -405,5 +407,73 @@ class IncomeTest extends TestCase
         ]);
 
         return [$user, $account];
+    }
+
+    public function test_income_on_a_category_without_a_line_joins_the_budget_and_an_archived_one_does_not(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $salary = Category::factory()->for($user)->income()->create(['name' => 'Premia']);
+        $old = Category::factory()->for($user)->income()->archived()->create(['name' => 'Stare']);
+
+        $this->actingAs($user)->post(route('incomes.store'), [
+            'operation_date' => '2026-11-12',
+            'amount_minor_units' => 30000,
+            'description' => 'Premia roczna',
+            'account_id' => $account->id,
+            'category_id' => $salary->id,
+        ])->assertSessionHasNoErrors();
+
+        $line = BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', $salary->id)->firstOrFail();
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertSame(30000, $line->execution_minor_units);
+
+        $this->actingAs($user)->from(route('operations'))->post(route('incomes.store'), [
+            'operation_date' => '2026-11-12',
+            'amount_minor_units' => 30000,
+            'description' => 'Stare',
+            'account_id' => $account->id,
+            'category_id' => $old->id,
+        ])->assertSessionHasErrors('category_id');
+
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $old->id]);
+
+        $this->actingAs($user)->get(route('operations'))->assertInertia(fn (Assert $page) => $page
+            ->has('incomeCategories', 1)
+            ->where('incomeCategories.0.id', $salary->id)
+            ->where('incomeCategories.0.budget_year', 2026)
+            ->missing('incomeCategories.0.is_paced'),
+        );
+    }
+
+    public function test_to_spend_reading_before_the_save_equals_the_one_after_it_for_an_income_category_that_joins(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $refunds = Category::factory()->for($user)->income()->create(['name' => 'Zwroty']);
+
+        $entryToSpend = fn (): array => collect(EntryToSpendInputs::forUser($user)['budgets'])
+            ->firstWhere('year', 2026)['categories'];
+
+        $before = collect($entryToSpend())->firstWhere('id', $refunds->id);
+
+        $this->assertSame(['id' => $refunds->id, 'type' => 'income', 'rhythms' => null], $before);
+
+        $this->actingAs($user)->post(route('incomes.store'), [
+            'operation_date' => '2026-11-12',
+            'amount_minor_units' => 50000,
+            'description' => 'Zwrot z Allegro',
+            'account_id' => $account->id,
+            'category_id' => $refunds->id,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame($before, collect($entryToSpend())->firstWhere('id', $refunds->id));
+        $this->assertCount(1, array_filter($entryToSpend(), fn (array $entry): bool => $entry['id'] === $refunds->id));
     }
 }

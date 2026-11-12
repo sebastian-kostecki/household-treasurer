@@ -7,6 +7,7 @@ use App\Enums\CategoryType;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\CategoryList\CategoryChoiceOptions;
 use Carbon\CarbonImmutable;
 
 class EntryToSpendInputs
@@ -18,7 +19,7 @@ class EntryToSpendInputs
      *         categories: list<array{
      *             id: int,
      *             type: string,
-     *             month_item_kind: string|null,
+     *             rhythms: array<int, string>|null,
      *         }>,
      *         months: list<array{
      *             month: int,
@@ -30,6 +31,13 @@ class EntryToSpendInputs
      *             }>,
      *         }>,
      *     }>,
+     *     irregular_periods: list<array{
+     *         category_id: int,
+     *         start_year: int,
+     *         start_month: int,
+     *         opening_minor_units: int,
+     *         months: list<array{year: int, month: int, rate_minor_units: int, actual_minor_units: int}>,
+     *     }>,
      * }
      */
     public static function forUser(User $user, ?CarbonImmutable $today = null): array
@@ -38,20 +46,34 @@ class EntryToSpendInputs
 
         $budgets = $user->budgets()
             ->where('phase', BudgetPhase::Execution)
+            ->with('budgetLines')
             ->orderBy('year')
             ->get();
 
+        $joiningExpenses = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
+        $joiningIncomes = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Income);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningExpenses, $joiningIncomes);
+
         return [
             'budgets' => array_values($budgets
-                ->map(fn (Budget $budget): array => self::budgetPayload($budget, $today))
+                ->map(fn (Budget $budget): array => self::budgetPayload(
+                    $budget,
+                    $today,
+                    $rhythms,
+                    $joiningExpenses[$budget->id],
+                    $joiningIncomes[$budget->id],
+                ))
                 ->all()),
+            'irregular_periods' => IrregularCollected::forUser($user, $rhythms)->periodsUntil($today),
         ];
     }
 
     /**
+     * @param  list<array{category_id: int}>  $joiningExpenses  expense Categories that join the Budget at their first use: no plan item, their Rhythm by month
+     * @param  list<array{category_id: int}>  $joiningIncomes  income Categories that join the Budget at their first use: no plan item and no Rhythm
      * @return array{
      *     year: int,
-     *     categories: list<array{id: int, type: string, month_item_kind: string|null}>,
+     *     categories: list<array{id: int, type: string, rhythms: array<int, string>|null}>,
      *     months: list<array{
      *         month: int,
      *         set_aside_minor_units: int,
@@ -59,7 +81,7 @@ class EntryToSpendInputs
      *     }>,
      * }
      */
-    private static function budgetPayload(Budget $budget, CarbonImmutable $today): array
+    private static function budgetPayload(Budget $budget, CarbonImmutable $today, CategoryRhythms $rhythms, array $joiningExpenses, array $joiningIncomes): array
     {
         $proposal = MonthPlanProposal::forBudget($budget, $today);
 
@@ -80,6 +102,7 @@ class EntryToSpendInputs
         $actualsByMonth = MonthCategoryActuals::forMonths($budget, array_keys($readings));
 
         $listCategoryIds = $budget->budgetLines->pluck('category_id', 'id');
+        $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
         $months = [];
 
         foreach ($readings as $month => $reading) {
@@ -109,15 +132,26 @@ class EntryToSpendInputs
 
         return [
             'year' => $budget->year,
-            'categories' => array_values($budget->budgetLines
-                ->map(fn (BudgetLine $category): array => [
-                    'id' => $category->category_id,
-                    'type' => $category->category->type->value,
-                    'month_item_kind' => $category->hasType(CategoryType::Income)
-                        ? null
-                        : $category->month_item_kind->value,
-                ])
-                ->all()),
+            'categories' => [
+                ...$budget->budgetLines
+                    ->map(fn (BudgetLine $category): array => [
+                        'id' => $category->category_id,
+                        'type' => $category->category->type->value,
+                        'rhythms' => $rhythmsOf($category->category_id),
+                    ])
+                    ->values()
+                    ->all(),
+                ...array_map(fn (array $joining): array => [
+                    'id' => $joining['category_id'],
+                    'type' => CategoryType::Expense->value,
+                    'rhythms' => $rhythmsOf($joining['category_id']),
+                ], $joiningExpenses),
+                ...array_map(fn (array $joining): array => [
+                    'id' => $joining['category_id'],
+                    'type' => CategoryType::Income->value,
+                    'rhythms' => null,
+                ], $joiningIncomes),
+            ],
             'months' => $months,
         ];
     }

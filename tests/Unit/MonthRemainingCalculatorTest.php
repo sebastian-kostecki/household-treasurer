@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Rhythm;
 use App\Support\MonthRemainingCalculator;
 use Carbon\CarbonImmutable;
 
@@ -10,7 +11,7 @@ test('draft splits paced current plan into twelfths with december remainder', fu
         today: CarbonImmutable::parse('2026-06-15'),
     );
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 120_000,
         executionBeforeViewedMonth: 0,
         executionInViewedMonth: 0,
@@ -19,7 +20,7 @@ test('draft splits paced current plan into twelfths with december remainder', fu
         executionInCurrentMonth: 0,
     ))->toBe(10_000);
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 120_000,
         executionBeforeViewedMonth: 0,
         executionInViewedMonth: 0,
@@ -36,7 +37,7 @@ test('execution catch up subtracts paced execution in the viewed month', functio
         today: CarbonImmutable::parse('2026-06-15'),
     );
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 120_000,
         executionBeforeViewedMonth: 25_000,
         executionInViewedMonth: 10_000,
@@ -53,7 +54,7 @@ test('execution floors leftover toward negative infinity', function () {
         today: CarbonImmutable::parse('2026-06-15'),
     );
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 0,
         executionBeforeViewedMonth: 7,
         executionInViewedMonth: 0,
@@ -70,7 +71,7 @@ test('execution december uses months left of one', function () {
         today: CarbonImmutable::parse('2026-12-20'),
     );
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 120_000,
         executionBeforeViewedMonth: 110_000,
         executionInViewedMonth: 5_000,
@@ -87,7 +88,7 @@ test('execution future month shows current month plaster', function () {
         today: CarbonImmutable::parse('2026-03-15'),
     );
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 120_000,
         executionBeforeViewedMonth: 0,
         executionInViewedMonth: 0,
@@ -104,7 +105,7 @@ test('execution future budget year uses even plaster without catch up', function
         today: CarbonImmutable::parse('2026-06-15'),
     );
 
-    expect($calculator->pacedMonthRemainingMinorUnits(
+    expect($calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 120_000,
         executionBeforeViewedMonth: 0,
         executionInViewedMonth: 0,
@@ -121,7 +122,7 @@ test('paced pool floors summed leftover once', function () {
         today: CarbonImmutable::parse('2026-06-15'),
     );
 
-    $categoryA = $calculator->pacedMonthRemainingMinorUnits(
+    $categoryA = $calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 50_001,
         executionBeforeViewedMonth: 0,
         executionInViewedMonth: 0,
@@ -130,7 +131,7 @@ test('paced pool floors summed leftover once', function () {
         executionInCurrentMonth: 0,
     );
 
-    $categoryB = $calculator->pacedMonthRemainingMinorUnits(
+    $categoryB = $calculator->poolCategoryMonthRemainingMinorUnits(
         currentPlanMinorUnits: 50_001,
         executionBeforeViewedMonth: 0,
         executionInViewedMonth: 0,
@@ -139,14 +140,14 @@ test('paced pool floors summed leftover once', function () {
         executionInCurrentMonth: 0,
     );
 
-    $pool = $calculator->pacedPoolMonthRemainingMinorUnits(
+    $pool = $calculator->poolMonthRemainingMinorUnits(
         totalCurrentPlanMinorUnits: 100_002,
         totalExecutionBeforeViewedMonth: 0,
         totalExecutionInViewedMonth: 0,
         viewedMonth: 1,
         totalExecutionBeforeCurrentMonth: 0,
         totalExecutionInCurrentMonth: 0,
-        hasPacedCategories: true,
+        hasPoolCategories: true,
     );
 
     expect($categoryA + $categoryB)->not->toBe($pool);
@@ -160,13 +161,21 @@ test('empty paced pool month remaining is zero', function () {
         today: CarbonImmutable::parse('2026-06-15'),
     );
 
-    expect($calculator->pacedPoolMonthRemainingMinorUnits(
+    expect($calculator->poolMonthRemainingMinorUnits(
         totalCurrentPlanMinorUnits: 0,
         totalExecutionBeforeViewedMonth: 0,
         totalExecutionInViewedMonth: 0,
         viewedMonth: 6,
         totalExecutionBeforeCurrentMonth: 0,
         totalExecutionInCurrentMonth: 0,
-        hasPacedCategories: false,
+        hasPoolCategories: false,
     ))->toBe(0);
+});
+
+test('the pool holds fixed charges and running categories, not even annual ones', function () {
+    expect(MonthRemainingCalculator::isPoolRhythm(Rhythm::FixedCharge))->toBeTrue()
+        ->and(MonthRemainingCalculator::isPoolRhythm(Rhythm::Running))->toBeTrue()
+        ->and(MonthRemainingCalculator::isPoolRhythm(Rhythm::EvenAnnual))->toBeFalse()
+        ->and(MonthRemainingCalculator::isPoolRhythm(Rhythm::Irregular))->toBeFalse()
+        ->and(MonthRemainingCalculator::isPoolRhythm(null))->toBeFalse();
 });

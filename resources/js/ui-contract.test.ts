@@ -16,6 +16,7 @@ const BUDGET_VIEW_FILES = [
     'components/BudgetCategoryList.vue',
     'components/BudgetCategoryHeaderRow.vue',
     'components/BudgetCategoryRow.vue',
+    'components/BudgetCategoryGroupRow.vue',
     'components/BudgetAmountCell.vue',
     'components/BudgetEmptyState.vue',
     'components/BudgetCategoryRowActions.vue',
@@ -451,6 +452,7 @@ const UNITLESS_TABLE_ROW_FILES = [
     'components/OperationsDayRow.vue',
     'components/MonthYearSummary.vue',
     'components/BudgetCategoryRow.vue',
+    'components/BudgetCategoryGroupRow.vue',
     'components/BudgetAmountCell.vue',
     'components/MonthPlanItemRow.vue',
 ];
@@ -474,6 +476,9 @@ const CATEGORIES_VIEW_FILES = [
     'pages/dev/CategoriesKitchenSink.vue',
     'components/CategoryListRow.vue',
     'components/CategoryArchiveSection.vue',
+    'components/CategoryGroupRow.vue',
+    'components/CategoryGroupFormDialog.vue',
+    'components/CategoryGroupPicker.vue',
 ];
 
 describe('the Categories view follows the Atrament surface blocks', () => {
@@ -500,6 +505,16 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(page).toContain('<IndexEmptyState');
     });
 
+    it('builds the merge dialog on ConfirmActionDialog, not on its own DialogContent', () => {
+        const dialog = readFileSync(
+            join(JS_ROOT, 'components/CategoryMergeDialog.vue'),
+            'utf8',
+        );
+
+        expect(dialog).toContain('<ConfirmActionDialog');
+        expect(dialog).not.toContain('DialogContent');
+    });
+
     it('shows each category with CategoryChip and a Wayfinder link to Operations', () => {
         const row = readFileSync(
             join(JS_ROOT, 'components/CategoryListRow.vue'),
@@ -509,5 +524,26 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(row).toContain('<CategoryChip');
         expect(row).toContain("from '@/routes'");
         expect(row).not.toContain('href="/operations');
+    });
+
+    it('links report category names to Operations through the Wayfinder route and the shared query', () => {
+        for (const file of [
+            'components/ReportCategoryRow.vue',
+            'components/ReportTrendTable.vue',
+        ]) {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(source).toContain("from '@/routes'");
+            expect(source).toContain('reportCategoryOperationsQuery');
+            expect(source).not.toContain('href="/operations');
+        }
+
+        const group = readFileSync(
+            join(JS_ROOT, 'components/ReportGroupRow.vue'),
+            'utf8',
+        );
+
+        expect(group).not.toContain('reportCategoryOperationsQuery');
+        expect(group).not.toContain('operations(');
     });
 });

@@ -11,43 +11,44 @@ function canonicalItems(): MonthPaceItem[] {
     return [
         {
             type: 'income',
-            kind: null,
-            isOneOff: false,
+            rhythm: null,
             plan: 800_000,
             actual: 0,
         },
         {
             type: 'expense',
-            kind: 'bill',
-            isOneOff: false,
+            rhythm: 'fixed_charge',
             plan: 200_000,
             actual: 195_000,
         },
         {
             type: 'expense',
-            kind: 'running',
-            isOneOff: false,
+            rhythm: 'running',
             plan: 150_000,
             actual: 60_000,
         },
         {
             type: 'expense',
-            kind: 'running',
-            isOneOff: false,
+            rhythm: 'running',
             plan: 40_000,
             actual: 52_000,
         },
         {
             type: 'expense',
-            kind: 'running',
-            isOneOff: true,
+            rhythm: 'even_annual',
             plan: 100_000,
             actual: 30_000,
+        },
+        {
+            type: 'expense',
+            rhythm: 'irregular',
+            plan: 50_000,
+            actual: 90_000,
         },
     ];
 }
 
-test('pool sums count only running expenses that are not one-off', () => {
+test('pool sums count only expenses with the Running Rhythm', () => {
     expect(monthPacePoolSums(canonicalItems())).toEqual({
         planMinorUnits: 190_000,
         actualMinorUnits: 112_000,
@@ -69,15 +70,13 @@ test('a running item with a plan of zero raises only the actual sum', () => {
     const items: MonthPaceItem[] = [
         {
             type: 'expense',
-            kind: 'running',
-            isOneOff: false,
+            rhythm: 'running',
             plan: 100_000,
             actual: 10_000,
         },
         {
             type: 'expense',
-            kind: 'running',
-            isOneOff: false,
+            rhythm: 'running',
             plan: 0,
             actual: 5_000,
         },

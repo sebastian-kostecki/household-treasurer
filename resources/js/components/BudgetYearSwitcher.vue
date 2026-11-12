@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { computed, onUnmounted, ref, useId } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import { SidebarGroupLabel } from '@/components/ui/sidebar';
@@ -10,6 +10,8 @@ import {
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
 import { budgetYearSegments } from '@/lib/budget-year-segments';
+import { isCurrentSection } from '@/lib/nav-active';
+import { reports } from '@/routes';
 import type { BudgetYearSegment } from '@/lib/budget-year-segments';
 
 type Props = {
@@ -23,6 +25,28 @@ const t = useTranslations();
 const createBudgetDialog = useCreateBudgetDialog();
 const labelId = useId();
 const pending = ref(false);
+const page = usePage();
+
+/** The year switch stays on Reports; elsewhere it opens the Budget. */
+const staysOnReports = computed(() =>
+    isCurrentSection(reports().url, page.url),
+);
+
+/** On the Trend view the switch stays on the Trend. */
+const staysOnTrend = computed(
+    () =>
+        staysOnReports.value &&
+        new URL(page.url, 'http://localhost').searchParams.get('view') ===
+            'trend',
+);
+
+const destination = computed(() => {
+    if (staysOnTrend.value) {
+        return 'reports-trend';
+    }
+
+    return staysOnReports.value ? 'reports' : null;
+});
 
 defineExpose({ pending });
 
@@ -63,7 +87,9 @@ function activate(segment: BudgetYearSegment): void {
 
     router.post(
         BudgetController.selectYear().url,
-        { year: segment.year },
+        destination.value === null
+            ? { year: segment.year }
+            : { year: segment.year, destination: destination.value },
         {
             onStart: () => {
                 pending.value = true;

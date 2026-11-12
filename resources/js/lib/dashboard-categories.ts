@@ -3,6 +3,7 @@ import {
     EMPTY_OPERATIONS_FILTERS,
     operationsListQuery,
 } from './operations-list-query';
+import type { Rhythm } from '../types/rhythm';
 
 export type DashboardCategory = {
     id: number;
@@ -16,7 +17,7 @@ export type DashboardCategory = {
     percent_complete: number | null;
     is_over_limit: boolean;
     is_archived: boolean;
-    is_paced?: boolean;
+    rhythm?: Rhythm | null;
 };
 
 export type DashboardTypeTotals = {
@@ -48,13 +49,15 @@ export function categoryOperationsQuery(
 
 export function showsYearElapsedMark(
     categoryType: 'income' | 'expense',
-    category: DashboardCategory,
+    rhythm: Rhythm | null | undefined,
 ): boolean {
     if (categoryType === 'income') {
         return true;
     }
 
-    return category.is_paced === true;
+    // Every expense Rhythm has the mark but the irregular one (ADR-0066): its
+    // bill is not spread over the year, so "Postęp roku" would say nothing.
+    return rhythm !== null && rhythm !== undefined && rhythm !== 'irregular';
 }
 
 export function progressWidth(percentComplete: number | null): string {

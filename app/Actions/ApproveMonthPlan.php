@@ -46,11 +46,13 @@ class ApproveMonthPlan
                     throw $this->invalid(__('Approve the previous month plan first.'));
                 }
 
-                $amounts = (new BudgetLineResolver)->amountsByLine($budget, $amounts);
+                $partition = (new BudgetLineResolver)->partitionAmounts($budget, $amounts);
 
-                if ($amounts === null) {
+                if ($partition === null) {
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
+
+                $amounts = $partition['lines'];
 
                 $submittedIds = array_keys($amounts);
                 $expectedIds = array_keys($reading->amounts);
@@ -60,6 +62,8 @@ class ApproveMonthPlan
                 if ($submittedIds !== $expectedIds) {
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
+
+                $amounts += app(JoinBudgetAtFirstUse::class)->handleAmounts($budget, $partition['joining']);
 
                 $approvedAt = now();
 

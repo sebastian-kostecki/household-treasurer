@@ -51,11 +51,13 @@ class ChangeMonthPlan
                     throw $this->invalid(__('Approve this month plan first.'));
                 }
 
-                $amounts = (new BudgetLineResolver)->amountsByLine($budget, $amounts);
+                $partition = (new BudgetLineResolver)->partitionAmounts($budget, $amounts);
 
-                if ($amounts === null) {
+                if ($partition === null) {
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
+
+                $amounts = $partition['lines'];
 
                 if ($setAsideMinorUnits !== null) {
                     $plan->update(['current_set_aside_minor_units' => $setAsideMinorUnits]);
@@ -64,7 +66,7 @@ class ChangeMonthPlan
                 $items = $plan->items()->get()->keyBy('budget_line_id');
 
                 $allowedIds = $budget->budgetLines()
-                    ->whereNull('archived_at')
+                    ->openForChoice()
                     ->pluck('id')
                     ->merge($items->keys())
                     ->map(fn ($id): int => (int) $id)
@@ -74,6 +76,8 @@ class ChangeMonthPlan
                 if (array_diff(array_keys($amounts), $allowedIds) !== []) {
                     throw $this->invalid(__('The month plan items are invalid.'));
                 }
+
+                $amounts += app(JoinBudgetAtFirstUse::class)->handleAmounts($budget, $partition['joining']);
 
                 $this->applyAmounts($plan, $items, $amounts);
 

@@ -4,10 +4,11 @@ import {
     monthPacePoolSums,
 } from './month-pace-calculator';
 
+import type { Rhythm } from '../types/rhythm';
+
 export type MonthPacePreviewRow = {
     type: 'income' | 'expense';
-    month_item_kind: 'bill' | 'running' | null;
-    is_one_off: boolean;
+    rhythm: Rhythm | null;
     actual_minor_units: number;
 };
 
@@ -24,8 +25,7 @@ export function monthPacePreview<Row extends MonthPacePreviewRow>(
     const sums = monthPacePoolSums(
         rows.map((row) => ({
             type: row.type,
-            kind: row.month_item_kind,
-            isOneOff: row.is_one_off,
+            rhythm: row.rhythm,
             plan: planOf(row),
             actual: row.actual_minor_units,
         })),

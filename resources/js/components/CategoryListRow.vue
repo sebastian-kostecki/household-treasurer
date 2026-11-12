@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { GripVertical } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import CategoryGroupPicker from '@/components/CategoryGroupPicker.vue';
+import CategoryListRowActions from '@/components/CategoryListRowActions.vue';
 import TextLink from '@/components/TextLink.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -9,12 +12,25 @@ import {
 } from '@/lib/category-list';
 import { formatDate } from '@/lib/format';
 import { operations } from '@/routes';
-import type { CategoryListItem } from '@/types/categories';
+import type { CategoryGroupItem, CategoryListItem } from '@/types/categories';
 
 const props = defineProps<{
     category: CategoryListItem;
     /** An archive row: muted, with the archive date under the name. */
     archived?: boolean;
+    /** The groups of the Category's type; with it an active row gets "Grupa…" and a drag handle. */
+    groups?: CategoryGroupItem[];
+    /** The row stands under a group: indented. */
+    nested?: boolean;
+    /** Only the kitchen sink opens the "Grupa…" menu on mount. */
+    pickerOpen?: boolean;
+    /** Whether another active Category of the type exists to merge into. */
+    canMerge?: boolean;
+}>();
+
+const emit = defineEmits<{
+    edit: [];
+    merge: [];
 }>();
 
 const t = useTranslations();
@@ -35,24 +51,49 @@ const archivedOn = computed(() =>
               formatDate(props.category.archived_at),
           ),
 );
+
+const rhythmLabel = computed(() =>
+    props.category.rhythm === null
+        ? null
+        : t.categories[`rhythm_${props.category.rhythm}`],
+);
+
+/** The muted second line under the chip: the Rhythm, the archive date and/or the description. */
+const caption = computed(() =>
+    [rhythmLabel.value, archivedOn.value, props.category.description]
+        .filter((part): part is string => part !== null && part !== '')
+        .join(' · '),
+);
 </script>
 
 <template>
     <div
         class="categories-grid categories-row"
-        :class="{ 'categories-row-archived': archived }"
+        :class="{
+            'categories-row-archived': archived,
+            'categories-row-nested': nested,
+        }"
         data-category-row
     >
         <div class="categories-cell-name">
+            <button
+                v-if="groups !== undefined"
+                type="button"
+                class="categories-handle drag-handle"
+                tabindex="-1"
+                :aria-label="t.categories.drag_handle"
+            >
+                <GripVertical class="size-4" aria-hidden="true" />
+            </button>
             <CategoryChip
                 :name="category.name"
                 :icon="category.icon"
                 :color="category.color"
-                :size="archivedOn === null ? 'md' : 'lg'"
+                :size="caption === '' ? 'md' : 'lg'"
             >
-                <template v-if="archivedOn !== null" #subtitle>
-                    <span class="meta text-muted-foreground">
-                        {{ archivedOn }}
+                <template v-if="caption !== ''" #subtitle>
+                    <span class="categories-description" :title="caption">
+                        {{ caption }}
                     </span>
                 </template>
             </CategoryChip>
@@ -78,6 +119,20 @@ const archivedOn = computed(() =>
             >
                 {{ t.categories.operations_link }}
             </TextLink>
+            <CategoryGroupPicker
+                v-if="groups !== undefined"
+                :category="category"
+                :groups="groups"
+                :default-open="pickerOpen"
+            />
         </div>
+
+        <CategoryListRowActions
+            :category="category"
+            :archived="archived"
+            :can-merge="canMerge"
+            @edit="emit('edit')"
+            @merge="emit('merge')"
+        />
     </div>
 </template>

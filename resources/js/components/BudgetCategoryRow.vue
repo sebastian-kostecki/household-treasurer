@@ -7,10 +7,11 @@ import BudgetCategoryRowActions from '@/components/BudgetCategoryRowActions.vue'
 import CategoryChip from '@/components/CategoryChip.vue';
 import ExecutionMeter from '@/components/ExecutionMeter.vue';
 import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeVariants } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { executionClass, remainingClass } from '@/lib/budget-category-cells';
 import { showsYearElapsedMark } from '@/lib/dashboard-categories';
+import { formatMoneyAmount } from '@/lib/format';
 
 const props = defineProps<{
     category: BudgetCategoryRow;
@@ -19,6 +20,8 @@ const props = defineProps<{
     phase: 'draft' | 'execution';
     showHandle: boolean;
     yearElapsedPercent: number | null;
+    /** The row stands under a group row, indented. */
+    nested?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -38,20 +41,48 @@ const showsOverLimitBadge = computed(
         !props.category.is_archived,
 );
 
+/** Badges next to the Category name; both chip sizes render this one list. */
+const nameBadges = computed(
+    (): { variant: BadgeVariants['variant']; label: string }[] => {
+        if (isArchived.value) {
+            return [{ variant: 'neutral', label: t.budget.archived_badge }];
+        }
+
+        if (showsOverLimitBadge.value) {
+            return [
+                {
+                    variant: 'destructive-soft',
+                    label: t.budget.over_limit_badge,
+                },
+            ];
+        }
+
+        return [];
+    },
+);
+
 const kindLabel = computed(() => {
     if (props.categoryType === 'income') {
         return t.budget.kind_income;
     }
 
-    return props.category.month_item_kind === 'bill'
-        ? t.budget.kind_bill
-        : t.budget.kind_running;
+    return t.categories[`rhythm_${props.category.rhythm ?? 'running'}`];
 });
 
 const meterYearElapsedPercent = computed(() =>
-    showsYearElapsedMark(props.categoryType, props.category)
+    showsYearElapsedMark(props.categoryType, props.category.rhythm)
         ? props.yearElapsedPercent
         : null,
+);
+
+const collectedAtYearStart = computed(
+    () => props.category.collected_at_year_start,
+);
+
+const collectedAtYearStartHint = computed(() =>
+    collectedAtYearStart.value?.is_forecast
+        ? t.budget.collected_at_year_start_forecast_hint
+        : t.budget.collected_at_year_start_hint,
 );
 
 const remainingLabel = computed(() =>
@@ -67,6 +98,7 @@ const remainingLabel = computed(() =>
         :class="{
             'budget-category-grid-draft': isDraft,
             'budget-category-grid-no-handle': !showHandle,
+            'budget-category-row-nested': nested,
             'text-muted-foreground': isArchived,
         }"
     >
@@ -84,16 +116,58 @@ const remainingLabel = computed(() =>
 
         <div class="budget-category-cell-category flex items-center gap-2">
             <CategoryChip
+                v-if="collectedAtYearStart !== null"
                 :name="category.name"
                 :icon="category.icon"
                 :color="category.color"
-            />
-            <Badge v-if="isArchived" variant="neutral">
-                {{ t.budget.archived_badge }}
-            </Badge>
-            <Badge v-else-if="showsOverLimitBadge" variant="destructive-soft">
-                {{ t.budget.over_limit_badge }}
-            </Badge>
+                size="lg"
+            >
+                <template #badges>
+                    <Badge
+                        v-for="badge in nameBadges"
+                        :key="badge.label"
+                        :variant="badge.variant"
+                    >
+                        {{ badge.label }}
+                    </Badge>
+                </template>
+
+                <template #subtitle>
+                    <span
+                        class="meta text-muted-foreground tabular-nums"
+                        data-collected-at-year-start
+                        :title="collectedAtYearStartHint"
+                    >
+                        {{ t.budget.collected_at_year_start }}
+                        <span class="whitespace-nowrap"
+                            >{{
+                                formatMoneyAmount(
+                                    collectedAtYearStart.minor_units,
+                                )
+                            }}<template v-if="collectedAtYearStart.is_forecast">
+                                ·
+                                {{
+                                    t.budget.collected_at_year_start_forecast
+                                }}</template
+                            ></span
+                        >
+                    </span>
+                </template>
+            </CategoryChip>
+            <template v-else>
+                <CategoryChip
+                    :name="category.name"
+                    :icon="category.icon"
+                    :color="category.color"
+                />
+                <Badge
+                    v-for="badge in nameBadges"
+                    :key="badge.label"
+                    :variant="badge.variant"
+                >
+                    {{ badge.label }}
+                </Badge>
+            </template>
         </div>
 
         <div v-if="isDraft" class="budget-category-cell-kind">

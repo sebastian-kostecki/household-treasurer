@@ -10,11 +10,14 @@ use App\Http\Requests\StoreBudgetRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\User;
+use App\Support\BudgetCollectedAtYearStart;
 use App\Support\BudgetDeficitWarning;
 use App\Support\BudgetPlanSummary;
+use App\Support\BudgetViewedMonth;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\CategoryList\CategoryTypeChange;
+use App\Support\CategoryRhythms;
 use App\Support\SelectedBudgetYear;
 use App\Support\YearElapsed;
 use Carbon\CarbonImmutable;
@@ -39,6 +42,8 @@ class BudgetController extends Controller
                 'budget' => null,
                 'incomeCategories' => [],
                 'expenseCategories' => [],
+                'incomeGroups' => [],
+                'expenseGroups' => [],
                 'planSummary' => null,
                 'incomeTotals' => BudgetPlanSummary::emptyTypeTotals(),
                 'expenseTotals' => BudgetPlanSummary::emptyTypeTotals(),
@@ -50,6 +55,7 @@ class BudgetController extends Controller
         }
 
         $allCategories = $budget->budgetLines()
+            ->with('category.group')
             ->ordered()
             ->get();
 
@@ -67,6 +73,10 @@ class BudgetController extends Controller
             array_values($categories->pluck('category_id')->map(fn ($id): int => (int) $id)->all()),
         );
 
+        $rhythms = CategoryRhythms::forCategoryIds($categories->pluck('category_id'));
+        $viewedMonth = BudgetViewedMonth::defaultForYear($budget->year, $today);
+        $collectedAtYearStart = new BudgetCollectedAtYearStart($budget, $rhythms, $today);
+
         return Inertia::render('Budget', [
             'budget' => [
                 'id' => $budget->id,
@@ -79,13 +89,15 @@ class BudgetController extends Controller
             'incomeCategories' => $categories
                 ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Income))
                 ->values()
-                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth, $collectedAtYearStart))
                 ->all(),
             'expenseCategories' => $categories
                 ->filter(fn (BudgetLine $line): bool => $line->hasType(CategoryType::Expense))
                 ->values()
-                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds))
+                ->map(fn (BudgetLine $line): array => $this->categoryPayload($line, $budget, $typeLockedIds, $rhythms, $viewedMonth, $collectedAtYearStart))
                 ->all(),
+            'incomeGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Income),
+            'expenseGroups' => BudgetPlanSummary::groupsOfType($budget, $categories, CategoryType::Expense),
             'planSummary' => $planSummary,
             'incomeTotals' => $planSummary['income'],
             'expenseTotals' => $planSummary['expense'],
@@ -104,11 +116,7 @@ class BudgetController extends Controller
     {
         $validated = $request->validated();
 
-        $budget = $createBudget->handle(
-            $request->user(),
-            $validated['year'],
-            $validated['source_budget_id'] ?? null,
-        );
+        $budget = $createBudget->handle($request->user(), $validated['year']);
 
         $request->session()->put('budget_year', $budget->year);
 
@@ -144,11 +152,12 @@ class BudgetController extends Controller
 
         $request->session()->put('budget_year', $validated['year']);
 
-        if (($validated['destination'] ?? 'budget') === 'month-plan') {
-            return to_route('month-plan');
-        }
-
-        return to_route('budget');
+        return match ($validated['destination'] ?? 'budget') {
+            'month-plan' => to_route('month-plan'),
+            'reports' => to_route('reports'),
+            'reports-trend' => to_route('reports', ['view' => 'trend']),
+            default => to_route('budget'),
+        };
     }
 
     public function startExecution(Request $request, Budget $budget, StartBudgetExecution $startBudgetExecution): RedirectResponse
@@ -175,13 +184,23 @@ class BudgetController extends Controller
     }
 
     /**
+     * One row of the Budget: the list Category (`id` is the Category id, not the
+     * line id) with the line's amounts. `group_id` and `sort_order` place it in
+     * the tree of the type (ADR-0069); the row of an archived line carries them
+     * too, but the archive section shows no groups.
+     *
      * @param  list<int>  $typeLockedIds  list Category ids whose type cannot change
+     * @param  int  $viewedMonth  the month whose Rhythm the row shows (BudgetViewedMonth)
+     * @param  BudgetCollectedAtYearStart  $collectedAtYearStart  the „zebrane startowe” reading (ADR-0076)
      * @return array{
      *     id: int,
      *     name: string,
      *     icon: string,
      *     color: string,
      *     type: string,
+     *     rhythm: 'fixed_charge'|'running'|'even_annual'|'irregular'|null,
+     *     group_id: int|null,
+     *     sort_order: int,
      *     planned_amount_minor_units: int,
      *     initial_plan_minor_units: int,
      *     current_plan_minor_units: int,
@@ -196,9 +215,10 @@ class BudgetController extends Controller
      *     can_archive: bool,
      *     can_restore: bool,
      *     can_align_current_plan: bool,
+     *     collected_at_year_start: array{minor_units: int, is_forecast: bool}|null,
      * }
      */
-    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds): array
+    private function categoryPayload(BudgetLine $line, Budget $budget, array $typeLockedIds, CategoryRhythms $rhythms, int $viewedMonth, BudgetCollectedAtYearStart $collectedAtYearStart): array
     {
         $category = $line->category;
         $currentPlanMinorUnits = $line->planned_amount_minor_units;
@@ -216,8 +236,9 @@ class BudgetController extends Controller
             'name' => $category->name,
             ...CategoryAppearance::fields($line),
             'type' => $category->type->value,
-            'is_paced' => $line->is_paced,
-            'month_item_kind' => $line->month_item_kind->value,
+            'group_id' => $category->category_group_id,
+            'sort_order' => $category->sort_order,
+            'rhythm' => $rhythms->rhythmIn($category->id, $budget->year, $viewedMonth)?->value,
             'planned_amount_minor_units' => $line->planned_amount_minor_units,
             'initial_plan_minor_units' => $initialPlanMinorUnits,
             'current_plan_minor_units' => $currentPlanMinorUnits,
@@ -238,6 +259,7 @@ class BudgetController extends Controller
             'can_align_current_plan' => $budget->isExecution()
                 && ! $line->isArchived()
                 && $remainingMinorUnits !== 0,
+            'collected_at_year_start' => $collectedAtYearStart->forCategory($category->id),
         ];
     }
 }

@@ -1,9 +1,15 @@
+import type { Rhythm } from '../types/rhythm';
+import { collectedSurplusMinorUnits } from './collected-calculator';
+
 export type ToSpendItem = {
     type: 'income' | 'expense';
-    kind: 'bill' | 'running' | null;
+    /** The Rhythm of the item's Category in the month; null for an income. */
+    rhythm: Rhythm | null;
     plan: number;
     actual: number;
     hasPositiveAmount: boolean;
+    /** The Collected on the first day of the month; 0 for any Rhythm but irregular and for an income. */
+    collectedAtStart?: number;
 };
 
 /**
@@ -33,10 +39,22 @@ export function toSpendBreakdown(
             continue;
         }
 
-        if (item.kind === 'bill') {
+        if (item.rhythm === 'fixed_charge') {
             expenseMinorUnits += item.hasPositiveAmount
                 ? item.actual
                 : item.plan;
+
+            continue;
+        }
+
+        if (item.rhythm === 'irregular') {
+            expenseMinorUnits +=
+                item.plan +
+                collectedSurplusMinorUnits(
+                    item.collectedAtStart ?? 0,
+                    item.plan,
+                    item.actual,
+                );
 
             continue;
         }

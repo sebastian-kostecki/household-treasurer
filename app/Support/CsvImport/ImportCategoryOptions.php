@@ -2,68 +2,44 @@
 
 namespace App\Support\CsvImport;
 
-use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
-use App\Models\Budget;
-use App\Models\BudgetLine;
 use App\Models\User;
 use App\Support\CategoryAppearance;
+use App\Support\CategoryList\CategoryChoiceOptions;
 
 /**
- * Categories an Import preview row may be classified with: lines of the user's
- * Budgets in execution open for choice (line and list Category not archived),
- * one list per type.
+ * Categories an Import preview row may be classified with: the active
+ * Categories of the list in every Budget in execution, with or without a line
+ * there yet (ADR-0067), one list per type.
  */
 class ImportCategoryOptions
 {
     /**
-     * @return array<int, array{id: int, name: string, budget_year: int}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int}>
      */
     public static function income(User $user): array
     {
-        return $user
-            ->budgets()
-            ->where('phase', BudgetPhase::Execution)
-            ->with(['budgetLines' => fn ($query) => $query
-                ->ofType(CategoryType::Income)
-                ->openForChoice()
-                ->ordered(),
-            ])
-            ->orderBy('year')
-            ->get()
-            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->category_id,
-                'name' => $category->category->name,
-                ...CategoryAppearance::fields($category),
-                'budget_year' => $budget->year,
-            ]))
-            ->values()
-            ->all();
+        return array_map(fn (array $row): array => [
+            'id' => $row['category']->id,
+            'name' => $row['category']->name,
+            ...CategoryAppearance::fields($row['category']),
+            'group' => CategoryAppearance::group($row['category']),
+            'budget_year' => $row['budget_year'],
+        ], CategoryChoiceOptions::forType($user, CategoryType::Income));
     }
 
     /**
-     * @return array<int, array{id: int, name: string, budget_year: int}>
+     * @return array<int, array{id: int, name: string, icon: string, color: string, group: array{id: int, name: string}|null, budget_year: int, rhythms: array<int, string>|null}>
      */
     public static function expense(User $user): array
     {
-        return $user
-            ->budgets()
-            ->where('phase', BudgetPhase::Execution)
-            ->with(['budgetLines' => fn ($query) => $query
-                ->ofType(CategoryType::Expense)
-                ->openForChoice()
-                ->ordered(),
-            ])
-            ->orderBy('year')
-            ->get()
-            ->flatMap(fn (Budget $budget) => $budget->budgetLines->map(fn (BudgetLine $category): array => [
-                'id' => $category->category_id,
-                'name' => $category->category->name,
-                ...CategoryAppearance::fields($category),
-                'budget_year' => $budget->year,
-                'is_paced' => $category->is_paced,
-            ]))
-            ->values()
-            ->all();
+        return array_map(fn (array $row): array => [
+            'id' => $row['category']->id,
+            'name' => $row['category']->name,
+            ...CategoryAppearance::fields($row['category']),
+            'group' => CategoryAppearance::group($row['category']),
+            'budget_year' => $row['budget_year'],
+            'rhythms' => $row['rhythms'],
+        ], CategoryChoiceOptions::forType($user, CategoryType::Expense));
     }
 }

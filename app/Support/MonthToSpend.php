@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use Carbon\CarbonImmutable;
@@ -21,9 +22,12 @@ final class MonthToSpend
      */
     private function __construct(
         public readonly MonthPlanProposal $proposal,
+        public readonly int $month,
         public readonly MonthPlanReading $reading,
         public readonly MonthCategoryActuals $actuals,
         public readonly Collection $categories,
+        private readonly IrregularCollected $collected,
+        private readonly int $year,
     ) {}
 
     /**
@@ -45,7 +49,17 @@ final class MonthToSpend
             ->ordered()
             ->get();
 
-        return new self($proposal, $reading, $actuals, $categories);
+        $collected = IrregularCollected::forUserId($budget->user_id, $proposal->rhythms());
+
+        return new self($proposal, $month, $reading, $actuals, $categories, $collected, $budget->year);
+    }
+
+    /**
+     * The Rhythm of the row's Category in the month read; null for an income.
+     */
+    public function rhythmOf(BudgetLine $category): ?Rhythm
+    {
+        return $this->proposal->rhythmIn($category, $this->month);
     }
 
     /**
@@ -74,10 +88,11 @@ final class MonthToSpend
 
             $items[] = [
                 'type' => $category->category->type,
-                'kind' => $category->month_item_kind,
+                'rhythm' => $this->rhythmOf($category),
                 'plan' => $amounts['plan_minor_units'],
                 'actual' => $amounts['actual_minor_units'],
                 'has_positive_amount' => $amounts['has_positive_amount'],
+                'collected_at_start' => $amounts['collected_at_start_minor_units'],
             ];
         }
 
@@ -88,14 +103,23 @@ final class MonthToSpend
      * The amounts of one category row, shared by the number and the rows shown
      * beside it so the two cannot drift apart.
      *
-     * @return array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}
+     * The Collected on the first day of the month comes from `IrregularCollected` and is 0 for
+     * a row whose Rhythm in the month is not Irregular, so the number, the deviation and the
+     * Collected shown in the row are built from the same three amounts (ADR-0073).
+     *
+     * @return array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool, collected_at_start_minor_units: int}
      */
     public function rowAmounts(BudgetLine $category): array
     {
+        $collectedAtStart = $this->rhythmOf($category) === Rhythm::Irregular
+            ? $this->collected->collectedAtStartOfMonth($category->category_id, $this->year, $this->month)
+            : 0;
+
         return [
             'plan_minor_units' => $this->reading->amounts[$category->id] ?? 0,
             'actual_minor_units' => $this->actuals->actual($category->id),
             'has_positive_amount' => $this->actuals->hasPositiveAmount($category->id),
+            'collected_at_start_minor_units' => $collectedAtStart,
         ];
     }
 

@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Enums\BudgetPhase;
-use App\Enums\CategoryType;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\MonthPlan;
@@ -16,6 +16,13 @@ class MonthPlanProposal
      * @var array<string, MonthPlanReading>
      */
     private array $memo = [];
+
+    /**
+     * Lazily loaded actuals of every month, per budget side ('current' or 'previous').
+     *
+     * @var array<string, array<int, MonthCategoryActuals>>
+     */
+    private array $actualsMemo = [];
 
     /**
      * @param  array<int, MonthPlan>  $plansByMonth
@@ -31,6 +38,7 @@ class MonthPlanProposal
         private readonly ?Budget $previousBudget,
         private readonly ?array $previousPlansByMonth,
         private readonly ?Collection $previousCategories,
+        private readonly CategoryRhythms $rhythms,
     ) {}
 
     /**
@@ -48,6 +56,10 @@ class MonthPlanProposal
             ->with(['monthPlans.items', 'budgetLines'])
             ->first();
 
+        $categoryIds = $budget->budgetLines->pluck('category_id')
+            ->merge($previousBudget?->budgetLines->pluck('category_id') ?? [])
+            ->all();
+
         return new self(
             $budget,
             $today,
@@ -56,7 +68,29 @@ class MonthPlanProposal
             $previousBudget,
             $previousBudget?->monthPlans->keyBy('month')->all(),
             $previousBudget?->budgetLines->keyBy('id'),
+            CategoryRhythms::forCategoryIds($categoryIds),
         );
+    }
+
+    public function budgetYear(): int
+    {
+        return $this->budget->year;
+    }
+
+    /**
+     * The Rhythm of the line's list Category in the month of the viewed budget (ADR-0066).
+     */
+    public function rhythmIn(BudgetLine $line, int $month): ?Rhythm
+    {
+        return $this->rhythms->rhythmIn($line->category_id, $this->budget->year, $month);
+    }
+
+    /**
+     * The Rhythm entries already loaded for the Categories of the budget and the previous one.
+     */
+    public function rhythms(): CategoryRhythms
+    {
+        return $this->rhythms;
     }
 
     public function reading(int $month): MonthPlanReading
@@ -141,7 +175,7 @@ class MonthPlanProposal
                 continue;
             }
 
-            $amounts[$category->id] = $this->proposedAmount($category, $month, $source);
+            $amounts[$category->id] = $this->proposedAmount($inPreviousBudget, $budget, $category, $month, $source);
         }
 
         return new MonthPlanReading('proposal', null, $amounts, max(0, $source->setAsideMinorUnits ?? 0));
@@ -169,14 +203,24 @@ class MonthPlanProposal
         return $source->state === 'none' ? null : $source;
     }
 
-    private function proposedAmount(BudgetLine $category, int $month, ?MonthPlanReading $source): int
+    private function proposedAmount(bool $inPreviousBudget, Budget $budget, BudgetLine $category, int $month, ?MonthPlanReading $source): int
     {
-        if ($category->hasType(CategoryType::Expense) && ! $category->is_paced) {
-            return 0;
+        $rhythm = $this->rhythms->rhythmIn($category->category_id, $budget->year, $month);
+
+        if ($rhythm === Rhythm::EvenAnnual || $rhythm === Rhythm::Irregular) {
+            return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
+        }
+
+        if ($rhythm === Rhythm::FixedCharge) {
+            $lastPaid = $this->lastPaidAmount($inPreviousBudget, $category, $month);
+
+            if ($lastPaid !== null) {
+                return $lastPaid;
+            }
         }
 
         if ($source === null) {
-            return $this->averageFromAnnual($category->planned_amount_minor_units, $month);
+            return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
         }
 
         if ($month > 1) {
@@ -186,10 +230,56 @@ class MonthPlanProposal
         $matched = $this->matchPreviousCategory($category);
 
         if ($matched === null) {
-            return $this->averageFromAnnual($category->planned_amount_minor_units, $month);
+            return AnnualPlanShare::forMonth($category->planned_amount_minor_units, $month);
         }
 
         return $source->amounts[$matched->id] ?? 0;
+    }
+
+    /**
+     * The net actual amount of the previous month (January: December of the same list
+     * Category in the previous Budget in execution) when it had a positive operation and
+     * the net is above 0; otherwise null (ADR-0066, "Fixed Charge Proposal").
+     */
+    private function lastPaidAmount(bool $inPreviousBudget, BudgetLine $category, int $month): ?int
+    {
+        if ($month > 1) {
+            $actuals = $this->actualsOf($inPreviousBudget)[$month - 1] ?? null;
+            $lineId = $category->id;
+        } elseif (! $inPreviousBudget && $this->previousBudget !== null) {
+            $actuals = $this->actualsOf(true)[12] ?? null;
+            $lineId = $this->matchPreviousCategory($category)?->id;
+        } else {
+            return null;
+        }
+
+        if ($actuals === null || $lineId === null) {
+            return null;
+        }
+
+        $actual = $actuals->actual($lineId);
+
+        return $actuals->hasPositiveAmount($lineId) && $actual > 0 ? $actual : null;
+    }
+
+    /**
+     * One query per budget, whatever the number of months read.
+     *
+     * @return array<int, MonthCategoryActuals>
+     */
+    private function actualsOf(bool $inPreviousBudget): array
+    {
+        $key = $inPreviousBudget ? 'previous' : 'current';
+
+        if (array_key_exists($key, $this->actualsMemo)) {
+            return $this->actualsMemo[$key];
+        }
+
+        $budget = $inPreviousBudget ? $this->previousBudget : $this->budget;
+
+        return $this->actualsMemo[$key] = $budget === null
+            ? []
+            : MonthCategoryActuals::forMonths($budget, range(1, 12));
     }
 
     /**
@@ -199,29 +289,5 @@ class MonthPlanProposal
     {
         return ($this->previousCategories ?? collect())
             ->first(fn (BudgetLine $candidate): bool => $candidate->category_id === $category->category_id);
-    }
-
-    private function averageFromAnnual(int $annualMinorUnits, int $month): int
-    {
-        $monthlyFloor = $this->floorDivide($annualMinorUnits, 12);
-
-        if ($month <= 11) {
-            return $monthlyFloor;
-        }
-
-        return $annualMinorUnits - (11 * $monthlyFloor);
-    }
-
-    private function floorDivide(int $numerator, int $denominator): int
-    {
-        if ($denominator <= 0) {
-            throw new \InvalidArgumentException('Denominator must be positive.');
-        }
-
-        if ($numerator >= 0) {
-            return intdiv($numerator, $denominator);
-        }
-
-        return -intdiv(-$numerator + $denominator - 1, $denominator);
     }
 }

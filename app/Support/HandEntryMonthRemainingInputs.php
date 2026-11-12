@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Models\User;
+use App\Support\CategoryList\CategoryChoiceOptions;
 use Carbon\CarbonImmutable;
 
 class HandEntryMonthRemainingInputs
@@ -17,7 +18,7 @@ class HandEntryMonthRemainingInputs
      *         is_draft: bool,
      *         categories: array<int, array{
      *             id: int,
-     *             is_paced: bool,
+     *             rhythms: array<int, string>|null,
      *             planned_amount_minor_units: int,
      *             monthly_execution_minor_units: array<int, int>,
      *         }>,
@@ -37,11 +38,14 @@ class HandEntryMonthRemainingInputs
             ->orderBy('year')
             ->get();
 
+        $joiningEntries = CategoryChoiceOptions::joiningEntries($user, $budgets, CategoryType::Expense);
+        $rhythms = CategoryRhythms::forBudgets($budgets, $joiningEntries);
         $payloadBudgets = [];
 
         foreach ($budgets as $budget) {
             $expenseCategories = $budget->budgetLines;
             $executionIndex = BudgetMonthExecutionIndex::forBudget($budget, $expenseCategories);
+            $rhythmsOf = fn (int $categoryId): ?array => $rhythms->rhythmValuesInYear($categoryId, $budget->year);
             $categories = [];
 
             foreach ($expenseCategories as $category) {
@@ -53,9 +57,18 @@ class HandEntryMonthRemainingInputs
 
                 $categories[] = [
                     'id' => $category->category_id,
-                    'is_paced' => $category->is_paced,
+                    'rhythms' => $rhythmsOf($category->category_id),
                     'planned_amount_minor_units' => $category->planned_amount_minor_units,
                     'monthly_execution_minor_units' => $monthlyExecution,
+                ];
+            }
+
+            foreach ($joiningEntries[$budget->id] as $joining) {
+                $categories[] = [
+                    'id' => $joining['category_id'],
+                    'rhythms' => $rhythmsOf($joining['category_id']),
+                    'planned_amount_minor_units' => 0,
+                    'monthly_execution_minor_units' => array_fill(1, 12, 0),
                 ];
             }
 

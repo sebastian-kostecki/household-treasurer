@@ -19,7 +19,7 @@ Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). R
 
 - Gate: `composer ci:check` (steps in `composer.json` → `scripts`) plus `vendor/bin/sloppy ci` on the host (CI runs it as its own step). After PHP changes: `vendor/bin/pint --dirty --format agent`.
 - PostgreSQL tests, main checkout: `docker compose exec -u sail -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing laravel.test php artisan test --compact <path>`
-- PostgreSQL tests, worktree (the Sail stack serves the main checkout): `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`; for the full gate swap the tail for `--entrypoint composer sail-8.5/app ci:check`.
+- PostgreSQL tests, worktree (the Sail stack serves the main checkout; each change has its own test database, see `context/foundation/agents/parallel-changes.md`): `docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=testing_<change> -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -w /var/www/html --entrypoint php sail-8.5/app artisan test --compact <path>`; for the full gate swap the tail for `--entrypoint composer sail-8.5/app ci:check`.
 - Fresh checkout or worktree, in CI order: `composer install`, `.env` from `.env.example`, `php artisan key:generate`, `npm ci`, `npm run build`. The build generates the Wayfinder directories, so after changing routes run `npm run build` before `npm run types:check`.
 
 ## Where things live
@@ -39,6 +39,7 @@ Setup and everyday commands: `README.md` ("Uruchomienie", "Testy i jakość"). R
 
 ## Procedures
 
+- Parallel changes (own databases and ports per worktree, merging into `development`): `context/foundation/agents/parallel-changes.md`
 - Preview a worktree in a browser: `context/foundation/agents/worktree-preview.md`
 - GitHub Issues and triage labels: `context/foundation/agents/issue-tracker.md`
 - Domain docs before exploring: `context/foundation/agents/domain.md`

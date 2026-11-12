@@ -1,6 +1,7 @@
 import {
     ArrowLeftRight,
     CalendarDays,
+    ChartColumn,
     Landmark,
     LayoutGrid,
     PiggyBank,
@@ -8,7 +9,7 @@ import {
     Wallet,
 } from '@lucide/vue';
 import { useTranslations } from '@/composables/useTranslations';
-import { budget, dashboard, monthPlan, operations } from '@/routes';
+import { budget, dashboard, monthPlan, operations, reports } from '@/routes';
 import { index as accounts } from '@/routes/accounts';
 import { index as categories } from '@/routes/categories';
 import { index as termDeposits } from '@/routes/term-deposits';
@@ -29,6 +30,7 @@ export function useAppViews(): NavItem[] {
         { title: t.nav.accounts, href: accounts(), icon: Wallet },
         { title: t.nav.term_deposits, href: termDeposits(), icon: Landmark },
         { title: t.nav.operations, href: operations(), icon: ArrowLeftRight },
+        { title: t.nav.reports, href: reports(), icon: ChartColumn },
     ];
 
     return views.map((view, index) => ({

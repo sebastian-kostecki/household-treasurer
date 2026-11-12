@@ -1,21 +1,22 @@
 <?php
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Support\MonthPaceCalculator;
 
 function canonicalPaceItems(): array
 {
     return [
-        ['type' => CategoryType::Income, 'kind' => MonthItemKind::Running, 'is_one_off' => false, 'plan' => 800_000, 'actual' => 0],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Bill, 'is_one_off' => false, 'plan' => 200_000, 'actual' => 195_000],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'is_one_off' => false, 'plan' => 150_000, 'actual' => 60_000],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'is_one_off' => false, 'plan' => 40_000, 'actual' => 52_000],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'is_one_off' => true, 'plan' => 100_000, 'actual' => 30_000],
+        ['type' => CategoryType::Income, 'rhythm' => null, 'plan' => 800_000, 'actual' => 0],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::FixedCharge, 'plan' => 200_000, 'actual' => 195_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 150_000, 'actual' => 60_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 40_000, 'actual' => 52_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::EvenAnnual, 'plan' => 100_000, 'actual' => 30_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Irregular, 'plan' => 50_000, 'actual' => 90_000],
     ];
 }
 
-test('pool sums count only running expenses that are not one-off', function () {
+test('pool sums count only expenses with the Running Rhythm', function () {
     expect(MonthPaceCalculator::poolSums(canonicalPaceItems()))
         ->toBe(['plan_minor_units' => 190_000, 'actual_minor_units' => 112_000]);
 });
@@ -29,8 +30,8 @@ test('canonical pool reads 59 percent and is not ahead at half the month', funct
 
 test('a running item with a plan of zero raises only the actual sum', function () {
     $items = [
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'is_one_off' => false, 'plan' => 100_000, 'actual' => 10_000],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'is_one_off' => false, 'plan' => 0, 'actual' => 5_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 100_000, 'actual' => 10_000],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 0, 'actual' => 5_000],
     ];
 
     expect(MonthPaceCalculator::poolSums($items))

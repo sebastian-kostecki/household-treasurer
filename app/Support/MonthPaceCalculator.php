@@ -3,7 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 
 /**
  * Month spending pace of the running expense pool. Copy in TypeScript:
@@ -12,9 +12,9 @@ use App\Enums\MonthItemKind;
 class MonthPaceCalculator
 {
     /**
-     * The pool is the running expenses that are not one-off.
+     * The pool is the expenses with the Running Rhythm of the month (ADR-0066).
      *
-     * @param  list<array{type: CategoryType, kind: MonthItemKind, is_one_off: bool, plan: int, actual: int}>  $items
+     * @param  list<array{type: CategoryType, rhythm: ?Rhythm, plan: int, actual: int}>  $items
      * @return array{plan_minor_units: int, actual_minor_units: int}
      */
     public static function poolSums(array $items): array
@@ -23,9 +23,7 @@ class MonthPaceCalculator
         $actual = 0;
 
         foreach ($items as $item) {
-            if ($item['type'] !== CategoryType::Expense
-                || $item['kind'] !== MonthItemKind::Running
-                || $item['is_one_off']) {
+            if ($item['type'] !== CategoryType::Expense || $item['rhythm'] !== Rhythm::Running) {
                 continue;
             }
 

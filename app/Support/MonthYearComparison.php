@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CategoryType;
+use App\Enums\Rhythm;
 use App\Models\BudgetLine;
 
 /**
@@ -21,19 +22,25 @@ use App\Models\BudgetLine;
 class MonthYearComparison
 {
     /**
-     * @param  array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool}  $rowAmounts  as MonthToSpend::rowAmounts
+     * For an Irregular Category the year is its Execution: the bills before the month plus the
+     * bills of the month, because the Collected carries over what the rate did not use (ADR-0066).
+     *
+     * @param  array{plan_minor_units: int, actual_minor_units: int, has_positive_amount: bool, collected_at_start_minor_units?: int}  $rowAmounts  as MonthToSpend::rowAmounts
+     * @param  Rhythm|null  $rhythm  the Rhythm of the Category in the month; null for an income
      * @return YearComparison
      */
-    public static function forCategory(BudgetLine $category, array $rowAmounts): array
+    public static function forCategory(BudgetLine $category, array $rowAmounts, ?Rhythm $rhythm): array
     {
         $before = $category->execution_minor_units - $rowAmounts['actual_minor_units'];
-        $year = $before + ToSpendCalculator::itemMinorUnits(
-            $category->category->type,
-            $category->month_item_kind,
-            $rowAmounts['plan_minor_units'],
-            $rowAmounts['actual_minor_units'],
-            $rowAmounts['has_positive_amount'],
-        );
+        $year = $before + ($rhythm === Rhythm::Irregular
+            ? $rowAmounts['actual_minor_units']
+            : ToSpendCalculator::itemMinorUnits(
+                $category->category->type,
+                $rhythm,
+                $rowAmounts['plan_minor_units'],
+                $rowAmounts['actual_minor_units'],
+                $rowAmounts['has_positive_amount'],
+            ));
         $annual = $category->planned_amount_minor_units;
 
         return self::result($category->category->type, $year, $annual);

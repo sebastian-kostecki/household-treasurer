@@ -7,6 +7,7 @@ use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
@@ -424,7 +425,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('year_elapsed_as_of', '2026-07-01')
                 ->where('year_elapsed_percent', 100 * 182 / 365)
-                ->where('expenseCategories.0.is_paced', true)
+                ->where('expenseCategories.0.rhythm', 'running')
                 ->missing('expenseCategories.0.month_remaining_minor_units')
                 ->missing('expenseCategories.0.month_execution_minor_units'),
             );
@@ -773,7 +774,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -792,7 +793,7 @@ class DashboardTest extends TestCase
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'planned_amount_minor_units' => 120_000,
         ]);
 
@@ -802,7 +803,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('month_to_spend', [
                     'state' => 'proposal',
-                    'to_spend_minor_units' => 0,
+                    'to_spend_minor_units' => -10_000,
                 ])
                 ->where('current_month', 9),
             );
@@ -834,13 +835,13 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_exposes_is_paced_false_on_one_off_expense_categories(): void
+    public function test_dashboard_exposes_the_rhythm_of_the_current_month_on_expense_categories(): void
     {
         $this->travelTo('2026-07-01');
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        BudgetLine::factory()->for($budget)->oneOff()->create([
+        BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'planned_amount_minor_units' => 50_000,
         ]);
@@ -851,7 +852,7 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('year_elapsed_as_of', '2026-07-01')
-                ->where('expenseCategories.0.is_paced', false)
+                ->where('expenseCategories.0.rhythm', 'even_annual')
                 ->missing('expenseCategories.0.month_remaining_minor_units'),
             );
     }
@@ -986,7 +987,7 @@ class DashboardTest extends TestCase
             'color' => '#fa5252',
             'sort_order' => 2,
         ]);
-        $rent = BudgetLine::factory()->for($budget)->bill()->create([
+        $rent = BudgetLine::factory()->for($budget)->fixedCharge()->create([
             'name' => 'Rent',
             'icon' => 'home',
             'color' => '#228be6',
@@ -1046,7 +1047,7 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_notices_one_off_over_plan_at_zero_and_over_limit(): void
+    public function test_dashboard_notices_an_even_annual_item_over_the_year_but_not_over_the_month_plan(): void
     {
         $this->travelTo('2026-09-23');
 
@@ -1057,7 +1058,7 @@ class DashboardTest extends TestCase
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $insurance = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'icon' => 'shield',
             'color' => '#228be6',
@@ -1077,16 +1078,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('dashboardNotices', [
                     [
-                        'kind' => 'month_item_over_plan',
-                        'severity' => 'exceeded',
-                        'id' => $insurance->category_id,
-                        'name' => 'Insurance',
-                        'icon' => 'shield',
-                        'color' => '#228be6',
-                        'amount_minor_units' => -300_000,
-                    ],
-                    [
-                        'kind' => 'one_off_over_limit',
+                        'kind' => 'even_annual_over_limit',
                         'severity' => 'exceeded',
                         'id' => $insurance->category_id,
                         'name' => 'Insurance',
@@ -1381,13 +1373,13 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_notices_one_off_category_over_limit(): void
+    public function test_dashboard_notices_even_annual_category_over_limit(): void
     {
         $this->travelTo('2026-09-23');
 
         $user = User::factory()->create();
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $insurance = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $insurance = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'icon' => 'shield',
             'color' => '#228be6',
@@ -1402,7 +1394,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('dashboardNotices', [
                     [
-                        'kind' => 'one_off_over_limit',
+                        'kind' => 'even_annual_over_limit',
                         'severity' => 'exceeded',
                         'id' => $insurance->category_id,
                         'name' => 'Insurance',
@@ -1414,7 +1406,44 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_does_not_duplicate_paced_category_as_one_off_notice(): void
+    public function test_even_annual_over_limit_notice_reads_the_rhythm_of_the_current_month(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $line = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Insurance',
+            'planned_amount_minor_units' => 50_000,
+            'execution_minor_units' => 70_000,
+        ]);
+        $line->category->rhythms()->delete();
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 1, 'rhythm' => Rhythm::EvenAnnual]);
+        $line->category->rhythms()->create(['start_year' => 2026, 'start_month' => 10, 'rhythm' => Rhythm::Running]);
+        $this->approvedMonthPlan($budget, 9);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices.0.kind', 'even_annual_over_limit')
+                ->where('expenseCategories.0.rhythm', 'even_annual'),
+            );
+
+        $this->travelTo('2026-10-05');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.rhythm', 'running')
+                ->where('dashboardNotices', fn ($notices) => collect($notices)->doesntContain(
+                    fn ($notice) => $notice['kind'] === 'even_annual_over_limit',
+                )),
+            );
+    }
+
+    public function test_dashboard_does_not_duplicate_running_category_as_even_annual_notice(): void
     {
         $this->travelTo('2026-09-23');
 
@@ -1427,7 +1456,7 @@ class DashboardTest extends TestCase
             'name' => 'Salary',
             'sort_order' => 1,
         ]);
-        $rent = BudgetLine::factory()->for($budget)->bill()->create([
+        $rent = BudgetLine::factory()->for($budget)->fixedCharge()->create([
             'name' => 'Rent',
             'planned_amount_minor_units' => 120_000,
             'execution_minor_units' => 150_000,
@@ -1469,7 +1498,7 @@ class DashboardTest extends TestCase
             'planned_amount_minor_units' => 1_200_000,
             'sort_order' => 1,
         ]);
-        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create([
+        $oneOff = BudgetLine::factory()->for($budget)->evenAnnual()->create([
             'name' => 'Insurance',
             'planned_amount_minor_units' => 50_000,
             'execution_minor_units' => 80_000,
@@ -1487,11 +1516,11 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices.1.kind', 'negative_term_deposit')
                 ->where('dashboardNotices.1.id', $negativeTermDeposit->id)
                 ->where('dashboardNotices.2.kind', 'month_to_spend_negative')
-                ->where('dashboardNotices.2.amount_minor_units', -150_000)
+                ->where('dashboardNotices.2.amount_minor_units', -154_166)
                 ->where('dashboardNotices.3.kind', 'month_item_over_plan')
                 ->where('dashboardNotices.3.id', $groceries->category_id)
                 ->where('dashboardNotices.3.amount_minor_units', -50_000)
-                ->where('dashboardNotices.4.kind', 'one_off_over_limit')
+                ->where('dashboardNotices.4.kind', 'even_annual_over_limit')
                 ->where('dashboardNotices.4.id', $oneOff->category_id)
                 ->where('dashboardNotices.5.kind', 'month_plan_not_approved')
                 ->where('dashboardNotices.6.kind', 'month_pace_ahead')
@@ -1585,6 +1614,37 @@ class DashboardTest extends TestCase
                 ->where('expenseCategories.1.name', 'Rent')
                 ->where('incomeCategories.0.name', 'Salary')
                 ->where('incomeCategories.1.name', 'Bonus'),
+            );
+    }
+
+    public function test_dashboard_notices_an_irregular_bill_only_above_the_collected_and_with_the_surplus(): void
+    {
+        $this->travelTo('2026-09-23');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $covered = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Covered', 'sort_order' => 1, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $above = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Above', 'sort_order' => 2, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $covered->category->rhythms()->update(['start_month' => 9, 'opening_collected_minor_units' => 30_000]);
+        $above->category->rhythms()->update(['start_month' => 9, 'opening_collected_minor_units' => 30_000]);
+        $this->approvedMonthPlan($budget, 9, [$covered->id => 15_000, $above->id => 15_000]);
+        $this->recordOperation($user, $account, $budget, $covered, '2026-09-05', 40_000);
+        $this->recordOperation($user, $account, $budget, $above, '2026-09-06', 60_000);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->where('kind', 'month_item_over_plan')
+                    ->map(fn ($notice) => [$notice['name'], $notice['amount_minor_units']])
+                    ->values()
+                    ->all() === [['Above', -15_000]]),
             );
     }
 

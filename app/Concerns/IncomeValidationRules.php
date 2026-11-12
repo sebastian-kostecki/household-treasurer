@@ -3,10 +3,8 @@
 namespace App\Concerns;
 
 use App\Enums\CategoryType;
-use App\Models\Account;
-use App\Support\BudgetLineResolver;
+use App\Support\OperationEntryValidation;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -43,8 +41,7 @@ trait IncomeValidationRules
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('user_id', $userId)
-                    ->where('type', CategoryType::Income->value)
-                    ->whereNull('archived_at'),
+                    ->where('type', CategoryType::Income->value),
             ],
         ];
     }
@@ -79,56 +76,14 @@ trait IncomeValidationRules
                 'integer',
                 Rule::exists('categories', 'id')
                     ->where('user_id', $userId)
-                    ->where('type', CategoryType::Expense->value)
-                    ->whereNull('archived_at'),
+                    ->where('type', CategoryType::Expense->value),
             ],
         ];
     }
 
     protected function withIncomeValidation(Validator $validator): void
     {
-        $validator->after(function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty()) {
-                return;
-            }
-
-            $operationDate = $this->input('operation_date');
-            $accountId = $this->input('account_id');
-            $categoryId = $this->input('category_id');
-
-            if (! is_string($operationDate) || ! is_numeric($accountId) || ! is_numeric($categoryId)) {
-                return;
-            }
-
-            $account = Account::query()->find((int) $accountId);
-
-            if ($account !== null && $operationDate < $account->opening_date->toDateString()) {
-                $validator->errors()->add(
-                    'operation_date',
-                    __('The operation date cannot be earlier than the account opening date.'),
-                );
-            }
-
-            $category = (new BudgetLineResolver)->forYear($this->user(), (int) $categoryId, Carbon::parse($operationDate)->year);
-
-            if ($category === null || $category->isArchived()) {
-                $validator->errors()->add(
-                    'category_id',
-                    $category === null
-                        ? __('The selected category does not belong to the budget for this operation year.')
-                        : __('The selected category is invalid.'),
-                );
-
-                return;
-            }
-
-            if (! $category->budget->isExecution()) {
-                $validator->errors()->add(
-                    'category_id',
-                    __('Income can only be recorded for a budget in execution. Create or start a budget for this year.'),
-                );
-            }
-        });
+        OperationEntryValidation::attach($validator, $this, $this->user(), CategoryType::Income);
     }
 
     /**

@@ -17,7 +17,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useShell, useTranslations } from '@/composables/useTranslations';
-import type { CopyableBudgetSource } from '@/types/shell';
+import { activeCountForm } from '@/lib/category-list';
+import { createBudgetSummary } from '@/lib/create-budget-summary';
 
 type FormBinding = InstanceType<typeof Form>['$props'];
 
@@ -30,12 +31,18 @@ const props = withDefaults(
         initialYear?: number;
         /** Overrides the Wayfinder binding; used only by the dialogs kitchen sink. */
         form?: Pick<FormBinding, 'action' | 'method'>;
+        /** Overrides the shell's budget years; used only by the dialogs kitchen sink. */
+        budgetYears?: number[];
+        /** Overrides the shell's active category count; used only by the dialogs kitchen sink. */
+        activeCategoryCount?: number;
     }>(),
     {
         yearInputId: 'create-budget-year',
         suggestedYear: undefined,
         initialYear: undefined,
         form: undefined,
+        budgetYears: undefined,
+        activeCategoryCount: undefined,
     },
 );
 
@@ -60,46 +67,41 @@ const defaultYear = computed(() => {
 });
 
 const targetYear = ref(defaultYear.value);
-const sourceBudgetId = ref('');
 const busy = ref(false);
 
-const availableSources = computed((): CopyableBudgetSource[] =>
-    shell.value.copyableBudgetSources.filter(
-        (source) => source.year < targetYear.value,
-    ),
-);
-
-const showSourceSelect = computed(() => availableSources.value.length > 0);
-
-function resolveDefaultSourceBudgetId(year: number): string {
-    const sources = shell.value.copyableBudgetSources.filter(
-        (source) => source.year < year,
+const summaryText = computed((): string | undefined => {
+    const summary = createBudgetSummary(
+        targetYear.value,
+        props.budgetYears ?? shell.value.budgetYears,
+        props.activeCategoryCount ?? shell.value.activeCategoryCount,
     );
 
-    if (sources.length === 0) {
-        return '';
+    if (summary === null) {
+        return undefined;
     }
 
-    const previousYearSource = sources.find(
-        (source) => source.year === year - 1,
-    );
-
-    if (previousYearSource !== undefined) {
-        return String(previousYearSource.id);
+    if (summary.kind === 'empty') {
+        return t.budget.create_budget_empty;
     }
 
-    const newestSource = sources.reduce((newest, source) =>
-        source.year > newest.year ? source : newest,
-    );
+    const form = activeCountForm(summary.count);
+    const key =
+        summary.kind === 'from-source'
+            ? `create_budget_from_source_${form}`
+            : `create_budget_no_source_${form}`;
 
-    return String(newestSource.id);
-}
+    return t.budget[key]
+        .replace(':count', String(summary.count))
+        .replace(
+            ':year',
+            summary.kind === 'from-source' ? String(summary.sourceYear) : '',
+        );
+});
 
 watch(
     defaultYear,
     (year) => {
         targetYear.value = year;
-        sourceBudgetId.value = resolveDefaultSourceBudgetId(year);
     },
     { immediate: true },
 );
@@ -112,10 +114,6 @@ watch(
         }
     },
 );
-
-watch(targetYear, (year) => {
-    sourceBudgetId.value = resolveDefaultSourceBudgetId(year);
-});
 
 function onOpenChange(next: boolean): void {
     if (!next && busy.value) {
@@ -156,6 +154,7 @@ function closeDialog(): void {
                 <FormField
                     :id="yearInputId"
                     :label="t.budget.year"
+                    :hint="summaryText"
                     :error="errors.year"
                     v-slot="{ id, describedBy, invalid }"
                 >
@@ -169,39 +168,6 @@ function closeDialog(): void {
                         required
                         :aria-describedby="describedBy"
                         :aria-invalid="invalid"
-                    />
-                </FormField>
-                <FormField
-                    v-if="showSourceSelect"
-                    id="create-budget-source"
-                    :label="t.budget.copy_source_label"
-                    :hint="t.budget.copy_source_description"
-                    :error="errors.source_budget_id"
-                    v-slot="{ id, describedBy, invalid }"
-                >
-                    <select
-                        :id="id"
-                        v-model="sourceBudgetId"
-                        class="native-select"
-                        :aria-describedby="describedBy"
-                        :aria-invalid="invalid"
-                    >
-                        <option value="">
-                            {{ t.budget.copy_source_none }}
-                        </option>
-                        <option
-                            v-for="source in availableSources"
-                            :key="source.id"
-                            :value="String(source.id)"
-                        >
-                            {{ source.year }}
-                        </option>
-                    </select>
-                    <input
-                        v-if="sourceBudgetId !== ''"
-                        type="hidden"
-                        name="source_budget_id"
-                        :value="sourceBudgetId"
                     />
                 </FormField>
                 <DialogFooter class="gap-2">

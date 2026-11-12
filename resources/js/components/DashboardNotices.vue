@@ -191,7 +191,7 @@ function noticeHref(notice: DashboardNotice) {
         });
     }
 
-    if (notice.kind === 'one_off_over_limit') {
+    if (notice.kind === 'even_annual_over_limit') {
         return operationsRoute({
             query: {
                 category_id: notice.id,

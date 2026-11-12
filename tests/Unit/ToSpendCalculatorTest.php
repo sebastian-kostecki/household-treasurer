@@ -1,20 +1,20 @@
 <?php
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Support\ToSpendCalculator;
 
 /**
- * @return list<array{type: CategoryType, kind: MonthItemKind, plan: int, actual: int, has_positive_amount: bool}>
+ * @return list<array{type: CategoryType, rhythm: ?Rhythm, plan: int, actual: int, has_positive_amount: bool}>
  */
 function canonicalToSpendItems(int $salaryActual = 0, int $rentActual = 195_000, bool $rentHasPositive = true): array
 {
     return [
-        ['type' => CategoryType::Income, 'kind' => MonthItemKind::Running, 'plan' => 800_000, 'actual' => $salaryActual, 'has_positive_amount' => $salaryActual > 0],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Bill, 'plan' => 200_000, 'actual' => $rentActual, 'has_positive_amount' => $rentHasPositive],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 150_000, 'actual' => 60_000, 'has_positive_amount' => true],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 40_000, 'actual' => 52_000, 'has_positive_amount' => true],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 0, 'actual' => 30_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Income, 'rhythm' => null, 'plan' => 800_000, 'actual' => $salaryActual, 'has_positive_amount' => $salaryActual > 0],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::FixedCharge, 'plan' => 200_000, 'actual' => $rentActual, 'has_positive_amount' => $rentHasPositive],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 150_000, 'actual' => 60_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 40_000, 'actual' => 52_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 0, 'actual' => 30_000, 'has_positive_amount' => true],
     ];
 }
 
@@ -36,21 +36,21 @@ test('empty list is zero', function () {
 
 test('result can be negative', function () {
     expect(ToSpendCalculator::toSpendMinorUnits([
-        ['type' => CategoryType::Income, 'kind' => MonthItemKind::Running, 'plan' => 100_000, 'actual' => 0, 'has_positive_amount' => false],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 20_000, 'actual' => 150_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Income, 'rhythm' => null, 'plan' => 100_000, 'actual' => 0, 'has_positive_amount' => false],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 20_000, 'actual' => 150_000, 'has_positive_amount' => true],
     ], 0))->toBe(-50_000);
 });
 
 /**
- * @return list<array{type: CategoryType, kind: MonthItemKind, plan: int, actual: int, has_positive_amount: bool}>
+ * @return list<array{type: CategoryType, rhythm: ?Rhythm, plan: int, actual: int, has_positive_amount: bool}>
  */
 function setAsideExampleItems(): array
 {
     return [
-        ['type' => CategoryType::Income, 'kind' => MonthItemKind::Running, 'plan' => 600_000, 'actual' => 0, 'has_positive_amount' => false],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Bill, 'plan' => 200_000, 'actual' => 195_000, 'has_positive_amount' => true],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 150_000, 'actual' => 40_000, 'has_positive_amount' => true],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 30_000, 'actual' => 35_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Income, 'rhythm' => null, 'plan' => 600_000, 'actual' => 0, 'has_positive_amount' => false],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::FixedCharge, 'plan' => 200_000, 'actual' => 195_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 150_000, 'actual' => 40_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 30_000, 'actual' => 35_000, 'has_positive_amount' => true],
     ];
 }
 
@@ -63,26 +63,28 @@ test('a draw raises the amount to spend', function () {
 });
 
 dataset('item amount cases', [
-    'running plan above actual' => [CategoryType::Expense, MonthItemKind::Running, 150_000, 60_000, true, 150_000],
-    'running actual above plan' => [CategoryType::Expense, MonthItemKind::Running, 40_000, 52_000, true, 52_000],
-    'running with a refund' => [CategoryType::Expense, MonthItemKind::Running, 0, -5_000, false, 0],
-    'bill before payment' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, 0, false, 200_000],
-    'bill paid less than plan' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, 195_000, true, 195_000],
-    'bill paid more than plan' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, 210_000, true, 210_000],
-    'bill with only a refund' => [CategoryType::Expense, MonthItemKind::Bill, 200_000, -10_000, false, 200_000],
+    'running plan above actual' => [CategoryType::Expense, Rhythm::Running, 150_000, 60_000, true, 150_000],
+    'running actual above plan' => [CategoryType::Expense, Rhythm::Running, 40_000, 52_000, true, 52_000],
+    'running with a refund' => [CategoryType::Expense, Rhythm::Running, 0, -5_000, false, 0],
+    'even annual plan above actual' => [CategoryType::Expense, Rhythm::EvenAnnual, 19_833, 0, false, 19_833],
+    'even annual actual above plan' => [CategoryType::Expense, Rhythm::EvenAnnual, 19_833, 238_000, true, 238_000],
+    'bill before payment' => [CategoryType::Expense, Rhythm::FixedCharge, 200_000, 0, false, 200_000],
+    'bill paid less than plan' => [CategoryType::Expense, Rhythm::FixedCharge, 200_000, 195_000, true, 195_000],
+    'bill paid more than plan' => [CategoryType::Expense, Rhythm::FixedCharge, 200_000, 210_000, true, 210_000],
+    'bill with only a refund' => [CategoryType::Expense, Rhythm::FixedCharge, 200_000, -10_000, false, 200_000],
     'income before inflow' => [CategoryType::Income, null, 800_000, 0, false, 800_000],
     'income after inflow' => [CategoryType::Income, null, 800_000, 780_000, true, 780_000],
 ]);
 
 test('item amount follows the To Spend rule', function (
     CategoryType $type,
-    ?MonthItemKind $kind,
+    ?Rhythm $rhythm,
     int $plan,
     int $actual,
     bool $hasPositiveAmount,
     int $expected,
 ) {
-    expect(ToSpendCalculator::itemMinorUnits($type, $kind, $plan, $actual, $hasPositiveAmount))->toBe($expected);
+    expect(ToSpendCalculator::itemMinorUnits($type, $rhythm, $plan, $actual, $hasPositiveAmount))->toBe($expected);
 })->with('item amount cases');
 
 test('breakdown of the canonical example gives income, expense and 3730,00', function () {
@@ -102,8 +104,8 @@ test('breakdown counts a bill with only a refund at plan as an expense', functio
 
 test('breakdown counts a running item at the greater of plan and actual', function () {
     $breakdown = ToSpendCalculator::breakdown([
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 150_000, 'actual' => 60_000, 'has_positive_amount' => true],
-        ['type' => CategoryType::Expense, 'kind' => MonthItemKind::Running, 'plan' => 40_000, 'actual' => 52_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 150_000, 'actual' => 60_000, 'has_positive_amount' => true],
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Running, 'plan' => 40_000, 'actual' => 52_000, 'has_positive_amount' => true],
     ], 0);
 
     expect($breakdown['expense_minor_units'])->toBe(202_000);
@@ -126,4 +128,28 @@ test('breakdown satisfies income minus expense minus set-aside for a set-aside a
 })->with([
     'set-aside' => [50_000],
     'draw' => [-30_000],
+]);
+
+test('an irregular item counts at its rate plus the surplus of the bill over the Collected', function (int $actual, int $expected) {
+    $breakdown = ToSpendCalculator::breakdown([
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Irregular, 'plan' => 15_000, 'actual' => $actual, 'has_positive_amount' => $actual > 0, 'collected_at_start' => 30_000],
+    ], 0);
+
+    expect($breakdown['expense_minor_units'])->toBe($expected);
+})->with([
+    'no bill' => [0, 15_000],
+    'bill covered by the Collected' => [40_000, 15_000],
+    'bill above the Collected' => [60_000, 30_000],
+    'refund counts net' => [-5_000, 15_000],
+]);
+
+test('an irregular item with nothing collected counts at the greater of plan and actual', function (int $actual, int $expected) {
+    $breakdown = ToSpendCalculator::breakdown([
+        ['type' => CategoryType::Expense, 'rhythm' => Rhythm::Irregular, 'plan' => 15_000, 'actual' => $actual, 'has_positive_amount' => $actual > 0, 'collected_at_start' => 0],
+    ], 0);
+
+    expect($breakdown['expense_minor_units'])->toBe($expected);
+})->with([
+    'bill below the rate' => [10_000, 15_000],
+    'bill above the rate' => [60_000, 60_000],
 ]);

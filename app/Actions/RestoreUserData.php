@@ -8,13 +8,17 @@ use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\CategoryType;
 use App\Enums\FinancialOperationType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
+use App\Models\CategoryRhythm;
 use App\Models\MonthPlan;
 use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\LegacyCategoryConversion;
+use App\Support\CategoryList\LegacyRhythmConversion;
+use App\Support\UserSnapshot\RestoredImportIdentity;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
@@ -22,16 +26,46 @@ use Illuminate\Support\Facades\DB;
 
 class RestoreUserData
 {
-    public function __construct(private ResetUserData $resetUserData) {}
+    /**
+     * Versions holding the User's Category list and Budget Lines (6; 7 with the
+     * description; 8 with the Category Groups; 9 with the Rhythm history; 10 with the Opening
+     * Collected on Irregular entries).
+     *
+     * @var list<int>
+     */
+    private const LIST_FORMAT_VERSIONS = [6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION];
+
+    /**
+     * Versions that carry the Rhythm history; older ones are converted from the
+     * flags of their Budget Lines.
+     *
+     * @var list<int>
+     */
+    private const RHYTHM_VERSIONS = [9, BackupUserData::SNAPSHOT_VERSION];
+
+    /**
+     * The flags of the Budget Lines of a snapshot of version 1 to 8, kept only
+     * as the input of `LegacyRhythmConversion`: the lines no longer store them.
+     *
+     * @var list<array{budget_id: int, category_id: int, category_type: string, is_paced: bool, month_item_kind: string}>
+     */
+    private array $legacyFlagLines = [];
+
+    public function __construct(
+        private ResetUserData $resetUserData,
+        private RestoredImportIdentity $restoredImportIdentity,
+    ) {}
 
     public function handle(User $targetUser, string $path): void
     {
         $snapshot = $this->readSnapshot($path);
-        $isCurrentFormat = $snapshot['version'] === BackupUserData::SNAPSHOT_VERSION;
+        $isCurrentFormat = in_array($snapshot['version'], self::LIST_FORMAT_VERSIONS, true);
 
         if (! $isCurrentFormat) {
             $snapshot = $this->withBudgetLineKeys($snapshot);
         }
+
+        $this->legacyFlagLines = [];
 
         DB::transaction(function () use ($targetUser, $snapshot, $isCurrentFormat): void {
             $this->resetUserData->handle($targetUser);
@@ -40,8 +74,12 @@ class RestoreUserData
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $isCurrentFormat
-                ? $this->restoreBudgetLines($targetUser, $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap)
+                ? $this->restoreBudgetLines($targetUser, $snapshot['category_groups'] ?? [], $snapshot['categories'], $snapshot['budget_lines'], $budgetIdMap, $snapshot['version'])
                 : $this->restoreCategories($targetUser, $snapshot['budgets'], $snapshot['categories'], $budgetIdMap);
+            if (! in_array($snapshot['version'], self::RHYTHM_VERSIONS, true)) {
+                $this->restoreLegacyRhythms($targetUser);
+            }
+
             $this->restoreMonthPlans($snapshot['month_plans'] ?? [], $budgetIdMap, $categoryIdMap);
             $this->restoreFinancialOperations($targetUser, $snapshot['financial_operations'], $accountIdMap, $categoryIdMap, $budgetIdMap);
             $this->restoreOwnTransfers($targetUser, $snapshot['own_transfers'], $accountIdMap);
@@ -87,7 +125,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -97,20 +135,24 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, 7, 8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION && ! array_key_exists('budget_lines', $snapshot)) {
+        if (in_array($version, self::LIST_FORMAT_VERSIONS, true) && ! array_key_exists('budget_lines', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
+        }
+
+        if (in_array($version, [8, 9, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
+            throw new UserSnapshotException('Snapshot is missing required key: category_groups');
         }
 
         return $snapshot;
@@ -223,16 +265,18 @@ class RestoreUserData
     }
 
     /**
-     * Snapshot 6: the User's Category list and the Budget Lines pointing at it.
+     * Snapshots 6 to 8: the User's Category list (with the Category Groups of
+     * 8) and the Budget Lines pointing at it.
      *
+     * @param  list<array<string, mixed>>  $categoryGroups
      * @param  list<array<string, mixed>>  $categories
      * @param  list<array<string, mixed>>  $budgetLines
      * @param  array<int, int>  $budgetIdMap
      * @return array<int, int> snapshot Budget Line id => restored Budget Line id
      */
-    private function restoreBudgetLines(User $targetUser, array $categories, array $budgetLines, array $budgetIdMap): array
+    private function restoreBudgetLines(User $targetUser, array $categoryGroups, array $categories, array $budgetLines, array $budgetIdMap, int $version): array
     {
-        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $categories);
+        $listCategories = $this->restoreCategoryListFromSnapshot($targetUser, $this->restoreCategoryGroups($targetUser, $categoryGroups), $categories, $version);
         $lineIdMap = [];
         $seenInBudget = [];
         $snapshotLineKeys = [];
@@ -257,11 +301,13 @@ class RestoreUserData
 
             $seenInBudget[$budgetId][$listCategory->id] = true;
 
+            if (! in_array($version, self::RHYTHM_VERSIONS, true)) {
+                $this->rememberLegacyFlags($budgetId, $listCategory->id, [...$lineData, 'type' => $listCategory->type->value]);
+            }
+
             $rows[] = [
                 'budget_id' => $budgetId,
                 'category_id' => $listCategory->id,
-                'is_paced' => $this->restoredCategoryIsPaced([...$lineData, 'type' => $listCategory->type->value]),
-                'month_item_kind' => $this->restoredCategoryMonthItemKind([...$lineData, 'type' => $listCategory->type->value])->value,
                 'planned_amount_minor_units' => $lineData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $lineData['initial_plan_minor_units'],
                 'execution_minor_units' => $lineData['execution_minor_units'],
@@ -288,10 +334,49 @@ class RestoreUserData
     }
 
     /**
+     * @param  list<array<string, mixed>>  $groups
+     * @return array<int, CategoryGroup> snapshot group id => restored group
+     */
+    private function restoreCategoryGroups(User $targetUser, array $groups): array
+    {
+        $restored = [];
+        $seenKeys = [];
+
+        foreach ($groups as $groupData) {
+            $type = CategoryType::tryFrom((string) $groupData['type']);
+
+            if ($type === null) {
+                throw new UserSnapshotException("Snapshot category group {$groupData['id']} has an invalid type.");
+            }
+
+            $nameKey = CategoryNameKey::of((string) $groupData['name']);
+            $uniqueKey = $type->value."\0".$nameKey;
+
+            if (isset($seenKeys[$uniqueKey])) {
+                throw new UserSnapshotException("Snapshot contains the category group \"{$groupData['name']}\" twice.");
+            }
+
+            $seenKeys[$uniqueKey] = true;
+
+            $restored[$groupData['id']] = $targetUser->categoryGroups()->create([
+                'name' => $groupData['name'],
+                'name_key' => $nameKey,
+                'type' => $type,
+                'sort_order' => $groupData['sort_order'],
+                'created_at' => isset($groupData['created_at']) ? Carbon::parse($groupData['created_at']) : now(),
+                'updated_at' => isset($groupData['updated_at']) ? Carbon::parse($groupData['updated_at']) : now(),
+            ]);
+        }
+
+        return $restored;
+    }
+
+    /**
+     * @param  array<int, CategoryGroup>  $groups
      * @param  list<array<string, mixed>>  $categories
      * @return array<int, Category> snapshot Category id => restored Category
      */
-    private function restoreCategoryListFromSnapshot(User $targetUser, array $categories): array
+    private function restoreCategoryListFromSnapshot(User $targetUser, array $groups, array $categories, int $version): array
     {
         $restored = [];
         $seenKeys = [];
@@ -311,11 +396,27 @@ class RestoreUserData
 
             $seenKeys[$uniqueKey] = true;
 
+            $group = null;
+
+            if (isset($categoryData['category_group_id'])) {
+                $group = $groups[$categoryData['category_group_id']] ?? null;
+
+                if ($group === null) {
+                    throw new UserSnapshotException("Snapshot category {$categoryData['id']} references unknown category group id {$categoryData['category_group_id']}.");
+                }
+
+                if ($group->type !== $type) {
+                    throw new UserSnapshotException("Snapshot category {$categoryData['id']} belongs to a category group of another type.");
+                }
+            }
+
             $category = $targetUser->categories()->create([
+                'category_group_id' => $group?->id,
                 'name' => $categoryData['name'],
                 'name_key' => CategoryNameKey::of((string) $categoryData['name']),
                 'icon' => $categoryData['icon'],
                 'color' => $categoryData['color'],
+                'description' => $categoryData['description'] ?? null,
                 'sort_order' => $categoryData['sort_order'],
                 'type' => $type,
                 'archived_at' => isset($categoryData['archived_at']) ? Carbon::parse($categoryData['archived_at']) : null,
@@ -324,9 +425,155 @@ class RestoreUserData
             ]);
 
             $restored[$categoryData['id']] = $category;
+
+            if (in_array($version, self::RHYTHM_VERSIONS, true)) {
+                $this->restoreCategoryRhythms($category, $categoryData, $version);
+            }
         }
 
         return $restored;
+    }
+
+    /**
+     * The Rhythm history of a version 9 or 10 Category: an expense has at least
+     * one entry, an income none, each entry a known Rhythm and a month 1 to 12,
+     * and no start twice (ADR-0072). Version 10 carries the Opening Collected
+     * (ADR-0073): a number >= 0 on an Irregular entry, `null` on the others;
+     * version 9 never wrote an Irregular entry nor an amount.
+     *
+     * @param  array<string, mixed>  $categoryData
+     */
+    private function restoreCategoryRhythms(Category $category, array $categoryData, int $version): void
+    {
+        $entries = $categoryData['rhythms'] ?? null;
+
+        if (! is_array($entries)) {
+            throw new UserSnapshotException("Snapshot category {$categoryData['id']} is missing rhythms.");
+        }
+
+        if ($category->type === CategoryType::Income && $entries !== []) {
+            throw new UserSnapshotException("Snapshot income category {$categoryData['id']} has a rhythm.");
+        }
+
+        if ($category->type === CategoryType::Expense && $entries === []) {
+            throw new UserSnapshotException("Snapshot expense category {$categoryData['id']} has no rhythm.");
+        }
+
+        $seenStarts = [];
+        $rows = [];
+        $now = now();
+
+        foreach ($entries as $entry) {
+            if (! is_array($entry)) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has a rhythm that is not an object.");
+            }
+
+            $rhythm = Rhythm::tryFrom((string) ($entry['rhythm'] ?? ''));
+            $year = $entry['start_year'] ?? null;
+            $month = $entry['start_month'] ?? null;
+
+            if ($rhythm === null) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has an unknown rhythm.");
+            }
+
+            if (! is_int($year) || ! is_int($month) || $year < 1 || $year > 9999 || $month < 1 || $month > 12) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has a rhythm with an invalid start month.");
+            }
+
+            if (isset($seenStarts[$year * 12 + $month])) {
+                throw new UserSnapshotException("Snapshot category {$categoryData['id']} has two rhythms starting in one month.");
+            }
+
+            $opening = $this->openingCollectedOf($entry, $rhythm, $version, $categoryData['id']);
+
+            $seenStarts[$year * 12 + $month] = true;
+            $rows[] = [
+                'category_id' => $category->id,
+                'start_year' => $year,
+                'start_month' => $month,
+                'rhythm' => $rhythm->value,
+                'opening_collected_minor_units' => $opening,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        CategoryRhythm::query()->insert($rows);
+    }
+
+    /**
+     * @param  array<string, mixed>  $entry
+     */
+    private function openingCollectedOf(array $entry, Rhythm $rhythm, int $version, mixed $categoryId): ?int
+    {
+        $opening = $entry['opening_collected_minor_units'] ?? null;
+
+        if ($version === 9) {
+            if ($rhythm === Rhythm::Irregular) {
+                throw new UserSnapshotException("Snapshot category {$categoryId} has an irregular rhythm, which version 9 never wrote.");
+            }
+
+            return null;
+        }
+
+        if ($rhythm !== Rhythm::Irregular) {
+            if ($opening !== null) {
+                throw new UserSnapshotException("Snapshot category {$categoryId} has an opening collected amount on a rhythm that is not irregular.");
+            }
+
+            return null;
+        }
+
+        if ($opening === null) {
+            throw new UserSnapshotException("Snapshot category {$categoryId} has an irregular rhythm without an opening collected amount.");
+        }
+
+        if (! is_int($opening) || $opening < 0) {
+            throw new UserSnapshotException("Snapshot category {$categoryId} has an invalid opening collected amount.");
+        }
+
+        return $opening;
+    }
+
+    /**
+     * Snapshots 1 to 8 carry no Rhythm: it is made from the flags their Budget
+     * Lines carry by the class the backfill migration uses, so a restored
+     * snapshot equals what the migration would make of the same data
+     * (ADR-0072). A Category without a line is Running from the restore month.
+     */
+    private function restoreLegacyRhythms(User $targetUser): void
+    {
+        $yearByBudget = $targetUser->budgets()->pluck('year', 'id');
+
+        $lines = array_map(fn (array $line): array => [
+            'category_id' => $line['category_id'],
+            'category_type' => $line['category_type'],
+            'year' => (int) $yearByBudget[$line['budget_id']],
+            'is_paced' => $line['is_paced'],
+            'month_item_kind' => $line['month_item_kind'],
+        ], $this->legacyFlagLines);
+
+        $expenseCategoryIds = $targetUser->categories()
+            ->where('type', CategoryType::Expense->value)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->values()
+            ->all();
+
+        $since = CarbonImmutable::today('UTC');
+        $entries = $expenseCategoryIds === []
+            ? []
+            : LegacyRhythmConversion::convert($lines, array_values($expenseCategoryIds), $since->year, $since->month);
+
+        $now = now();
+
+        foreach (array_chunk($entries, 500) as $chunk) {
+            CategoryRhythm::query()->insert(array_map(fn (array $entry): array => [
+                ...$entry,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ], $chunk));
+        }
     }
 
     /**
@@ -352,11 +599,11 @@ class RestoreUserData
                 throw new UserSnapshotException("Snapshot references unknown budget id {$categoryData['budget_id']}.");
             }
 
+            $this->rememberLegacyFlags($budgetId, $listCategoryIds[$categoryData['id']], $categoryData);
+
             $category = BudgetLine::query()->create([
                 'budget_id' => $budgetId,
                 'category_id' => $listCategoryIds[$categoryData['id']],
-                'is_paced' => $this->restoredCategoryIsPaced($categoryData),
-                'month_item_kind' => $this->restoredCategoryMonthItemKind($categoryData),
                 'planned_amount_minor_units' => $categoryData['planned_amount_minor_units'],
                 'initial_plan_minor_units' => $categoryData['initial_plan_minor_units'],
                 'execution_minor_units' => $categoryData['execution_minor_units'],
@@ -412,6 +659,7 @@ class RestoreUserData
             'name_key' => $category['name_key'],
             'icon' => $category['icon'],
             'color' => $category['color'],
+            'description' => null,
             'sort_order' => $category['sort_order'],
             'type' => $category['type'],
             'archived_at' => $category['archived_at']?->format('Y-m-d H:i:s'),
@@ -543,6 +791,20 @@ class RestoreUserData
                 throw new UserSnapshotException('Snapshot financial operation references a budget line of another budget.');
             }
 
+            $rawStatementDescription = $operationData['raw_statement_description'] ?? null;
+            $identity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $operationData['import_identity_account_id'] ?? null,
+                    'date' => $operationData['import_identity_date'] ?? null,
+                    'amount_minor_units' => $operationData['import_identity_amount_minor_units'] ?? null,
+                    'digest' => $operationData['import_identity_digest'] ?? null,
+                ],
+                $rawStatementDescription,
+                'financial operation '.($operationData['id'] ?? '?'),
+            );
+
             $targetUser->financialOperations()->create([
                 'type' => FinancialOperationType::from($operationData['type']),
                 'account_id' => $accountId,
@@ -552,11 +814,11 @@ class RestoreUserData
                 'amount_minor_units' => $operationData['amount_minor_units'],
                 'description' => $operationData['description'],
                 'counterparty' => $operationData['counterparty'] ?? null,
-                'raw_statement_description' => $operationData['raw_statement_description'] ?? null,
-                'import_identity_account_id' => $operationData['import_identity_account_id'] ?? null,
-                'import_identity_date' => $operationData['import_identity_date'] ?? null,
-                'import_identity_amount_minor_units' => $operationData['import_identity_amount_minor_units'] ?? null,
-                'import_identity_digest' => $operationData['import_identity_digest'] ?? null,
+                'raw_statement_description' => $rawStatementDescription,
+                'import_identity_account_id' => $identity['account_id'],
+                'import_identity_date' => $identity['date'],
+                'import_identity_amount_minor_units' => $identity['amount_minor_units'],
+                'import_identity_digest' => $identity['digest'],
                 'created_at' => isset($operationData['created_at']) ? Carbon::parse($operationData['created_at']) : now(),
                 'updated_at' => isset($operationData['updated_at']) ? Carbon::parse($operationData['updated_at']) : now(),
             ]);
@@ -577,24 +839,51 @@ class RestoreUserData
                 throw new UserSnapshotException('Snapshot references unknown own transfer account relations.');
             }
 
+            $sourceRaw = $transferData['source_raw_statement_description']
+                ?? $transferData['raw_statement_description']
+                ?? null;
+            $destinationRaw = $transferData['destination_raw_statement_description'] ?? null;
+            $sourceIdentity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $transferData['source_import_identity_account_id'] ?? null,
+                    'date' => $transferData['source_import_identity_date'] ?? null,
+                    'amount_minor_units' => $transferData['source_import_identity_amount_minor_units'] ?? null,
+                    'digest' => $transferData['source_import_identity_digest'] ?? null,
+                ],
+                $sourceRaw,
+                'own transfer '.($transferData['id'] ?? '?').' source',
+            );
+            $destinationIdentity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $transferData['destination_import_identity_account_id'] ?? null,
+                    'date' => $transferData['destination_import_identity_date'] ?? null,
+                    'amount_minor_units' => $transferData['destination_import_identity_amount_minor_units'] ?? null,
+                    'digest' => $transferData['destination_import_identity_digest'] ?? null,
+                ],
+                $destinationRaw,
+                'own transfer '.($transferData['id'] ?? '?').' destination',
+            );
+
             $targetUser->ownTransfers()->create([
                 'source_account_id' => $sourceAccountId,
                 'destination_account_id' => $destinationAccountId,
                 'transfer_date' => $transferData['transfer_date'],
                 'amount_minor_units' => $transferData['amount_minor_units'],
                 'description' => $transferData['description'],
-                'source_raw_statement_description' => $transferData['source_raw_statement_description']
-                    ?? $transferData['raw_statement_description']
-                    ?? null,
-                'destination_raw_statement_description' => $transferData['destination_raw_statement_description'] ?? null,
-                'source_import_identity_account_id' => $transferData['source_import_identity_account_id'] ?? null,
-                'source_import_identity_date' => $transferData['source_import_identity_date'] ?? null,
-                'source_import_identity_amount_minor_units' => $transferData['source_import_identity_amount_minor_units'] ?? null,
-                'source_import_identity_digest' => $transferData['source_import_identity_digest'] ?? null,
-                'destination_import_identity_account_id' => $transferData['destination_import_identity_account_id'] ?? null,
-                'destination_import_identity_date' => $transferData['destination_import_identity_date'] ?? null,
-                'destination_import_identity_amount_minor_units' => $transferData['destination_import_identity_amount_minor_units'] ?? null,
-                'destination_import_identity_digest' => $transferData['destination_import_identity_digest'] ?? null,
+                'source_raw_statement_description' => $sourceRaw,
+                'destination_raw_statement_description' => $destinationRaw,
+                'source_import_identity_account_id' => $sourceIdentity['account_id'],
+                'source_import_identity_date' => $sourceIdentity['date'],
+                'source_import_identity_amount_minor_units' => $sourceIdentity['amount_minor_units'],
+                'source_import_identity_digest' => $sourceIdentity['digest'],
+                'destination_import_identity_account_id' => $destinationIdentity['account_id'],
+                'destination_import_identity_date' => $destinationIdentity['date'],
+                'destination_import_identity_amount_minor_units' => $destinationIdentity['amount_minor_units'],
+                'destination_import_identity_digest' => $destinationIdentity['digest'],
                 'created_at' => isset($transferData['created_at']) ? Carbon::parse($transferData['created_at']) : now(),
                 'updated_at' => isset($transferData['updated_at']) ? Carbon::parse($transferData['updated_at']) : now(),
             ]);
@@ -620,16 +909,19 @@ class RestoreUserData
                 throw new UserSnapshotException('Snapshot references unknown capital movement relations.');
             }
 
-            $importIdentityAccountId = isset($movementData['import_identity_account_id'])
-                ? ($accountIdMap[$movementData['import_identity_account_id']] ?? null)
-                : null;
-
-            if (
-                isset($movementData['import_identity_account_id'])
-                && $importIdentityAccountId === null
-            ) {
-                throw new UserSnapshotException('Snapshot references unknown capital movement import identity account.');
-            }
+            $rawStatementDescription = $movementData['raw_statement_description'] ?? null;
+            $identity = $this->restoredImportIdentity->forLeg(
+                $targetUser,
+                $accountIdMap,
+                [
+                    'account_id' => $movementData['import_identity_account_id'] ?? null,
+                    'date' => $movementData['import_identity_date'] ?? null,
+                    'amount_minor_units' => $movementData['import_identity_amount_minor_units'] ?? null,
+                    'digest' => $movementData['import_identity_digest'] ?? null,
+                ],
+                $rawStatementDescription,
+                'capital movement '.($movementData['id'] ?? '?'),
+            );
 
             $targetUser->capitalMovements()->create([
                 'account_id' => $accountId,
@@ -638,11 +930,11 @@ class RestoreUserData
                 'amount_minor_units' => $movementData['amount_minor_units'],
                 'direction' => CapitalMovementDirection::from($movementData['direction']),
                 'description' => $movementData['description'],
-                'raw_statement_description' => $movementData['raw_statement_description'] ?? null,
-                'import_identity_account_id' => $importIdentityAccountId,
-                'import_identity_date' => $movementData['import_identity_date'] ?? null,
-                'import_identity_amount_minor_units' => $movementData['import_identity_amount_minor_units'] ?? null,
-                'import_identity_digest' => $movementData['import_identity_digest'] ?? null,
+                'raw_statement_description' => $rawStatementDescription,
+                'import_identity_account_id' => $identity['account_id'],
+                'import_identity_date' => $identity['date'],
+                'import_identity_amount_minor_units' => $identity['amount_minor_units'],
+                'import_identity_digest' => $identity['digest'],
                 'created_at' => isset($movementData['created_at']) ? Carbon::parse($movementData['created_at']) : now(),
                 'updated_at' => isset($movementData['updated_at']) ? Carbon::parse($movementData['updated_at']) : now(),
             ]);
@@ -650,6 +942,22 @@ class RestoreUserData
     }
 
     /**
+     * @param  array<string, mixed>  $lineData  a Budget Line of a snapshot of version 1 to 8, with the `type` of its Category
+     */
+    private function rememberLegacyFlags(int $budgetId, int $categoryId, array $lineData): void
+    {
+        $this->legacyFlagLines[] = [
+            'budget_id' => $budgetId,
+            'category_id' => $categoryId,
+            'category_type' => (string) $lineData['type'],
+            'is_paced' => $this->restoredCategoryIsPaced($lineData),
+            'month_item_kind' => $this->restoredCategoryMonthItemKind($lineData),
+        ];
+    }
+
+    /**
+     * Input of `LegacyRhythmConversion` for snapshots 1 to 8 only.
+     *
      * @param  array<string, mixed>  $categoryData
      */
     private function restoredCategoryIsPaced(array $categoryData): bool
@@ -658,18 +966,21 @@ class RestoreUserData
             return true;
         }
 
-        return $categoryData['is_paced'] ?? true;
+        return (bool) ($categoryData['is_paced'] ?? true);
     }
 
     /**
+     * Input of `LegacyRhythmConversion` for snapshots 1 to 8 only: `bill` or
+     * `running`, the values of the removed Month Item Kind.
+     *
      * @param  array<string, mixed>  $categoryData
      */
-    private function restoredCategoryMonthItemKind(array $categoryData): MonthItemKind
+    private function restoredCategoryMonthItemKind(array $categoryData): string
     {
         if ($categoryData['type'] !== CategoryType::Expense->value) {
-            return MonthItemKind::Running;
+            return 'running';
         }
 
-        return MonthItemKind::tryFrom((string) ($categoryData['month_item_kind'] ?? '')) ?? MonthItemKind::Running;
+        return ($categoryData['month_item_kind'] ?? null) === 'bill' ? 'bill' : 'running';
     }
 }

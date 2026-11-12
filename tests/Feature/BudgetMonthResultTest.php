@@ -29,7 +29,7 @@ class BudgetMonthResultTest extends TestCase
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $income = BudgetLine::factory()->for($budget)->income()->create();
         $paced = BudgetLine::factory()->for($budget)->expense()->create();
-        $oneOff = BudgetLine::factory()->for($budget)->oneOff()->create();
+        $oneOff = BudgetLine::factory()->for($budget)->evenAnnual()->create();
 
         FinancialOperation::factory()->for($user)->create([
             'type' => FinancialOperationType::Income,
@@ -69,6 +69,34 @@ class BudgetMonthResultTest extends TestCase
                 'income_execution_minor_units' => 50_000,
                 'expense_execution_minor_units' => 18_000,
                 'month_result_minor_units' => 32_000,
+            ],
+            BudgetMonthResult::forViewedMonth($budget, 3),
+        );
+    }
+
+    public function test_month_result_counts_the_whole_bill_of_an_irregular_category_even_when_the_collected_covers_it(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $service = BudgetLine::factory()->for($budget)->irregular(100_000)->create();
+
+        FinancialOperation::factory()->for($user)->create([
+            'type' => FinancialOperationType::Expense,
+            'account_id' => $account->id,
+            'budget_line_id' => $service->id,
+            'budget_id' => $budget->id,
+            'operation_date' => '2026-03-10',
+            'amount_minor_units' => 40_000,
+        ]);
+
+        $this->assertSame(
+            [
+                'income_execution_minor_units' => 0,
+                'expense_execution_minor_units' => 40_000,
+                'month_result_minor_units' => -40_000,
             ],
             BudgetMonthResult::forViewedMonth($budget, 3),
         );

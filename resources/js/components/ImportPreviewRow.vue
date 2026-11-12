@@ -66,7 +66,7 @@ const {
     termDeposits,
     consumedFirstLegKeys,
     monthRemainingWarnings,
-    toSpendWarning,
+    toSpendWarnings,
 } = defineProps<{
     row: ImportRow;
     accountBalanceMinorUnits: number;
@@ -76,7 +76,7 @@ const {
     termDeposits: TermDepositRow[];
     consumedFirstLegKeys: Set<string>;
     monthRemainingWarnings?: MonthRemainingWarningState;
-    toSpendWarning?: ToSpendWarning | null;
+    toSpendWarnings?: ToSpendWarning[];
 }>();
 
 const selection = defineModel<RowSelection>('selection', { required: true });
@@ -188,7 +188,7 @@ const hasNotes = computed(() =>
         invalidReason: !row.valid && row.invalid_reason !== null,
         pairReason: showsPairBadge.value && matchingCandidate.value !== null,
         negativeBalance: makesAccountNegative.value,
-        toSpend: toSpendWarning != null,
+        toSpend: (toSpendWarnings?.length ?? 0) > 0,
         categoryMonthRemaining: showCategoryMonthRemainingWarning.value,
         poolMonthRemaining: showPoolMonthRemainingWarning.value,
     }),
@@ -699,7 +699,11 @@ function onPairCandidateChange(value: string): void {
                     {{ t.operations.negative_balance_warning }}
                 </AlertDescription>
             </Alert>
-            <Alert v-if="toSpendWarning" variant="warning">
+            <Alert
+                v-for="toSpendWarning in toSpendWarnings ?? []"
+                :key="`${toSpendWarning.year}-${toSpendWarning.month}`"
+                variant="warning"
+            >
                 <AlertDescription>
                     {{
                         t.operations.to_spend_negative_warning

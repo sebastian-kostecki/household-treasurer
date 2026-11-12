@@ -20,6 +20,7 @@ import type {
     OwnTransferFormTransfer,
 } from '@/components/OwnTransferFormDialog.vue';
 import type { EntryToSpendInputs } from '@/lib/entry-to-spend-warning';
+import type { Rhythm } from '@/types/rhythm';
 import type { HandEntryMonthRemainingInputs } from '@/lib/hand-entry-month-remaining-preview';
 
 const now = new Date();
@@ -33,6 +34,11 @@ function pad(value: number): string {
 const today = `${year}-${pad(month)}-${pad(now.getDate())}`;
 const monthStart = `${year}-${pad(month)}-01`;
 const openingDate = `${year - 1}-01-01`;
+const previousMonth = month === 1 ? 12 : month - 1;
+const previousMonthYear = month === 1 ? year - 1 : year;
+
+/** A day of the month before the current one: the later month with a plan is the current one. */
+export const dialogPreviousMonthDate = `${previousMonthYear}-${pad(previousMonth)}-10`;
 
 export const dialogAccounts: ExpenseFormAccount[] &
     IncomeFormAccount[] &
@@ -83,9 +89,29 @@ export const dialogExpenseCategories: ExpenseFormCategory[] &
         name: 'Czynsz',
         icon: 'home',
         color: 'orange',
+        group: { id: 1, name: 'Mieszkanie' },
         budget_year: year,
         planned_amount_minor_units: 300000,
         execution_minor_units: 300000,
+    },
+    {
+        id: 4,
+        name: 'Prąd',
+        icon: 'zap',
+        color: 'yellow',
+        group: { id: 1, name: 'Mieszkanie' },
+        budget_year: year,
+        planned_amount_minor_units: 25000,
+        execution_minor_units: 12000,
+    },
+    {
+        id: 5,
+        name: 'Rekolekcje',
+        icon: 'tag',
+        color: 'teal',
+        budget_year: year,
+        planned_amount_minor_units: 120000,
+        execution_minor_units: 21000,
     },
 ];
 
@@ -122,16 +148,23 @@ export const dialogTermDeposits: CapitalMovementFormTermDeposit[] = [
     },
 ];
 
+function allMonths(rhythm: Rhythm): Record<number, Rhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
 /** Plan of the current month: To Spend is 50,00 zł. */
 export const dialogEntryToSpend: EntryToSpendInputs = {
     budgets: [
         {
             year,
             categories: [
-                { id: 1, type: 'expense', month_item_kind: 'running' },
-                { id: 2, type: 'expense', month_item_kind: 'running' },
-                { id: 3, type: 'expense', month_item_kind: 'bill' },
-                { id: 10, type: 'income', month_item_kind: null },
+                { id: 1, type: 'expense', rhythms: allMonths('running') },
+                { id: 2, type: 'expense', rhythms: allMonths('running') },
+                { id: 3, type: 'expense', rhythms: allMonths('fixed_charge') },
+                { id: 5, type: 'expense', rhythms: allMonths('irregular') },
+                { id: 10, type: 'income', rhythms: null },
             ],
             months: [
                 {
@@ -162,7 +195,39 @@ export const dialogEntryToSpend: EntryToSpendInputs = {
                             actual_minor_units: 300000,
                             positive_amount_count: 1,
                         },
+                        // Nieregularna: rachunek 200,00 zł pokryty zebranym (290,00 zł na początek miesiąca).
+                        {
+                            category_id: 5,
+                            plan_minor_units: 0,
+                            actual_minor_units: 20000,
+                            positive_amount_count: 1,
+                        },
                     ],
+                },
+            ],
+        },
+    ],
+    // Okres "Rekolekcji": 300,00 zł zebrane na początek poprzedniego miesiąca.
+    // Rachunek 200,00 zł z poprzedniego miesiąca zużywa zebrane tak, że bieżący
+    // miesiąc schodzi poniżej zera (stan z ostrzeżeniem o późniejszym miesiącu).
+    irregular_periods: [
+        {
+            category_id: 5,
+            start_year: previousMonthYear,
+            start_month: previousMonth,
+            opening_minor_units: 30000,
+            months: [
+                {
+                    year: previousMonthYear,
+                    month: previousMonth,
+                    rate_minor_units: 0,
+                    actual_minor_units: 1000,
+                },
+                {
+                    year,
+                    month,
+                    rate_minor_units: 0,
+                    actual_minor_units: 20000,
                 },
             ],
         },
@@ -179,7 +244,7 @@ export const dialogHandEntryMonthRemaining: HandEntryMonthRemainingInputs = {
             categories: [
                 {
                     id: 1,
-                    is_paced: true,
+                    rhythms: allMonths('running'),
                     planned_amount_minor_units: 120000,
                     monthly_execution_minor_units: {},
                 },

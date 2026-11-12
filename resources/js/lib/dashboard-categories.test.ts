@@ -18,7 +18,7 @@ const groceries: DashboardCategory = {
     percent_complete: 40,
     is_over_limit: false,
     is_archived: false,
-    is_paced: true,
+    rhythm: 'running',
 };
 
 describe('categoryOperationsQuery', () => {
@@ -46,25 +46,22 @@ describe('categoryOperationsQuery', () => {
 
 describe('showsYearElapsedMark', () => {
     it('always shows the mark for income', () => {
-        expect(
-            showsYearElapsedMark('income', {
-                ...groceries,
-                is_paced: undefined,
-            }),
-        ).toBe(true);
+        expect(showsYearElapsedMark('income', null)).toBe(true);
     });
 
-    it('shows the mark for a paced expense only', () => {
-        expect(showsYearElapsedMark('expense', groceries)).toBe(true);
-        expect(
-            showsYearElapsedMark('expense', { ...groceries, is_paced: false }),
-        ).toBe(false);
-        expect(
-            showsYearElapsedMark('expense', {
-                ...groceries,
-                is_paced: undefined,
-            }),
-        ).toBe(false);
+    it('shows the mark for an expense of every rhythm', () => {
+        expect(showsYearElapsedMark('expense', 'fixed_charge')).toBe(true);
+        expect(showsYearElapsedMark('expense', 'running')).toBe(true);
+        expect(showsYearElapsedMark('expense', 'even_annual')).toBe(true);
+    });
+
+    it('has no mark for an irregular expense', () => {
+        expect(showsYearElapsedMark('expense', 'irregular')).toBe(false);
+    });
+
+    it('stays silent for an expense without a rhythm', () => {
+        expect(showsYearElapsedMark('expense', null)).toBe(false);
+        expect(showsYearElapsedMark('expense', undefined)).toBe(false);
     });
 });
 

@@ -364,7 +364,7 @@ watch(consumedFirstLegKeysSet, () => {
                                     ? undefined
                                     : monthRemainingWarnings[row.index]
                             "
-                            :to-spend-warning="toSpendWarnings[row.index]"
+                            :to-spend-warnings="toSpendWarnings[row.index]"
                         />
                     </div>
                     <template #footer>

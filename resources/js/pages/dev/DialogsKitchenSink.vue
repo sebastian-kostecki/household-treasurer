@@ -4,7 +4,10 @@ import { ref } from 'vue';
 import DialogsKitchenSinkController from '@/actions/App/Http/Controllers/Dev/DialogsKitchenSinkController';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
+import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
+import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
+import CategoryMergeDialog from '@/components/CategoryMergeDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
@@ -16,11 +19,24 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import type { AccountFormAccount } from '@/types/accounts';
 import type { TermDepositFormTermDeposit } from '@/types/term-deposits';
-import type { CategoryAppearanceOptions } from '@/lib/category-appearance';
+import type { CategoryMergePreviewState } from '@/composables/useCategoryMergePreview';
+import type {
+    CategoryAppearanceOptions,
+    CategoryPickerOption,
+} from '@/lib/category-appearance';
+import {
+    mergeArchivedSourcePreview,
+    mergeCollectedLostPreview,
+    mergeCollectedPreview,
+    mergeFoldPreview,
+    mergeMovePreview,
+} from '@/lib/categories-fixtures';
+import type { CategoryListItem } from '@/types/categories';
 import {
     dialogAccounts,
     dialogCapitalMovement,
     dialogEntryToSpend,
+    dialogPreviousMonthDate,
     dialogExpenseCategories,
     dialogExpenseOperation,
     dialogHandEntryMonthRemaining,
@@ -42,8 +58,33 @@ const states = [
     'category-errors',
     'category-saving',
     'category-bad-amount',
-    'category-month-item-kind',
+    'category-list-new',
+    'category-list-edit',
+    'category-list-locked',
+    'category-list-errors',
+    'category-list-name-archived',
+    'category-list-saving',
+    'category-list-rhythm',
+    'category-list-income',
+    'category-list-rhythm-error',
+    'category-list-irregular-new',
+    'category-list-irregular-edit',
+    'category-list-irregular-bad-amount',
+    'category-group-new',
+    'category-group-rename-error',
+    'merge-idle',
+    'merge-loading',
+    'merge-move',
+    'merge-fold',
+    'merge-collected',
+    'merge-collected-lost',
+    'merge-archived-source',
+    'merge-preview-error',
+    'merge-saving',
+    'merge-server-error',
     'budget-create',
+    'budget-create-no-source',
+    'budget-create-empty',
     'budget-errors',
     'confirm-plain',
     'confirm-destructive',
@@ -64,6 +105,7 @@ const states = [
     'expense-edit',
     'expense-refund-edit',
     'expense-warnings',
+    'expense-later-month-warning',
     'expense-month-without-plan',
     'expense-bad-amount',
     'expense-errors',
@@ -89,8 +131,39 @@ const labels: Record<SinkState, string> = {
     'category-errors': 'Kategoria: błędy pól',
     'category-saving': 'Kategoria: zapis w toku',
     'category-bad-amount': 'Kategoria: zła kwota',
-    'category-month-item-kind': 'Kategoria: rodzaj pozycji (wydatek)',
-    'budget-create': 'Utwórz budżet',
+    'category-list-new': 'Kategoria listy: nowa',
+    'category-list-edit': 'Kategoria listy: edycja z opisem',
+    'category-list-locked': 'Kategoria listy: typ zablokowany',
+    'category-list-errors': 'Kategoria listy: błędy pól',
+    'category-list-name-archived':
+        'Kategoria listy: nazwa zajęta przez archiwalną',
+    'category-list-saving': 'Kategoria listy: zapis w toku',
+    'category-list-rhythm':
+        'Kategoria listy: edycja rytmu (równomierna roczna)',
+    'category-list-income': 'Kategoria listy: przychód (bez pola Rytm)',
+    'category-list-rhythm-error': 'Kategoria listy: błąd pola Rytm',
+    'category-list-irregular-new':
+        'Kategoria listy: nowe oznaczenie nieregularnej (zebrane startowe)',
+    'category-list-irregular-edit':
+        'Kategoria listy: edycja istniejącej nieregularnej',
+    'category-list-irregular-bad-amount':
+        'Kategoria listy: zła kwota zebranego startowego',
+    'budget-create': 'Utwórz budżet: szkic z planem z poprzedniego roku',
+    'budget-create-no-source': 'Utwórz budżet: bez wcześniejszego budżetu',
+    'budget-create-empty': 'Utwórz budżet: pusta lista kategorii',
+    'category-group-new': 'Grupa kategorii: nowa',
+    'category-group-rename-error':
+        'Grupa kategorii: zmiana nazwy (błąd po zapisie)',
+    'merge-idle': 'Scalanie: bez wybranego celu',
+    'merge-loading': 'Scalanie: wczytywanie podglądu',
+    'merge-move': 'Scalanie: przepięcie pozycji (para z produkcji)',
+    'merge-fold': 'Scalanie: złożenie pozycji i plany miesięcy',
+    'merge-collected': 'Scalanie: zebrane obu kategorii',
+    'merge-collected-lost': 'Scalanie: utrata zebranego',
+    'merge-archived-source': 'Scalanie: archiwalne źródło',
+    'merge-preview-error': 'Scalanie: błąd podglądu',
+    'merge-saving': 'Scalanie: zapis w toku',
+    'merge-server-error': 'Scalanie: błąd po zapisie',
     'budget-errors': 'Utwórz budżet: błędy',
     'confirm-plain': 'Potwierdzenie zwykłe',
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
@@ -111,6 +184,8 @@ const labels: Record<SinkState, string> = {
     'expense-edit': 'Wydatek: edycja (przed = po)',
     'expense-refund-edit': 'Wydatek: edycja zwrotu (trzy typy)',
     'expense-warnings': 'Wydatek: ostrzeżenia w podglądzie',
+    'expense-later-month-warning':
+        'Wydatek: ostrzeżenie o późniejszym miesiącu (nieregularna)',
     'expense-month-without-plan': 'Wydatek: miesiąc bez planu',
     'expense-bad-amount': 'Wydatek: zła kwota',
     'expense-errors': 'Wydatek: zapis i błędy (wybierz Dochód)',
@@ -159,8 +234,133 @@ const category: CategoryFormCategory = {
     color: 'blue',
     type: 'expense',
     planned_amount_minor_units: 120000,
-    is_paced: true,
-    month_item_kind: 'running',
+};
+
+const listCategory: CategoryListItem = {
+    id: 1,
+    name: 'Jedzenie',
+    icon: 'shopping-cart',
+    color: 'blue',
+    type: 'expense',
+    group_id: null,
+    sort_order: 0,
+    description:
+        'Zakupy spożywcze, chemia domowa i drobiazgi z osiedlowego sklepu.',
+    rhythm: 'running',
+    opening_collected_minor_units: null,
+    irregular_since: null,
+    budget_years: [2026],
+    can_change_type: true,
+    can_delete: true,
+    archived_at: null,
+};
+
+const rhythmChangeMonth = { year: 2026, month: 11 };
+
+const mergeSource: CategoryListItem = {
+    ...listCategory,
+    name: 'Jedzenie poza domem',
+};
+
+const mergeTargets: CategoryPickerOption[] = [
+    { id: 2, name: 'Restauracje', icon: 'shopping-cart', color: 'blue' },
+    { id: 3, name: 'Utrzymanie domu', icon: 'tag', color: 'blue' },
+];
+
+const mergeTargetId = 2;
+
+/** Each state of the merge dialog: the preview is given, so no request is made. */
+const mergeDialogs: {
+    state: SinkState;
+    source?: CategoryListItem;
+    previewState: CategoryMergePreviewState;
+    form?: 'saving' | 'validate';
+    withTarget?: boolean;
+}[] = [
+    {
+        state: 'merge-idle',
+        previewState: { status: 'idle' },
+        withTarget: false,
+    },
+    { state: 'merge-loading', previewState: { status: 'loading' } },
+    {
+        state: 'merge-move',
+        previewState: { status: 'loaded', preview: mergeMovePreview },
+    },
+    {
+        state: 'merge-fold',
+        previewState: { status: 'loaded', preview: mergeFoldPreview },
+    },
+    {
+        state: 'merge-collected',
+        source: { ...mergeSource, name: 'Energia' },
+        previewState: { status: 'loaded', preview: mergeCollectedPreview },
+    },
+    {
+        state: 'merge-collected-lost',
+        source: { ...mergeSource, name: 'Energia' },
+        previewState: { status: 'loaded', preview: mergeCollectedLostPreview },
+    },
+    {
+        state: 'merge-archived-source',
+        source: {
+            ...mergeSource,
+            name: 'Wakacje',
+            archived_at: '2026-03-01T10:00:00Z',
+        },
+        previewState: {
+            status: 'loaded',
+            preview: mergeArchivedSourcePreview,
+        },
+    },
+    {
+        state: 'merge-preview-error',
+        previewState: {
+            status: 'error',
+            message: 'Przywróć kategorię docelową przed scaleniem.',
+        },
+    },
+    {
+        state: 'merge-saving',
+        previewState: { status: 'loaded', preview: mergeMovePreview },
+        form: 'saving',
+    },
+    {
+        state: 'merge-server-error',
+        previewState: { status: 'loaded', preview: mergeMovePreview },
+        form: 'validate',
+    },
+];
+
+const evenAnnualListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'even_annual',
+};
+
+const irregularListCategory: CategoryListItem = {
+    ...listCategory,
+    name: 'Serwis auta',
+    rhythm: 'irregular',
+    opening_collected_minor_units: 50000,
+    irregular_since: { year: 2026, month: 8 },
+};
+
+const newlyIrregularListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'irregular',
+};
+
+const incomeListCategory: CategoryListItem = {
+    ...listCategory,
+    name: 'Wynagrodzenie',
+    type: 'income',
+    rhythm: null,
+};
+
+const lockedListCategory: CategoryListItem = {
+    ...listCategory,
+    can_change_type: false,
+    can_delete: false,
 };
 
 /** An expense in a tight category on a low account: every warning fires at 900,00 zł. */
@@ -168,6 +368,14 @@ const warningOperation = {
     ...dialogExpenseOperation,
     account_id: 2,
     category_id: 2,
+};
+
+/** An overdue bill of an Irregular category from the previous month uses up the Collected of the current one. */
+const laterMonthOperation = {
+    ...dialogExpenseOperation,
+    operation_date: dialogPreviousMonthDate,
+    amount_minor_units: 1000,
+    category_id: 5,
 };
 
 /** The current month has no plan, so Month Remaining warnings replace To Spend. */
@@ -191,6 +399,10 @@ const negativeDepositMovement = {
 
 const savingForm = DialogsKitchenSinkController.validate.form();
 const validateForm = DialogsKitchenSinkController.validate.form();
+/** Rejects the name the way the server does when an archived Category holds it. */
+const nameArchivedForm = DialogsKitchenSinkController.validate.form({
+    query: { error: 'name-archived' },
+});
 const plainForm = { action: '#', method: 'post' } as const;
 
 function initialState(): SinkState | null {
@@ -297,20 +509,178 @@ function setOpen(state: SinkState, value: boolean): void {
             :category-appearance-options="categoryAppearanceOptions"
             @update:open="setOpen('category-bad-amount', $event)"
         />
-        <CategoryFormDialog
-            :open="isOpen('category-month-item-kind')"
+        <CategoryListFormDialog
+            :open="isOpen('category-list-new')"
             mode="create"
-            :budget-id="1"
             default-type="expense"
             :category-appearance-options="categoryAppearanceOptions"
-            @update:open="setOpen('category-month-item-kind', $event)"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-new', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-edit')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-edit', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-locked')"
+            mode="edit"
+            default-type="expense"
+            :category="lockedListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-locked', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-errors')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :form="validateForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-errors', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-name-archived')"
+            mode="create"
+            default-type="expense"
+            :form="nameArchivedForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-name-archived', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-saving')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :form="savingForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-saving', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-rhythm')"
+            mode="edit"
+            default-type="expense"
+            :category="evenAnnualListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-rhythm', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-income')"
+            mode="edit"
+            default-type="income"
+            :category="incomeListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-income', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-rhythm-error')"
+            mode="edit"
+            default-type="expense"
+            :category="listCategory"
+            :form="validateForm"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-rhythm-error', $event)"
+        />
+        <!-- A new marking: „nieregularna” chosen, no period yet, so the hint is the one for a new marking. -->
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-new')"
+            mode="edit"
+            default-type="expense"
+            :category="newlyIrregularListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-new', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-edit')"
+            mode="edit"
+            default-type="expense"
+            :category="irregularListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-edit', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-irregular-bad-amount')"
+            mode="edit"
+            default-type="expense"
+            :category="irregularListCategory"
+            initial-opening-collected-input="12,345"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-irregular-bad-amount', $event)"
+        />
+        <CategoryGroupFormDialog
+            :open="isOpen('category-group-new')"
+            mode="create"
+            type="expense"
+            @update:open="setOpen('category-group-new', $event)"
+        />
+        <!-- The sink endpoint waits and rejects the name, so renaming touches no data. -->
+        <CategoryGroupFormDialog
+            :open="isOpen('category-group-rename-error')"
+            mode="rename"
+            type="expense"
+            :group="{ id: 1, name: 'Opłaty stałe' }"
+            :form="validateForm"
+            @update:open="setOpen('category-group-rename-error', $event)"
+        />
+        <CategoryMergeDialog
+            v-for="dialog in mergeDialogs"
+            :key="dialog.state"
+            :open="isOpen(dialog.state)"
+            :source="dialog.source ?? mergeSource"
+            :targets="mergeTargets"
+            :preview-state="dialog.previewState"
+            :initial-target-id="
+                dialog.withTarget === false ? undefined : mergeTargetId
+            "
+            :form="
+                dialog.form === 'saving'
+                    ? savingForm
+                    : dialog.form === 'validate'
+                      ? validateForm
+                      : undefined
+            "
+            @update:open="setOpen(dialog.state, $event)"
         />
         <CreateBudgetDialog
             :open="isOpen('budget-create')"
+            :initial-year="2028"
+            :budget-years="[2026, 2027]"
+            :active-category-count="40"
             @update:open="setOpen('budget-create', $event)"
         />
         <CreateBudgetDialog
+            :open="isOpen('budget-create-no-source')"
+            :initial-year="2025"
+            :budget-years="[2026, 2027]"
+            :active-category-count="40"
+            @update:open="setOpen('budget-create-no-source', $event)"
+        />
+        <CreateBudgetDialog
+            :open="isOpen('budget-create-empty')"
+            :initial-year="2028"
+            :budget-years="[2026, 2027]"
+            :active-category-count="0"
+            @update:open="setOpen('budget-create-empty', $event)"
+        />
+        <CreateBudgetDialog
             :open="isOpen('budget-errors')"
+            :initial-year="2028"
+            :budget-years="[2026, 2027]"
+            :active-category-count="40"
             :form="validateForm"
             @update:open="setOpen('budget-errors', $event)"
         />
@@ -408,6 +778,18 @@ function setOpen(state: SinkState, value: boolean): void {
             :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
             :entry-to-spend="dialogEntryToSpend"
             @update:open="setOpen('expense-warnings', $event)"
+        />
+        <ExpenseFormDialog
+            :open="isOpen('expense-later-month-warning')"
+            mode="edit"
+            :operation="laterMonthOperation"
+            initial-amount-input="200,00"
+            :accounts="dialogAccounts"
+            :expense-categories="dialogExpenseCategories"
+            :income-categories="dialogIncomeCategories"
+            :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
+            :entry-to-spend="dialogEntryToSpend"
+            @update:open="setOpen('expense-later-month-warning', $event)"
         />
         <ExpenseFormDialog
             :open="isOpen('expense-month-without-plan')"

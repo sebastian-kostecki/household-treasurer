@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\BudgetPhase;
 use App\Models\Category;
 use App\Models\User;
 
@@ -15,14 +14,30 @@ class CategoryPolicy
 
     public function archive(User $user, Category $category): bool
     {
-        return $this->ownsCategory($user, $category)
-            && ! $category->isArchived()
-            && $category->budgetLines()->whereHas('budget', fn ($budget) => $budget->where('phase', BudgetPhase::Execution))->exists();
+        return $this->ownsCategory($user, $category) && ! $category->isArchived();
+    }
+
+    /**
+     * Ownership only: a Category with a history is refused by DeleteCategory,
+     * with a message instead of a 403.
+     */
+    public function delete(User $user, Category $category): bool
+    {
+        return $this->ownsCategory($user, $category);
     }
 
     public function restore(User $user, Category $category): bool
     {
         return $this->ownsCategory($user, $category) && $category->isArchived();
+    }
+
+    /**
+     * Ownership of the source only (it may be archived); the target and its
+     * state are checked by `MergeCategoryRequest`.
+     */
+    public function merge(User $user, Category $category): bool
+    {
+        return $this->ownsCategory($user, $category);
     }
 
     private function ownsCategory(User $user, Category $category): bool

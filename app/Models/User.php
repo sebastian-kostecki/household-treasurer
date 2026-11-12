@@ -68,6 +68,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * @return HasMany<CategoryGroup, $this>
+     */
+    public function categoryGroups(): HasMany
+    {
+        return $this->hasMany(CategoryGroup::class);
+    }
+
+    /**
      * @return HasMany<Budget, $this>
      */
     public function budgets(): HasMany

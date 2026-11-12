@@ -1,9 +1,12 @@
+import type { Rhythm } from '../types/rhythm';
+import { collectedChain } from './collected-calculator';
 import { toSpendMinorUnits } from './to-spend-calculator';
 
 export type EntryToSpendCategory = {
     id: number;
     type: 'income' | 'expense';
-    month_item_kind: 'bill' | 'running' | null;
+    /** The Rhythm of each month of the budget year (1..12); null for an income. */
+    rhythms: Record<number, Rhythm> | null;
 };
 
 export type EntryToSpendItem = {
@@ -25,8 +28,32 @@ export type EntryToSpendBudget = {
     months: EntryToSpendMonth[];
 };
 
+export type EntryToSpendPeriodMonth = {
+    year: number;
+    month: number;
+    /** The rate of the month in the Collected chain (ADR-0073). */
+    rate_minor_units: number;
+    /** The net actual of the month for the Category. */
+    actual_minor_units: number;
+};
+
+/**
+ * An Irregular period of a Category (ADR-0073): the opening Collected on the
+ * first day of its start month and every month up to the current one (or the
+ * end of the period).
+ */
+export type EntryToSpendIrregularPeriod = {
+    category_id: number;
+    start_year: number;
+    start_month: number;
+    opening_minor_units: number;
+    months: EntryToSpendPeriodMonth[];
+};
+
 export type EntryToSpendInputs = {
     budgets: EntryToSpendBudget[];
+    /** Absent in older fixtures: no Irregular period, the Collected reads 0. */
+    irregular_periods?: EntryToSpendIrregularPeriod[];
 };
 
 export type ToSpendEntryChange = {
@@ -136,23 +163,134 @@ function applyChange(
 function toSpendOf(
     states: Map<number, MonthState>,
     setAsideMinorUnits: number,
+    month: number,
+    collectedAtStart: Map<number, number>,
 ): number {
     return toSpendMinorUnits(
         [...states.values()].map((state) => ({
             type: state.category.type,
-            kind: state.category.month_item_kind,
+            rhythm: state.category.rhythms?.[month] ?? null,
             plan: state.plan,
             actual: state.actual,
             hasPositiveAmount: state.positiveCount > 0,
+            collectedAtStart: collectedAtStart.get(state.category.id) ?? 0,
         })),
         setAsideMinorUnits,
     );
 }
 
+function monthKeyOf(year: number, month: number): number {
+    return year * 12 + (month - 1);
+}
+
+function signedDelta(change: ToSpendEntryChange): number {
+    return change.direction === 'add'
+        ? change.amountMinorUnits
+        : -change.amountMinorUnits;
+}
+
+type PeriodChain = {
+    categoryId: number;
+    /** Month keys of the period, ascending. */
+    keys: number[];
+    /** Collected on the first day of each month, with the pending changes only. */
+    before: Map<number, number>;
+    /** The same with the pending changes and the changes. */
+    after: Map<number, number>;
+    /** The earliest month of the period that a change touches; null when none. */
+    earliestChangedKey: number | null;
+};
+
+function deltasOf(
+    changes: ToSpendEntryChange[],
+    categoryId: number,
+): Map<number, number> {
+    const deltas = new Map<number, number>();
+
+    for (const change of changes) {
+        const parsed = parseYearMonth(change.operationDate);
+
+        if (parsed === null || change.categoryId !== categoryId) {
+            continue;
+        }
+
+        const key = monthKeyOf(parsed.year, parsed.month);
+
+        deltas.set(key, (deltas.get(key) ?? 0) + signedDelta(change));
+    }
+
+    return deltas;
+}
+
+/**
+ * The Collected chain of every Irregular period, once with the pending changes
+ * and once with the changes on top (copy of the server chain, ADR-0073). A
+ * change outside the months of a period does not belong to it.
+ */
+function periodChains(
+    inputs: EntryToSpendInputs,
+    changes: ToSpendEntryChange[],
+    pending: ToSpendEntryChange[],
+): PeriodChain[] {
+    return (inputs.irregular_periods ?? []).map((period) => {
+        const pendingDeltas = deltasOf(pending, period.category_id);
+        const changeDeltas = deltasOf(changes, period.category_id);
+        const keys = period.months.map((month) =>
+            monthKeyOf(month.year, month.month),
+        );
+        const chainOf = (withChanges: boolean): Map<number, number> => {
+            const chain = collectedChain(
+                period.opening_minor_units,
+                period.months.map((month, index) => ({
+                    rate: month.rate_minor_units,
+                    actual:
+                        month.actual_minor_units +
+                        (pendingDeltas.get(keys[index]) ?? 0) +
+                        (withChanges
+                            ? (changeDeltas.get(keys[index]) ?? 0)
+                            : 0),
+                })),
+            );
+
+            return new Map(keys.map((key, index) => [key, chain[index].start]));
+        };
+        const changedKeys = keys.filter((key) => changeDeltas.has(key));
+
+        return {
+            categoryId: period.category_id,
+            keys,
+            before: chainOf(false),
+            after: chainOf(true),
+            earliestChangedKey:
+                changedKeys.length === 0 ? null : changedKeys[0],
+        };
+    });
+}
+
+function collectedInMonth(
+    chains: PeriodChain[],
+    key: number,
+    side: 'before' | 'after',
+): Map<number, number> {
+    const collected = new Map<number, number>();
+
+    for (const chain of chains) {
+        const start = chain[side].get(key);
+
+        if (start !== undefined) {
+            collected.set(chain.categoryId, start);
+        }
+    }
+
+    return collected;
+}
+
 /**
  * Reads To Spend of every month with a plan touched by the changes, before
  * and after them, ascending by month. `pending` changes (earlier selected
- * import rows) are part of the baseline.
+ * import rows) are part of the baseline. A change to an Irregular Category
+ * moves the Collected of the later months of its period, so a later month
+ * with a plan is read too when its To Spend changed (ADR-0073).
  */
 export function previewToSpendReadings(
     inputs: EntryToSpendInputs,
@@ -172,9 +310,24 @@ export function previewToSpendReadings(
         byMonth.set(key, [...(byMonth.get(key) ?? []), change]);
     }
 
+    const chains = periodChains(inputs, changes, pending);
+    const laterKeys = new Set<number>();
+
+    for (const chain of chains) {
+        if (chain.earliestChangedKey === null) {
+            continue;
+        }
+
+        for (const key of chain.keys) {
+            if (key > chain.earliestChangedKey && !byMonth.has(key)) {
+                laterKeys.add(key);
+            }
+        }
+    }
+
     const readings: ToSpendReading[] = [];
 
-    for (const key of [...byMonth.keys()].sort((a, b) => a - b)) {
+    for (const key of [...byMonth.keys(), ...laterKeys].sort((a, b) => a - b)) {
         const year = Math.floor(key / 12);
         const month = (key % 12) + 1;
         const found = findMonth(inputs, year, month);
@@ -211,13 +364,27 @@ export function previewToSpendReadings(
             }
         }
 
-        const before = toSpendOf(states, found.month.set_aside_minor_units);
+        const before = toSpendOf(
+            states,
+            found.month.set_aside_minor_units,
+            month,
+            collectedInMonth(chains, key, 'before'),
+        );
 
         for (const change of byMonth.get(key) ?? []) {
             applyChange(states, found.budget, change);
         }
 
-        const after = toSpendOf(states, found.month.set_aside_minor_units);
+        const after = toSpendOf(
+            states,
+            found.month.set_aside_minor_units,
+            month,
+            collectedInMonth(chains, key, 'after'),
+        );
+
+        if (!byMonth.has(key) && before === after) {
+            continue;
+        }
 
         readings.push({
             year,

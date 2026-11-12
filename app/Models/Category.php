@@ -18,10 +18,12 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $user_id
+ * @property int|null $category_group_id
  * @property string $name
  * @property string $name_key
  * @property string $icon
  * @property string $color
+ * @property string|null $description
  * @property int $sort_order
  * @property CategoryType $type
  * @property Carbon|null $archived_at
@@ -30,10 +32,12 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'user_id',
+    'category_group_id',
     'name',
     'name_key',
     'icon',
     'color',
+    'description',
     'sort_order',
     'type',
     'archived_at',
@@ -78,10 +82,30 @@ class Category extends Model
     }
 
     /**
+     * @return BelongsTo<CategoryGroup, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(CategoryGroup::class, 'category_group_id');
+    }
+
+    /**
      * @return HasMany<BudgetLine, $this>
      */
     public function budgetLines(): HasMany
     {
         return $this->hasMany(BudgetLine::class);
+    }
+
+    /**
+     * The Rhythm history, oldest entry first (ADR-0066).
+     *
+     * @return HasMany<CategoryRhythm, $this>
+     */
+    public function rhythms(): HasMany
+    {
+        return $this->hasMany(CategoryRhythm::class)
+            ->orderBy('start_year')
+            ->orderBy('start_month');
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Actions;
 
 use App\Enums\BudgetPhase;
-use App\Enums\MonthItemKind;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
@@ -30,18 +29,7 @@ class RestoreCategory
                     ->select('id'))
                 ->update(['archived_at' => null]);
 
-            $latest = BudgetLine::query()
-                ->where('category_id', $category->id)
-                ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
-                ->orderByDesc('budgets.year')
-                ->select('budget_lines.*')
-                ->first();
-
-            $this->joinDraftBudgets->handle(
-                $category,
-                $latest instanceof BudgetLine ? $latest->is_paced : true,
-                $latest instanceof BudgetLine ? $latest->month_item_kind : MonthItemKind::Running,
-            );
+            $this->joinDraftBudgets->handle($category);
         });
     }
 }

@@ -2,12 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Actions\ManageFinancialOperation;
 use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
+use App\Enums\Rhythm;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
+use App\Models\CategoryGroup;
+use App\Models\FinancialOperation;
 use App\Models\User;
+use App\Support\CsvImport\ImportMonthRemainingContext;
+use App\Support\EntryToSpendInputs;
+use App\Support\HandEntryMonthRemainingInputs;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -233,30 +242,100 @@ class ExpenseTest extends TestCase
         $this->assertDatabaseCount('financial_operations', 0);
     }
 
-    public function test_expense_is_refused_for_a_category_without_a_line_in_the_year_of_the_date(): void
+    public function test_expense_on_a_category_without_a_line_joins_the_budget_of_the_year_of_the_date(): void
     {
-        $this->travelTo('2026-06-01');
+        $this->travelTo('2026-11-20');
 
         $user = User::factory()->create();
-        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
         $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
         $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
-        $only2025 = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Tylko 2025']);
-        BudgetLine::factory()->for($budget2026)->expense()->create(['name' => 'Inna']);
+        $only2025 = BudgetLine::factory()->for($budget2025)->expense()->create(['name' => 'Domeny']);
 
         $this->actingAs($user)
             ->from(route('operations'))
             ->post(route('expenses.store'), [
-                'operation_date' => '2026-03-15',
-                'amount_minor_units' => 10000,
-                'description' => 'No line in 2026',
+                'operation_date' => '2026-11-12',
+                'amount_minor_units' => 8000,
+                'description' => 'OVH',
                 'account_id' => $account->id,
                 'category_id' => $only2025->category_id,
             ])
-            ->assertSessionHasErrors('category_id');
+            ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseCount('financial_operations', 0);
+        $joined = BudgetLine::query()
+            ->where('budget_id', $budget2026->id)
+            ->where('category_id', $only2025->category_id)
+            ->firstOrFail();
+
+        $this->assertSame(0, $joined->planned_amount_minor_units);
+        $this->assertSame(0, $joined->initial_plan_minor_units);
+        $this->assertSame(8000, $joined->execution_minor_units);
+        $this->assertSame($joined->id, FinancialOperation::query()->firstOrFail()->budget_line_id);
         $this->assertSame(0, $only2025->fresh()->execution_minor_units);
+    }
+
+    public function test_joining_a_budget_at_first_use_leaves_the_rhythm_of_the_category(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
+        $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $only2025 = BudgetLine::factory()->for($budget2025)->evenAnnual()->create();
+
+        $this->actingAs($user)
+            ->post(route('expenses.store'), [
+                'operation_date' => '2026-11-12',
+                'amount_minor_units' => 8000,
+                'description' => 'Roczna opłata',
+                'account_id' => $account->id,
+                'category_id' => $only2025->category_id,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(0, BudgetLine::query()
+            ->where('budget_id', $budget2026->id)
+            ->where('category_id', $only2025->category_id)
+            ->sole()->planned_amount_minor_units);
+        $this->assertSame(['even_annual'], $only2025->category->rhythms()->pluck('rhythm')->map(fn ($rhythm) => $rhythm->value)->all());
+    }
+
+    public function test_expense_is_refused_for_a_year_without_a_budget_and_for_an_archived_category_without_a_line(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2025-01-01']);
+        $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $active = BudgetLine::factory()->for($budget2025)->expense()->create();
+        $archived = BudgetLine::factory()->for($budget2025)->expense()->create();
+        $archived->category->update(['archived_at' => now()]);
+
+        $payload = fn (int $categoryId, string $date): array => [
+            'operation_date' => $date,
+            'amount_minor_units' => 10000,
+            'description' => 'Test',
+            'account_id' => $account->id,
+            'category_id' => $categoryId,
+        ];
+
+        $this->actingAs($user)->from(route('operations'))
+            ->post(route('expenses.store'), $payload($active->category_id, '2024-03-15'))
+            ->assertSessionHasErrors('category_id');
+        $noBudget = session('errors')->first('category_id');
+
+        $this->actingAs($user)->from(route('operations'))
+            ->post(route('expenses.store'), $payload($archived->category_id, '2026-03-15'))
+            ->assertSessionHasErrors('category_id');
+        $noLine = session('errors')->first('category_id');
+
+        $this->assertSame(__('The selected category does not belong to the budget for this operation year.'), $noBudget);
+        $this->assertSame($noBudget, $noLine);
+        $this->assertDatabaseCount('financial_operations', 0);
+        $this->assertDatabaseMissing('budget_lines', ['budget_id' => $budget2026->id, 'category_id' => $archived->category_id]);
     }
 
     public function test_expense_lands_on_the_line_of_the_category_in_the_year_of_the_date(): void
@@ -486,6 +565,33 @@ class ExpenseTest extends TestCase
             );
     }
 
+    public function test_operations_page_options_carry_the_category_group(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zdrowie']);
+        $grouped = BudgetLine::factory()->for($budget)->expense()->create(['sort_order' => 1]);
+        $grouped->category->update(['category_group_id' => $group->id]);
+        $ungrouped = BudgetLine::factory()->for($budget)->expense()->create(['sort_order' => 0]);
+        $income = BudgetLine::factory()->for($budget)->income()->create();
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 2)
+                ->where('expenseCategories.0.id', $ungrouped->category_id)
+                ->where('expenseCategories.0.group', null)
+                ->where('expenseCategories.1.id', $grouped->category_id)
+                ->where('expenseCategories.1.group', ['id' => $group->id, 'name' => 'Zdrowie'])
+                ->where('incomeCategories.0.id', $income->category_id)
+                ->where('incomeCategories.0.group', null),
+            );
+    }
+
     /**
      * @param  array<string, mixed>  $categoryAttributes
      * @param  array<string, mixed>  $accountAttributes
@@ -522,5 +628,124 @@ class ExpenseTest extends TestCase
         ], $categoryAttributes));
 
         return [$user, $account, $category];
+    }
+
+    public function test_operations_page_offers_active_categories_without_a_line_in_every_budget_in_execution(): void
+    {
+        $this->travelTo('2026-11-10');
+
+        $user = User::factory()->create();
+        $budget2026 = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $budget2027 = Budget::factory()->for($user)->execution()->create(['year' => 2027]);
+        Budget::factory()->for($user)->create(['year' => 2028, 'phase' => BudgetPhase::Draft]);
+        $food = BudgetLine::factory()->for($budget2026)->expense()->create([
+            'name' => 'Jedzenie',
+            'planned_amount_minor_units' => 100000,
+            'execution_minor_units' => 25000,
+        ]);
+        $domains = Category::factory()->for($user)->expense()->create(['name' => 'Domeny', 'sort_order' => 5]);
+        $archivedLine = BudgetLine::factory()->for($budget2027)->expense()->create(['name' => 'Stara linia']);
+        $archivedLine->update(['archived_at' => now()]);
+        Category::factory()->for($user)->expense()->archived()->create(['name' => 'Wakacje']);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('expenseCategories', 5)
+                ->where('expenseCategories.0.id', $food->category_id)
+                ->where('expenseCategories.0.budget_year', 2026)
+                ->where('expenseCategories.0.planned_amount_minor_units', 100000)
+                ->where('expenseCategories.0.execution_minor_units', 25000)
+                ->where('expenseCategories.1.id', $archivedLine->category_id)
+                ->where('expenseCategories.1.budget_year', 2026)
+                ->where('expenseCategories.2.id', $domains->id)
+                ->where('expenseCategories.2.budget_year', 2026)
+                ->where('expenseCategories.2.planned_amount_minor_units', 0)
+                ->where('expenseCategories.2.execution_minor_units', 0)
+                ->where('expenseCategories.3.id', $food->category_id)
+                ->where('expenseCategories.3.budget_year', 2027)
+                ->where('expenseCategories.3.planned_amount_minor_units', 0)
+                ->where('expenseCategories.4.id', $domains->id)
+                ->where('expenseCategories.4.budget_year', 2027),
+            );
+    }
+
+    public function test_the_write_refuses_a_category_archived_on_the_list_with_an_active_line_past_validation(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $holidays = BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Wakacje']);
+        $holidays->category->update(['archived_at' => now()]);
+
+        try {
+            app(ManageFinancialOperation::class)->createExpense($user, [
+                'operation_date' => '2026-11-12',
+                'amount_minor_units' => 8000,
+                'description' => 'Hotel',
+                'account_id' => $account->id,
+                'category_id' => $holidays->category_id,
+            ]);
+            $this->fail('Expected the write to refuse a Category archived on the list.');
+        } catch (ModelNotFoundException) {
+            $this->assertDatabaseCount('financial_operations', 0);
+            $this->assertSame(0, $holidays->fresh()->execution_minor_units);
+        }
+    }
+
+    public function test_readings_before_the_save_equal_those_after_it_for_a_category_that_joins(): void
+    {
+        $this->travelTo('2026-11-20');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create(['opening_date' => '2026-01-01']);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $oneOff = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $older = Budget::factory()->for($user)->create(['year' => 2025, 'phase' => BudgetPhase::Draft]);
+        BudgetLine::factory()->for($older)->create(['category_id' => $oneOff->id]);
+        $oneOff->rhythms()->delete();
+        $oneOff->rhythms()->create(['start_year' => 2025, 'start_month' => 1, 'rhythm' => Rhythm::FixedCharge]);
+
+        $handEntry = fn (): array => collect(HandEntryMonthRemainingInputs::forUser($user)['budgets'])
+            ->firstWhere('year', 2026)['categories'];
+        $importContext = fn (): array => collect(ImportMonthRemainingContext::forUser($user)['budgets'])
+            ->firstWhere('year', 2026);
+        $entryToSpend = fn (): array => collect(EntryToSpendInputs::forUser($user)['budgets'])
+            ->firstWhere('year', 2026)['categories'];
+
+        $handEntryBefore = collect($handEntry())->firstWhere('id', $oneOff->id);
+        $importBefore = collect($importContext()['categories'])->firstWhere('id', $oneOff->id);
+        $toSpendBefore = collect($entryToSpend())->firstWhere('id', $oneOff->id);
+
+        $this->assertSame([
+            'id' => $oneOff->id,
+            'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge'),
+            'planned_amount_minor_units' => 0,
+            'monthly_execution_minor_units' => array_fill(1, 12, 0),
+        ], $handEntryBefore);
+        $this->assertSame(['id' => $oneOff->id, 'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge'), 'planned_amount_minor_units' => 0], $importBefore);
+        $this->assertSame(['id' => $oneOff->id, 'type' => 'expense', 'rhythms' => array_fill_keys(range(1, 12), 'fixed_charge')], $toSpendBefore);
+
+        $this->actingAs($user)->post(route('expenses.store'), [
+            'operation_date' => '2026-11-12',
+            'amount_minor_units' => 8000,
+            'description' => 'OVH',
+            'account_id' => $account->id,
+            'category_id' => $oneOff->id,
+        ])->assertSessionHasNoErrors();
+
+        $handEntryAfter = collect($handEntry())->firstWhere('id', $oneOff->id);
+
+        $this->assertSame(
+            [...$handEntryBefore, 'monthly_execution_minor_units' => array_replace(array_fill(1, 12, 0), [11 => 8000])],
+            $handEntryAfter,
+        );
+        $this->assertSame($importBefore, collect($importContext()['categories'])->firstWhere('id', $oneOff->id));
+        $this->assertSame([11 => 8000], $importContext()['execution_by_category_and_month'][$oneOff->id]);
+        $this->assertSame($toSpendBefore, collect($entryToSpend())->firstWhere('id', $oneOff->id));
+        $this->assertCount(1, array_filter($entryToSpend(), fn (array $entry): bool => $entry['id'] === $oneOff->id));
     }
 }

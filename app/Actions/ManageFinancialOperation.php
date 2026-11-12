@@ -2,9 +2,12 @@
 
 namespace App\Actions;
 
+use App\Enums\BudgetPhase;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
+use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\BudgetLineResolver;
@@ -14,6 +17,11 @@ use Illuminate\Support\Facades\DB;
 
 class ManageFinancialOperation
 {
+    public function __construct(
+        private readonly BudgetLineResolver $resolver,
+        private readonly JoinBudgetAtFirstUse $joinBudgetAtFirstUse,
+    ) {}
+
     /**
      * @param  array{
      *     operation_date: string,
@@ -134,7 +142,7 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = $this->lockLine($user, $validated['category_id'], $validated['operation_date']);
+            $category = $this->lockLine($user, $validated['category_id'], $validated['operation_date'], null);
 
             $operation = $user->financialOperations()->create([
                 'type' => $type,
@@ -174,6 +182,8 @@ class ManageFinancialOperation
         array $validated,
     ): FinancialOperation {
         return DB::transaction(function () use ($operation, $expectedType, $validated): FinancialOperation {
+            $currentCategoryId = $operation->budgetLine->category_id;
+
             $this->revertEffect($operation);
 
             $account = Account::query()
@@ -183,7 +193,7 @@ class ManageFinancialOperation
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            $category = $this->lockLine($operation->user, $validated['category_id'], $validated['operation_date']);
+            $category = $this->lockLine($operation->user, $validated['category_id'], $validated['operation_date'], $currentCategoryId);
 
             $operation->update([
                 'type' => $expectedType,
@@ -203,21 +213,41 @@ class ManageFinancialOperation
     }
 
     /**
-     * The not archived Budget Line of the list Category in the Budget of the
-     * operation's year, locked for the update of its Execution.
+     * The Budget Line of the list Category in the Budget in execution of the
+     * operation's year, locked for the update of its Execution. A Category
+     * without a line joins the Budget here (ADR-0067); an archived line, or a
+     * Category archived on the list, takes the save only for the unchanged
+     * Category of an existing operation.
      */
-    private function lockLine(User $user, int $categoryId, string $operationDate): BudgetLine
+    private function lockLine(User $user, int $categoryId, string $operationDate, ?int $currentCategoryId): BudgetLine
     {
-        $line = (new BudgetLineResolver)->forYear($user, $categoryId, Carbon::parse($operationDate)->year);
+        $budget = Budget::query()
+            ->where('user_id', $user->id)
+            ->where('year', Carbon::parse($operationDate)->year)
+            ->first();
+
+        if (! $budget instanceof Budget) {
+            throw (new ModelNotFoundException)->setModel(Budget::class);
+        }
+
+        $line = $this->resolver->forBudget($budget, $categoryId);
 
         if ($line === null) {
+            if ($budget->phase !== BudgetPhase::Execution) {
+                throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
+            }
+
+            $category = Category::query()->where('user_id', $user->id)->findOrFail($categoryId);
+            $line = $this->joinBudgetAtFirstUse->handle($budget, $category);
+        }
+
+        if ($categoryId !== $currentCategoryId && ($line->isArchived() || $line->category->isArchived())) {
             throw (new ModelNotFoundException)->setModel(BudgetLine::class, [$categoryId]);
         }
 
         return BudgetLine::query()
             ->with('budget')
             ->whereKey($line->id)
-            ->whereNull('archived_at')
             ->lockForUpdate()
             ->firstOrFail();
     }

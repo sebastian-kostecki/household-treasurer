@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Actions\ApproveMonthPlan;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\Category;
 use App\Models\MonthPlan;
 use App\Models\User;
+use App\Support\CategoryRhythms;
+use App\Support\IrregularCollected;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +45,40 @@ class ApproveMonthPlanTest extends TestCase
             'approved_amount_minor_units' => 800_000,
             'current_amount_minor_units' => 800_000,
         ]);
+    }
+
+    public function test_it_joins_an_extra_category_with_an_amount_and_ignores_one_with_zero(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $domains = Category::factory()->for($user)->expense()->create(['name' => 'Domeny']);
+        $hosting = Category::factory()->for($user)->expense()->create(['name' => 'Hosting']);
+
+        $plan = $this->approve($budget, 11, [$food->category_id => 9_000, $domains->id => 80, $hosting->id => 0]);
+
+        $line = BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', $domains->id)->firstOrFail();
+        $this->assertSame(0, $line->planned_amount_minor_units);
+        $this->assertDatabaseHas('month_plan_items', [
+            'month_plan_id' => $plan->id,
+            'budget_line_id' => $line->id,
+            'approved_amount_minor_units' => 80,
+            'current_amount_minor_units' => 80,
+        ]);
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $hosting->id]);
+        $this->assertDatabaseCount('month_plan_items', 2);
+    }
+
+    public function test_it_rejects_an_archived_list_category_as_an_extra_item(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $food = BudgetLine::factory()->for($budget)->expense()->create();
+        $archived = Category::factory()->for($user)->expense()->archived()->create();
+
+        $this->assertItemsError(fn () => $this->approve($budget, 11, [$food->category_id => 1, $archived->id => 5]));
+        $this->assertDatabaseCount('month_plans', 0);
+        $this->assertDatabaseMissing('budget_lines', ['category_id' => $archived->id]);
     }
 
     public function test_it_stores_a_set_aside_in_both_columns(): void
@@ -202,6 +239,24 @@ class ApproveMonthPlanTest extends TestCase
     /**
      * @param  array<int, int>  $amounts
      */
+    public function test_approving_freezes_the_rate_of_an_irregular_category_for_the_collected_of_the_next_month(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $service = BudgetLine::factory()->for($budget)->irregular()->create(['planned_amount_minor_units' => 180_000]);
+        $service->category->rhythms()->update(['start_month' => 11, 'opening_collected_minor_units' => 30_000]);
+
+        $this->approve($budget, 11, [$service->category_id => 15_000]);
+        $service->update(['planned_amount_minor_units' => 360_000]);
+
+        $rhythms = CategoryRhythms::forCategoryIds([$service->category_id]);
+
+        $this->assertSame(
+            45_000,
+            IrregularCollected::forUser($user, $rhythms)->collectedAtStartOfMonth($service->category_id, 2026, 12),
+        );
+    }
+
     private function approve(Budget $budget, int $month, array $amounts, int $setAside = 0): MonthPlan
     {
         return app(ApproveMonthPlan::class)->handle(

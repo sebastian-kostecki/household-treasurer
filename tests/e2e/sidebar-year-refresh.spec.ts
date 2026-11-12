@@ -33,6 +33,7 @@ test('sidebar selects the created year, the chosen year and the year picked from
 }) => {
     await page.goto('/budget');
 
+    const initialSegmentCount = await yearSegments(page).count();
     const createSegment = yearSegments(page).last();
     const createLabel = (await createSegment.getAttribute('aria-label')) ?? '';
     const newYear = Number(createLabel.match(/\d{4}/)?.[0]);
@@ -93,7 +94,7 @@ test('sidebar selects the created year, the chosen year and the year picked from
                 await selectSegment(page, newYear).click();
             }
             await deleteCurrentBudget(page);
-            await expect(yearSegments(page)).toHaveCount(2);
+            await expect(yearSegments(page)).toHaveCount(initialSegmentCount);
         }
     }
 });

@@ -9,6 +9,7 @@ import type {
     MonthRemainingWarningState,
 } from './import-month-remaining-warnings';
 import type { PairCandidate } from './import-pair-selection';
+import type { Rhythm } from '../types/rhythm';
 import {
     emptySelection,
     type CategoryRow,
@@ -176,6 +177,12 @@ export const importPreviewEntryToSpend: EntryToSpendInputs = {
     budgets: [],
 };
 
+function everyMonth(rhythm: Rhythm): Record<number, Rhythm> {
+    return Object.fromEntries(
+        Array.from({ length: 12 }, (_, index) => [index + 1, rhythm]),
+    );
+}
+
 export const incomeCategories: CategoryRow[] = [
     {
         id: 1,
@@ -183,7 +190,7 @@ export const incomeCategories: CategoryRow[] = [
         icon: 'briefcase',
         color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
-        is_paced: false,
+        rhythms: null,
     },
     {
         id: 2,
@@ -191,7 +198,7 @@ export const incomeCategories: CategoryRow[] = [
         icon: 'landmark',
         color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
-        is_paced: false,
+        rhythms: null,
     },
 ];
 
@@ -202,15 +209,25 @@ export const expenseCategories: CategoryRow[] = [
         icon: 'shopping-cart',
         color: DEFAULT_CATEGORY_COLOR,
         budget_year: 2026,
-        is_paced: true,
+        rhythms: everyMonth('running'),
     },
     {
         id: 12,
-        name: 'Mieszkanie',
+        name: 'Czynsz',
         icon: 'house',
         color: DEFAULT_CATEGORY_COLOR,
+        group: { id: 1, name: 'Mieszkanie' },
         budget_year: 2026,
-        is_paced: false,
+        rhythms: everyMonth('fixed_charge'),
+    },
+    {
+        id: 13,
+        name: 'Prąd',
+        icon: 'zap',
+        color: DEFAULT_CATEGORY_COLOR,
+        group: { id: 1, name: 'Mieszkanie' },
+        budget_year: 2026,
+        rhythms: everyMonth('even_annual'),
     },
 ];
 
@@ -256,6 +273,13 @@ export const sampleToSpendWarning: ToSpendWarning = {
     year: 2026,
     month: 10,
     toSpendAfterMinorUnits: -45_000,
+};
+
+/** A later month of an Irregular period, pushed below zero by the Collected the row used up. */
+export const sampleLaterMonthToSpendWarning: ToSpendWarning = {
+    year: 2026,
+    month: 11,
+    toSpendAfterMinorUnits: -20_000,
 };
 
 export const sampleMonthRemainingWarning: MonthRemainingWarningState = {

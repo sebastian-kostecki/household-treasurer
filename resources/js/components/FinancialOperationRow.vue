@@ -18,6 +18,7 @@ export type FinancialOperationRowData = IncomeFormOperation &
         category_label: string;
         category_icon: string;
         category_color: string;
+        category_archived: boolean;
         counterparty: string | null;
         raw_statement_description: string | null;
     } & PrefixedAccountIdentityFields<'account'>;

@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Support\CategoryList;
+
+use App\Enums\BudgetPhase;
+use App\Enums\CategoryType;
+use App\Models\Budget;
+use App\Models\BudgetLine;
+use App\Models\Category;
+use App\Models\User;
+use App\Support\CategoryRhythms;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
+
+/**
+ * What a selector for operations and Import offers (ADR-0067, "Choice"): the
+ * active Categories of the list in every Budget in execution, whether or not
+ * the Budget has a Budget Line of the Category yet. A line archived in a year
+ * is not offered in that year. A constant number of queries for any number of
+ * Budgets; callers map the rows to their own shape.
+ */
+final class CategoryChoiceOptions
+{
+    /**
+     * @return list<array{category: Category, budget_year: int, line: BudgetLine|null, rhythms: array<int, string>|null}>
+     */
+    public static function forType(User $user, CategoryType $type): array
+    {
+        $budgets = $user->budgets()
+            ->where('phase', BudgetPhase::Execution)
+            ->orderBy('year')
+            ->get();
+
+        $categories = self::activeCategories($user, $type);
+
+        if ($budgets->isEmpty() || $categories->isEmpty()) {
+            return [];
+        }
+
+        $lines = BudgetLine::query()
+            ->without('category')
+            ->whereIn('budget_id', $budgets->modelKeys())
+            ->whereIn('category_id', array_values($categories->map(fn (Category $category): int => $category->id)->all()))
+            ->get()
+            ->groupBy('budget_id')
+            ->map(fn (Collection $budgetLines): Collection => $budgetLines->keyBy('category_id'));
+
+        $rhythms = CategoryRhythms::forCategoryIds($categories->map(fn (Category $category): int => $category->id));
+        $rows = [];
+
+        foreach ($budgets as $budget) {
+            foreach ($categories as $category) {
+                $line = ($lines[$budget->id] ?? collect())->get($category->id);
+
+                if ($line instanceof BudgetLine) {
+                    if ($line->isArchived()) {
+                        continue;
+                    }
+
+                    $rows[] = [
+                        'category' => $category,
+                        'budget_year' => $budget->year,
+                        'line' => $line,
+                        'rhythms' => $rhythms->rhythmValuesInYear($category->id, $budget->year),
+                    ];
+
+                    continue;
+                }
+
+                $rows[] = [
+                    'category' => $category,
+                    'budget_year' => $budget->year,
+                    'line' => null,
+                    'rhythms' => $rhythms->rhythmValuesInYear($category->id, $budget->year),
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * The entries of the active Categories of a type that have no Budget Line
+     * in a Budget yet, as they will look after joining (plan 0; the Rhythm
+     * comes from the Category): the readings behind the entry and Import warnings add them next
+     * to the real lines. Needs `budgetLines` loaded on each Budget.
+     *
+     * @param  EloquentCollection<int, Budget>  $budgets
+     * @return array<int, list<array{category_id: int}>> budget id => entries
+     */
+    public static function joiningEntries(User $user, EloquentCollection $budgets, CategoryType $type): array
+    {
+        $budgets->loadMissing('budgetLines');
+        $categories = self::activeCategories($user, $type);
+        $entries = [];
+
+        foreach ($budgets as $budget) {
+            $present = $budget->budgetLines->pluck('category_id')->flip();
+            $entries[$budget->id] = [];
+
+            foreach ($categories as $category) {
+                if (! $present->has($category->id)) {
+                    $entries[$budget->id][] = ['category_id' => $category->id];
+                }
+            }
+        }
+
+        return $entries;
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    private static function activeCategories(User $user, CategoryType $type): Collection
+    {
+        return Category::query()
+            ->with('group')
+            ->where('user_id', $user->id)
+            ->where('type', $type->value)
+            ->whereNull('archived_at')
+            ->orderBy('sort_order')
+            ->orderBy('name_key')
+            ->orderBy('id')
+            ->get();
+    }
+}

@@ -3,12 +3,15 @@
 namespace App\Actions;
 
 use App\Enums\CategoryType;
-use App\Enums\MonthItemKind;
+use App\Enums\Rhythm;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
 use App\Models\User;
+use App\Support\CategoryList\CategoryListSequence;
+use App\Support\CategoryList\CategoryNameGuard;
 use App\Support\CategoryList\CategoryNameKey;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,10 +24,13 @@ use Illuminate\Validation\ValidationException;
  */
 class CreateCategory
 {
-    public function __construct(private readonly JoinDraftBudgets $joinDraftBudgets) {}
+    public function __construct(
+        private readonly JoinDraftBudgets $joinDraftBudgets,
+        private readonly ChangeCategoryRhythm $changeCategoryRhythm,
+    ) {}
 
     /**
-     * @param  array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, is_paced?: bool, month_item_kind?: string}  $attributes
+     * @param  array{name: string, icon: string, color: string, type: string, planned_amount_minor_units: int, ...}  $attributes
      * @return bool true when an existing list Category was joined, false when a new one was created
      */
     public function handle(User $user, Budget $budget, array $attributes): bool
@@ -33,13 +39,9 @@ class CreateCategory
         $name = CategoryNameKey::trim($attributes['name']);
         $nameKey = CategoryNameKey::of($name);
         $isExpense = $type === CategoryType::Expense;
-        $isPaced = $isExpense ? ($attributes['is_paced'] ?? true) : true;
-        $monthItemKind = $isExpense
-            ? MonthItemKind::from($attributes['month_item_kind'] ?? MonthItemKind::Running->value)
-            : MonthItemKind::Running;
 
         try {
-            return DB::transaction(function () use ($user, $budget, $attributes, $type, $name, $nameKey, $isPaced, $monthItemKind): bool {
+            return DB::transaction(function () use ($user, $budget, $attributes, $type, $name, $nameKey, $isExpense): bool {
                 $existing = Category::query()
                     ->where('user_id', $user->id)
                     ->where('type', $type->value)
@@ -55,15 +57,17 @@ class CreateCategory
 
                 $budget->budgetLines()->create([
                     'category_id' => $category->id,
-                    'is_paced' => $isPaced,
-                    'month_item_kind' => $monthItemKind,
                     'planned_amount_minor_units' => $attributes['planned_amount_minor_units'],
                     'initial_plan_minor_units' => 0,
                     'execution_minor_units' => 0,
                 ]);
 
                 if ($existing === null) {
-                    $this->joinDraftBudgets->handle($category, $isPaced, $monthItemKind, $budget->id);
+                    if ($isExpense) {
+                        $this->changeCategoryRhythm->handle($category, Rhythm::Running, CarbonImmutable::today('UTC'));
+                    }
+
+                    $this->joinDraftBudgets->handle($category, $budget->id);
                 }
 
                 return $existing !== null;
@@ -71,18 +75,14 @@ class CreateCategory
         } catch (UniqueConstraintViolationException $exception) {
             report($exception);
 
-            throw ValidationException::withMessages([
-                'name' => __('A category with this name already exists.'),
-            ]);
+            throw CategoryNameGuard::constraintRefusal();
         }
     }
 
     private function assertCanJoin(Category $existing, Budget $budget): void
     {
         if ($existing->isArchived()) {
-            throw ValidationException::withMessages([
-                'name' => __('This category is in the archive. Restore it instead of creating a new one.'),
-            ]);
+            throw CategoryNameGuard::refusal($existing);
         }
 
         if (BudgetLine::query()->where('budget_id', $budget->id)->where('category_id', $existing->id)->exists()) {
@@ -97,10 +97,7 @@ class CreateCategory
      */
     private function createListCategory(User $user, CategoryType $type, string $name, string $nameKey, array $attributes): Category
     {
-        $nextSortOrder = (Category::query()
-            ->where('user_id', $user->id)
-            ->where('type', $type->value)
-            ->max('sort_order') ?? -1) + 1;
+        $nextSortOrder = CategoryListSequence::nextSortOrder($user->id, $type);
 
         return Category::query()->create([
             'user_id' => $user->id,
