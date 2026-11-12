@@ -3,7 +3,7 @@ project: 'Household Treasurer'
 version: 3
 status: draft
 created: 2026-11-02
-updated: 2026-11-11
+updated: 2026-11-12
 prd_version: 3
 main_goal: quality
 top_blocker: decisions
@@ -59,7 +59,7 @@ Kategoria należy dziś do jednego roku, a lata łączy zapytanie po nazwie i ty
 | S-28 | period-report-by-group               | użytkownik może zobaczyć raport miesiąca albo roku po grupach i kategoriach, jako wykres i tabelę                   | S-22          | FR-014, FR-015                           | done     |
 | S-29 | year-over-year-report                | użytkownik może porównać okres raportu z tym samym okresem rok wcześniej na tej samej kategorii listy               | S-28          | FR-016                                   | done     |
 | S-30 | report-trend-by-month                | użytkownik może zobaczyć kwoty grup i kategorii w kolejnych miesiącach roku                                         | S-28          | FR-017                                   | done     |
-| S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | ready    |
+| S-31 | report-to-operations                 | użytkownik może przejść z kategorii w raporcie do jej operacji w wybranym okresie                                   | S-28          | FR-018                                   | in-progress |
 | S-32 | rolling-twelve-month-report          | użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”                                                         | S-28          | FR-025                                   | ready    |
 | S-33 | default-set-aside-percent            | użytkownik może ustawić domyślny procent przychodów, który propozycja planu wpisuje jako „odkładam”                 | S-24          | FR-024                                   | ready    |
 
@@ -312,7 +312,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Element opcjonalny (nice-to-have). Filtr Operacji przechodzi z nazwy i typu na kategorię listy i grupę (zmiana ADR-0016); lista musi pokazać to, co raport liczy (zwroty netto, bez transferów własnych).
-- **Status:** ready
+- **Status:** in-progress
 
 ### S-32: Ostatnie 12 miesięcy
 

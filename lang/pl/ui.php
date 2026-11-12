@@ -391,6 +391,7 @@ return [
         'trend_in_progress' => 'w toku',
         'trend_legend_in_progress' => ':month w toku',
         'trend_table_label' => 'Tabela: :title, kwoty według miesięcy',
+        'operations_link_label' => 'Operacje kategorii :name, :period',
         'amounts_in_zl_rounded' => 'Kwoty w zł, zaokrąglone do pełnych złotych',
         'in_progress' => 'okres w toku',
         'income' => 'Przychody',

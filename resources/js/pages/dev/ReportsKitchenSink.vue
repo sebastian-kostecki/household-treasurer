@@ -192,6 +192,7 @@ const stateMatrix = [
                             :in-progress-month="
                                 scenario.trend.in_progress_month
                             "
+                            :budget-year="2026"
                         />
                         <ReportTrendTable
                             type="income"
@@ -209,6 +210,7 @@ const stateMatrix = [
                             :in-progress-month="
                                 scenario.trend.in_progress_month
                             "
+                            :budget-year="2026"
                         />
                     </template>
                 </template>
@@ -279,6 +281,11 @@ const stateMatrix = [
                                 scenario.report.expense_minor_units
                             "
                             :budget-year="2026"
+                            :month="
+                                scenario.period.kind === 'month'
+                                    ? scenario.period.month
+                                    : null
+                            "
                             :comparison-year="scenario.report.comparison?.year"
                             :previous-total-minor-units="
                                 scenario.report.comparison?.expense_minor_units
@@ -302,6 +309,11 @@ const stateMatrix = [
                                 scenario.report.income_minor_units
                             "
                             :budget-year="2026"
+                            :month="
+                                scenario.period.kind === 'month'
+                                    ? scenario.period.month
+                                    : null
+                            "
                             :comparison-year="scenario.report.comparison?.year"
                             :previous-total-minor-units="
                                 scenario.report.comparison?.income_minor_units

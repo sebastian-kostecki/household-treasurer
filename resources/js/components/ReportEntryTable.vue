@@ -17,6 +17,8 @@ const props = defineProps<{
     totalMinorUnits: number;
     /** Year of the viewed Budget; heads the amount column with a comparison. */
     budgetYear: number;
+    /** Viewed month (1 to 12), `null` for the whole Budget year. */
+    month: number | null;
     /** Year of the compared Budget; the comparison columns show only when set. */
     comparisonYear?: number;
     /** Previous-year total of this type (with `comparisonYear`). */
@@ -113,6 +115,8 @@ function bodyId(groupId: number): string {
                     :show-share="showShare"
                     :type="type"
                     :comparison-year="comparisonYear"
+                    :budget-year="budgetYear"
+                    :month="month"
                 />
                 <div v-else>
                     <ReportGroupRow
@@ -133,6 +137,8 @@ function bodyId(groupId: number): string {
                             :show-share="showShare"
                             :type="type"
                             :comparison-year="comparisonYear"
+                            :budget-year="budgetYear"
+                            :month="month"
                         />
                     </div>
                 </div>

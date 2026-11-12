@@ -128,6 +128,7 @@ const title = computed(() => {
                         :total-months="trendMonths('expense_minor_units')"
                         :total-minor-units="trend.expense_minor_units"
                         :in-progress-month="trend.in_progress_month"
+                        :budget-year="budgetYear"
                     />
                     <ReportTrendTable
                         type="income"
@@ -136,6 +137,7 @@ const title = computed(() => {
                         :total-months="trendMonths('income_minor_units')"
                         :total-minor-units="trend.income_minor_units"
                         :in-progress-month="trend.in_progress_month"
+                        :budget-year="budgetYear"
                     />
                 </template>
             </template>
@@ -176,6 +178,7 @@ const title = computed(() => {
                         :entries="report.expense"
                         :total-minor-units="report.expense_minor_units"
                         :budget-year="budgetYear"
+                        :month="period.kind === 'month' ? period.month : null"
                         :comparison-year="report.comparison?.year"
                         :previous-total-minor-units="
                             report.comparison?.expense_minor_units
@@ -196,6 +199,7 @@ const title = computed(() => {
                         :entries="report.income"
                         :total-minor-units="report.income_minor_units"
                         :budget-year="budgetYear"
+                        :month="period.kind === 'month' ? period.month : null"
                         :comparison-year="report.comparison?.year"
                         :previous-total-minor-units="
                             report.comparison?.income_minor_units

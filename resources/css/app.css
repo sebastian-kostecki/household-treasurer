@@ -1583,6 +1583,15 @@
         @apply flex min-w-0 items-center gap-2;
     }
 
+    /* Nazwa kategorii w wierszu raportu jako link do jej operacji; wiersz zarchiwizowany dziedziczy wyciszony kolor tekstu. */
+    .report-name-link {
+        @apply hover:bg-secondary focus-visible:outline-ring inline-flex max-w-full min-w-0 items-center rounded-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid;
+    }
+
+    .report-name-link:hover .truncate {
+        @apply underline;
+    }
+
     .report-cell-amount {
         @apply amount text-right;
     }

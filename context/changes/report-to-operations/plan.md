@@ -220,23 +220,23 @@ Brak nowych zapytań. Link liczy się po stronie klienta z propsów, które stro
 
 #### Automated
 
-- [x] 1.1 Test Vitest funkcji celu przechodzi: `npm run test -- resources/js/lib/report-category-operations.test.ts`
-- [x] 1.2 Test Feature równości przechodzi na PostgreSQL (polecenie dla worktree z AGENTS.md): `… artisan test --compact tests/Feature/ReportToOperationsTest.php`
-- [x] 1.3 Kontrola typów przechodzi: `npm run types:check`
-- [x] 1.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent`
+- [x] 1.1 Test Vitest funkcji celu przechodzi: `npm run test -- resources/js/lib/report-category-operations.test.ts` — cb0ccc5
+- [x] 1.2 Test Feature równości przechodzi na PostgreSQL (polecenie dla worktree z AGENTS.md): `… artisan test --compact tests/Feature/ReportToOperationsTest.php` — cb0ccc5
+- [x] 1.3 Kontrola typów przechodzi: `npm run types:check` — cb0ccc5
+- [x] 1.4 Formatowanie PHP: `vendor/bin/pint --dirty --format agent` — cb0ccc5
 
 ### Phase 2: Linki w widokach raportu
 
 #### Automated
 
-- [ ] 2.1 Testy Vitest przechodzą, w tym strażnik linku w `ui-contract.test.ts`: `npm run test`
-- [ ] 2.2 Kontrola typów przechodzi: `npm run build && npm run types:check`
-- [ ] 2.3 Strażnik literałów UI przechodzi: `npm run check:ui`
-- [ ] 2.4 Pełna bramka przechodzi na PostgreSQL (polecenie dla worktree z AGENTS.md, `composer ci:check`) oraz `vendor/bin/sloppy ci` na hoście
+- [x] 2.1 Testy Vitest przechodzą, w tym strażnik linku w `ui-contract.test.ts`: `npm run test`
+- [x] 2.2 Kontrola typów przechodzi: `npm run build && npm run types:check`
+- [x] 2.3 Strażnik literałów UI przechodzi: `npm run check:ui`
+- [x] 2.4 Pełna bramka przechodzi na PostgreSQL (polecenie dla worktree z AGENTS.md, `composer ci:check`) oraz `vendor/bin/sloppy ci` na hoście
 
 #### Manual
 
-- [ ] 2.5 W `/reports?month=3` (dane dev) kliknięcie nazwy kategorii otwiera Operacje z chipami kategorii i „01.03.<rok> – 31.03.<rok>”, a suma widocznych operacji zgadza się z kwotą w raporcie
-- [ ] 2.6 W widoku roku i w Trendzie link prowadzi do zakresu `01.01–31.12` roku budżetu; grupy, „rok wcześniej”, komórki miesięcy i wiersz z „—” nie są klikalne
-- [ ] 2.7 W `/dev/ui/reports` hover pokazuje podkreśloną nazwę i tło `secondary`, Tab daje widoczną obwódkę fokusu, wiersz zarchiwizowany zostaje wyciszony, a przypięta kolumna nazwy w Trendzie nie zmienia szerokości (jasny i ciemny motyw)
-- [ ] 2.8 Czytnik ekranu albo inspektor dostępności pokazuje nazwę linku „Operacje kategorii <nazwa>, <okres>”
+- [x] 2.5 W `/reports?month=3` (dane dev) kliknięcie nazwy kategorii otwiera Operacje z chipami kategorii i „01.03.<rok> – 31.03.<rok>”, a suma widocznych operacji zgadza się z kwotą w raporcie
+- [x] 2.6 W widoku roku i w Trendzie link prowadzi do zakresu `01.01–31.12` roku budżetu; grupy, „rok wcześniej”, komórki miesięcy i wiersz z „—” nie są klikalne
+- [x] 2.7 W `/dev/ui/reports` hover pokazuje podkreśloną nazwę i tło `secondary`, Tab daje widoczną obwódkę fokusu, wiersz zarchiwizowany zostaje wyciszony, a przypięta kolumna nazwy w Trendzie nie zmienia szerokości (jasny i ciemny motyw)
+- [x] 2.8 Czytnik ekranu albo inspektor dostępności pokazuje nazwę linku „Operacje kategorii <nazwa>, <okres>”

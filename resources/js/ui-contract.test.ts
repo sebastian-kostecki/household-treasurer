@@ -525,4 +525,25 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(row).toContain("from '@/routes'");
         expect(row).not.toContain('href="/operations');
     });
+
+    it('links report category names to Operations through the Wayfinder route and the shared query', () => {
+        for (const file of [
+            'components/ReportCategoryRow.vue',
+            'components/ReportTrendTable.vue',
+        ]) {
+            const source = readFileSync(join(JS_ROOT, file), 'utf8');
+
+            expect(source).toContain("from '@/routes'");
+            expect(source).toContain('reportCategoryOperationsQuery');
+            expect(source).not.toContain('href="/operations');
+        }
+
+        const group = readFileSync(
+            join(JS_ROOT, 'components/ReportGroupRow.vue'),
+            'utf8',
+        );
+
+        expect(group).not.toContain('reportCategoryOperationsQuery');
+        expect(group).not.toContain('operations(');
+    });
 });

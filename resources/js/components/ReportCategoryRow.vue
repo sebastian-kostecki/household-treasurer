@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +7,9 @@ import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import { formatShareTenths } from '@/lib/format-share';
 import { planChangeToneClass } from '@/lib/plan-change-direction';
+import { reportCategoryOperationsQuery } from '@/lib/report-category-operations';
 import { reportDifferenceTone } from '@/lib/report-difference';
+import { operations } from '@/routes';
 import type { PeriodReportCategory } from '@/types/reports';
 
 const props = defineProps<{
@@ -19,6 +22,10 @@ const props = defineProps<{
     comparisonYear?: number;
     /** The row stands under a group row, indented. */
     nested?: boolean;
+    /** Year of the viewed Budget; the name links to Operations of this period. */
+    budgetYear: number;
+    /** Viewed month (1 to 12), `null` for the whole Budget year. */
+    month: number | null;
 }>();
 
 const t = useTranslations();
@@ -31,6 +38,25 @@ const previousLabel = computed(() =>
         String(props.comparisonYear),
     ),
 );
+
+const operationsQuery = computed(() =>
+    reportCategoryOperationsQuery(
+        props.category,
+        props.budgetYear,
+        props.month,
+    ),
+);
+
+const operationsLinkLabel = computed(() => {
+    const period =
+        props.month === null
+            ? String(props.budgetYear)
+            : `${t.budget[`month_name_${props.month}` as keyof typeof t.budget]} ${props.budgetYear}`;
+
+    return t.reports.operations_link_label
+        .replace(':name', props.category.name)
+        .replace(':period', period);
+});
 
 const differenceToneClass = computed(() => {
     const tone = reportDifferenceTone(
@@ -56,7 +82,20 @@ const differenceToneClass = computed(() => {
         data-report-row="category"
     >
         <div class="report-area-name report-cell-name">
+            <Link
+                v-if="operationsQuery !== null"
+                :href="operations({ query: operationsQuery })"
+                class="report-name-link"
+                :aria-label="operationsLinkLabel"
+            >
+                <CategoryChip
+                    :name="category.name"
+                    :icon="category.icon ?? ''"
+                    :color="category.color"
+                />
+            </Link>
             <CategoryChip
+                v-else
                 :name="category.name"
                 :icon="category.icon ?? ''"
                 :color="category.color"
