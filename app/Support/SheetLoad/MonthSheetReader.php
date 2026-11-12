@@ -104,18 +104,20 @@ final class MonthSheetReader
     }
 
     /**
+     * The 2022 breakdown under G "Codzienne wydatki" ends before an empty G or the "Do kiedy wydatki" row (a date in I).
+     *
      * @return list<SheetEntry>|null
      */
     private function dailyBreakdown(SheetCells $cells, int $from): ?array
     {
         for ($row = $from; $row <= $cells->highestRow(); $row++) {
-            if ($cells->label('G', $row) !== 'codzienne') {
+            if (! in_array($cells->label('G', $row), ['codzienne', 'codzienne wydatki'], true)) {
                 continue;
             }
 
             $items = [];
 
-            for ($item = $row + 1; $item <= $cells->highestRow() && ! $cells->isEmpty('G', $item); $item++) {
+            for ($item = $row + 1; $item <= $cells->highestRow() && ! $cells->isEmpty('G', $item) && $cells->label('G', $item) !== 'do kiedy wydatki'; $item++) {
                 $items[] = $this->entry($cells, 'G', 'I', $item);
             }
 

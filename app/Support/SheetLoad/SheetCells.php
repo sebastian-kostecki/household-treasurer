@@ -2,6 +2,7 @@
 
 namespace App\Support\SheetLoad;
 
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
@@ -9,6 +10,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  */
 final class SheetCells
 {
+    private ?int $highestRow = null;
+
     public function __construct(private readonly Worksheet $sheet) {}
 
     public function name(): string
@@ -16,9 +19,12 @@ final class SheetCells
         return $this->sheet->getTitle();
     }
 
+    /**
+     * Computed once: `getHighestDataRow()` walks every cell, and the readers call this in their loop conditions.
+     */
     public function highestRow(): int
     {
-        return $this->sheet->getHighestDataRow();
+        return $this->highestRow ??= $this->sheet->getHighestDataRow();
     }
 
     public function address(string $column, int $row): string
@@ -92,6 +98,9 @@ final class SheetCells
         return (string) preg_replace('/^work:/u', 'praca:', $label);
     }
 
+    /**
+     * The stored value of the cell; for a formula the value the sheet saved with it, never a recalculation.
+     */
     private function value(string $column, int $row): mixed
     {
         $coordinate = $column.$row;
@@ -100,6 +109,18 @@ final class SheetCells
             return null;
         }
 
-        return $this->sheet->getCell($coordinate)->getValue();
+        $cell = $this->sheet->getCell($coordinate);
+
+        if ($cell->getDataType() !== DataType::TYPE_FORMULA) {
+            return $cell->getValue();
+        }
+
+        $stored = $cell->getOldCalculatedValue();
+
+        if ($stored === null) {
+            throw new SheetReadException($this->address($column, $row), 'formuła „'.$cell->getValue().'” bez zapisanej wartości; otwórz plik w Excelu i zapisz go ponownie');
+        }
+
+        return $stored;
     }
 }

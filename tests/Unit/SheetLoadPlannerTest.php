@@ -167,8 +167,9 @@ test('2022 splits Codzienne wydatki by the breakdown and files the rest to groce
         array_filter($january, fn (PlannedOperation $op): bool => $op->category === $category && $op->type === FinancialOperationType::Expense),
     ));
 
-    expect($byCategory(29))->toBe(25_000)
+    expect($byCategory(29))->toBe(15_000)
         ->and($byCategory(32))->toBe(5_000)
+        ->and($byCategory(8))->toBe(100_000)
         ->and(collect($january)->where('description', 'Jedzenie (arkusz 2022)')->first()->amountMinorUnits)->toBe(60_000)
         ->and(collect($january)->where('description', 'reszta bez rozpisania: codzienne wydatki (arkusz 2022, styczeń)')->first()->amountMinorUnits)->toBe(30_000)
         ->and($plan->expenseTotal())->toBe($plan->analysisExpense->amountMinorUnits);

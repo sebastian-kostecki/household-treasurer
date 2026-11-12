@@ -502,8 +502,8 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Manual
 
-- [x] 5.4 --dry-run czterech prawdziwych plików daje sumy z tabeli addendum — ffc90e3
-- [x] 5.5 Ostrzeżenia obejmują 2022 czerwiec i 2024 wrzesień, sumy per kategoria sensowne — ffc90e3
+- [x] 5.4 --dry-run czterech prawdziwych plików daje sumy z tabeli addendum — ffc90e3; faktycznie przeszło dopiero po be391e7 (production-load-notes.md)
+- [x] 5.5 Ostrzeżenia obejmują 2022 czerwiec i 2024 wrzesień, sumy per kategoria sensowne — ffc90e3; faktycznie przeszło dopiero po be391e7 (production-load-notes.md)
 
 ### Phase 6: Zapis i wycofanie
 
@@ -523,6 +523,6 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Manual
 
-- [ ] 7.2 Próba na odtworzonej kopii produkcji przechodzi z przeglądem raportów i Kategorii
-- [ ] 7.3 Na próbie wycofanie przywraca numery kontrolne, ponowne wczytanie przechodzi
+- [x] 7.2 Próba na odtworzonej kopii produkcji przechodzi z przeglądem raportów i Kategorii — bce4637
+- [x] 7.3 Na próbie wycofanie przywraca numery kontrolne, ponowne wczytanie przechodzi — bce4637
 - [ ] 7.4 Produkcja: wczytanie 2022–2025, --allow-additions przechodzi, salda, dashboard i szkic 2027 bez zmian
