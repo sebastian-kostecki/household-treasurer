@@ -46,7 +46,7 @@ return [
     // 2022: the breakdown of "Codzienne wydatki" in G25:I31.
     'daily_breakdown' => [
         'jedzenie' => 8,
-        'słodycze i inne' => 29,
+        'słodycze i inne' => 8,
         'środki czystości' => 8,
         'pomoce kuchenne' => 8,
         'higiena i kosmetyki' => 29,

@@ -146,14 +146,7 @@ final class SheetWorkbookFactory
         $sheet->setCellValue('I16', $fund);
 
         if ($daily !== null) {
-            $sheet->setCellValue('G24', 'Codzienne');
-            $row = 25;
-
-            foreach ($daily as $label => $amount) {
-                $sheet->setCellValue('G'.$row, $label);
-                $sheet->setCellValue('I'.$row, $amount);
-                $row++;
-            }
+            self::dailyBreakdown($sheet, $daily);
         }
 
         $offset = $number === 1 ? ($options['januaryOffset'] ?? 0) : 0;
@@ -163,6 +156,32 @@ final class SheetWorkbookFactory
         $excludedIncome = self::grosze($income['oszczędności'] ?? 0);
 
         return [$incomeTotal - $excludedIncome, $expenseTotal - $excluded];
+    }
+
+    /**
+     * As in the real 2022 sheets: the header "Codzienne wydatki" in G25, the items under it, then "Do kiedy wydatki"
+     * with a date serial in H and I, then the item labels again without amounts.
+     *
+     * @param  array<string, float>  $daily
+     */
+    private static function dailyBreakdown(Worksheet $sheet, array $daily): void
+    {
+        $sheet->setCellValue('G25', 'Codzienne wydatki');
+        $row = 26;
+
+        foreach ($daily as $label => $amount) {
+            $sheet->setCellValue('G'.$row, $label);
+            $sheet->setCellValue('I'.$row, $amount);
+            $row++;
+        }
+
+        $sheet->setCellValue('G'.$row, 'Do kiedy wydatki');
+        $sheet->setCellValue('H'.$row, 44592);
+        $sheet->setCellValue('I'.$row, 44592);
+
+        foreach (array_keys($daily) as $label) {
+            $sheet->setCellValue('G'.++$row, mb_strtolower($label));
+        }
     }
 
     /**
