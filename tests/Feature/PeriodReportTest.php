@@ -748,6 +748,19 @@ test('the archived mark follows the newest covering Budget with a line of the ca
         ->and($rows['Odeszła']['is_archived'])->toBeTrue();
 });
 
+test('a category without a line in the newest covering Budget takes the archived mark of the list category', function () {
+    [$user, $account, $budget2025] = windowReportFixture();
+    $archivedOnList = reportLine($user, $budget2025, 'expense', 'Wesele', ['archived_at' => '2026-03-01 10:00:00']);
+    $activeOnList = reportLine($user, $budget2025, 'expense', 'Ogród', [], true);
+    reportOperation($user, $account, $archivedOnList, '2025-11-15', 300);
+    reportOperation($user, $account, $activeOnList, '2025-12-15', 400);
+
+    $rows = reportRowsByName(PeriodReport::forWindow(reportWindow($user))->toArray()['expense']);
+
+    expect($rows['Wesele']['is_archived'])->toBeTrue()
+        ->and($rows['Ogród']['is_archived'])->toBeFalse();
+});
+
 test('a group sums its categories across Budgets and the share is that of the window expenses', function () {
     [$user, $account, $budget2025, $budget2026] = windowReportFixture();
     $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);

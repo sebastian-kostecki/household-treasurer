@@ -9,8 +9,8 @@ use App\Models\Category;
 use App\Models\CategoryGroup;
 
 /**
- * The Period Report of one Budget (ADR-0070): Execution of a month or of the
- * whole year, or (ADR-0081) of the last twelve closed months across the Budgets
+ * The Period Report (ADR-0070): Execution of a month or of the whole year of one
+ * Budget, or (ADR-0081) of the last twelve closed months across the Budgets
  * that cover them, by type, in the order of the Category list, with Category Groups
  * summing all their Categories that have a row, archived ones included. All
  * amounts are minor units; the share of an expense row is an integer in tenths
@@ -27,7 +27,8 @@ use App\Models\CategoryGroup;
  *
  * The twelve-month window has no comparison. Its rows are joined by list
  * Category id from one range read per covering Budget; the archived mark of a
- * row follows the line of the newest covering Budget that has the Category.
+ * row follows the Category's line in the newest covering Budget, or the list
+ * Category when that Budget has no line of it.
  *
  * `has_operations` of the report means "has at least one row" (from either
  * range); on a row or group it means "has operations in the current period".

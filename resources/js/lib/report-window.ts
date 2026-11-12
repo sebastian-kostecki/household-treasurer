@@ -1,4 +1,14 @@
-import type { ReportWindow } from '@/types/reports';
+import type { ReportRange, ReportWindow } from '@/types/reports';
+
+/** The twelve month names (budget.month_name_1 … _12), January first. */
+export function reportMonthNamesFrom(
+    budgetTranslations: Record<string, string>,
+): string[] {
+    return Array.from(
+        { length: 12 },
+        (_, index) => budgetTranslations[`month_name_${index + 1}`] ?? '',
+    );
+}
 
 /** "2025-11-01" -> "listopad 2025"; `monthNames` is January first. */
 function monthYearLabel(date: string, monthNames: readonly string[]): string {
@@ -40,5 +50,69 @@ export function reportWindowLabel(
         window.through,
         monthNames,
         template,
+    );
+}
+
+/** The range of the category links of the window, with its label for `aria-label`. */
+export function reportWindowRange(
+    window: Pick<ReportWindow, 'from' | 'through'>,
+    monthNames: readonly string[],
+    template: string,
+): ReportRange {
+    return {
+        from: window.from,
+        through: window.through,
+        label: reportWindowLabel(window, monthNames, template),
+    };
+}
+
+/**
+ * Notka pokrycia okna (ADR-0081): "Bez budżetu w realizacji: :missing. Kwoty
+ * obejmują :covered (:count z 12 miesięcy)." Tylko przy częściowym pokryciu
+ * (0 < covered_month_count < 12), inaczej `null`; zakresy przychodzą z serwera.
+ */
+export function reportCoverageNote(
+    window: ReportWindow,
+    monthNames: readonly string[],
+    templates: { note: string; range: string },
+): string | null {
+    const {
+        covered_from: coveredFrom,
+        covered_through: coveredThrough,
+        missing_from: missingFrom,
+        missing_through: missingThrough,
+        covered_month_count: count,
+    } = window;
+
+    if (
+        count <= 0 ||
+        count >= 12 ||
+        coveredFrom === null ||
+        coveredThrough === null ||
+        missingFrom === null ||
+        missingThrough === null
+    ) {
+        return null;
+    }
+
+    const values: Record<string, string> = {
+        missing: reportMonthRangeLabel(
+            missingFrom,
+            missingThrough,
+            monthNames,
+            templates.range,
+        ),
+        covered: reportMonthRangeLabel(
+            coveredFrom,
+            coveredThrough,
+            monthNames,
+            templates.range,
+        ),
+        count: String(count),
+    };
+
+    return templates.note.replace(
+        /:(missing|covered|count)/g,
+        (_, key: string) => values[key] ?? '',
     );
 }

@@ -10,7 +10,7 @@ Source. For every covering Budget one `MonthCategoryActuals::forRange` over the 
 
 Result. The result of the window is the sum of Month Result of the covered months, to the grosz (a test proves it against `BudgetMonthResult`). It is not Year Result: the UI says „Wynik 12 miesięcy”. The share of an expense row is that of the expenses of the window.
 
-Archived mark. A row with lines in several Budgets follows the line of the newest covering Budget that has the Category; without any line it follows the archive date of the list Category. This extends ADR-0070 and ADR-0074.
+Archived mark. A row follows the line of its Category in the newest covering Budget; when that Budget has no line of the Category, the row follows the archive date of the list Category. An older line is not used for the mark: archiving a Category (ADR-0063) archives only the line of the current year's Budget in execution and leaves older lines active, so a Category archived after its last line would otherwise read as active. This extends ADR-0070 and ADR-0074.
 
 No comparison and no Trend. The window has no year-over-year comparison (ADR-0074 stays in the Year and the Month) and no month-by-month Trend (ADR-0077 stays the Trend of a Budget year). A full comparison of the window would be possible in production at the earliest on 1 January 2028, so it returns, if at all, as its own slice.
 

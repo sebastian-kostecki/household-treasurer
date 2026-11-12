@@ -620,6 +620,8 @@ const windowNoCoverage: ReportWindow = {
     covered_from: null,
     covered_through: null,
     covered_month_count: 0,
+    missing_from: '2025-11-01',
+    missing_through: '2026-10-31',
 };
 
 function lastTwelvePeriod(window: ReportWindow): ReportPeriod {
@@ -918,7 +920,7 @@ export const reportScenarios: ReportScenario[] = [
     {
         key: 'last-12-full',
         caption:
-            '12 miesięcy w pełni pokryte, bez paska miesięcy i bez porównania; kategoria Żywność obecna w obu Budżetach (kwoty z obu lat), nazwa kategorii to link do operacji całego okna',
+            '12 miesięcy w pełni pokryte, bez paska miesięcy i bez porównania; kwoty to suma miesięcy z obu Budżetów, policzona na serwerze, nazwa kategorii to link do operacji całego okna',
         kind: 'last-12',
         period: lastTwelvePeriod(windowFull),
         report: yearReport,

@@ -454,10 +454,6 @@ class ReportsPageTest extends TestCase
                 ->where('trend.months.2.expense_minor_units', 12000));
     }
 
-    /**
-     * Books one expense through the factories: enough for a report, which reads
-     * the operations and does not use the line's Execution counter.
-     */
     public function test_it_renders_the_last_twelve_months_across_two_budgets(): void
     {
         $this->travelTo('2026-11-12');
@@ -617,6 +613,10 @@ class ReportsPageTest extends TestCase
                 ->has('report.expense', 1));
     }
 
+    /**
+     * Books one expense through the factories: enough for a report, which reads
+     * the operations and does not use the line's Execution counter.
+     */
     private function bookExpense(User $user, int $year, string $name, string $date, int $amount, bool $createBudget = true): void
     {
         $budget = $createBudget

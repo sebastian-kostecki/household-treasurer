@@ -11,7 +11,7 @@ import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import { reportWindowLabel } from '@/lib/report-window';
+import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
 import type { ReportRange, ReportsPageProps } from '@/types/reports';
 
@@ -63,38 +63,22 @@ const periodOptions = computed(() => [
     { value: 'trend' as const, label: t.reports.period_trend },
 ]);
 
-const monthNames = computed(() =>
-    Array.from(
-        { length: 12 },
-        (_, index) =>
-            t.budget[`month_name_${index + 1}` as keyof typeof t.budget],
-    ),
-);
-
 /** The last-12 window as the server resolved it; `null` in the other views. */
 const reportWindow = computed(() =>
     props.period.kind === 'last-12' ? props.period.window : null,
 );
 
-const windowLabel = computed(() =>
+const range = computed<ReportRange | null>(() =>
     reportWindow.value === null
-        ? ''
-        : reportWindowLabel(
+        ? null
+        : reportWindowRange(
               reportWindow.value,
-              monthNames.value,
+              reportMonthNamesFrom(t.budget),
               t.reports.window_range,
           ),
 );
 
-const range = computed<ReportRange | null>(() =>
-    reportWindow.value === null
-        ? null
-        : {
-              from: reportWindow.value.from,
-              through: reportWindow.value.through,
-              label: windowLabel.value,
-          },
-);
+const windowLabel = computed(() => range.value?.label ?? '');
 
 const hasNoCoverage = computed(
     () =>

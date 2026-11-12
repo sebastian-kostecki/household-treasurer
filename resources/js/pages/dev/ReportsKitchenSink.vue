@@ -11,7 +11,7 @@ import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
-import { reportWindowLabel } from '@/lib/report-window';
+import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reportScenarios } from '@/lib/reports-fixtures';
 import type { ReportRange, ReportWindow } from '@/types/reports';
 
@@ -28,21 +28,14 @@ const periodOptions = [
     { value: 'trend' as const, label: t.reports.period_trend },
 ];
 
-const monthNames = Array.from(
-    { length: 12 },
-    (_, index) => t.budget[`month_name_${index + 1}` as keyof typeof t.budget],
-);
-
-function windowLabel(window: ReportWindow): string {
-    return reportWindowLabel(window, monthNames, t.reports.window_range);
-}
+const monthNames = reportMonthNamesFrom(t.budget);
 
 function windowRange(window: ReportWindow): ReportRange {
-    return {
-        from: window.from,
-        through: window.through,
-        label: windowLabel(window),
-    };
+    return reportWindowRange(window, monthNames, t.reports.window_range);
+}
+
+function windowLabel(window: ReportWindow): string {
+    return windowRange(window).label;
 }
 
 function trendMonths(
@@ -74,7 +67,7 @@ const stateMatrix = [
     },
     {
         state: 'last-12',
-        where: 'Scenariusze last-12-full (pełne pokrycie, kategoria w obu latach), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (cztery segmenty w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
+        where: 'Scenariusze last-12-full (pełne pokrycie), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (cztery segmenty w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
     },
     {
         state: 'empty',
