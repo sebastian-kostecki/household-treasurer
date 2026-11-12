@@ -1,7 +1,7 @@
 ---
 change_id: import-suggestions-on-category-list
 title: Import suggestions on the category list
-status: implemented
+status: impl_reviewed
 created: 2026-11-12
 updated: 2026-11-12
 archived_at: null
