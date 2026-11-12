@@ -23,6 +23,7 @@ class ResetUserDataCommandTest extends TestCase
     {
         $user = User::factory()->create([
             'first_run_checklist_dismissed_at' => now(),
+            'default_set_aside_percent' => 10,
         ]);
         $otherUser = User::factory()->create();
 
@@ -77,6 +78,7 @@ class ResetUserDataCommandTest extends TestCase
         $this->assertDatabaseMissing('sessions', ['id' => 'session-for-target-user']);
 
         $this->assertNull($user->refresh()->first_run_checklist_dismissed_at);
+        $this->assertNull($user->default_set_aside_percent);
     }
 
     public function test_command_accepts_user_id(): void

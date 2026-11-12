@@ -43,6 +43,31 @@ export function reportCategoryOperationsQuery(
 }
 
 /**
+ * Cel linku z nazwy kategorii w raporcie okna 12 miesięcy (ADR-0081): operacje
+ * tej kategorii w całym zakresie dat `from`..`through` (`Y-m-d`), także przez
+ * granicę roku. `null`, gdy wiersz nie ma operacji w okresie.
+ */
+export function reportRangeOperationsQuery(
+    category: { id: number; has_operations?: boolean },
+    from: string,
+    through: string,
+): Record<string, string | number | undefined> | null {
+    if (category.has_operations === false) {
+        return null;
+    }
+
+    return operationsListQuery(
+        {
+            ...EMPTY_OPERATIONS_FILTERS,
+            category_id: category.id,
+            date_from: from,
+            date_to: through,
+        },
+        DEFAULT_OPERATIONS_SECTION,
+    );
+}
+
+/**
  * Dostępna nazwa linku z szablonu `:name` / `:period`. Jedno przejście i
  * funkcja zastępująca: nazwa kategorii od użytkownika nie jest ani
  * interpretowana (`$&`), ani ponownie podstawiana (tekst `:period`).

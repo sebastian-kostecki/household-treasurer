@@ -112,11 +112,35 @@ export type ReportTrendData = {
     expense: ReportTrendEntry[];
 };
 
+/** Mirror of `App\Support\ReportTwelveMonthWindow::toArray()` (ADR-0081); dates are `Y-m-d`. */
+export type ReportWindow = {
+    /** First and last day of the 12 closed months. */
+    from: string;
+    through: string;
+    /** The stretch of the window covered by Budgets in execution; null when none is. */
+    covered_from: string | null;
+    covered_through: string | null;
+    /** 0 to 12. */
+    covered_month_count: number;
+    /** The stretch without a Budget in execution; null when the window is fully covered. */
+    missing_from: string | null;
+    missing_through: string | null;
+};
+
+/** A date range a report row links to in Operations; `label` names it for screen readers. */
+export type ReportRange = {
+    from: string;
+    through: string;
+    label: string;
+};
+
 export type ReportPeriod = {
-    kind: 'year' | 'month' | 'trend';
+    kind: 'year' | 'month' | 'last-12' | 'trend';
     month: number | null;
     default_month: number;
     is_in_progress: boolean;
+    /** Only for `last-12`, otherwise null. */
+    window: ReportWindow | null;
 };
 
 export type ReportsPageProps = {

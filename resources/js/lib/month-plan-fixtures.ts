@@ -530,6 +530,7 @@ export function buildMonthPlanReading(
         to_spend_expense_minor_units: 380_000,
         month_states: allMonthStates,
         set_aside_minor_units: 0,
+        set_aside_default: null,
         spendable_liquidity_minor_units: 500_000,
         month_pace: null,
         income_items: incomeRows,
