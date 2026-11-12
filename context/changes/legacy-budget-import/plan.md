@@ -519,7 +519,7 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [ ] 7.1 README ma sekcję procedury i sekcję wycofania
+- [x] 7.1 README ma sekcję procedury i sekcję wycofania
 
 #### Manual
 
