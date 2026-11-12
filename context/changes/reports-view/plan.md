@@ -433,13 +433,13 @@ Nie dotyczy: bez migracji i danych. Zmiana fixture jest wewnętrzna dla sinka.
 
 #### Automated
 
-- [x] 4.1 Test E2E C5 przechodzi z czerwonego na zielony
-- [x] 4.2 Istniejące E2E Raportów przechodzą (porównanie, nagłówki kolumn)
-- [x] 4.3 Strażniki i indeks reguł
-- [x] 4.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Test E2E C5 przechodzi z czerwonego na zielony — 15c421a
+- [x] 4.2 Istniejące E2E Raportów przechodzą (porównanie, nagłówki kolumn) — 15c421a
+- [x] 4.3 Strażniki i indeks reguł — 15c421a
+- [x] 4.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — 15c421a
 
 #### Manual
 
-- [x] 4.5 /reports w 352 px: pełne nazwy i „udział X%” pod kwotą
-- [x] 4.6 Sink phone i compared-phone: pełna nazwa, Badge pod nazwą, trzy linie z porównaniem
-- [x] 4.7 /reports w 1440 px: wiersz w jednej linii jak dziś
+- [x] 4.5 /reports w 352 px: pełne nazwy i „udział X%” pod kwotą — 15c421a
+- [x] 4.6 Sink phone i compared-phone: pełna nazwa, Badge pod nazwą, trzy linie z porównaniem — 15c421a
+- [x] 4.7 /reports w 1440 px: wiersz w jednej linii jak dziś — 15c421a
