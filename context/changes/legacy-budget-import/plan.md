@@ -457,25 +457,25 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [x] 1.1 ADR istnieje i ma kolejny wolny numer
-- [x] 1.2 Glosariusz definiuje oba terminy
+- [x] 1.1 ADR istnieje i ma kolejny wolny numer — baf4405
+- [x] 1.2 Glosariusz definiuje oba terminy — baf4405
 
 #### Manual
 
-- [x] 1.3 ADR-0083 i wpisy glosariusza oddają decyzje 1–8 bez sprzeczności z PRD v3 i roadmapą
+- [x] 1.3 ADR-0083 i wpisy glosariusza oddają decyzje 1–8 bez sprzeczności z PRD v3 i roadmapą — baf4405
 
 ### Phase 2: Konto arkusza
 
 #### Automated
 
-- [ ] 2.1 Testy migracji, płynności, dashboardu, strony kont, polityki, komend kont, blokady roku wczytanego i snapshotu na PostgreSQL przechodzą
-- [ ] 2.2 Test down() odmawia przy istniejącym koncie arkusza i usuwa kolumnę bez niego
-- [ ] 2.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
-- [ ] 2.4 vendor/bin/pint --dirty --format agent bez zmian
+- [x] 2.1 Testy migracji, płynności, dashboardu, strony kont, polityki, komend kont, blokady roku wczytanego i snapshotu na PostgreSQL przechodzą
+- [x] 2.2 Test down() odmawia przy istniejącym koncie arkusza i usuwa kolumnę bez niego
+- [x] 2.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 2.4 vendor/bin/pint --dirty --format agent bez zmian
 
 #### Manual
 
-- [ ] 2.5 Konto z sheet_year niewidoczne na dashboardzie i stronie kont, płynność i fundusze bez zmian
+- [x] 2.5 Konto z sheet_year niewidoczne na dashboardzie i stronie kont, płynność i fundusze bez zmian
 
 ### Phase 3: Numery kontrolne „tylko dodano”
 

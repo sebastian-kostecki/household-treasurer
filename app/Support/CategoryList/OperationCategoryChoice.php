@@ -3,6 +3,7 @@
 namespace App\Support\CategoryList;
 
 use App\Enums\CategoryType;
+use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
@@ -15,7 +16,9 @@ use App\Support\BudgetLineResolver;
  * (ADR-0067): a new or changed Category must be active on the list and in the
  * year's Budget in execution, joining it at the save when it has no line there;
  * an unchanged Category of an existing operation also passes when it is
- * archived, as long as the year's Budget has its line.
+ * archived, as long as the year's Budget has its line. A year loaded from a
+ * sheet (the User has a Sheet Account for it) is closed to new operations
+ * (ADR-0083).
  */
 final class OperationCategoryChoice
 {
@@ -37,6 +40,10 @@ final class OperationCategoryChoice
 
         if (! $category instanceof Category) {
             return (string) __('The selected category is invalid.');
+        }
+
+        if (Account::query()->where('user_id', $user->id)->where('sheet_year', $year)->exists()) {
+            return (string) __('This year was loaded from a sheet and is closed for new operations.');
         }
 
         $budget = Budget::query()->where('user_id', $user->id)->where('year', $year)->first();

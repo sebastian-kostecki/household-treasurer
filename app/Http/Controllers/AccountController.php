@@ -25,6 +25,7 @@ class AccountController extends Controller
 
         $allAccounts = $request->user()
             ->accounts()
+            ->withoutSheetAccounts()
             ->orderBy('name')
             ->get();
 

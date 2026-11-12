@@ -26,6 +26,12 @@ class RestoreAccountCommand extends Command
             return self::FAILURE;
         }
 
+        if ($account->isSheetAccount()) {
+            $this->components->error("Account #{$account->id} is the Sheet Account of year {$account->sheet_year}; it cannot be changed here. Undo the year with budget:unload-sheet.");
+
+            return self::FAILURE;
+        }
+
         if (! $account->isArchived()) {
             $this->components->error('This account is not archived.');
 
