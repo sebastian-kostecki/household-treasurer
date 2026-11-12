@@ -33,3 +33,32 @@ export function reportChartBars(
         ? bars
         : [];
 }
+
+const ROW_HEIGHT_REM = 3;
+const COMPARED_ROW_HEIGHT_REM = 4.5;
+const AXIS_HEIGHT_REM = 2;
+
+/** Width of the category names left of the bars, in px (chart axis). */
+export const REPORT_CHART_NAME_WIDTH_PX = 110;
+
+/** Number of amount ticks on the value axis of the bar chart. */
+export const REPORT_CHART_VALUE_TICKS = 3;
+
+/**
+ * Height of the bar chart in rem: the one source for the chart and for the
+ * placeholder that holds its place while the lazy fragment loads, so the page
+ * does not jump. Zero when there are no bars (nothing is drawn).
+ */
+export function reportChartHeightRem(
+    barCount: number,
+    compared: boolean,
+): number {
+    if (barCount <= 0) {
+        return 0;
+    }
+
+    return (
+        barCount * (compared ? COMPARED_ROW_HEIGHT_REM : ROW_HEIGHT_REM) +
+        AXIS_HEIGHT_REM
+    );
+}

@@ -2,6 +2,7 @@
 import { Orientation } from '@unovis/ts';
 import { VisAxis, VisGroupedBar, VisXYContainer } from '@unovis/vue';
 import { computed } from 'vue';
+import ReportChartLegend from '@/components/ReportChartLegend.vue';
 import { ChartContainer } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
 import { useTranslations } from '@/composables/useTranslations';
@@ -71,23 +72,11 @@ function valueLabel(tick: number | Date): string {
 
 <template>
     <div v-if="bars.length > 0" class="p-4" aria-hidden="true">
-        <ul
-            data-testid="report-trend-chart-legend"
-            class="meta text-muted-foreground mb-3 flex flex-wrap items-center gap-x-4 gap-y-1"
-        >
-            <li
-                v-for="item in legend"
-                :key="item.key"
-                class="flex items-center gap-1.5"
-            >
-                <span
-                    class="size-2.5 shrink-0 rounded-sm"
-                    :style="{ backgroundColor: item.color }"
-                />
-                {{ item.label }}
-            </li>
-            <li v-if="inProgressNote !== null">{{ inProgressNote }}</li>
-        </ul>
+        <ReportChartLegend
+            :items="legend"
+            :note="inProgressNote"
+            test-id="report-trend-chart-legend"
+        />
         <div data-testid="report-trend-chart" class="h-64">
             <ChartContainer :config="config" class="aspect-auto">
                 <VisXYContainer :data="bars">

@@ -4,6 +4,7 @@ import { computed, defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportCoverageNote from '@/components/ReportCoverageNote.vue';
+import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
@@ -15,9 +16,11 @@ import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
 import type { ReportRange, ReportsPageProps } from '@/types/reports';
 
-const ReportBarChart = defineAsyncComponent(
-    () => import('@/components/ReportBarChart.vue'),
-);
+const ReportBarChart = defineAsyncComponent({
+    loader: () => import('@/components/ReportBarChart.vue'),
+    loadingComponent: ReportBarChartPlaceholder,
+    delay: 0,
+});
 
 const props = defineProps<ReportsPageProps>();
 

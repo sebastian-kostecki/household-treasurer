@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 import type { PeriodReportEntry } from '../types/reports';
-import { reportChartBars } from './report-chart';
+import { reportChartBars, reportChartHeightRem } from './report-chart';
 
 function category(
     id: number,
@@ -104,5 +104,21 @@ describe('reportChartBars', () => {
                 true,
             ),
         ).toEqual([]);
+    });
+});
+
+describe('reportChartHeightRem', () => {
+    it('gives each bar 3 rem plus 2 rem for the axis', () => {
+        expect(reportChartHeightRem(6, false)).toBe(20);
+        expect(reportChartHeightRem(2, false)).toBe(8);
+    });
+
+    it('gives each compared bar 4.5 rem plus 2 rem for the axis', () => {
+        expect(reportChartHeightRem(6, true)).toBe(29);
+    });
+
+    it('is zero without bars, so no chart and no placeholder take room', () => {
+        expect(reportChartHeightRem(0, false)).toBe(0);
+        expect(reportChartHeightRem(0, true)).toBe(0);
     });
 });

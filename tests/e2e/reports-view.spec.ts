@@ -70,3 +70,70 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
         await expect(noBudget.locator('.segmented-control')).toHaveCount(0);
     });
 });
+
+// The chart is a lazy fragment: until it arrives the table must already stand
+// where it will stay, so the page does not jump when the chart appears.
+test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
+    async function holdFragment(
+        page: Page,
+        pattern: string,
+    ): Promise<() => void> {
+        let release: () => void = () => {};
+        const released = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+
+        await page.route(pattern, async (route) => {
+            await released;
+            await route.continue();
+        });
+
+        return release;
+    }
+
+    test('słupkowy: tabela Wydatki nie przeskakuje po doładowaniu wykresu', async ({
+        page,
+    }) => {
+        const release = await holdFragment(
+            page,
+            '**/build/assets/ReportBarChart-*.js',
+        );
+
+        await page.goto('/reports');
+
+        const heading = page
+            .getByRole('heading', { name: 'Wydatki', exact: true })
+            .first();
+        await expect(heading).toBeVisible();
+        const before = (await heading.boundingBox())!.y;
+
+        release();
+        await expect(page.getByTestId('report-chart-expense')).toBeVisible();
+        const after = (await heading.boundingBox())!.y;
+
+        expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
+    });
+
+    test('Trend: tabela miar nie przeskakuje po doładowaniu wykresu', async ({
+        page,
+    }) => {
+        const release = await holdFragment(
+            page,
+            '**/build/assets/ReportTrendChart-*.js',
+        );
+
+        await page.goto('/reports?view=trend');
+
+        const table = page.locator(
+            '[data-trend-table="summary"] .report-trend-scroll',
+        );
+        await expect(table).toBeVisible();
+        const before = (await table.boundingBox())!.y;
+
+        release();
+        await expect(page.getByTestId('report-trend-chart')).toBeVisible();
+        const after = (await table.boundingBox())!.y;
+
+        expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
+    });
+});

@@ -60,7 +60,7 @@ const oldSubscription = category(
 const salary = category(7, 'Wynagrodzenie', 'briefcase', 'green', 700000, null);
 const bonus = category(8, 'Premia', 'gift', 'teal', 80000, null);
 
-const yearReport: PeriodReportData = {
+export const yearReport: PeriodReportData = {
     income_minor_units: 780000,
     expense_minor_units: 150000,
     result_minor_units: 630000,
@@ -190,7 +190,7 @@ function comparison(
     };
 }
 
-const comparedYearReport: PeriodReportData = {
+export const comparedYearReport: PeriodReportData = {
     income_minor_units: 780000,
     expense_minor_units: 160000,
     result_minor_units: 620000,
@@ -518,7 +518,7 @@ const trendOverspendJanuary = trendCategory(10, 'Remont', 'hammer', 'orange', {
     1: 900000,
 });
 
-const trendInProgress = buildTrend(
+export const trendInProgress = buildTrend(
     [trendLoose(trendSalary), trendLoose(trendBonus)],
     [
         trendLoose(trendFood),

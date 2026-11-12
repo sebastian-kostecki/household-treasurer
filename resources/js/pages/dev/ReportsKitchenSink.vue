@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent } from 'vue';
-import { reportScenarios } from '@/lib/reports-fixtures';
+import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
+import ReportTrendChartPlaceholder from '@/components/ReportTrendChartPlaceholder.vue';
+import {
+    comparedYearReport,
+    reportScenarios,
+    trendInProgress,
+    yearReport,
+} from '@/lib/reports-fixtures';
 
 const Reports = defineAsyncComponent(() => import('@/pages/Reports.vue'));
 
@@ -28,7 +35,7 @@ const stateMatrix = [
     },
     {
         state: 'loading',
-        where: 'N/A: strona nie ma deferred props; zmiana okresu to zwykła wizyta Inertia z paskiem postępu.',
+        where: 'Sekcja chart-loading: placeholdery wykresów (słupkowy bez i z porównaniem, Trend) o wysokości wykresu, widoczne do doładowania fragmentu.',
     },
     {
         state: 'error',
@@ -83,6 +90,29 @@ const stateMatrix = [
                     </tr>
                 </tbody>
             </table>
+        </section>
+
+        <section class="space-y-3" data-section="chart-loading">
+            <h2 class="section-title border-b pb-1">chart-loading</h2>
+            <p class="text-muted-foreground text-sm">
+                Placeholdery wykresów: stoją od pierwszej klatki i trzymają
+                wysokość wykresu, dopóki fragment się nie doładuje.
+            </p>
+            <ReportBarChartPlaceholder
+                type="expense"
+                :entries="yearReport.expense"
+                :budget-year="2026"
+            />
+            <ReportBarChartPlaceholder
+                type="expense"
+                :entries="comparedYearReport.expense"
+                :budget-year="2026"
+                :comparison-year="comparedYearReport.comparison?.year"
+            />
+            <ReportTrendChartPlaceholder
+                :months="trendInProgress.months"
+                :in-progress-month="trendInProgress.in_progress_month"
+            />
         </section>
 
         <section

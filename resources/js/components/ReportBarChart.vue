@@ -3,11 +3,17 @@ import { Orientation } from '@unovis/ts';
 import { VisAxis, VisGroupedBar, VisXYContainer } from '@unovis/vue';
 import { computed } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
+import ReportChartLegend from '@/components/ReportChartLegend.vue';
 import { ChartContainer } from '@/components/ui/chart';
 import type { ChartConfig } from '@/components/ui/chart';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney } from '@/lib/format';
-import { reportChartBars } from '@/lib/report-chart';
+import {
+    REPORT_CHART_NAME_WIDTH_PX,
+    REPORT_CHART_VALUE_TICKS,
+    reportChartBars,
+    reportChartHeightRem,
+} from '@/lib/report-chart';
 import type { ReportChartBar } from '@/lib/report-chart';
 import type { PeriodReportEntry } from '@/types/reports';
 
@@ -63,23 +69,25 @@ const maxValue = computed(() =>
     ),
 );
 
-const legend = computed(() => [
-    { color: color.value, year: props.budgetYear, key: 'current' },
-    { color: PREVIOUS_COLOR, year: props.comparisonYear, key: 'previous' },
-]);
-
 function legendLabel(year: number | null | undefined): string {
     return t.reports.chart_legend_previous.replace(':year', String(year ?? ''));
 }
 
-const ROW_HEIGHT_REM = 3;
-const COMPARED_ROW_HEIGHT_REM = 4.5;
-const AXIS_HEIGHT_REM = 2;
-const NAME_WIDTH_PX = 110;
-const VALUE_TICKS = 3;
+const legend = computed(() => [
+    {
+        key: 'current',
+        color: color.value,
+        label: legendLabel(props.budgetYear),
+    },
+    {
+        key: 'previous',
+        color: PREVIOUS_COLOR,
+        label: legendLabel(props.comparisonYear),
+    },
+]);
 
 const chartStyle = computed(() => ({
-    height: `${bars.value.length * (compared.value ? COMPARED_ROW_HEIGHT_REM : ROW_HEIGHT_REM) + AXIS_HEIGHT_REM}rem`,
+    height: `${reportChartHeightRem(bars.value.length, compared.value)}rem`,
 }));
 
 const rowIndexes = computed(() => bars.value.map((bar) => bar.index));
@@ -95,23 +103,11 @@ function valueLabel(tick: number | Date): string {
 
 <template>
     <ListSurface v-if="bars.length > 0" aria-hidden="true">
-        <ul
+        <ReportChartLegend
             v-if="compared"
-            :data-testid="`report-chart-legend-${type}`"
-            class="meta text-muted-foreground mb-3 flex flex-wrap items-center gap-x-4 gap-y-1"
-        >
-            <li
-                v-for="item in legend"
-                :key="item.key"
-                class="flex items-center gap-1.5"
-            >
-                <span
-                    class="size-2.5 shrink-0 rounded-sm"
-                    :style="{ backgroundColor: item.color }"
-                />
-                {{ legendLabel(item.year) }}
-            </li>
-        </ul>
+            :items="legend"
+            :test-id="`report-chart-legend-${type}`"
+        />
         <div :data-testid="`report-chart-${type}`" :style="chartStyle">
             <ChartContainer :config="config" class="aspect-auto">
                 <VisXYContainer
@@ -131,7 +127,7 @@ function valueLabel(tick: number | Date): string {
                         type="y"
                         :tick-values="rowIndexes"
                         :tick-format="rowName"
-                        :tick-text-width="NAME_WIDTH_PX"
+                        :tick-text-width="REPORT_CHART_NAME_WIDTH_PX"
                         tick-text-fit-mode="wrap"
                         tick-text-trim-type="end"
                         :tick-line="false"
@@ -139,7 +135,7 @@ function valueLabel(tick: number | Date): string {
                     />
                     <VisAxis
                         type="x"
-                        :num-ticks="VALUE_TICKS"
+                        :num-ticks="REPORT_CHART_VALUE_TICKS"
                         :tick-format="valueLabel"
                         :tick-line="false"
                         :domain-line="false"
