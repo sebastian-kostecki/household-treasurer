@@ -2,8 +2,11 @@
 
 use App\Support\SheetLoad\BudgetSheet;
 use App\Support\SheetLoad\BudgetSheetReader;
+use App\Support\SheetLoad\MonthSheetReader;
 use App\Support\SheetLoad\SheetReadException;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Tests\Support\SheetWorkbookFactory;
 
 /**
@@ -55,6 +58,46 @@ test('reads the 2023-2025 layout: year, twelve months, analysis totals and addre
         ->and($january->irregularTotal->amountMinorUnits)->toBe(30_000)
         ->and($january->dailyBreakdown)->toBeNull()
         ->and($sheet->warnings())->toBe([]);
+});
+
+test('reads the stored value of a formula cell, as the real sheets sum the daily entries with =a+b', function () {
+    $sheet = readSheet(['mutate' => function (Spreadsheet $spreadsheet): void {
+        $january = $spreadsheet->getSheetByName('styczeń');
+        $january->setCellValue('D3', '=1000.50+800');
+        $january->setCellValue('I3', '=2500+1500');
+    }]);
+    $january = $sheet->months[1];
+
+    expect($january->expenses[0]->amountMinorUnits)->toBe(180_050)
+        ->and($january->income[0]->amountMinorUnits)->toBe(400_000)
+        ->and($sheet->warnings())->toBe([]);
+});
+
+test('reading a month walks the sheet for its last row once, as the scan touches every cell of a real 1 MB sheet', function () {
+    $scanning = new class extends Worksheet
+    {
+        public int $scans = 0;
+
+        public function getHighestDataRow(?string $column = null): int
+        {
+            $this->scans++;
+
+            return parent::getHighestDataRow($column);
+        }
+    };
+
+    SheetWorkbookFactory::with(['layout' => '2022', 'year' => 2022], function (string $path) use ($scanning): void {
+        $source = IOFactory::load($path)->getSheetByName('styczeń');
+
+        foreach ($source->getCellCollection()->getCoordinates() as $coordinate) {
+            $scanning->setCellValue($coordinate, $source->getCell($coordinate)->getValue());
+        }
+    });
+
+    $january = (new MonthSheetReader)->read($scanning, 1);
+
+    expect($january->dailyBreakdown)->toHaveCount(4)
+        ->and($scanning->scans)->toBe(1);
 });
 
 test('normalises labels: trailing stars, case and work equals praca', function () {
