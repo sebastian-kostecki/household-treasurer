@@ -509,11 +509,11 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [x] 6.1 Wczytanie przechodzi --allow-additions, odczyty 2026/2027 identyczne
-- [x] 6.2 Linie, konto arkusza, szkic 2027 i Kosmetyki zgodne z kontraktem
-- [x] 6.3 Raport roku 2026 ma kolumnę roku poprzedniego z kwotami 2025
-- [x] 6.4 Wycofanie przywraca numery kontrolne, drugie wczytanie, zła nazwa, wpis 2025-12-31 i edycja operacji z arkusza odmawiają
-- [x] 6.5 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 6.1 Wczytanie przechodzi --allow-additions, odczyty 2026/2027 identyczne — ba34fc9
+- [x] 6.2 Linie, konto arkusza, szkic 2027 i Kosmetyki zgodne z kontraktem — ba34fc9
+- [x] 6.3 Raport roku 2026 ma kolumnę roku poprzedniego z kwotami 2025 — ba34fc9
+- [x] 6.4 Wycofanie przywraca numery kontrolne, drugie wczytanie, zła nazwa, wpis 2025-12-31 i edycja operacji z arkusza odmawiają — ba34fc9
+- [x] 6.5 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci — ba34fc9
 
 ### Phase 7: Próba i produkcja
 
