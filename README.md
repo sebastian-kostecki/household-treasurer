@@ -250,7 +250,7 @@ Lokalnie, w `restore_trial` (po `config:clear` i sprawdzeniu `db:show`, jak w pr
 
 Komenda `import:suggestion-accuracy {user}` odtwarza historię zaimportowanych wierszy chronologicznie: każdy wiersz dostaje podpowiedź zbudowaną tylko z wierszy wcześniejszych, tym samym kodem co podgląd Importu. Drukuje dla okresów „cały rok” i „sierpień–listopad” oraz poziomów `model` (głos) i `suggestion` (cel po regule oferty selektora) odsetek wierszy z podpowiedzią i odsetek trafnych wśród nich (dla modelu także top 3). Komenda tylko czyta bazę, więc można ją uruchomić na produkcji.
 
-Mierz po zmianie modelu podpowiedzi, po zmianie kategorii albo po scaleniach kategorii (S-21). Dwa przebiegi porównuje `--compare`: kod wyjścia 1 przy każdym spadku (ułamki, nie zaokrąglone procenty), z listą okresów, poziomów i różniących się operacji; przy różnych zbiorach `operation_id` w obu plikach to błąd, a nie „brak spadku”.
+Mierz po zmianie modelu podpowiedzi, po zmianie kategorii albo po scaleniach kategorii (S-21). Dwa przebiegi porównuje `--compare`: kod wyjścia 1 przy każdym spadku (ułamki, nie zaokrąglone procenty), z listą okresów, poziomów i różniących się operacji; przy różnych zbiorach `operation_id` w obu plikach to błąd, a nie „brak spadku”. Błąd z kodem 1 daje też plik w innym `format`, plik bez którejś liczby lub flagi oraz ta sama ścieżka w `--output` i `--compare`. Top 3 jest tylko do odczytu: jego zmiana pojawia się na liście różniących się wierszy, ale nie jest spadkiem.
 
 ```bash
 scripts/artisan.sh import:suggestion-accuracy 1 --year=2026 --output=storage/app/private/suggestion-accuracy/RRRR-MM-DD-before.json

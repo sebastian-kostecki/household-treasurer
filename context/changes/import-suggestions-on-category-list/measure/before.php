@@ -112,7 +112,17 @@ foreach (['year' => 'whole year', 'aug_nov' => 'Aug-Nov'] as $period => $label) 
 
 if ($output !== '') {
     $path = str_starts_with($output, '/') ? $output : '/var/www/html/'.$output;
-    @mkdir(dirname($path), 0775, true);
-    file_put_contents($path, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
+    $directory = dirname($path);
+
+    if (! is_dir($directory) && ! mkdir($directory, 0775, true)) {
+        fwrite(STDERR, "Cannot create {$directory}.\n");
+        exit(1);
+    }
+
+    if (file_put_contents($path, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n") === false) {
+        fwrite(STDERR, "Cannot write {$path}.\n");
+        exit(1);
+    }
+
     echo "Result written to $output.\n";
 }

@@ -22,6 +22,12 @@ class ImportCategorySuggestionAccuracy
         'aug_nov' => ['from' => '08-01', 'to' => '11-30'],
     ];
 
+    /** @var array<string, list<string>> */
+    private const array ROW_FLAGS = [
+        'model' => ['suggested', 'correct', 'top3'],
+        'suggestion' => ['suggested', 'correct'],
+    ];
+
     public function __construct(private readonly ImportCategorySuggester $suggester) {}
 
     public function latestYear(User $user): ?int
@@ -80,8 +86,11 @@ class ImportCategorySuggestionAccuracy
     }
 
     /**
-     * Drops are compared as integer fractions, never as rounded percentages. Files
-     * that do not hold the same operation ids are not the same data: an error.
+     * Drops are compared as integer fractions, never as rounded percentages: rows
+     * with a suggestion and correct among suggested. Top 3 is written for reading
+     * and listed among differing rows, but it is not a drop. Files that do not hold
+     * the same operation ids are not the same data, and a file of another format or
+     * without a count or a flag would compare as zeros: both are errors.
      *
      * @param  array<string, mixed>  $before
      * @param  array<string, mixed>  $after
@@ -89,8 +98,14 @@ class ImportCategorySuggestionAccuracy
      */
     public function differences(array $before, array $after): array
     {
-        $beforeRows = $this->rowsById($before['rows'] ?? []);
-        $afterRows = $this->rowsById($after['rows'] ?? []);
+        $fileError = $this->fileError($before, 'first') ?? $this->fileError($after, 'second');
+
+        if ($fileError !== null) {
+            return ['drops' => [], 'rows' => [], 'error' => $fileError];
+        }
+
+        $beforeRows = $this->rowsById($before['rows']);
+        $afterRows = $this->rowsById($after['rows']);
 
         if (array_keys($beforeRows) !== array_keys($afterRows)) {
             $missing = count(array_diff_key($beforeRows, $afterRows));
@@ -107,7 +122,7 @@ class ImportCategorySuggestionAccuracy
 
         foreach (array_keys(self::PERIODS) as $period) {
             foreach (['model', 'suggestion'] as $level) {
-                $drops = [...$drops, ...$this->drops($period, $level, $before['periods'][$period][$level] ?? [], $after['periods'][$period][$level] ?? [])];
+                $drops = [...$drops, ...$this->drops($period, $level, $before['periods'][$period][$level], $after['periods'][$period][$level])];
             }
         }
 
@@ -124,6 +139,64 @@ class ImportCategorySuggestionAccuracy
         return ['drops' => $drops, 'rows' => $rows, 'error' => null];
     }
 
+    /**
+     * @param  array<string, mixed>  $file
+     */
+    private function fileError(array $file, string $label): ?string
+    {
+        $format = $file['format'] ?? null;
+
+        if ($format !== self::FORMAT) {
+            return "The {$label} file has format ".json_encode($format).', expected '.self::FORMAT.'.';
+        }
+
+        return $this->summaryError($file, $label) ?? $this->rowsError($file, $label);
+    }
+
+    /**
+     * @param  array<string, mixed>  $file
+     */
+    private function summaryError(array $file, string $label): ?string
+    {
+        foreach (array_keys(self::PERIODS) as $period) {
+            foreach (array_keys(self::ROW_FLAGS) as $level) {
+                foreach (['rows', 'suggested', 'correct'] as $count) {
+                    if (! is_int($file['periods'][$period][$level][$count] ?? null)) {
+                        return "The {$label} file is missing periods.{$period}.{$level}.{$count}.";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $file
+     */
+    private function rowsError(array $file, string $label): ?string
+    {
+        if (! is_array($file['rows'] ?? null)) {
+            return "The {$label} file is missing rows.";
+        }
+
+        foreach ($file['rows'] as $row) {
+            if (! is_int($row['operation_id'] ?? null)) {
+                return "The {$label} file has a row without operation_id.";
+            }
+
+            foreach (self::ROW_FLAGS as $level => $flags) {
+                foreach ($flags as $flag) {
+                    if (! is_bool($row[$level][$flag] ?? null)) {
+                        return "The {$label} file is missing {$level}.{$flag} of operation {$row['operation_id']}.";
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     private function isInPeriod(string $date, string $period, int $year): bool
     {
         return $date >= "$year-".self::PERIODS[$period]['from'] && $date <= "$year-".self::PERIODS[$period]['to'];
@@ -136,12 +209,12 @@ class ImportCategorySuggestionAccuracy
      */
     private function drops(string $period, string $level, array $before, array $after): array
     {
-        $rowsBefore = (int) ($before['rows'] ?? 0);
-        $rowsAfter = (int) ($after['rows'] ?? 0);
-        $suggestedBefore = (int) ($before['suggested'] ?? 0);
-        $suggestedAfter = (int) ($after['suggested'] ?? 0);
-        $correctBefore = (int) ($before['correct'] ?? 0);
-        $correctAfter = (int) ($after['correct'] ?? 0);
+        $rowsBefore = (int) $before['rows'];
+        $rowsAfter = (int) $after['rows'];
+        $suggestedBefore = (int) $before['suggested'];
+        $suggestedAfter = (int) $after['suggested'];
+        $correctBefore = (int) $before['correct'];
+        $correctAfter = (int) $after['correct'];
         $drops = [];
 
         if ($suggestedAfter * $rowsBefore < $suggestedBefore * $rowsAfter) {
