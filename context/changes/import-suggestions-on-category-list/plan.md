@@ -407,14 +407,14 @@ Brak migracji schematu i danych. Wycofanie = `git revert` commitów fazy 1–2: 
 
 #### Automated
 
-- [x] 3.1 --compare z plikiem „przed” kończy się kodem 0 na bazie suggestion_trial
-- [x] 3.2 Zbiory operation_id w plikach „przed” i „po” są równe
-- [x] 3.3 git status nie pokazuje plików JSON pomiaru ani archiwum w repo
+- [x] 3.1 --compare z plikiem „przed” kończy się kodem 0 na bazie suggestion_trial — c5f5b2d
+- [x] 3.2 Zbiory operation_id w plikach „przed” i „po” są równe — c5f5b2d
+- [x] 3.3 git status nie pokazuje plików JSON pomiaru ani archiwum w repo — c5f5b2d
 
 #### Manual
 
-- [x] 3.4 Użytkownik przegląda measurements.md: tabele i różniące się wiersze
-- [x] 3.5 Baza suggestion_trial usunięta, storage przywrócony, stary worktree usunięty
+- [x] 3.4 Użytkownik przegląda measurements.md: tabele i różniące się wiersze — c5f5b2d
+- [x] 3.5 Baza suggestion_trial usunięta, storage przywrócony, stary worktree usunięty — c5f5b2d
 
 ### Phase 4: Odczyt na produkcji po porządkach
 
