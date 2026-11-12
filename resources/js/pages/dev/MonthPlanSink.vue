@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle, Check, Pencil } from '@lucide/vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import MonthPlanEditBar from '@/components/MonthPlanEditBar.vue';
@@ -29,6 +29,11 @@ import {
     changeModeAmountInputs,
     matchActualState,
 } from '@/lib/month-plan-match-actual';
+import {
+    monthPlanGroupTree,
+    unreadableGroupIds,
+    withoutUnreadableGroups,
+} from '@/lib/month-plan-groups';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import {
     allMonthStates,
@@ -36,6 +41,7 @@ import {
     approvedNoPaceReading,
     approvedReading,
     futureProposalReading,
+    groupedReading,
     joinCandidateExpense,
     negativeDrawReading,
     paidBill,
@@ -45,7 +51,11 @@ import {
     yearTotals,
 } from '@/lib/month-plan-fixtures';
 import { budget as budgetRoute } from '@/routes';
-import type { MonthPlanItem, MonthPlanReading } from '@/types/month-plan';
+import type {
+    MonthPlanGroup,
+    MonthPlanItem,
+    MonthPlanReading,
+} from '@/types/month-plan';
 
 const t = useTranslations();
 
@@ -67,6 +77,10 @@ const stateMatrix: { state: string; where: string }[] = [
     {
         state: 'match-actual',
         where: 'Tabela „Tryb zmian: plan = wydatki”: znacznik „Plan podniesiony do wydatków” (Paliwo), przyciski „Ustaw plan na wydatki” (Zakupy dodatkowe, ręcznie obniżony plan Jedzenia) oraz wiersze bez kontrolki (dochody, wydatek poniżej planu). Kliknięcie przycisku wpisuje kwotę do pola i przenosi fokus na pole.',
+    },
+    {
+        state: 'groups',
+        where: 'Tabele „Grupy kategorii”: odczyt z grupami (Codzienne zwinięta, ale z „ponad plan” na wierszu grupy; kategoria bez grupy między grupami; Mieszkanie rozwinięta z wciętymi wierszami; zarchiwizowana na końcu bez grupy), edycja z błędnym polem w grupie (grupa zwinięta na starcie rozwija się sama, suma Planu „—”), grupa przychodów (bez „ponad plan”) i wygląd telefonu przy oknie 390 px (nazwa i status w pierwszej linii, sumy w drugiej). Przycisk grupy zwija i rozwija z klawiatury.',
     },
     {
         state: 'hover',
@@ -117,6 +131,9 @@ type TableConfig = {
     incomeRows: MonthPlanItem[];
     expenseRows: MonthPlanItem[];
     idleRows: MonthPlanItem[];
+    incomeGroups: MonthPlanGroup[];
+    expenseGroups: MonthPlanGroup[];
+    collapsedGroupIds: number[];
     amountInputs: Record<number, string>;
     invalidIds: number[];
     yearStale: boolean;
@@ -151,6 +168,9 @@ function tableConfig(
         caption,
         editable: false,
         ...splitRows(reading),
+        incomeGroups: reading.income_groups,
+        expenseGroups: reading.expense_groups,
+        collapsedGroupIds: [],
         amountInputs: inputsFor(reading),
         invalidIds: [],
         yearStale: false,
@@ -238,6 +258,26 @@ const tables = reactive<TableConfig[]>([
         'past',
         'Miniony miesiąc z podsumowaniem (bez wiersza odkładania)',
         pastReading,
+    ),
+    tableConfig(
+        'groups-read',
+        'Grupy kategorii, odczyt (Codzienne zwinięta z „ponad plan”, kategoria bez grupy między grupami, Mieszkanie rozwinięta, zarchiwizowana na końcu; Wynagrodzenia w przychodach bez „ponad plan”; przy oknie 390 px układ telefonu)',
+        groupedReading,
+        { collapsedGroupIds: [102] },
+    ),
+    tableConfig(
+        'groups-edit-error',
+        'Grupy kategorii, edycja z błędnym polem w grupie (Mieszkanie zwinięta na starcie rozwija się sama, suma Planu „—”)',
+        groupedReading,
+        {
+            editable: true,
+            collapsedGroupIds: [101],
+            amountInputs: {
+                ...inputsFor(groupedReading),
+                [paidBill.category_id]: 'abc',
+            },
+            invalidIds: [paidBill.category_id],
+        },
     ),
     tableConfig(
         'empty',
@@ -336,6 +376,34 @@ function stateOf(
         };
     };
 }
+
+/** Groups with an unreadable plan field, from the same trees the table draws (the page does the same). */
+function unreadableIdsOf(config: TableConfig): number[] {
+    if (!config.editable) {
+        return [];
+    }
+
+    const state = stateOf(config);
+
+    return unreadableGroupIds(
+        monthPlanGroupTree(config.incomeGroups, config.incomeRows, state),
+        monthPlanGroupTree(config.expenseGroups, config.expenseRows, state),
+    );
+}
+
+// Like the page: a group with an unreadable field opens by itself.
+watch(
+    () => tables.map(unreadableIdsOf),
+    (idsByTable) => {
+        idsByTable.forEach((ids, index) => {
+            tables[index].collapsedGroupIds = withoutUnreadableGroups(
+                tables[index].collapsedGroupIds,
+                ids,
+            );
+        });
+    },
+    { immediate: true },
+);
 
 const statPanels: {
     key: string;
@@ -602,9 +670,12 @@ const stripMonth = ref(11);
             </h2>
             <MonthPlanTable
                 v-model:idle-open="config.idleOpen"
+                v-model:collapsed-group-ids="config.collapsedGroupIds"
                 v-model:set-aside-direction="config.direction"
                 v-model:set-aside-input="config.setAsideInput"
                 :income-rows="config.incomeRows"
+                :income-groups="config.incomeGroups"
+                :expense-groups="config.expenseGroups"
                 :expense-rows="config.expenseRows"
                 :idle-rows="config.idleRows"
                 :editable="config.editable"

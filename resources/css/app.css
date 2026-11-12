@@ -942,6 +942,26 @@
         @apply bg-muted section-title border-border-soft border-b px-4 py-2;
     }
 
+    /**
+     * Category Group in the month plan (ADR-0079): a row on the no-kind grid
+     * with the borders and spacing of `.month-plan-row`, without the `muted`
+     * band of the type section (`.month-plan-group-row`). Below `xl` the name
+     * and the status stand in the first line, the sums in the second. Its
+     * Categories sit in `.month-plan-category-group-body`, indented by
+     * `.month-plan-row-nested`.
+     */
+    .month-plan-category-group-row {
+        @apply border-border-soft min-h-row items-center gap-y-1 border-b px-4 py-2;
+    }
+
+    .month-plan-category-group-body {
+        @apply relative;
+    }
+
+    .month-plan-row-nested .month-plan-cell-category {
+        @apply pl-6;
+    }
+
     .month-plan-total-row {
         @apply meta border-border-soft flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b px-4 py-2;
     }

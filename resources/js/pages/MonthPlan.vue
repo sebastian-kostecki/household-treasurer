@@ -31,6 +31,11 @@ import {
     changeModeAmountInputs,
     matchActualState,
 } from '@/lib/month-plan-match-actual';
+import {
+    monthPlanGroupTree,
+    unreadableGroupIds,
+    withoutUnreadableGroups,
+} from '@/lib/month-plan-groups';
 import { monthItemStatus } from '@/lib/month-plan-status';
 import { toSpendBreakdown } from '@/lib/to-spend-calculator';
 import { budget as budgetRoute, monthPlan as monthPlanRoute } from '@/routes';
@@ -50,6 +55,9 @@ const props = defineProps<{
 const t = useTranslations();
 
 const isChanging = ref(false);
+
+/** Category Groups the visitor has collapsed; lasts until a change of month or Budget. */
+const collapsedGroupIds = ref<number[]>([]);
 
 /** Join rows show in change mode and in an editable proposal (ADR-0067). */
 function visibleRows(rows: MonthPlanItem[]): MonthPlanItem[] {
@@ -129,6 +137,7 @@ watch(
     () => [props.viewedMonth, props.budget?.id],
     () => {
         isChanging.value = false;
+        collapsedGroupIds.value = [];
         amountInputs.value = initialAmountInputs();
         resetTouched();
     },
@@ -504,6 +513,33 @@ watch(hasInvalidIdleAmount, (invalid) => {
     }
 });
 
+/** Groups with a plan field that cannot be read; the table's own trees, so a group has no second rule. */
+const unreadableGroupIdsNow = computed<number[]>(() =>
+    isEditable.value
+        ? unreadableGroupIds(
+              monthPlanGroupTree(
+                  props.monthPlan?.income_groups ?? [],
+                  incomeRows.value,
+                  rowState,
+              ),
+              monthPlanGroupTree(
+                  props.monthPlan?.expense_groups ?? [],
+                  expenseRows.value,
+                  rowState,
+              ),
+          )
+        : [],
+);
+
+// An invalid amount blocks approval, so open the group that holds it.
+watch(unreadableGroupIdsNow, (ids) => {
+    const open = withoutUnreadableGroups(collapsedGroupIds.value, ids);
+
+    if (open.length !== collapsedGroupIds.value.length) {
+        collapsedGroupIds.value = open;
+    }
+});
+
 function updateAmount(categoryId: number, value: string): void {
     amountInputs.value[categoryId] = value;
 }
@@ -673,9 +709,12 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
 
                 <MonthPlanTable
                     v-model:idle-open="idleOpen"
+                    v-model:collapsed-group-ids="collapsedGroupIds"
                     v-model:set-aside-direction="setAsideDirection"
                     v-model:set-aside-input="setAsideInput"
                     :income-rows="incomeRows"
+                    :income-groups="monthPlan.income_groups"
+                    :expense-groups="monthPlan.expense_groups"
                     :expense-rows="expenseRows"
                     :idle-rows="idleRows"
                     :editable="isEditable"

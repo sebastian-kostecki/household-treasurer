@@ -10,6 +10,7 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\MonthPlan;
 use App\Models\MonthPlanItem;
@@ -545,6 +546,88 @@ class MonthPlanPageTest extends TestCase
                 })
                 ->where('monthPlan.to_spend_minor_units', 373_000),
             );
+    }
+
+    public function test_rows_carry_the_group_and_the_list_position_of_their_category(): void
+    {
+        [$user, , $categories] = $this->canonicalBudget();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom', 'sort_order' => 5]);
+        $categories['food']->category->update(['category_group_id' => $group->id, 'sort_order' => 7]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', function ($items) use ($group) {
+                    $items = collect($items);
+                    $food = $items->firstWhere('name', 'Jedzenie');
+                    $fuel = $items->firstWhere('name', 'Paliwo');
+
+                    return $food['group_id'] === $group->id
+                        && $food['sort_order'] === 7
+                        && $fuel['group_id'] === null
+                        && $fuel['sort_order'] === 2;
+                }),
+            );
+    }
+
+    public function test_group_lists_hold_only_groups_of_their_type_in_list_order(): void
+    {
+        [$user] = $this->canonicalBudget();
+        $second = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Zakupy', 'sort_order' => 2]);
+        $first = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom', 'sort_order' => 1]);
+        $income = CategoryGroup::factory()->for($user)->income()->create(['name' => 'Praca', 'sort_order' => 0]);
+        CategoryGroup::factory()->expense()->create(['name' => 'Cudza']);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_groups', [
+                    ['id' => $first->id, 'name' => 'Dom', 'sort_order' => 1],
+                    ['id' => $second->id, 'name' => 'Zakupy', 'sort_order' => 2],
+                ])
+                ->where('monthPlan.income_groups', [
+                    ['id' => $income->id, 'name' => 'Praca', 'sort_order' => 0],
+                ]),
+            );
+    }
+
+    public function test_a_join_candidate_carries_the_group_of_its_category(): void
+    {
+        [$user] = $this->canonicalBudget();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        Category::factory()->for($user)->expense()->create(['name' => 'Domeny', 'sort_order' => 20, 'category_group_id' => $group->id]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.expense_items', function ($items) use ($group) {
+                    $items = collect($items);
+                    $join = $items->firstWhere('name', 'Domeny');
+
+                    return $join['is_join_candidate'] === true
+                        && $join['group_id'] === $group->id
+                        && $join['sort_order'] === 20
+                        && array_keys($join) === array_keys($items->firstWhere('name', 'Jedzenie'));
+                }),
+            );
+    }
+
+    public function test_assigning_a_category_to_a_group_keeps_the_flat_row_order(): void
+    {
+        [$user, , $categories] = $this->canonicalBudget();
+        $names = fn () => $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->viewData('page')['props']['monthPlan']['expense_items'];
+
+        $before = array_column($names(), 'name');
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        $categories['fuel']->category->update(['category_group_id' => $group->id]);
+
+        $this->assertSame($before, array_column($names(), 'name'));
     }
 
     public function test_an_editable_proposal_offers_list_categories_without_a_line_as_join_rows(): void

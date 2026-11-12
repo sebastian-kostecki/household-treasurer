@@ -9,6 +9,7 @@ use App\Http\Requests\ApproveMonthPlanRequest;
 use App\Http\Requests\UpdateMonthPlanRequest;
 use App\Models\Budget;
 use App\Models\BudgetLine;
+use App\Models\CategoryGroup;
 use App\Models\User;
 use App\Support\BudgetViewedMonth;
 use App\Support\MonthPace;
@@ -146,6 +147,8 @@ class MonthPlanController extends Controller
      *     month_pace: array{as_of: string, elapsed_day: int, days_in_month: int, pool_plan_minor_units: int, pool_actual_minor_units: int, percent: int|null, is_ahead: bool}|null,
      *     income_items: list<array<string, mixed>>,
      *     expense_items: list<array<string, mixed>>,
+     *     income_groups: list<array{id: int, name: string, sort_order: int}>,
+     *     expense_groups: list<array{id: int, name: string, sort_order: int}>,
      *     year_totals: array{income: YearComparison, expense: YearComparison}|null,
      *     summary: array{
      *         income: array{approved_minor_units: int, final_minor_units: int, actual_minor_units: int, deviation_minor_units: int},
@@ -177,6 +180,8 @@ class MonthPlanController extends Controller
             $expenseItems = [...$expenseItems, ...$joining['expense']];
         }
 
+        $groups = $this->groupsByType($user);
+
         return [
             'state' => $reading->state,
             'approved_at' => $reading->approvedAt?->toIso8601String(),
@@ -195,11 +200,38 @@ class MonthPlanController extends Controller
                 : MonthPace::forMonth($toSpend, $budget->year, $month, $today),
             'income_items' => $incomeItems,
             'expense_items' => $expenseItems,
+            'income_groups' => $groups[CategoryType::Income->value] ?? [],
+            'expense_groups' => $groups[CategoryType::Expense->value] ?? [],
             'year_totals' => $timing === 'current'
                 ? $this->yearTotals($incomeItems, $expenseItems)
                 : null,
             'summary' => $timing === 'past' ? MonthSummary::forMonth($toSpend, $budget, $month)?->toArray() : null,
         ];
+    }
+
+    /**
+     * @return array<string, list<array{id: int, name: string, sort_order: int}>>
+     */
+    private function groupsByType(User $user): array
+    {
+        $groups = [];
+
+        $rows = CategoryGroup::query()
+            ->where('user_id', $user->id)
+            ->orderBy('sort_order')
+            ->orderBy('name_key')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($rows as $group) {
+            $groups[$group->type->value][] = [
+                'id' => $group->id,
+                'name' => $group->name,
+                'sort_order' => $group->sort_order,
+            ];
+        }
+
+        return $groups;
     }
 
     /**
