@@ -10,6 +10,7 @@
 // The year-over-year test needs the mock of the previous year in the E2E
 // database (`demo:seed-previous-year`, see README, section „Uruchomienie”).
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { assignCategoryToGroup } from './support/categories';
 
 function chart(page: Page, type: 'income' | 'expense'): Locator {
     // The chart is aria-hidden, so it is found by its test id.
@@ -206,12 +207,14 @@ test('collapsing a group hides its Categories', async ({ page }) => {
     await expect(groupBlock(page, group)).toBeVisible();
 
     try {
-        await page
-            .locator('[data-category-row]')
-            .filter({ has: page.getByText('Rozrywka', { exact: true }) })
-            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
-            .click();
-        await page.getByRole('menuitem', { name: group }).click();
+        await assignCategoryToGroup(
+            page,
+            page
+                .locator('[data-category-row]')
+                .filter({ has: page.getByText('Rozrywka', { exact: true }) }),
+            'Rozrywka',
+            group,
+        );
         await expect(
             groupBlock(page, group).locator('[data-category-row]'),
         ).toContainText('Rozrywka');
@@ -373,12 +376,14 @@ test('Trend groups start collapsed and expand to their Categories', async ({
     await expect(groupBlock(page, group)).toBeVisible();
 
     try {
-        await page
-            .locator('[data-category-row]')
-            .filter({ has: page.getByText('Rozrywka', { exact: true }) })
-            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
-            .click();
-        await page.getByRole('menuitem', { name: group }).click();
+        await assignCategoryToGroup(
+            page,
+            page
+                .locator('[data-category-row]')
+                .filter({ has: page.getByText('Rozrywka', { exact: true }) }),
+            'Rozrywka',
+            group,
+        );
         await expect(
             groupBlock(page, group).locator('[data-category-row]'),
         ).toContainText('Rozrywka');

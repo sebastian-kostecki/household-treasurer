@@ -1294,7 +1294,7 @@
 
     /**
      * Categories list: below `md` a row is two lines (the chip with the actions,
-     * then years + link); from `md` it is one line of columns. No amounts, so no
+     * then the years); from `md` it is one line of columns. No amounts, so no
      * money column. The drag handle of an active row sits in the name cell and
      * shows from `md` (`.categories-handle`), the same as in the group row.
      */
@@ -1303,13 +1303,13 @@
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'name actions'
-            'years link';
+            'years years';
     }
 
     @variant md {
         .categories-grid {
-            grid-template-columns: minmax(0, 1fr) 220px auto 7rem;
-            grid-template-areas: 'name years link actions';
+            grid-template-columns: minmax(0, 1fr) 220px var(--control-height-sm);
+            grid-template-areas: 'name years actions';
         }
     }
 
@@ -1341,16 +1341,11 @@
         @apply min-w-0 tabular-nums;
     }
 
-    .categories-cell-link {
-        grid-area: link;
-        @apply flex items-center justify-end gap-2;
-    }
-
     /**
      * Category Groups in „Kategorie” (ADR-0069): the group row is a `muted`
      * band like `.month-plan-group-row`, its Categories stand indented under it
      * (`.categories-row-nested`); an empty group keeps a drop zone with a hint.
-     * The drag handle shows from `md`; below it the "Grupa…" menu does the job.
+     * The drag handle shows from `md`; below it „Zmień grupę…” in the row menu does the job.
      */
     .categories-group-row {
         @apply bg-muted border-border-soft min-h-row flex items-center gap-2 border-b px-4 py-2;

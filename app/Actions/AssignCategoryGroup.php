@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * "Grupa…" on an active Category (ADR-0069): the Category goes to the end of
+ * "Zmień grupę…" on an active Category (ADR-0069): the Category goes to the end of
  * the chosen group or, with no group, to the end of its type's sequence. The
  * group must be the User's and of the Category's type; the type of a group
  * does not change, so the check is done here, not by the database.

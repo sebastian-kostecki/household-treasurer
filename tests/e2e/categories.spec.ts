@@ -8,6 +8,10 @@
 // (demo:seed-household): a budget for the current year with the Category
 // "Rozrywka"; the write flow creates its own Category and deletes it at the end.
 import { test, expect, type Page } from '@playwright/test';
+import {
+    assignCategoryToGroup,
+    openCategoryOperations,
+} from './support/categories';
 
 const currentYear = String(new Date().getFullYear());
 
@@ -52,14 +56,16 @@ test('Kategorie opens from the menu and lists Rozrywka with the years of its lin
     await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
 });
 
-test('the link Operacje → leads to Operations filtered by the Category id over all years', async ({
+test('the menu item Operacje leads to Operations filtered by the Category id over all years', async ({
     page,
 }) => {
     await page.goto('/categories');
 
-    await categoryRow(page, 'Rozrywka')
-        .getByRole('link', { name: /^Operacje kategorii Rozrywka/ })
-        .click();
+    await openCategoryOperations(
+        page,
+        categoryRow(page, 'Rozrywka'),
+        'Rozrywka',
+    );
 
     await expect(page).toHaveURL(/\/operations\?/);
     const query = new URL(page.url()).searchParams;
@@ -173,7 +179,7 @@ test('a Category is created with a description, edited, archived, restored and d
 });
 
 // Category Groups (S-22, ADR-0069). Risk it protects: a group cannot be created,
-// "Grupa…" does not move a Category under the group, dragging a Category onto a
+// "Zmień grupę…" does not move a Category under the group, dragging a Category onto a
 // group does not save the membership, or deleting a group takes its Categories
 // with it. The tests create their own group and delete it at the end, through
 // the UI, so the demo household is left as it was.
@@ -214,7 +220,7 @@ async function deleteGroup(page: Page, name: string) {
     await expect(groupBlock(page, name)).toHaveCount(0);
 }
 
-test('a Category is put into a new group with "Grupa…" and stays when the group is deleted', async ({
+test('a Category is put into a new group with "Zmień grupę…" and stays when the group is deleted', async ({
     page,
 }) => {
     const group = 'Grupa E2E przypisanie';
@@ -223,10 +229,12 @@ test('a Category is put into a new group with "Grupa…" and stays when the grou
     await createGroup(page, group);
 
     try {
-        await categoryRow(page, 'Rozrywka')
-            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
-            .click();
-        await page.getByRole('menuitem', { name: group }).click();
+        await assignCategoryToGroup(
+            page,
+            categoryRow(page, 'Rozrywka'),
+            'Rozrywka',
+            group,
+        );
 
         await expect(
             groupBlock(page, group).locator('[data-category-row]'),
@@ -237,6 +245,48 @@ test('a Category is put into a new group with "Grupa…" and stays when the grou
 
     await expect(categoryRow(page, 'Rozrywka')).toHaveCount(1);
     await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
+});
+
+// Risk: the „Zmień grupę…” dialog opens without the Category's current group
+// selected, or "Bez grupy" does not take the Category back to the type level.
+test('the group dialog shows the current group and "Bez grupy" takes the Category out of it', async ({
+    page,
+}) => {
+    const group = 'Grupa E2E okno grupy';
+
+    await page.goto('/categories');
+    await createGroup(page, group);
+
+    try {
+        const row = categoryRow(page, 'Rozrywka');
+        await assignCategoryToGroup(page, row, 'Rozrywka', group);
+        await expect(
+            groupBlock(page, group).locator('[data-category-row]'),
+        ).toContainText('Rozrywka');
+
+        await page.mouse.move(0, 0);
+        await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+
+        await row
+            .getByRole('button', { name: 'Więcej działań kategorii Rozrywka' })
+            .click();
+        await page.getByRole('menuitem', { name: 'Zmień grupę…' }).click();
+        const dialog = page.getByRole('dialog');
+        await expect(
+            dialog.getByRole('radio', { name: group, exact: true }),
+        ).toBeChecked();
+
+        await dialog.getByRole('radio', { name: 'Bez grupy' }).click();
+        await dialog.getByRole('button', { name: 'Zapisz' }).click();
+        await expect(dialog).toHaveCount(0);
+
+        await expect(
+            groupBlock(page, group).locator('[data-category-row]'),
+        ).toHaveCount(0);
+        await expect(categoryRow(page, 'Rozrywka')).toHaveCount(1);
+    } finally {
+        await deleteGroup(page, group);
+    }
 });
 
 // Risk: the server rejects an order that no longer matches the list (a group
@@ -502,11 +552,7 @@ test('a Category is merged into another from the menu, with the preview, and its
         await expect(categoryRow(page, target)).toHaveCount(1);
 
         // The operation is under the target Category, over all years.
-        await categoryRow(page, target)
-            .getByRole('link', {
-                name: new RegExp(`^Operacje kategorii ${target}`),
-            })
-            .click();
+        await openCategoryOperations(page, categoryRow(page, target), target);
         await expect(page).toHaveURL(/\/operations\?/);
         await expect(
             page.getByText(description, { exact: true }),
