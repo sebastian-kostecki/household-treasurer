@@ -458,6 +458,165 @@ class ReportsPageTest extends TestCase
      * Books one expense through the factories: enough for a report, which reads
      * the operations and does not use the line's Execution counter.
      */
+    public function test_it_renders_the_last_twelve_months_across_two_budgets(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2025, 'Żywność', '2025-11-01', 10000);
+        $this->bookExpense($user, 2025, 'Żywność', '2025-10-31', 99, false);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-10-31', 2500);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-11-01', 77, false);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'last-12']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Reports')
+                ->where('budgetYear', 2026)
+                ->where('budgetPhase', 'execution')
+                ->has('period', fn (Assert $period) => $period
+                    ->where('kind', 'last-12')
+                    ->where('month', null)
+                    ->where('default_month', 11)
+                    ->where('is_in_progress', false)
+                    ->where('window', [
+                        'from' => '2025-11-01',
+                        'through' => '2026-10-31',
+                        'covered_from' => '2025-11-01',
+                        'covered_through' => '2026-10-31',
+                        'covered_month_count' => 12,
+                        'missing_from' => null,
+                        'missing_through' => null,
+                    ]))
+                ->where('trend', null)
+                ->where('report.expense_minor_units', 12500)
+                ->where('report.result_minor_units', -12500)
+                ->where('report.comparison', null)
+                ->has('report.expense', 1, fn (Assert $entry) => $entry
+                    ->where('name', 'Żywność')
+                    ->where('amount_minor_units', 12500)
+                    ->where('share_tenths_percent', 1000)
+                    ->etc()));
+    }
+
+    public function test_a_single_budget_names_the_missing_months(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'last-12']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.window.covered_from', '2026-01-01')
+                ->where('period.window.covered_through', '2026-10-31')
+                ->where('period.window.covered_month_count', 10)
+                ->where('period.window.missing_from', '2025-11-01')
+                ->where('period.window.missing_through', '2025-12-31')
+                ->where('report.expense_minor_units', 12000));
+    }
+
+    public function test_the_window_is_shown_when_the_selected_year_is_in_preparation(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2025, 'Żywność', '2025-12-10', 4000);
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('reports', ['view' => 'last-12']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYear', 2026)
+                ->where('budgetPhase', 'draft')
+                ->where('period.kind', 'last-12')
+                ->where('period.window.covered_month_count', 2)
+                ->where('report.expense_minor_units', 4000));
+    }
+
+    public function test_without_a_covering_budget_the_window_report_is_empty(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'last-12']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'last-12')
+                ->where('period.window.covered_month_count', 0)
+                ->where('period.window.covered_from', null)
+                ->where('period.window.missing_from', '2025-11-01')
+                ->where('period.window.missing_through', '2026-10-31')
+                ->where('report.has_operations', false)
+                ->where('report.expense', [])
+                ->where('report.income', []));
+    }
+
+    public function test_a_user_without_budgets_gets_no_budget_and_no_window(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('reports', ['view' => 'last-12']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYear', null)
+                ->where('period.kind', 'year')
+                ->where('period.window', null)
+                ->where('report', null)
+                ->where('trend', null));
+    }
+
+    public function test_the_window_ignores_the_month_query(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-04-10', 5000, false);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'last-12', 'month' => 3]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'last-12')
+                ->where('period.month', null)
+                ->where('report.expense_minor_units', 17000));
+    }
+
+    public function test_year_month_and_trend_have_no_window(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        foreach ([[], ['month' => 3], ['view' => 'trend'], ['view' => 'last-13']] as $query) {
+            $this->actingAs($user)
+                ->get(route('reports', $query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('period.window', null)
+                    ->where('period.kind', fn (string $kind): bool => $kind !== 'last-12'));
+        }
+    }
+
+    public function test_another_users_budget_does_not_cover_the_window(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense(User::factory()->create(), 2025, 'Cudza', '2025-12-10', 777);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'last-12']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.window.covered_month_count', 10)
+                ->where('report.expense_minor_units', 12000)
+                ->has('report.expense', 1));
+    }
+
     private function bookExpense(User $user, int $year, string $name, string $date, int $amount, bool $createBudget = true): void
     {
         $budget = $createBudget
