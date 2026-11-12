@@ -481,16 +481,16 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [x] 3.1 Testy klasyfikatora dodań i naruszeń przechodzą
-- [x] 3.2 tests/Feature/ControlNumbersCommandTest.php przechodzi na PostgreSQL
-- [x] 3.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 3.1 Testy klasyfikatora dodań i naruszeń przechodzą — ddddabd
+- [x] 3.2 tests/Feature/ControlNumbersCommandTest.php przechodzi na PostgreSQL — ddddabd
+- [x] 3.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci — ddddabd
 
 ### Phase 4: Czytnik arkusza
 
 #### Automated
 
-- [ ] 4.1 Testy czytnika przechodzą dla obu układów i przypadków brzegowych
-- [ ] 4.2 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 4.1 Testy czytnika przechodzą dla obu układów i przypadków brzegowych
+- [x] 4.2 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
 
 ### Phase 5: Mapowanie i plan wczytania
 
