@@ -302,32 +302,32 @@ Wiersz kategorii traci link i „Grupa…”, menu „⋯” dostaje „Operacje
 
 #### Automated
 
-- [x] 1.1 Test pustej wartości przechodzi na PostgreSQL
-- [x] 1.2 Testy kitchen sinka okien, kluczy tłumaczeń i literałów przechodzą
-- [x] 1.3 Kontrakt UI i strażnik literałów przechodzą
-- [x] 1.4 Wayfinder i typy
-- [x] 1.5 Bramka
+- [x] 1.1 Test pustej wartości przechodzi na PostgreSQL — fce914e
+- [x] 1.2 Testy kitchen sinka okien, kluczy tłumaczeń i literałów przechodzą — fce914e
+- [x] 1.3 Kontrakt UI i strażnik literałów przechodzą — fce914e
+- [x] 1.4 Wayfinder i typy — fce914e
+- [x] 1.5 Bramka — fce914e
 
 #### Manual
 
-- [x] 1.6 `/dev/ui/dialogs?open=category-group-assign` w trybie jasnym i ciemnym
-- [x] 1.7 Z klawiatury: lista radio, strzałki, obrys focusu, Escape
-- [x] 1.8 Stan zapisu i stan błędu
-- [x] 1.9 ADR-0083 i wpis w `js-dialogs.md` bez sprzeczności
+- [x] 1.6 `/dev/ui/dialogs?open=category-group-assign` w trybie jasnym i ciemnym — fce914e
+- [x] 1.7 Z klawiatury: lista radio, strzałki, obrys focusu, Escape — fce914e
+- [x] 1.8 Stan zapisu i stan błędu — fce914e
+- [x] 1.9 ADR-0083 i wpis w `js-dialogs.md` bez sprzeczności — fce914e
 
 ### Phase 2: Menu „⋯” przejmuje akcje wiersza
 
 #### Automated
 
-- [ ] 2.1 Kontrakt UI, kitchen sinki, klucze tłumaczeń i literały przechodzą
-- [ ] 2.2 Żaden plik nie odwołuje się do pickera ani usuniętych kluczy
-- [ ] 2.3 E2E Kategorii, Raportów i grup planu miesiąca przechodzą
-- [ ] 2.4 Wayfinder i typy
-- [ ] 2.5 Pełna bramka na PostgreSQL
+- [x] 2.1 Kontrakt UI, kitchen sinki, klucze tłumaczeń i literały przechodzą
+- [x] 2.2 Żaden plik nie odwołuje się do pickera ani usuniętych kluczy
+- [x] 2.3 E2E Kategorii, Raportów i grup planu miesiąca przechodzą
+- [x] 2.4 Wayfinder i typy
+- [x] 2.5 Pełna bramka na PostgreSQL
 
 #### Manual
 
-- [ ] 2.6 `/dev/ui/categories` w trybie jasnym i ciemnym, 1280 px i 390 px
-- [ ] 2.7 Kolejność pozycji menu i stany nieaktywne „Zmień grupę…”
-- [ ] 2.8 Przypisanie na dev bez skoku przewijania
-- [ ] 2.9 Przepływ z klawiatury od „⋯” do „Zapisz”
+- [x] 2.6 `/dev/ui/categories` w trybie jasnym i ciemnym, 1280 px i 390 px
+- [x] 2.7 Kolejność pozycji menu i stany nieaktywne „Zmień grupę…”
+- [x] 2.8 Przypisanie na dev bez skoku przewijania
+- [x] 2.9 Przepływ z klawiatury od „⋯” do „Zapisz”

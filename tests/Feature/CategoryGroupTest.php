@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 /**
  * Category Groups in „Kategorie” (ADR-0063, ADR-0069): create, rename, delete,
- * "Grupa…" and the order of the list.
+ * "Zmień grupę…" and the order of the list.
  */
 class CategoryGroupTest extends TestCase
 {

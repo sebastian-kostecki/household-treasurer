@@ -103,7 +103,6 @@ const FILES = [
     'resources/js/components/CategoryGroupRow.vue',
     'resources/js/components/CategoryGroupAssignDialog.vue',
     'resources/js/components/CategoryGroupFormDialog.vue',
-    'resources/js/components/CategoryGroupPicker.vue',
     'resources/js/components/CategoryMergeDialog.vue',
     'resources/js/components/CategoryMergePreview.vue',
     'resources/js/lib/category-merge.ts',

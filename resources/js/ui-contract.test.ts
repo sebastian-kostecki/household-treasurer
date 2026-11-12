@@ -479,7 +479,6 @@ const CATEGORIES_VIEW_FILES = [
     'components/CategoryGroupRow.vue',
     'components/CategoryGroupAssignDialog.vue',
     'components/CategoryGroupFormDialog.vue',
-    'components/CategoryGroupPicker.vue',
 ];
 
 describe('the Categories view follows the Atrament surface blocks', () => {
@@ -526,15 +525,19 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(dialog).not.toContain('DialogContent');
     });
 
-    it('shows each category with CategoryChip and a Wayfinder link to Operations', () => {
+    it('shows each category with CategoryChip and a Wayfinder link to Operations in its row menu', () => {
         const row = readFileSync(
             join(JS_ROOT, 'components/CategoryListRow.vue'),
             'utf8',
         );
+        const actions = readFileSync(
+            join(JS_ROOT, 'components/CategoryListRowActions.vue'),
+            'utf8',
+        );
 
         expect(row).toContain('<CategoryChip');
-        expect(row).toContain("from '@/routes'");
-        expect(row).not.toContain('href="/operations');
+        expect(actions).toContain("from '@/routes'");
+        expect(actions).not.toContain('href="/operations');
     });
 
     it('links report category names to Operations through the Wayfinder route and the shared query', () => {

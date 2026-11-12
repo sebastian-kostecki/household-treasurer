@@ -10,6 +10,7 @@
 // them at the end: the operation is deleted, the Category archived and the
 // group deleted.
 import { test, expect, type Page } from '@playwright/test';
+import { assignCategoryToGroup } from './support/categories';
 
 async function addExpense(
     page: Page,
@@ -113,10 +114,12 @@ test('a collapsed month plan group keeps the over-plan signal and opens again', 
         await expect(categoryDialog).toHaveCount(0);
         categoryCreated = true;
 
-        await categoryRow(page, category)
-            .getByRole('button', { name: `Grupa kategorii ${category}` })
-            .click();
-        await page.getByRole('menuitem', { name: group }).click();
+        await assignCategoryToGroup(
+            page,
+            categoryRow(page, category),
+            category,
+            group,
+        );
         await expect(
             groupBlock(page, group).locator('[data-category-row]'),
         ).toContainText(category);

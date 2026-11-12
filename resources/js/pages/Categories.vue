@@ -359,6 +359,7 @@ function moveGroup(
                             data-kind="category"
                             :category="item.category"
                             :groups="section.groups"
+                            :reorder-saving="reorderHttp.processing"
                             :can-merge="canMerge(item.category)"
                             @edit="openEditCategoryDialog(item.category)"
                             @merge="openMergeCategoryDialog(item.category)"
@@ -409,6 +410,9 @@ function moveGroup(
                                             nested
                                             :category="category"
                                             :groups="section.groups"
+                                            :reorder-saving="
+                                                reorderHttp.processing
+                                            "
                                             :can-merge="canMerge(category)"
                                             @edit="
                                                 openEditCategoryDialog(category)
