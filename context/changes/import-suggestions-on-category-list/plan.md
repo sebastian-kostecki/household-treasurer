@@ -394,27 +394,27 @@ Brak migracji schematu i danych. Wycofanie = `git revert` commitów fazy 1–2: 
 
 #### Automated
 
-- [x] 2.1 Test komendy przechodzi na PostgreSQL
-- [x] 2.2 Testy podpowiedzi z fazy 1 nadal przechodzą na PostgreSQL
-- [x] 2.3 Pełna bramka przechodzi: composer ci:check i sloppy ci
-- [x] 2.4 Pint bez zmian
+- [x] 2.1 Test komendy przechodzi na PostgreSQL — 6c98f19
+- [x] 2.2 Testy podpowiedzi z fazy 1 nadal przechodzą na PostgreSQL — 6c98f19
+- [x] 2.3 Pełna bramka przechodzi: composer ci:check i sloppy ci — 6c98f19
+- [x] 2.4 Pint bez zmian — 6c98f19
 
 #### Manual
 
-- [x] 2.5 Komenda na bazie dev drukuje czytelną tabelę, a --output + --compare na tym samym pliku daje kod 0
+- [x] 2.5 Komenda na bazie dev drukuje czytelną tabelę, a --output + --compare na tym samym pliku daje kod 0 — 6c98f19
 
 ### Phase 3: Pomiar przed/po na kopii z 11.09
 
 #### Automated
 
-- [ ] 3.1 --compare z plikiem „przed” kończy się kodem 0 na bazie suggestion_trial
-- [ ] 3.2 Zbiory operation_id w plikach „przed” i „po” są równe
-- [ ] 3.3 git status nie pokazuje plików JSON pomiaru ani archiwum w repo
+- [x] 3.1 --compare z plikiem „przed” kończy się kodem 0 na bazie suggestion_trial
+- [x] 3.2 Zbiory operation_id w plikach „przed” i „po” są równe
+- [x] 3.3 git status nie pokazuje plików JSON pomiaru ani archiwum w repo
 
 #### Manual
 
-- [ ] 3.4 Użytkownik przegląda measurements.md: tabele i różniące się wiersze
-- [ ] 3.5 Baza suggestion_trial usunięta, storage przywrócony, stary worktree usunięty
+- [x] 3.4 Użytkownik przegląda measurements.md: tabele i różniące się wiersze
+- [x] 3.5 Baza suggestion_trial usunięta, storage przywrócony, stary worktree usunięty
 
 ### Phase 4: Odczyt na produkcji po porządkach
 

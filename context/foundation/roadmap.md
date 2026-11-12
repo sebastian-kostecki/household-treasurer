@@ -213,6 +213,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 - **Blockers:** —
 - **Unknowns:**
   - Kiedy porządki w danych: przed wdrożeniem S-18 czy po, przez S-21 i zmianę kategorii operacji (Otwarte pytanie 4)? Od tego zależy moment pomiaru trafności „przed”. — Owner: user. Block: no.
+    - _Rozstrzygnięte:_ porządki idą po migracji, przez S-21. „Nie gorzej” rozstrzyga kopia z 11.09 na starym i nowym kodzie; odczyt po scaleniach jest informacyjny.
 - **Risk:** Pomiar przed i po musi iść na tych samych danych (istnieje próg z `import-category-suggestions`). Gorsze podpowiedzi to jeden z najszybszych sygnałów awarii wskazanych w PRD.
 - **Status:** in-progress
 
