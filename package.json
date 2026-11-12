@@ -19,7 +19,7 @@
         "@lucide/vue": "^1.64.0",
         "@unovis/ts": "1.7.1",
         "@unovis/vue": "1.7.1",
-        "@vueuse/core": "^12.8.2",
+        "@vueuse/core": "^15.0.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "laravel-vite-plugin": "^3.0.0",
