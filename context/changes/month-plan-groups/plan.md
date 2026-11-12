@@ -497,17 +497,17 @@ Bez migracji i bez zmiany snapshotu: `category_groups` i `categories.category_gr
 
 #### Automated
 
-- [x] 4.1 Strażnik UI planu miesiąca przechodzi
-- [x] 4.2 Kontrola literałów UI przechodzi
-- [x] 4.3 Kontrola typów i lint przechodzą
-- [x] 4.4 Cały zestaw Vitest przechodzi
-- [x] 4.5 Pełna bramka na PostgreSQL przechodzi
-- [x] 4.6 Nowy test E2E przechodzi
-- [x] 4.7 Istniejący E2E planu miesiąca przechodzi
+- [x] 4.1 Strażnik UI planu miesiąca przechodzi — d397e58
+- [x] 4.2 Kontrola literałów UI przechodzi — d397e58
+- [x] 4.3 Kontrola typów i lint przechodzą — d397e58
+- [x] 4.4 Cały zestaw Vitest przechodzi — d397e58
+- [x] 4.5 Pełna bramka na PostgreSQL przechodzi — d397e58
+- [x] 4.6 Nowy test E2E przechodzi — d397e58
+- [x] 4.7 Istniejący E2E planu miesiąca przechodzi — d397e58
 
 #### Manual
 
-- [x] 4.8 `/dev/month-plan` pokazuje wszystkie stany grup, a zrzuty 1280 i 390 px leżą w folderze zmiany
-- [x] 4.9 Grupa zwija się i rozwija z klawiatury, a czytnik ogłasza stan przycisku
-- [x] 4.10 W trybie zmiany suma Planu grupy nadąża za wpisem, a błędna kwota rozwija zwiniętą grupę
-- [x] 4.11 Wiersz grupy różni się od pasma sekcji, a wiersze w grupie są wcięte
+- [x] 4.8 `/dev/month-plan` pokazuje wszystkie stany grup, a zrzuty 1280 i 390 px leżą w folderze zmiany — d397e58
+- [x] 4.9 Grupa zwija się i rozwija z klawiatury, a czytnik ogłasza stan przycisku — d397e58
+- [x] 4.10 W trybie zmiany suma Planu grupy nadąża za wpisem, a błędna kwota rozwija zwiniętą grupę — d397e58
+- [x] 4.11 Wiersz grupy różni się od pasma sekcji, a wiersze w grupie są wcięte — d397e58
