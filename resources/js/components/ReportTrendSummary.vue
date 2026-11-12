@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
+import ReportTrendChartPlaceholder from '@/components/ReportTrendChartPlaceholder.vue';
 import ReportTrendRow from '@/components/ReportTrendRow.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import type { ReportTrendData } from '@/types/reports';
 
-const ReportTrendChart = defineAsyncComponent(
-    () => import('@/components/ReportTrendChart.vue'),
-);
+const ReportTrendChart = defineAsyncComponent({
+    loader: () => import('@/components/ReportTrendChart.vue'),
+    loadingComponent: ReportTrendChartPlaceholder,
+    delay: 0,
+});
 
 const props = defineProps<{
     trend: ReportTrendData;

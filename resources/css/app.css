@@ -1450,45 +1450,50 @@
     }
 
     /**
-     * Period Report table (ADR-0070): one markup on every width, columns
-     * Kategoria | Kwota | Udział; income has no Udział column. A group is a
-     * `muted` band like in the Budget, its Categories stand indented.
-     */
-    .report-grid {
-        @apply grid w-full items-center gap-x-4;
-        grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto) 4.5rem;
-    }
-
-    .report-grid-no-share {
-        grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
-    }
-
-    /* Kitchen sink only: a phone-wide frame for the Reports scenarios. */
-    .report-phone-frame {
-        @apply mx-auto w-full;
-        max-width: 22rem;
-    }
-
-    /**
-     * Period Report table with the year-over-year comparison (ADR-0074): one
-     * markup on every width, switched by the width of the table's own card
-     * (`.report-table`), not the window. From 36rem (576 px) one line holds
-     * Kategoria | rok | rok wcześniej | Różnica | Udział: the card beside the
-     * sidebar at a 1280 px window is about 676 px, and five columns need about
-     * 34rem at their minimums (8rem name, 3 x 5rem amounts, 4.5rem share, gaps
-     * and padding). Narrower (the 22rem phone frame, a 1024 px window) the row
-     * has a second line with the previous year's amount behind its year label
-     * and the difference. Columns grow by `fr` weights (ADR-0061).
+     * Period Report table (ADR-0070, ADR-0074, ADR-0084): one markup on every
+     * width, switched by the width of the table's own card (`.report-table`),
+     * not the window. Columns Kategoria | Kwota | Udział; income has no Udział
+     * column. A group is a `muted` band like in the Budget, its Categories
+     * stand indented.
+     *
+     * Below 36rem (576 px; the 22rem phone frame, a 1024 px window) a row has
+     * two columns, Kategoria | Kwota: the Udział takes the room of the name in
+     * a card of about 288 px of content (a third column of 4.5rem and a
+     * second of 5.5rem leave the name about 96 px), so it stands under the
+     * amount behind its "udział" label, the amount column starts at 4.5rem and
+     * the name gets about 200 px (176 px in a nested row). The share cell
+     * spans both columns (right-aligned): in the amount column alone, its
+     * "udział 30,9%" would widen that column to about 94 px. With the year-over-year comparison
+     * the second line holds the previous year's amount behind its year label
+     * and the difference, the share is the third line. The archived Badge
+     * wraps under the name. From 36rem one line holds Kategoria | Kwota |
+     * Udział, or Kategoria | rok | rok wcześniej | Różnica | Udział: the card
+     * beside the sidebar at a 1280 px window is about 676 px, and five columns
+     * need about 34rem at their minimums (8rem name, 3 x 5rem amounts, 4.5rem
+     * share, gaps and padding). Columns grow by `fr` weights (ADR-0061).
      */
     .report-table {
         container-type: inline-size;
     }
 
-    .report-grid-compare {
+    .report-grid {
+        @apply grid w-full items-center gap-x-4;
         row-gap: 0.25rem;
+        grid-template-columns: minmax(0, 1fr) minmax(4.5rem, auto);
         grid-template-areas:
-            'name amount share'
-            'previous difference .';
+            'name amount'
+            'share share';
+    }
+
+    .report-grid-no-share {
+        grid-template-areas: 'name amount';
+    }
+
+    .report-grid-compare {
+        grid-template-areas:
+            'name amount'
+            'previous difference'
+            'share share';
     }
 
     .report-grid-compare.report-grid-no-share {
@@ -1497,32 +1502,29 @@
             'previous difference';
     }
 
-    .report-grid-compare.report-header-row {
-        row-gap: 0;
-        grid-template-areas: 'name amount share';
+    /* Kitchen sink only: a phone-wide frame for the Reports scenarios. */
+    .report-phone-frame {
+        @apply mx-auto w-full;
+        max-width: 22rem;
     }
 
-    .report-grid-compare.report-header-row.report-grid-no-share {
-        grid-template-areas: 'name amount';
-    }
-
-    .report-grid-compare .report-area-name {
+    .report-area-name {
         grid-area: name;
     }
 
-    .report-grid-compare .report-area-amount {
+    .report-area-amount {
         grid-area: amount;
     }
 
-    .report-grid-compare .report-area-previous {
+    .report-area-previous {
         grid-area: previous;
     }
 
-    .report-grid-compare .report-area-difference {
+    .report-area-difference {
         grid-area: difference;
     }
 
-    .report-grid-compare .report-area-share {
+    .report-area-share {
         grid-area: share;
     }
 
@@ -1538,14 +1540,29 @@
         @apply meta mr-1;
     }
 
+    .report-share-label {
+        @apply meta mr-1;
+    }
+
     .report-head-previous,
-    .report-head-difference {
+    .report-head-difference,
+    .report-head-share {
         @apply hidden;
     }
 
     @container (min-width: 36rem) {
-        .report-grid-compare {
+        .report-grid {
             row-gap: 0;
+            grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto) 4.5rem;
+            grid-template-areas: 'name amount share';
+        }
+
+        .report-grid-no-share {
+            grid-template-columns: minmax(0, 1fr) minmax(5.5rem, auto);
+            grid-template-areas: 'name amount';
+        }
+
+        .report-grid-compare {
             grid-template-columns:
                 minmax(8rem, 1.6fr)
                 repeat(3, minmax(5rem, 0.6fr))
@@ -1564,18 +1581,28 @@
             @apply text-foreground text-right;
         }
 
-        .report-previous-label {
+        .report-previous-label,
+        .report-share-label {
             @apply hidden;
         }
 
         .report-head-previous,
-        .report-head-difference {
+        .report-head-difference,
+        .report-head-share {
             @apply block;
+        }
+
+        .report-table .report-cell-name {
+            @apply flex-nowrap;
         }
     }
 
     .report-header-row {
         @apply table-header border-border-soft border-b px-4 py-2;
+    }
+
+    .report-grid.report-header-row {
+        row-gap: 0;
     }
 
     .report-row {
@@ -1595,7 +1622,7 @@
     }
 
     .report-cell-name {
-        @apply flex min-w-0 items-center gap-2;
+        @apply flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1;
     }
 
     /* Nazwa kategorii w wierszu raportu jako link do jej operacji; wiersz zarchiwizowany dziedziczy wyciszony kolor tekstu. */

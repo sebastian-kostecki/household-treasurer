@@ -84,6 +84,11 @@ async function deleteOperation(
 test('shortcut 8 opens Raporty with the measures, both charts and both tables', async ({
     page,
 }) => {
+    // Two operations are added and two deleted through the UI around the
+    // Reports check: about 20 s alone and over 30 s on a busy machine, so the
+    // default limit made the test flaky (it timed out at different steps).
+    test.slow();
+
     const stamp = Date.now();
     const expenseDescription = `E2E raport wydatek ${stamp}`;
     const incomeDescription = `E2E raport dochód ${stamp}`;
