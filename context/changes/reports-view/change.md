@@ -1,7 +1,7 @@
 ---
 change_id: reports-view
 title: Reports view
-status: new
+status: implementing
 created: 2026-11-12
 updated: 2026-11-12
 archived_at: null
