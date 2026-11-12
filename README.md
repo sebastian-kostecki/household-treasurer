@@ -118,16 +118,16 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 
 ## Komendy administracyjne
 
-| Komenda                          | Działanie                                                                                                                |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `user:create`                    | Konto logowania                                                                                                          |
-| `user:backup {user}`             | Snapshot JSON danych domenowych (wersja 9)                                                                               |
-| `user:restore {user} {path}`     | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
-| `user:reset-data {user}`         | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
-| `demo:seed-household {user}`     | Dane demo                                                                                                                |
-| `demo:seed-previous-year {user}` | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                    |
-| `backup:restore {path}`          | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie) |
-| `app:control-numbers`            | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                  |
+| Komenda                             | Działanie                                                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `user:create`                       | Konto logowania                                                                                                                 |
+| `user:backup {user}`                | Snapshot JSON danych domenowych (wersja 9)                                                                                      |
+| `user:restore {user} {path}`        | Przywrócenie snapshotu na istniejącego użytkownika                                                                              |
+| `user:reset-data {user}`            | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                        |
+| `demo:seed-household {user}`        | Dane demo                                                                                                                       |
+| `demo:seed-previous-year {user}`    | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                           |
+| `backup:restore {path}`             | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie)        |
+| `app:control-numbers`               | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                         |
 | `import:suggestion-accuracy {user}` | Trafność podpowiedzi Importu (tylko odczyt); zob. [Pomiar trafności podpowiedzi Importu](#pomiar-trafności-podpowiedzi-importu) |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
