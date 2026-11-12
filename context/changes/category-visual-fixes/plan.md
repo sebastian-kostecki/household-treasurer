@@ -319,15 +319,15 @@ Wiersz kategorii traci link i „Grupa…”, menu „⋯” dostaje „Operacje
 
 #### Automated
 
-- [x] 2.1 Kontrakt UI, kitchen sinki, klucze tłumaczeń i literały przechodzą
-- [x] 2.2 Żaden plik nie odwołuje się do pickera ani usuniętych kluczy
-- [x] 2.3 E2E Kategorii, Raportów i grup planu miesiąca przechodzą
-- [x] 2.4 Wayfinder i typy
-- [x] 2.5 Pełna bramka na PostgreSQL
+- [x] 2.1 Kontrakt UI, kitchen sinki, klucze tłumaczeń i literały przechodzą — 97b3dd7
+- [x] 2.2 Żaden plik nie odwołuje się do pickera ani usuniętych kluczy — 97b3dd7
+- [x] 2.3 E2E Kategorii, Raportów i grup planu miesiąca przechodzą — 97b3dd7
+- [x] 2.4 Wayfinder i typy — 97b3dd7
+- [x] 2.5 Pełna bramka na PostgreSQL — 97b3dd7
 
 #### Manual
 
-- [x] 2.6 `/dev/ui/categories` w trybie jasnym i ciemnym, 1280 px i 390 px
-- [x] 2.7 Kolejność pozycji menu i stany nieaktywne „Zmień grupę…”
-- [x] 2.8 Przypisanie na dev bez skoku przewijania
-- [x] 2.9 Przepływ z klawiatury od „⋯” do „Zapisz”
+- [x] 2.6 `/dev/ui/categories` w trybie jasnym i ciemnym, 1280 px i 390 px — 97b3dd7
+- [x] 2.7 Kolejność pozycji menu i stany nieaktywne „Zmień grupę…” — 97b3dd7
+- [x] 2.8 Przypisanie na dev bez skoku przewijania — 97b3dd7
+- [x] 2.9 Przepływ z klawiatury od „⋯” do „Zapisz” — 97b3dd7

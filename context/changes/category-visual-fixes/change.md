@@ -1,7 +1,7 @@
 ---
 change_id: category-visual-fixes
 title: Akcje wiersza kategorii w menu „⋯”, przypisanie grupy przez okno
-status: implementing
+status: implemented
 created: 2026-11-12
 updated: 2026-11-12
 archived_at: null
