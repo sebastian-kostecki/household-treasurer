@@ -9,7 +9,7 @@ main_goal: quality
 top_blocker: decisions
 milestone_id: category-list-rhythms-reports
 milestone_seq: 3
-milestone_status: open
+milestone_status: done
 ---
 
 # Roadmap: Household Treasurer
@@ -21,11 +21,12 @@ milestone_status: open
 
 ## Milestone
 
-**M-3: Jedna lista kategorii, rytmy i raporty** — Status: open
+**M-3: Jedna lista kategorii, rytmy i raporty** — Status: done
 
 - **Intent:** Użytkownik prowadzi jedną listę kategorii przez lata (grupy, rytm, opis, archiwum), na którą migracja przepina istniejące budżety i operacje bez zmiany kwot. Na tej liście plan miesiąca liczy wydatki płacone kilka razy w roku przez stałą stawkę i „zebrane”, a raporty pokazują, ile i na co idzie w miesiącu i w roku, z porównaniem lat.
 - **Source materials:** `context/foundation/prd-v3.md` (v3), z blokiem przekazania dla mapy drogowej z `context/foundation/shape-notes.md` (sesja 2026-11-07).
 - **Done when:** każdy element F-NN i S-NN poniżej ma status `done`, a użytkownik przeszedł pięć kroków głównego kryterium sukcesu z PRD v3.
+- **Zamknięty (2026-11-12):** wszystkie elementy są `done`; kod wdrożony na produkcję (`scripts/deploy.sh` przy `legacy-budget-import`), pary kategorii scalone na produkcji (S-21, po F-06), a pięć kroków kryterium sukcesu przeszło na produkcji (potwierdzenie użytkownika).
 - **Scope anchors:** FR-001 do FR-025, US-01 i US-02.
 
 ## Vision recap
@@ -352,7 +353,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-20       | new-budget-from-category-list       | Nowy budżet z aktywnych kategorii listy                                | done                  | Zarchiwizowane: `context/archive/2026-11-10-new-budget-from-category-list/` |
 | S-21       | category-merge                      | Scalanie kategorii z podglądem liczb                                   | done                  | Zarchiwizowane: `context/archive/2026-11-11-category-merge/`; scalenie par na produkcji po F-06 i wdrożeniu |
 | S-22       | category-groups                     | Grupy kategorii w „Kategoriach”, Budżecie i selektorze                 | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-groups/` |
-| S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | yes                   | Run `/10x-plan import-suggestions-on-category-list`; pomiar trafności po porządkach w danych (pytanie 4) |
+| S-23       | import-suggestions-on-category-list | Podpowiedzi Importu na kategorii listy                                 | done                  | Zarchiwizowane: `context/archive/2026-11-12-import-suggestions-on-category-list/` |
 | S-24       | category-rhythm                     | Rytm kategorii i propozycja planu z rytmu                              | done                  | Zarchiwizowane: `context/archive/2026-11-10-category-rhythm/`; przed wdrożeniem na produkcję próba na kopii (`reviews/production-rehearsal.md` w archiwum) |
 | S-25       | month-plan-groups                   | Plan miesiąca w zwijanych grupach                                       | done                  | Zarchiwizowane: `context/archive/2026-11-12-month-plan-groups/` |
 | S-26       | irregular-expense-collected         | Wydatek nieregularny: stawka i „zebrane”                                | done                  | Zarchiwizowane: `context/archive/2026-11-11-irregular-expense-collected/` |
@@ -361,7 +362,7 @@ Różnice względem dokumentów, istotne dla wycinków: Earmark, Reserve, Year C
 | S-29       | year-over-year-report               | Raporty: porównanie rok do roku                                         | done                  | Zarchiwizowane: `context/archive/2026-11-11-year-over-year-report/`; mock budżetu 2025 (dev) gotowy dla S-30…S-32 |
 | S-30       | report-trend-by-month               | Raporty: trend w miesiącach roku                                        | done                  | Zarchiwizowane: `context/archive/2026-11-11-report-trend-by-month/` |
 | S-31       | report-to-operations                | Raporty: przejście z kategorii do operacji                              | done                  | Zarchiwizowane: `context/archive/2026-11-12-report-to-operations/` |
-| S-32       | rolling-twelve-month-report         | Raporty: okres „ostatnie 12 miesięcy”                                   | yes                   | Opcjonalne; run `/10x-plan rolling-twelve-month-report` |
+| S-32       | rolling-twelve-month-report         | Raporty: okres „ostatnie 12 miesięcy”                                   | done                  | Zarchiwizowane: `context/archive/2026-11-12-rolling-twelve-month-report/` |
 | S-33       | default-set-aside-percent           | Domyślny procent „odkładam” w propozycji planu                          | done                  | Zarchiwizowane: `context/archive/2026-11-12-default-set-aside-percent/` |
 
 This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Include one row for every `F-NN` and `S-NN`. It should be compact enough to copy into issues, but it must not duplicate the detailed roadmap body.
@@ -371,7 +372,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 1. **Mapowanie dzisiejszych flag na rytm przy migracji.** „Rachunek” → stała opłata jest jasne; „bieżąca” równomierna → bieżąca czy równomierna roczna, „jednorazowa” → równomierna roczna czy nieregularna? Na devie wszystkie wydatki są „bieżąca”. — Owner: user, przy ADR rytmu. Block: rozstrzyga F-05; gates S-24. — **Resolved 2026-11-10:** ADR-0066 (F-05).
 2. **Słownictwo UI dla stawki i zebranego.** Wiersz nieregularny mówi dziś w szkicach „odkładam 150 · zebrane 450”, a sekcja na dole to też „odkładam”; nazwy polskie i angielskie (słownik) do ustalenia w ADR. — Owner: user. Block: rozstrzyga F-05; gates S-26. — **Resolved 2026-11-10:** ADR-0066 (F-05).
 3. **Pojęcia z dokumentów, których nie ma w kodzie** (Earmark, Reserve, Year Close, Cash Expectation) są zdefiniowane na „kategorii należącej do budżetu” i łączeniu po nazwie. Czy przepisać ich definicje w słowniku w tej zmianie, czy oznaczyć jako do rewizji? — Owner: user, przy ADR tożsamości kategorii. Block: rozstrzyga F-03; gates S-18. — **Resolved 2026-11-09:** ADR-0063 (F-03, decyzja 7 planu): definicje przepisane minimalnie na kategorię listy i pozycję budżetu; ADR-0018 i ADR-0030 „Amended by ADR-0063”.
-4. **Porządek w danych przed migracją.** Literówki, dane testowe z września–października, błędnie przypisane operacje (Prime Video w Rozrywce, Sinsay w Artykułach spożywczych) — czy użytkownik sprząta przed wdrożeniem, czy po, przez FR-023 i zmianę kategorii operacji? Wpływa na pomiar trafności Importu „przed”. — Owner: user. Block: S-23 (moment pomiaru, nie planowanie).
+4. **Porządek w danych przed migracją.** Literówki, dane testowe z września–października, błędnie przypisane operacje (Prime Video w Rozrywce, Sinsay w Artykułach spożywczych) — czy użytkownik sprząta przed wdrożeniem, czy po, przez FR-023 i zmianę kategorii operacji? Wpływa na pomiar trafności Importu „przed”. — Owner: user. Block: S-23 (moment pomiaru, nie planowanie). — **Resolved 2026-11-12:** porządki idą po migracji, przez S-21; „nie gorzej” rozstrzyga kopia z 11.09 na starym i nowym kodzie (S-23).
 
 ## Parked
 
@@ -389,6 +390,7 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 - **M-1: Kontrola miesiąca bez arkusza** (`month-control-without-spreadsheet`) — closed 2026-11-03. Wszystkie elementy F-01 i S-01 do S-10 mają status `done`; warunek „pełny miesiąc w aplikacji” (kryterium sukcesu PRD) do potwierdzenia w użyciu.
 - **M-2: Raporty okresu i wydatki nieregularne** (`period-reports-and-irregular-expenses`) — abandoned 2026-11-08. Zastąpiony przez PRD v3 (`context/foundation/prd-v3.md`), który przebudował zakres: jedna lista kategorii zamiast powiązania 1:1, rytmy zamiast flag, raporty po grupach. Żaden z elementów F-02, S-11…S-17 nie był `done`; zmianę `period-report-by-category` usunięto w sesji shape 2026-11-07.
+- **M-3: Jedna lista kategorii, rytmy i raporty** (`category-list-rhythms-reports`) — closed 2026-11-12. Wszystkie elementy F-03…F-06 i S-18…S-33 mają status `done`; kod na produkcji, pary kategorii scalone (S-21), a pięć kroków głównego kryterium sukcesu PRD v3 użytkownik przeszedł na produkcji.
 
 ## Done
 
