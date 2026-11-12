@@ -468,22 +468,22 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [x] 2.1 Testy migracji, płynności, dashboardu, strony kont, polityki, komend kont, blokady roku wczytanego i snapshotu na PostgreSQL przechodzą
-- [x] 2.2 Test down() odmawia przy istniejącym koncie arkusza i usuwa kolumnę bez niego
-- [x] 2.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
-- [x] 2.4 vendor/bin/pint --dirty --format agent bez zmian
+- [x] 2.1 Testy migracji, płynności, dashboardu, strony kont, polityki, komend kont, blokady roku wczytanego i snapshotu na PostgreSQL przechodzą — bae1d56
+- [x] 2.2 Test down() odmawia przy istniejącym koncie arkusza i usuwa kolumnę bez niego — bae1d56
+- [x] 2.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci — bae1d56
+- [x] 2.4 vendor/bin/pint --dirty --format agent bez zmian — bae1d56
 
 #### Manual
 
-- [x] 2.5 Konto z sheet_year niewidoczne na dashboardzie i stronie kont, płynność i fundusze bez zmian
+- [x] 2.5 Konto z sheet_year niewidoczne na dashboardzie i stronie kont, płynność i fundusze bez zmian — bae1d56
 
 ### Phase 3: Numery kontrolne „tylko dodano”
 
 #### Automated
 
-- [ ] 3.1 Testy klasyfikatora dodań i naruszeń przechodzą
-- [ ] 3.2 tests/Feature/ControlNumbersCommandTest.php przechodzi na PostgreSQL
-- [ ] 3.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 3.1 Testy klasyfikatora dodań i naruszeń przechodzą
+- [x] 3.2 tests/Feature/ControlNumbersCommandTest.php przechodzi na PostgreSQL
+- [x] 3.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
 
 ### Phase 4: Czytnik arkusza
 

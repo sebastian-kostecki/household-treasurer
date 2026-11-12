@@ -13,13 +13,17 @@ use Illuminate\Support\Facades\Schema;
  * S-18 the yearly record is `categories` (`financial_operations.category_id`), after it
  * `budget_lines` (`financial_operations.budget_line_id`). Both shapes report it under the
  * same keys (`budget_lines`, `lines`), so a migration that keeps every amount produces an
- * identical document. The new Category list is reported under `meta` only, because it is
- * the one difference a migration is allowed to introduce; `differences()` ignores `meta`.
+ * identical document. The new Category list is counted under `meta`, because it is the one
+ * difference a migration is allowed to introduce; `differences()` ignores `meta`. The list
+ * itself is reported per id under `categories` (null on the old shape) and is compared only
+ * when both documents carry it.
+ *
+ * `ControlNumberAdditions` is the check of the legacy budget import (ADR-0083).
  * No Eloquent models: "before" is computed by new code on the old schema.
  */
 final class ControlNumbers
 {
-    public const VERSION = 1;
+    public const VERSION = 2;
 
     /**
      * Tables whose row count is reported when they exist. The yearly record is added
@@ -59,6 +63,7 @@ final class ControlNumbers
                     ? DB::table('category_rhythms')->count()
                     : null,
             ],
+            'categories' => (new CategoryControlNumbers)->collect($lineTable),
             'row_counts' => $this->rowCounts($lineTable),
             'max_financial_operation_id' => Schema::hasTable('financial_operations')
                 ? DB::table('financial_operations')->max('id')
@@ -69,8 +74,8 @@ final class ControlNumbers
                 ? (int) DB::table('own_transfers')->sum('amount_minor_units')
                 : null,
             'capital_movements_by_direction' => $this->capitalMovements(),
-            'accounts' => $this->balances('accounts'),
-            'term_deposits' => $this->balances('term_deposits'),
+            'accounts' => (new BalanceControlNumbers)->collect('accounts', true),
+            'term_deposits' => (new BalanceControlNumbers)->collect('term_deposits'),
         ];
     }
 
@@ -84,6 +89,10 @@ final class ControlNumbers
     public function differences(array $before, array $after): array
     {
         unset($before['meta'], $after['meta']);
+
+        if (($before['categories'] ?? null) === null || ($after['categories'] ?? null) === null) {
+            unset($before['categories'], $after['categories']);
+        }
 
         $beforeFlat = $this->flatten($before);
         $afterFlat = $this->flatten($after);
@@ -267,29 +276,8 @@ final class ControlNumbers
     }
 
     /**
-     * @return array<int, array<string, int>>|null
-     */
-    private function balances(string $table): ?array
-    {
-        if (! Schema::hasTable($table)) {
-            return null;
-        }
-
-        $balances = [];
-
-        foreach (DB::table($table)->orderBy('id')->get(['id', 'opening_balance_minor_units', 'current_balance_minor_units']) as $row) {
-            $balances[(int) $row->id] = [
-                'opening' => (int) $row->opening_balance_minor_units,
-                'current' => (int) $row->current_balance_minor_units,
-            ];
-        }
-
-        return $balances;
-    }
-
-    /**
      * @param  array<array-key, mixed>  $values
-     * @return array<string, int|string|null>
+     * @return array<string, int|string|bool|null>
      */
     private function flatten(array $values, string $prefix = ''): array
     {
@@ -308,8 +296,12 @@ final class ControlNumbers
         return $flat;
     }
 
-    private function display(int|string|null $value): string
+    private function display(int|string|bool|null $value): string
     {
-        return $value === null ? 'null' : (string) $value;
+        return match (true) {
+            $value === null => 'null',
+            is_bool($value) => $value ? 'true' : 'false',
+            default => (string) $value,
+        };
     }
 }
