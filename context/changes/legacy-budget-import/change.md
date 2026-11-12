@@ -1,7 +1,7 @@
 ---
 change_id: legacy-budget-import
 title: Jednorazowy import historycznych budżetów z arkuszy xlsx
-status: new
+status: preparing
 created: 2026-11-12
 updated: 2026-11-12
 archived_at: null
