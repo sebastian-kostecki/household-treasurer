@@ -437,6 +437,7 @@ const expenseRowsEmpty = computed(
                                     ),
                                 )
                         }}
+                        ·
                         <TextLink :href="editMonthPlanSettings()">
                             {{ t.month_plan.set_aside_default_change }}
                         </TextLink>

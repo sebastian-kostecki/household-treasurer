@@ -577,7 +577,7 @@ class MonthPlanProposalTest extends TestCase
         $this->assertNull($reading->setAsideDefault);
     }
 
-    public function test_the_previous_budget_proposal_also_uses_the_default_percent(): void
+    public function test_january_takes_the_percent_of_income_proposed_from_the_previous_budget(): void
     {
         $this->user = User::factory()->withDefaultSetAsidePercent(10)->create();
         $previous = $this->budget(2026);

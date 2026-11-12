@@ -189,7 +189,15 @@ class MonthPlanProposal
         }
 
         if ($this->defaultSetAsidePercent !== null) {
-            return DefaultSetAside::reading($this->defaultSetAsidePercent, $categories, $amounts);
+            $income = DefaultSetAside::plannedIncome($categories, $amounts);
+
+            return new MonthPlanReading(
+                'proposal',
+                null,
+                $amounts,
+                DefaultSetAside::amount($this->defaultSetAsidePercent, $income),
+                setAsideDefault: ['percent' => $this->defaultSetAsidePercent, 'income_minor_units' => $income],
+            );
         }
 
         return new MonthPlanReading('proposal', null, $amounts, max(0, $source->setAsideMinorUnits ?? 0));

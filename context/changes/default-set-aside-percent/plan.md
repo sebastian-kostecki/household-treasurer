@@ -312,6 +312,12 @@ Procent czyta się raz na `forBudget` z relacji `user` (dzięki `chaperone()` be
 
 Migracja dodaje jedną nullable kolumnę i nie zmienia żadnego wiersza, więc `app:control-numbers` przed i po `migrate` daje te same liczby. Po wdrożeniu procent jest `null` u wszystkich, więc propozycje się nie zmieniają, dopóki użytkownik nie ustawi procentu. Wycofanie: `scripts/artisan.sh migrate:rollback --force` nowym kodem (`down()` usuwa kolumnę i traci tylko zapisany procent), potem `git revert` i `scripts/deploy.sh`. Snapshot v11 nie wczyta się w kodzie sprzed zmiany, więc drogą powrotu jest `down()` (README „Wycofanie S-33”).
 
+## Addendum (impl-review 2026-11-12)
+
+- Reguła procentu siedzi w `app/Support/DefaultSetAside.php` (`plannedIncome()` i `amount()`, czyste funkcje bez zapytań), a `MonthPlanProposal::computePlan` buduje z nich `MonthPlanReading`, jak w gałęzi bez procentu (impl-review F3).
+- Podpowiedź opisuje kwotę startową propozycji i pokazuje się tylko przy edytowalnym polu (`proposal` z `can_approve`, poza trybem zmiany). Propozycja, której nie da się zatwierdzić, pokazuje kwotę z procentu bez podpowiedzi, a po ręcznej zmianie „odkładam” podpowiedź zostaje ze starą podstawą. Oba zachowania są zamierzone, zgodnie z ADR-0081 (bez przeliczania na żywo) (impl-review F4).
+- Trasy `month-plan-settings.*` stoją w grupie `auth` + `verified` obok Wyglądu, tak jak plan miesiąca; profil zostaje w samym `auth`. Dziś `verified` niczego nie blokuje, bo `User` nie implementuje `MustVerifyEmail`, więc to tylko spójność grup tras (impl-review F5).
+
 ## References
 
 - Roadmapa: `context/foundation/roadmap.md` S-33; PRD: `context/foundation/prd-v3.md` FR-024 (`:220`), `:65`, `:150`, `:190`

@@ -11,9 +11,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-    Route::get('settings/month-plan', [MonthPlanSettingsController::class, 'edit'])->name('month-plan-settings.edit');
-    Route::patch('settings/month-plan', [MonthPlanSettingsController::class, 'update'])->name('month-plan-settings.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -28,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
+
+    Route::get('settings/month-plan', [MonthPlanSettingsController::class, 'edit'])->name('month-plan-settings.edit');
+    Route::patch('settings/month-plan', [MonthPlanSettingsController::class, 'update'])->name('month-plan-settings.update');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

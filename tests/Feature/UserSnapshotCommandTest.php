@@ -1677,6 +1677,24 @@ class UserSnapshotCommandTest extends TestCase
         $this->assertSame(20, $targetUser->refresh()->default_set_aside_percent);
     }
 
+    public function test_restore_command_refuses_a_v11_snapshot_without_the_default_set_aside_percent(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset($snapshot['default_set_aside_percent']);
+        $badPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/no-percent.json');
+        file_put_contents($badPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->withDefaultSetAsidePercent(20)->create();
+
+        $this->assertSame(1, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $badPath, '--force' => true]));
+        $this->assertStringContainsString('missing required key: default_set_aside_percent', Artisan::output());
+        $this->assertSame(20, $targetUser->refresh()->default_set_aside_percent);
+    }
+
     /**
      * Turns a snapshot written by the current code into version 9: the Rhythm
      * history without Opening Collected.

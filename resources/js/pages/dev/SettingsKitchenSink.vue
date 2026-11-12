@@ -70,15 +70,15 @@ const stateMatrix = [
     },
     {
         state: 'disabled',
-        where: 'Sekcja „Zapis w toku” poniżej oraz /dev/ui/settings?open=delete-account-saving po potwierdzeniu: spinner, ukryty X i zablokowane zamykanie.',
+        where: 'Sekcje „Zapis w toku” i „Plan miesiąca, zapis w toku” poniżej oraz /dev/ui/settings?open=delete-account-saving po potwierdzeniu: spinner, ukryty X i zablokowane zamykanie.',
     },
     {
         state: 'error',
-        where: 'Sekcja „Błąd pola” poniżej (FormField z błędem) oraz /dev/ui/settings?open=delete-account-error po potwierdzeniu (błąd walidacji w oknie usuwania).',
+        where: 'Sekcje „Błąd pola” i „Plan miesiąca, błąd pola” poniżej (FormField z błędem) oraz /dev/ui/settings?open=delete-account-error po potwierdzeniu (błąd walidacji w oknie usuwania).',
     },
     {
         state: 'empty',
-        where: 'N/A: ustawienia zawsze mają dane zalogowanego użytkownika.',
+        where: 'Sekcja „Plan miesiąca” bez procentu (puste pole: propozycja kopiuje odkładam z poprzedniego miesiąca); pozostałe ustawienia zawsze mają dane zalogowanego użytkownika.',
     },
     {
         state: 'loading',
@@ -222,6 +222,10 @@ const stateMatrix = [
                             :aria-invalid="invalid"
                             type="number"
                             name="default_set_aside_percent"
+                            min="0"
+                            max="100"
+                            step="1"
+                            inputmode="numeric"
                             default-value="101"
                         />
                     </FormField>
@@ -255,6 +259,10 @@ const stateMatrix = [
                             :aria-invalid="invalid"
                             type="number"
                             name="default_set_aside_percent"
+                            min="0"
+                            max="100"
+                            step="1"
+                            inputmode="numeric"
                             default-value="10"
                             disabled
                         />

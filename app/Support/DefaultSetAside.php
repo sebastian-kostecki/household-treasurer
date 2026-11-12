@@ -13,10 +13,12 @@ use Illuminate\Support\Collection;
 final class DefaultSetAside
 {
     /**
-     * @param  Collection<int, BudgetLine>  $lines
+     * The planned income of a proposal: the sum of its amounts on income lines.
+     *
+     * @param  Collection<int, BudgetLine>  $lines  keyed by budget line id
      * @param  array<int, int>  $amounts  budget line id => proposed amount in minor units
      */
-    public static function reading(int $percent, Collection $lines, array $amounts): MonthPlanReading
+    public static function plannedIncome(Collection $lines, array $amounts): int
     {
         $income = 0;
 
@@ -26,12 +28,14 @@ final class DefaultSetAside
             }
         }
 
-        return new MonthPlanReading(
-            'proposal',
-            null,
-            $amounts,
-            intdiv(max(0, $income) * $percent, 10_000) * 100,
-            setAsideDefault: ['percent' => $percent, 'income_minor_units' => $income],
-        );
+        return $income;
+    }
+
+    /**
+     * The percent of the planned income in minor units, rounded down to a whole zloty.
+     */
+    public static function amount(int $percent, int $plannedIncomeMinorUnits): int
+    {
+        return intdiv(max(0, $plannedIncomeMinorUnits) * $percent, 10_000) * 100;
     }
 }
