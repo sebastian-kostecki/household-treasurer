@@ -64,6 +64,10 @@ class ImportCategorySuggester
     }
 
     /**
+     * The imported operations the model learns from, in no particular order and
+     * as a one-shot generator. `ImportCategorySuggestionAccuracy` reads the same
+     * query, so a measurement cannot drift from what the preview learns.
+     *
      * @return \Generator<int, array{
      *     id: int,
      *     type: 'income'|'expense',
@@ -72,7 +76,7 @@ class ImportCategorySuggester
      *     operation_date: string,
      * }>
      */
-    private function loadHistory(User $user): \Generator
+    public function loadHistory(User $user): \Generator
     {
         $operations = $user->financialOperations()
             ->join('budget_lines', 'budget_lines.id', '=', 'financial_operations.budget_line_id')

@@ -381,27 +381,27 @@ Brak migracji schematu i danych. Wycofanie = `git revert` commitów fazy 1–2: 
 
 #### Automated
 
-- [x] 1.1 Nowe i zmienione testy z punktów 1–2 nie przechodzą przed zmianą kodu (czerwone)
-- [x] 1.2 Te same testy przechodzą po zmianie (zielone)
-- [x] 1.3 Testy podpowiedzi i NFR podglądu przechodzą na PostgreSQL
-- [x] 1.4 Pint bez zmian i Sloppy bez nowych znalezisk
+- [x] 1.1 Nowe i zmienione testy z punktów 1–2 nie przechodzą przed zmianą kodu (czerwone) — 436e505
+- [x] 1.2 Te same testy przechodzą po zmianie (zielone) — 436e505
+- [x] 1.3 Testy podpowiedzi i NFR podglądu przechodzą na PostgreSQL — 436e505
+- [x] 1.4 Pint bez zmian i Sloppy bez nowych znalezisk — 436e505
 
 #### Manual
 
-- [x] 1.5 Podpowiedź „✦” dla kategorii bez pozycji w roku wiersza, zatwierdzenie dołącza pozycję z planem 0
+- [x] 1.5 Podpowiedź „✦” dla kategorii bez pozycji w roku wiersza, zatwierdzenie dołącza pozycję z planem 0 — 436e505
 
 ### Phase 2: Komenda `import:suggestion-accuracy`
 
 #### Automated
 
-- [ ] 2.1 Test komendy przechodzi na PostgreSQL
-- [ ] 2.2 Testy podpowiedzi z fazy 1 nadal przechodzą na PostgreSQL
-- [ ] 2.3 Pełna bramka przechodzi: composer ci:check i sloppy ci
-- [ ] 2.4 Pint bez zmian
+- [x] 2.1 Test komendy przechodzi na PostgreSQL
+- [x] 2.2 Testy podpowiedzi z fazy 1 nadal przechodzą na PostgreSQL
+- [x] 2.3 Pełna bramka przechodzi: composer ci:check i sloppy ci
+- [x] 2.4 Pint bez zmian
 
 #### Manual
 
-- [ ] 2.5 Komenda na bazie dev drukuje czytelną tabelę, a --output + --compare na tym samym pliku daje kod 0
+- [x] 2.5 Komenda na bazie dev drukuje czytelną tabelę, a --output + --compare na tym samym pliku daje kod 0
 
 ### Phase 3: Pomiar przed/po na kopii z 11.09
 

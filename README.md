@@ -128,6 +128,7 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | `demo:seed-previous-year {user}` | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                    |
 | `backup:restore {path}`          | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie) |
 | `app:control-numbers`            | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                  |
+| `import:suggestion-accuracy {user}` | Trafność podpowiedzi Importu (tylko odczyt); zob. [Pomiar trafności podpowiedzi Importu](#pomiar-trafności-podpowiedzi-importu) |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
 
@@ -244,3 +245,16 @@ scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-num
 Ścieżki względne liczą się od katalogu głównego aplikacji. `deploy.sh` robi to automatycznie: pliki `<RRRRMMDD-GGMMSS>-before.json` i `-after.json` leżą w `storage/app/private/control-numbers/`. Po wdrożeniu zachowaj kopię pliku „przed” poza serwerem.
 
 Lokalnie, w `restore_trial` (po `config:clear` i sprawdzeniu `db:show`, jak w próbie lokalnej): `docker compose exec -e DB_DATABASE=restore_trial laravel.test php artisan app:control-numbers --output=storage/app/restore-trial/before.json`, a po migracji i po `migrate:rollback` to samo z `--compare=storage/app/restore-trial/before.json`. Komendy nie ma na `main` sprzed S-18, więc próba biegnie na gałęzi S-18.
+
+#### Pomiar trafności podpowiedzi Importu
+
+Komenda `import:suggestion-accuracy {user}` odtwarza historię zaimportowanych wierszy chronologicznie: każdy wiersz dostaje podpowiedź zbudowaną tylko z wierszy wcześniejszych, tym samym kodem co podgląd Importu. Drukuje dla okresów „cały rok” i „sierpień–listopad” oraz poziomów `model` (głos) i `suggestion` (cel po regule oferty selektora) odsetek wierszy z podpowiedzią i odsetek trafnych wśród nich (dla modelu także top 3). Komenda tylko czyta bazę, więc można ją uruchomić na produkcji.
+
+Mierz po zmianie modelu podpowiedzi, po zmianie kategorii albo po scaleniach kategorii (S-21). Dwa przebiegi porównuje `--compare`: kod wyjścia 1 przy każdym spadku (ułamki, nie zaokrąglone procenty), z listą okresów, poziomów i różniących się operacji; przy różnych zbiorach `operation_id` w obu plikach to błąd, a nie „brak spadku”.
+
+```bash
+scripts/artisan.sh import:suggestion-accuracy 1 --year=2026 --output=storage/app/private/suggestion-accuracy/RRRR-MM-DD-before.json
+scripts/artisan.sh import:suggestion-accuracy 1 --year=2026 --compare=storage/app/private/suggestion-accuracy/RRRR-MM-DD-before.json
+```
+
+Pliki wyniku zawierają id operacji, ale nie opisy; kładziemy je w `storage/app/private/suggestion-accuracy/` (poza repozytorium).
