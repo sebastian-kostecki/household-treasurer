@@ -533,17 +533,17 @@ Bez migracji i bez zmian danych. Produkcja od wdrożenia pokazuje okno z notką 
 
 #### Automated
 
-- [x] 2.1 Vitest przechodzi
-- [x] 2.2 Typy i build
-- [x] 2.3 Strażnicy UI
-- [x] 2.4 Testy strony z fazy 1 dalej przechodzą na PostgreSQL
-- [x] 2.5 E2E raportów przechodzi
-- [x] 2.6 Bramka przechodzi (ci:check, sloppy)
+- [x] 2.1 Vitest przechodzi — dcc9eb1
+- [x] 2.2 Typy i build — dcc9eb1
+- [x] 2.3 Strażnicy UI — dcc9eb1
+- [x] 2.4 Testy strony z fazy 1 dalej przechodzą na PostgreSQL — dcc9eb1
+- [x] 2.5 E2E raportów przechodzi — dcc9eb1
+- [x] 2.6 Bramka przechodzi (ci:check, sloppy) — dcc9eb1
 
 #### Manual
 
-- [x] 2.7 Na devie z Budżetami 2025 i 2026 okno pokazuje zakres, Wynik 12 miesięcy, wykres i tabele bez porównania
-- [x] 2.8 Bez mocka notka nazywa brakujące miesiące i liczbę pokrytych
-- [x] 2.9 Link kategorii otwiera Operacje z zakresem okna i sumą równą raportowi
-- [x] 2.10 Zmiana roku z okna prowadzi do raportu wybranego roku
-- [x] 2.11 Kitchen sink pokazuje wszystkie scenariusze okna w obu motywach i na telefonie
+- [x] 2.7 Na devie z Budżetami 2025 i 2026 okno pokazuje zakres, Wynik 12 miesięcy, wykres i tabele bez porównania — dcc9eb1
+- [x] 2.8 Bez mocka notka nazywa brakujące miesiące i liczbę pokrytych — dcc9eb1
+- [x] 2.9 Link kategorii otwiera Operacje z zakresem okna i sumą równą raportowi — dcc9eb1
+- [x] 2.10 Zmiana roku z okna prowadzi do raportu wybranego roku — dcc9eb1
+- [x] 2.11 Kitchen sink pokazuje wszystkie scenariusze okna w obu motywach i na telefonie — dcc9eb1
