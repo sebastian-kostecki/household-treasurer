@@ -789,7 +789,8 @@ export const reportScenarios: ReportScenario[] = [
     },
     {
         key: 'phone',
-        caption: 'Telefon (ramka 22rem): bez poziomego przewijania',
+        caption:
+            'Telefon (ramka 22rem): bez poziomego przewijania, pełna nazwa, Udział pod kwotą, Badge pod nazwą',
         phone: true,
         props: {
             budgetYear: 2026,
@@ -879,7 +880,8 @@ export const reportScenarios: ReportScenario[] = [
     },
     {
         key: 'compared-phone',
-        caption: 'Telefon (ramka 22rem) z porównaniem: druga linia wiersza',
+        caption:
+            'Telefon (ramka 22rem) z porównaniem: pełna nazwa, druga linia (rok wcześniej i różnica), trzecia linia (Udział)',
         phone: true,
         props: {
             budgetYear: 2026,

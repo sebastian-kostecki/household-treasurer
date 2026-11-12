@@ -102,7 +102,10 @@ function bodyId(groupId: number): string {
                 >
                     {{ t.reports.difference }}
                 </div>
-                <div v-if="showShare" class="report-area-share text-right">
+                <div
+                    v-if="showShare"
+                    class="report-area-share report-head-share text-right"
+                >
                     {{ t.reports.share }}
                 </div>
             </div>
@@ -183,6 +186,9 @@ function bodyId(groupId: number): string {
                     v-if="showShare"
                     class="report-area-share report-cell-share"
                 >
+                    <span class="report-share-label">{{
+                        t.reports.share_label
+                    }}</span>
                     {{ formatShareTenths(totalMinorUnits > 0 ? 1000 : null) }}
                 </div>
             </div>

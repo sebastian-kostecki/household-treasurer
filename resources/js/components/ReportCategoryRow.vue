@@ -150,6 +150,7 @@ const differenceToneClass = computed(() => {
             }}
         </div>
         <div v-if="showShare" class="report-area-share report-cell-share">
+            <span class="report-share-label">{{ t.reports.share_label }}</span>
             {{ formatShareTenths(category.share_tenths_percent) }}
         </div>
     </div>

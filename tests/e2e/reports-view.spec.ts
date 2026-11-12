@@ -137,3 +137,72 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
         expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
     });
 });
+
+// In the 22rem phone frame the card is about 288 px wide: the Udział column
+// must not take the name's room, so the share goes under the amount and the
+// archived Badge under the name (ADR-0083).
+test.describe('Raporty: wąska karta pokazuje pełne nazwy i Udział pod kwotą', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/dev/ui/reports');
+    });
+
+    for (const key of ['phone', 'compared-phone']) {
+        test(`${key}: nazwy kategorii nie są ucięte`, async ({ page }) => {
+            const table = scenario(page, key).locator('.report-table').first();
+            const names = table.locator(
+                '[data-report-row="category"] .report-cell-name .truncate',
+            );
+
+            await expect(names.first()).toBeVisible();
+            const count = await names.count();
+
+            expect(count).toBeGreaterThan(0);
+            for (let index = 0; index < count; index++) {
+                const clipped = await names
+                    .nth(index)
+                    .evaluate(
+                        (element) => element.scrollWidth > element.clientWidth,
+                    );
+
+                expect(clipped, `nazwa #${index} w ${key}`).toBe(false);
+            }
+        });
+    }
+
+    test('phone: „udział 66,7%” stoi pod kwotą wiersza Żywność', async ({
+        page,
+    }) => {
+        const row = scenario(page, 'phone')
+            .locator('[data-report-row="category"]', { hasText: 'Żywność' })
+            .first();
+        const share = row.locator('.report-cell-share');
+        const amount = row.locator('.report-cell-amount');
+
+        await expect(share).toContainText('udział 66,7%');
+
+        const shareBox = (await share.boundingBox())!;
+        const amountBox = (await amount.boundingBox())!;
+        expect(shareBox.y).toBeGreaterThan(amountBox.y + amountBox.height - 1);
+    });
+
+    test('phone: Badge „zarchiwizowana” schodzi pod nazwę', async ({
+        page,
+    }) => {
+        const row = scenario(page, 'phone')
+            .locator('[data-report-row="category"]', {
+                hasText: 'Stara prenumerata',
+            })
+            .first();
+        const name = row.locator('.report-cell-name .truncate');
+        const badge = row
+            .locator('.report-cell-name')
+            .getByText('zarchiwizowana');
+
+        await expect(name).toHaveText('Stara prenumerata');
+        const nameBox = (await name.boundingBox())!;
+        const badgeBox = (await badge.boundingBox())!;
+        expect(badgeBox.y).toBeGreaterThanOrEqual(
+            nameBox.y + nameBox.height - 1,
+        );
+    });
+});

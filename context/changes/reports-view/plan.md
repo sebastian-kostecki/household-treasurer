@@ -418,28 +418,28 @@ Nie dotyczy: bez migracji i danych. Zmiana fixture jest wewnętrzna dla sinka.
 
 #### Automated
 
-- [x] 3.1 Test jednostkowy przechodzi z czerwonego na zielony
-- [x] 3.2 Testy E2E przeskoku przechodzą z czerwonego na zielony
-- [x] 3.3 Istniejące E2E Raportów (wykresy, legenda porównania, Trend) przechodzą
-- [x] 3.4 Strażniki obejmują nowe pliki
-- [x] 3.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 3.1 Test jednostkowy przechodzi z czerwonego na zielony — eca833b
+- [x] 3.2 Testy E2E przeskoku przechodzą z czerwonego na zielony — eca833b
+- [x] 3.3 Istniejące E2E Raportów (wykresy, legenda porównania, Trend) przechodzą — eca833b
+- [x] 3.4 Strażniki obejmują nowe pliki — eca833b
+- [x] 3.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — eca833b
 
 #### Manual
 
-- [x] 3.6 /reports z opóźnionym fragmentem: placeholder w miejscu wykresu, tabela nie zjeżdża
-- [x] 3.7 Sekcja chart-loading w sinku i brak placeholdera bez słupków
+- [x] 3.6 /reports z opóźnionym fragmentem: placeholder w miejscu wykresu, tabela nie zjeżdża — eca833b
+- [x] 3.7 Sekcja chart-loading w sinku i brak placeholdera bez słupków — eca833b
 
 ### Phase 4: Udział pod kwotą w karcie < 36rem (C5) i reguły
 
 #### Automated
 
-- [ ] 4.1 Test E2E C5 przechodzi z czerwonego na zielony
-- [ ] 4.2 Istniejące E2E Raportów przechodzą (porównanie, nagłówki kolumn)
-- [ ] 4.3 Strażniki i indeks reguł
-- [ ] 4.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 4.1 Test E2E C5 przechodzi z czerwonego na zielony
+- [x] 4.2 Istniejące E2E Raportów przechodzą (porównanie, nagłówki kolumn)
+- [x] 4.3 Strażniki i indeks reguł
+- [x] 4.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 4.5 /reports w 352 px: pełne nazwy i „udział X%” pod kwotą
-- [ ] 4.6 Sink phone i compared-phone: pełna nazwa, Badge pod nazwą, trzy linie z porównaniem
-- [ ] 4.7 /reports w 1440 px: wiersz w jednej linii jak dziś
+- [x] 4.5 /reports w 352 px: pełne nazwy i „udział X%” pod kwotą
+- [x] 4.6 Sink phone i compared-phone: pełna nazwa, Badge pod nazwą, trzy linie z porównaniem
+- [x] 4.7 /reports w 1440 px: wiersz w jednej linii jak dziś

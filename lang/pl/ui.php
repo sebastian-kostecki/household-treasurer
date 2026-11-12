@@ -413,6 +413,7 @@ return [
         'category' => 'Kategoria',
         'amount' => 'Kwota',
         'share' => 'Udział',
+        'share_label' => 'udział',
         'difference' => 'Różnica',
         'previous_year_label' => ':year:',
         'previous_year_value' => ':year: :amount',
