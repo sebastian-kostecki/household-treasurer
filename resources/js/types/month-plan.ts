@@ -95,6 +95,7 @@ export type MonthPlanReading = {
     to_spend_expense_minor_units: number | null;
     month_states: (MonthStripState | null)[];
     set_aside_minor_units: number;
+    set_aside_default: { percent: number; income_minor_units: number } | null;
     spendable_liquidity_minor_units: number | null;
     month_pace: MonthPace | null;
     income_items: MonthPlanItem[];

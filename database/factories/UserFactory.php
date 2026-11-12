@@ -64,4 +64,11 @@ class UserFactory extends Factory
             'first_run_checklist_dismissed_at' => now(),
         ]);
     }
+
+    public function withDefaultSetAsidePercent(int $percent): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'default_set_aside_percent' => $percent,
+        ]);
+    }
 }

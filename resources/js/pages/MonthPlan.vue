@@ -81,6 +81,15 @@ function isEditableRow(row: MonthPlanItem): boolean {
 
 const planRows = computed(() => allRows.value.filter(isEditableRow));
 
+/** The percent hint belongs to a proposal, not to change mode (the amount there is the approved one). */
+const setAsideDefault = computed(() => {
+    const basis = props.monthPlan?.set_aside_default;
+
+    return basis && !isChanging.value
+        ? { percent: basis.percent, incomeMinorUnits: basis.income_minor_units }
+        : null;
+});
+
 const isEditable = computed(
     () =>
         (props.monthPlan?.state === 'proposal' &&
@@ -726,6 +735,7 @@ const toSpendLabel = computed<'live' | 'final' | 'default'>(() => {
                     :show-set-aside="monthPlan.summary === null"
                     :set-aside-flagged="setAsideFlagged"
                     :set-aside-error="errors.set_aside_minor_units"
+                    :set-aside-default="setAsideDefault"
                     @update-amount="updateAmount"
                     @amount-blur="touchAmount"
                     @match-actual="matchActual"

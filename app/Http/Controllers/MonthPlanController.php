@@ -143,6 +143,7 @@ class MonthPlanController extends Controller
      *     to_spend_expense_minor_units: int|null,
      *     month_states: list<'summary'|'approved'|'proposal'|null>,
      *     set_aside_minor_units: int,
+     *     set_aside_default: array{percent: int, income_minor_units: int}|null,
      *     spendable_liquidity_minor_units: int|null,
      *     month_pace: array{as_of: string, elapsed_day: int, days_in_month: int, pool_plan_minor_units: int, pool_actual_minor_units: int, percent: int|null, is_ahead: bool}|null,
      *     income_items: list<array<string, mixed>>,
@@ -192,6 +193,7 @@ class MonthPlanController extends Controller
             'to_spend_expense_minor_units' => $breakdown['expense_minor_units'] ?? null,
             'month_states' => $toSpend->proposal->monthStates(),
             'set_aside_minor_units' => $reading->setAsideMinorUnits,
+            'set_aside_default' => $reading->setAsideDefault,
             'spendable_liquidity_minor_units' => $timing !== 'past' && $reading->state !== 'none'
                 ? SpendableLiquidity::forUser($user)
                 : null,

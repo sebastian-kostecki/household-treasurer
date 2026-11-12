@@ -16,8 +16,10 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import TextLink from '@/components/TextLink.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount } from '@/lib/format';
+import { edit as editMonthPlanSettings } from '@/routes/month-plan-settings';
 import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import { monthPlanGroupTree } from '@/lib/month-plan-groups';
 import type {
@@ -69,6 +71,8 @@ const props = defineProps<{
     showSetAside: boolean;
     setAsideFlagged: boolean;
     setAsideError?: string;
+    /** The Default Set-aside Percent behind the proposal's amount; null outside a proposal with a percent and in change mode. */
+    setAsideDefault?: { percent: number; incomeMinorUnits: number } | null;
 }>();
 
 const emit = defineEmits<{
@@ -130,6 +134,19 @@ function groupBodyId(prefix: string, groupId: number): string {
 }
 
 const t = useTranslations();
+
+const showSetAsideDefault = computed(
+    () => props.editable && props.setAsideDefault != null,
+);
+
+const setAsideDescribedBy = computed(() => {
+    const ids = [
+        props.setAsideFlagged ? 'month-plan-set-aside-error' : null,
+        showSetAsideDefault.value ? 'month-plan-set-aside-default' : null,
+    ].filter((id): id is string => id !== null);
+
+    return ids.length > 0 ? ids.join(' ') : undefined;
+});
 
 const setAsideDirectionOptions = computed(() =>
     (['set_aside', 'draw'] as SetAsideDirection[]).map((direction) => ({
@@ -384,11 +401,7 @@ const expenseRowsEmpty = computed(
                         autocomplete="off"
                         :aria-label="t.month_plan.set_aside_amount"
                         :aria-invalid="setAsideFlagged ? 'true' : undefined"
-                        :aria-describedby="
-                            setAsideFlagged
-                                ? 'month-plan-set-aside-error'
-                                : undefined
-                        "
+                        :aria-describedby="setAsideDescribedBy"
                         @blur="emit('set-aside-blur')"
                     />
                     <span v-else class="amount">
@@ -406,6 +419,29 @@ const expenseRowsEmpty = computed(
                         class="text-right"
                         :message="setAsideError"
                     />
+                    <p
+                        v-if="showSetAsideDefault && setAsideDefault"
+                        id="month-plan-set-aside-default"
+                        class="meta text-muted-foreground text-right"
+                    >
+                        {{
+                            t.month_plan.set_aside_default_basis
+                                .replace(
+                                    ':percent',
+                                    String(setAsideDefault.percent),
+                                )
+                                .replace(
+                                    ':amount',
+                                    formatMoneyAmount(
+                                        setAsideDefault.incomeMinorUnits,
+                                    ),
+                                )
+                        }}
+                        ·
+                        <TextLink :href="editMonthPlanSettings()">
+                            {{ t.month_plan.set_aside_default_change }}
+                        </TextLink>
+                    </p>
                 </div>
                 <div class="month-plan-cell-status">
                     <span

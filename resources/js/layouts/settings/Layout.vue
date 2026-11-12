@@ -4,6 +4,7 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { useTranslations } from '@/composables/useTranslations';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editMonthPlanSettings } from '@/routes/month-plan-settings';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
@@ -22,6 +23,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: t.settings.appearance,
         href: editAppearance(),
+    },
+    {
+        title: t.settings.month_plan,
+        href: editMonthPlanSettings(),
     },
 ];
 

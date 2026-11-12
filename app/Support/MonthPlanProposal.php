@@ -10,6 +10,14 @@ use App\Models\MonthPlan;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 
+/**
+ * The Month Plan of each month of a Budget: approved, a proposal or none.
+ *
+ * A proposal's Set-aside is the User's Default Set-aside Percent of the planned income of that
+ * proposal, rounded down to a whole zloty; only without a percent is the positive Set-aside of the
+ * source month copied (ADR-0082, which narrows ADR-0033). The percent is read once, from the
+ * Budget's owner (`User::budgets()` sets the owner by chaperone), never per month.
+ */
 class MonthPlanProposal
 {
     /**
@@ -39,6 +47,7 @@ class MonthPlanProposal
         private readonly ?array $previousPlansByMonth,
         private readonly ?Collection $previousCategories,
         private readonly CategoryRhythms $rhythms,
+        private readonly ?int $defaultSetAsidePercent,
     ) {}
 
     /**
@@ -69,6 +78,7 @@ class MonthPlanProposal
             $previousBudget?->monthPlans->keyBy('month')->all(),
             $previousBudget?->budgetLines->keyBy('id'),
             CategoryRhythms::forCategoryIds($categoryIds),
+            $budget->user->default_set_aside_percent,
         );
     }
 
@@ -176,6 +186,18 @@ class MonthPlanProposal
             }
 
             $amounts[$category->id] = $this->proposedAmount($inPreviousBudget, $budget, $category, $month, $source);
+        }
+
+        if ($this->defaultSetAsidePercent !== null) {
+            $income = DefaultSetAside::plannedIncome($categories, $amounts);
+
+            return new MonthPlanReading(
+                'proposal',
+                null,
+                $amounts,
+                DefaultSetAside::amount($this->defaultSetAsidePercent, $income),
+                setAsideDefault: ['percent' => $this->defaultSetAsidePercent, 'income_minor_units' => $income],
+            );
         }
 
         return new MonthPlanReading('proposal', null, $amounts, max(0, $source->setAsideMinorUnits ?? 0));

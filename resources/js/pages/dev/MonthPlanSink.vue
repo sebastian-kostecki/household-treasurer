@@ -40,6 +40,7 @@ import {
     approvedAheadReading,
     approvedNoPaceReading,
     approvedReading,
+    buildMonthPlanReading,
     futureProposalReading,
     groupedReading,
     joinCandidateExpense,
@@ -144,6 +145,7 @@ type TableConfig = {
     idleOpen: boolean;
     direction: SetAsideDirection;
     setAsideInput: string;
+    setAsideDefault: { percent: number; incomeMinorUnits: number } | null;
 };
 
 function inputsFor(reading: MonthPlanReading): Record<number, string> {
@@ -180,6 +182,7 @@ function tableConfig(
         idleOpen: false,
         direction: setAside < 0 ? 'draw' : 'set_aside',
         setAsideInput: minorUnitsToMoneyInput(Math.abs(setAside)),
+        setAsideDefault: null,
         ...overrides,
     };
 }
@@ -253,6 +256,15 @@ const tables = reactive<TableConfig[]>([
         'Przyszły miesiąc, propozycja (bez linii „W roku”; „zostało X na 12 mies.” przy X > 0, X = 0 i X < 0; zwinięte równomierne roczne)',
         futureProposalReading,
         { editable: true },
+    ),
+    tableConfig(
+        'proposal-default-percent',
+        'Propozycja z domyślnym procentem (10 % planowanych przychodów, podstawa 9 000,00, link do Ustawień pod polem „odkładam”)',
+        buildMonthPlanReading({ set_aside_minor_units: 90_000 }),
+        {
+            editable: true,
+            setAsideDefault: { percent: 10, incomeMinorUnits: 900_000 },
+        },
     ),
     tableConfig(
         'past',
@@ -690,6 +702,7 @@ const stripMonth = ref(11);
                 :show-set-aside="config.showSetAside"
                 :set-aside-flagged="config.flagged"
                 :set-aside-error="config.serverError"
+                :set-aside-default="config.setAsideDefault"
                 @update-amount="
                     (id: number, value: string) =>
                         (config.amountInputs[id] = value)

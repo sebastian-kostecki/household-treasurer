@@ -121,7 +121,7 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | Komenda                          | Działanie                                                                                                                |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `user:create`                    | Konto logowania                                                                                                          |
-| `user:backup {user}`             | Snapshot JSON danych domenowych (wersja 9)                                                                               |
+| `user:backup {user}`             | Snapshot JSON danych domenowych (wersja 11)                                                                              |
 | `user:restore {user} {path}`     | Przywrócenie snapshotu na istniejącego użytkownika                                                                       |
 | `user:reset-data {user}`         | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                 |
 | `demo:seed-household {user}`     | Dane demo                                                                                                                |
@@ -201,6 +201,10 @@ Snapshot wersji 6, zrobiony po wdrożeniu, nie wczyta się w starym kodzie (`use
 #### Wycofanie S-26 po wdrożeniu
 
 Migracja S-26 dodaje jedną kolumnę (`category_rhythms.opening_collected_minor_units`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` jest stratny: zamienia wpisy rytmu `irregular` na `even_annual` i usuwa kolumnę, więc giną zebrane startowe i oznaczenia nieregularnych; operacje, plany i kwoty zostają. Wycofanie idzie jak w „Wycofanie S-18”: `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`. Snapshot wersji 10 (`user:backup` po S-26) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()`, nie restore nowego snapshotu w starym kodzie.
+
+#### Wycofanie S-33 po wdrożeniu
+
+Migracja S-33 dodaje jedną nullable kolumnę (`users.default_set_aside_percent`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` usuwa kolumnę i traci tylko zapisany procent; operacje, plany i kwoty zostają. Wycofanie idzie jak w „Wycofanie S-18”: `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`. Snapshot wersji 11 (`user:backup` po S-33) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()`, nie restore nowego snapshotu w starym kodzie.
 
 #### Scalanie kategorii
 

@@ -33,6 +33,7 @@ class ResetUserData
 
             $user->forceFill([
                 'first_run_checklist_dismissed_at' => null,
+                'default_set_aside_percent' => null,
             ])->save();
         });
     }
