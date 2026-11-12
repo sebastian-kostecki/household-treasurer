@@ -122,6 +122,26 @@ const title = computed(() => {
     <Head :title="t.reports.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="grid gap-1">
+                <h1 class="page-title">{{ title }}</h1>
+                <p
+                    v-if="budgetYear !== null && period.kind === 'last-12'"
+                    class="meta text-muted-foreground"
+                    data-testid="report-window-range"
+                >
+                    {{ windowLabel }}
+                </p>
+            </div>
+            <SegmentedControl
+                v-if="budgetYear !== null"
+                v-model="periodKind"
+                :options="periodOptions"
+                :ariaLabel="t.reports.period_label"
+                tone="neutral"
+            />
+        </div>
+
         <ReportEmptyState v-if="budgetYear === null" kind="no-budget" />
 
         <ReportEmptyState
@@ -130,25 +150,6 @@ const title = computed(() => {
         />
 
         <template v-else>
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="grid gap-1">
-                    <h1 class="page-title">{{ title }}</h1>
-                    <p
-                        v-if="period.kind === 'last-12'"
-                        class="meta text-muted-foreground"
-                        data-testid="report-window-range"
-                    >
-                        {{ windowLabel }}
-                    </p>
-                </div>
-                <SegmentedControl
-                    v-model="periodKind"
-                    :options="periodOptions"
-                    :ariaLabel="t.reports.period_label"
-                    tone="neutral"
-                />
-            </div>
-
             <IndexEmptyState
                 v-if="hasNoCoverage"
                 :title="t.reports.no_coverage_title"

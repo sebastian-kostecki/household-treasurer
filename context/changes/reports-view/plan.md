@@ -389,30 +389,30 @@ Nie dotyczy: bez migracji i danych. Zmiana fixture jest wewnętrzna dla sinka.
 
 #### Automated
 
-- [x] 1.1 Typy przechodzą po przebudowie fixture: `npm run types:check`
-- [x] 1.2 Lint i strażniki: `npm run check` i `npm run check:ui`
-- [x] 1.3 Test sinka i strażnik Raportów przechodzą
-- [ ] 1.4 Istniejące E2E Raportów przechodzą
-- [x] 1.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 1.1 Typy przechodzą po przebudowie fixture: `npm run types:check` — b9c22fc
+- [x] 1.2 Lint i strażniki: `npm run check` i `npm run check:ui` — b9c22fc
+- [x] 1.3 Test sinka i strażnik Raportów przechodzą — b9c22fc
+- [x] 1.4 Istniejące E2E Raportów przechodzą
+- [x] 1.5 Bramka: `composer ci:check` i `vendor/bin/sloppy ci` — b9c22fc
 
 #### Manual
 
-- [ ] 1.6 Tytuły scenariuszy sinka zgodne ze stroną, ramki telefonu bez poziomego przewijania
-- [ ] 1.7 Scenariusze draft, draft-last-12 i no-budget w sinku wyglądają jak /reports
+- [x] 1.6 Tytuły scenariuszy sinka zgodne ze stroną, ramki telefonu bez poziomego przewijania
+- [x] 1.7 Scenariusze draft, draft-last-12 i no-budget w sinku wyglądają jak /reports
 
 ### Phase 2: Wiersz tytułu i przełącznik w każdym stanie z Budżetem (C1)
 
 #### Automated
 
-- [ ] 2.1 Nowy test E2E przechodzi z czerwonego na zielony
-- [ ] 2.2 Istniejące E2E Raportów przechodzą
-- [ ] 2.3 Feature testy Raportów przechodzą na PostgreSQL
-- [ ] 2.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
+- [x] 2.1 Nowy test E2E przechodzi z czerwonego na zielony
+- [x] 2.2 Istniejące E2E Raportów przechodzą
+- [x] 2.3 Feature testy Raportów przechodzą na PostgreSQL
+- [x] 2.4 Bramka: `composer ci:check` i `vendor/bin/sloppy ci`
 
 #### Manual
 
-- [ ] 2.5 Draft 2027 na podglądzie: h1, przełącznik, kartka, droga z 12 miesięcy i z powrotem
-- [ ] 2.6 Użytkownik bez Budżetu: h1 „Raporty” i kartka, bez przełącznika
+- [x] 2.5 Draft 2027 na podglądzie: h1, przełącznik, kartka, droga z 12 miesięcy i z powrotem
+- [x] 2.6 Użytkownik bez Budżetu: h1 „Raporty” i kartka, bez przełącznika
 
 ### Phase 3: Miejsce na wykres z reportChartHeightRem (C2 + C4)
 
