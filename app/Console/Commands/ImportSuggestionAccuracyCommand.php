@@ -2,32 +2,44 @@
 
 namespace App\Console\Commands;
 
-use App\Models\User;
+use App\Support\Console\ReadsAndWritesJsonFiles;
+use App\Support\Console\ResolvesConsoleUser;
 use App\Support\CsvImport\ImportCategorySuggestionAccuracy;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use JsonException;
 
 #[Signature('import:suggestion-accuracy {user : The user ID or email address} {--year= : Evaluation year; default the latest year of imported rows} {--output= : Write the result to this JSON file} {--compare= : Compare with a JSON file written earlier; exit code 1 on any drop}')]
 #[Description('Replay the Import history chronologically and print how many rows get a suggestion and how many are right; read-only')]
 class ImportSuggestionAccuracyCommand extends Command
 {
+    use ReadsAndWritesJsonFiles;
+    use ResolvesConsoleUser;
+
     private const array PERIOD_LABELS = ['year' => 'whole year', 'aug_nov' => 'Aug-Nov'];
 
     public function handle(ImportCategorySuggestionAccuracy $accuracy): int
     {
-        $user = $this->resolveUser((string) $this->argument('user'));
-
-        if ($user === null) {
-            $this->components->error('User not found.');
+        try {
+            $user = $this->resolveUser((string) $this->argument('user'));
+        } catch (ModelNotFoundException) {
+            $this->components->error("User not found: {$this->argument('user')}");
 
             return self::FAILURE;
         }
 
-        $year = $this->option('year');
-        $year = is_string($year) && $year !== '' ? (int) $year : $accuracy->latestYear($user);
+        $optionError = $this->optionError();
+
+        if ($optionError !== null) {
+            $this->components->error($optionError);
+
+            return self::FAILURE;
+        }
+
+        $year = $this->filledOption('year');
+        $year = $year !== null ? (int) $year : $accuracy->latestYear($user);
 
         if ($year === null) {
             $this->components->error('The user has no imported rows.');
@@ -45,16 +57,56 @@ class ImportSuggestionAccuracyCommand extends Command
 
         $this->printTable($result);
 
-        $output = $this->option('output');
+        $output = $this->filledOption('output');
 
-        if (is_string($output) && $output !== '') {
+        if ($output !== null) {
             $this->writeJson($this->resolvePath($output), $result);
             $this->components->info("Result written to {$output}.");
         }
 
-        $compare = $this->option('compare');
+        $compare = $this->filledOption('compare');
 
-        return is_string($compare) && $compare !== '' ? $this->compare($accuracy, $compare, $result) : self::SUCCESS;
+        return $compare !== null ? $this->compare($accuracy, $compare, $result) : self::SUCCESS;
+    }
+
+    /**
+     * A non-numeric year would read as year 0, and an output file that is also the
+     * compare file would be compared with itself and always pass.
+     */
+    private function optionError(): ?string
+    {
+        $year = $this->filledOption('year');
+
+        if ($year !== null && ! ctype_digit($year)) {
+            return "--year must be a year, got \"{$year}\".";
+        }
+
+        $output = $this->filledOption('output');
+        $compare = $this->filledOption('compare');
+
+        if ($output !== null && $compare !== null && $this->isSameFile($this->resolvePath($output), $this->resolvePath($compare))) {
+            return '--output and --compare name the same file: the run would compare with itself.';
+        }
+
+        return null;
+    }
+
+    private function filledOption(string $name): ?string
+    {
+        $value = $this->option($name);
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    private function isSameFile(string $first, string $second): bool
+    {
+        if ($first === $second) {
+            return true;
+        }
+
+        $firstReal = realpath($first);
+
+        return $firstReal !== false && $firstReal === realpath($second);
     }
 
     /**
@@ -125,46 +177,5 @@ class ImportSuggestionAccuracyCommand extends Command
     private function percent(int $part, int $whole): string
     {
         return $whole === 0 ? '-' : number_format($part / $whole * 100, 1).'% ('.$part.'/'.$whole.')';
-    }
-
-    private function resolveUser(string $identifier): ?User
-    {
-        return ctype_digit($identifier)
-            ? User::query()->find((int) $identifier)
-            : User::query()->where('email', $identifier)->first();
-    }
-
-    private function resolvePath(string $path): string
-    {
-        return str_starts_with($path, '/') ? $path : base_path($path);
-    }
-
-    /**
-     * @param  array<string, mixed>  $values
-     */
-    private function writeJson(string $path, array $values): void
-    {
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, json_encode($values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n");
-    }
-
-    /**
-     * @return array<string, mixed>
-     *
-     * @throws JsonException
-     */
-    private function readJson(string $path): array
-    {
-        if (! File::isFile($path)) {
-            throw new JsonException('the file does not exist');
-        }
-
-        $decoded = json_decode(File::get($path), true, flags: JSON_THROW_ON_ERROR);
-
-        if (! is_array($decoded)) {
-            throw new JsonException('the file does not hold a JSON object');
-        }
-
-        return $decoded;
     }
 }

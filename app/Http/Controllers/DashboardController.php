@@ -36,6 +36,7 @@ class DashboardController extends Controller
         $budget = $this->findBudgetForYear($user, $currentYear);
 
         $allAccounts = $user->accounts()
+            ->withoutSheetAccounts()
             ->orderBy('name')
             ->get();
 

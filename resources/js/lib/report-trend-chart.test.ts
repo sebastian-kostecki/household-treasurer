@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vite-plus/test';
 import type { ReportTrendMonth } from '../types/reports';
-import { reportTrendChartBars } from './report-trend-chart';
+import {
+    reportTrendChartBars,
+    reportTrendInProgressNote,
+    reportTrendLegend,
+} from './report-trend-chart';
 
 function months(
     overrides: Record<number, Partial<ReportTrendMonth>> = {},
@@ -61,5 +65,28 @@ describe('reportTrendChartBars', () => {
                 }),
             ),
         ).toEqual([]);
+    });
+});
+
+describe('reportTrendLegend and reportTrendInProgressNote', () => {
+    const reports = {
+        income: 'Przychody',
+        expense: 'Wydatki',
+        trend_legend_in_progress: ':month w toku',
+    };
+    const budget = { month_name_3: 'marzec' };
+
+    it('lists income and expense with the token colours', () => {
+        expect(reportTrendLegend(reports)).toEqual([
+            { key: 'income', color: 'var(--success)', label: 'Przychody' },
+            { key: 'expense', color: 'var(--chart-1)', label: 'Wydatki' },
+        ]);
+    });
+
+    it('names the month in progress, and gives no note without one', () => {
+        expect(reportTrendInProgressNote(3, reports, budget)).toBe(
+            'marzec w toku',
+        );
+        expect(reportTrendInProgressNote(null, reports, budget)).toBeNull();
     });
 });

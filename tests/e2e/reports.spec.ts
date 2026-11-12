@@ -10,6 +10,7 @@
 // The year-over-year test needs the mock of the previous year in the E2E
 // database (`demo:seed-previous-year`, see README, section „Uruchomienie”).
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { assignCategoryToGroup } from './support/categories';
 
 function chart(page: Page, type: 'income' | 'expense'): Locator {
     // The chart is aria-hidden, so it is found by its test id.
@@ -83,6 +84,11 @@ async function deleteOperation(
 test('shortcut 8 opens Raporty with the measures, both charts and both tables', async ({
     page,
 }) => {
+    // Two operations are added and two deleted through the UI around the
+    // Reports check: about 20 s alone and over 30 s on a busy machine, so the
+    // default limit made the test flaky (it timed out at different steps).
+    test.slow();
+
     const stamp = Date.now();
     const expenseDescription = `E2E raport wydatek ${stamp}`;
     const incomeDescription = `E2E raport dochód ${stamp}`;
@@ -201,12 +207,14 @@ test('collapsing a group hides its Categories', async ({ page }) => {
     await expect(groupBlock(page, group)).toBeVisible();
 
     try {
-        await page
-            .locator('[data-category-row]')
-            .filter({ has: page.getByText('Rozrywka', { exact: true }) })
-            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
-            .click();
-        await page.getByRole('menuitem', { name: group }).click();
+        await assignCategoryToGroup(
+            page,
+            page
+                .locator('[data-category-row]')
+                .filter({ has: page.getByText('Rozrywka', { exact: true }) }),
+            'Rozrywka',
+            group,
+        );
         await expect(
             groupBlock(page, group).locator('[data-category-row]'),
         ).toContainText('Rozrywka');
@@ -368,12 +376,14 @@ test('Trend groups start collapsed and expand to their Categories', async ({
     await expect(groupBlock(page, group)).toBeVisible();
 
     try {
-        await page
-            .locator('[data-category-row]')
-            .filter({ has: page.getByText('Rozrywka', { exact: true }) })
-            .getByRole('button', { name: 'Grupa kategorii Rozrywka' })
-            .click();
-        await page.getByRole('menuitem', { name: group }).click();
+        await assignCategoryToGroup(
+            page,
+            page
+                .locator('[data-category-row]')
+                .filter({ has: page.getByText('Rozrywka', { exact: true }) }),
+            'Rozrywka',
+            group,
+        );
         await expect(
             groupBlock(page, group).locator('[data-category-row]'),
         ).toContainText('Rozrywka');
@@ -450,6 +460,117 @@ test('changing the budget year in the sidebar stays on the Trend', async ({
             page.getByRole('heading', {
                 level: 1,
                 name: `Trend ${previousYear}`,
+            }),
+        ).toBeVisible();
+    } finally {
+        if (created) {
+            await page.goto('/budget');
+            const newSegment = yearSegments(page)
+                .filter({ hasText: String(newYear) })
+                .first();
+            if ((await newSegment.getAttribute('aria-pressed')) !== 'true') {
+                await newSegment.click();
+            }
+            await page.getByRole('button', { name: 'Akcje budżetu' }).click();
+            await page.getByRole('menuitem', { name: 'Usuń budżet' }).click();
+            await page
+                .getByRole('dialog', { name: 'Usunąć budżet?' })
+                .getByRole('button', { name: 'Usuń budżet' })
+                .click();
+            await expect(yearSegments(page)).toHaveCount(initialSegmentCount);
+        }
+    }
+});
+
+/** "listopad 2025 – październik 2026": the 12 closed months before today (UTC). */
+function expectedWindowRange(): string {
+    const months = [
+        'styczeń',
+        'luty',
+        'marzec',
+        'kwiecień',
+        'maj',
+        'czerwiec',
+        'lipiec',
+        'sierpień',
+        'wrzesień',
+        'październik',
+        'listopad',
+        'grudzień',
+    ];
+    const now = new Date();
+    const through = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+    );
+    const from = new Date(
+        Date.UTC(through.getUTCFullYear(), through.getUTCMonth() - 11, 1),
+    );
+    const label = (date: Date): string =>
+        `${months[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+
+    return `${label(from)} – ${label(through)}`;
+}
+
+test('the 12 months view opens from the switch with the window range and no month bar', async ({
+    page,
+}) => {
+    await page.goto('/reports');
+    await page
+        .getByRole('button', { name: '12 miesięcy', exact: true })
+        .click();
+
+    await expect(page).toHaveURL(/\/reports\?view=last-12$/);
+    await expect(
+        page.getByRole('heading', {
+            level: 1,
+            name: 'Raport: ostatnie 12 miesięcy',
+        }),
+    ).toBeVisible();
+    await expect(page.getByTestId('report-window-range')).toHaveText(
+        expectedWindowRange(),
+    );
+
+    // Depending on the seeded Budgets the window is covered or empty.
+    await expect(
+        page
+            .getByText('Wynik 12 miesięcy')
+            .or(page.getByText('Brak budżetu w realizacji w tym okresie')),
+    ).toBeVisible();
+    await expect(page.getByText('Wynik roku')).toHaveCount(0);
+    await expect(page.getByText('Budżet w przygotowaniu')).toHaveCount(0);
+});
+
+test('changing the budget year in the sidebar from the 12 months view leads to the year report', async ({
+    page,
+}) => {
+    await page.goto('/budget');
+
+    const initialSegmentCount = await yearSegments(page).count();
+    const createSegment = yearSegments(page).last();
+    const createLabel = (await createSegment.getAttribute('aria-label')) ?? '';
+    const newYear = Number(createLabel.match(/\d{4}/)?.[0]);
+    expect(newYear).toBeGreaterThan(2000);
+    const previousYear = newYear - 1;
+    let created = false;
+
+    try {
+        await createSegment.click();
+        const dialog = page.getByRole('dialog', { name: 'Nowy budżet' });
+        await dialog.getByRole('button', { name: 'Utwórz budżet' }).click();
+        await expect(dialog).toBeHidden();
+        created = true;
+
+        await page.goto('/reports?view=last-12');
+        await yearSegments(page)
+            .filter({ hasText: String(previousYear) })
+            .first()
+            .click();
+
+        await expect(page).toHaveURL(/\/reports$/);
+        await expect(
+            page.getByRole('heading', {
+                level: 1,
+                name: `Raport roku ${previousYear}`,
             }),
         ).toBeVisible();
     } finally {

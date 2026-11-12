@@ -6,6 +6,7 @@ import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import CategoryFormDialog from '@/components/CategoryFormDialog.vue';
 import CategoryListFormDialog from '@/components/CategoryListFormDialog.vue';
 import type { CategoryFormCategory } from '@/components/CategoryFormDialog.vue';
+import CategoryGroupAssignDialog from '@/components/CategoryGroupAssignDialog.vue';
 import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
 import CategoryMergeDialog from '@/components/CategoryMergeDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
@@ -25,6 +26,7 @@ import type {
     CategoryPickerOption,
 } from '@/lib/category-appearance';
 import {
+    expenseGroups,
     mergeArchivedSourcePreview,
     mergeCollectedLostPreview,
     mergeCollectedPreview,
@@ -72,6 +74,10 @@ const states = [
     'category-list-irregular-bad-amount',
     'category-group-new',
     'category-group-rename-error',
+    'category-group-assign',
+    'category-group-assign-changed',
+    'category-group-assign-saving',
+    'category-group-assign-error',
     'merge-idle',
     'merge-loading',
     'merge-move',
@@ -154,6 +160,13 @@ const labels: Record<SinkState, string> = {
     'category-group-new': 'Grupa kategorii: nowa',
     'category-group-rename-error':
         'Grupa kategorii: zmiana nazwy (błąd po zapisie)',
+    'category-group-assign': 'Grupa kategorii: zmiana grupy',
+    'category-group-assign-changed':
+        'Grupa kategorii: zmiana grupy (wybrana inna grupa)',
+    'category-group-assign-saving':
+        'Grupa kategorii: zmiana grupy (zapis w toku)',
+    'category-group-assign-error':
+        'Grupa kategorii: zmiana grupy (błąd po zapisie)',
     'merge-idle': 'Scalanie: bez wybranego celu',
     'merge-loading': 'Scalanie: wczytywanie podglądu',
     'merge-move': 'Scalanie: przepięcie pozycji (para z produkcji)',
@@ -253,6 +266,13 @@ const listCategory: CategoryListItem = {
     can_change_type: true,
     can_delete: true,
     archived_at: null,
+};
+
+/** A Category in "Opłaty stałe" (`expenseGroups`), for the group assign dialog. */
+const groupedCategory: CategoryListItem = {
+    ...listCategory,
+    name: 'Prąd',
+    group_id: 32,
 };
 
 const rhythmChangeMonth = { year: 2026, month: 11 };
@@ -635,6 +655,35 @@ function setOpen(state: SinkState, value: boolean): void {
             :group="{ id: 1, name: 'Opłaty stałe' }"
             :form="validateForm"
             @update:open="setOpen('category-group-rename-error', $event)"
+        />
+        <CategoryGroupAssignDialog
+            :open="isOpen('category-group-assign')"
+            :category="groupedCategory"
+            :groups="expenseGroups"
+            @update:open="setOpen('category-group-assign', $event)"
+        />
+        <CategoryGroupAssignDialog
+            :open="isOpen('category-group-assign-changed')"
+            :category="groupedCategory"
+            :groups="expenseGroups"
+            :initial-group-id="33"
+            @update:open="setOpen('category-group-assign-changed', $event)"
+        />
+        <CategoryGroupAssignDialog
+            :open="isOpen('category-group-assign-saving')"
+            :category="groupedCategory"
+            :groups="expenseGroups"
+            :initial-group-id="33"
+            :form="validateForm"
+            @update:open="setOpen('category-group-assign-saving', $event)"
+        />
+        <CategoryGroupAssignDialog
+            :open="isOpen('category-group-assign-error')"
+            :category="groupedCategory"
+            :groups="expenseGroups"
+            :initial-group-id="33"
+            :form="validateForm"
+            @update:open="setOpen('category-group-assign-error', $event)"
         />
         <CategoryMergeDialog
             v-for="dialog in mergeDialogs"

@@ -227,6 +227,29 @@ class EntryToSpendInputsTest extends TestCase
         $this->assertSame($ofTheProposals + 1, $rhythmQueries);
     }
 
+    /**
+     * The proposal reads the Default Set-aside Percent from the Budget's owner (ADR-0082);
+     * budgets from `User::budgets()` carry that owner by chaperone, so no Budget queries for it.
+     */
+    public function test_budgets_in_execution_read_their_owner_without_a_users_query(): void
+    {
+        foreach ([2026, 2027] as $year) {
+            $this->food($this->budget($year));
+        }
+
+        $userQueries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$userQueries): void {
+            if (str_contains($query->sql, '"users"')) {
+                $userQueries++;
+            }
+        });
+
+        $payload = EntryToSpendInputs::forUser($this->user, $this->day(2026, 11, 10));
+
+        $this->assertCount(2, $payload['budgets']);
+        $this->assertSame(0, $userQueries);
+    }
+
     public function test_an_irregular_category_brings_its_period_with_the_rate_and_actual_of_each_month(): void
     {
         $budget = $this->budget(2026);

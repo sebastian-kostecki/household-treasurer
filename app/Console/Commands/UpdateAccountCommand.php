@@ -42,6 +42,12 @@ class UpdateAccountCommand extends Command
             return self::FAILURE;
         }
 
+        if ($account->isSheetAccount()) {
+            $this->components->error("Account #{$account->id} is the Sheet Account of year {$account->sheet_year}; it cannot be changed here. Undo the year with budget:unload-sheet.");
+
+            return self::FAILURE;
+        }
+
         if (! $this->hasChangeOption()) {
             $this->components->error('No changes specified.');
 

@@ -156,7 +156,8 @@ class MonthToSpendTest extends TestCase
         $toSpend->toSpendBreakdown();
 
         // Fixed by the reading itself; the Collected adds no query without an Irregular entry.
-        $this->assertSame(9, $queries);
+        // One of them reads the owner of the Budget for the Default Set-aside Percent (ADR-0082).
+        $this->assertSame(10, $queries);
     }
 
     public function test_an_irregular_category_adds_a_fixed_number_of_queries_whatever_the_months(): void

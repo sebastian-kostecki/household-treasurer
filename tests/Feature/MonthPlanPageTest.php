@@ -198,6 +198,74 @@ class MonthPlanPageTest extends TestCase
             );
     }
 
+    public function test_proposal_set_aside_equals_the_default_percent_of_planned_income(): void
+    {
+        [$user] = $this->canonicalBudget();
+        $user->forceFill(['default_set_aside_percent' => 10])->save();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.set_aside_minor_units', 80_000)
+                ->where('monthPlan.to_spend_minor_units', 373_000 - 80_000),
+            );
+    }
+
+    public function test_set_aside_default_carries_the_percent_and_planned_income_only_in_a_proposal(): void
+    {
+        [$user, $budget, $categories] = $this->canonicalBudget();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page->where('monthPlan.set_aside_default', null));
+
+        $user->forceFill(['default_set_aside_percent' => 10])->save();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'proposal')
+                ->where('monthPlan.set_aside_default', ['percent' => 10, 'income_minor_units' => 800_000]),
+            );
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->post(route('month-plans.approve', ['budget' => $budget, 'month' => 6]), [
+                'set_aside_minor_units' => 80_000,
+                'items' => $this->planItems($categories),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('monthPlan.state', 'approved')
+                ->where('monthPlan.set_aside_default', null),
+            );
+
+        $plan = MonthPlan::factory()->for($budget)->create(['month' => 3]);
+        MonthPlanItem::query()->create([
+            'month_plan_id' => $plan->id,
+            'budget_line_id' => $categories['salary']->id,
+            'approved_amount_minor_units' => 500_000,
+            'current_amount_minor_units' => 500_000,
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('month-plan', ['month' => 3]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('viewedMonthTiming', 'past')
+                ->where('monthPlan.set_aside_default', null),
+            );
+    }
+
     public function test_to_spend_breakdown_and_set_aside_add_up_to_the_number(): void
     {
         [$user, $budget, $categories] = $this->canonicalBudget();

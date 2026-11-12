@@ -7,6 +7,7 @@ use App\Support\BudgetViewedMonth;
 use App\Support\PeriodReport;
 use App\Support\ReportComparisonPeriod;
 use App\Support\ReportTrend;
+use App\Support\ReportTwelveMonthWindow;
 use App\Support\SelectedBudgetYear;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -34,6 +35,7 @@ class ReportController extends Controller
                     'month' => null,
                     'default_month' => 1,
                     'is_in_progress' => false,
+                    'window' => null,
                 ],
                 'report' => null,
                 'trend' => null,
@@ -43,6 +45,11 @@ class ReportController extends Controller
         $this->authorize('view', $budget);
 
         $today = CarbonImmutable::today('UTC');
+
+        if ($request->query('view') === 'last-12') {
+            return $this->lastTwelveMonths($request, $budget, $today);
+        }
+
         $isTrend = $request->query('view') === 'trend';
         $month = $isTrend ? null : $this->requestedMonth($request->query('month'));
 
@@ -54,9 +61,33 @@ class ReportController extends Controller
                 'month' => $month,
                 'default_month' => BudgetViewedMonth::defaultForYear($budget->year, $today),
                 'is_in_progress' => ReportComparisonPeriod::isInProgress($budget->year, $month, $today),
+                'window' => null,
             ],
             'report' => $budget->isExecution() && ! $isTrend ? $this->report($budget, $month, $today) : null,
             'trend' => $budget->isExecution() && $isTrend ? $this->trend($budget, $today) : null,
+        ]);
+    }
+
+    /**
+     * The last twelve closed months across Budgets (ADR-0081): independent of
+     * the phase of the selected Budget, which only keeps the sidebar state.
+     */
+    private function lastTwelveMonths(Request $request, Budget $selected, CarbonImmutable $today): Response
+    {
+        $window = ReportTwelveMonthWindow::resolve($request->user(), $today);
+
+        return Inertia::render('Reports', [
+            'budgetYear' => $selected->year,
+            'budgetPhase' => $selected->phase->value,
+            'period' => [
+                'kind' => 'last-12',
+                'month' => null,
+                'default_month' => BudgetViewedMonth::defaultForYear($selected->year, $today),
+                'is_in_progress' => false,
+                'window' => $window->toArray(),
+            ],
+            'report' => PeriodReport::forWindow($window)->toArray(),
+            'trend' => null,
         ]);
     }
 

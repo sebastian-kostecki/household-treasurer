@@ -186,6 +186,74 @@ test('compare with a file of other rows exits 1', function () {
 test('an unknown user and a user without imported rows exit 1', function () {
     $user = User::factory()->create();
 
-    $this->artisan('import:suggestion-accuracy', ['user' => '999999'])->assertExitCode(1);
+    $this->artisan('import:suggestion-accuracy', ['user' => '999999'])
+        ->expectsOutputToContain('User not found: 999999')
+        ->assertExitCode(1);
     $this->artisan('import:suggestion-accuracy', ['user' => $user->id])->assertExitCode(1);
+});
+
+test('compare with a missing file exits 1', function () {
+    [$user] = accuracyScenario();
+
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--compare' => accuracyPath('missing.json')])
+        ->expectsOutputToContain('the file does not exist')
+        ->assertExitCode(1);
+});
+
+test('compare with a file of another format exits 1', function () {
+    [$user] = accuracyScenario();
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--output' => accuracyPath('before.json')])->assertExitCode(0);
+
+    $before = accuracyRead('before.json');
+    $before['format'] = 2;
+    accuracyWrite('before.json', $before);
+
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--compare' => accuracyPath('before.json')])
+        ->expectsOutputToContain('The first file has format 2, expected 1.')
+        ->assertExitCode(1);
+});
+
+test('compare with a file without its summary exits 1 instead of finding no drop', function () {
+    [$user] = accuracyScenario();
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--output' => accuracyPath('before.json')])->assertExitCode(0);
+
+    $before = accuracyRead('before.json');
+    unset($before['periods']);
+    accuracyWrite('before.json', $before);
+
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--compare' => accuracyPath('before.json')])
+        ->expectsOutputToContain('The first file is missing periods.year.model.rows.')
+        ->assertExitCode(1);
+});
+
+test('compare with a row without its flags exits 1', function () {
+    [$user, $operations] = accuracyScenario();
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--output' => accuracyPath('before.json')])->assertExitCode(0);
+
+    $before = accuracyRead('before.json');
+    unset($before['rows'][0]['suggestion']['correct']);
+    accuracyWrite('before.json', $before);
+
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--compare' => accuracyPath('before.json')])
+        ->expectsOutputToContain("The first file is missing suggestion.correct of operation {$operations[0]->id}.")
+        ->assertExitCode(1);
+});
+
+test('the same file for output and compare exits 1 without writing', function () {
+    [$user] = accuracyScenario();
+    $path = accuracyPath('same.json');
+
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--output' => $path, '--compare' => $path])
+        ->expectsOutputToContain('--output and --compare name the same file')
+        ->assertExitCode(1);
+
+    expect(File::exists($path))->toBeFalse();
+});
+
+test('a year that is not a number exits 1', function () {
+    [$user] = accuracyScenario();
+
+    $this->artisan('import:suggestion-accuracy', ['user' => $user->id, '--year' => 'abc'])
+        ->expectsOutputToContain('--year must be a year, got "abc".')
+        ->assertExitCode(1);
 });

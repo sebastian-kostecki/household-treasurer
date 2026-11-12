@@ -8,7 +8,7 @@ import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import { formatShareTenths } from '@/lib/format-share';
 import { planChangeToneClass } from '@/lib/plan-change-direction';
 import { reportDifferenceTone } from '@/lib/report-difference';
-import type { PeriodReportEntry } from '@/types/reports';
+import type { PeriodReportEntry, ReportRange } from '@/types/reports';
 
 const props = defineProps<{
     type: 'income' | 'expense';
@@ -19,6 +19,8 @@ const props = defineProps<{
     budgetYear: number;
     /** Viewed month (1 to 12), `null` for the whole Budget year. */
     month: number | null;
+    /** The last-12 window (ADR-0081); the name links to Operations of this range. */
+    range?: ReportRange | null;
     /** Year of the compared Budget; the comparison columns show only when set. */
     comparisonYear?: number;
     /** Previous-year total of this type (with `comparisonYear`). */
@@ -100,7 +102,10 @@ function bodyId(groupId: number): string {
                 >
                     {{ t.reports.difference }}
                 </div>
-                <div v-if="showShare" class="report-area-share text-right">
+                <div
+                    v-if="showShare"
+                    class="report-area-share report-head-share text-right"
+                >
                     {{ t.reports.share }}
                 </div>
             </div>
@@ -117,6 +122,7 @@ function bodyId(groupId: number): string {
                     :comparison-year="comparisonYear"
                     :budget-year="budgetYear"
                     :month="month"
+                    :range="range"
                 />
                 <div v-else>
                     <ReportGroupRow
@@ -139,6 +145,7 @@ function bodyId(groupId: number): string {
                             :comparison-year="comparisonYear"
                             :budget-year="budgetYear"
                             :month="month"
+                            :range="range"
                         />
                     </div>
                 </div>
@@ -179,6 +186,9 @@ function bodyId(groupId: number): string {
                     v-if="showShare"
                     class="report-area-share report-cell-share"
                 >
+                    <span class="report-share-label">{{
+                        t.reports.share_label
+                    }}</span>
                     {{ formatShareTenths(totalMinorUnits > 0 ? 1000 : null) }}
                 </div>
             </div>

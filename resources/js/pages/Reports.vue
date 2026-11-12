@@ -3,6 +3,8 @@ import { Head, router } from '@inertiajs/vue3';
 import { computed, defineAsyncComponent } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
+import ReportCoverageNote from '@/components/ReportCoverageNote.vue';
+import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
@@ -10,12 +12,15 @@ import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
+import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
-import type { ReportsPageProps } from '@/types/reports';
+import type { ReportRange, ReportsPageProps } from '@/types/reports';
 
-const ReportBarChart = defineAsyncComponent(
-    () => import('@/components/ReportBarChart.vue'),
-);
+const ReportBarChart = defineAsyncComponent({
+    loader: () => import('@/components/ReportBarChart.vue'),
+    loadingComponent: ReportBarChartPlaceholder,
+    delay: 0,
+});
 
 const props = defineProps<ReportsPageProps>();
 
@@ -25,13 +30,17 @@ function trendUrl(): string {
     return reportsRoute({ query: { view: 'trend' } }).url;
 }
 
+function lastTwelveUrl(): string {
+    return reportsRoute({ query: { view: 'last-12' } }).url;
+}
+
 function monthUrl(month: number): string {
     return reportsRoute({ query: { month } }).url;
 }
 
 const periodKind = computed({
     get: () => props.period.kind,
-    set: (kind: 'year' | 'month' | 'trend') => {
+    set: (kind: 'year' | 'month' | 'last-12' | 'trend') => {
         if (kind === props.period.kind) {
             return;
         }
@@ -41,7 +50,9 @@ const periodKind = computed({
                 ? reportsRoute().url
                 : kind === 'trend'
                   ? trendUrl()
-                  : monthUrl(props.period.default_month),
+                  : kind === 'last-12'
+                    ? lastTwelveUrl()
+                    : monthUrl(props.period.default_month),
             {},
             { preserveScroll: true },
         );
@@ -51,8 +62,32 @@ const periodKind = computed({
 const periodOptions = computed(() => [
     { value: 'year' as const, label: t.reports.period_year },
     { value: 'month' as const, label: t.reports.period_month },
+    { value: 'last-12' as const, label: t.reports.period_last_12 },
     { value: 'trend' as const, label: t.reports.period_trend },
 ]);
+
+/** The last-12 window as the server resolved it; `null` in the other views. */
+const reportWindow = computed(() =>
+    props.period.kind === 'last-12' ? props.period.window : null,
+);
+
+const range = computed<ReportRange | null>(() =>
+    reportWindow.value === null
+        ? null
+        : reportWindowRange(
+              reportWindow.value,
+              reportMonthNamesFrom(t.budget),
+              t.reports.window_range,
+          ),
+);
+
+const windowLabel = computed(() => range.value?.label ?? '');
+
+const hasNoCoverage = computed(
+    () =>
+        reportWindow.value !== null &&
+        reportWindow.value.covered_month_count === 0,
+);
 
 const trendMonths = (
     key: 'income_minor_units' | 'expense_minor_units',
@@ -61,6 +96,10 @@ const trendMonths = (
 const title = computed(() => {
     if (props.budgetYear === null) {
         return t.reports.title;
+    }
+
+    if (props.period.kind === 'last-12') {
+        return t.reports.title_last_12;
     }
 
     if (props.period.kind === 'trend') {
@@ -86,25 +125,41 @@ const title = computed(() => {
     <Head :title="t.reports.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4 md:gap-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="grid gap-1">
+                <h1 class="page-title">{{ title }}</h1>
+                <p
+                    v-if="budgetYear !== null && period.kind === 'last-12'"
+                    class="meta text-muted-foreground"
+                    data-testid="report-window-range"
+                >
+                    {{ windowLabel }}
+                </p>
+            </div>
+            <SegmentedControl
+                v-if="budgetYear !== null"
+                v-model="periodKind"
+                :options="periodOptions"
+                :ariaLabel="t.reports.period_label"
+                tone="neutral"
+            />
+        </div>
+
         <ReportEmptyState v-if="budgetYear === null" kind="no-budget" />
 
         <ReportEmptyState
-            v-else-if="budgetPhase !== 'execution'"
+            v-else-if="budgetPhase !== 'execution' && period.kind !== 'last-12'"
             kind="draft"
         />
 
         <template v-else>
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <h1 class="page-title">{{ title }}</h1>
-                <SegmentedControl
-                    v-model="periodKind"
-                    :options="periodOptions"
-                    :ariaLabel="t.reports.period_label"
-                    tone="neutral"
-                />
-            </div>
+            <IndexEmptyState
+                v-if="hasNoCoverage"
+                :title="t.reports.no_coverage_title"
+                :description="t.reports.no_coverage_description"
+            />
 
-            <template v-if="period.kind === 'trend' && trend !== null">
+            <template v-else-if="period.kind === 'trend' && trend !== null">
                 <ReportStatPanel
                     :income-minor-units="trend.income_minor_units"
                     :expense-minor-units="trend.expense_minor_units"
@@ -150,11 +205,18 @@ const title = computed(() => {
                     :month-url="monthUrl"
                 />
 
+                <ReportCoverageNote
+                    v-if="reportWindow !== null"
+                    :window="reportWindow"
+                />
+
                 <ReportStatPanel
                     :income-minor-units="report.income_minor_units"
                     :expense-minor-units="report.expense_minor_units"
                     :result-minor-units="report.result_minor_units"
-                    :period-kind="period.kind === 'month' ? 'month' : 'year'"
+                    :period-kind="
+                        period.kind === 'trend' ? 'year' : period.kind
+                    "
                     :is-in-progress="period.is_in_progress"
                     :comparison="report.comparison"
                 />
@@ -179,6 +241,7 @@ const title = computed(() => {
                         :total-minor-units="report.expense_minor_units"
                         :budget-year="budgetYear"
                         :month="period.kind === 'month' ? period.month : null"
+                        :range="range"
                         :comparison-year="report.comparison?.year"
                         :previous-total-minor-units="
                             report.comparison?.expense_minor_units
@@ -200,6 +263,7 @@ const title = computed(() => {
                         :total-minor-units="report.income_minor_units"
                         :budget-year="budgetYear"
                         :month="period.kind === 'month' ? period.month : null"
+                        :range="range"
                         :comparison-year="report.comparison?.year"
                         :previous-total-minor-units="
                             report.comparison?.income_minor_units

@@ -54,7 +54,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(10, $snapshot['version']);
+        $this->assertSame(12, $snapshot['version']);
         $this->assertSame([], $snapshot['category_groups']);
         $this->assertNull($snapshot['categories'][0]['category_group_id']);
         $this->assertSame([], $snapshot['month_plans']);
@@ -237,7 +237,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(10, $snapshot['version']);
+        $this->assertSame(12, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -1015,7 +1015,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(10, $snapshot['version']);
+        $this->assertSame(12, $snapshot['version']);
         $this->assertCount(1, $snapshot['category_groups']);
         $this->assertSame(
             ['id', 'name', 'type', 'sort_order', 'created_at', 'updated_at'],
@@ -1410,7 +1410,7 @@ class UserSnapshotCommandTest extends TestCase
         $snapshot = json_decode(file_get_contents($path), true);
         $byName = collect($snapshot['categories'])->keyBy('name');
 
-        $this->assertSame(10, $snapshot['version']);
+        $this->assertSame(12, $snapshot['version']);
         $this->assertSame(
             [
                 ['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 3, 'opening_collected_minor_units' => null],
@@ -1595,6 +1595,189 @@ class UserSnapshotCommandTest extends TestCase
         ksort($result);
 
         return $result;
+    }
+
+    public function test_backup_writes_the_default_set_aside_percent_and_restore_round_trips_it(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $targetUser = User::factory()->create();
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(10, $snapshot['default_set_aside_percent']);
+
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $this->assertSame(10, $targetUser->refresh()->default_set_aside_percent);
+    }
+
+    public function test_restore_of_an_empty_percent_clears_the_percent_of_the_target_user(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $targetUser = User::factory()->withDefaultSetAsidePercent(20)->create();
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $this->assertNull($targetUser->refresh()->default_set_aside_percent);
+    }
+
+    public function test_restore_command_restores_a_v10_snapshot_with_a_null_default_set_aside_percent(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $v10 = json_decode(file_get_contents($path), true);
+        unset($v10['default_set_aside_percent']);
+        $v10['version'] = 10;
+        $v10Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v10.json');
+        file_put_contents($v10Path, json_encode($v10, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->withDefaultSetAsidePercent(30)->create();
+
+        $this->assertSame(0, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $v10Path, '--force' => true]), Artisan::output());
+        $this->assertNull($targetUser->refresh()->default_set_aside_percent);
+    }
+
+    /**
+     * @return array<string, array{mixed}>
+     */
+    public static function invalidDefaultSetAsidePercents(): array
+    {
+        return [
+            'above 100' => [101],
+            'negative' => [-1],
+            'text' => ['10'],
+            'fraction' => [10.5],
+        ];
+    }
+
+    #[DataProvider('invalidDefaultSetAsidePercents')]
+    public function test_restore_command_refuses_an_invalid_default_set_aside_percent_in_a_v11_snapshot(mixed $percent): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+        $snapshot['default_set_aside_percent'] = $percent;
+        $badPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/bad-percent.json');
+        file_put_contents($badPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->withDefaultSetAsidePercent(20)->create();
+
+        $this->assertSame(1, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $badPath, '--force' => true]));
+        $this->assertSame(20, $targetUser->refresh()->default_set_aside_percent);
+    }
+
+    public function test_restore_command_refuses_a_v11_snapshot_without_the_default_set_aside_percent(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->withDefaultSetAsidePercent(10)->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+        unset($snapshot['default_set_aside_percent']);
+        $badPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/no-percent.json');
+        file_put_contents($badPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->withDefaultSetAsidePercent(20)->create();
+
+        $this->assertSame(1, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $badPath, '--force' => true]));
+        $this->assertStringContainsString('missing required key: default_set_aside_percent', Artisan::output());
+        $this->assertSame(20, $targetUser->refresh()->default_set_aside_percent);
+    }
+
+    public function test_snapshot_v12_round_trips_a_sheet_account_with_its_year(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        Account::factory()->for($sourceUser)->sheetAccount(2025)->create();
+        Account::factory()->for($sourceUser)->create();
+        $targetUser = User::factory()->create();
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertSame(12, $snapshot['version']);
+        $this->assertEqualsCanonicalizing([2025, null], array_column($snapshot['accounts'], 'sheet_year'));
+
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $this->assertEqualsCanonicalizing([2025, null], $targetUser->accounts()->pluck('sheet_year')->all());
+        $this->assertSame('Arkusz 2025', $targetUser->accounts()->where('sheet_year', 2025)->value('name'));
+    }
+
+    public function test_restore_command_restores_a_v11_snapshot_without_sheet_year_as_null(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->withDefaultSetAsidePercent(10)->create();
+        Account::factory()->for($sourceUser)->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $v11 = json_decode(file_get_contents($path), true);
+        $v11['accounts'] = array_map(function (array $account): array {
+            unset($account['sheet_year']);
+
+            return $account;
+        }, $v11['accounts']);
+        $v11['version'] = 11;
+        $v11Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v11.json');
+        file_put_contents($v11Path, json_encode($v11, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->create();
+
+        $this->assertSame(0, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $v11Path, '--force' => true]), Artisan::output());
+        $this->assertSame([null], $targetUser->accounts()->pluck('sheet_year')->all());
+        $this->assertSame(10, $targetUser->refresh()->default_set_aside_percent);
+    }
+
+    /**
+     * @return array<string, array{list<mixed>}>
+     */
+    public static function invalidSheetYears(): array
+    {
+        return [
+            'zero' => [[0]],
+            'above 9999' => [[10000]],
+            'text' => [['2025']],
+            'fraction' => [[2025.5]],
+            'two accounts with one year' => [[2025, 2025]],
+        ];
+    }
+
+    /**
+     * @param  list<mixed>  $years
+     */
+    #[DataProvider('invalidSheetYears')]
+    public function test_restore_command_refuses_an_invalid_sheet_year_in_a_v12_snapshot(array $years): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        Account::factory()->for($sourceUser)->count(count($years))->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        foreach ($years as $index => $year) {
+            $snapshot['accounts'][$index]['sheet_year'] = $year;
+        }
+
+        $badPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/bad-sheet-year.json');
+        file_put_contents($badPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->create();
+
+        $this->assertSame(1, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $badPath, '--force' => true]));
+        $this->assertSame(0, $targetUser->accounts()->count());
     }
 
     /**

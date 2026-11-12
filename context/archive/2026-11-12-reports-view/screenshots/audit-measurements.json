@@ -1,0 +1,594 @@
+{
+  "select-year-2026": 302,
+  "year-desktop": {
+    "url": "/reports",
+    "h1": [
+      "Raport roku 2026"
+    ],
+    "h2": [
+      "Wydatki",
+      "Przychody"
+    ],
+    "periodSwitch": 1,
+    "periodSegments": [
+      "Rok",
+      "Miesiąc",
+      "12 miesięcy",
+      "Trend"
+    ],
+    "links": [
+      "Żywność",
+      "Mieszkanie",
+      "Transport",
+      "Zdrowie",
+      "Rozrywka",
+      "Inne",
+      "Pensja",
+      "Odsetki"
+    ]
+  },
+  "year-phone": {
+    "url": "/reports",
+    "h1": [
+      "Raport roku 2026"
+    ],
+    "h2": [
+      "Wydatki",
+      "Przychody"
+    ],
+    "periodSwitch": 1,
+    "periodSegments": [
+      "Rok",
+      "Miesiąc",
+      "12 miesięcy",
+      "Trend"
+    ],
+    "links": [
+      "Domowy Skarbnik",
+      "Żywność",
+      "Mieszkanie",
+      "Transport",
+      "Zdrowie",
+      "Rozrywka",
+      "Inne",
+      "Pensja"
+    ]
+  },
+  "month-desktop": {
+    "url": "/reports?month=3",
+    "h1": [
+      "Raport: marzec 2026"
+    ],
+    "h2": [
+      "Brak operacji w tym okresie"
+    ],
+    "periodSwitch": 1,
+    "periodSegments": [
+      "Rok",
+      "Miesiąc",
+      "12 miesięcy",
+      "Trend"
+    ],
+    "links": []
+  },
+  "last12-desktop": {
+    "url": "/reports?view=last-12",
+    "h1": [
+      "Raport: ostatnie 12 miesięcy"
+    ],
+    "h2": [
+      "Wydatki",
+      "Przychody"
+    ],
+    "periodSwitch": 1,
+    "periodSegments": [
+      "Rok",
+      "Miesiąc",
+      "12 miesięcy",
+      "Trend"
+    ],
+    "links": [
+      "Żywność",
+      "Mieszkanie",
+      "Transport",
+      "Zdrowie",
+      "Inne",
+      "Pensja",
+      "Odsetki"
+    ]
+  },
+  "trend-desktop": {
+    "url": "/reports?view=trend",
+    "h1": [
+      "Trend 2026"
+    ],
+    "h2": [
+      "Miesiące",
+      "Wydatki",
+      "Przychody"
+    ],
+    "periodSwitch": 1,
+    "periodSegments": [
+      "Rok",
+      "Miesiąc",
+      "12 miesięcy",
+      "Trend"
+    ],
+    "links": [
+      "Żywność",
+      "Mieszkanie",
+      "Transport",
+      "Zdrowie",
+      "Rozrywka",
+      "Inne",
+      "Pensja",
+      "Odsetki"
+    ]
+  },
+  "shift-bar-desktop-nodelay": {
+    "delayMs": 0,
+    "tableTopBefore": 623,
+    "tableTopAfter": 623,
+    "pushedDownPx": 0,
+    "clsSum": 0.2992,
+    "shifts": [
+      {
+        "value": 0.29922057870370367,
+        "t": 918,
+        "hadRecentInput": false
+      }
+    ]
+  },
+  "shift-bar-desktop-delay": {
+    "delayMs": 1500,
+    "tableTopBefore": 209,
+    "tableTopAfter": 623,
+    "pushedDownPx": 414,
+    "clsSum": 0.2921,
+    "shifts": [
+      {
+        "value": 0.0001140451388888889,
+        "t": 1525,
+        "hadRecentInput": false
+      },
+      {
+        "value": 0.2919711111111111,
+        "t": 2919,
+        "hadRecentInput": false
+      }
+    ]
+  },
+  "shift-bar-phone-nodelay": {
+    "delayMs": 0,
+    "tableTopBefore": 853,
+    "tableTopAfter": 853,
+    "pushedDownPx": 0,
+    "clsSum": 0.3637,
+    "shifts": [
+      {
+        "value": 0.3636638047138047,
+        "t": 1517,
+        "hadRecentInput": false
+      }
+    ]
+  },
+  "shift-bar-phone-delay": {
+    "delayMs": 1500,
+    "tableTopBefore": 443,
+    "tableTopAfter": 853,
+    "pushedDownPx": 410,
+    "clsSum": 0.3316,
+    "shifts": [
+      {
+        "value": 0.0003372895622895623,
+        "t": 955,
+        "hadRecentInput": false
+      },
+      {
+        "value": 0.3312682379349046,
+        "t": 2423,
+        "hadRecentInput": false
+      }
+    ]
+  },
+  "shift-trend-desktop-nodelay": {
+    "delayMs": 0,
+    "tableTopBefore": 554,
+    "tableTopAfter": 554,
+    "pushedDownPx": 0,
+    "clsSum": 0.1325,
+    "shifts": [
+      {
+        "value": 0.00010258680555555555,
+        "t": 920,
+        "hadRecentInput": false
+      },
+      {
+        "value": 0.1324345273919753,
+        "t": 1059,
+        "hadRecentInput": false
+      }
+    ]
+  },
+  "shift-trend-desktop-delay": {
+    "delayMs": 1500,
+    "tableTopBefore": 240,
+    "tableTopAfter": 554,
+    "pushedDownPx": 314,
+    "clsSum": 0.1325,
+    "shifts": [
+      {
+        "value": 0.00010258680555555555,
+        "t": 1582,
+        "hadRecentInput": false
+      },
+      {
+        "value": 0.1324345273919753,
+        "t": 2963,
+        "hadRecentInput": false
+      }
+    ]
+  },
+  "select-year-2027": 302,
+  "draft-desktop": {
+    "url": "/reports",
+    "h1": [],
+    "h2": [
+      "Budżet w przygotowaniu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Przejdź do budżetu"
+    ]
+  },
+  "draft-phone": {
+    "url": "/reports",
+    "h1": [],
+    "h2": [
+      "Budżet w przygotowaniu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Domowy Skarbnik",
+      "Przejdź do budżetu"
+    ]
+  },
+  "draft-month-desktop": {
+    "url": "/reports?month=3",
+    "h1": [],
+    "h2": [
+      "Budżet w przygotowaniu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Przejdź do budżetu"
+    ]
+  },
+  "draft-trend-desktop": {
+    "url": "/reports?view=trend",
+    "h1": [],
+    "h2": [
+      "Budżet w przygotowaniu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Przejdź do budżetu"
+    ]
+  },
+  "draft-last12-desktop": {
+    "url": "/reports?view=last-12",
+    "h1": [
+      "Raport: ostatnie 12 miesięcy"
+    ],
+    "h2": [
+      "Wydatki",
+      "Przychody"
+    ],
+    "periodSwitch": 1,
+    "periodSegments": [
+      "Rok",
+      "Miesiąc",
+      "12 miesięcy",
+      "Trend"
+    ],
+    "links": [
+      "Żywność",
+      "Mieszkanie",
+      "Transport",
+      "Zdrowie",
+      "Inne",
+      "Pensja",
+      "Odsetki"
+    ]
+  },
+  "draft-last12-then-year-desktop": {
+    "url": "/reports",
+    "h1": [],
+    "h2": [
+      "Budżet w przygotowaniu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Przejdź do budżetu"
+    ]
+  },
+  "shell-last12-links": [],
+  "sink-titles": [
+    {
+      "key": "year-in-progress",
+      "titleTag": "P",
+      "title": "Raport roku 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "month-closed",
+      "titleTag": "P",
+      "title": "Raporty",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Streaming, marzec 2026"
+      ]
+    },
+    {
+      "key": "archived-in-group",
+      "titleTag": "P",
+      "title": "Raport roku 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Streaming, 2026"
+      ]
+    },
+    {
+      "key": "refund-negative-share",
+      "titleTag": "P",
+      "title": "Raporty",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, maj 2026"
+      ]
+    },
+    {
+      "key": "non-positive-expenses",
+      "titleTag": "P",
+      "title": "Raporty",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Elektronika, czerwiec 2026"
+      ]
+    },
+    {
+      "key": "no-operations",
+      "titleTag": "P",
+      "title": "Raporty",
+      "rangeLine": null,
+      "nameLinkLabels": []
+    },
+    {
+      "key": "draft",
+      "titleTag": null,
+      "title": null,
+      "rangeLine": null,
+      "nameLinkLabels": []
+    },
+    {
+      "key": "no-budget",
+      "titleTag": null,
+      "title": null,
+      "rangeLine": null,
+      "nameLinkLabels": []
+    },
+    {
+      "key": "phone",
+      "titleTag": "P",
+      "title": "Raport roku 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Streaming, 2026"
+      ]
+    },
+    {
+      "key": "compared-year-in-progress",
+      "titleTag": "P",
+      "title": "Raport roku 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "compared-month-closed",
+      "titleTag": "P",
+      "title": "Raporty",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Streaming, marzec 2026"
+      ]
+    },
+    {
+      "key": "compared-one-side-only",
+      "titleTag": "P",
+      "title": "Raport roku 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "compared-empty-current",
+      "titleTag": "P",
+      "title": "Raporty",
+      "rangeLine": null,
+      "nameLinkLabels": []
+    },
+    {
+      "key": "compared-phone",
+      "titleTag": "P",
+      "title": "Raport roku 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "trend-in-progress",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "trend-closed",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "trend-irregular-and-zero",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Rachunki, 2026"
+      ]
+    },
+    {
+      "key": "trend-negative-result",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Remont, 2026"
+      ]
+    },
+    {
+      "key": "trend-archived-in-group",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Streaming, 2026"
+      ]
+    },
+    {
+      "key": "trend-no-operations",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": []
+    },
+    {
+      "key": "trend-phone",
+      "titleTag": "P",
+      "title": "Trend 2026",
+      "rangeLine": null,
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, 2026"
+      ]
+    },
+    {
+      "key": "last-12-full",
+      "titleTag": "P",
+      "title": "Raport: ostatnie 12 miesięcy",
+      "rangeLine": "listopad 2025 – październik 2026",
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, listopad 2025 – październik 2026"
+      ]
+    },
+    {
+      "key": "last-12-partial",
+      "titleTag": "P",
+      "title": "Raport: ostatnie 12 miesięcy",
+      "rangeLine": "listopad 2025 – październik 2026",
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, listopad 2025 – październik 2026"
+      ]
+    },
+    {
+      "key": "last-12-partial-end",
+      "titleTag": "P",
+      "title": "Raport: ostatnie 12 miesięcy",
+      "rangeLine": "listopad 2025 – październik 2026",
+      "nameLinkLabels": [
+        "Operacje kategorii Streaming, listopad 2025 – październik 2026"
+      ]
+    },
+    {
+      "key": "last-12-no-coverage",
+      "titleTag": "P",
+      "title": "Raport: ostatnie 12 miesięcy",
+      "rangeLine": "listopad 2025 – październik 2026",
+      "nameLinkLabels": []
+    },
+    {
+      "key": "last-12-no-operations",
+      "titleTag": "P",
+      "title": "Raport: ostatnie 12 miesięcy",
+      "rangeLine": "listopad 2025 – październik 2026",
+      "nameLinkLabels": []
+    },
+    {
+      "key": "last-12-phone",
+      "titleTag": "P",
+      "title": "Raport: ostatnie 12 miesięcy",
+      "rangeLine": "listopad 2025 – październik 2026",
+      "nameLinkLabels": [
+        "Operacje kategorii Żywność, listopad 2025 – październik 2026"
+      ]
+    }
+  ],
+  "sink-loading-row": "loadingN/A: strona nie ma deferred props; zmiana okresu to zwykła wizyta Inertia z paskiem postępu.",
+  "page-last12-namelink": [
+    "Operacje kategorii Żywność, listopad 2025 – październik 2026"
+  ],
+  "page-month-namelink": [],
+  "nobudget-desktop": {
+    "url": "/reports",
+    "h1": [],
+    "h2": [
+      "Brak budżetu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Przejdź do budżetu"
+    ]
+  },
+  "nobudget-phone": {
+    "url": "/reports",
+    "h1": [],
+    "h2": [
+      "Brak budżetu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Domowy Skarbnik",
+      "Przejdź do budżetu"
+    ]
+  },
+  "nobudget-last12-desktop": {
+    "url": "/reports?view=last-12",
+    "h1": [],
+    "h2": [
+      "Brak budżetu"
+    ],
+    "periodSwitch": 0,
+    "periodSegments": [],
+    "links": [
+      "Przejdź do budżetu"
+    ]
+  }
+}

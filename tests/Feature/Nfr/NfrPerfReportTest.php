@@ -93,6 +93,28 @@ class NfrPerfReportTest extends TestCase
         );
     }
 
+    public function test_last_twelve_months_report_opens_within_two_seconds_across_two_budgets_of_ten_thousand_operations(): void
+    {
+        $this->travelTo('2026-06-15');
+
+        $user = $this->seedReportDataset();
+
+        $this->assertRequestWithinSeconds(
+            fn () => $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('reports', ['view' => 'last-12']))
+                ->assertOk()
+                ->assertInertia(fn ($page) => $page
+                    ->where('period.kind', 'last-12')
+                    ->where('period.window.from', '2025-06-01')
+                    ->where('period.window.through', '2026-05-31')
+                    ->where('period.window.covered_month_count', 12)
+                    ->where('report.comparison', null)
+                    ->has('report.expense')),
+            'Last twelve months report',
+        );
+    }
+
     private function seedReportDataset(): User
     {
         $user = User::factory()->create();

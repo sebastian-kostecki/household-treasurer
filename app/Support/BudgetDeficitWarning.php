@@ -51,6 +51,7 @@ class BudgetDeficitWarning
         $yearStart = Carbon::create($year, 1, 1)->startOfDay();
 
         return (int) $user->accounts()
+            ->withoutSheetAccounts()
             ->where('opening_date', '<=', $yearStart)
             ->sum('opening_balance_minor_units');
     }

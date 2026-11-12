@@ -3,6 +3,8 @@ import type {
     PeriodReportComparison,
     PeriodReportData,
     ReportPeriod,
+    ReportsPageProps,
+    ReportWindow,
     ReportTrendCategory,
     ReportTrendData,
     ReportTrendEntry,
@@ -15,10 +17,7 @@ export type ReportScenario = {
     caption: string;
     /** Rendered in a phone-wide frame. */
     phone?: boolean;
-    kind: 'report' | 'trend' | 'draft' | 'no-budget';
-    period: ReportPeriod;
-    report: PeriodReportData | null;
-    trend: ReportTrendData | null;
+    props: ReportsPageProps;
 };
 
 function category(
@@ -61,7 +60,7 @@ const oldSubscription = category(
 const salary = category(7, 'Wynagrodzenie', 'briefcase', 'green', 700000, null);
 const bonus = category(8, 'Premia', 'gift', 'teal', 80000, null);
 
-const yearReport: PeriodReportData = {
+export const yearReport: PeriodReportData = {
     income_minor_units: 780000,
     expense_minor_units: 150000,
     result_minor_units: 630000,
@@ -191,7 +190,7 @@ function comparison(
     };
 }
 
-const comparedYearReport: PeriodReportData = {
+export const comparedYearReport: PeriodReportData = {
     income_minor_units: 780000,
     expense_minor_units: 160000,
     result_minor_units: 620000,
@@ -519,7 +518,7 @@ const trendOverspendJanuary = trendCategory(10, 'Remont', 'hammer', 'orange', {
     1: 900000,
 });
 
-const trendInProgress = buildTrend(
+export const trendInProgress = buildTrend(
     [trendLoose(trendSalary), trendLoose(trendBonus)],
     [
         trendLoose(trendFood),
@@ -588,6 +587,51 @@ const trendNegativeResult = buildTrend(
     11,
 );
 
+const windowFull: ReportWindow = {
+    from: '2025-11-01',
+    through: '2026-10-31',
+    covered_from: '2025-11-01',
+    covered_through: '2026-10-31',
+    covered_month_count: 12,
+    missing_from: null,
+    missing_through: null,
+};
+
+const windowPartial: ReportWindow = {
+    ...windowFull,
+    covered_from: '2026-01-01',
+    covered_month_count: 10,
+    missing_from: '2025-11-01',
+    missing_through: '2025-12-31',
+};
+
+const windowPartialEnd: ReportWindow = {
+    ...windowFull,
+    covered_through: '2025-12-31',
+    covered_month_count: 2,
+    missing_from: '2026-01-01',
+    missing_through: '2026-10-31',
+};
+
+const windowNoCoverage: ReportWindow = {
+    ...windowFull,
+    covered_from: null,
+    covered_through: null,
+    covered_month_count: 0,
+    missing_from: '2025-11-01',
+    missing_through: '2026-10-31',
+};
+
+function lastTwelvePeriod(window: ReportWindow): ReportPeriod {
+    return {
+        kind: 'last-12',
+        month: null,
+        default_month: 11,
+        is_in_progress: false,
+        window,
+    };
+}
+
 const trendEmpty = buildTrend([], [], 11);
 
 const trendPeriod: ReportPeriod = {
@@ -595,11 +639,13 @@ const trendPeriod: ReportPeriod = {
     month: null,
     default_month: 11,
     is_in_progress: true,
+    window: null,
 };
 
 const trendClosedPeriod: ReportPeriod = {
     ...trendPeriod,
     is_in_progress: false,
+    window: null,
 };
 
 export const reportScenarios: ReportScenario[] = [
@@ -607,252 +653,415 @@ export const reportScenarios: ReportScenario[] = [
         key: 'year-in-progress',
         caption:
             'Rok w toku: grupa rozwinięta, kategorie bez grupy; nazwa kategorii to link do operacji roku',
-        kind: 'report',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 11,
-            is_in_progress: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
         },
-        report: yearReport,
-        trend: null,
     },
     {
         key: 'month-closed',
         caption:
             'Miesiąc zamknięty: nazwa kategorii to link do operacji miesiąca',
-        kind: 'report',
-        period: {
-            kind: 'month',
-            month: 3,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'month',
+                month: 3,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: archivedInGroupReport,
+            trend: null,
         },
-        report: archivedInGroupReport,
-        trend: null,
     },
     {
         key: 'archived-in-group',
         caption: 'Grupa z zarchiwizowaną kategorią (wyszarzona, z plakietką)',
-        kind: 'report',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: archivedInGroupReport,
+            trend: null,
         },
-        report: archivedInGroupReport,
-        trend: null,
     },
     {
         key: 'refund-negative-share',
         caption: 'Zwrot netto: ujemna kwota i ujemny udział, ujemny wynik',
-        kind: 'report',
-        period: {
-            kind: 'month',
-            month: 5,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'month',
+                month: 5,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: refundReport,
+            trend: null,
         },
-        report: refundReport,
-        trend: null,
     },
     {
         key: 'non-positive-expenses',
         caption: 'Wydatki okresu ≤ 0: udziały jako „—”, bez „100,0%”',
-        kind: 'report',
-        period: {
-            kind: 'month',
-            month: 6,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'month',
+                month: 6,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: nonPositiveExpenseReport,
+            trend: null,
         },
-        report: nonPositiveExpenseReport,
-        trend: null,
     },
     {
         key: 'no-operations',
         caption: 'Okres bez operacji',
-        kind: 'report',
-        period: {
-            kind: 'month',
-            month: 1,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'month',
+                month: 1,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: emptyReport,
+            trend: null,
         },
-        report: emptyReport,
-        trend: null,
     },
     {
         key: 'draft',
         caption: 'Budżet w przygotowaniu',
-        kind: 'draft',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 1,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'draft',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 1,
+                is_in_progress: false,
+                window: null,
+            },
+            report: null,
+            trend: null,
         },
-        report: null,
-        trend: null,
     },
     {
         key: 'no-budget',
         caption: 'Brak budżetu',
-        kind: 'no-budget',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 1,
-            is_in_progress: false,
+        props: {
+            budgetYear: null,
+            budgetPhase: null,
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 1,
+                is_in_progress: false,
+                window: null,
+            },
+            report: null,
+            trend: null,
         },
-        report: null,
-        trend: null,
     },
     {
         key: 'phone',
-        caption: 'Telefon (ramka 22rem): bez poziomego przewijania',
+        caption:
+            'Telefon (ramka 22rem): bez poziomego przewijania, pełna nazwa, Udział pod kwotą, Badge pod nazwą',
         phone: true,
-        kind: 'report',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 11,
-            is_in_progress: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: archivedInGroupReport,
+            trend: null,
         },
-        report: archivedInGroupReport,
-        trend: null,
     },
     {
         key: 'compared-year-in-progress',
         caption:
             'Rok w toku z porównaniem: notka o zakresie, kategoria tylko rok wcześniej („—” w bieżącej), tylko w bieżącym („—” w roku wcześniej)',
-        kind: 'report',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 11,
-            is_in_progress: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
         },
-        report: comparedYearReport,
-        trend: null,
     },
     {
         key: 'compared-month-closed',
         caption:
             'Miesiąc zamknięty z porównaniem, zarchiwizowana kategoria wyciszona razem z różnicą',
-        kind: 'report',
-        period: {
-            kind: 'month',
-            month: 3,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'month',
+                month: 3,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: comparedMonthReport,
+            trend: null,
         },
-        report: comparedMonthReport,
-        trend: null,
     },
     {
         key: 'compared-one-side-only',
         caption:
             'Grupa z samymi kategoriami z roku wcześniej oraz kategoria tylko w bieżącym okresie',
-        kind: 'report',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: comparedOnlyOneSideReport,
+            trend: null,
         },
-        report: comparedOnlyOneSideReport,
-        trend: null,
     },
     {
         key: 'compared-empty-current',
         caption:
             'Bieżący okres bez operacji przy operacjach rok wcześniej: tabele z „—” w kolumnie bieżącej',
-        kind: 'report',
-        period: {
-            kind: 'month',
-            month: 1,
-            default_month: 11,
-            is_in_progress: false,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'month',
+                month: 1,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: comparedEmptyCurrentReport,
+            trend: null,
         },
-        report: comparedEmptyCurrentReport,
-        trend: null,
     },
     {
         key: 'compared-phone',
-        caption: 'Telefon (ramka 22rem) z porównaniem: druga linia wiersza',
+        caption:
+            'Telefon (ramka 22rem) z porównaniem: pełna nazwa, druga linia (rok wcześniej i różnica), trzecia linia (Udział)',
         phone: true,
-        kind: 'report',
-        period: {
-            kind: 'year',
-            month: null,
-            default_month: 11,
-            is_in_progress: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
         },
-        report: comparedYearReport,
-        trend: null,
     },
     {
         key: 'trend-in-progress',
         caption:
             'Trend roku w toku: miesiąc „w toku”, miesiące przyszłe z „—”, grupy zwinięte, kolor tylko w wierszu Wynik',
-        kind: 'trend',
-        period: trendPeriod,
-        report: null,
-        trend: trendInProgress,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendPeriod,
+            report: null,
+            trend: trendInProgress,
+        },
     },
     {
         key: 'trend-closed',
         caption:
             'Trend roku zakończonego: wszystkie miesiące z kwotami; nazwa kategorii to link do operacji roku',
-        kind: 'trend',
-        period: trendClosedPeriod,
-        report: null,
-        trend: trendClosed,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendClosedPeriod,
+            report: null,
+            trend: trendClosed,
+        },
     },
     {
         key: 'trend-irregular-and-zero',
         caption:
             'Kategoria nieregularna (rachunki w 3 miesiącach, reszta „—”), kategoria z netto 0 („0”), zwrot dający ujemną komórkę',
-        kind: 'trend',
-        period: trendPeriod,
-        report: null,
-        trend: trendIrregularAndZero,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendPeriod,
+            report: null,
+            trend: trendIrregularAndZero,
+        },
     },
     {
         key: 'trend-negative-result',
         caption: 'Miesiąc z ujemnym wynikiem (styczeń): wynik w kolorze błędu',
-        kind: 'trend',
-        period: trendPeriod,
-        report: null,
-        trend: trendNegativeResult,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendPeriod,
+            report: null,
+            trend: trendNegativeResult,
+        },
     },
     {
         key: 'trend-archived-in-group',
         caption:
             'Grupa z zarchiwizowaną kategorią: wyciszony wiersz z plakietką, bez koloru',
-        kind: 'trend',
-        period: trendClosedPeriod,
-        report: null,
-        trend: trendArchivedInGroup,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendClosedPeriod,
+            report: null,
+            trend: trendArchivedInGroup,
+        },
     },
     {
         key: 'trend-no-operations',
         caption: 'Rok bez operacji',
-        kind: 'trend',
-        period: trendPeriod,
-        report: null,
-        trend: trendEmpty,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendPeriod,
+            report: null,
+            trend: trendEmpty,
+        },
     },
     {
         key: 'trend-phone',
         caption:
             'Telefon (ramka 22rem): tabele przewijają się w poziomie, nazwa stoi w miejscu',
         phone: true,
-        kind: 'trend',
-        period: trendPeriod,
-        report: null,
-        trend: trendInProgress,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: trendPeriod,
+            report: null,
+            trend: trendInProgress,
+        },
+    },
+    {
+        key: 'last-12-full',
+        caption:
+            '12 miesięcy w pełni pokryte, bez paska miesięcy i bez porównania; kwoty to suma miesięcy z obu Budżetów, policzona na serwerze, nazwa kategorii to link do operacji całego okna',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: lastTwelvePeriod(windowFull),
+            report: yearReport,
+            trend: null,
+        },
+    },
+    {
+        key: 'last-12-partial',
+        caption:
+            'Pokryte 10 z 12 miesięcy (brak na początku okna): notka nad panelem miar',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: lastTwelvePeriod(windowPartial),
+            report: yearReport,
+            trend: null,
+        },
+    },
+    {
+        key: 'last-12-partial-end',
+        caption:
+            'Pokryte 2 miesiące na początku okna, brak na końcu: notka nazywa brakujący koniec',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: lastTwelvePeriod(windowPartialEnd),
+            report: archivedInGroupReport,
+            trend: null,
+        },
+    },
+    {
+        key: 'last-12-no-coverage',
+        caption:
+            'Żaden miesiąc okna nie ma budżetu w realizacji: stan pusty zamiast panelu i tabel',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: lastTwelvePeriod(windowNoCoverage),
+            report: emptyReport,
+            trend: null,
+        },
+    },
+    {
+        key: 'last-12-no-operations',
+        caption: 'Okno w pełni pokryte, ale bez operacji',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: lastTwelvePeriod(windowFull),
+            report: emptyReport,
+            trend: null,
+        },
+    },
+    {
+        key: 'last-12-phone',
+        caption:
+            'Telefon (ramka 22rem): cztery segmenty przełącznika mieszczą się bez poziomego przewijania, notka pokrycia',
+        phone: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: lastTwelvePeriod(windowPartial),
+            report: yearReport,
+            trend: null,
+        },
+    },
+    {
+        key: 'draft-last-12',
+        caption:
+            'Szkic 2027 przy oknie z poprzedniego roku w realizacji: „12 miesięcy” pokazuje raport okna, a z przełącznika wraca się do kartki „Budżet w przygotowaniu”',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'draft',
+            period: lastTwelvePeriod(windowPartial),
+            report: yearReport,
+            trend: null,
+        },
     },
 ];

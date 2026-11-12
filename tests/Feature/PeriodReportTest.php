@@ -15,6 +15,7 @@ use App\Support\BudgetMonthResult;
 use App\Support\MonthCategoryActuals;
 use App\Support\PeriodReport;
 use App\Support\ReportComparisonPeriod;
+use App\Support\ReportTwelveMonthWindow;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -604,6 +605,234 @@ test('the report with a comparison uses a constant number of queries', function 
         DB::flushQueryLog();
         DB::enableQueryLog();
         PeriodReport::forYear($budget, $comparison)->toArray();
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
+    };
+
+    expect($countQueries(24))->toBe($countQueries(2));
+});
+
+/**
+ * The User, an account and Budgets 2025 and 2026 in execution; the window of 12 November 2026
+ * is November 2025 to October 2026.
+ *
+ * @return array{0: User, 1: Account, 2: Budget, 3: Budget}
+ */
+function windowReportFixture(): array
+{
+    [$user, $account, $budget2026] = reportFixture(2026);
+    $budget2025 = Budget::factory()->for($user)->execution()->create(['year' => 2025]);
+
+    return [$user, $account, $budget2025, $budget2026];
+}
+
+function reportWindow(User $user): ReportTwelveMonthWindow
+{
+    return ReportTwelveMonthWindow::resolve($user, CarbonImmutable::parse('2026-11-12'));
+}
+
+test('the window result equals the sum of the Month Results of the covered months of both Budgets', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $income = reportLine($user, $budget2026, 'income', 'Pensja');
+    $incomeOld = reportLineOfCategory($budget2025, $income);
+    $food = reportLine($user, $budget2026, 'expense', 'Żywność');
+    $foodOld = reportLineOfCategory($budget2025, $food);
+
+    foreach (range(1, 12) as $month) {
+        bookReportOperation($user, $account, $incomeOld, sprintf('2025-%02d-01', $month), 100_000 + $month);
+        bookReportOperation($user, $account, $foodOld, sprintf('2025-%02d-28', $month), 30_000 + $month);
+        bookReportOperation($user, $account, $income, sprintf('2026-%02d-01', $month), 200_000 + $month);
+        bookReportOperation($user, $account, $food, sprintf('2026-%02d-28', $month), 40_000 + $month);
+    }
+
+    $monthResults = [
+        ...array_map(fn (int $month): array => BudgetMonthResult::forViewedMonth($budget2025, $month), [11, 12]),
+        ...array_map(fn (int $month): array => BudgetMonthResult::forViewedMonth($budget2026, $month), range(1, 10)),
+    ];
+
+    $report = PeriodReport::forWindow(reportWindow($user))->toArray();
+
+    expect($report['income_minor_units'])->toBe(array_sum(array_column($monthResults, 'income_execution_minor_units')))
+        ->and($report['expense_minor_units'])->toBe(array_sum(array_column($monthResults, 'expense_execution_minor_units')))
+        ->and($report['result_minor_units'])->toBe(array_sum(array_column($monthResults, 'month_result_minor_units')))
+        ->and($report['has_operations'])->toBeTrue();
+});
+
+test('a category with lines in both Budgets sums its amounts of the covered months', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $food = reportLine($user, $budget2026, 'expense', 'Żywność');
+    $foodOld = reportLineOfCategory($budget2025, $food);
+
+    foreach (range(1, 12) as $month) {
+        bookReportOperation($user, $account, $foodOld, sprintf('2025-%02d-10', $month), 1_000 + $month);
+        bookReportOperation($user, $account, $food, sprintf('2026-%02d-10', $month), 2_000 + $month);
+    }
+
+    $expected = array_sum(array_map(fn (int $month): int => PeriodReport::forMonth($budget2025, $month)->toArray()['expense_minor_units'], [11, 12]))
+        + array_sum(array_map(fn (int $month): int => PeriodReport::forMonth($budget2026, $month)->toArray()['expense_minor_units'], range(1, 10)));
+
+    $entry = PeriodReport::forWindow(reportWindow($user))->toArray()['expense'][0];
+
+    expect($entry['id'])->toBe($food->category_id)
+        ->and($entry['amount_minor_units'])->toBe($expected)
+        ->and($entry['has_operations'])->toBeTrue();
+});
+
+test('the window counts its first and last day and not the days around it', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $food = reportLine($user, $budget2026, 'expense', 'Żywność');
+    $foodOld = reportLineOfCategory($budget2025, $food);
+
+    reportOperation($user, $account, $foodOld, '2025-10-31', 1);
+    reportOperation($user, $account, $foodOld, '2025-11-01', 10);
+    reportOperation($user, $account, $food, '2026-10-31', 100);
+    reportOperation($user, $account, $food, '2026-11-01', 1_000);
+
+    $report = PeriodReport::forWindow(reportWindow($user))->toArray();
+
+    expect($report['expense_minor_units'])->toBe(110)
+        ->and($report['expense'][0]['amount_minor_units'])->toBe(110);
+});
+
+test('refunds net out in the window and a zero net category keeps its row', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $food = reportLine($user, $budget2026, 'expense', 'Żywność');
+    $foodOld = reportLineOfCategory($budget2025, $food);
+    $zero = reportLine($user, $budget2026, 'expense', 'Zerowa');
+
+    reportOperation($user, $account, $foodOld, '2025-12-05', 10_000);
+    reportOperation($user, $account, $food, '2026-02-05', -2_500);
+    reportOperation($user, $account, $zero, '2026-03-05', 700);
+    reportOperation($user, $account, $zero, '2026-04-05', -700);
+
+    $report = PeriodReport::forWindow(reportWindow($user))->toArray();
+    $rows = reportRowsByName($report['expense']);
+
+    expect($report['expense_minor_units'])->toBe(7_500)
+        ->and($rows['Żywność']['amount_minor_units'])->toBe(7_500)
+        ->and($rows['Zerowa']['amount_minor_units'])->toBe(0)
+        ->and($rows['Zerowa']['has_operations'])->toBeTrue();
+});
+
+test('a category present in one Budget only has a row and one without operations has none', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $onlyOld = reportLine($user, $budget2025, 'expense', 'Tylko stara');
+    $onlyNew = reportLine($user, $budget2026, 'expense', 'Tylko nowa');
+    reportLine($user, $budget2026, 'expense', 'Bez operacji');
+    reportOperation($user, $account, $onlyOld, '2025-11-15', 300);
+    reportOperation($user, $account, $onlyNew, '2026-05-15', 400);
+
+    $rows = reportRowsByName(PeriodReport::forWindow(reportWindow($user))->toArray()['expense']);
+
+    expect(array_keys($rows))->toEqualCanonicalizing(['Tylko stara', 'Tylko nowa'])
+        ->and($rows['Tylko stara']['amount_minor_units'])->toBe(300)
+        ->and($rows['Tylko nowa']['amount_minor_units'])->toBe(400);
+});
+
+test('the archived mark follows the newest covering Budget with a line of the category', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $archivedThenActive = reportLine($user, $budget2026, 'expense', 'Wróciła');
+    $archivedThenActiveOld = reportLineOfCategory($budget2025, $archivedThenActive, true);
+    $activeThenArchived = reportLine($user, $budget2026, 'expense', 'Odeszła', [], true);
+    $activeThenArchivedOld = reportLineOfCategory($budget2025, $activeThenArchived);
+
+    foreach ([[$archivedThenActiveOld, '2025-11-05'], [$archivedThenActive, '2026-02-05'], [$activeThenArchivedOld, '2025-12-05'], [$activeThenArchived, '2026-03-05']] as [$line, $date]) {
+        reportOperation($user, $account, $line, $date, 100);
+    }
+
+    $rows = reportRowsByName(PeriodReport::forWindow(reportWindow($user))->toArray()['expense']);
+
+    expect($rows['Wróciła']['is_archived'])->toBeFalse()
+        ->and($rows['Odeszła']['is_archived'])->toBeTrue();
+});
+
+test('a category without a line in the newest covering Budget takes the archived mark of the list category', function () {
+    [$user, $account, $budget2025] = windowReportFixture();
+    $archivedOnList = reportLine($user, $budget2025, 'expense', 'Wesele', ['archived_at' => '2026-03-01 10:00:00']);
+    $activeOnList = reportLine($user, $budget2025, 'expense', 'Ogród', [], true);
+    reportOperation($user, $account, $archivedOnList, '2025-11-15', 300);
+    reportOperation($user, $account, $activeOnList, '2025-12-15', 400);
+
+    $rows = reportRowsByName(PeriodReport::forWindow(reportWindow($user))->toArray()['expense']);
+
+    expect($rows['Wesele']['is_archived'])->toBeTrue()
+        ->and($rows['Ogród']['is_archived'])->toBeFalse();
+});
+
+test('a group sums its categories across Budgets and the share is that of the window expenses', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+    $rent = reportLine($user, $budget2026, 'expense', 'Czynsz', ['category_group_id' => $group->id]);
+    $rentOld = reportLineOfCategory($budget2025, $rent);
+    $power = reportLine($user, $budget2026, 'expense', 'Prąd', ['category_group_id' => $group->id]);
+    $food = reportLine($user, $budget2026, 'expense', 'Żywność');
+
+    reportOperation($user, $account, $rentOld, '2025-11-05', 2_000);
+    reportOperation($user, $account, $rent, '2026-01-05', 3_000);
+    reportOperation($user, $account, $power, '2026-02-05', 1_000);
+    reportOperation($user, $account, $food, '2026-03-05', 4_000);
+
+    $report = PeriodReport::forWindow(reportWindow($user))->toArray();
+    $entries = reportRowsByName($report['expense']);
+    $members = $entries['Dom']['categories'];
+
+    expect($report['expense_minor_units'])->toBe(10_000)
+        ->and($entries['Dom']['kind'])->toBe('group')
+        ->and($entries['Dom']['amount_minor_units'])->toBe(array_sum(array_column($members, 'amount_minor_units')))
+        ->and($entries['Dom']['amount_minor_units'])->toBe(6_000)
+        ->and($entries['Dom']['share_tenths_percent'])->toBe(600)
+        ->and($entries['Żywność']['share_tenths_percent'])->toBe(400)
+        ->and(reportRowsByName($members)['Czynsz']['share_tenths_percent'])->toBe(500);
+});
+
+test('the window report has no comparison', function () {
+    [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+    $food = reportLine($user, $budget2026, 'expense', 'Żywność');
+    reportOperation($user, $account, $food, '2026-03-05', 100);
+    reportOperation($user, $account, reportLineOfCategory($budget2025, $food), '2025-12-05', 100);
+
+    expect(PeriodReport::forWindow(reportWindow($user))->toArray()['comparison'])->toBeNull();
+});
+
+test('without a covering Budget the window report is empty and reads nothing', function () {
+    $user = User::factory()->create();
+    Budget::factory()->for($user)->create(['year' => 2026]);
+    $window = reportWindow($user);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $report = PeriodReport::forWindow($window)->toArray();
+    $queries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($queries)->toBe(0)
+        ->and($report)->toBe([
+            'income_minor_units' => 0,
+            'expense_minor_units' => 0,
+            'result_minor_units' => 0,
+            'has_operations' => false,
+            'comparison' => null,
+            'income' => [],
+            'expense' => [],
+        ]);
+});
+
+test('the window report uses a constant number of queries', function () {
+    $countQueries = function (int $categories): int {
+        [$user, $account, $budget2025, $budget2026] = windowReportFixture();
+        $group = CategoryGroup::factory()->for($user)->expense()->create();
+        foreach (range(1, $categories) as $i) {
+            $line = reportLine($user, $budget2026, 'expense', "Kategoria $i", ['category_group_id' => $i % 2 === 0 ? $group->id : null, 'sort_order' => $i]);
+            reportOperation($user, $account, $line, sprintf('2026-%02d-05', ($i % 10) + 1), 100 * $i);
+            reportOperation($user, $account, reportLineOfCategory($budget2025, $line), sprintf('2025-%02d-05', 11 + ($i % 2)), 90 * $i);
+        }
+        $window = reportWindow($user);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        PeriodReport::forWindow($window)->toArray();
         $count = count(DB::getQueryLog());
         DB::disableQueryLog();
 

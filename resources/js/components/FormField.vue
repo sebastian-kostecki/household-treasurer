@@ -10,6 +10,7 @@ const props = defineProps<{
     error?: string;
     group?: boolean;
     money?: boolean;
+    unit?: string;
 }>();
 
 const generatedId = useId();
@@ -28,8 +29,11 @@ const describedBy = computed(() => {
 });
 
 const invalid = computed(() => (props.error ? ('true' as const) : undefined));
+const unitLabel = computed(
+    () => props.unit ?? (props.money ? MONEY_UNIT : null),
+);
 const controlClass = computed(() =>
-    props.money ? 'pr-8 text-right font-mono tabular-nums' : '',
+    unitLabel.value ? 'pr-8 text-right font-mono tabular-nums' : '',
 );
 </script>
 
@@ -41,7 +45,7 @@ const controlClass = computed(() =>
             class="form-field-label"
             >{{ label }}</label
         >
-        <div v-if="money" class="relative">
+        <div v-if="unitLabel" class="relative">
             <slot
                 :id="fieldId"
                 :label-id="labelId"
@@ -50,7 +54,7 @@ const controlClass = computed(() =>
                 :control-class="controlClass"
             />
             <span class="form-field-unit" aria-hidden="true">{{
-                MONEY_UNIT
+                unitLabel
             }}</span>
         </div>
         <slot

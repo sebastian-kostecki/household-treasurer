@@ -477,8 +477,8 @@ const CATEGORIES_VIEW_FILES = [
     'components/CategoryListRow.vue',
     'components/CategoryArchiveSection.vue',
     'components/CategoryGroupRow.vue',
+    'components/CategoryGroupAssignDialog.vue',
     'components/CategoryGroupFormDialog.vue',
-    'components/CategoryGroupPicker.vue',
 ];
 
 describe('the Categories view follows the Atrament surface blocks', () => {
@@ -515,15 +515,29 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(dialog).not.toContain('DialogContent');
     });
 
-    it('shows each category with CategoryChip and a Wayfinder link to Operations', () => {
+    it('builds the group assign dialog on ConfirmActionDialog, not on its own DialogContent', () => {
+        const dialog = readFileSync(
+            join(JS_ROOT, 'components/CategoryGroupAssignDialog.vue'),
+            'utf8',
+        );
+
+        expect(dialog).toContain('<ConfirmActionDialog');
+        expect(dialog).not.toContain('DialogContent');
+    });
+
+    it('shows each category with CategoryChip and a Wayfinder link to Operations in its row menu', () => {
         const row = readFileSync(
             join(JS_ROOT, 'components/CategoryListRow.vue'),
             'utf8',
         );
+        const actions = readFileSync(
+            join(JS_ROOT, 'components/CategoryListRowActions.vue'),
+            'utf8',
+        );
 
         expect(row).toContain('<CategoryChip');
-        expect(row).toContain("from '@/routes'");
-        expect(row).not.toContain('href="/operations');
+        expect(actions).toContain("from '@/routes'");
+        expect(actions).not.toContain('href="/operations');
     });
 
     it('links report category names to Operations through the Wayfinder route and the shared query', () => {
@@ -537,6 +551,13 @@ describe('the Categories view follows the Atrament surface blocks', () => {
             expect(source).toContain('reportCategoryOperationsQuery');
             expect(source).not.toContain('href="/operations');
         }
+
+        const row = readFileSync(
+            join(JS_ROOT, 'components/ReportCategoryRow.vue'),
+            'utf8',
+        );
+
+        expect(row).toContain('reportRangeOperationsQuery');
 
         const group = readFileSync(
             join(JS_ROOT, 'components/ReportGroupRow.vue'),

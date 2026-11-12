@@ -16,7 +16,7 @@ const props = defineProps<{
     incomeMinorUnits: number;
     expenseMinorUnits: number;
     resultMinorUnits: number;
-    periodKind: 'year' | 'month';
+    periodKind: 'year' | 'month' | 'last-12';
     /** The period includes today; the result is not final yet. */
     isInProgress: boolean;
     /** The same period a year earlier; the tiles show it only when set. */
@@ -25,13 +25,20 @@ const props = defineProps<{
 
 const t = useTranslations();
 
+const resultLabel = computed(() => {
+    if (props.periodKind === 'last-12') {
+        return t.reports.result_last_12;
+    }
+
+    return props.periodKind === 'year'
+        ? t.reports.result_year
+        : t.reports.result;
+});
+
 const metrics = computed<StatPanelMetric[]>(() => [
     {
         id: 'result',
-        label:
-            props.periodKind === 'year'
-                ? t.reports.result_year
-                : t.reports.result,
+        label: resultLabel.value,
         value: formatMoney(props.resultMinorUnits),
         toneClass: amountToneClass(props.resultMinorUnits),
         caption: props.isInProgress ? t.reports.in_progress : undefined,

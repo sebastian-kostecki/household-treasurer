@@ -8,7 +8,7 @@ import {
 export const CATEGORY_DESCRIPTION_MAX_LENGTH = 500;
 
 /**
- * Cel linku „Operacje →” w widoku Kategorie: operacje tej kategorii listy we
+ * Cel pozycji „Operacje” w menu wiersza widoku Kategorie: operacje tej kategorii listy we
  * wszystkich latach, więc bez zakresu dat ani roku.
  */
 export function categoryAllYearsOperationsQuery(category: {

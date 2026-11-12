@@ -3,6 +3,7 @@ import { categoryOperationsQuery } from './dashboard-categories';
 import {
     reportCategoryOperationsQuery,
     reportOperationsLinkLabel,
+    reportRangeOperationsQuery,
 } from './report-category-operations';
 
 const food = { id: 5, has_operations: true };
@@ -86,6 +87,47 @@ describe('reportCategoryOperationsQuery', () => {
             expect(query?.term_deposit_id).toBeUndefined();
             expect(query?.section).toBeUndefined();
         }
+    });
+});
+
+describe('reportRangeOperationsQuery', () => {
+    it('points at the whole window across the turn of the year', () => {
+        expect(
+            reportRangeOperationsQuery(food, '2025-11-01', '2026-10-31'),
+        ).toEqual({
+            q: undefined,
+            year: undefined,
+            category_id: 5,
+            account_id: undefined,
+            term_deposit_id: undefined,
+            date_from: '2025-11-01',
+            date_to: '2026-10-31',
+            section: undefined,
+        });
+    });
+
+    it('has no target for a row without operations', () => {
+        expect(
+            reportRangeOperationsQuery(
+                { id: 5, has_operations: false },
+                '2025-11-01',
+                '2026-10-31',
+            ),
+        ).toBeNull();
+    });
+
+    it('leaves the other filters unset', () => {
+        const query = reportRangeOperationsQuery(
+            food,
+            '2025-11-01',
+            '2026-10-31',
+        );
+
+        expect(query?.q).toBeUndefined();
+        expect(query?.year).toBeUndefined();
+        expect(query?.account_id).toBeUndefined();
+        expect(query?.term_deposit_id).toBeUndefined();
+        expect(query?.section).toBeUndefined();
     });
 });
 

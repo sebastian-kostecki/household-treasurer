@@ -194,7 +194,7 @@ test('the output file holds the expected keys and the figures of the current sch
     $document = json_decode(File::get($path), true);
 
     expect(array_keys($document))->toBe([
-        'meta', 'row_counts', 'max_financial_operation_id', 'budgets', 'lines',
+        'meta', 'categories', 'row_counts', 'max_financial_operation_id', 'budgets', 'lines',
         'own_transfers_total', 'capital_movements_by_direction', 'accounts', 'term_deposits',
     ])
         // The flags are dropped (S-24), so there is nothing to count.

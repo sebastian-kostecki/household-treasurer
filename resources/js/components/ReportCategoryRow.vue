@@ -10,10 +10,11 @@ import { planChangeToneClass } from '@/lib/plan-change-direction';
 import {
     reportCategoryOperationsQuery,
     reportOperationsLinkLabel,
+    reportRangeOperationsQuery,
 } from '@/lib/report-category-operations';
 import { reportDifferenceTone } from '@/lib/report-difference';
 import { operations } from '@/routes';
-import type { PeriodReportCategory } from '@/types/reports';
+import type { PeriodReportCategory, ReportRange } from '@/types/reports';
 
 const props = defineProps<{
     category: PeriodReportCategory;
@@ -29,6 +30,8 @@ const props = defineProps<{
     budgetYear: number;
     /** Viewed month (1 to 12), `null` for the whole Budget year. */
     month: number | null;
+    /** The last-12 window (ADR-0081); replaces the month and the year in the link. */
+    range?: ReportRange | null;
 }>();
 
 const t = useTranslations();
@@ -43,18 +46,25 @@ const previousLabel = computed(() =>
 );
 
 const operationsQuery = computed(() =>
-    reportCategoryOperationsQuery(
-        props.category,
-        props.budgetYear,
-        props.month,
-    ),
+    props.range
+        ? reportRangeOperationsQuery(
+              props.category,
+              props.range.from,
+              props.range.through,
+          )
+        : reportCategoryOperationsQuery(
+              props.category,
+              props.budgetYear,
+              props.month,
+          ),
 );
 
 const operationsLinkLabel = computed(() => {
-    const period =
-        props.month === null
-            ? String(props.budgetYear)
-            : `${t.budget[`month_name_${props.month}` as keyof typeof t.budget]} ${props.budgetYear}`;
+    const period = props.range
+        ? props.range.label
+        : props.month === null
+          ? String(props.budgetYear)
+          : `${t.budget[`month_name_${props.month}` as keyof typeof t.budget]} ${props.budgetYear}`;
 
     return reportOperationsLinkLabel(
         t.reports.operations_link_label,
@@ -140,6 +150,7 @@ const differenceToneClass = computed(() => {
             }}
         </div>
         <div v-if="showShare" class="report-area-share report-cell-share">
+            <span class="report-share-label">{{ t.reports.share_label }}</span>
             {{ formatShareTenths(category.share_tenths_percent) }}
         </div>
     </div>

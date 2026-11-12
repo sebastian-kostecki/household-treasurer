@@ -121,13 +121,15 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | Komenda                             | Działanie                                                                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `user:create`                       | Konto logowania                                                                                                                 |
-| `user:backup {user}`                | Snapshot JSON danych domenowych (wersja 9)                                                                                      |
+| `user:backup {user}`                | Snapshot JSON danych domenowych (wersja 12)                                                                                     |
 | `user:restore {user} {path}`        | Przywrócenie snapshotu na istniejącego użytkownika                                                                              |
 | `user:reset-data {user}`            | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                        |
 | `demo:seed-household {user}`        | Dane demo                                                                                                                       |
 | `demo:seed-previous-year {user}`    | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                           |
 | `backup:restore {path}`             | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie)        |
 | `app:control-numbers`               | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                         |
+| `budget:load-sheet {user} {path}`   | Wczytanie roku ze starego arkusza (`--dry-run` tylko podgląd); zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20222025)       |
+| `budget:unload-sheet {user} {year}` | Wycofanie wczytanego roku; zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20222025)                                           |
 | `import:suggestion-accuracy {user}` | Trafność podpowiedzi Importu (tylko odczyt); zob. [Pomiar trafności podpowiedzi Importu](#pomiar-trafności-podpowiedzi-importu) |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
@@ -203,6 +205,48 @@ Snapshot wersji 6, zrobiony po wdrożeniu, nie wczyta się w starym kodzie (`use
 
 Migracja S-26 dodaje jedną kolumnę (`category_rhythms.opening_collected_minor_units`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` jest stratny: zamienia wpisy rytmu `irregular` na `even_annual` i usuwa kolumnę, więc giną zebrane startowe i oznaczenia nieregularnych; operacje, plany i kwoty zostają. Wycofanie idzie jak w „Wycofanie S-18”: `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`. Snapshot wersji 10 (`user:backup` po S-26) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()`, nie restore nowego snapshotu w starym kodzie.
 
+#### Wycofanie S-33 po wdrożeniu
+
+Migracja S-33 dodaje jedną nullable kolumnę (`users.default_set_aside_percent`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` usuwa kolumnę i traci tylko zapisany procent; operacje, plany i kwoty zostają. Wycofanie idzie jak w „Wycofanie S-18”: `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`. Snapshot wersji 11 (`user:backup` po S-33) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()`, nie restore nowego snapshotu w starym kodzie.
+
+#### Wycofanie legacy-budget-import po wdrożeniu
+
+Migracja `add_sheet_year_to_accounts_table` dodaje jedną nullable kolumnę (`accounts.sheet_year`, unikalną razem z `user_id`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` odmawia (`RuntimeException` z liczbą kont), gdy istnieje choć jedno konto arkusza, bo usunięcie kolumny zamieniłoby je w zwykłe konta i zmieniło płynność. Najpierw cofnij każdy wczytany rok komendą `budget:unload-sheet` (zrób wcześniej `user:backup`), potem `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh` (jak w „Wycofanie S-18”). Snapshot wersji 12 (`user:backup` po tej zmianie) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()` po `budget:unload-sheet`, nie restore nowego snapshotu w starym kodzie.
+
+#### Wczytanie arkusza (lata 2022–2025)
+
+Decyzja: [ADR-0085](context/foundation/adr/0085-sheet-load-of-past-years.md). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
+
+Procedura na produkcji (`{user}` to e-mail albo ID):
+
+1. Wdróż zmianę (`scripts/deploy.sh`, migracja `sheet_year`; liczby kontrolne przed i po `migrate` są identyczne).
+2. Skopiuj pliki do kontenera i nadaj im właściciela:
+    ```bash
+    COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml"
+    $COMPOSE exec -T -u sail app mkdir -p storage/app/private/sheet-load
+    for year in 2022 2023 2024 2025; do $COMPOSE cp "Budżet_${year}.xlsx" "app:/var/www/html/storage/app/private/sheet-load/Budżet_${year}.xlsx"; done
+    $COMPOSE exec -T -u root app chown -R sail:sail storage/app/private/sheet-load
+    ```
+3. Snapshot i liczby kontrolne „przed”:
+    ```bash
+    scripts/artisan.sh user:backup {user}
+    scripts/artisan.sh app:control-numbers --output=storage/app/private/control-numbers/$(date -u +%Y%m%d-%H%M%S)-sheet-before.json
+    ```
+    Zapisz nazwę pliku „przed” i zachowaj jego kopię poza serwerem.
+4. Podgląd każdego pliku (`--dry-run` nic nie zapisuje): kod wyjścia 0, sumy przychodów i wydatków zgodne z „Analizą” (2022: 106 233,93 / 101 219,38; 2023: 117 847,66 / 122 115,75; 2024: 110 559,17 / 126 760,34; 2025: 134 670,58 / 134 852,23 zł), ostrzeżenia z adresami komórek do przejrzenia (2022 czerwiec, 2024 wrzesień), kategorie z mapowania istnieją z oczekiwaną nazwą i typem:
+    ```bash
+    scripts/artisan.sh budget:load-sheet {user} storage/app/private/sheet-load/Budżet_2022.xlsx --dry-run
+    ```
+5. Wczytanie, po jednym roku (komenda pyta o potwierdzenie; `--force` pomija pytanie): `budget:load-sheet {user} <plik>` dla 2022, 2023, 2024, 2025. Błąd kończy się kodem 1 z nazwą arkusza i komórki, a transakcja się cofa.
+6. Dowód „tylko dodano”: `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<plik-przed> --allow-additions` ma dać kod 0 i podsumowanie dodań (Budżety, ich linie, konta arkusza, operacje, ewentualnie kategoria „Kosmetyki”). Każde naruszenie to STOP i wycofanie.
+7. Przegląd w aplikacji: saldo „Na kontach”, dashboard i szkic 2027 bez zmian; raport „ostatnie 12 miesięcy”, raport 2026 z kolumną 2025, Budżet 2024 i „Kategorie”. Zmieniają się celowo (ADR-0085): lata 2022–2027 w selektorze roku, kolumny roku poprzedniego, blokady „Usuń” na kategoriach z historią.
+
+Operacje z arkusza nie mają edycji w UI, a rok wczytany jest zamknięty dla wpisu ręcznego i Importu. Błąd w mapowaniu poprawia się przez wycofanie roku i ponowne wczytanie.
+
+Wycofanie roku: `scripts/artisan.sh budget:unload-sheet {user} 2025` (potwierdzenie albo `--force`). Usuwa operacje, linie, Budżet i konto arkusza tego roku oraz zarchiwizowaną „Kosmetyki”, gdy nic jej już nie używa; odmawia, gdy Budżet ma plany miesięcy albo operacje na innym koncie. Po wycofaniu wszystkich wczytanych lat `app:control-numbers --compare=<plik-przed>` (bez `--allow-additions`) nie pokazuje różnic. Gdy wycofanie odmówi, drogą awaryjną jest snapshot z kroku 3 (`user:restore`) albo kopia instancji.
+
+Próba na kopii produkcji (lokalnie, bez nadpisania bazy deweloperskiej): odtwórz archiwum `backup:run` z produkcji do bazy `restore_trial` według „Próba lokalna” wyżej (w tym `config:clear`, `db:show` pokazujące `restore_trial` i odłożenie `storage/app/private` oraz `public`), potem przejdź kroki 3–7 z `docker compose exec -e DB_DATABASE=restore_trial laravel.test php artisan …` zamiast `scripts/artisan.sh`, z plikami w `storage/app/restore-trial/`. Na próbie wykonaj też wycofanie wszystkich lat i ponowne wczytanie. Id kategorii w mapowaniu (`database/sheet-load/mapping.php`) pochodzą z kopii produkcji na devie; `--dry-run` na próbie potwierdza, że zgadzają się z produkcją.
+
 #### Scalanie kategorii
 
 Decyzja: [ADR-0078](context/foundation/adr/0078-category-merge.md). Scalenie („Kategorie” → „⋯” → „Scal z inną…”) nie ma migracji, więc liczby kontrolne przed i po wdrożeniu są identyczne. W aplikacji nie da się go cofnąć, ale akcja zapisuje snapshot użytkownika w `storage/app/private/user-snapshots/<id>-<RRRRMMDDGGMMSS>.json` **przed** pierwszym zapisem i niczego nie scala, gdy snapshot się nie uda. Ścieżka pliku jest w logu aplikacji (`storage/logs`, wpis o scaleniu kategorii z id i nazwami obu kategorii). Powrót ma dziś dwie drogi. (1) Pełna kopia instancji sprzed scalenia, czyli `backup:restore` z kroku 6 `deploy.sh` (zob. „Przywrócenie produkcji”); cofa wszystko od czasu archiwum. (2) Snapshot ze ścieżki z logu: `user:restore {user} storage/app/private/user-snapshots/<plik>.json` działa na pustą bazę i na użytkownika, który ma już dane. Przywraca tożsamość importu z nowymi id kont i liczy jej digest od nowa dla użytkownika docelowego ([ADR-0080](context/foundation/adr/0080-restore-re-derives-import-identity.md)), więc ponowny import wyciągu nadal oznacza duplikaty. Snapshot, w którym rekord z digestem nie ma surowego opisu, daty lub kwoty tożsamości albo wskazuje konto spoza snapshotu, jest odrzucany w całości. Przywrócenie cofa także wszystko, co wpisano po scaleniu, i nadaje rekordom nowe id, więc rób je od razu po pomyłce.
@@ -250,7 +294,7 @@ Lokalnie, w `restore_trial` (po `config:clear` i sprawdzeniu `db:show`, jak w pr
 
 Komenda `import:suggestion-accuracy {user}` odtwarza historię zaimportowanych wierszy chronologicznie: każdy wiersz dostaje podpowiedź zbudowaną tylko z wierszy wcześniejszych, tym samym kodem co podgląd Importu. Drukuje dla okresów „cały rok” i „sierpień–listopad” oraz poziomów `model` (głos) i `suggestion` (cel po regule oferty selektora) odsetek wierszy z podpowiedzią i odsetek trafnych wśród nich (dla modelu także top 3). Komenda tylko czyta bazę, więc można ją uruchomić na produkcji.
 
-Mierz po zmianie modelu podpowiedzi, po zmianie kategorii albo po scaleniach kategorii (S-21). Dwa przebiegi porównuje `--compare`: kod wyjścia 1 przy każdym spadku (ułamki, nie zaokrąglone procenty), z listą okresów, poziomów i różniących się operacji; przy różnych zbiorach `operation_id` w obu plikach to błąd, a nie „brak spadku”.
+Mierz po zmianie modelu podpowiedzi, po zmianie kategorii albo po scaleniach kategorii (S-21). Dwa przebiegi porównuje `--compare`: kod wyjścia 1 przy każdym spadku (ułamki, nie zaokrąglone procenty), z listą okresów, poziomów i różniących się operacji; przy różnych zbiorach `operation_id` w obu plikach to błąd, a nie „brak spadku”. Błąd z kodem 1 daje też plik w innym `format`, plik bez którejś liczby lub flagi oraz ta sama ścieżka w `--output` i `--compare`. Top 3 jest tylko do odczytu: jego zmiana pojawia się na liście różniących się wierszy, ale nie jest spadkiem.
 
 ```bash
 scripts/artisan.sh import:suggestion-accuracy 1 --year=2026 --output=storage/app/private/suggestion-accuracy/RRRR-MM-DD-before.json
