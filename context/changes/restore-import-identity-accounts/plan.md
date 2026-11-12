@@ -281,12 +281,12 @@ Brak migracji i nowej wersji snapshotu. Snapshoty zapisane wcześniej (także pr
 
 #### Automated
 
-- [x] 3.1 README nie mówi, że restore na użytkownika z danymi nie działa
-- [x] 3.2 Raport próby istnieje
+- [x] 3.1 README nie mówi, że restore na użytkownika z danymi nie działa — 9d7bf15
+- [x] 3.2 Raport próby istnieje — 9d7bf15
 
 #### Manual
 
-- [x] 3.3 Restore snapshotu produkcji na użytkownika z danymi przechodzi, liczby kontrolne się zgadzają
-- [x] 3.4 Żadna tożsamość importu nie wskazuje konta spoza użytkownika, liczba digestów zgodna ze snapshotem w każdej nodze
-- [x] 3.5 Podgląd importu oznacza wiersze z miesiąca w snapshocie jako duplikaty
-- [x] 3.6 Baza próby usunięta, baza deweloperska nietknięta
+- [x] 3.3 Restore snapshotu produkcji na użytkownika z danymi przechodzi, liczby kontrolne się zgadzają — 9d7bf15
+- [x] 3.4 Żadna tożsamość importu nie wskazuje konta spoza użytkownika, liczba digestów zgodna ze snapshotem w każdej nodze — 9d7bf15
+- [x] 3.5 Podgląd importu oznacza wiersze z miesiąca w snapshocie jako duplikaty — 9d7bf15
+- [x] 3.6 Baza próby usunięta, baza deweloperska nietknięta — 9d7bf15
