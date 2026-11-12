@@ -525,4 +525,4 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 - [x] 7.2 Próba na odtworzonej kopii produkcji przechodzi z przeglądem raportów i Kategorii — bce4637
 - [x] 7.3 Na próbie wycofanie przywraca numery kontrolne, ponowne wczytanie przechodzi — bce4637
-- [ ] 7.4 Produkcja: wczytanie 2022–2025, --allow-additions przechodzi, salda, dashboard i szkic 2027 bez zmian
+- [x] 7.4 Produkcja: wczytanie 2022–2025, --allow-additions przechodzi, salda, dashboard i szkic 2027 bez zmian — 747db10
