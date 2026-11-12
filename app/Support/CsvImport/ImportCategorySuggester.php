@@ -2,8 +2,6 @@
 
 namespace App\Support\CsvImport;
 
-use App\Enums\BudgetPhase;
-use App\Models\BudgetLine;
 use App\Models\User;
 
 class ImportCategorySuggester
@@ -21,9 +19,9 @@ class ImportCategorySuggester
         }
 
         $model = ImportCategorySuggestionModel::fromHistory($this->loadHistory($user));
-        $lineIds = null;
+        $targets = null;
 
-        return array_map(function (array $row) use ($user, $model, &$lineIds): array {
+        return array_map(function (array $row) use ($user, $model, &$targets): array {
             if (! $this->isEligibleRow($row)) {
                 return $this->withSuggestion($row, null, null);
             }
@@ -39,13 +37,13 @@ class ImportCategorySuggester
                 return $this->withSuggestion($row, null, null);
             }
 
-            $lineIds ??= $this->lineIdsByYearAndCategory($user);
+            $targets ??= ImportCategorySuggestionTargets::forUser($user);
             $year = (int) substr((string) $row['operation_date'], 0, 4);
 
             return $this->withSuggestion(
                 $row,
-                $incomeCategoryId !== null && isset($lineIds[$year][$incomeCategoryId]) ? $incomeCategoryId : null,
-                $expenseCategoryId !== null && isset($lineIds[$year][$expenseCategoryId]) ? $expenseCategoryId : null,
+                $targets->resolve('income', $incomeCategoryId, $year),
+                $targets->resolve('expense', $expenseCategoryId, $year),
             );
         }, $rows);
     }
@@ -100,35 +98,6 @@ class ImportCategorySuggester
                 'operation_date' => substr((string) $operation->operation_date, 0, 10),
             ];
         }
-    }
-
-    /**
-     * The target of a vote: the non-archived line of the winning list Category
-     * in the Budget in execution of the year of the row's date. A winner without
-     * such a line, or archived on the list, gives no suggestion (ADR-0063 about ADR-0034).
-     *
-     * @return array<int, array<int, int>> year => list category id => budget line id
-     */
-    private function lineIdsByYearAndCategory(User $user): array
-    {
-        $lines = BudgetLine::query()
-            ->join('budgets', 'budgets.id', '=', 'budget_lines.budget_id')
-            ->join('categories', 'categories.id', '=', 'budget_lines.category_id')
-            ->where('budgets.user_id', $user->id)
-            ->where('budgets.phase', BudgetPhase::Execution)
-            ->whereNull('budget_lines.archived_at')
-            ->whereNull('categories.archived_at')
-            ->select(['budget_lines.id', 'budget_lines.category_id', 'budgets.year'])
-            ->toBase()
-            ->get();
-
-        $ids = [];
-
-        foreach ($lines as $line) {
-            $ids[(int) $line->year][(int) $line->category_id] = (int) $line->id;
-        }
-
-        return $ids;
     }
 
     /**
