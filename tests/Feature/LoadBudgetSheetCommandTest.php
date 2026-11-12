@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Support\ControlNumbers;
 use App\Support\SheetLoad\SheetMapping;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Support\SheetWorkbookFactory;
 
 uses(RefreshDatabase::class);
@@ -20,6 +21,10 @@ function sheetLoadUserWithMappedCategories(): User
             'name' => $category['name'],
             'type' => $category['type'],
         ]);
+    }
+
+    if (DB::getDriverName() === 'pgsql') {
+        DB::statement("select setval(pg_get_serial_sequence('categories', 'id'), (select max(id) from categories))");
     }
 
     return $user;
@@ -56,10 +61,17 @@ test('dry-run prints the plan and leaves the control numbers unchanged', functio
     expect(app(ControlNumbers::class)->collect())->toBe($before);
 });
 
-test('refuses without --dry-run because the write comes in phase 6', function () {
+test('writes nothing when the confirmation is declined', function () {
     $user = sheetLoadUserWithMappedCategories();
+    $before = app(ControlNumbers::class)->collect();
 
-    expect(runSheetLoad($user, ['year' => 2021], []))->toBe(1);
+    SheetWorkbookFactory::with(['year' => 2021], function (string $path) use ($user): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path])
+            ->expectsConfirmation('Wczytać rok 2021 dla '.$user->email.' (180 operacji, konto „Arkusz 2021”)?', 'no')
+            ->assertExitCode(0);
+    });
+
+    expect(app(ControlNumbers::class)->collect())->toBe($before);
 });
 
 test('refuses when a mapped category has another name on the database', function () {

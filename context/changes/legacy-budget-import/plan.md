@@ -496,24 +496,24 @@ Migracja dodaje jedną nullable kolumnę i nie zmienia wierszy; numery kontrolne
 
 #### Automated
 
-- [x] 5.1 Testy planu wczytania przechodzą
-- [x] 5.2 Test komendy --dry-run nie zmienia numerów kontrolnych
-- [x] 5.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 5.1 Testy planu wczytania przechodzą — ffc90e3
+- [x] 5.2 Test komendy --dry-run nie zmienia numerów kontrolnych — ffc90e3
+- [x] 5.3 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci — ffc90e3
 
 #### Manual
 
-- [x] 5.4 --dry-run czterech prawdziwych plików daje sumy z tabeli addendum
-- [x] 5.5 Ostrzeżenia obejmują 2022 czerwiec i 2024 wrzesień, sumy per kategoria sensowne
+- [x] 5.4 --dry-run czterech prawdziwych plików daje sumy z tabeli addendum — ffc90e3
+- [x] 5.5 Ostrzeżenia obejmują 2022 czerwiec i 2024 wrzesień, sumy per kategoria sensowne — ffc90e3
 
 ### Phase 6: Zapis i wycofanie
 
 #### Automated
 
-- [ ] 6.1 Wczytanie przechodzi --allow-additions, odczyty 2026/2027 identyczne
-- [ ] 6.2 Linie, konto arkusza, szkic 2027 i Kosmetyki zgodne z kontraktem
-- [ ] 6.3 Raport roku 2026 ma kolumnę roku poprzedniego z kwotami 2025
-- [ ] 6.4 Wycofanie przywraca numery kontrolne, drugie wczytanie, zła nazwa, wpis 2025-12-31 i edycja operacji z arkusza odmawiają
-- [ ] 6.5 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
+- [x] 6.1 Wczytanie przechodzi --allow-additions, odczyty 2026/2027 identyczne
+- [x] 6.2 Linie, konto arkusza, szkic 2027 i Kosmetyki zgodne z kontraktem
+- [x] 6.3 Raport roku 2026 ma kolumnę roku poprzedniego z kwotami 2025
+- [x] 6.4 Wycofanie przywraca numery kontrolne, drugie wczytanie, zła nazwa, wpis 2025-12-31 i edycja operacji z arkusza odmawiają
+- [x] 6.5 Pełna bramka przechodzi: composer ci:check i vendor/bin/sloppy ci
 
 ### Phase 7: Próba i produkcja
 
