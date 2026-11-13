@@ -302,13 +302,13 @@ Odczyt używa już załadowanego `MonthToSpend` i kolekcji pozycji wydatkowych z
 
 #### Automated
 
-- [ ] 1.1 Hasło i ADR istnieją (grep „Collected Coverage”)
-- [ ] 1.2 Każdy dokument z listą rodzajów `warning` zna nowy rodzaj
-- [ ] 1.3 Indeks reguł bez różnic po `boost:index-rules`
+- [x] 1.1 Hasło i ADR istnieją (grep „Collected Coverage”)
+- [x] 1.2 Każdy dokument z listą rodzajów `warning` zna nowy rodzaj
+- [x] 1.3 Indeks reguł bez różnic po `boost:index-rules`
 
 #### Manual
 
-- [ ] 1.4 Użytkownik potwierdza regułę w słowniku i ADR-0090
+- [x] 1.4 Użytkownik potwierdza regułę w słowniku i ADR-0090
 
 ### Phase 2: Odczyt Collected Coverage
 

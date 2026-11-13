@@ -12,6 +12,7 @@ Notice labels. A notice card shows the kind label on top, the identity under it 
 | `one_off_over_limit` | Ponad limit | `category_name` | amount with sign |
 | `month_plan_not_approved` | Plan niezatwierdzony | month | none (empty slot) |
 | `month_pace_ahead` | Tempo przed upływem dni | month | "31% · upływ dni 17%" |
+| `collected_not_covered` | Zebrane bez pokrycia | month | "brakuje 100,00 zł · zebrane 600,00 zł" |
 
 An amount is formatted by `formatMoney` and keeps its sign. The identity of `month_item_over_plan` and `one_off_over_limit` is `category_name`, the Category the user has to open, not the name of the item. `month_pace_ahead` maps the payload to `percent` and `monthElapsedPercent(elapsed_day, days_in_month)`. `month_plan_not_approved` has no value in the payload, so its right slot stays empty; we do not invent a state word for it. The label, the identity and the value come from one presentation function in `@/lib/dashboard-notice-presentation`, and a new kind adds its label there, not new markup. The "Blisko limitu" kind from `Notice/preview.html` does not enter: the glossary has no such threshold and ADR-0037 keeps the Budget free of "near the limit" states.
 
@@ -28,3 +29,5 @@ The change touches no rule in `context/foundation/glossary.md` and no _Avoid_ te
 Supersedes in part ADR-0043: the warning card, the panel with tabs and the four measures, already superseded by ADR-0045. We rejected one frame around the whole block (a card in a card and a change of `BudgetPlanSummaryStrip` for the Budget view), the captions Plan and Realizacja on the phone (the row would grow past one line; the footer carries the unit), a state word for `month_plan_not_approved` (the payload has none, and a made-up word would be a second source of the state) and only the two labels shown on the card (an agent would invent the other five).
 
 Amended by ADR-0066: the `one_off_over_limit` notice (Ponad limit) becomes the over-plan signal of an Even Annual Category against the year; an Irregular Category raises `month_item_over_plan` on a surplus.
+
+Amended by ADR-0090: the kind `collected_not_covered` (label, identity and value in the table above) is added.
