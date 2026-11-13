@@ -511,6 +511,13 @@ const allNoticeKindsProps: DashboardPageProps = {
             kind: 'month_plan_not_approved',
             month: 11,
         },
+        {
+            severity: 'warning',
+            kind: 'collected_not_covered',
+            month: 9,
+            shortfall_minor_units: 10_000,
+            collected_minor_units: 60_000,
+        },
     ],
 };
 

@@ -212,6 +212,8 @@ return [
         'notice_label_plan_not_approved' => 'Plan niezatwierdzony',
         'notice_label_pace_ahead' => 'Tempo przed upływem dni',
         'notice_value_pace' => ':percent% · upływ dni :days_percent%',
+        'notice_label_collected_not_covered' => 'Zebrane bez pokrycia',
+        'notice_value_collected_shortfall' => 'brakuje :shortfall · zebrane :collected',
         'income_sum' => 'Suma dochodów',
         'expense_sum' => 'Suma wydatków',
         'notices_exceeded_group' => 'Przekroczone',

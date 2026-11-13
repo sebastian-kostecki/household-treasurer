@@ -43,3 +43,13 @@ it('defines every translation key used in the frontend', function (): void {
 
     expect($missing)->toBe([], "Missing keys in lang/pl/ui.php:\n".implode("\n", $missing));
 });
+
+it('defines the dashboard texts of the collected_not_covered notice', function (): void {
+    $ui = require dirname(__DIR__, 2).'/lang/pl/ui.php';
+
+    // The label key is composed at runtime (`notice_label_${labelKey}`), so the scan above cannot see it.
+    expect($ui['dashboard'])->toHaveKeys([
+        'notice_label_collected_not_covered',
+        'notice_value_collected_shortfall',
+    ]);
+});

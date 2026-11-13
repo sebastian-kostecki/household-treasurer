@@ -48,11 +48,11 @@ test('income-over-100 and overrun go past their plan', () => {
     );
 });
 
-test('all-notice-kinds has seven kinds and more than six cards', () => {
+test('all-notice-kinds has eight kinds and more than six cards', () => {
     const notices = scenario('all-notice-kinds').dashboardNotices;
 
     expect(notices.length).toBeGreaterThan(6);
-    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(7);
+    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(8);
 });
 
 test('deposits-only has term deposits and no accounts', () => {

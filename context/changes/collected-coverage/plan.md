@@ -314,24 +314,24 @@ Odczyt używa już załadowanego `MonthToSpend` i kolekcji pozycji wydatkowych z
 
 #### Automated
 
-- [x] 2.1 Test jednostkowy przechodzi z czerwonego na zielony
-- [x] 2.2 Test równości z planem miesiąca przechodzi
-- [x] 2.3 Te same testy przechodzą na PostgreSQL
-- [x] 2.4 Pint bez zmian na nowych plikach
+- [x] 2.1 Test jednostkowy przechodzi z czerwonego na zielony — 086b6f6
+- [x] 2.2 Test równości z planem miesiąca przechodzi — 086b6f6
+- [x] 2.3 Te same testy przechodzą na PostgreSQL — 086b6f6
+- [x] 2.4 Pint bez zmian na nowych plikach — 086b6f6
 
 ### Phase 3: Karta ostrzeżenia „Zebrane bez pokrycia”
 
 #### Automated
 
-- [ ] 3.1 Testy pulpitu przechodzą
-- [ ] 3.2 Testy pulpitu przechodzą na PostgreSQL
-- [ ] 3.3 Testy JS przechodzą
-- [ ] 3.4 Typy przechodzą
-- [ ] 3.5 Strażnik literałów UI przechodzi
+- [x] 3.1 Testy pulpitu przechodzą
+- [x] 3.2 Testy pulpitu przechodzą na PostgreSQL
+- [x] 3.3 Testy JS przechodzą
+- [x] 3.4 Typy przechodzą
+- [x] 3.5 Strażnik literałów UI przechodzi
 
 #### Manual
 
-- [ ] 3.6 Karta w kitchen sinku: ostatnia, kolor ostrzeżenia, tekst mieści się na telefonie i w trybie ciemnym
+- [x] 3.6 Karta w kitchen sinku: ostatnia, kolor ostrzeżenia, tekst mieści się na telefonie i w trybie ciemnym
 
 ### Phase 4: Podpis w panelu liczb i bramka
 

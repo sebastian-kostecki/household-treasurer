@@ -13,6 +13,7 @@ use App\Support\BudgetPlanSummary;
 use App\Support\CategoryAppearance;
 use App\Support\CategoryExecutionMetrics;
 use App\Support\CategoryRhythms;
+use App\Support\CollectedCoverage;
 use App\Support\DashboardNotices;
 use App\Support\MonthPace;
 use App\Support\MonthToSpend;
@@ -64,6 +65,7 @@ class DashboardController extends Controller
         $monthToSpend = null;
         $monthToSpendReading = null;
         $monthPace = null;
+        $collectedCoverage = null;
         $currentMonth = null;
         $emptyTotals = BudgetPlanSummary::emptyTypeTotals();
         $incomeTotals = [...$emptyTotals];
@@ -106,6 +108,11 @@ class DashboardController extends Controller
 
                 $monthToSpendReading = MonthToSpend::forMonth($budget, $currentMonth, $today);
                 $monthPace = MonthPace::forMonth($monthToSpendReading, $budget->year, $currentMonth, $today);
+                $collectedCoverage = CollectedCoverage::forMonth(
+                    $monthToSpendReading,
+                    $visibleExpenseCategories,
+                    $spendableLiquidityMinorUnits,
+                );
                 $summary = $monthToSpendReading->summary();
 
                 if ($summary['state'] !== 'none') {
@@ -123,6 +130,7 @@ class DashboardController extends Controller
             $allTermDeposits,
             $monthToSpendReading,
             $today,
+            $collectedCoverage,
         );
 
         return Inertia::render('Dashboard', [

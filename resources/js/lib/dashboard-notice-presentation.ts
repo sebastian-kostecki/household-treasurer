@@ -8,7 +8,8 @@ export type NoticeLabelKey =
     | 'over_plan'
     | 'over_limit'
     | 'plan_not_approved'
-    | 'pace_ahead';
+    | 'pace_ahead'
+    | 'collected_not_covered';
 
 export type NoticeIdentity =
     | { type: 'name'; name: string }
@@ -22,6 +23,11 @@ export type NoticeIdentity =
 export type NoticeValue =
     | { type: 'money'; minorUnits: number }
     | { type: 'pace'; percent: number; daysPercent: number }
+    | {
+          type: 'collected_shortfall';
+          shortfallMinorUnits: number;
+          collectedMinorUnits: number;
+      }
     | null;
 
 export type NoticePresentation = {
@@ -97,6 +103,16 @@ export function noticePresentation(
                         notice.elapsed_day,
                         notice.days_in_month,
                     ),
+                },
+            };
+        case 'collected_not_covered':
+            return {
+                labelKey: 'collected_not_covered',
+                identity: { type: 'month', month: notice.month },
+                value: {
+                    type: 'collected_shortfall',
+                    shortfallMinorUnits: notice.shortfall_minor_units,
+                    collectedMinorUnits: notice.collected_minor_units,
                 },
             };
     }

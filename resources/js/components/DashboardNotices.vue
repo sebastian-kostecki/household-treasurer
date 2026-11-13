@@ -81,13 +81,15 @@ function isMonthNotice(notice: DashboardNotice): notice is Extract<
         kind:
             | 'month_to_spend_negative'
             | 'month_plan_not_approved'
-            | 'month_pace_ahead';
+            | 'month_pace_ahead'
+            | 'collected_not_covered';
     }
 > {
     return (
         notice.kind === 'month_to_spend_negative' ||
         notice.kind === 'month_plan_not_approved' ||
-        notice.kind === 'month_pace_ahead'
+        notice.kind === 'month_pace_ahead' ||
+        notice.kind === 'collected_not_covered'
     );
 }
 
@@ -122,6 +124,12 @@ function noticeValue(notice: DashboardNotice): string | null {
 
     if (value.type === 'money') {
         return formatMoney(value.minorUnits);
+    }
+
+    if (value.type === 'collected_shortfall') {
+        return t.dashboard.notice_value_collected_shortfall
+            .replace(':shortfall', formatMoney(value.shortfallMinorUnits))
+            .replace(':collected', formatMoney(value.collectedMinorUnits));
     }
 
     return t.dashboard.notice_value_pace
