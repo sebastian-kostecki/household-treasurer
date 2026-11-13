@@ -6,7 +6,7 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
-## [1.5.0] — 2026-11-13
+## [1.4.2] — 2026-11-13
 
 Operations loaded from the old budget spreadsheets can now be moved to another Category from the Operations list, one row at a time, without reloading the year (ADR-0089).
 
@@ -207,8 +207,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.5.0...HEAD
-[1.5.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.1...v1.5.0
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.0...v1.3.1
