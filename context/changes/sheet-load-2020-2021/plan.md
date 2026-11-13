@@ -415,22 +415,22 @@ Brak migracji. Wycofanie roku: `budget:unload-sheet {user} 2020` / `2021` jak dl
 
 #### Automated
 
-- [x] 1.1 `context/foundation/adr/0092-sheet-load-of-2020-and-2021.md` istnieje, a ADR-0085 odsyła do niego
-- [x] 1.2 Skrypt porównania kończy się kodem 0: różnią się tylko komórki oczekiwane, `Analiza!C16` = 90 211,55, `E30` lipiec–grudzień ma formułę `SUM(D3:D20)+SUM(D23:D29)`
-- [x] 1.3 `Budżet_2021.przed-korekta.xlsx` istnieje i ma SHA-256 sprzed poprawki zapisane w `workbook-fix.md`
+- [x] 1.1 `context/foundation/adr/0092-sheet-load-of-2020-and-2021.md` istnieje, a ADR-0085 odsyła do niego — 49ca654
+- [x] 1.2 Skrypt porównania kończy się kodem 0: różnią się tylko komórki oczekiwane, `Analiza!C16` = 90 211,55, `E30` lipiec–grudzień ma formułę `SUM(D3:D20)+SUM(D23:D29)` — 49ca654
+- [x] 1.3 `Budżet_2021.przed-korekta.xlsx` istnieje i ma SHA-256 sprzed poprawki zapisane w `workbook-fix.md` — 49ca654
 
 #### Manual
 
-- [x] 1.4 Poprawiony plik otwiera się w Excelu bez komunikatu o naprawie, a `Analiza!C16` pokazuje 90 211,55
+- [x] 1.4 Poprawiony plik otwiera się w Excelu bez komunikatu o naprawie, a `Analiza!C16` pokazuje 90 211,55 — 49ca654
 
 ### Phase 2: Czytnik układu 2020–2021
 
 #### Automated
 
-- [ ] 2.1 Nowe testy czytnika są czerwone przed zmianą `app/Support/SheetLoad` i zielone po niej
-- [ ] 2.2 `tests/Unit/BudgetSheetReaderTest.php` przechodzi w całości (stare testy bez zmian asercji)
-- [ ] 2.3 Pint: `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
-- [ ] 2.4 PHPStan w `composer ci:check` przechodzi dla `app/Support/SheetLoad`
+- [x] 2.1 Nowe testy czytnika są czerwone przed zmianą `app/Support/SheetLoad` i zielone po niej
+- [x] 2.2 `tests/Unit/BudgetSheetReaderTest.php` przechodzi w całości (stare testy bez zmian asercji)
+- [x] 2.3 Pint: `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
+- [x] 2.4 PHPStan w `composer ci:check` przechodzi dla `app/Support/SheetLoad`
 
 ### Phase 3: Planner, mapowanie i ruchy funduszu
 
