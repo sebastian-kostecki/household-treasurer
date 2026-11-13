@@ -307,12 +307,12 @@ export type CategoryAppearanceOptions = {
     colors: string[];
 };
 
+/**
+ * Hands the category colour to `.category-tile` / `.category-swatch` in app.css,
+ * which mix it with the theme tokens (ADR-0095).
+ */
 export function categoryTileStyle(color: string): {
-    backgroundColor: string;
-    color: string;
+    '--category-color': string;
 } {
-    return {
-        backgroundColor: `${color}26`,
-        color,
-    };
+    return { '--category-color': color };
 }

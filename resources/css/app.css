@@ -66,6 +66,7 @@
     --color-scrim: var(--scrim);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-bank-mark-plate: var(--bank-mark-plate);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -113,6 +114,7 @@
 }
 
 :root {
+    color-scheme: light;
     --background: #edf0f4;
     --foreground: #0f1b2d;
     --card: #ffffff;
@@ -153,6 +155,11 @@
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
+    /* Category colour (ADR-0095): tile share and icon share of --category-color; the contrast is guarded by CategoryTileContrastTest. */
+    --category-tile-tint: 15%;
+    --category-icon-tint: 60%;
+    /* Plate under a bank logo (ADR-0094). */
+    --bank-mark-plate: var(--muted);
     --radius: 10px;
     --control-height: 32px;
     --control-height-sm: 26px;
@@ -189,6 +196,7 @@
 }
 
 .dark {
+    color-scheme: dark;
     --background: #0a111c;
     --foreground: #e6ecf3;
     --card: #111a27;
@@ -229,6 +237,9 @@
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
+    --category-tile-tint: 15%;
+    --category-icon-tint: 80%;
+    --bank-mark-plate: #e9edf2;
     /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
     --sidebar-background: #070c14;
     --sidebar-foreground: #8b9ab0;
@@ -841,6 +852,27 @@
 
     .month-plan-summary-cell {
         @apply text-left sm:text-right;
+    }
+
+    /**
+     * Category colour in both themes (ADR-0095): `--category-color` comes from the data (`categoryTileStyle`),
+     * the shares are tokens. Mixed in srgb so CategoryTileContrastTest computes the same colours.
+     */
+    .category-tile {
+        background-color: color-mix(
+            in srgb,
+            var(--category-color) var(--category-tile-tint),
+            transparent
+        );
+        color: color-mix(
+            in srgb,
+            var(--category-color) var(--category-icon-tint),
+            var(--foreground)
+        );
+    }
+
+    .category-swatch {
+        background-color: var(--category-color);
     }
 
     /** CategoryChip `lg` (ADR-0060): the tile as tall as the name (20px) with its caption (14px). */

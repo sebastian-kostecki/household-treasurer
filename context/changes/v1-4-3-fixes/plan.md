@@ -668,16 +668,16 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 
 #### Automated
 
-- [ ] 1.1 CategoryTileContrastTest czerwony przed zmianą tokenów i zielony po niej
-- [ ] 1.2 npm test z asercją color-scheme w ui-contract.test.ts przechodzi
-- [ ] 1.3 npm run check:ui i npm run types:check przechodzą
-- [ ] 1.4 AccountsHardcodedUiTest i MonthPlanHardcodedUiTest przechodzą
+- [x] 1.1 CategoryTileContrastTest czerwony przed zmianą tokenów i zielony po niej
+- [x] 1.2 npm test z asercją color-scheme w ui-contract.test.ts przechodzi
+- [x] 1.3 npm run check:ui i npm run types:check przechodzą
+- [x] 1.4 AccountsHardcodedUiTest i MonthPlanHardcodedUiTest przechodzą
 
 #### Manual
 
-- [ ] 1.5 Ciemny motyw na /operations: jasna ikona kalendarza, ciemna lista roku (Chrome/Edge na Windows)
-- [ ] 1.6 Okno nowej kategorii: 24 pełne kolory w ciemnym, czytelna żółta ikona w jasnym
-- [ ] 1.7 /dev/ui/accounts: Revolut i Lokaty Facto widoczne w ciemnym, skróty i Coins bez zmian
+- [x] 1.5 Ciemny motyw na /operations: jasna ikona kalendarza, ciemna lista roku (Chrome/Edge na Windows)
+- [x] 1.6 Okno nowej kategorii: 24 pełne kolory w ciemnym, czytelna żółta ikona w jasnym
+- [x] 1.7 /dev/ui/accounts: Revolut i Lokaty Facto widoczne w ciemnym, skróty i Coins bez zmian
 
 ### Phase 2: Lokaty z awatarem
 
