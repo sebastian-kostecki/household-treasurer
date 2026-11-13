@@ -436,16 +436,16 @@ Brak migracji. Wycofanie roku: `budget:unload-sheet {user} 2020` / `2021` jak dl
 
 #### Automated
 
-- [x] 3.1 Nowe testy plannera i komendy są czerwone przed zmianą i zielone po niej
-- [x] 3.2 `tests/Unit/SheetLoadPlannerTest.php`, `tests/Unit/BudgetSheetReaderTest.php`, `tests/Feature/LoadBudgetSheetCommandTest.php` przechodzą
-- [x] 3.3 `tests/Feature/LoadBudgetSheetTest.php` przechodzi na PostgreSQL (`testing_sheet_load_2020_2021`, polecenie worktree z `AGENTS.md`)
-- [x] 3.4 `--dry-run` `Budżet_2020.xlsx` z kodu worktree: kod 0, 0 ostrzeżeń arkusza, 0 reszt, przychody 69 913,54 + 4 098,28 = 74 011,82, wydatki 65 239,23 + 4 318,05 = 69 557,28, saldo otwarcia −4 674,31
-- [x] 3.5 `--dry-run` poprawionego `Budżet_2021.xlsx` z kodu worktree: kod 0, 0 ostrzeżeń arkusza, 0 reszt, 1 przeniesienie (`grudzień!H8` → `grudzień!H7`), przychody 91 448,99 + 4 900,00 = 96 348,99, wydatki 84 700,99 + 5 510,56 = 90 211,55, saldo otwarcia −6 748,00
-- [x] 3.6 `--dry-run` `Budżet_2022.xlsx`…`Budżet_2025.xlsx` z kodu worktree: kod 0 i sumy jak w README, bez sekcji ruchów funduszu
+- [x] 3.1 Nowe testy plannera i komendy są czerwone przed zmianą i zielone po niej — 8cd892d
+- [x] 3.2 `tests/Unit/SheetLoadPlannerTest.php`, `tests/Unit/BudgetSheetReaderTest.php`, `tests/Feature/LoadBudgetSheetCommandTest.php` przechodzą — 8cd892d
+- [x] 3.3 `tests/Feature/LoadBudgetSheetTest.php` przechodzi na PostgreSQL (`testing_sheet_load_2020_2021`, polecenie worktree z `AGENTS.md`) — 8cd892d
+- [x] 3.4 `--dry-run` `Budżet_2020.xlsx` z kodu worktree: kod 0, 0 ostrzeżeń arkusza, 0 reszt, przychody 69 913,54 + 4 098,28 = 74 011,82, wydatki 65 239,23 + 4 318,05 = 69 557,28, saldo otwarcia −4 674,31 — 8cd892d
+- [x] 3.5 `--dry-run` poprawionego `Budżet_2021.xlsx` z kodu worktree: kod 0, 0 ostrzeżeń arkusza, 0 reszt, 1 przeniesienie (`grudzień!H8` → `grudzień!H7`), przychody 91 448,99 + 4 900,00 = 96 348,99, wydatki 84 700,99 + 5 510,56 = 90 211,55, saldo otwarcia −6 748,00 — 8cd892d
+- [x] 3.6 `--dry-run` `Budżet_2022.xlsx`…`Budżet_2025.xlsx` z kodu worktree: kod 0 i sumy jak w README, bez sekcji ruchów funduszu — 8cd892d
 
 #### Manual
 
-- [x] 3.7 Przegląd tabeli Kategorii z `--dry-run` 2020 i 2021: kwoty w Kategoriach wyglądają wiarygodnie (np. Leczenie prywatne z nazwami wizyt, Wynagrodzenie Sebastian z premiami 2021)
+- [x] 3.7 Przegląd tabeli Kategorii z `--dry-run` 2020 i 2021: kwoty w Kategoriach wyglądają wiarygodnie (np. Leczenie prywatne z nazwami wizyt, Wynagrodzenie Sebastian z premiami 2021) — 8cd892d
 
 ### Phase 4: Dokumentacja i bramka
 
