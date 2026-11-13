@@ -468,27 +468,27 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 
 #### Automated
 
-- [x] 3.1 No „Zakończ” left in lang and resources/js
-- [x] 3.2 Align tests pass
-- [x] 3.3 Full gate passes: composer ci:check
+- [x] 3.1 No „Zakończ” left in lang and resources/js — 9053371
+- [x] 3.2 Align tests pass — 9053371
+- [x] 3.3 Full gate passes: composer ci:check — 9053371
 
 #### Manual
 
-- [x] 3.4 Budget menu, dialog and toast show the new Polish copy
-- [x] 3.5 Dialogs kitchen sink shows the same copy
+- [x] 3.4 Budget menu, dialog and toast show the new Polish copy — 9053371
+- [x] 3.5 Dialogs kitchen sink shows the same copy — 9053371
 
 ### Phase 4: Polish server messages
 
 #### Automated
 
-- [ ] 4.1 Translation key guard test passes
-- [ ] 4.2 Full gate passes: composer ci:check
+- [x] 4.1 Translation key guard test passes
+- [x] 4.2 Full gate passes: composer ci:check
 
 #### Manual
 
-- [ ] 4.3 Income, Account and Month Plan toasts are Polish
-- [ ] 4.4 Import error without selected rows is Polish
-- [ ] 4.5 User accepts the wording of the new translations
+- [x] 4.3 Income, Account and Month Plan toasts are Polish
+- [x] 4.4 Import error without selected rows is Polish
+- [x] 4.5 User accepts the wording of the new translations
 
 ### Phase 5: The Budget year in a menu
 
