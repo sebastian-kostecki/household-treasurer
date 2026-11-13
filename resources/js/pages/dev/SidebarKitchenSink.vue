@@ -122,7 +122,7 @@ const stateMatrix = [
     },
     {
         state: 'loading',
-        where: 'N/A: powłoka nie ma deferred props. Jedyne oczekiwanie to pending przełącznika roku, pokazane jako disabled.',
+        where: 'N/A: powłoka nie ma deferred props. Jedyne oczekiwanie to pending przełącznika roku, pokazane jako aria-busy z wyłączonym wyborem.',
     },
     {
         state: 'error',
@@ -154,7 +154,7 @@ function showYearSelectionError(): void {
     notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
 }
 
-type YearFrame = SidebarFrame & { pending: boolean };
+type YearFrame = SidebarFrame & { pending: boolean; open?: boolean };
 
 const yearFrames: YearFrame[] = [
     {
@@ -167,7 +167,7 @@ const yearFrames: YearFrame[] = [
     {
         key: 'years-many',
         label: 'Wiele lat',
-        budgetYears: [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        budgetYears: [2022, 2023, 2024, 2025, 2026, 2027],
         budgetYear: 2026,
         pending: false,
     },
@@ -184,6 +184,14 @@ const yearFrames: YearFrame[] = [
         budgetYears: [2025, 2026],
         budgetYear: 2026,
         pending: true,
+    },
+    {
+        key: 'years-open',
+        label: 'Otwarte menu',
+        budgetYears: [2022, 2023, 2024, 2025, 2026, 2027],
+        budgetYear: 2026,
+        pending: false,
+        open: true,
     },
 ];
 
@@ -296,15 +304,16 @@ const frames: SidebarFrame[] = [
             <h2
                 class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
             >
-                years-*: Rok budżetu w segmentach
+                years-*: Rok budżetu w menu
             </h2>
             <p class="text-muted-foreground text-sm">
-                Przełącznik w panelu 224 px: jeden rok z „+”, wiele lat (trzy
-                wiersze), brak budżetu i oczekiwanie (segmenty wyłączone). „+”
-                otwiera okno nowego budżetu tylko w ramkach z pełnym sidebarem
-                (expanded-*).
+                Przełącznik w panelu 224 px: jeden rok, wiele lat (2022–2027),
+                brak budżetu (jeden przycisk „Dodaj rok”), oczekiwanie (przycisk
+                z aria-busy, wybór wyłączony) i otwarte menu (lata od
+                najnowszego, linia, „Dodaj rok N”). „Dodaj rok” otwiera okno
+                nowego budżetu tylko w ramkach z pełnym sidebarem (expanded-*).
             </p>
-            <div class="grid grid-cols-4 gap-6">
+            <div class="grid grid-cols-5 gap-6">
                 <div
                     v-for="frame in yearFrames"
                     :key="frame.key"
@@ -321,6 +330,7 @@ const frames: SidebarFrame[] = [
                             :ref="frame.pending ? markPending : undefined"
                             :budget-years="frame.budgetYears"
                             :budget-year="frame.budgetYear"
+                            :preview-open="frame.open"
                         />
                     </SidebarProvider>
                 </div>

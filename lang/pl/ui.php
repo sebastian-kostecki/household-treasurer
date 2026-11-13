@@ -15,6 +15,7 @@ return [
     'shell' => [
         'budget_year' => 'Rok budżetu',
         'add_budget_for_year' => 'Dodaj budżet na rok :year',
+        'add_year' => 'Dodaj rok :year',
         'open_menu' => 'Otwórz menu',
         'shortcuts_hint' => 'Skróty: 1–:last widoki, N nowa operacja, / szukaj, Esc zamknij.',
         'search_and_go' => 'Szukaj i przejdź',
@@ -317,8 +318,8 @@ return [
         'cancel' => 'Anuluj',
         'delete_category_confirm_title' => 'Usunąć kategorię?',
         'delete_category_confirm_body' => 'Kategoria zostanie usunięta z tego budżetu. Pozostanie na liście kategorii.',
-        'align_current_plan' => 'Zakończ',
-        'align_current_plan_confirm_title' => 'Zakończyć kategorię?',
+        'align_current_plan' => 'Wyrównaj',
+        'align_current_plan_confirm_title' => 'Wyrównać plan do wykonania?',
         'align_current_plan_confirm_body' => 'Plan bieżący zostanie ustawiony na kwotę wykonania. Pozostało będzie wynosić 0.',
         'archive' => 'Archiwizuj',
         'archive_confirm_title' => 'Zarchiwizować kategorię?',

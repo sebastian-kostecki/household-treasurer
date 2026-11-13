@@ -9,19 +9,14 @@
 // Budget it created and archives the Category, also when an assertion fails.
 // Each cleanup step runs on its own: a failed step does not skip the next one
 // and does not hide the test's own error.
-import { test, expect, type Locator, type Page } from '@playwright/test';
-
-function yearSegments(page: Page): Locator {
-    return page.locator(
-        '[data-sidebar="sidebar"] .sidebar-year-segments button',
-    );
-}
-
-function selectSegment(page: Page, year: number): Locator {
-    return yearSegments(page)
-        .filter({ hasText: String(year) })
-        .first();
-}
+import { test, expect, type Page } from '@playwright/test';
+import {
+    budgetYearCount,
+    expectSelectedBudgetYear,
+    nextBudgetYear,
+    openCreateBudgetDialog,
+    selectBudgetYear,
+} from './support/budget-year';
 
 async function deleteCurrentBudget(page: Page): Promise<void> {
     await page.goto('/budget');
@@ -62,7 +57,7 @@ test('the next year Budget row shows the collected amount at the start of the ye
     let newYear = 0;
     let createdCategory = false;
     let createdBudget = false;
-    let initialSegmentCount = 0;
+    let initialYearCount = 0;
     let testFailed = false;
     let testError: unknown;
 
@@ -85,14 +80,11 @@ test('the next year Budget row shows the collected amount at the start of the ye
         await expect(dialog).toHaveCount(0);
 
         await page.goto('/budget');
-        initialSegmentCount = await yearSegments(page).count();
-        const createSegment = yearSegments(page).last();
-        const createLabel =
-            (await createSegment.getAttribute('aria-label')) ?? '';
-        newYear = Number(createLabel.match(/\d{4}/)?.[0]);
+        initialYearCount = await budgetYearCount(page);
+        newYear = await nextBudgetYear(page);
         expect(newYear).toBeGreaterThan(2000);
 
-        await createSegment.click();
+        await openCreateBudgetDialog(page);
         const budgetDialog = page.getByRole('dialog', { name: 'Nowy budżet' });
         await expect(budgetDialog).toBeVisible();
         await budgetDialog
@@ -101,10 +93,7 @@ test('the next year Budget row shows the collected amount at the start of the ye
         createdBudget = true;
         await expect(budgetDialog).toBeHidden();
 
-        await expect(selectSegment(page, newYear)).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
+        await expectSelectedBudgetYear(page, newYear);
 
         const row = page
             .locator('.budget-category-row')
@@ -124,17 +113,11 @@ test('the next year Budget row shows the collected amount at the start of the ye
             label: `delete the ${newYear} Budget`,
             run: async () => {
                 await page.goto('/budget');
-                if (
-                    (await selectSegment(page, newYear).getAttribute(
-                        'aria-pressed',
-                    )) !== 'true'
-                ) {
-                    await selectSegment(page, newYear).click();
-                }
+                await selectBudgetYear(page, newYear);
                 await deleteCurrentBudget(page);
-                await expect(yearSegments(page)).toHaveCount(
-                    initialSegmentCount,
-                );
+                await expect
+                    .poll(() => budgetYearCount(page))
+                    .toBe(initialYearCount);
             },
         });
     }
@@ -147,7 +130,12 @@ test('the next year Budget row shows the collected amount at the start of the ye
                 await page
                     .locator('[data-category-row]')
                     .filter({ has: page.getByText(category, { exact: true }) })
-                    .getByRole('button', { name: 'Archiwizuj' })
+                    .getByRole('button', {
+                        name: `Więcej działań kategorii ${category}`,
+                    })
+                    .click();
+                await page
+                    .getByRole('menuitem', { name: 'Archiwizuj' })
                     .click();
                 await page
                     .getByRole('dialog')

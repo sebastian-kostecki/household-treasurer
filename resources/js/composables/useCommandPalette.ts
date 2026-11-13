@@ -2,7 +2,7 @@ import { router, useHttp, usePage } from '@inertiajs/vue3';
 import { nextTick, ref, watch } from 'vue';
 import { useCreateBudgetDialog } from '@/composables/useCreateBudgetDialog';
 import { requestOperationsIntent } from '@/composables/useOperationsIntent';
-import { budgetYearSegments } from '@/lib/budget-year-segments';
+import { budgetYearMenu } from '@/lib/budget-year-menu';
 import { categoryOperationsQuery } from '@/lib/dashboard-categories';
 import type {
     PaletteCategories,
@@ -121,16 +121,16 @@ export function useCommandPalette(views: NavItem[]) {
         }
     }
 
-    function nextBudgetYear(): number | undefined {
+    function nextBudgetYear(): number {
         // Read at call time: every visit replaces `page.props`, so a `shell`
         // object kept from the layout's setup can be one visit old.
         const shell = page.props.shell as ShellState;
 
-        return budgetYearSegments(
+        return budgetYearMenu(
             shell.budgetYears,
             shell.budgetYear,
             new Date().getFullYear(),
-        ).find((segment) => segment.kind === 'create')?.year;
+        ).createYear;
     }
 
     return { open, categories, select };

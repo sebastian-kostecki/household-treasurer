@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ManageCapitalMovement;
 use App\Actions\RebuildOperation;
+use App\Concerns\RedirectsToOperationsList;
 use App\Http\Requests\StoreCapitalMovementRequest;
 use App\Http\Requests\UpdateCapitalMovementRequest;
 use App\Models\CapitalMovement;
@@ -15,6 +16,7 @@ use Inertia\Inertia;
 class CapitalMovementController extends Controller
 {
     use AuthorizesRequests;
+    use RedirectsToOperationsList;
 
     public function store(StoreCapitalMovementRequest $request, ManageCapitalMovement $manageCapitalMovement): RedirectResponse
     {
@@ -25,7 +27,7 @@ class CapitalMovementController extends Controller
             'message' => __('Capital movement recorded.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function update(
@@ -42,7 +44,7 @@ class CapitalMovementController extends Controller
                 'message' => __('Income recorded.'),
             ]);
 
-            return to_route('operations');
+            return $this->redirectToOperationsList($request);
         }
 
         if ($request->boolean('convert_to_expense')) {
@@ -53,7 +55,7 @@ class CapitalMovementController extends Controller
                 'message' => __('Expense recorded.'),
             ]);
 
-            return to_route('operations');
+            return $this->redirectToOperationsList($request);
         }
 
         if ($request->boolean('convert_to_own_transfer')) {
@@ -67,7 +69,7 @@ class CapitalMovementController extends Controller
                 'message' => __('Own transfer recorded.'),
             ]);
 
-            return to_route('operations');
+            return $this->redirectToOperationsList($request);
         }
 
         $manageCapitalMovement->update($capitalMovement, $request->capitalMovementPayload());
@@ -77,7 +79,7 @@ class CapitalMovementController extends Controller
             'message' => __('Capital movement updated.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function destroy(Request $request, CapitalMovement $capitalMovement, ManageCapitalMovement $manageCapitalMovement): RedirectResponse
@@ -91,6 +93,6 @@ class CapitalMovementController extends Controller
             'message' => __('Capital movement deleted.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 }

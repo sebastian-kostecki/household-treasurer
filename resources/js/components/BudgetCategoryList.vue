@@ -40,6 +40,8 @@ import type { Rhythm } from '@/types/rhythm';
 export type BudgetCategoryRow = {
     id: number;
     name: string;
+    /** Plain text of the Category, read-only here (ADR-0088); null without one. */
+    description: string | null;
     icon: string;
     color: string;
     type: 'income' | 'expense';
@@ -91,6 +93,8 @@ const props = defineProps<{
     categories: BudgetCategoryRow[];
     groups: BudgetCategoryGroup[];
     budgetId: number;
+    /** Keeps the "Pokaż zarchiwizowane" switch after a write. */
+    showArchived?: boolean;
     categoryType: 'income' | 'expense';
     phase: 'draft' | 'execution';
     totals: DashboardTypeTotals;
@@ -372,6 +376,7 @@ async function saveTree(): Promise<void> {
                         data-kind="category"
                         :category="item.category"
                         :budget-id="budgetId"
+                        :show-archived="showArchived"
                         :category-type="categoryType"
                         :phase="phase"
                         :show-handle="canDrag"
@@ -428,6 +433,7 @@ async function saveTree(): Promise<void> {
                                         nested
                                         :category="category"
                                         :budget-id="budgetId"
+                                        :show-archived="showArchived"
                                         :category-type="categoryType"
                                         :phase="phase"
                                         :show-handle="canDrag"
@@ -557,6 +563,7 @@ async function saveTree(): Promise<void> {
                     :key="category.id"
                     :category="category"
                     :budget-id="budgetId"
+                    :show-archived="showArchived"
                     :category-type="categoryType"
                     :phase="phase"
                     :show-handle="false"

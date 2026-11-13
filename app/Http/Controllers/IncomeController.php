@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ManageFinancialOperation;
 use App\Actions\RebuildOperation;
+use App\Concerns\RedirectsToOperationsList;
 use App\Enums\FinancialOperationType;
 use App\Http\Requests\StoreIncomeRequest;
 use App\Http\Requests\UpdateIncomeRequest;
@@ -16,6 +17,7 @@ use Inertia\Inertia;
 class IncomeController extends Controller
 {
     use AuthorizesRequests;
+    use RedirectsToOperationsList;
 
     public function store(StoreIncomeRequest $request, ManageFinancialOperation $manageFinancialOperation): RedirectResponse
     {
@@ -28,7 +30,7 @@ class IncomeController extends Controller
             'message' => __('Income recorded.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function update(
@@ -48,7 +50,7 @@ class IncomeController extends Controller
                 'message' => __('Capital movement recorded.'),
             ]);
 
-            return to_route('operations');
+            return $this->redirectToOperationsList($request);
         }
 
         $manageFinancialOperation->updateIncome($financialOperation, $request->incomePayload());
@@ -58,7 +60,7 @@ class IncomeController extends Controller
             'message' => __('Income updated.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function destroy(
@@ -79,6 +81,6 @@ class IncomeController extends Controller
             'message' => __('Income deleted.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 }

@@ -9,6 +9,16 @@ use Illuminate\Support\Str;
 
 class OperationsListQuery
 {
+    /**
+     * The filter keys of the Operations list URL, also mirrored in `resources/js/lib/operations-list-query.ts`.
+     */
+    public const array FILTER_KEYS = ['q', 'year', 'category_id', 'account_id', 'term_deposit_id', 'date_from', 'date_to'];
+
+    /**
+     * The page names of the three Operations paginators.
+     */
+    public const array PAGE_KEYS = ['operations_page', 'own_transfers_page', 'capital_movements_page'];
+
     public function __construct(
         public ?string $q,
         public ?int $year,

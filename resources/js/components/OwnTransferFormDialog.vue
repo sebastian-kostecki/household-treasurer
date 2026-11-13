@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import OwnTransferController from '@/actions/App/Http/Controllers/OwnTransferController';
 import AccountSelect from '@/components/AccountSelect.vue';
 import FormField from '@/components/FormField.vue';
@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
 import { minorUnitsToMoneyInput } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
@@ -69,14 +70,22 @@ const originalAmountMinorUnits = ref(0);
 const originalSourceAccountId = ref<number | null>(null);
 const busy = ref(false);
 
+const operationsReturnQuery = inject(OPERATIONS_RETURN_QUERY, undefined);
+const writeOptions = computed(() =>
+    operationsReturnQuery ? { query: operationsReturnQuery.value } : undefined,
+);
+
 const formBinding = computed(() => {
     if (props.form) {
         return props.form;
     }
 
     return props.mode === 'create'
-        ? OwnTransferController.store.form()
-        : OwnTransferController.update.form(props.transfer ?? { id: 0 });
+        ? OwnTransferController.store.form(writeOptions.value)
+        : OwnTransferController.update.form(
+              props.transfer ?? { id: 0 },
+              writeOptions.value,
+          );
 });
 
 const { amountInvalid, amountMinorUnits, showPreview } =

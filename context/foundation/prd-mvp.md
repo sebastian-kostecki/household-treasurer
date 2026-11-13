@@ -177,7 +177,7 @@ Osoba samodzielnie zarządzająca własnymi finansami domowymi, która chce plan
 - **FR-CAT-14**: Użytkownik może zmieniać kolejność kategorii w obrębie typu (dochód albo wydatek).
 - **FR-CAT-15**: Kategoria wydatkowa jest Paced Category (domyślnie) albo One-off Category. Kategoria dochodowa nie przyjmuje flagi Paced. Flaga jest żywa jak plan aktualny: użytkownik może ją zmieniać na niezarchiwizowanej kategorii wydatkowej także podczas wykonania.
 - **FR-CAT-16**: One-off Category nie ma Month Remaining i nie wchodzi do puli równomiernych. Nadal ma roczny Available Limit.
-- **FR-CAT-17**: Align (w UI: „Zakończ”) na niezarchiwizowanej kategorii budżetu w fazie wykonania ustawia plan aktualny na `max(0, Execution)`. Plan początkowy nie zmienia się. To nie jest rytuał końca roku ani zamknięcie Month Remaining.
+- **FR-CAT-17**: Align (w UI: „Wyrównaj”) na niezarchiwizowanej kategorii budżetu w fazie wykonania ustawia plan aktualny na `max(0, Execution)`. Plan początkowy nie zmienia się. To nie jest rytuał końca roku ani zamknięcie Month Remaining.
 
 ### 7.5. Dochody, wydatki i zwroty
 

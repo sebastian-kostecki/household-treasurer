@@ -5,6 +5,7 @@
 // household (demo:seed-household): a 2026 budget with categories such as
 // "Żywność".
 import { test, expect, type Page } from '@playwright/test';
+import { nextBudgetYear } from './support/budget-year';
 
 // The shortcut listener is attached when the layout mounts, which can happen
 // after `goto` resolves; a key pressed earlier is lost, so repeat the press
@@ -115,11 +116,7 @@ test('"Dodaj rok budżetu" opens the new budget dialog for the next year', async
     page,
 }) => {
     await page.goto('/dashboard');
-    const createSegment = page.getByRole('button', {
-        name: /Dodaj budżet na rok \d{4}/,
-    });
-    const nextYear = (await createSegment.textContent())?.match(/\d{4}/)?.[0];
-    expect(nextYear).toBeDefined();
+    const nextYear = String(await nextBudgetYear(page));
 
     await openPaletteWithShortcut(page);
     await page.getByRole('combobox').fill('Dodaj rok');
@@ -127,7 +124,7 @@ test('"Dodaj rok budżetu" opens the new budget dialog for the next year', async
 
     const dialog = page.getByRole('dialog', { name: 'Nowy budżet' });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('spinbutton')).toHaveValue(nextYear!);
+    await expect(dialog.getByRole('spinbutton')).toHaveValue(nextYear);
     // The palette is gone: one layer, not two.
     await expect(page.getByRole('dialog')).toHaveCount(1);
 });

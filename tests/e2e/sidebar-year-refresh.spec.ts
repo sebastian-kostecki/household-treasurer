@@ -1,22 +1,18 @@
 // Regression E2E test: the sidebar follows the budget year after every visit.
 // Risk it protects: the persistent layout reads `shell` once in setup, so after
 // creating or switching a budget year the page shows the new year while the
-// sidebar keeps the old one selected (and lacks the new segment) until F5.
+// sidebar keeps the old one selected (and lacks the new year) until F5.
 // The test creates a second budget year through the dialog and deletes it at
 // the end, also when an assertion fails.
-import { test, expect, type Locator, type Page } from '@playwright/test';
-
-function yearSegments(page: Page): Locator {
-    return page.locator(
-        '[data-sidebar="sidebar"] .sidebar-year-segments button',
-    );
-}
-
-function selectSegment(page: Page, year: number): Locator {
-    return yearSegments(page)
-        .filter({ hasText: String(year) })
-        .first();
-}
+import { test, expect, type Page } from '@playwright/test';
+import {
+    budgetYearCount,
+    expectBudgetYearInMenu,
+    expectSelectedBudgetYear,
+    nextBudgetYear,
+    openCreateBudgetDialog,
+    selectBudgetYear,
+} from './support/budget-year';
 
 async function deleteCurrentBudget(page: Page): Promise<void> {
     await page.goto('/budget');
@@ -33,68 +29,43 @@ test('sidebar selects the created year, the chosen year and the year picked from
 }) => {
     await page.goto('/budget');
 
-    const initialSegmentCount = await yearSegments(page).count();
-    const createSegment = yearSegments(page).last();
-    const createLabel = (await createSegment.getAttribute('aria-label')) ?? '';
-    const newYear = Number(createLabel.match(/\d{4}/)?.[0]);
+    const initialYearCount = await budgetYearCount(page);
+    const newYear = await nextBudgetYear(page);
     expect(newYear).toBeGreaterThan(2000);
     const previousYear = newYear - 1;
     let created = false;
 
     try {
-        // Scenario 1: creating a year selects it and adds the next "+" segment.
-        await createSegment.click();
+        // Scenario 1: creating a year selects it and offers the next year to add.
+        await openCreateBudgetDialog(page);
         const dialog = page.getByRole('dialog', { name: 'Nowy budżet' });
         await expect(dialog).toBeVisible();
         await dialog.getByRole('button', { name: 'Utwórz budżet' }).click();
         await expect(dialog).toBeHidden();
         created = true;
 
-        await expect(selectSegment(page, newYear)).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
-        await expect(selectSegment(page, previousYear)).toHaveAttribute(
-            'aria-pressed',
-            'false',
-        );
-        await expect(
-            page.getByRole('button', {
-                name: `Dodaj budżet na rok ${newYear + 1}`,
-            }),
-        ).toBeVisible();
+        await expectSelectedBudgetYear(page, newYear);
+        await expectBudgetYearInMenu(page, previousYear, false);
+        expect(await nextBudgetYear(page)).toBe(newYear + 1);
 
         // Scenario 2: choosing the previous year in the sidebar selects it.
-        await selectSegment(page, previousYear).click();
-        await expect(selectSegment(page, previousYear)).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
-        await expect(selectSegment(page, newYear)).toHaveAttribute(
-            'aria-pressed',
-            'false',
-        );
+        await selectBudgetYear(page, previousYear);
+        await expectSelectedBudgetYear(page, previousYear);
+        await expectBudgetYearInMenu(page, newYear, false);
 
         // Scenario 3: choosing a year on /accounts selects it in the sidebar.
         await page.goto('/accounts');
-        await selectSegment(page, newYear).click();
+        await selectBudgetYear(page, newYear);
         await expect(page).toHaveURL(/\/budget$/);
-        await expect(selectSegment(page, newYear)).toHaveAttribute(
-            'aria-pressed',
-            'true',
-        );
+        await expectSelectedBudgetYear(page, newYear);
     } finally {
         if (created) {
             await page.goto('/budget');
-            if (
-                (await selectSegment(page, newYear).getAttribute(
-                    'aria-pressed',
-                )) !== 'true'
-            ) {
-                await selectSegment(page, newYear).click();
-            }
+            await selectBudgetYear(page, newYear);
             await deleteCurrentBudget(page);
-            await expect(yearSegments(page)).toHaveCount(initialSegmentCount);
+            await expect
+                .poll(() => budgetYearCount(page))
+                .toBe(initialYearCount);
         }
     }
 });

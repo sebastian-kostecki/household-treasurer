@@ -24,6 +24,7 @@ type RowOverrides = Partial<BudgetCategoryRow> &
 
 function row(overrides: RowOverrides): BudgetCategoryRow {
     return {
+        description: null,
         icon: 'tag',
         color: DEFAULT_CATEGORY_COLOR,
         group_id: null,
@@ -403,6 +404,40 @@ const collectedDraftExpense = [
         collected_at_year_start: { minor_units: 45000, is_forecast: true },
     }),
 ];
+// Opis kategorii (ADR-0088): sam opis, opis z „zebranym startowym”, długi opis
+// (obcięty do jednej linii, pełny w `title`) i zarchiwizowana z opisem.
+const descriptionExpense = [
+    executionRow(241, 'Czynsz', 'expense', 250000, 250000, 250000, 'building', {
+        rhythm: 'fixed_charge',
+        description: 'Raty do 10. dnia miesiąca',
+    }),
+    executionRow(242, 'Prąd', 'expense', 180000, 180000, 90000, 'tag', {
+        rhythm: 'irregular',
+        description: 'Rachunek co dwa miesiące',
+        collected_at_year_start: { minor_units: 20000, is_forecast: false },
+    }),
+    executionRow(243, 'Remonty', 'expense', 600000, 600000, 120000, 'tag', {
+        description:
+            'Wszystko, co dotyczy remontu łazienki i kuchni: materiały, robocizna, odbiór kominiarski, drobne naprawy po ekipie oraz wywóz gruzu, a także zakup nowej armatury i płytek.',
+    }),
+    executionRow(244, 'Zakupy spożywcze', 'expense', 150000, 150000, 50000),
+    row({
+        id: 245,
+        name: 'Stary abonament',
+        type: 'expense',
+        description: 'Zrezygnowano w marcu',
+        is_archived: true,
+        can_archive: false,
+        can_restore: true,
+        planned_amount_minor_units: 8000,
+        initial_plan_minor_units: 8000,
+        current_plan_minor_units: 8000,
+        execution_minor_units: 3000,
+        remaining_minor_units: 5000,
+        percent_complete: 38,
+    }),
+];
+
 const collectedDraftExpenseGroups = [
     groupOf(81, 'Dom', 19, collectedDraftExpense, true),
 ];
@@ -758,6 +793,28 @@ const stateMatrix: { state: string; where: string }[] = [
                 :can-reorder="true"
                 :empty-description="t.budget.empty"
                 :year-elapsed-percent="null"
+                @edit="noop"
+            />
+        </section>
+
+        <section class="flex flex-col gap-3" aria-labelledby="ks-description">
+            <h2 id="ks-description" class="section-title">
+                Opis kategorii (ADR-0088): sam opis („Czynsz”), opis z „zebranym
+                startowym” („Prąd”), długi opis obcięty do jednej linii z pełnym
+                tekstem w podpowiedzi („Remonty”), wiersz bez opisu (mały chip)
+                i zarchiwizowana z opisem
+            </h2>
+            <BudgetCategoryList
+                :title="t.budget.expense_table"
+                :categories="descriptionExpense"
+                :groups="[]"
+                :budget-id="1"
+                category-type="expense"
+                phase="execution"
+                :totals="totalsOf(descriptionExpense, false)"
+                :can-reorder="true"
+                :empty-description="t.budget.empty"
+                :year-elapsed-percent="YEAR_ELAPSED_PERCENT"
                 @edit="noop"
             />
         </section>

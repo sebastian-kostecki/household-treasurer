@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
 import AccountSelect from '@/components/AccountSelect.vue';
 import CategorySelect from '@/components/CategorySelect.vue';
@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
+import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
 import { minorUnitsToMoneyInput } from '@/lib/format';
 import {
@@ -117,14 +118,22 @@ const originalAccountId = ref<number | null>(null);
 const originalCategoryId = ref<number | null>(null);
 const busy = ref(false);
 
+const operationsReturnQuery = inject(OPERATIONS_RETURN_QUERY, undefined);
+const writeOptions = computed(() =>
+    operationsReturnQuery ? { query: operationsReturnQuery.value } : undefined,
+);
+
 const formBinding = computed(() => {
     if (props.form) {
         return props.form;
     }
 
     return props.mode === 'create'
-        ? ExpenseController.store.form()
-        : ExpenseController.update.form(props.operation ?? { id: 0 });
+        ? ExpenseController.store.form(writeOptions.value)
+        : ExpenseController.update.form(
+              props.operation ?? { id: 0 },
+              writeOptions.value,
+          );
 });
 
 const editingRefund = computed(

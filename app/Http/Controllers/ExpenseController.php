@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ManageFinancialOperation;
 use App\Actions\RebuildOperation;
+use App\Concerns\RedirectsToOperationsList;
 use App\Enums\FinancialOperationType;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
@@ -16,6 +17,7 @@ use Inertia\Inertia;
 class ExpenseController extends Controller
 {
     use AuthorizesRequests;
+    use RedirectsToOperationsList;
 
     public function store(StoreExpenseRequest $request, ManageFinancialOperation $manageFinancialOperation): RedirectResponse
     {
@@ -28,7 +30,7 @@ class ExpenseController extends Controller
             'message' => __('Expense recorded.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function update(
@@ -48,7 +50,7 @@ class ExpenseController extends Controller
                 'message' => __('Capital movement recorded.'),
             ]);
 
-            return to_route('operations');
+            return $this->redirectToOperationsList($request);
         }
 
         $manageFinancialOperation->updateExpense($financialOperation, $request->expensePayload());
@@ -58,7 +60,7 @@ class ExpenseController extends Controller
             'message' => __('Expense updated.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function destroy(
@@ -79,6 +81,6 @@ class ExpenseController extends Controller
             'message' => __('Expense deleted.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 }
