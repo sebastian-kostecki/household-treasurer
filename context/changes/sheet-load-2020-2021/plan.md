@@ -427,10 +427,10 @@ Brak migracji. Wycofanie roku: `budget:unload-sheet {user} 2020` / `2021` jak dl
 
 #### Automated
 
-- [x] 2.1 Nowe testy czytnika są czerwone przed zmianą `app/Support/SheetLoad` i zielone po niej
-- [x] 2.2 `tests/Unit/BudgetSheetReaderTest.php` przechodzi w całości (stare testy bez zmian asercji)
-- [x] 2.3 Pint: `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia
-- [x] 2.4 PHPStan w `composer ci:check` przechodzi dla `app/Support/SheetLoad`
+- [x] 2.1 Nowe testy czytnika są czerwone przed zmianą `app/Support/SheetLoad` i zielone po niej — 778f1d2
+- [x] 2.2 `tests/Unit/BudgetSheetReaderTest.php` przechodzi w całości (stare testy bez zmian asercji) — 778f1d2
+- [x] 2.3 Pint: `vendor/bin/pint --dirty --format agent` bez zmian do zrobienia — 778f1d2
+- [x] 2.4 PHPStan w `composer ci:check` przechodzi dla `app/Support/SheetLoad` — 778f1d2
 
 ### Phase 3: Planner, mapowanie i ruchy funduszu
 
