@@ -264,7 +264,27 @@ export const importAccount: AccountPickerOption & {
 };
 
 export const termDeposits: TermDepositRow[] = [
-    { id: 1, name: 'Lokata 12M', opening_date: '2026-01-15' },
+    {
+        id: 1,
+        name: 'Lokata 12M',
+        bank: 'lokaty_facto',
+        mark_url: '/marks/lokaty-facto.svg',
+        opening_date: '2026-01-15',
+    },
+    {
+        id: 2,
+        name: 'Lokata Revolut',
+        bank: 'revolut',
+        mark_url: '/marks/revolut.svg',
+        opening_date: '2026-01-15',
+    },
+    {
+        id: 3,
+        name: 'Lokata ING',
+        bank: 'ing',
+        mark_url: null,
+        opening_date: '2026-01-15',
+    },
 ];
 
 export const noTermDeposits: TermDepositRow[] = [];

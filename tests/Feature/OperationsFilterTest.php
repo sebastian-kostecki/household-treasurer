@@ -816,10 +816,12 @@ class OperationsFilterTest extends TestCase
         $user = User::factory()->create();
         $first = TermDeposit::factory()->for($user)->create([
             'name' => 'Alpha deposit',
+            'bank' => Bank::LokatyFacto,
             'opening_date' => '2026-01-01',
         ]);
         $second = TermDeposit::factory()->for($user)->create([
             'name' => 'Beta deposit',
+            'bank' => Bank::Ing,
             'opening_date' => '2026-01-01',
         ]);
 
@@ -830,8 +832,12 @@ class OperationsFilterTest extends TestCase
                 ->has('filterTermDeposits', 2)
                 ->where('filterTermDeposits.0.id', $first->id)
                 ->where('filterTermDeposits.0.name', 'Alpha deposit')
+                ->where('filterTermDeposits.0.bank', 'lokaty_facto')
+                ->where('filterTermDeposits.0.mark_url', url('/marks/lokaty-facto.svg'))
                 ->where('filterTermDeposits.1.id', $second->id)
-                ->where('filterTermDeposits.1.name', 'Beta deposit'),
+                ->where('filterTermDeposits.1.name', 'Beta deposit')
+                ->where('filterTermDeposits.1.bank', 'ing')
+                ->where('filterTermDeposits.1.mark_url', null),
             );
     }
 

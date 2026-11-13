@@ -340,7 +340,34 @@ export const accountFilterFixture: OperationsListFilters = {
 };
 
 export const filterTermDepositsFixture: OperationsFilterTermDeposit[] = [
-    { id: 1, name: 'Lokata 12M' },
+    {
+        id: 1,
+        name: 'Lokata 12M',
+        bank: 'lokaty_facto',
+        mark_url: '/marks/lokaty-facto.svg',
+        is_archived: false,
+    },
+    {
+        id: 2,
+        name: 'Lokata Revolut',
+        bank: 'revolut',
+        mark_url: '/marks/revolut.svg',
+        is_archived: false,
+    },
+    {
+        id: 3,
+        name: 'Lokata ING',
+        bank: 'ing',
+        mark_url: null,
+        is_archived: false,
+    },
+    {
+        id: 4,
+        name: 'Lokata 2024',
+        bank: 'lokaty_facto',
+        mark_url: '/marks/lokaty-facto.svg',
+        is_archived: true,
+    },
 ];
 
 export const sectionTotalsFixture: Record<OperationsListSection, number> = {

@@ -668,33 +668,33 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 
 #### Automated
 
-- [x] 1.1 CategoryTileContrastTest czerwony przed zmianą tokenów i zielony po niej
-- [x] 1.2 npm test z asercją color-scheme w ui-contract.test.ts przechodzi
-- [x] 1.3 npm run check:ui i npm run types:check przechodzą
-- [x] 1.4 AccountsHardcodedUiTest i MonthPlanHardcodedUiTest przechodzą
+- [x] 1.1 CategoryTileContrastTest czerwony przed zmianą tokenów i zielony po niej — 0adbaf3
+- [x] 1.2 npm test z asercją color-scheme w ui-contract.test.ts przechodzi — 0adbaf3
+- [x] 1.3 npm run check:ui i npm run types:check przechodzą — 0adbaf3
+- [x] 1.4 AccountsHardcodedUiTest i MonthPlanHardcodedUiTest przechodzą — 0adbaf3
 
 #### Manual
 
-- [x] 1.5 Ciemny motyw na /operations: jasna ikona kalendarza, ciemna lista roku (Chrome/Edge na Windows)
-- [x] 1.6 Okno nowej kategorii: 24 pełne kolory w ciemnym, czytelna żółta ikona w jasnym
-- [x] 1.7 /dev/ui/accounts: Revolut i Lokaty Facto widoczne w ciemnym, skróty i Coins bez zmian
+- [x] 1.5 Ciemny motyw na /operations: jasna ikona kalendarza, ciemna lista roku (Chrome/Edge na Windows) — 0adbaf3
+- [x] 1.6 Okno nowej kategorii: 24 pełne kolory w ciemnym, czytelna żółta ikona w jasnym — 0adbaf3
+- [x] 1.7 /dev/ui/accounts: Revolut i Lokaty Facto widoczne w ciemnym, skróty i Coins bez zmian — 0adbaf3
 
 ### Phase 2: Lokaty z awatarem
 
 #### Automated
 
-- [ ] 2.1 Asercje payloadów lokat czerwone przed zmianą i zielone po niej
-- [ ] 2.2 npm run types:check, npm test i npm run check:ui przechodzą
-- [ ] 2.3 ImportPreviewHardcodedUiTest przechodzi
-- [ ] 2.4 Pint i sloppy ci bez nowych znalezisk
-- [ ] 2.5 Asercje wysyłki lokat przechodzą przed zamianą selectów i po niej
+- [x] 2.1 Asercje payloadów lokat czerwone przed zmianą i zielone po niej
+- [x] 2.2 npm run types:check, npm test i npm run check:ui przechodzą
+- [x] 2.3 ImportPreviewHardcodedUiTest przechodzi
+- [x] 2.4 Pint i sloppy ci bez nowych znalezisk
+- [x] 2.5 Asercje wysyłki lokat przechodzą przed zamianą selectów i po niej
 
 #### Manual
 
-- [ ] 2.6 /dev/operations: filtr lokat z awatarami, „Wszystkie lokaty”, sufiks, chip z awatarem
-- [ ] 2.7 /dev/ui/dialogs capital-new i capital-errors: lokaty z awatarami i błąd pola
-- [ ] 2.8 /dev/import-preview: lokata, wiersz wyłączony, nawigacja klawiaturą
-- [ ] 2.9 Zapis ruchu kapitału i importu z lokatą jak przed zmianą
+- [x] 2.6 /dev/operations: filtr lokat z awatarami, „Wszystkie lokaty”, sufiks, chip z awatarem
+- [x] 2.7 /dev/ui/dialogs capital-new i capital-errors: lokaty z awatarami i błąd pola
+- [x] 2.8 /dev/import-preview: lokata, wiersz wyłączony, nawigacja klawiaturą
+- [x] 2.9 Zapis ruchu kapitału i importu z lokatą jak przed zmianą
 
 ### Phase 3: Filtr kategorii Operacji
 

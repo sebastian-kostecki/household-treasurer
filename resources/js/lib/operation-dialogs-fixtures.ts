@@ -138,12 +138,16 @@ export const dialogTermDeposits: CapitalMovementFormTermDeposit[] = [
     {
         id: 1,
         name: 'Lokata 12M',
+        bank: 'lokaty_facto',
+        mark_url: '/marks/lokaty-facto.svg',
         opening_date: openingDate,
         current_balance_minor_units: 1000000,
     },
     {
         id: 2,
         name: 'Lokata awaryjna',
+        bank: 'ing',
+        mark_url: null,
         opening_date: openingDate,
         current_balance_minor_units: 25000,
     },

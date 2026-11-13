@@ -18,7 +18,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    termDepositPickerOptions,
+    type AccountBank,
+    type AccountPickerOption,
+} from '@/lib/account-identity';
 import { operationsListQuery } from '@/lib/operations-list-query';
 import { operations as operationsRoute } from '@/routes';
 
@@ -47,6 +51,9 @@ export type OperationsFilterAccount = AccountPickerOption & {
 export type OperationsFilterTermDeposit = {
     id: number;
     name: string;
+    bank: AccountBank;
+    mark_url: string | null;
+    is_archived: boolean;
 };
 
 const props = defineProps<{
@@ -79,6 +86,10 @@ const hasPanelFilters = computed(
 );
 
 const panelOpen = ref(hasPanelFilters.value);
+
+const termDepositOptions = computed(() =>
+    termDepositPickerOptions(props.termDeposits),
+);
 
 const incomeCategories = computed(() =>
     props.categories.filter((category) => category.type === 'income'),
@@ -228,11 +239,6 @@ function onYearChange(event: Event): void {
 function onCategoryChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     applyFilters({ category_id: value === '' ? null : Number(value) });
-}
-
-function onTermDepositChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    applyFilters({ term_deposit_id: value === '' ? null : Number(value) });
 }
 
 function onDateFromChange(value: string | number): void {
@@ -506,23 +512,18 @@ function removeFilter(key: OperationsFilterChipKey): void {
                     >
                         {{ t.operations.filter_term_deposit }}
                     </Label>
-                    <select
+                    <AccountSelect
                         id="operations-filter-term-deposit"
-                        class="native-select"
-                        :value="filters.term_deposit_id ?? ''"
-                        @change="onTermDepositChange"
-                    >
-                        <option value="">
-                            {{ t.operations.filter_term_deposit_all }}
-                        </option>
-                        <option
-                            v-for="termDeposit in termDeposits"
-                            :key="termDeposit.id"
-                            :value="termDeposit.id"
-                        >
-                            {{ termDeposit.name }}
-                        </option>
-                    </select>
+                        :model-value="filters.term_deposit_id ?? ''"
+                        :accounts="termDepositOptions"
+                        :all-option-label="t.operations.filter_term_deposit_all"
+                        :archived-suffix="t.accounts.archived_badge"
+                        @update:model-value="
+                            applyFilters({
+                                term_deposit_id: $event === '' ? null : $event,
+                            })
+                        "
+                    />
                 </div>
 
                 <div class="grid gap-1 sm:col-span-2 lg:col-span-1">

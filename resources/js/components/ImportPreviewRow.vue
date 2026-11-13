@@ -18,7 +18,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    termDepositPickerOptions,
+    type AccountPickerOption,
+} from '@/lib/account-identity';
 import { formatDate, formatMoney } from '@/lib/format';
 import { importRowAmount } from '@/lib/import-row-amount';
 import {
@@ -122,6 +125,10 @@ const showsPairBadge = computed(() =>
 
 const rowEligibleTermDeposits = computed(() =>
     eligibleTermDeposits(row, termDeposits),
+);
+
+const termDepositOptions = computed(() =>
+    termDepositPickerOptions(rowEligibleTermDeposits.value),
 );
 
 const showInterestOverlay = computed(
@@ -555,28 +562,18 @@ function onPairCandidateChange(value: string): void {
                     "
                     class="space-y-2"
                 >
-                    <select
+                    <AccountSelect
                         :id="`row-term-deposit-${row.index}`"
                         v-model="selection.term_deposit_id"
                         :name="`rows[${row.index}][term_deposit_id]`"
-                        class="native-select w-full"
+                        :accounts="termDepositOptions"
+                        :placeholder="emptyTermDepositLabel()"
                         :aria-label="
                             controlLabel(t.operations.import_term_deposit)
                         "
                         :disabled="rowEligibleTermDeposits.length === 0"
                         :required="selection.selected"
-                    >
-                        <option value="">
-                            {{ emptyTermDepositLabel() }}
-                        </option>
-                        <option
-                            v-for="termDeposit in rowEligibleTermDeposits"
-                            :key="termDeposit.id"
-                            :value="termDeposit.id"
-                        >
-                            {{ termDeposit.name }}
-                        </option>
-                    </select>
+                    />
                     <p class="meta text-muted-foreground">
                         {{ capitalMovementDirectionLabel() }}
                     </p>
