@@ -30,6 +30,7 @@ import CapitalMovementFormDialog, {
 } from '@/components/CapitalMovementFormDialog.vue';
 import { type CapitalMovementRowData } from '@/components/CapitalMovementRow.vue';
 import type { OperationsListSection } from '@/components/OperationsActiveFilterChips.vue';
+import OperationCategoryDialog from '@/components/OperationCategoryDialog.vue';
 import OperationsListPanel from '@/components/OperationsListPanel.vue';
 import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
@@ -108,6 +109,8 @@ const editingIncome = ref<FinancialOperationRowData | null>(null);
 const editingExpense = ref<FinancialOperationRowData | null>(null);
 const editingTransfer = ref<OwnTransferRowData | null>(null);
 const editingCapitalMovement = ref<CapitalMovementRowData | null>(null);
+const categoryDialogOpen = ref(false);
+const recategorisedOperation = ref<FinancialOperationRowData | null>(null);
 const addMenuOpen = ref(false);
 const { operationsIntent, clearOperationsIntent } = useOperationsIntent();
 const listBusy = ref(false);
@@ -176,12 +179,34 @@ function openCapitalMovementEditDialog(movement: CapitalMovementRowData): void {
     capitalMovementEditDialogOpen.value = true;
 }
 
+/** A sheet operation changes only its Category (ADR-0089). */
+function openSheetOperationCategoryDialog(
+    operation: FinancialOperationRowData,
+): boolean {
+    if (!operation.sheet_operation) {
+        return false;
+    }
+
+    recategorisedOperation.value = operation;
+    categoryDialogOpen.value = true;
+
+    return true;
+}
+
 function openIncomeEditDialog(operation: FinancialOperationRowData): void {
+    if (openSheetOperationCategoryDialog(operation)) {
+        return;
+    }
+
     editingIncome.value = operation;
     incomeEditDialogOpen.value = true;
 }
 
 function openExpenseEditDialog(operation: FinancialOperationRowData): void {
+    if (openSheetOperationCategoryDialog(operation)) {
+        return;
+    }
+
     editingExpense.value = operation;
     expenseEditDialogOpen.value = true;
 }
@@ -270,6 +295,13 @@ function openExpenseEditDialog(operation: FinancialOperationRowData): void {
         :income-categories="incomeCategories"
         :hand-entry-month-remaining="handEntryMonthRemaining"
         :entry-to-spend="entryToSpend"
+    />
+
+    <OperationCategoryDialog
+        v-model:open="categoryDialogOpen"
+        :operation="recategorisedOperation"
+        :income-categories="incomeCategories"
+        :expense-categories="expenseCategories"
     />
 
     <OwnTransferFormDialog

@@ -17,7 +17,7 @@ The archived Account of one past year written by a Sheet Load, named „Arkusz R
 _Avoid_: technical account, Import account, historical account
 
 **Sheet Load**:
-A one-off administrative command that writes a past year from an `xlsx` sheet as a Budget in execution with ordinary Financial Operations on a Sheet Account (ADR-0085). Not an Import: no preview in the UI, no Raw Statement Description, no Import identity. It changes no balance of a real Account and no value of the Budgets 2026 and 2027; `--dry-run` is the only preview and `budget:unload-sheet` undoes one year. A loaded year is closed for hand-entry and Import. Polish UI copy: „wczytanie arkusza”.
+A one-off administrative command that writes a past year from an `xlsx` sheet as a Budget in execution with ordinary Financial Operations on a Sheet Account (ADR-0085). Not an Import: no preview in the UI, no Raw Statement Description, no Import identity. It changes no balance of a real Account and no value of the Budgets 2026 and 2027; `--dry-run` is the only preview and `budget:unload-sheet` undoes one year. A loaded year is closed for hand-entry and Import. Its operations cannot be edited, except their Category: a change moves the amount between the lines of the loaded Budget in Execution, Current Plan and Initial Plan together, leaving amount, date and Account as loaded (ADR-0089). Polish UI copy: „wczytanie arkusza”.
 _Avoid_: Import, migration, archival data
 
 **Term Deposit**:

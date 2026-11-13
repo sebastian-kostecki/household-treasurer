@@ -9,6 +9,7 @@ import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 type OperationRow = {
     id: number;
     type: 'income' | 'expense';
+    sheet_operation: boolean;
 };
 
 const { operation } = defineProps<{
@@ -44,6 +45,9 @@ const isIncome = computed(() => operation.type === 'income');
             isIncome
                 ? t.operations.delete_income_confirm_body
                 : t.operations.delete_expense_confirm_body
+        "
+        :edit-label="
+            operation.sheet_operation ? t.operations.change_category : undefined
         "
         @edit="emit('edit')"
     />

@@ -56,6 +56,7 @@
     "Expense deleted.": "Wydatek usunięty.",
     "Expense recorded.": "Wydatek zapisany.",
     "Expense updated.": "Wydatek zapisany.",
+    "Category changed.": "Kategoria zmieniona.",
     "Expenses can only be recorded for a budget in execution. Create or start a budget for this year.": "Wydatek można zapisać tylko w budżecie w wykonaniu. Dodaj budżet na ten rok lub rozpocznij jego wykonanie.",
     "Import identity requires a raw statement description.": "Tożsamość importu wymaga surowego opisu z wyciągu.",
     "Import pair candidates can only be committed as own transfers.": "Kandydatów do pary z importu można zapisać tylko jako przelewy własne.",

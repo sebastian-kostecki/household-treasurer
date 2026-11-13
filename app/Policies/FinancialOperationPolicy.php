@@ -28,6 +28,16 @@ class FinancialOperationPolicy
             && ! $financialOperation->account->isSheetAccount();
     }
 
+    /**
+     * Only the Category of an operation of a Sheet Account changes (ADR-0089);
+     * every other operation changes it through the full edit.
+     */
+    public function changeCategory(User $user, FinancialOperation $financialOperation): bool
+    {
+        return $this->ownsFinancialOperation($user, $financialOperation)
+            && $financialOperation->account->isSheetAccount();
+    }
+
     public function delete(User $user, FinancialOperation $financialOperation): bool
     {
         return $this->ownsFinancialOperation($user, $financialOperation);

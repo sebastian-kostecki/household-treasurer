@@ -19,6 +19,8 @@ export type FinancialOperationRowData = IncomeFormOperation &
         category_icon: string;
         category_color: string;
         category_archived: boolean;
+        /** An operation of a Sheet Account: only its Category changes (ADR-0089). */
+        sheet_operation: boolean;
         counterparty: string | null;
         raw_statement_description: string | null;
     } & PrefixedAccountIdentityFields<'account'>;
