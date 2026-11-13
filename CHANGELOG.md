@@ -6,6 +6,26 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-11-13
+
+Fixes after 1.4.0 from everyday use: writes on Operations and the Budget come back to the same list and the same place on the page, server messages are in Polish, the sidebar year takes one line, and the Budget shows Category descriptions (`v1-4-0-fixes`).
+
+### Added
+
+- The Budget row shows the Category description read-only under the name, as one truncated line (joined with "zebrane startowe" by " · " when both exist), with the full text on hover; it is still edited only in "Kategorie" (ADR-0088).
+
+### Changed
+
+- The sidebar Budget year is one menu button with the selected year instead of rows of segments: years newest first, the selected one checked, and "Dodaj rok N" (add year N) under a separator (ADR-0087, replaces the year segments of ADR-0055).
+- The _Align_ action on a Budget row is called "Wyrównaj" instead of "Zakończ", the dialog asks "Wyrównać plan do wykonania?" and the toast reads "Plan bieżący wyrównany do wykonania."; "Zakończ" stays reserved for the year close (ADR-0086).
+
+### Fixed
+
+- Operations: after adding, editing, converting or deleting an operation the list comes back with the same filters, tab and page; a page that no longer exists after a delete falls back to the last page, and a filter whose Category, Account or Term Deposit no longer exists is dropped instead of bouncing the redirect.
+- Budget: adding, editing and deleting a Category and "Wyrównaj" keep "Pokaż zarchiwizowane" (show archived) on.
+- A save that returns to the same page keeps the scroll position (Operations, Budget, "Kategorie", Month Plan, Accounts, Term Deposits, settings, validation errors); a save that opens another page and a Budget year change still start at the top.
+- Server messages that still reached the screen in English (about 40 success toasts, about 50 Import and validation errors, and the CSV Import summary with Polish plural forms) are in Polish; a test fails when a new message has no Polish translation.
+
 ## [1.4.0] — 2026-11-13
 
 Milestone M-3: one Category list kept across years, Category rhythms with Irregular Expenses and "zebrane" (collected) in the Month Plan, and a new "Raporty" (Reports) view. The years 2022–2025 are loaded from the old budget spreadsheets, so the reports have history.
@@ -175,7 +195,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.2.0...v1.3.0
