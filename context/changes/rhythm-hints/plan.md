@@ -150,16 +150,16 @@ None: no data or schema change.
 
 #### Automated
 
-- [x] 1.1 Formatting and lint pass: `npm run check`
-- [x] 1.2 UI literal check passes: `npm run check:ui`
-- [x] 1.3 Vue type check passes: `npm run types:check` (after `npm run build`)
-- [x] 1.4 Categories literal guard passes: `php artisan test --compact tests/Unit/CategoriesHardcodedUiTest.php`
+- [x] 1.1 Formatting and lint pass: `npm run check` — 841d459
+- [x] 1.2 UI literal check passes: `npm run check:ui` — 841d459
+- [x] 1.3 Vue type check passes: `npm run types:check` (after `npm run build`) — 841d459
+- [x] 1.4 Categories literal guard passes: `php artisan test --compact tests/Unit/CategoriesHardcodedUiTest.php` — 841d459
 - [ ] 1.5 Irregular E2E spec passes with the new assertion: `npx playwright test tests/e2e/irregular-collected.spec.ts`
-- [x] 1.6 Collected year-start E2E spec still finds the „Nieregularna” button: `npx playwright test tests/e2e/collected-year-start.spec.ts`
+- [x] 1.6 Collected year-start E2E spec still finds the „Nieregularna” button: `npx playwright test tests/e2e/collected-year-start.spec.ts` — 841d459
 - [ ] 1.7 Full gate passes: `composer ci:check`
 
 #### Manual
 
-- [x] 1.8 In `/dev/ui/dialogs`, the states „Kategoria listy: nowa” (Bieżąca), „stała opłata”, „edycja rytmu (równomierna roczna)” and „nowe oznaczenie nieregularnej” each show their description followed by „Zmiana działa od …”
-- [x] 1.9 Clicking through the four options in one dialog changes the description at once; an income Category shows no Rhythm field and no description
-- [x] 1.10 At phone width (360 px) the hint wraps without horizontal scroll and the four buttons look as before
+- [x] 1.8 In `/dev/ui/dialogs`, the states „Kategoria listy: nowa” (Bieżąca), „stała opłata”, „edycja rytmu (równomierna roczna)” and „nowe oznaczenie nieregularnej” each show their description followed by „Zmiana działa od …” — 841d459
+- [x] 1.9 Clicking through the four options in one dialog changes the description at once; an income Category shows no Rhythm field and no description — 841d459
+- [x] 1.10 At phone width (360 px) the hint wraps without horizontal scroll and the four buttons look as before — 841d459
