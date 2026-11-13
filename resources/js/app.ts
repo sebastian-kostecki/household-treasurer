@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
+import { defaultVisitOptions } from '@/lib/visit-scroll';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -20,6 +21,10 @@ void createInertiaApp({
             default:
                 return AppLayout;
         }
+    },
+    defaults: {
+        visitOptions: (_href, options) =>
+            defaultVisitOptions(options, window.location.pathname),
     },
     progress: {
         color: 'var(--brand-text)',

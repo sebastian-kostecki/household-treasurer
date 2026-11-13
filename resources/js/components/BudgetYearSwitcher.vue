@@ -91,6 +91,7 @@ function activate(segment: BudgetYearSegment): void {
             ? { year: segment.year }
             : { year: segment.year, destination: destination.value },
         {
+            preserveScroll: false,
             onStart: () => {
                 pending.value = true;
             },

@@ -61,3 +61,7 @@ Dropdowns: use the native `.native-select` class for simple enums without icons;
 
 Tokens live in resources/css/app.css. Named classes in `@layer components` cover repeated layout: `.operations-grid`, `.budget-category-grid`, `.accounts-grid`, `.term-deposits-grid`, `.import-preview-grid`, `.month-plan-grid`, `.segmented-control*` (the per-view class lists are in js-operations.md, js-import.md and js-month-plan.md). When a view needs a new grid, size or label style, add a named class there instead of an arbitrary value (`text-[11px]`, `grid-cols-[1fr_auto]`) in the template.
 A value switch (one option selected, as in put aside / take) is `SegmentedControl` (tone `primary` for a form choice, `neutral` for a setting saved immediately), not a `Button` with `aria-pressed`.
+
+## Writes keep the scroll on the same page
+
+A write (POST/PUT/PATCH/DELETE) that returns to the page it was made on keeps the window where it was: the default lives in `lib/visit-scroll.ts` and is wired once in `app.ts` (`defaults.visitOptions`). It compares paths, not queries, and defers to an explicit `preserveScroll`. Do not add `preserveScroll` to single dialogs or reset the scroll by hand; a write that must start at the top (the Budget year switcher) passes `preserveScroll: false` explicitly.

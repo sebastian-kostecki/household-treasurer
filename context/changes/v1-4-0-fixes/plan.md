@@ -438,31 +438,31 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 
 #### Automated
 
-- [x] 1.1 New and touched Feature tests pass on PostgreSQL
-- [x] 1.2 Existing redirect assertions in operation tests still pass unchanged
-- [x] 1.3 Vitest for the query helper passes
-- [x] 1.4 Full gate passes: composer ci:check and sloppy ci
+- [x] 1.1 New and touched Feature tests pass on PostgreSQL — c524043
+- [x] 1.2 Existing redirect assertions in operation tests still pass unchanged — c524043
+- [x] 1.3 Vitest for the query helper passes — c524043
+- [x] 1.4 Full gate passes: composer ci:check and sloppy ci — c524043
 
 #### Manual
 
-- [x] 1.5 Edit, add and delete on Operations return to the same filters, tab and page
-- [x] 1.6 Deleting the only operation on the last page lands on the previous page
-- [x] 1.7 Budget Category writes keep „Pokaż zarchiwizowane”
+- [x] 1.5 Edit, add and delete on Operations return to the same filters, tab and page — c524043
+- [x] 1.6 Deleting the only operation on the last page lands on the previous page — c524043
+- [x] 1.7 Budget Category writes keep „Pokaż zarchiwizowane” — c524043
 
 ### Phase 2: Scroll stays after a write
 
 #### Automated
 
-- [ ] 2.1 Vitest for visit-scroll passes
-- [ ] 2.2 Types pass
-- [ ] 2.3 Full gate passes: composer ci:check
+- [x] 2.1 Vitest for visit-scroll passes
+- [x] 2.2 Types pass
+- [x] 2.3 Full gate passes: composer ci:check
 
 #### Manual
 
-- [ ] 2.4 Budget edit and Align leave the window on the row
-- [ ] 2.5 Operations edit leaves the window in place
-- [ ] 2.6 Kategorie, Plan miesiąca, Konta and Lokaty saves and validation errors do not jump
-- [ ] 2.7 Year change, Import commit and login still start at the top
+- [x] 2.4 Budget edit and Align leave the window on the row
+- [x] 2.5 Operations edit leaves the window in place
+- [x] 2.6 Kategorie, Plan miesiąca, Konta and Lokaty saves and validation errors do not jump
+- [x] 2.7 Year change, Import commit and login still start at the top
 
 ### Phase 3: „Zakończ” becomes „Wyrównaj”
 
