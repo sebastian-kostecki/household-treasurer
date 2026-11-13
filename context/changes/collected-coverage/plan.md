@@ -337,12 +337,12 @@ Odczyt używa już załadowanego `MonthToSpend` i kolekcji pozycji wydatkowych z
 
 #### Automated
 
-- [x] 4.1 Pełna bramka na PostgreSQL
-- [x] 4.2 Sloppy bez nowych znalezisk
-- [x] 4.3 Strażnik literałów UI przechodzi
-- [x] 4.4 E2E przechodzą (3 awarie istniejące na development: categories:394, irregular-collected:68, month-plan-groups:81)
+- [x] 4.1 Pełna bramka na PostgreSQL — 07d5f12
+- [x] 4.2 Sloppy bez nowych znalezisk — 07d5f12
+- [x] 4.3 Strażnik literałów UI przechodzi — 07d5f12
+- [x] 4.4 E2E przechodzą (3 awarie istniejące na development: categories:394, irregular-collected:68, month-plan-groups:81) — 07d5f12
 
 #### Manual
 
-- [x] 4.5 Podpis z kategorią nieregularną równa się sumie wierszy planu miesiąca
-- [x] 4.6 Podpis bez kategorii nieregularnej jest bez zmian
+- [x] 4.5 Podpis z kategorią nieregularną równa się sumie wierszy planu miesiąca — 07d5f12
+- [x] 4.6 Podpis bez kategorii nieregularnej jest bez zmian — 07d5f12
