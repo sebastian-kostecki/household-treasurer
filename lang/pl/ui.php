@@ -666,7 +666,7 @@ return [
         'rhythm_option_irregular' => 'Nieregularna',
         'rhythm_description_fixed_charge' => 'Ta sama kwota co miesiąc, np. czynsz, abonament. Liczy się plan, a po zapłacie faktyczna kwota.',
         'rhythm_description_running' => 'Wydajesz po trochu przez cały miesiąc, np. jedzenie, paliwo. Wchodzi do tempa miesiąca.',
-        'rhythm_description_even_annual' => 'Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. Niewydane nie przechodzi na kolejny miesiąc.',
+        'rhythm_description_even_annual' => 'Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. To, co niewydane, nie przechodzi na kolejny miesiąc.',
         'rhythm_description_irregular' => 'Rzadki, większy rachunek, np. wakacje, OC. Co miesiąc stawka trafia do „zebrane” i pokrywa rachunek.',
         'rhythm_hint' => 'Zmiana działa od :month :year; minione miesiące bez zmian.',
         'opening_collected' => 'Zebrane startowe',

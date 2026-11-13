@@ -12,7 +12,7 @@ The Rhythm choice in the Category dialog shows only „Stała / Bieżąca / Rocz
 
 ## Desired End State
 
-Under the four buttons the hint reads the selected Rhythm's description, then the change-month sentence, and changes as the User clicks. For Roczna: „Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. Niewydane nie przechodzi na kolejny miesiąc. Zmiana działa od listopada 2026; minione miesiące bez zmian.” Every Rhythm has a kitchen sink state.
+Under the four buttons the hint reads the selected Rhythm's description, then the change-month sentence, and changes as the User clicks. For Roczna: „Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. To, co niewydane, nie przechodzi na kolejny miesiąc. Zmiana działa od listopada 2026; minione miesiące bez zmian.” Every Rhythm has a kitchen sink state.
 
 ## Key Decisions Made
 

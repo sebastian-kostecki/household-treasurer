@@ -22,10 +22,10 @@ In the Category dialog, with expense type, the hint under the Rhythm control rea
 
 - Stała: „Ta sama kwota co miesiąc, np. czynsz, abonament. Liczy się plan, a po zapłacie faktyczna kwota.”
 - Bieżąca: „Wydajesz po trochu przez cały miesiąc, np. jedzenie, paliwo. Wchodzi do tempa miesiąca.”
-- Roczna: „Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. Niewydane nie przechodzi na kolejny miesiąc.”
+- Roczna: „Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. To, co niewydane, nie przechodzi na kolejny miesiąc.”
 - Nieregularna: „Rzadki, większy rachunek, np. wakacje, OC. Co miesiąc stawka trafia do „zebrane” i pokrywa rachunek.”
 
-Example with Roczna selected in November 2026: „Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. Niewydane nie przechodzi na kolejny miesiąc. Zmiana działa od listopada 2026; minione miesiące bez zmian.”
+Example with Roczna selected in November 2026: „Wydajesz nierówno, liczy się suma za rok, np. ubrania, apteka. To, co niewydane, nie przechodzi na kolejny miesiąc. Zmiana działa od listopada 2026; minione miesiące bez zmian.”
 
 Screen readers get the same text through the existing `aria-describedby` of the control. Each of the four descriptions has a state in `/dev/ui/dialogs`.
 
@@ -154,9 +154,9 @@ None: no data or schema change.
 - [x] 1.2 UI literal check passes: `npm run check:ui` — 841d459
 - [x] 1.3 Vue type check passes: `npm run types:check` (after `npm run build`) — 841d459
 - [x] 1.4 Categories literal guard passes: `php artisan test --compact tests/Unit/CategoriesHardcodedUiTest.php` — 841d459
-- [ ] 1.5 Irregular E2E spec passes with the new assertion: `npx playwright test tests/e2e/irregular-collected.spec.ts`
+- [ ] 1.5 Irregular E2E spec passes with the new assertion: `npx playwright test tests/e2e/irregular-collected.spec.ts` — the new assertion passes; the spec then fails at the stale year button in `openCurrentMonthPlan` (see follow-ups/review-fixes.md)
 - [x] 1.6 Collected year-start E2E spec still finds the „Nieregularna” button: `npx playwright test tests/e2e/collected-year-start.spec.ts` — 841d459
-- [ ] 1.7 Full gate passes: `composer ci:check`
+- [x] 1.7 Full gate passes: `composer ci:check` — pass on PostgreSQL in Sail (1662 passed), impl-review 2026-11-13
 
 #### Manual
 
