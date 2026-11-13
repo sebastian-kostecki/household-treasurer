@@ -9,6 +9,7 @@ tags: [research, ui-audit, dark-mode, atrament, month-plan, operations-filters, 
 status: complete
 last_updated: 2026-11-13
 last_updated_by: Claude (claude-opus-5-5)
+last_updated_note: "Decyzje użytkownika D1–D4 do otwartych pytań (sekcja Decisions); Open Questions rozstrzygnięte"
 ---
 
 # Research: audyt dwukierunkowy /10x-ui dla v1-4-3-fixes
@@ -155,13 +156,17 @@ Liczba klas tokenów kolorów (`bg|text|border|ring|outline-<token>`) / importó
 - `context/archive/2026-11-02-month-items-plan-vs-actual/research.md`
 - `context/archive/2026-11-03-month-plan-ui-contract/` (zrzuty Planu miesiąca 390/1280)
 
+## Decisions
+
+Podjęte przez użytkownika 2026-11-13 po porównaniu wariantów (szkice na danych demo). C1 (`color-scheme`) i C5a (układ kwot poniżej `xl`) nie wymagały decyzji: wchodzą do planu jako poprawki.
+
+- **D1 (C5b) — kolor wg korzyści, etykieta „Odchylenie” bez zmian.** Liczba ze znakiem zostaje. Wiersz z przekroczeniem (`overPlan`, także roczna przekroczona rokiem przy ujemnym odchyleniu miesiąca) → `destructive`; wydatek poniżej planu bez przekroczenia → `success`; dochód jak dziś (> 0 `success`). Kolor wynika ze statusu, nie z samego znaku. Wymaga wpisu w `design-system.md:55` (nowe znaczenie `success`) i nowego ADR (precedens ADR-0060, ADR-0074). Glosariusz bez zmian. Odrzucone: „zostało / przekroczono” (glosariusz + ADR, kolizja z „zostało X na Y mies.” w tym samym wierszu, słowo przeczące odznace dla rocznej i nieregularnej) oraz pozostawienie bez koloru.
+- **D2 (C3) — filtr kategorii jak w oknie operacji.** Reka `Select` z `CategoryChip`, opcja „Wszystkie kategorie”, sekcje Dochody/Wydatki, w nich kolejność listy Kategorii i nagłówki grup, archiwalne z sufiksem. Nowy ADR zmienia ADR-0069:13 tylko dla filtra Operacji (paleta poleceń zostaje płaska). Serwer (`OperationsFilterOptions::categories`) dosyła `group` i kolejność listy zamiast `usort` po nazwie; `tests/Feature/OperationsFilterTest.php` z indeksami do przejrzenia. Odrzucone: ikony bez grup, samo sortowanie.
+- **D3 (C4) — jasna płytka pod logo banku w ciemnym motywie i ikonki lokat.** Powierzchnia znaku w `AccountAvatar` jako token (jasna w `.dark`), tak aby Revolut i Lokaty Facto były widoczne; trzy natywne selecty lokat (`OperationsFilters.vue:509-525`, `CapitalMovementFormDialog.vue:358-375`, `ImportPreviewRow.vue:558-575`) zamienione na Reka `Select` z `AccountAvatar`. Nowy ADR zmienia ADR-0054:13; payloady lokat (`OperationsController.php:150-158`, `OperationsFilterOptions.php:98-112`, `CsvImportController.php:490-493`) dostają `bank` i `mark_url`. Odrzucone: sama płytka, bez zmian.
+- **D4 (C2) — kolory kategorii w obu motywach.** Próbka w `CategoryColorPicker` pokazuje pełny kolor; tło i ikona kafelka z pary tokenów w `:root`/`.dark` zamiast literału `26`, tak aby ikona miała ≥ 3:1 dla wszystkich 24 kolorów palety w obu motywach (test czystej funkcji). Zmiana zdania „tło 15%” w `design-system.md:66`; kolor kategorii nadal tylko tożsamość. Odrzucone: tylko ciemny motyw, tylko próbki.
+
 ## Open Questions
 
-Decyzje produktowe dla `/10x-plan` (nie rozstrzyga ich research):
-
-1. C3: czy filtr kategorii dostaje grupy (nowy ADR zmieniający ADR-0069:13), czy tylko ikony i kolejność listy (bez zmiany ADR-0069)?
-2. C4: czy selecty lokat dostają awatary (nowy ADR zmieniający ADR-0054:13 + payloady), czy zmiana kończy się na powierzchni znaku w ciemnym motywie?
-3. C5b: kolor wydatku poniżej planu (`success` = nowe znaczenie, ADR) i czy zmieniać etykietę (wtedy glosariusz + ADR). Wariant bez glosariusza: etykieta „Odchylenie”, sam kolor.
-4. C2: czy zmiana alfy kafelka ma objąć też jasny motyw (tam ikony mają gorszy kontrast: 15/24 poniżej 3:1), skoro zmiana dotyczy ciemnego motywu?
+Rozstrzygnięte w `## Decisions` (D1–D4).
 
 Luki: wygląd okna listy natywnego selecta w ciemnym motywie jest wnioskiem (headless nie fotografuje okien systemowych); sortowanie `<=>` dla Ł/Ś nie zostało uruchomione na danych; Revolut/Lokaty Facto nie występują w danych demo, więc dowód pochodzi z kitchen sinka `/dev/ui/accounts`.
