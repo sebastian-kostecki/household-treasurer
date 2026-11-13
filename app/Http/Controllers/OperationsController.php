@@ -18,6 +18,7 @@ use App\Support\EntryToSpendInputs;
 use App\Support\HandEntryMonthRemainingInputs;
 use App\Support\OperationsDaySums;
 use App\Support\OperationsFilterOptions;
+use App\Support\OperationsListQuery;
 use App\Support\OperationsSectionTotals;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -132,11 +133,11 @@ class OperationsController extends Controller
             OperationsListSection::CapitalMovements => ['page' => 'capital_movements_page', 'paginator' => $capitalMovements],
         };
 
-        if ($activePaginator['paginator']->lastPage() >= 1 && $activePaginator['paginator']->currentPage() > $activePaginator['paginator']->lastPage()) {
+        if ($activePaginator['paginator']->currentPage() > $activePaginator['paginator']->lastPage()) {
             return to_route('operations', [
-                ...array_filter($request->safe()->only(['q', 'year', 'category_id', 'account_id', 'term_deposit_id', 'date_from', 'date_to']), fn (mixed $value): bool => $value !== null),
+                ...array_filter($request->safe()->only(OperationsListQuery::FILTER_KEYS), fn (mixed $value): bool => $value !== null),
                 ...array_filter(
-                    $request->only(['operations_page', 'own_transfers_page', 'capital_movements_page']),
+                    $request->only(OperationsListQuery::PAGE_KEYS),
                     fn (mixed $value): bool => is_scalar($value),
                 ),
                 'section' => $request->section()->value,

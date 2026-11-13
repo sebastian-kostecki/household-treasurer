@@ -20,8 +20,16 @@ class IndexOperationsRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->user()?->id;
+        return self::listRules($this->user()?->id);
+    }
 
+    /**
+     * The rules of the list state, shared with the redirect back to the list after a write.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public static function listRules(?int $userId): array
+    {
         return [
             'q' => ['nullable', 'string', 'max:255'],
             'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
@@ -48,15 +56,7 @@ class IndexOperationsRequest extends FormRequest
 
     public function filters(): OperationsListQuery
     {
-        return OperationsListQuery::fromValidated($this->safe()->only([
-            'q',
-            'year',
-            'category_id',
-            'account_id',
-            'term_deposit_id',
-            'date_from',
-            'date_to',
-        ]));
+        return OperationsListQuery::fromValidated($this->safe()->only(OperationsListQuery::FILTER_KEYS));
     }
 
     public function section(): OperationsListSection

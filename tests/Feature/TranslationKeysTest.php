@@ -37,7 +37,7 @@ class TranslationKeysTest extends TestCase
             }
 
             $source = (string) file_get_contents($file->getPathname());
-            $pattern = '/(?<![\w>:$])(?:__|trans)\(\s*(?:\'((?:[^\'\\\\]|\\\\.)*)\'|"((?:[^"\\\\]|\\\\.)*)")\s*[,)]/s';
+            $pattern = '/(?<![\w>:$])(?:__|trans|trans_choice)\(\s*(?:\'((?:[^\'\\\\]|\\\\.)*)\'|"((?:[^"\\\\]|\\\\.)*)")\s*[,)]/s';
 
             if (preg_match_all($pattern, $source, $matches, PREG_SET_ORDER) === false) {
                 continue;

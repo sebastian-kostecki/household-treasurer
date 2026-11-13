@@ -511,12 +511,12 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 
 #### Automated
 
-- [x] 6.1 Budget Feature tests pass on PostgreSQL
-- [x] 6.2 UI literal check and types pass
-- [x] 6.3 Full gate passes: composer ci:check and sloppy ci
+- [x] 6.1 Budget Feature tests pass on PostgreSQL — 975a6d3
+- [x] 6.2 UI literal check and types pass — 975a6d3
+- [x] 6.3 Full gate passes: composer ci:check and sloppy ci — 975a6d3
 
 #### Manual
 
-- [x] 6.4 Budget row shows the description under the name, truncated with full text on hover
-- [x] 6.5 Row with „zebrane startowe” joins both parts with „ · ”
-- [x] 6.6 Rows without a description unchanged; Budget kitchen sink shows the new states
+- [x] 6.4 Budget row shows the description under the name, truncated with full text on hover — 975a6d3
+- [x] 6.5 Row with „zebrane startowe” joins both parts with „ · ” — 975a6d3
+- [x] 6.6 Rows without a description unchanged; Budget kitchen sink shows the new states — 975a6d3

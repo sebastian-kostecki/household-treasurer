@@ -35,6 +35,22 @@ class AlignCategoryCurrentPlanTest extends TestCase
         $this->assertSame(320000, $category->execution_minor_units);
     }
 
+    public function test_aligning_keeps_show_archived_on_the_budget_redirect(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $category = BudgetLine::factory()->for($budget)->expense()->create([
+            'planned_amount_minor_units' => 200000,
+            'initial_plan_minor_units' => 200000,
+            'execution_minor_units' => 75000,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('categories.align-current-plan', [$category->budget_id, $category->category_id, 'show_archived' => 1]))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('budget', ['show_archived' => 1]));
+    }
+
     public function test_user_can_align_expense_category_current_plan_to_execution(): void
     {
         $user = User::factory()->create();

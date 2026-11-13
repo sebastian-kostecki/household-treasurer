@@ -23,7 +23,7 @@ class OperationsReturnToListTest extends TestCase
     public function test_income_store_update_and_delete_return_to_the_list_they_were_made_from(): void
     {
         [$user, $account, $line] = $this->userWithIncomeLine();
-        $list = ['category_id' => 7, 'section' => 'own_transfers', 'own_transfers_page' => 2];
+        $list = ['category_id' => $line->category_id, 'section' => 'own_transfers', 'own_transfers_page' => 2];
         $expected = route('operations', $list);
 
         $this->actingAs($user)
@@ -83,6 +83,23 @@ class OperationsReturnToListTest extends TestCase
                 'operations_page' => 3,
             ]]), $this->incomePayload($account, $line))
             ->assertRedirect(route('operations', ['q' => 'czynsz', 'operations_page' => 3]));
+    }
+
+    public function test_list_values_the_operations_list_would_reject_are_dropped(): void
+    {
+        [$user, $account, $line] = $this->userWithIncomeLine();
+        $foreignAccount = Account::factory()->for(User::factory())->create(['opening_date' => '2026-01-01']);
+
+        $this->actingAs($user)
+            ->post(route('incomes.store', ['list' => [
+                'q' => 'czynsz',
+                'category_id' => 999999,
+                'account_id' => $foreignAccount->id,
+                'section' => 'nonsense',
+                'year' => 2026,
+            ]]), $this->incomePayload($account, $line))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('operations', ['q' => 'czynsz', 'year' => 2026]));
     }
 
     public function test_a_scalar_list_value_is_ignored(): void
