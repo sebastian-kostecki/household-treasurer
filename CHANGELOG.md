@@ -6,6 +6,43 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-11-13
+
+Milestone M-3: one Category list kept across years, Category rhythms with Irregular Expenses and "zebrane" (collected) in the Month Plan, and a new "Raporty" (Reports) view. The years 2022–2025 are loaded from the old budget spreadsheets, so the reports have history.
+
+### Added
+
+- **"Kategorie"** (Categories) view with one list of Categories across years; a data migration moved every Budget, Budget Line and Financial Operation onto it without changing any amount (`category-list-after-migration`, ADR-0063, ADR-0065).
+- Create a Category and edit its name, icon, colour, order, type and description; archive and restore it. An archived Category disappears from the choice in operations and the plan but stays visible on existing operations; changing the type of a Category with operations is blocked (`category-edit-and-archive`, ADR-0067).
+- Category groups (income or expense): create, name, order and delete them, assign Categories, and see group totals in "Kategorie", in the yearly Budget and in the operation Category picker (`category-groups`, ADR-0069).
+- Merge two Categories after a preview of the numbers (operations, plans, collected); everything moves to the target Category, with a `user:backup` snapshot as the way back (`category-merge`, ADR-0078).
+- Category rhythm (four rhythms instead of the old flags): set on the list, and the Month Plan proposal computes the amount from it, including "zostało X na Y mies." (X left for Y months) for an even yearly rhythm (`category-rhythm`, ADR-0066, ADR-0072).
+- Irregular Expense with **"zebrane"** (collected): a fixed monthly rate, an opening collected amount, and a bill that uses up the collected amount and lowers "do wydania" (to spend) only by the excess; shown in the Month Plan, the Month Summary, the Dashboard, the Budget and as warnings on entry and in Import (`irregular-expense-collected`, ADR-0073).
+- Opening collected amount carried over from 31 December into the new Budget, shown in the Budget row, the draft and execution (`collected-carry-over-new-year`, ADR-0076).
+- Month Plan in collapsible groups with a group total; an overrun Category also marks the collapsed group row (`month-plan-groups`, ADR-0079).
+- A new Budget is created from the active Categories of the list, with plan amounts suggested from the Current Plan of the previous year (`new-budget-from-category-list`, ADR-0068).
+- Default "odkładam" (set aside) percentage of planned income in Settings, used by the Month Plan proposal (`default-set-aside-percent`, ADR-0082).
+- **"Raporty"** (Reports) view: a month or a year by groups with drill-down to Categories, amount and share of expenses, as a chart and a table (`period-report-by-group`, ADR-0070, ADR-0071 — shadcn-vue Chart on Unovis).
+- Reports: comparison with the same period a year earlier on the same list Category (`year-over-year-report`, ADR-0074), a trend over the months of the year (`report-trend-by-month`, ADR-0077), a "12 miesięcy" (last 12 months) period (`rolling-twelve-month-report`, ADR-0081) and links from a Category in a report to its operations in that period (`report-to-operations`).
+- Month Plan change mode raises an overrun expense plan to the actual amount, plus a "Ustaw plan na wydatki" (set plan to expenses) button per row (`month-plan-match-actual`, ADR-0062).
+- Past years 2022–2025 loaded from the `Budżet_RRRR.xlsx` sheets as Budgets in execution, each with its own archived Sheet Account, via `budget:load-sheet` (with `--dry-run`) and `budget:unload-sheet` (`legacy-budget-import`, ADR-0085).
+- Commands: `app:control-numbers` (control numbers before and after a migration, with `--compare`), `import:suggestion-accuracy` (Import suggestion accuracy, with `--compare`) and `demo:seed-previous-year` (dev mock of the previous year).
+
+### Changed
+
+- Years are linked by the list Category instead of by name and type: budget copy, the Month Plan proposal from December to January, the Operations filter (now also by group) and Import suggestions (`import-suggestions-on-category-list`, measured not worse than before).
+- `scripts/deploy.sh` takes a `user:backup` snapshot of every User, enters maintenance mode, records control numbers, runs a full `backup:run` before `migrate --force` and stops the deployment when the control numbers differ afterwards; database dumps are written with `--no-owner --no-privileges` (`safe-first-data-migration`, ADR-0064).
+- The default budget year is the current one (ADR-0075).
+- "Kategorie": row actions moved into the "⋯" menu, and "Zmień grupę…" (change group) opens a dialog with a radio group (`category-visual-fixes`, ADR-0083).
+- "Raporty": the title row and the period switch show in every state, charts keep their space while loading, and the share sits under the amount on narrow cards (`reports-view`, ADR-0084).
+- User snapshot format goes from version 5 to 12; older snapshots are converted on restore with the same rule as the migration.
+- Dependencies: `@unovis/ts` and `@unovis/vue` 1.7.1 for report charts.
+
+### Fixed
+
+- The sidebar shows the right budget year and its segments after switching or creating a year without a page reload (`sidebar-year-refresh`).
+- `user:restore` loads a snapshot onto a User who already has data: the import identity accounts of operations and transfers are mapped like other account ids (`restore-import-identity-accounts`, ADR-0080).
+
 ## [1.3.1] — 2026-11-07
 
 The Atrament design system now also covers the screens before login (sign-in and the landing page), and a round of visual fixes gives the app its Polish name and its own mark.
@@ -138,7 +175,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.1.0...v1.2.0
