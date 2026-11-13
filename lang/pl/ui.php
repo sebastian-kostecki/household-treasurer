@@ -190,6 +190,7 @@ return [
         'month_to_spend' => 'Do wydania · :month',
         'month_days_caption' => 'upływ dni :elapsed/:days',
         'liquidity_caption' => 'konta, bez lokat',
+        'liquidity_collected_caption' => 'w tym zebrane :amount',
         'total_funds_caption' => 'z lokatami',
         'meta_budget_execution' => 'budżet :year w realizacji',
         'meta_budget_draft' => 'budżet :year w szkicu',

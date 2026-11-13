@@ -119,6 +119,7 @@ export type DashboardPageProps = {
         to_spend_minor_units: number;
     } | null;
     month_pace: MonthPace | null;
+    collected_minor_units: number | null;
     current_month: number | null;
     planSummary: PlanSummary | null;
 };

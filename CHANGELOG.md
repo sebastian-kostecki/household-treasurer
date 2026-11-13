@@ -6,6 +6,10 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+### Added
+
+- The Dashboard shows the Collected Coverage: under "Płynność dysponowalna" the caption adds "w tym zebrane" with the Collected of the current month's irregular Categories (the same sum as the "zebrane" of the Month Plan rows), and a "Zebrane bez pokrycia" warning card appears in "Wymaga uwagi" when the Spendable Liquidity is lower than that sum (`collected-coverage`, ADR-0090).
+
 ## [1.4.2] — 2026-11-13
 
 Operations loaded from the old budget spreadsheets can now be moved to another Category from the Operations list, one row at a time, without reloading the year (ADR-0089).

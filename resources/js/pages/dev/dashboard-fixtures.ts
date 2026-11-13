@@ -161,6 +161,7 @@ const defaultProps: DashboardPageProps = {
         percent: 60,
         is_ahead: false,
     },
+    collected_minor_units: 60_000,
     current_month: 9,
     planSummary: {
         income: {
@@ -308,6 +309,7 @@ const emptyNewUserProps: DashboardPageProps = {
     dashboardNotices: [],
     month_to_spend: null,
     month_pace: null,
+    collected_minor_units: null,
     current_month: null,
     planSummary: null,
 };
@@ -564,6 +566,7 @@ const noMonthPlanProps: DashboardPageProps = {
     ...defaultProps,
     month_to_spend: null,
     month_pace: null,
+    collected_minor_units: null,
 };
 
 export const dashboardScenarios: DashboardScenario[] = [

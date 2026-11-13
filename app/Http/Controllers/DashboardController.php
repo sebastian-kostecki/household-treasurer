@@ -148,6 +148,7 @@ class DashboardController extends Controller
             'dashboardNotices' => $dashboardNotices,
             'month_to_spend' => $monthToSpend,
             'month_pace' => $monthPace,
+            'collected_minor_units' => $collectedCoverage['collected_minor_units'] ?? null,
             'current_month' => $currentMonth,
             'planSummary' => $planSummary,
             'incomeTotals' => $incomeTotals,

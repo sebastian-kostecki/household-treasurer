@@ -323,26 +323,26 @@ Odczyt używa już załadowanego `MonthToSpend` i kolekcji pozycji wydatkowych z
 
 #### Automated
 
-- [x] 3.1 Testy pulpitu przechodzą
-- [x] 3.2 Testy pulpitu przechodzą na PostgreSQL
-- [x] 3.3 Testy JS przechodzą
-- [x] 3.4 Typy przechodzą
-- [x] 3.5 Strażnik literałów UI przechodzi
+- [x] 3.1 Testy pulpitu przechodzą — 76853d3
+- [x] 3.2 Testy pulpitu przechodzą na PostgreSQL — 76853d3
+- [x] 3.3 Testy JS przechodzą — 76853d3
+- [x] 3.4 Typy przechodzą — 76853d3
+- [x] 3.5 Strażnik literałów UI przechodzi — 76853d3
 
 #### Manual
 
-- [x] 3.6 Karta w kitchen sinku: ostatnia, kolor ostrzeżenia, tekst mieści się na telefonie i w trybie ciemnym
+- [x] 3.6 Karta w kitchen sinku: ostatnia, kolor ostrzeżenia, tekst mieści się na telefonie i w trybie ciemnym — 76853d3
 
 ### Phase 4: Podpis w panelu liczb i bramka
 
 #### Automated
 
-- [ ] 4.1 Pełna bramka na PostgreSQL
-- [ ] 4.2 Sloppy bez nowych znalezisk
-- [ ] 4.3 Strażnik literałów UI przechodzi
-- [ ] 4.4 E2E przechodzą
+- [x] 4.1 Pełna bramka na PostgreSQL
+- [x] 4.2 Sloppy bez nowych znalezisk
+- [x] 4.3 Strażnik literałów UI przechodzi
+- [x] 4.4 E2E przechodzą (3 awarie istniejące na development: categories:394, irregular-collected:68, month-plan-groups:81)
 
 #### Manual
 
-- [ ] 4.5 Podpis z kategorią nieregularną równa się sumie wierszy planu miesiąca
-- [ ] 4.6 Podpis bez kategorii nieregularnej jest bez zmian
+- [x] 4.5 Podpis z kategorią nieregularną równa się sumie wierszy planu miesiąca
+- [x] 4.6 Podpis bez kategorii nieregularnej jest bez zmian

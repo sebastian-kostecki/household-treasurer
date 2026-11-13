@@ -19,6 +19,7 @@ const props = defineProps<{
         to_spend_minor_units: number;
     } | null;
     monthPace: MonthPace | null;
+    collectedMinorUnits: number | null;
     spendableLiquidityMinorUnits: number;
     totalFundsMinorUnits: number;
 }>();
@@ -83,7 +84,10 @@ const metrics = computed<StatPanelMetric[]>(() => {
             id: 'liquidity',
             label: t.dashboard.spendable_liquidity,
             value: formatMoney(props.spendableLiquidityMinorUnits),
-            caption: t.dashboard.liquidity_caption,
+            caption:
+                props.collectedMinorUnits === null
+                    ? t.dashboard.liquidity_caption
+                    : `${t.dashboard.liquidity_caption} · ${t.dashboard.liquidity_collected_caption.replace(':amount', formatMoney(props.collectedMinorUnits))}`,
         },
         {
             id: 'total-funds',

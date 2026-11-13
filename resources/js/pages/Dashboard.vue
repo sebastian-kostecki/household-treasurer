@@ -180,6 +180,7 @@ const canSelectCurrentYearInShell = computed(() =>
             :current-month="current_month"
             :month-to-spend="month_to_spend"
             :month-pace="month_pace"
+            :collected-minor-units="collected_minor_units"
             :spendable-liquidity-minor-units="spendable_liquidity_minor_units"
             :total-funds-minor-units="total_funds_minor_units"
             @start="onYearSelectionStart"

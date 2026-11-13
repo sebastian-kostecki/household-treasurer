@@ -74,3 +74,8 @@ test('month pace scenarios hit their edges', () => {
     expect(none.month_to_spend).toBeNull();
     expect(none.month_pace).toBeNull();
 });
+
+test('liquidity caption has both states: with and without the collected total', () => {
+    expect(scenario('all-notice-kinds').collected_minor_units).toBe(60_000);
+    expect(scenario('no-month-plan').collected_minor_units).toBeNull();
+});
