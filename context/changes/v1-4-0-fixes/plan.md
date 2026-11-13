@@ -497,7 +497,7 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 - [x] 5.1 Vitest for budget-year-menu and ui-contract passes — cdf98b8
 - [x] 5.2 UI literal check passes — cdf98b8
 - [x] 5.3 Types pass after build — cdf98b8
-- [ ] 5.4 Year switcher e2e specs pass
+- [x] 5.4 Year switcher e2e specs pass — 4055727
 - [x] 5.5 Full gate passes: composer ci:check — cdf98b8
 
 #### Manual
