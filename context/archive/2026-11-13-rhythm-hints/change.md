@@ -1,10 +1,10 @@
 ---
 change_id: rhythm-hints
 title: Podpowiedzi przy wyborze rytmu kategorii w „Kategoriach”
-status: impl_reviewed
+status: archived
 created: 2026-11-13
 updated: 2026-11-13
-archived_at: null
+archived_at: 2026-11-13T20:17:22Z
 ---
 
 ## Notes
