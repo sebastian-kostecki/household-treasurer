@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
 use App\Models\Account;
 use App\Support\AccountIdentity;
+use App\Support\AccountReconciliationReading;
 use App\Support\SpendableLiquidity;
 use App\Support\TotalFunds;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -29,12 +30,16 @@ class AccountController extends Controller
             ->orderBy('name')
             ->get();
 
-        $accounts = $allAccounts
+        $visibleAccounts = $allAccounts
             ->when(! $showArchived, fn ($collection) => $collection->filter(
                 fn (Account $account): bool => ! $account->isArchived(),
             ))
-            ->values()
-            ->map(fn (Account $account): array => $this->accountPayload($account));
+            ->values();
+
+        $lastReconciliations = AccountReconciliationReading::lastForAccounts($visibleAccounts);
+
+        $accounts = $visibleAccounts
+            ->map(fn (Account $account): array => $this->accountPayload($account, $lastReconciliations[$account->id] ?? null));
 
         return Inertia::render('Accounts', [
             'accounts' => $accounts,
@@ -150,6 +155,7 @@ class AccountController extends Controller
     }
 
     /**
+     * @param  array{reconciled_on: string, bank_balance_minor_units: int, balance_minor_units: int, difference_minor_units: int, agrees: bool}|null  $lastReconciliation
      * @return array{
      *     id: int,
      *     name: string,
@@ -164,9 +170,11 @@ class AccountController extends Controller
      *     can_delete: bool,
      *     can_archive: bool,
      *     can_restore: bool,
+     *     can_reconcile: bool,
+     *     last_reconciliation: array{reconciled_on: string, bank_balance_minor_units: int, balance_minor_units: int, difference_minor_units: int, agrees: bool}|null,
      * }
      */
-    private function accountPayload(Account $account): array
+    private function accountPayload(Account $account, ?array $lastReconciliation): array
     {
         return [
             ...AccountIdentity::payload($account),
@@ -178,6 +186,8 @@ class AccountController extends Controller
             'can_delete' => ! $account->hasFinancialHistory() && ! $account->isArchived(),
             'can_archive' => $account->hasFinancialHistory() && ! $account->isArchived(),
             'can_restore' => $account->isArchived(),
+            'can_reconcile' => ! $account->isArchived(),
+            'last_reconciliation' => $lastReconciliation,
         ];
     }
 }

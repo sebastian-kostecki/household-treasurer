@@ -99,6 +99,14 @@ class Account extends Model
         return $this->hasMany(CapitalMovement::class);
     }
 
+    /**
+     * @return HasMany<BalanceReconciliation, $this>
+     */
+    public function balanceReconciliations(): HasMany
+    {
+        return $this->hasMany(BalanceReconciliation::class);
+    }
+
     public function hasFinancialHistory(): bool
     {
         return $this->financialOperations()->exists()
