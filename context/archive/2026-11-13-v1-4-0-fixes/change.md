@@ -1,10 +1,10 @@
 ---
 change_id: v1-4-0-fixes
 title: Poprawki po 1.4.0 — lata w sidebarze, filtry i scroll operacji, budżet
-status: impl_reviewed
+status: archived
 created: 2026-11-13
 updated: 2026-11-13
-archived_at: null
+archived_at: 2026-11-13T10:26:51Z
 ---
 
 ## Notes
