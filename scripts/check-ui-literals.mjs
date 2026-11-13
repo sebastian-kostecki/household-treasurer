@@ -161,6 +161,7 @@ const FILES = [
     'resources/js/components/InputError.vue',
     'resources/js/pages/dev/DialogsKitchenSink.vue',
     'resources/js/components/ExpenseFormDialog.vue',
+    'resources/js/components/OperationCategoryDialog.vue',
     'resources/js/components/IncomeFormDialog.vue',
     'resources/js/components/OwnTransferFormDialog.vue',
     'resources/js/components/CapitalMovementFormDialog.vue',

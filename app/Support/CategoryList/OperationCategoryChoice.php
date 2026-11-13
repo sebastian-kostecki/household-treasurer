@@ -18,7 +18,8 @@ use App\Support\BudgetLineResolver;
  * an unchanged Category of an existing operation also passes when it is
  * archived, as long as the year's Budget has its line. A year loaded from a
  * sheet (the User has a Sheet Account for it) is closed to new operations
- * (ADR-0085).
+ * (ADR-0085); there only the Category of an existing sheet operation changes,
+ * under the same rule (ADR-0089).
  */
 final class OperationCategoryChoice
 {
@@ -32,11 +33,7 @@ final class OperationCategoryChoice
         int $year,
         ?int $currentCategoryId,
     ): ?string {
-        $category = Category::query()
-            ->whereKey($categoryId)
-            ->where('user_id', $user->id)
-            ->where('type', $type->value)
-            ->first();
+        $category = self::categoryOfType($user, $categoryId, $type);
 
         if (! $category instanceof Category) {
             return (string) __('The selected category is invalid.');
@@ -46,6 +43,40 @@ final class OperationCategoryChoice
             return (string) __('This year was loaded from a sheet and is closed for new operations.');
         }
 
+        return self::checkInBudget($user, $category, $type, $year, $currentCategoryId);
+    }
+
+    /**
+     * The Category change of an operation of a Sheet Account (ADR-0089): the
+     * rule of {@see check()} inside the loaded year, which stays closed to
+     * every other entry.
+     *
+     * @return string|null the error message, or null when the Category may be used
+     */
+    public static function checkSheetRecategorisation(
+        User $user,
+        int $categoryId,
+        CategoryType $type,
+        int $year,
+        int $currentCategoryId,
+    ): ?string {
+        $category = self::categoryOfType($user, $categoryId, $type);
+
+        if (! $category instanceof Category) {
+            return (string) __('The selected category is invalid.');
+        }
+
+        return self::checkInBudget($user, $category, $type, $year, $currentCategoryId);
+    }
+
+    private static function checkInBudget(
+        User $user,
+        Category $category,
+        CategoryType $type,
+        int $year,
+        ?int $currentCategoryId,
+    ): ?string {
+        $categoryId = $category->id;
         $budget = Budget::query()->where('user_id', $user->id)->where('year', $year)->first();
 
         if (! $budget instanceof Budget) {
@@ -68,6 +99,15 @@ final class OperationCategoryChoice
         }
 
         return $line->isArchived() || $category->isArchived() ? (string) __('The selected category is invalid.') : null;
+    }
+
+    private static function categoryOfType(User $user, int $categoryId, CategoryType $type): ?Category
+    {
+        return Category::query()
+            ->whereKey($categoryId)
+            ->where('user_id', $user->id)
+            ->where('type', $type->value)
+            ->first();
     }
 
     /**

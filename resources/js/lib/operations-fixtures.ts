@@ -55,6 +55,7 @@ const baseOperation = {
     category_icon: 'shopping-cart',
     category_color: '#0d9488',
     category_archived: false,
+    sheet_operation: false,
     ...mainAccount,
 } as const;
 
@@ -147,6 +148,23 @@ export const otherBankArchivedOperation: FinancialOperationRowData = {
     category_label: 'Rachunki',
 };
 
+/** Operacja z wczytanego arkusza: menu ma „Zmień kategorię” zamiast „Edytuj” (ADR-0089). */
+export const sheetOperation: FinancialOperationRowData = {
+    ...baseOperation,
+    id: 9,
+    account_id: 6,
+    account_name: 'Arkusz 2025',
+    account_type: 'bank',
+    account_bank: 'other',
+    account_mark_url: null,
+    type: 'expense',
+    operation_date: '2025-03-31',
+    amount_minor_units: 48210,
+    description: 'Artykuły spożywcze',
+    category_label: 'Jedzenie',
+    sheet_operation: true,
+};
+
 /** Dzień z dodatnią sumą (dochód, zwrot, wydatek), potem dzień z ujemną. */
 export const financialOperationFixtures: FinancialOperationRowData[] = [
     incomeOperation,
@@ -157,6 +175,7 @@ export const financialOperationFixtures: FinancialOperationRowData[] = [
     cashOperation,
     bankWithoutLogoOperation,
     otherBankArchivedOperation,
+    sheetOperation,
 ];
 
 /** Sumy dnia liczy serwer; tu: 8500,00 + 45,00 − 123,45 oraz −69,90 − 249,99. */

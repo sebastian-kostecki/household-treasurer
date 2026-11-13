@@ -28,6 +28,7 @@ use App\Http\Controllers\MonthPlanController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\OwnTransferController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SheetOperationCategoryController;
 use App\Http\Controllers\TermDepositController;
 use Illuminate\Support\Facades\Route;
 
@@ -103,6 +104,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('operations/import/preview', [CsvImportController::class, 'showPreview'])->name('operations.import.preview');
     Route::post('operations/import', [CsvImportController::class, 'store'])->name('operations.import.store');
     Route::post('incomes', [IncomeController::class, 'store'])->name('incomes.store');
+    Route::patch('operations/{financial_operation}/category', [SheetOperationCategoryController::class, 'update'])->name('operations.category.update');
     Route::patch('incomes/{financial_operation}', [IncomeController::class, 'update'])->name('incomes.update');
     Route::delete('incomes/{financial_operation}', [IncomeController::class, 'destroy'])->name('incomes.destroy');
     Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');

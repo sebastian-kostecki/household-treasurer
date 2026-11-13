@@ -15,6 +15,7 @@ import type {
     IncomeFormExpenseCategory,
     IncomeFormOperation,
 } from '@/components/IncomeFormDialog.vue';
+import type { OperationCategoryDialogOperation } from '@/components/OperationCategoryDialog.vue';
 import type {
     OwnTransferFormAccount,
     OwnTransferFormTransfer,
@@ -285,6 +286,32 @@ export const dialogIncomeOperation: IncomeFormOperation = {
     account_id: 1,
     category_id: 10,
 };
+
+/** An operation of a Sheet Account: only its Category changes (ADR-0089). */
+export const dialogSheetOperation: OperationCategoryDialogOperation = {
+    id: 6,
+    type: 'expense',
+    operation_date: `${year}-01-31`,
+    amount_minor_units: 48210,
+    description: 'Artykuły spożywcze',
+    account_name: `Arkusz ${year}`,
+    category_id: 2,
+    category_label: 'Rozrywka',
+    category_icon: 'ticket',
+    category_color: 'purple',
+    category_archived: false,
+};
+
+/** The same operation on the archived Category the load created, which is not on the year's list. */
+export const dialogSheetOperationArchivedCategory: OperationCategoryDialogOperation =
+    {
+        ...dialogSheetOperation,
+        category_id: 99,
+        category_label: 'Kosmetyki',
+        category_icon: 'sparkles',
+        category_color: 'pink',
+        category_archived: true,
+    };
 
 export const dialogOwnTransfer: OwnTransferFormTransfer = {
     id: 4,

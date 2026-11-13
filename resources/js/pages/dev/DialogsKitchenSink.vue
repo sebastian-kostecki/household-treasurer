@@ -14,6 +14,7 @@ import CreateBudgetDialog from '@/components/CreateBudgetDialog.vue';
 import CapitalMovementFormDialog from '@/components/CapitalMovementFormDialog.vue';
 import ExpenseFormDialog from '@/components/ExpenseFormDialog.vue';
 import IncomeFormDialog from '@/components/IncomeFormDialog.vue';
+import OperationCategoryDialog from '@/components/OperationCategoryDialog.vue';
 import OwnTransferFormDialog from '@/components/OwnTransferFormDialog.vue';
 import TermDepositFormDialog from '@/components/TermDepositFormDialog.vue';
 import { Alert } from '@/components/ui/alert';
@@ -46,6 +47,8 @@ import {
     dialogIncomeOperation,
     dialogOwnTransfer,
     dialogRefundOperation,
+    dialogSheetOperation,
+    dialogSheetOperationArchivedCategory,
     dialogTermDeposits,
 } from '@/lib/operation-dialogs-fixtures';
 
@@ -118,6 +121,9 @@ const states = [
     'income-new',
     'income-edit',
     'income-errors',
+    'sheet-category',
+    'sheet-category-archived',
+    'sheet-category-errors',
     'transfer-new',
     'transfer-edit',
     'transfer-negative',
@@ -213,6 +219,9 @@ const labels: Record<SinkState, string> = {
     'capital-edit': 'Ruch kapitału: edycja',
     'capital-negative-deposit': 'Ruch kapitału: ujemna lokata',
     'capital-errors': 'Ruch kapitału: zapis i błędy',
+    'sheet-category': 'Arkusz: zmiana kategorii',
+    'sheet-category-archived': 'Arkusz: kategoria zarchiwizowana',
+    'sheet-category-errors': 'Arkusz: zapis i błędy',
 };
 
 const account: AccountFormAccount = {
@@ -875,6 +884,28 @@ function setOpen(state: SinkState, value: boolean): void {
             :hand-entry-month-remaining="dialogHandEntryMonthRemaining"
             :entry-to-spend="dialogEntryToSpend"
             @update:open="setOpen('expense-errors', $event)"
+        />
+        <OperationCategoryDialog
+            :open="isOpen('sheet-category')"
+            :operation="dialogSheetOperation"
+            :income-categories="dialogIncomeCategories"
+            :expense-categories="dialogExpenseCategories"
+            @update:open="setOpen('sheet-category', $event)"
+        />
+        <OperationCategoryDialog
+            :open="isOpen('sheet-category-archived')"
+            :operation="dialogSheetOperationArchivedCategory"
+            :income-categories="dialogIncomeCategories"
+            :expense-categories="dialogExpenseCategories"
+            @update:open="setOpen('sheet-category-archived', $event)"
+        />
+        <OperationCategoryDialog
+            :open="isOpen('sheet-category-errors')"
+            :operation="dialogSheetOperation"
+            :form="validateForm"
+            :income-categories="dialogIncomeCategories"
+            :expense-categories="dialogExpenseCategories"
+            @update:open="setOpen('sheet-category-errors', $event)"
         />
         <IncomeFormDialog
             :open="isOpen('income-new')"

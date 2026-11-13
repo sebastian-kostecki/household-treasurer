@@ -23,6 +23,8 @@ defineProps<{
     destroyForm: Pick<FormBinding, 'action' | 'method'>;
     deleteTitle: string;
     deleteDescription: string;
+    /** Replaces „Edytuj” when the row allows a narrower change (ADR-0089). */
+    editLabel?: string;
 }>();
 
 const emit = defineEmits<{
@@ -49,7 +51,7 @@ const deleteDialogOpen = ref(false);
             <DropdownMenuContent align="end">
                 <DropdownMenuItem @select="emit('edit')">
                     <Pencil class="size-4" aria-hidden="true" />
-                    {{ t.accounts.edit }}
+                    {{ editLabel ?? t.accounts.edit }}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     class="text-destructive focus:text-destructive"

@@ -41,7 +41,7 @@ class OperationsController extends Controller
         }
 
         $operations = $operationsQuery
-            ->with(['account:id,name,type,bank', 'budgetLine:id,category_id,archived_at'])
+            ->with(['account:id,name,type,bank,sheet_year', 'budgetLine:id,category_id,archived_at'])
             ->orderByDesc('operation_date')
             ->orderByDesc('id')
             ->paginate(self::OPERATIONS_PER_PAGE, pageName: 'operations_page')
@@ -60,6 +60,7 @@ class OperationsController extends Controller
                 'category_icon' => $operation->budgetLine->category->icon,
                 'category_color' => $operation->budgetLine->category->color,
                 'category_archived' => $operation->budgetLine->isArchived() || $operation->budgetLine->category->isArchived(),
+                'sheet_operation' => $operation->account->isSheetAccount(),
                 ...AccountIdentity::prefixedRowFields($operation->account, 'account'),
             ]);
 

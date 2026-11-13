@@ -940,6 +940,8 @@ return [
         'edit_expense_title' => 'Edytuj wydatek',
         'edit_refund_title' => 'Edytuj zwrot wydatku',
         'edit_expense_description' => 'Zmień datę, kwotę, opis, konto lub kategorię wydatku.',
+        'change_category' => 'Zmień kategorię',
+        'change_category_description' => 'Operacja z wczytanego arkusza: zmienia się tylko kategoria. Kwota, data i konto zostają bez zmian.',
         'delete_expense_confirm_title' => 'Usunąć wydatek?',
         'delete_expense_confirm_body' => 'Saldo konta i wykonanie kategorii zostaną przywrócone. Tej operacji nie można cofnąć.',
         'add_refund_title' => 'Zarejestruj zwrot wydatku',
