@@ -121,7 +121,7 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | Komenda                             | Działanie                                                                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `user:create`                       | Konto logowania                                                                                                                 |
-| `user:backup {user}`                | Snapshot JSON danych domenowych (wersja 12)                                                                                     |
+| `user:backup {user}`                | Snapshot JSON danych domenowych (wersja 13)                                                                                     |
 | `user:restore {user} {path}`        | Przywrócenie snapshotu na istniejącego użytkownika                                                                              |
 | `user:reset-data {user}`            | Wyczyszczenie danych domenowych, konto logowania zostaje                                                                        |
 | `demo:seed-household {user}`        | Dane demo                                                                                                                       |
@@ -212,6 +212,10 @@ Migracja S-33 dodaje jedną nullable kolumnę (`users.default_set_aside_percent`
 #### Wycofanie legacy-budget-import po wdrożeniu
 
 Migracja `add_sheet_year_to_accounts_table` dodaje jedną nullable kolumnę (`accounts.sheet_year`, unikalną razem z `user_id`) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` odmawia (`RuntimeException` z liczbą kont), gdy istnieje choć jedno konto arkusza, bo usunięcie kolumny zamieniłoby je w zwykłe konta i zmieniło płynność. Najpierw cofnij każdy wczytany rok komendą `budget:unload-sheet` (zrób wcześniej `user:backup`), potem `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh` (jak w „Wycofanie S-18”). Snapshot wersji 12 (`user:backup` po tej zmianie) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `down()` po `budget:unload-sheet`, nie restore nowego snapshotu w starym kodzie.
+
+#### Wycofanie balance-reconciliation po wdrożeniu
+
+Migracja `create_balance_reconciliations_table` dodaje tylko nową tabelę (ADR-0091) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` usuwa tabelę: znikają zapisane uzgodnienia sald, a konta, operacje i salda zostają. Uzgodnienia nie trafiają do snapshotu wersji 12 ani starszych, więc po cofnięciu zrób `user:backup` przed `migrate:rollback`, jeśli chcesz je zachować. Snapshot wersji 13 (`user:backup` po tej zmianie) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`.
 
 #### Wczytanie arkusza (lata 2022–2025)
 

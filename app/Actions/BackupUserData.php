@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Account;
+use App\Models\BalanceReconciliation;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupUserData
 {
-    public const SNAPSHOT_VERSION = 12;
+    public const SNAPSHOT_VERSION = 13;
 
     public const SNAPSHOT_DIRECTORY = 'user-snapshots';
 
@@ -38,6 +39,11 @@ class BackupUserData
                 ->orderBy('id')
                 ->get()
                 ->map(fn ($account): array => $this->serializeAccount($account))
+                ->all(),
+            'balance_reconciliations' => $user->balanceReconciliations()
+                ->orderBy('id')
+                ->get()
+                ->map(fn ($reconciliation): array => $this->serializeBalanceReconciliation($reconciliation))
                 ->all(),
             'term_deposits' => $user->termDeposits()
                 ->orderBy('id')
@@ -119,6 +125,21 @@ class BackupUserData
             'archived_at' => $account->archived_at?->toIso8601String(),
             'created_at' => $account->created_at?->toIso8601String(),
             'updated_at' => $account->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeBalanceReconciliation(BalanceReconciliation $reconciliation): array
+    {
+        return [
+            'id' => $reconciliation->id,
+            'account_id' => $reconciliation->account_id,
+            'reconciled_on' => $reconciliation->reconciled_on->toDateString(),
+            'bank_balance_minor_units' => $reconciliation->bank_balance_minor_units,
+            'created_at' => $reconciliation->created_at?->toIso8601String(),
+            'updated_at' => $reconciliation->updated_at?->toIso8601String(),
         ];
     }
 
