@@ -47,6 +47,16 @@ class AccountPolicy
             && $account->isArchived();
     }
 
+    /**
+     * A Balance Reconciliation (ADR-0091): not for a Sheet Account and not for an archived one.
+     */
+    public function reconcile(User $user, Account $account): bool
+    {
+        return $this->ownsAccount($user, $account)
+            && ! $account->isSheetAccount()
+            && ! $account->isArchived();
+    }
+
     private function ownsAccount(User $user, Account $account): bool
     {
         return $user->id === $account->user_id;

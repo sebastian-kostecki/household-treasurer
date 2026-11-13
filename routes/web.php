@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountReconciliationController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CapitalMovementController;
 use App\Http\Controllers\CategoryController;
@@ -93,7 +94,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
     Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
+    Route::get('accounts/{account}/reconciliation-preview', [AccountReconciliationController::class, 'preview'])->name('accounts.reconciliations.preview');
+    Route::post('accounts/{account}/reconciliations', [AccountReconciliationController::class, 'store'])->name('accounts.reconciliations.store');
+    Route::post('accounts/{account}/archive',[AccountController::class, 'archive'])->name('accounts.archive');
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');
     Route::resource('term-deposits', TermDepositController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('term-deposits/{term_deposit}/archive', [TermDepositController::class, 'archive'])->name('term-deposits.archive');
