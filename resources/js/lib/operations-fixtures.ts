@@ -274,6 +274,10 @@ export const searchFiltersFixture: OperationsListFilters = {
     q: 'zakupy',
 };
 
+const dom = { id: 1, name: 'Dom' };
+const transport = { id: 2, name: 'Transport' };
+
+/** In the order of the Categories list: Ż before A, groups, one without a group, one archived. */
 export const filterCategoriesFixture: OperationsFilterCategory[] = [
     {
         id: 1,
@@ -281,13 +285,53 @@ export const filterCategoriesFixture: OperationsFilterCategory[] = [
         type: 'income',
         icon: 'banknote',
         color: '#0d9488',
+        group: null,
+        is_archived: false,
     },
     {
         id: 2,
-        name: 'Jedzenie',
+        name: 'Żywność',
         type: 'expense',
         icon: 'utensils',
         color: '#0d9488',
+        group: null,
+        is_archived: false,
+    },
+    {
+        id: 3,
+        name: 'Czynsz',
+        type: 'expense',
+        icon: 'home',
+        color: '#e03131',
+        group: dom,
+        is_archived: false,
+    },
+    {
+        id: 4,
+        name: 'Media',
+        type: 'expense',
+        icon: 'zap',
+        color: '#f59f00',
+        group: dom,
+        is_archived: false,
+    },
+    {
+        id: 5,
+        name: 'Auto',
+        type: 'expense',
+        icon: 'car',
+        color: '#1971c2',
+        group: transport,
+        is_archived: false,
+    },
+    {
+        id: 6,
+        name: 'Komunikacja miejska',
+        type: 'expense',
+        icon: 'bus',
+        color: '#7048e8',
+        group: transport,
+        is_archived: true,
     },
 ];
 
@@ -337,6 +381,12 @@ export const filterAccountsFixture: OperationsFilterAccount[] = [
 export const accountFilterFixture: OperationsListFilters = {
     ...EMPTY_OPERATIONS_FILTERS,
     account_id: 1,
+};
+
+/** The filter on the archived Category: the picker shows its suffix, the chip does not. */
+export const categoryFilterFixture: OperationsListFilters = {
+    ...EMPTY_OPERATIONS_FILTERS,
+    category_id: 6,
 };
 
 export const filterTermDepositsFixture: OperationsFilterTermDeposit[] = [

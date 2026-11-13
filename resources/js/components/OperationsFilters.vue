@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { ChevronDown, Search, SlidersHorizontal } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import AccountSelect from '@/components/AccountSelect.vue';
+import CategorySelect from '@/components/CategorySelect.vue';
 import OperationsActiveFilterChips, {
     type OperationsFilterChipKey,
     type OperationsListSection,
@@ -42,6 +43,8 @@ export type OperationsFilterCategory = {
     type: 'income' | 'expense';
     icon: string;
     color: string;
+    group: { id: number; name: string } | null;
+    is_archived: boolean;
 };
 
 export type OperationsFilterAccount = AccountPickerOption & {
@@ -89,17 +92,6 @@ const panelOpen = ref(hasPanelFilters.value);
 
 const termDepositOptions = computed(() =>
     termDepositPickerOptions(props.termDeposits),
-);
-
-const incomeCategories = computed(() =>
-    props.categories.filter((category) => category.type === 'income'),
-);
-const expenseCategories = computed(() =>
-    props.categories.filter((category) => category.type === 'expense'),
-);
-
-const categoryValue = computed(() =>
-    props.filters.category_id === null ? '' : String(props.filters.category_id),
 );
 
 const thisMonthRange = computed(() => monthRange(0));
@@ -234,11 +226,6 @@ function applyFilters(patch: Partial<OperationsListFilters>): void {
 function onYearChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     applyFilters({ year: value === '' ? null : Number(value) });
-}
-
-function onCategoryChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    applyFilters({ category_id: value === '' ? null : Number(value) });
 }
 
 function onDateFromChange(value: string | number): void {
@@ -448,40 +435,22 @@ function removeFilter(key: OperationsFilterChipKey): void {
                     >
                         {{ t.operations.filter_category }}
                     </Label>
-                    <select
+                    <CategorySelect
                         id="operations-filter-category"
-                        class="native-select"
-                        :value="categoryValue"
-                        @change="onCategoryChange"
-                    >
-                        <option value="">
-                            {{ t.operations.filter_category_all }}
-                        </option>
-                        <optgroup
-                            v-if="incomeCategories.length > 0"
-                            :label="t.operations.type_income"
-                        >
-                            <option
-                                v-for="category in incomeCategories"
-                                :key="category.id"
-                                :value="category.id"
-                            >
-                                {{ category.name }}
-                            </option>
-                        </optgroup>
-                        <optgroup
-                            v-if="expenseCategories.length > 0"
-                            :label="t.operations.type_expense"
-                        >
-                            <option
-                                v-for="category in expenseCategories"
-                                :key="category.id"
-                                :value="category.id"
-                            >
-                                {{ category.name }}
-                            </option>
-                        </optgroup>
-                    </select>
+                        :model-value="filters.category_id ?? ''"
+                        :categories="categories"
+                        :all-option-label="t.operations.filter_category_all"
+                        :archived-suffix="t.operations.category_archived_suffix"
+                        :section-labels="{
+                            income: t.operations.filter_category_income,
+                            expense: t.operations.filter_category_expense,
+                        }"
+                        @update:model-value="
+                            applyFilters({
+                                category_id: $event === '' ? null : $event,
+                            })
+                        "
+                    />
                 </div>
 
                 <div v-if="accounts.length > 0" class="grid gap-1">

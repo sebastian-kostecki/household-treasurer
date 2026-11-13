@@ -300,6 +300,8 @@ export type CategoryPickerOption = CategoryAppearanceFields & {
     id: number;
     name: string;
     group?: CategoryPickerGroup | null;
+    type?: 'income' | 'expense';
+    is_archived?: boolean;
 };
 
 export type CategoryAppearanceOptions = {

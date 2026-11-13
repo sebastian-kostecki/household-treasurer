@@ -6,6 +6,7 @@ import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     accountFilterFixture,
+    categoryFilterFixture,
     capitalMovementFixtures,
     emptyPaginator,
     filterAccountsFixture,
@@ -63,6 +64,12 @@ const filteredEmpty = {
 const accountFiltered = {
     ...base,
     filters: accountFilterFixture,
+    filtersActive: true,
+};
+
+const categoryFiltered = {
+    ...base,
+    filters: categoryFilterFixture,
     filtersActive: true,
 };
 
@@ -201,6 +208,7 @@ const noRecords = {
                 konta, zwrot z kontem w linii meta.
             </p>
             <OperationsListPanel v-bind="accountFiltered" />
+            <OperationsListPanel v-bind="categoryFiltered" />
 
             <h3 class="section-title">Disabled</h3>
             <p class="meta text-muted-foreground">

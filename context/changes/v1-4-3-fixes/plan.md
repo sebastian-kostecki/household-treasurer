@@ -683,34 +683,34 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 
 #### Automated
 
-- [x] 2.1 Asercje payloadów lokat czerwone przed zmianą i zielone po niej
-- [x] 2.2 npm run types:check, npm test i npm run check:ui przechodzą
-- [x] 2.3 ImportPreviewHardcodedUiTest przechodzi
-- [x] 2.4 Pint i sloppy ci bez nowych znalezisk
-- [x] 2.5 Asercje wysyłki lokat przechodzą przed zamianą selectów i po niej
+- [x] 2.1 Asercje payloadów lokat czerwone przed zmianą i zielone po niej — de9763a
+- [x] 2.2 npm run types:check, npm test i npm run check:ui przechodzą — de9763a
+- [x] 2.3 ImportPreviewHardcodedUiTest przechodzi — de9763a
+- [x] 2.4 Pint i sloppy ci bez nowych znalezisk — de9763a
+- [x] 2.5 Asercje wysyłki lokat przechodzą przed zamianą selectów i po niej — de9763a
 
 #### Manual
 
-- [x] 2.6 /dev/operations: filtr lokat z awatarami, „Wszystkie lokaty”, sufiks, chip z awatarem
-- [x] 2.7 /dev/ui/dialogs capital-new i capital-errors: lokaty z awatarami i błąd pola
-- [x] 2.8 /dev/import-preview: lokata, wiersz wyłączony, nawigacja klawiaturą
-- [x] 2.9 Zapis ruchu kapitału i importu z lokatą jak przed zmianą
+- [x] 2.6 /dev/operations: filtr lokat z awatarami, „Wszystkie lokaty”, sufiks, chip z awatarem — de9763a
+- [x] 2.7 /dev/ui/dialogs capital-new i capital-errors: lokaty z awatarami i błąd pola — de9763a
+- [x] 2.8 /dev/import-preview: lokata, wiersz wyłączony, nawigacja klawiaturą — de9763a
+- [x] 2.9 Zapis ruchu kapitału i importu z lokatą jak przed zmianą — de9763a
 
 ### Phase 3: Filtr kategorii Operacji
 
 #### Automated
 
-- [ ] 3.1 Nowe testy filtra czerwone przed zmianą serwera i zielone po niej na PostgreSQL
-- [ ] 3.2 Test vitest funkcji sekcji przechodzi
-- [ ] 3.3 npm run types:check i npm run check:ui przechodzą
-- [ ] 3.4 Specy E2E categories, command-palette i seed przechodzą
-- [ ] 3.5 Pint i sloppy ci bez nowych znalezisk
+- [x] 3.1 Nowe testy filtra czerwone przed zmianą serwera i zielone po niej na PostgreSQL
+- [x] 3.2 Test vitest funkcji sekcji przechodzi
+- [x] 3.3 npm run types:check i npm run check:ui przechodzą
+- [x] 3.4 Specy E2E categories, command-palette i seed przechodzą
+- [x] 3.5 Pint i sloppy ci bez nowych znalezisk
 
 #### Manual
 
-- [ ] 3.6 /dev/operations: „Wszystkie kategorie”, sekcje, grupy, chipy, sufiks
-- [ ] 3.7 /operations: wybór filtruje, „Wszystkie kategorie” czyści, link z palety zaznacza kategorię
-- [ ] 3.8 Okna wydatku i dochodu, scalania, zmiany kategorii i wiersz importu wyglądają jak przed zmianą
+- [x] 3.6 /dev/operations: „Wszystkie kategorie”, sekcje, grupy, chipy, sufiks
+- [x] 3.7 /operations: wybór filtruje, „Wszystkie kategorie” czyści, link z palety zaznacza kategorię
+- [x] 3.8 Okna wydatku i dochodu, scalania, zmiany kategorii i wiersz importu wyglądają jak przed zmianą
 
 ### Phase 4: Plan miesiąca
 
