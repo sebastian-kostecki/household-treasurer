@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Support\Console\ResolvesConsoleUser;
 use App\Support\MinorUnits;
 use App\Support\SheetLoad\BudgetSheetReader;
+use App\Support\SheetLoad\FundMovement;
+use App\Support\SheetLoad\SheetEntry;
 use App\Support\SheetLoad\SheetLoadException;
 use App\Support\SheetLoad\SheetLoadPlan;
 use App\Support\SheetLoad\SheetLoadPlanner;
@@ -81,6 +83,7 @@ class LoadBudgetSheetCommand extends Command
         $this->printWarnings('Ostrzeżenia arkusza', $plan->sheetWarnings);
         $this->printWarnings('Przeniesienia ujemnych przychodów', $plan->transfers);
         $this->printWarnings('Reszty bez rozpisania', $plan->remainders);
+        $this->printWarnings('Ruchy funduszu (bez operacji, liczone przez „Analizę”)', $plan->fundMovements);
 
         $rows = [];
 
@@ -90,14 +93,25 @@ class LoadBudgetSheetCommand extends Command
 
         $this->table(['Id', 'Kategoria', 'Kwota (zł)'], $rows);
 
-        $this->line('Przychody: '.MinorUnits::toMajorDisplay($plan->incomeTotal()).' zł, „Analiza” '.$plan->analysisIncome->address.': '.MinorUnits::toMajorDisplay($plan->analysisIncome->amountMinorUnits).' zł (zgodne)');
-        $this->line('Wydatki: '.MinorUnits::toMajorDisplay($plan->expenseTotal()).' zł, „Analiza” '.$plan->analysisExpense->address.': '.MinorUnits::toMajorDisplay($plan->analysisExpense->amountMinorUnits).' zł (zgodne)');
+        $this->line($this->totalLine('Przychody', $plan->incomeTotal(), $plan->fundIncomeTotal(), $plan->analysisIncome));
+        $this->line($this->totalLine('Wydatki', $plan->expenseTotal(), $plan->fundExpenseTotal(), $plan->analysisExpense));
         $this->line('Operacji: '.count($plan->operations));
         $this->line('Saldo otwarcia konta arkusza: '.MinorUnits::toMajorDisplay($plan->openingBalanceMinorUnits()).' zł');
     }
 
+    private function totalLine(string $title, int $operations, int $fund, SheetEntry $analysis): string
+    {
+        $analysisPart = '„Analiza” '.$analysis->address.': '.MinorUnits::toMajorDisplay($analysis->amountMinorUnits).' zł (zgodne)';
+
+        if ($fund === 0) {
+            return $title.': '.MinorUnits::toMajorDisplay($operations).' zł, '.$analysisPart;
+        }
+
+        return $title.': operacje '.MinorUnits::toMajorDisplay($operations).' zł + ruchy funduszu '.MinorUnits::toMajorDisplay($fund).' zł = '.$analysisPart;
+    }
+
     /**
-     * @param  list<SheetWarning>  $warnings
+     * @param  list<SheetWarning|FundMovement>  $warnings
      */
     private function printWarnings(string $title, array $warnings): void
     {

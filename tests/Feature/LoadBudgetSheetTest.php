@@ -299,3 +299,20 @@ it('closes the loaded year for hand-entry and for editing its operations', funct
 
     expect($real->refresh()->current_balance_minor_units)->toBe(480000);
 });
+
+it('loads a 2020-2021 workbook without a fund operation and leaves the sheet account at 0', function (): void {
+    [$user] = householdBeforeSheetLoad();
+
+    expect(loadSheetYear($user, ['layout' => '2020', 'year' => 2020]))->toBe(0);
+
+    $budget = $user->budgets()->where('year', 2020)->firstOrFail();
+    $sheet = $user->accounts()->where('sheet_year', 2020)->firstOrFail();
+    $income = (int) $budget->financialOperations()->where('type', FinancialOperationType::Income)->sum('amount_minor_units');
+    $expense = (int) $budget->financialOperations()->where('type', FinancialOperationType::Expense)->sum('amount_minor_units');
+
+    expect($budget->financialOperations()->where('description', 'like', '%Fundusz%')->count())->toBe(0)
+        ->and($budget->financialOperations()->where('description', 'like', '%Nadpłata%')->count())->toBe(0)
+        ->and($budget->financialOperations()->where('description', 'like', '%rozłożone%')->count())->toBe(0)
+        ->and($sheet->opening_balance_minor_units)->toBe($expense - $income)
+        ->and($sheet->current_balance_minor_units)->toBe(0);
+});

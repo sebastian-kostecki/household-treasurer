@@ -53,7 +53,9 @@ final class MonthSheetReader
             : $this->findLabel($cells, $column, 'opieka zdrowotna', $categoryRow + 1);
 
         if ($healthRow === null) {
-            $irregular = $this->listItems($cells, $layout, $categoryRow + 1, $this->listEnd($cells, $layout, $categoryRow + 1), true);
+            // `marzec!I4` of 2020 is blank under the header and the list starts one row lower: one blank row there is no end.
+            $scanFrom = $this->isBlankListRow($cells, $layout, $categoryRow + 1) ? $categoryRow + 2 : $categoryRow + 1;
+            $irregular = $this->listItems($cells, $layout, $categoryRow + 1, $this->listEnd($cells, $layout, $scanFrom), true);
 
             return [$irregular, [], []];
         }

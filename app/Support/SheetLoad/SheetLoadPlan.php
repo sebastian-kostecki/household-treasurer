@@ -6,7 +6,8 @@ use App\Enums\FinancialOperationType;
 
 /**
  * The result of planning one sheet year: operations, sums per Category, the opening balance of the Sheet Account
- * and every warning (sheet assertions, moved negative income, remainders without a breakdown).
+ * and every warning (sheet assertions, moved negative income, remainders without a breakdown). The fund movements
+ * are no operations: the totals and the opening balance count the operations only, "Analiza" counts both.
  */
 final readonly class SheetLoadPlan
 {
@@ -15,6 +16,7 @@ final readonly class SheetLoadPlan
      * @param  list<SheetWarning>  $sheetWarnings
      * @param  list<SheetWarning>  $transfers
      * @param  list<SheetWarning>  $remainders
+     * @param  list<FundMovement>  $fundMovements
      */
     public function __construct(
         public int $year,
@@ -24,7 +26,18 @@ final readonly class SheetLoadPlan
         public array $remainders,
         public SheetEntry $analysisIncome,
         public SheetEntry $analysisExpense,
+        public array $fundMovements = [],
     ) {}
+
+    public function fundIncomeTotal(): int
+    {
+        return $this->fundTotal(FinancialOperationType::Income);
+    }
+
+    public function fundExpenseTotal(): int
+    {
+        return $this->fundTotal(FinancialOperationType::Expense);
+    }
 
     /**
      * @return list<SheetWarning>
@@ -68,6 +81,14 @@ final readonly class SheetLoadPlan
         ksort($totals);
 
         return $totals;
+    }
+
+    private function fundTotal(FinancialOperationType $type): int
+    {
+        return array_sum(array_map(
+            fn (FundMovement $movement): int => $movement->type === $type ? $movement->amountMinorUnits : 0,
+            $this->fundMovements,
+        ));
     }
 
     private function total(FinancialOperationType $type): int

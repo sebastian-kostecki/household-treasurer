@@ -6,11 +6,17 @@ use App\Enums\CategoryType;
 
 /**
  * The accepted mapping of sheet labels to Category ids (`database/sheet-load/mapping.php`), read-only.
- * A target is a Category id, `SKIP` or `NEW_CATEGORY`; an unknown label is null.
+ * A target is a Category id, `SKIP`, `FUND` or `NEW_CATEGORY`; an unknown label is null.
+ *
+ * `SKIP` is a transfer that is neither an operation nor part of "Analiza". `FUND` is a fund movement (ADR-0092):
+ * no operation, but "Analiza" counts it, so the planner adds it to the reconciliation. `FUND` is allowed only in the
+ * `expenses` and `income` sections.
  */
 final readonly class SheetMapping
 {
     public const string SKIP = 'skip';
+
+    public const string FUND = 'fundusz';
 
     public const string NEW_CATEGORY = 'kosmetyki';
 

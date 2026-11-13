@@ -9,7 +9,8 @@ use DateTimeImmutable;
 /**
  * Turns a BudgetSheet and the accepted mapping into the operations of one year, without touching the database.
  * It refuses (SheetLoadException) on an unmapped label, an override above its cell, a non-positive yearly income
- * source and on totals that differ from `Analiza!B16` / `C16` by even one grosz.
+ * source and on totals that differ from `Analiza!B16` / `C16` by even one grosz. Cells mapped to
+ * `SheetMapping::FUND` make no operation: they are fund movements, which the reconciliation adds to the operations.
  *
  * @phpstan-type ListedItem array{name: ?string, amount: int, address: string, target: int|string}
  * @phpstan-type IncomeCell array{month: int, name: string, entry: SheetEntry, amount: int}
@@ -25,35 +26,44 @@ final class SheetLoadPlanner
         $remainders = [];
         $transfers = [];
         $operations = [];
+        $fundMovements = [];
 
         foreach ($sheet->months as $month) {
-            array_push($operations, ...$this->expenseOperations($sheet->year, $month, $remainders));
+            array_push($operations, ...$this->expenseOperations($sheet->year, $month, $remainders, $fundMovements));
         }
 
-        array_push($operations, ...$this->incomeOperations($sheet, $transfers));
+        array_push($operations, ...$this->incomeOperations($sheet, $transfers, $fundMovements));
 
         $plan = new SheetLoadPlan(
             $sheet->year, $operations, $sheet->warnings(), $transfers, $remainders,
-            $sheet->analysisIncome, $sheet->analysisExpense,
+            $sheet->analysisIncome, $sheet->analysisExpense, $fundMovements,
         );
 
-        $this->assertTotal($plan->incomeTotal(), $sheet->analysisIncome, 'przychody');
-        $this->assertTotal($plan->expenseTotal(), $sheet->analysisExpense, 'wydatki');
+        $this->assertTotal($plan->incomeTotal(), $plan->fundIncomeTotal(), $sheet->analysisIncome, 'przychody');
+        $this->assertTotal($plan->expenseTotal(), $plan->fundExpenseTotal(), $sheet->analysisExpense, 'wydatki');
 
         return $plan;
     }
 
     /**
      * @param  list<SheetWarning>  $remainders
+     * @param  list<FundMovement>  $fundMovements
      * @return list<PlannedOperation>
      */
-    private function expenseOperations(int $year, MonthSheet $month, array &$remainders): array
+    private function expenseOperations(int $year, MonthSheet $month, array &$remainders, array &$fundMovements): array
     {
         $date = $this->lastDay($year, $month->month);
         $operations = [];
 
         foreach ($month->expenses as $entry) {
             $target = $this->mapping->expense($entry->label) ?? $this->unknownLabel($entry->address, $entry->rawLabel);
+
+            if ($target === SheetMapping::FUND) {
+                $this->recordFund($fundMovements, $entry, $entry->amountMinorUnits, FinancialOperationType::Expense);
+
+                continue;
+            }
+
             $block = $this->listedBlock($year, $month, $entry);
 
             if ($block === null) {
@@ -77,8 +87,8 @@ final class SheetLoadPlanner
      */
     private function listedBlock(int $year, MonthSheet $month, SheetEntry $entry): ?array
     {
-        if ($entry->label === 'leczenie prywatne') {
-            return ['name' => 'leczenie prywatne', 'remainder' => 'medical', 'items' => $this->listItems($month->medicalList, $entry)];
+        if (in_array($entry->label, MonthSheet::TREATMENT_ROWS, true)) {
+            return ['name' => $entry->label, 'remainder' => 'medical', 'items' => $this->listItems($month->medicalList, $entry)];
         }
 
         if ($entry->label === 'badania') {
@@ -165,6 +175,10 @@ final class SheetLoadPlanner
         $operations = [];
 
         foreach ($items as $item) {
+            if ($item['target'] === SheetMapping::FUND) {
+                throw new SheetLoadException($item['address'], 'cel ruch funduszu jest dozwolony tylko dla wierszy wydatków i przychodów');
+            }
+
             if ($item['target'] === SheetMapping::SKIP) {
                 continue;
             }
@@ -204,12 +218,13 @@ final class SheetLoadPlanner
 
     /**
      * @param  list<SheetWarning>  $transfers
+     * @param  list<FundMovement>  $fundMovements
      * @return list<PlannedOperation>
      */
-    private function incomeOperations(BudgetSheet $sheet, array &$transfers): array
+    private function incomeOperations(BudgetSheet $sheet, array &$transfers, array &$fundMovements): array
     {
         $operations = [];
-        $groups = $this->incomeGroups($sheet, $operations);
+        $groups = $this->incomeGroups($sheet, $operations, $fundMovements);
 
         foreach ($groups as $cells) {
             $this->assertPositiveYear($cells);
@@ -228,9 +243,10 @@ final class SheetLoadPlanner
      * The income cells per source (the target Category), with the overrides already taken off the cells.
      *
      * @param  list<PlannedOperation>  $operations  receives the override operations
+     * @param  list<FundMovement>  $fundMovements  receives the cells mapped to `SheetMapping::FUND`, which join no group
      * @return array<int|string, list<array{month: int, entry: SheetEntry, amount: int}>>
      */
-    private function incomeGroups(BudgetSheet $sheet, array &$operations): array
+    private function incomeGroups(BudgetSheet $sheet, array &$operations, array &$fundMovements): array
     {
         $overrides = $this->mapping->overrides($sheet->year);
         $used = [];
@@ -240,6 +256,12 @@ final class SheetLoadPlanner
             foreach ($month->income as $entry) {
                 $target = $this->mapping->income($entry->label) ?? $this->unknownLabel($entry->address, $entry->rawLabel);
                 $amount = $entry->amountMinorUnits;
+
+                if ($target === SheetMapping::FUND) {
+                    $this->recordFund($fundMovements, $entry, $amount, FinancialOperationType::Income);
+
+                    continue;
+                }
 
                 foreach ($overrides as $index => $override) {
                     if ($override['month'] === $month->month && $override['label'] === $entry->label) {
@@ -348,13 +370,23 @@ final class SheetLoadPlanner
         throw new SheetLoadException($cells[$from]['entry']->address, 'ujemny przychód −'.MinorUnits::toMajorDisplay($deficit).' zł nie mieści się w żadnym innym miesiącu źródła');
     }
 
-    private function assertTotal(int $planned, SheetEntry $analysis, string $name): void
+    private function assertTotal(int $planned, int $fund, SheetEntry $analysis, string $name): void
     {
-        if ($planned !== $analysis->amountMinorUnits) {
+        if ($planned + $fund !== $analysis->amountMinorUnits) {
             throw new SheetLoadException(
                 $analysis->address,
-                'suma operacji ('.$name.') '.MinorUnits::toMajorDisplay($planned).' zł różni się od „Analizy” '.MinorUnits::toMajorDisplay($analysis->amountMinorUnits).' zł',
+                'suma operacji ('.$name.') '.MinorUnits::toMajorDisplay($planned).' zł + ruchy funduszu '.MinorUnits::toMajorDisplay($fund).' zł różni się od „Analizy” '.MinorUnits::toMajorDisplay($analysis->amountMinorUnits).' zł',
             );
+        }
+    }
+
+    /**
+     * @param  list<FundMovement>  $fundMovements
+     */
+    private function recordFund(array &$fundMovements, SheetEntry $entry, int $amount, FinancialOperationType $type): void
+    {
+        if ($amount !== 0) {
+            $fundMovements[] = new FundMovement($entry->address, $entry->rawLabel, $amount, $type);
         }
     }
 

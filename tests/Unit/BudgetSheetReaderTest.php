@@ -287,6 +287,17 @@ test('a 2020 month without a medical block ends the irregular list at the first 
         ->and($sheet->warnings())->toBe([]);
 });
 
+test('a 2020 month without a medical block tolerates one blank row under the list header, as marzec!I4 does', function () {
+    $sheet = readSheet(['layout' => '2020', 'withoutMedical' => [1], 'months' => [1 => [
+        'irregular' => [null, ['Ubrania', 'Kurtka', 250.00], ['Dom', 'Żarówki', 30.50]],
+        'irregularTotal' => 280.50,
+    ]]]);
+
+    expect($sheet->months[1]->irregularList)->toHaveCount(2)
+        ->and($sheet->months[1]->irregularList[0]->name)->toBe('Kurtka')
+        ->and($sheet->warnings())->toBe([]);
+});
+
 test('the daily breakdown ends at Na tydzień', function () {
     $january = readSheet(['layout' => '2020'])->months[1];
 

@@ -5,7 +5,9 @@ use App\Support\SheetLoad\SheetMapping;
 /*
  * The mapping of the old budget sheet to the Category list, accepted by the user (legacy-budget-import, ADR-0085).
  * Labels are normalised: lower case, no trailing `*`, "work:" written as "praca:". A target is a Category id,
- * SheetMapping::SKIP (a transfer, not an operation) or SheetMapping::NEW_CATEGORY (the archived "Kosmetyki").
+ * SheetMapping::SKIP (a transfer, not an operation, outside "Analiza"), SheetMapping::FUND (a fund movement of 2020-2021,
+ * ADR-0092: no operation, but "Analiza" counts it; only in `expenses` and `income`) or SheetMapping::NEW_CATEGORY
+ * (the archived "Kosmetyki").
  * Ids 1-38 come from the production copy on dev; `categories` holds the name and type each id must have in the
  * target database (the command refuses on any difference).
  */
@@ -41,10 +43,26 @@ return [
         'amortyzacja' => 10,
         'fundusz wydatków nieregularnych' => 10,
         'oszczędności długoterminowe' => SheetMapping::SKIP,
+
+        // 2020-2021 (ADR-0092).
+        'hbo go' => 23,
+        'netflix' => 23,
+        'ogrzewanie' => 35,
+        'bilety i transport' => 22,
+        'lekarz - dentysta' => 20,
+        'lekarz (dentysta)' => 20,
+        'fundusz wydatków celowych' => SheetMapping::FUND,
+        'fundusz wydatków celowych (oszcz.)' => SheetMapping::FUND,
+        'rezerwa na wydatki' => SheetMapping::FUND,
+        'święta' => SheetMapping::FUND,
+        'prezenty' => SheetMapping::FUND,
+        'nadpłata kredytu' => SheetMapping::FUND,
     ],
 
-    // 2022: the breakdown of "Codzienne wydatki" in G25:I31.
+    // 2022: the breakdown of "Codzienne wydatki" in G25:I31; 2020-2021 add the two labels below.
     'daily_breakdown' => [
+        'gospodarstwo domowe' => 8,
+        'jedzenie poza domem' => 24,
         'jedzenie' => 8,
         'słodycze i inne' => 8,
         'środki czystości' => 8,
@@ -72,6 +90,19 @@ return [
         'meble' => 37,
         'praca' => 10,
         '' => 10,
+
+        // 2020-2021 (ADR-0092).
+        'lekarz' => 20,
+        'badania' => 20,
+        'gospodarstwo' => 37,
+        'jedzenie' => 24,
+        'darowizna' => 28,
+        'prezent' => 31,
+        'ubranie' => 27,
+        'biurowe' => 30,
+        'szkoła' => 30,
+        'higiena' => 29,
+        'kary' => 10,
     ],
 
     // The difference between a block total and its list: one "reszta bez rozpisania" operation in this Category.
@@ -94,6 +125,14 @@ return [
         'pozostałe' => 7,
         'inne' => 7,
         'oszczędności' => SheetMapping::SKIP,
+
+        // 2020-2021 (ADR-0092). The refunds of the fund are "Analiza" income without an operation.
+        'przychody rozłożone' => SheetMapping::FUND,
+        'fundusz wydatków nieregularnych' => SheetMapping::FUND,
+        'pozostałe (premie, 13)' => 1,
+        // The same Category as the premie: the only negative cell (grudzień 2021) moves into the premie cell of its
+        // month; in Category 7 it would be the lone cell of its source and the planner would refuse.
+        'międzyokresowe' => 1,
     ],
 
     // Part of a cell becomes a separate operation in another Category.

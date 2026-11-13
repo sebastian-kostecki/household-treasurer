@@ -210,3 +210,96 @@ test('refuses when the totals differ from Analiza', function () {
     expect($income->address)->toBe('Analiza!B16')
         ->and($income->getMessage())->toContain('różni się od „Analizy”');
 });
+
+test('fund movements make no operation and count towards Analiza for income and expense', function () {
+    $plan = planSheet(['layout' => '2020', 'year' => 2020]);
+    $descriptions = collect($plan->operations)->pluck('description')->implode('|');
+
+    expect($plan->fundMovements)->toHaveCount(12 * 4)
+        ->and($plan->fundExpenseTotal())->toBe(12 * 17_000)
+        ->and($plan->fundIncomeTotal())->toBe(12 * 15_000)
+        ->and($plan->incomeTotal() + $plan->fundIncomeTotal())->toBe($plan->analysisIncome->amountMinorUnits)
+        ->and($plan->expenseTotal() + $plan->fundExpenseTotal())->toBe($plan->analysisExpense->amountMinorUnits)
+        ->and($descriptions)->not->toContain('Fundusz')->not->toContain('Rezerwa')->not->toContain('Nadpłata')->not->toContain('rozłożone')
+        ->and($plan->openingBalanceMinorUnits())->toBe($plan->expenseTotal() - $plan->incomeTotal())
+        ->and($plan->fundMovements[0]->label)->toBe('Fundusz Wydatków Celowych*');
+});
+
+test('refuses when operations and fund movements differ from Analiza by one grosz, naming both parts', function () {
+    $plan = planSheet(['layout' => '2020', 'year' => 2020]);
+    $expense = $plan->analysisExpense->amountMinorUnits + 1;
+
+    $failure = planFailure(['layout' => '2020', 'year' => 2020, 'analysis' => [$plan->analysisIncome->amountMinorUnits / 100, $expense / 100]]);
+
+    expect($failure->address)->toBe('Analiza!C16')
+        ->and($failure->getMessage())->toContain('suma operacji (wydatki)')
+        ->and($failure->getMessage())->toContain('ruchy funduszu 2040,00 zł')
+        ->and($failure->getMessage())->toContain('różni się od „Analizy”');
+});
+
+test('a Lekarz - dentysta row becomes the items of its treatment list and a difference gives a remainder', function () {
+    $plan = planSheet(['layout' => '2020', 'year' => 2020, 'months' => [1 => ['expenses' => [
+        'Rata kredytu' => 1800.50, 'Lekarz - dentysta' => 250.00, 'Badania' => 50.00,
+    ]]]]);
+
+    $descriptions = collect(operationsOf($plan, '2020-01-31', 20))->pluck('amountMinorUnits', 'description');
+
+    expect($descriptions['Wizyta'])->toBe(12_000)
+        ->and($descriptions['Leki'])->toBe(8_000)
+        ->and($descriptions['Morfologia'])->toBe(5_000)
+        ->and($descriptions['reszta bez rozpisania: lekarz - dentysta (arkusz 2020, styczeń)'])->toBe(5_000)
+        ->and($descriptions->keys()->implode('|'))->not->toContain('Lekarz - dentysta (arkusz 2020)')
+        ->and($plan->remainders)->toHaveCount(1)
+        ->and($plan->remainders[0]->address)->toBe('styczeń!D4');
+});
+
+test('the real mapping maps every label of the 2020-2021 fixture and uses FUND only for expenses and income', function () {
+    $mapping = require __DIR__.'/../../database/sheet-load/mapping.php';
+    $plan = planSheet(['layout' => '2020', 'year' => 2020]);
+
+    foreach (['daily_breakdown', 'irregular_categories', 'remainders'] as $section) {
+        expect(array_values($mapping[$section]))->not->toContain(SheetMapping::FUND);
+    }
+
+    expect($plan->operations)->not->toBeEmpty()
+        ->and($mapping['expenses']['fundusz wydatków celowych'])->toBe(SheetMapping::FUND)
+        ->and($mapping['expenses']['fundusz wydatków celowych (oszcz.)'])->toBe(SheetMapping::FUND)
+        ->and($mapping['expenses']['fundusz wydatków nieregularnych'])->toBe(10)
+        ->and($mapping['income']['fundusz wydatków nieregularnych'])->toBe(SheetMapping::FUND)
+        ->and($mapping['income']['przychody rozłożone'])->toBe(SheetMapping::FUND)
+        ->and($mapping['expenses']['lekarz - dentysta'])->toBe(20)
+        ->and($mapping['expenses']['lekarz (dentysta)'])->toBe(20);
+});
+
+test('refuses a fund target on an irregular category', function () {
+    $data = require __DIR__.'/../../database/sheet-load/mapping.php';
+    $data['irregular_categories']['ubrania'] = SheetMapping::FUND;
+    $failure = null;
+
+    SheetWorkbookFactory::with(['layout' => '2020', 'year' => 2020], function (string $path) use ($data, &$failure): void {
+        try {
+            (new SheetLoadPlanner(new SheetMapping($data)))->plan((new BudgetSheetReader)->read($path));
+        } catch (SheetLoadException $e) {
+            $failure = $e;
+        }
+    });
+
+    expect($failure)->toBeInstanceOf(SheetLoadException::class)
+        ->and($failure->getMessage())->toContain('ruch funduszu');
+});
+
+test('a negative międzyokresowe cell moves into the premie cell of the same month', function () {
+    $plan = planSheet(['layout' => '2020', 'year' => 2020, 'months' => [12 => ['income' => [
+        'Praca: Sebastian' => 4000.00, 'work: Jana' => 3000.00, '500+' => 800.00, 'odsetki' => 5.00,
+        'pozostałe (premie, 13)' => 100.00, 'międzyokresowe' => -18.87, 'przychody rozłożone' => 150.00, 'oszczędności' => 300.00,
+    ]]]]);
+
+    $premie = collect($plan->operations)->firstWhere('description', 'pozostałe (premie, 13) (arkusz 2020)');
+
+    expect($premie->category)->toBe(1)
+        ->and($premie->amountMinorUnits)->toBe(8_113)
+        ->and($plan->transfers)->toHaveCount(1)
+        ->and($plan->transfers[0]->address)->toBe('grudzień!H8')
+        ->and((string) $plan->transfers[0])->toContain('grudzień!H7')
+        ->and(collect($plan->operations)->where('description', 'międzyokresowe (arkusz 2020)')->all())->toBe([]);
+});
