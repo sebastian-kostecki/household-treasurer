@@ -84,6 +84,9 @@ test('an irregular Category: a bill covered by the collected amount, then one ov
     await dialog
         .getByRole('button', { name: 'Nieregularna', exact: true })
         .click();
+    await expect(dialog).toContainText(
+        'Co miesiąc stawka trafia do „zebrane” i pokrywa rachunek.',
+    );
     await dialog.getByLabel('Zebrane startowe').fill('500,00');
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
     await expect(dialog).toHaveCount(0);

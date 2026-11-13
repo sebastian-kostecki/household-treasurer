@@ -70,6 +70,7 @@ const states = [
     'category-list-name-archived',
     'category-list-saving',
     'category-list-rhythm',
+    'category-list-fixed-charge',
     'category-list-income',
     'category-list-rhythm-error',
     'category-list-irregular-new',
@@ -152,6 +153,7 @@ const labels: Record<SinkState, string> = {
     'category-list-saving': 'Kategoria listy: zapis w toku',
     'category-list-rhythm':
         'Kategoria listy: edycja rytmu (równomierna roczna)',
+    'category-list-fixed-charge': 'Kategoria listy: stała opłata',
     'category-list-income': 'Kategoria listy: przychód (bez pola Rytm)',
     'category-list-rhythm-error': 'Kategoria listy: błąd pola Rytm',
     'category-list-irregular-new':
@@ -364,6 +366,11 @@ const mergeDialogs: {
 const evenAnnualListCategory: CategoryListItem = {
     ...listCategory,
     rhythm: 'even_annual',
+};
+
+const fixedChargeListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'fixed_charge',
 };
 
 const irregularListCategory: CategoryListItem = {
@@ -601,6 +608,15 @@ function setOpen(state: SinkState, value: boolean): void {
             :category-appearance-options="categoryAppearanceOptions"
             :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-rhythm', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-fixed-charge')"
+            mode="edit"
+            default-type="expense"
+            :category="fixedChargeListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-fixed-charge', $event)"
         />
         <CategoryListFormDialog
             :open="isOpen('category-list-income')"
