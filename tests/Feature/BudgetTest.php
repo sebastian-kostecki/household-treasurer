@@ -175,6 +175,27 @@ class BudgetTest extends TestCase
             );
     }
 
+    public function test_budget_rows_carry_the_category_description_or_null(): void
+    {
+        $this->travelTo('2026-11-10');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Rent', 'sort_order' => 0])
+            ->category->update(['description' => 'Due on the 10th']);
+        BudgetLine::factory()->for($budget)->expense()->create(['name' => 'Food', 'sort_order' => 1])
+            ->category->update(['description' => null]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('budget'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('expenseCategories.0.description', 'Due on the 10th')
+                ->where('expenseCategories.1.description', null),
+            );
+    }
+
     public function test_budget_page_reads_the_rhythm_of_december_for_a_past_budget(): void
     {
         $this->travelTo('2027-03-10');

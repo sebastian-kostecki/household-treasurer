@@ -1391,6 +1391,11 @@
         @apply meta text-muted-foreground block truncate;
     }
 
+    /** The description line of a Budget row, the recipe of `.categories-description` (ADR-0088). */
+    .budget-category-description {
+        @apply meta text-muted-foreground block truncate;
+    }
+
     /**
      * The preview table of the merge dialog: Budżet | Operacje | Plan aktualny.
      * One grid for the whole table (its rows are `contents`), so the columns

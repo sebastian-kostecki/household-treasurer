@@ -195,6 +195,7 @@ class BudgetController extends Controller
      * @return array{
      *     id: int,
      *     name: string,
+     *     description: string|null,
      *     icon: string,
      *     color: string,
      *     type: string,
@@ -234,6 +235,7 @@ class BudgetController extends Controller
         return [
             'id' => $category->id,
             'name' => $category->name,
+            'description' => $category->description,
             ...CategoryAppearance::fields($line),
             'type' => $category->type->value,
             'group_id' => $category->category_group_id,

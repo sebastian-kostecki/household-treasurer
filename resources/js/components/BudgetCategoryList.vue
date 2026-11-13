@@ -40,6 +40,8 @@ import type { Rhythm } from '@/types/rhythm';
 export type BudgetCategoryRow = {
     id: number;
     name: string;
+    /** Plain text of the Category, read-only here (ADR-0088); null without one. */
+    description: string | null;
     icon: string;
     color: string;
     type: 'income' | 'expense';

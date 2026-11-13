@@ -86,6 +86,18 @@ const collectedAtYearStartHint = computed(() =>
         : t.budget.collected_at_year_start_hint,
 );
 
+/** The Category description, read-only here (ADR-0088); null when empty. */
+const description = computed(() => {
+    const text = props.category.description;
+
+    return text === null || text === '' ? null : text;
+});
+
+/** A line under the name (ADR-0076, ADR-0088) makes the chip `lg`. */
+const hasSubtitle = computed(
+    () => collectedAtYearStart.value !== null || description.value !== null,
+);
+
 const remainingLabel = computed(() =>
     props.categoryType === 'income'
         ? t.budget.remaining_income
@@ -117,7 +129,7 @@ const remainingLabel = computed(() =>
 
         <div class="budget-category-cell-category flex items-center gap-2">
             <CategoryChip
-                v-if="collectedAtYearStart !== null"
+                v-if="hasSubtitle"
                 :name="category.name"
                 :icon="category.icon"
                 :color="category.color"
@@ -135,23 +147,38 @@ const remainingLabel = computed(() =>
 
                 <template #subtitle>
                     <span
-                        class="meta text-muted-foreground tabular-nums"
-                        data-collected-at-year-start
-                        :title="collectedAtYearStartHint"
+                        class="budget-category-description"
+                        :title="description ?? undefined"
                     >
-                        {{ t.budget.collected_at_year_start }}
-                        <span class="whitespace-nowrap"
-                            >{{
-                                formatMoneyAmount(
-                                    collectedAtYearStart.minor_units,
-                                )
-                            }}<template v-if="collectedAtYearStart.is_forecast">
-                                ·
-                                {{
-                                    t.budget.collected_at_year_start_forecast
-                                }}</template
-                            ></span
+                        <span
+                            v-if="collectedAtYearStart !== null"
+                            class="tabular-nums"
+                            data-collected-at-year-start
+                            :title="collectedAtYearStartHint"
                         >
+                            {{ t.budget.collected_at_year_start }}
+                            <span class="whitespace-nowrap"
+                                >{{
+                                    formatMoneyAmount(
+                                        collectedAtYearStart.minor_units,
+                                    )
+                                }}<template
+                                    v-if="collectedAtYearStart.is_forecast"
+                                >
+                                    ·
+                                    {{
+                                        t.budget
+                                            .collected_at_year_start_forecast
+                                    }}</template
+                                ></span
+                            >
+                        </span>
+                        <template v-if="description !== null">
+                            <template v-if="collectedAtYearStart !== null">
+                                {{ ' · ' }}
+                            </template>
+                            {{ description }}
+                        </template>
                     </span>
                 </template>
             </CategoryChip>

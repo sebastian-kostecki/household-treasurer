@@ -494,29 +494,29 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 
 #### Automated
 
-- [x] 5.1 Vitest for budget-year-menu and ui-contract passes
-- [x] 5.2 UI literal check passes
-- [x] 5.3 Types pass after build
+- [x] 5.1 Vitest for budget-year-menu and ui-contract passes — cdf98b8
+- [x] 5.2 UI literal check passes — cdf98b8
+- [x] 5.3 Types pass after build — cdf98b8
 - [ ] 5.4 Year switcher e2e specs pass
-- [x] 5.5 Full gate passes: composer ci:check
+- [x] 5.5 Full gate passes: composer ci:check — cdf98b8
 
 #### Manual
 
-- [x] 5.6 Sidebar shows one year button and the menu with years newest first and „Dodaj rok”
-- [x] 5.7 Year choice keeps Reports and Trend and opens Budget at the top elsewhere
-- [x] 5.8 Menu works on a phone and with the keyboard
-- [x] 5.9 Sidebar kitchen sink and landing preview show the menu states
+- [x] 5.6 Sidebar shows one year button and the menu with years newest first and „Dodaj rok” — cdf98b8
+- [x] 5.7 Year choice keeps Reports and Trend and opens Budget at the top elsewhere — cdf98b8
+- [x] 5.8 Menu works on a phone and with the keyboard — cdf98b8
+- [x] 5.9 Sidebar kitchen sink and landing preview show the menu states — cdf98b8
 
 ### Phase 6: Category description on Budget
 
 #### Automated
 
-- [ ] 6.1 Budget Feature tests pass on PostgreSQL
-- [ ] 6.2 UI literal check and types pass
-- [ ] 6.3 Full gate passes: composer ci:check and sloppy ci
+- [x] 6.1 Budget Feature tests pass on PostgreSQL
+- [x] 6.2 UI literal check and types pass
+- [x] 6.3 Full gate passes: composer ci:check and sloppy ci
 
 #### Manual
 
-- [ ] 6.4 Budget row shows the description under the name, truncated with full text on hover
-- [ ] 6.5 Row with „zebrane startowe” joins both parts with „ · ”
-- [ ] 6.6 Rows without a description unchanged; Budget kitchen sink shows the new states
+- [x] 6.4 Budget row shows the description under the name, truncated with full text on hover
+- [x] 6.5 Row with „zebrane startowe” joins both parts with „ · ”
+- [x] 6.6 Rows without a description unchanged; Budget kitchen sink shows the new states
