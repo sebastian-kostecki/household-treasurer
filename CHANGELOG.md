@@ -6,9 +6,14 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.4.3] — 2026-11-13
+
+The Dashboard now warns when the money "collected" for irregular Categories is not backed by Spendable Liquidity (ADR-0090), and an Account can be compared with the bank statement on a chosen day (ADR-0091).
+
 ### Added
 
 - The Dashboard shows the Collected Coverage: under "Płynność dysponowalna" the caption adds "w tym zebrane" with the Collected of the current month's irregular Categories (the same sum as the "zebrane" of the Month Plan rows), and a "Zebrane bez pokrycia" warning card appears in "Wymaga uwagi" when the Spendable Liquidity is lower than that sum (`collected-coverage`, ADR-0090).
+- Accounts have "Uzgodnij saldo…" (reconcile the balance) in the row of every non-archived Account: a dialog takes the day and the balance the bank showed, and shows the Balance on a Date of that day and the Difference while you type. A Balance Reconciliation is only a record; it blocks no operation and changes no balance, Liquidity or Execution, and saving the same day again replaces the bank balance. The User's snapshot goes from version 12 to 13 to carry the reconciliations, and versions 1 to 12 still restore (`balance-reconciliation`, ADR-0091).
 
 ## [1.4.2] — 2026-11-13
 
@@ -211,7 +216,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.3...HEAD
+[1.4.3]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.3.1...v1.4.0
