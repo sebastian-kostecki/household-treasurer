@@ -25,6 +25,7 @@ class ResetUserData
             $user->categories()->delete();
             $user->categoryGroups()->delete();
             $user->termDeposits()->delete();
+            $user->balanceReconciliations()->delete();
             $user->accounts()->delete();
 
             DB::table('sessions')

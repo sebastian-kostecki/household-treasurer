@@ -9,7 +9,7 @@ The person who signs in. Owns an isolated data space. Not shared with household 
 _Avoid_: Account (for the login identity), Customer, Member
 
 **Account**:
-A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank. An Account named by a Cash Expectation cannot be deleted; archive is allowed (existing Cash Expectations keep pointing; new ones cannot use the archived Account). Opening date cannot be later than the earliest Cash Expectation, Financial Operation, Own Transfer, or Capital Movement on that Account. A Sheet Account is the archived Account of a year loaded from a sheet (ADR-0085).
+A liquid holding the User owns: a bank account or a cash account. Has an opening date, opening balance, and current balance. Independent of any Budget year. A bank Account may have a Bank. An Account named by a Cash Expectation cannot be deleted; archive is allowed (existing Cash Expectations keep pointing; new ones cannot use the archived Account). Opening date cannot be later than the earliest Cash Expectation, Financial Operation, Own Transfer, or Capital Movement on that Account. A Sheet Account is the archived Account of a year loaded from a sheet (ADR-0085). Its balance on a past day is Balance on a Date, and its agreement with the bank on a day is a Balance Reconciliation (ADR-0091).
 _Avoid_: Wallet, Portfel, BankAccount (unless disambiguating in a narrow type name), “account” for the User, Term Deposit
 
 **Sheet Account**:
@@ -217,6 +217,14 @@ _Avoid_: Own Transfer (for this), Transfer, Allocation, Term Deposit transfer, o
 **Negative Balance Warning**:
 A non-blocking notice before saving a Financial Operation, Own Transfer, Capital Movement, or a Term Deposit opening snapshot that would make an Account’s or a Term Deposit’s current balance negative. Distinct from exceeding an Available Limit. A Capital Movement that would take both sides below zero shows two notices, one per side. Opening-snapshot save does not change an Account, so it is one Term Deposit notice. After save, every surface that shows that holding’s current balance marks the negative figure (same idea as an Account).
 _Avoid_: Overdraft, insufficient funds (both imply a block), a second warning type for Term Deposit
+
+**Balance on a Date**:
+A reading, never stored, of what an Account held at the end of a day D (ADR-0091): its opening balance plus every Financial Operation (income and expense refund add, expense subtracts, by the signed amount), Own Transfer (destination adds, source subtracts) and Capital Movement (from a Term Deposit adds, to a Term Deposit subtracts) of that Account dated on or before D. A Cash Expectation is not in it. It has no value for a D before the Account opening date. For a D on or after the last dated record of the Account it equals the current balance, so the stored counter and the reading agree to the grosz. It is the base of Balance Reconciliation and, later, of a trend of Total funds. Polish UI copy: „saldo na dzień”.
+_Avoid_: Historical balance, Snapshot (of a balance), Current balance (for a past day), Opening balance
+
+**Balance Reconciliation**:
+A record that the User compared an Account with its bank on a day: the Account, the day D, and the balance the bank showed (ADR-0091). Whether it „agrees” is a reading, never stored: the Difference is the bank balance minus Balance on a Date of D, and it agrees when the Difference is 0; so editing or adding an operation dated on or before D can turn an earlier Balance Reconciliation from agreeing to not agreeing. It blocks nothing (an operation dated before D can still be created, edited and deleted), creates no correcting operation, and changes no balance, Liquidity, Execution or Available Limit. D is not in the future and not before the Account opening date; a bank Account or a cash Account may have one; a Sheet Account and an archived Account have none. One Account has at most one per day: saving again for the same day replaces the bank balance. The reconciliation dialog lists the operations of the Account dated after the previous Balance Reconciliation, up to D. Polish UI copy: „uzgodnienie salda”, „Uzgodnij saldo…”, „zgadza się”, „nie zgadza się”, „różnica”.
+_Avoid_: Reconciliation of Import (Import is not this), Correction, Adjustment, Balancing entry, Lock, Closing (of a period), Account balance (unqualified)
 
 **Liquidity**:
 The plane of the User’s holdings as money, distinct from Budget Execution and from Agenda. Not a single unqualified total: the figures on this plane are Spendable Liquidity and Total funds.

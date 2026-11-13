@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { defineAsyncComponent, ref } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import AccountAvatar from '@/components/AccountAvatar.vue';
+import BalanceReconciliationDialog from '@/components/BalanceReconciliationDialog.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import {
@@ -10,11 +11,34 @@ import {
     bankLabel,
     bankOptions,
 } from '@/lib/account-identity';
-import { accountsScenarios } from './accounts-fixtures';
+import {
+    accountsScenarios,
+    reconciliationSinkScenarios,
+} from './accounts-fixtures';
 
 const Accounts = defineAsyncComponent(() => import('@/pages/Accounts.vue'));
 
 const createDialogOpen = ref(false);
+const reconcileDialogOpen = ref(false);
+const reconcileScenarioKey = ref(reconciliationSinkScenarios[0].key);
+
+const reconcileScenario = computed(
+    () =>
+        reconciliationSinkScenarios.find(
+            (scenario) => scenario.key === reconcileScenarioKey.value,
+        ) ?? reconciliationSinkScenarios[0],
+);
+
+const reconcileAccount = {
+    id: 1,
+    name: 'mBank osobiste',
+    opening_date: '2026-01-01',
+};
+
+function openReconcileScenario(key: string): void {
+    reconcileScenarioKey.value = key;
+    reconcileDialogOpen.value = true;
+}
 
 const t = useTranslations();
 
@@ -88,6 +112,10 @@ const stateMatrix = [
     {
         state: 'empty',
         where: 'Scenariusze empty-new-user (brak kont, bez przełącznika) i all-archived (wszystkie zarchiwizowane) poniżej.',
+    },
+    {
+        state: 'reconciliation',
+        where: 'Wiersze mBank osobiste (zgadza się) i Gotówka (nie zgadza się, różnica) w scenariuszu default; stany okna „Uzgodnij saldo…” w sekcji reconciliation-dialog poniżej: zgadza się, nie zgadza się, nieczytelne saldo, dzień już uzgodniony, pierwsze uzgodnienie, brak operacji, lista ucięta, loading, error.',
     },
     {
         state: 'loading',
@@ -174,6 +202,36 @@ const stateMatrix = [
                 Otwórz formularz konta
             </Button>
             <AccountFormDialog v-model:open="createDialogOpen" mode="create" />
+        </section>
+
+        <section class="space-y-2" data-section="reconciliation-dialog">
+            <h2
+                class="text-muted-foreground border-b pb-1 font-mono text-sm font-semibold"
+            >
+                Uzgodnij saldo… — stany okna (ADR-0091)
+            </h2>
+            <p class="text-muted-foreground text-sm">
+                Okno czyta odczyt z serwera; tu dostaje gotowy stan, więc zapis
+                nie zadziała. Pole „Saldo z banku” startuje z wartością
+                scenariusza.
+            </p>
+            <div class="flex flex-wrap gap-2">
+                <Button
+                    v-for="scenario in reconciliationSinkScenarios"
+                    :key="scenario.key"
+                    variant="outline"
+                    :data-reconciliation-scenario="scenario.key"
+                    @click="openReconcileScenario(scenario.key)"
+                >
+                    {{ scenario.title }}
+                </Button>
+            </div>
+            <BalanceReconciliationDialog
+                v-model:open="reconcileDialogOpen"
+                :account="reconcileAccount"
+                :preview-state="reconcileScenario.state"
+                :initial-bank-balance="reconcileScenario.initialBankBalance"
+            />
         </section>
 
         <section

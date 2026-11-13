@@ -1,4 +1,10 @@
-import type { AccountRow, AccountsPageProps } from '@/types/accounts';
+import type { ReconciliationPreviewState } from '@/composables/useBalanceReconciliationPreview';
+import type {
+    AccountRow,
+    AccountsPageProps,
+    ReconciliationOperation,
+    ReconciliationPreview,
+} from '@/types/accounts';
 
 export type AccountsScenario = {
     key: string;
@@ -20,6 +26,8 @@ function account(overrides: Partial<AccountRow> & { id: number }): AccountRow {
         can_delete: true,
         can_archive: false,
         can_restore: false,
+        can_reconcile: !overrides.is_archived,
+        last_reconciliation: null,
         ...overrides,
     };
 }
@@ -33,6 +41,13 @@ const mbank = account({
     current_balance_minor_units: 245050,
     can_delete: false,
     can_archive: true,
+    last_reconciliation: {
+        reconciled_on: '2026-10-31',
+        bank_balance_minor_units: 231000,
+        balance_minor_units: 231000,
+        difference_minor_units: 0,
+        agrees: true,
+    },
 });
 
 const otherBank = account({
@@ -48,6 +63,13 @@ const cash = account({
     type: 'cash',
     bank: null,
     current_balance_minor_units: 12000,
+    last_reconciliation: {
+        reconciled_on: '2026-11-05',
+        bank_balance_minor_units: 10760,
+        balance_minor_units: 12000,
+        difference_minor_units: -1240,
+        agrees: false,
+    },
 });
 
 const overdrawn = account({
@@ -218,5 +240,146 @@ export const accountsScenarios: AccountsScenario[] = [
             show_archived: false,
             archived_accounts_count: 0,
         },
+    },
+];
+
+export type ReconciliationSinkScenario = {
+    key: string;
+    title: string;
+    state: ReconciliationPreviewState;
+    /** What is typed into „Saldo z banku” when the dialog opens. */
+    initialBankBalance: string;
+};
+
+function sinkOperation(
+    index: number,
+    overrides: Partial<ReconciliationOperation> = {},
+): ReconciliationOperation {
+    return {
+        key: `operation-${index}`,
+        kind: 'expense',
+        date: '2026-11-04',
+        description: 'Zakupy spożywcze',
+        amount_minor_units: -8420,
+        ...overrides,
+    };
+}
+
+const sinkPreview: ReconciliationPreview = {
+    reconciled_on: '2026-11-13',
+    balance_minor_units: 245050,
+    previous_reconciled_on: '2026-10-31',
+    existing_bank_balance_minor_units: null,
+    operations: [
+        sinkOperation(1, {
+            kind: 'income',
+            date: '2026-11-02',
+            description: 'Wynagrodzenie listopad',
+            amount_minor_units: 520000,
+        }),
+        sinkOperation(2),
+        sinkOperation(3, {
+            kind: 'own_transfer',
+            date: '2026-11-07',
+            description: 'Wypłata z bankomatu',
+            amount_minor_units: -20000,
+        }),
+        sinkOperation(4, {
+            kind: 'capital_movement',
+            date: '2026-11-09',
+            description: 'Powrót z lokaty',
+            amount_minor_units: 100000,
+        }),
+        sinkOperation(5, {
+            date: '2026-11-12',
+            description:
+                'Opłata za przedszkole i zajęcia dodatkowe za listopad, rata druga',
+            amount_minor_units: -65000,
+        }),
+    ],
+    operations_count: 5,
+};
+
+export const reconciliationSinkScenarios: ReconciliationSinkScenario[] = [
+    {
+        key: 'agrees',
+        title: 'zgadza się — różnica 0,00',
+        state: { status: 'loaded', preview: sinkPreview },
+        initialBankBalance: '2450,50',
+    },
+    {
+        key: 'differs',
+        title: 'nie zgadza się — różnica −12,40 zł, podpowiedź pod odczytem',
+        state: { status: 'loaded', preview: sinkPreview },
+        initialBankBalance: '2438,10',
+    },
+    {
+        key: 'unreadable-balance',
+        title: 'saldo z banku nieczytelne — różnica „—”, zapis zablokowany',
+        state: { status: 'loaded', preview: sinkPreview },
+        initialBankBalance: '12,3,4',
+    },
+    {
+        key: 'existing',
+        title: 'ten dzień był już uzgodniony — ostrzeżenie o zastąpieniu',
+        state: {
+            status: 'loaded',
+            preview: {
+                ...sinkPreview,
+                existing_bank_balance_minor_units: 240000,
+            },
+        },
+        initialBankBalance: '2450,50',
+    },
+    {
+        key: 'first-reconciliation',
+        title: 'pierwsze uzgodnienie — wszystkie operacje do tego dnia',
+        state: {
+            status: 'loaded',
+            preview: { ...sinkPreview, previous_reconciled_on: null },
+        },
+        initialBankBalance: '2450,50',
+    },
+    {
+        key: 'no-operations',
+        title: 'brak operacji od ostatniego uzgodnienia',
+        state: {
+            status: 'loaded',
+            preview: { ...sinkPreview, operations: [], operations_count: 0 },
+        },
+        initialBankBalance: '2450,50',
+    },
+    {
+        key: 'truncated',
+        title: 'lista ucięta — 100 najnowszych z 340, przewijana',
+        state: {
+            status: 'loaded',
+            preview: {
+                ...sinkPreview,
+                operations: Array.from({ length: 100 }, (_, index) =>
+                    sinkOperation(index + 10, {
+                        date: '2026-11-01',
+                        amount_minor_units: -1000 - index,
+                    }),
+                ),
+                operations_count: 340,
+            },
+        },
+        initialBankBalance: '2450,50',
+    },
+    {
+        key: 'loading',
+        title: 'loading — liczenie salda na dzień',
+        state: { status: 'loading' },
+        initialBankBalance: '2450,50',
+    },
+    {
+        key: 'error',
+        title: 'error — serwer odrzucił dzień',
+        state: {
+            status: 'error',
+            message: 'Data uzgodnienia nie może być z przyszłości.',
+        },
+        initialBankBalance: '2450,50',
     },
 ];

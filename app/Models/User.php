@@ -62,6 +62,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * @return HasMany<BalanceReconciliation, $this>
+     */
+    public function balanceReconciliations(): HasMany
+    {
+        return $this->hasMany(BalanceReconciliation::class);
+    }
+
+    /**
      * @return HasMany<Category, $this>
      */
     public function categories(): HasMany
