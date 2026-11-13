@@ -130,7 +130,12 @@ test('the next year Budget row shows the collected amount at the start of the ye
                 await page
                     .locator('[data-category-row]')
                     .filter({ has: page.getByText(category, { exact: true }) })
-                    .getByRole('button', { name: 'Archiwizuj' })
+                    .getByRole('button', {
+                        name: `Więcej działań kategorii ${category}`,
+                    })
+                    .click();
+                await page
+                    .getByRole('menuitem', { name: 'Archiwizuj' })
                     .click();
                 await page
                     .getByRole('dialog')

@@ -191,7 +191,7 @@ test('switching to Miesiąc and picking a month puts ?month=N in the URL', async
 });
 
 test('collapsing a group hides its Categories', async ({ page }) => {
-    const group = 'Grupa E2E raport';
+    const group = `Grupa E2E raport ${Date.now()}`;
     const description = `E2E raport grupa ${Date.now()}`;
 
     await page.goto('/categories');
@@ -348,7 +348,7 @@ test('Trend groups start collapsed and expand to their Categories', async ({
     page,
 }) => {
     // The demo household has no expense group, so the test creates its own.
-    const group = 'Grupa E2E trend';
+    const group = `Grupa E2E trend ${Date.now()}`;
     const description = `E2E trend grupa ${Date.now()}`;
 
     await page.goto('/categories');
