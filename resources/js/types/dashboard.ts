@@ -52,6 +52,12 @@ export type DashboardNotice = {
           days_in_month: number;
       }
     | {
+          kind: 'collected_not_covered';
+          month: number;
+          shortfall_minor_units: number;
+          collected_minor_units: number;
+      }
+    | {
           kind: 'even_annual_over_limit';
           id: number;
           name: string;
@@ -113,6 +119,7 @@ export type DashboardPageProps = {
         to_spend_minor_units: number;
     } | null;
     month_pace: MonthPace | null;
+    collected_minor_units: number | null;
     current_month: number | null;
     planSummary: PlanSummary | null;
 };

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { Archive, ArchiveRestore, Pencil, Trash2 } from '@lucide/vue';
+import { Archive, ArchiveRestore, Pencil, Scale, Trash2 } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import AccountController from '@/actions/App/Http/Controllers/AccountController';
 import AccountFormDialog from '@/components/AccountFormDialog.vue';
 import AccountAvatar from '@/components/AccountAvatar.vue';
+import BalanceReconciliationDialog from '@/components/BalanceReconciliationDialog.vue';
 import ConfirmActionDialog from '@/components/ConfirmActionDialog.vue';
 import IconAction from '@/components/IconAction.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
@@ -17,6 +18,10 @@ import { Switch } from '@/components/ui/switch';
 import { useTranslations } from '@/composables/useTranslations';
 import { bankLabel } from '@/lib/account-identity';
 import { amountToneClass } from '@/lib/amount-tone';
+import {
+    reconciliationLastLead,
+    reconciliationLastVerdict,
+} from '@/lib/balance-reconciliation';
 import { formatMoney, formatMoneyAmount } from '@/lib/format';
 import { index as accountsRoute } from '@/routes/accounts';
 import type { AccountRow, AccountsPageProps } from '@/types/accounts';
@@ -28,6 +33,8 @@ const t = useTranslations();
 const createDialogOpen = ref(false);
 const editDialogOpen = ref(false);
 const editingAccount = ref<AccountRow | null>(null);
+const reconcileDialogOpen = ref(false);
+const reconcilingAccount = ref<AccountRow | null>(null);
 
 const showArchived = ref(props.show_archived);
 const isTogglingArchived = ref(false);
@@ -91,6 +98,11 @@ const metrics = computed(() => [
 function openEditDialog(account: AccountRow): void {
     editingAccount.value = account;
     editDialogOpen.value = true;
+}
+
+function openReconcileDialog(account: AccountRow): void {
+    reconcilingAccount.value = account;
+    reconcileDialogOpen.value = true;
 }
 
 function toggleShowArchived(checked: boolean): void {
@@ -215,6 +227,33 @@ function toggleShowArchived(checked: boolean): void {
                         >
                             {{ accountCaption(account) }}
                         </p>
+                        <p
+                            v-if="account.last_reconciliation !== null"
+                            class="meta flex flex-wrap items-center gap-x-2"
+                        >
+                            <span class="text-muted-foreground">
+                                {{
+                                    reconciliationLastLead(
+                                        account.last_reconciliation,
+                                        t.accounts,
+                                    )
+                                }}
+                            </span>
+                            <Badge
+                                :variant="
+                                    account.last_reconciliation.agrees
+                                        ? 'ok'
+                                        : 'warning'
+                                "
+                            >
+                                {{
+                                    reconciliationLastVerdict(
+                                        account.last_reconciliation,
+                                        t.accounts,
+                                    )
+                                }}
+                            </Badge>
+                        </p>
                     </div>
                 </div>
 
@@ -230,6 +269,12 @@ function toggleShowArchived(checked: boolean): void {
                 </p>
 
                 <div class="accounts-cell-actions">
+                    <IconAction
+                        v-if="account.can_reconcile"
+                        :icon="Scale"
+                        :label="t.accounts.reconcile"
+                        @click="openReconcileDialog(account)"
+                    />
                     <IconAction
                         v-if="!account.is_archived"
                         :icon="Pencil"
@@ -313,5 +358,10 @@ function toggleShowArchived(checked: boolean): void {
         mode="edit"
         :account="editingAccount"
         :show-archived="show_archived"
+    />
+
+    <BalanceReconciliationDialog
+        v-model:open="reconcileDialogOpen"
+        :account="reconcilingAccount"
     />
 </template>

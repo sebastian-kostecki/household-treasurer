@@ -9,6 +9,8 @@
 const ACCOUNTS_VIEW_FILES = [
     'resources/js/pages/Accounts.vue',
     'resources/js/components/AccountFormDialog.vue',
+    'resources/js/components/BalanceReconciliationDialog.vue',
+    'resources/js/components/BalanceReconciliationReading.vue',
     'resources/js/components/AccountAvatar.vue',
     'resources/js/pages/dev/AccountsKitchenSink.vue',
     'resources/js/pages/dev/accounts-fixtures.ts',

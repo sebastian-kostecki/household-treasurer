@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Support\CategoryList\CategoryNameKey;
 use App\Support\CategoryList\LegacyCategoryConversion;
 use App\Support\CategoryList\LegacyRhythmConversion;
+use App\Support\UserSnapshot\BalanceReconciliationRows;
 use App\Support\UserSnapshot\RestoredImportIdentity;
 use App\Support\UserSnapshot\UserSnapshotException;
 use Carbon\CarbonImmutable;
@@ -29,11 +30,11 @@ class RestoreUserData
     /**
      * Versions holding the User's Category list and Budget Lines (6; 7 with the
      * description; 8 with the Category Groups; 9 with the Rhythm history; 10 with the Opening
-     * Collected on Irregular entries; 11 with the Default Set-aside Percent; 12 with the Sheet Account year).
+     * Collected on Irregular entries; 11 with the Default Set-aside Percent; 12 with the Sheet Account year; 13 with the Balance Reconciliations).
      *
      * @var list<int>
      */
-    private const LIST_FORMAT_VERSIONS = [6, 7, 8, 9, 10, 11, BackupUserData::SNAPSHOT_VERSION];
+    private const LIST_FORMAT_VERSIONS = [6, 7, 8, 9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION];
 
     /**
      * Versions that carry the Rhythm history; older ones are converted from the
@@ -41,7 +42,7 @@ class RestoreUserData
      *
      * @var list<int>
      */
-    private const RHYTHM_VERSIONS = [9, 10, 11, BackupUserData::SNAPSHOT_VERSION];
+    private const RHYTHM_VERSIONS = [9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION];
 
     /**
      * The flags of the Budget Lines of a snapshot of version 1 to 8, kept only
@@ -71,6 +72,7 @@ class RestoreUserData
             $this->resetUserData->handle($targetUser);
 
             $accountIdMap = $this->restoreAccounts($targetUser, $snapshot['accounts']);
+            $this->restoreBalanceReconciliations($targetUser, $snapshot['balance_reconciliations'] ?? [], $accountIdMap);
             $termDepositIdMap = $this->restoreTermDeposits($targetUser, $snapshot['term_deposits'] ?? []);
             $budgetIdMap = $this->restoreBudgets($targetUser, $snapshot['budgets']);
             $categoryIdMap = $isCurrentFormat
@@ -126,7 +128,7 @@ class RestoreUserData
 
         $version = $snapshot['version'] ?? null;
 
-        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (! in_array($version, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION], true)) {
             throw new UserSnapshotException('Unsupported snapshot version.');
         }
 
@@ -136,15 +138,15 @@ class RestoreUserData
             }
         }
 
-        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
+        if (in_array($version, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('term_deposits', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: term_deposits');
         }
 
-        if (in_array($version, [3, 4, 5, 6, 7, 8, 9, 10, 11, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
+        if (in_array($version, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('capital_movements', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: capital_movements');
         }
 
-        if (in_array($version, [5, 6, 7, 8, 9, 10, 11, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
+        if (in_array($version, [5, 6, 7, 8, 9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('month_plans', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: month_plans');
         }
 
@@ -152,11 +154,11 @@ class RestoreUserData
             throw new UserSnapshotException('Snapshot is missing required key: budget_lines');
         }
 
-        if (in_array($version, [8, 9, 10, 11, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
+        if (in_array($version, [8, 9, 10, 11, 12, BackupUserData::SNAPSHOT_VERSION], true) && ! array_key_exists('category_groups', $snapshot)) {
             throw new UserSnapshotException('Snapshot is missing required key: category_groups');
         }
 
-        if (in_array($version, [11, BackupUserData::SNAPSHOT_VERSION], true)) {
+        if (in_array($version, [11, 12, BackupUserData::SNAPSHOT_VERSION], true)) {
             $percent = $snapshot['default_set_aside_percent'] ?? null;
 
             if (! array_key_exists('default_set_aside_percent', $snapshot)) {
@@ -168,8 +170,16 @@ class RestoreUserData
             }
         }
 
-        if ($version === BackupUserData::SNAPSHOT_VERSION) {
+        if (in_array($version, [12, BackupUserData::SNAPSHOT_VERSION], true)) {
             $this->assertSheetYears($snapshot['accounts']);
+        }
+
+        if ($version === BackupUserData::SNAPSHOT_VERSION) {
+            if (! array_key_exists('balance_reconciliations', $snapshot)) {
+                throw new UserSnapshotException('Snapshot is missing required key: balance_reconciliations');
+            }
+
+            BalanceReconciliationRows::assertValid($snapshot['balance_reconciliations'], $snapshot['accounts']);
         }
 
         return $snapshot;
@@ -230,6 +240,25 @@ class RestoreUserData
         }
 
         return $accountIdMap;
+    }
+
+    /**
+     * Version 13 (ADR-0091): the Balance Reconciliations of the snapshot, pointing at the restored Accounts.
+     *
+     * @param  list<array<string, mixed>>  $reconciliations
+     * @param  array<int, int>  $accountIdMap
+     */
+    private function restoreBalanceReconciliations(User $targetUser, array $reconciliations, array $accountIdMap): void
+    {
+        foreach ($reconciliations as $row) {
+            $targetUser->balanceReconciliations()->create([
+                'account_id' => $accountIdMap[$row['account_id']],
+                'reconciled_on' => $row['reconciled_on'],
+                'bank_balance_minor_units' => $row['bank_balance_minor_units'],
+                'created_at' => isset($row['created_at']) ? Carbon::parse($row['created_at']) : now(),
+                'updated_at' => isset($row['updated_at']) ? Carbon::parse($row['updated_at']) : now(),
+            ]);
+        }
     }
 
     /**

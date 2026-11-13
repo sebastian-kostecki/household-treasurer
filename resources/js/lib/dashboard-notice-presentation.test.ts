@@ -129,4 +129,24 @@ describe('noticePresentation', () => {
             value: { type: 'pace', percent: 80, daysPercent: 50 },
         });
     });
+
+    it('presents collected not covered with the shortfall and the collected sum', () => {
+        const notice: DashboardNotice = {
+            severity: 'warning',
+            kind: 'collected_not_covered',
+            month: 11,
+            shortfall_minor_units: 10_000,
+            collected_minor_units: 60_000,
+        };
+
+        expect(noticePresentation(notice)).toEqual({
+            labelKey: 'collected_not_covered',
+            identity: { type: 'month', month: 11 },
+            value: {
+                type: 'collected_shortfall',
+                shortfallMinorUnits: 10_000,
+                collectedMinorUnits: 60_000,
+            },
+        });
+    });
 });

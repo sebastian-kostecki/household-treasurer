@@ -1491,6 +1491,8 @@ class DashboardTest extends TestCase
         ]);
         $account = Account::factory()->for($user)->create([
             'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
         ]);
         $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
         $groceries = BudgetLine::factory()->for($budget)->expense()->create([
@@ -1504,19 +1506,25 @@ class DashboardTest extends TestCase
             'execution_minor_units' => 80_000,
             'sort_order' => 2,
         ]);
+        $irregular = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Power',
+            'planned_amount_minor_units' => 180_000,
+            'sort_order' => 3,
+        ]);
+        $irregular->category->rhythms()->update(['start_month' => 9, 'opening_collected_minor_units' => 30_000]);
         $this->recordOperation($user, $account, $budget, $groceries, '2026-09-10', 150_000);
 
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->has('dashboardNotices', 7)
+                ->has('dashboardNotices', 8)
                 ->where('dashboardNotices.0.kind', 'negative_account')
                 ->where('dashboardNotices.0.id', $negativeAccount->id)
                 ->where('dashboardNotices.1.kind', 'negative_term_deposit')
                 ->where('dashboardNotices.1.id', $negativeTermDeposit->id)
                 ->where('dashboardNotices.2.kind', 'month_to_spend_negative')
-                ->where('dashboardNotices.2.amount_minor_units', -154_166)
+                ->where('dashboardNotices.2.amount_minor_units', -169_166)
                 ->where('dashboardNotices.3.kind', 'month_item_over_plan')
                 ->where('dashboardNotices.3.id', $groceries->category_id)
                 ->where('dashboardNotices.3.amount_minor_units', -50_000)
@@ -1524,13 +1532,15 @@ class DashboardTest extends TestCase
                 ->where('dashboardNotices.4.id', $oneOff->category_id)
                 ->where('dashboardNotices.5.kind', 'month_plan_not_approved')
                 ->where('dashboardNotices.6.kind', 'month_pace_ahead')
+                ->where('dashboardNotices.7.kind', 'collected_not_covered')
                 ->where('dashboardNotices.0.severity', 'exceeded')
                 ->where('dashboardNotices.1.severity', 'exceeded')
                 ->where('dashboardNotices.2.severity', 'exceeded')
                 ->where('dashboardNotices.3.severity', 'exceeded')
                 ->where('dashboardNotices.4.severity', 'exceeded')
                 ->where('dashboardNotices.5.severity', 'warning')
-                ->where('dashboardNotices.6.severity', 'warning'),
+                ->where('dashboardNotices.6.severity', 'warning')
+                ->where('dashboardNotices.7.severity', 'warning'),
             );
     }
 
@@ -1646,6 +1656,133 @@ class DashboardTest extends TestCase
                     ->values()
                     ->all() === [['Above', -15_000]]),
             );
+    }
+
+    public function test_dashboard_notices_collected_not_covered_below_spendable_liquidity(): void
+    {
+        $this->travelTo('2026-11-03');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 50_000,
+            'current_balance_minor_units' => 50_000,
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $power = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Power', 'sort_order' => 1, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $power->category->rhythms()->update(['start_month' => 11, 'opening_collected_minor_units' => 45_000]);
+        $this->approvedMonthPlan($budget, 11, [$power->id => 15_000]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->where('kind', 'collected_not_covered')
+                    ->values()
+                    ->all() === [[
+                        'kind' => 'collected_not_covered',
+                        'severity' => 'warning',
+                        'month' => 11,
+                        'shortfall_minor_units' => 10_000,
+                        'collected_minor_units' => 60_000,
+                    ]]),
+            );
+
+        $account->forceFill(['current_balance_minor_units' => 60_000])->save();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->where('kind', 'collected_not_covered')
+                    ->isEmpty()),
+            );
+    }
+
+    public function test_dashboard_has_no_collected_notice_without_an_irregular_line(): void
+    {
+        $this->travelTo('2026-11-03');
+
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 0,
+            'current_balance_minor_units' => 0,
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $rent = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Rent', 'sort_order' => 1, 'planned_amount_minor_units' => 100_000,
+        ]);
+        $this->approvedMonthPlan($budget, 11, [$rent->id => 100_000]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('dashboardNotices', fn ($notices) => collect($notices)
+                    ->where('kind', 'collected_not_covered')
+                    ->isEmpty()),
+            );
+    }
+
+    public function test_dashboard_passes_collected_total_for_irregular_lines(): void
+    {
+        $this->travelTo('2026-11-03');
+
+        $user = User::factory()->create();
+        Account::factory()->for($user)->create([
+            'opening_date' => '2026-01-01',
+            'opening_balance_minor_units' => 50_000,
+            'current_balance_minor_units' => 50_000,
+        ]);
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $power = BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Power', 'sort_order' => 1, 'planned_amount_minor_units' => 180_000,
+        ]);
+        $power->category->rhythms()->update(['start_month' => 11, 'opening_collected_minor_units' => 45_000]);
+        $this->approvedMonthPlan($budget, 11, [$power->id => 15_000]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('collected_minor_units', 60_000));
+    }
+
+    public function test_dashboard_collected_total_is_null_without_an_irregular_line(): void
+    {
+        $this->travelTo('2026-11-03');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->execution()->create(['year' => 2026]);
+        $rent = BudgetLine::factory()->for($budget)->expense()->create([
+            'name' => 'Rent', 'sort_order' => 1, 'planned_amount_minor_units' => 100_000,
+        ]);
+        $this->approvedMonthPlan($budget, 11, [$rent->id => 100_000]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('collected_minor_units', null));
+    }
+
+    public function test_dashboard_collected_total_is_null_for_a_draft_budget(): void
+    {
+        $this->travelTo('2026-11-03');
+
+        $user = User::factory()->create();
+        $budget = Budget::factory()->for($user)->create(['year' => 2026, 'phase' => BudgetPhase::Draft]);
+        BudgetLine::factory()->for($budget)->irregular()->create([
+            'name' => 'Power', 'sort_order' => 1, 'planned_amount_minor_units' => 180_000,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('collected_minor_units', null));
     }
 
     /**

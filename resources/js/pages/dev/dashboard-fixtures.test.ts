@@ -48,11 +48,11 @@ test('income-over-100 and overrun go past their plan', () => {
     );
 });
 
-test('all-notice-kinds has seven kinds and more than six cards', () => {
+test('all-notice-kinds has eight kinds and more than six cards', () => {
     const notices = scenario('all-notice-kinds').dashboardNotices;
 
     expect(notices.length).toBeGreaterThan(6);
-    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(7);
+    expect(new Set(notices.map((notice) => notice.kind)).size).toBe(8);
 });
 
 test('deposits-only has term deposits and no accounts', () => {
@@ -73,4 +73,9 @@ test('month pace scenarios hit their edges', () => {
     const none = scenario('no-month-plan');
     expect(none.month_to_spend).toBeNull();
     expect(none.month_pace).toBeNull();
+});
+
+test('liquidity caption has both states: with and without the collected total', () => {
+    expect(scenario('all-notice-kinds').collected_minor_units).toBe(60_000);
+    expect(scenario('no-month-plan').collected_minor_units).toBeNull();
 });

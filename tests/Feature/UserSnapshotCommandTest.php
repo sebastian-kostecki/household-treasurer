@@ -10,6 +10,7 @@ use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\Rhythm;
 use App\Models\Account;
+use App\Models\BalanceReconciliation;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
@@ -54,7 +55,7 @@ class UserSnapshotCommandTest extends TestCase
 
         $snapshot = json_decode(Storage::disk('local')->get($files[0]), true);
 
-        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(13, $snapshot['version']);
         $this->assertSame([], $snapshot['category_groups']);
         $this->assertNull($snapshot['categories'][0]['category_group_id']);
         $this->assertSame([], $snapshot['month_plans']);
@@ -237,7 +238,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(13, $snapshot['version']);
         $this->assertCount(1, $snapshot['month_plans']);
         $this->assertCount(2, $snapshot['month_plans'][0]['items']);
 
@@ -1015,7 +1016,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(13, $snapshot['version']);
         $this->assertCount(1, $snapshot['category_groups']);
         $this->assertSame(
             ['id', 'name', 'type', 'sort_order', 'created_at', 'updated_at'],
@@ -1410,7 +1411,7 @@ class UserSnapshotCommandTest extends TestCase
         $snapshot = json_decode(file_get_contents($path), true);
         $byName = collect($snapshot['categories'])->keyBy('name');
 
-        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(13, $snapshot['version']);
         $this->assertSame(
             [
                 ['rhythm' => 'running', 'start_year' => 2026, 'start_month' => 3, 'opening_collected_minor_units' => null],
@@ -1607,7 +1608,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(13, $snapshot['version']);
         $this->assertSame(10, $snapshot['default_set_aside_percent']);
 
         app(RestoreUserData::class)->handle($targetUser, $path);
@@ -1707,7 +1708,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($sourceUser);
         $snapshot = json_decode(file_get_contents($path), true);
 
-        $this->assertSame(12, $snapshot['version']);
+        $this->assertSame(13, $snapshot['version']);
         $this->assertEqualsCanonicalizing([2025, null], array_column($snapshot['accounts'], 'sheet_year'));
 
         app(RestoreUserData::class)->handle($targetUser, $path);
@@ -1778,6 +1779,117 @@ class UserSnapshotCommandTest extends TestCase
 
         $this->assertSame(1, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $badPath, '--force' => true]));
         $this->assertSame(0, $targetUser->accounts()->count());
+    }
+
+    public function test_snapshot_v13_round_trips_balance_reconciliations_onto_the_restored_accounts(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        $bank = Account::factory()->for($sourceUser)->create(['name' => 'Bank']);
+        $cash = Account::factory()->for($sourceUser)->create(['name' => 'Gotówka']);
+        BalanceReconciliation::factory()->for($sourceUser)->for($bank)->create(['reconciled_on' => '2026-03-31', 'bank_balance_minor_units' => 130000]);
+        BalanceReconciliation::factory()->for($sourceUser)->for($bank)->create(['reconciled_on' => '2026-04-30', 'bank_balance_minor_units' => -2500]);
+        BalanceReconciliation::factory()->for($sourceUser)->for($cash)->create(['reconciled_on' => '2026-03-31', 'bank_balance_minor_units' => 0]);
+        $targetUser = User::factory()->create();
+        $staleAccount = Account::factory()->for($targetUser)->create();
+        BalanceReconciliation::factory()->for($targetUser)->for($staleAccount)->create();
+
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = json_decode(file_get_contents($path), true);
+
+        $this->assertCount(3, $snapshot['balance_reconciliations']);
+
+        app(RestoreUserData::class)->handle($targetUser, $path);
+
+        $restored = $targetUser->balanceReconciliations()->with('account')->orderBy('reconciled_on')->orderBy('bank_balance_minor_units')->get();
+
+        $this->assertSame(3, $restored->count());
+        $this->assertSame(
+            [['Gotówka', '2026-03-31', 0], ['Bank', '2026-03-31', 130000], ['Bank', '2026-04-30', -2500]],
+            $restored->map(fn (BalanceReconciliation $row): array => [$row->account->name, $row->reconciled_on->toDateString(), $row->bank_balance_minor_units])->all(),
+        );
+        $this->assertSame($targetUser->id, $restored->first()->account->user_id);
+        $this->assertSame(3, $sourceUser->balanceReconciliations()->count());
+    }
+
+    public function test_restore_onto_the_same_user_keeps_their_balance_reconciliations(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $account = Account::factory()->for($user)->create();
+        BalanceReconciliation::factory()->for($user)->for($account)->create(['reconciled_on' => '2026-03-31', 'bank_balance_minor_units' => 4200]);
+
+        $path = app(BackupUserData::class)->handle($user);
+        app(RestoreUserData::class)->handle($user, $path);
+
+        $this->assertSame([['2026-03-31', 4200]], $user->balanceReconciliations()->get()
+            ->map(fn (BalanceReconciliation $row): array => [$row->reconciled_on->toDateString(), $row->bank_balance_minor_units])->all());
+        $this->assertSame($user->accounts()->value('id'), $user->balanceReconciliations()->value('account_id'));
+    }
+
+    public function test_restore_command_restores_a_v12_snapshot_without_balance_reconciliations(): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        Account::factory()->for($sourceUser)->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $v12 = json_decode(file_get_contents($path), true);
+        unset($v12['balance_reconciliations']);
+        $v12['version'] = 12;
+        $v12Path = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/v12.json');
+        file_put_contents($v12Path, json_encode($v12, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->create();
+        $targetAccount = Account::factory()->for($targetUser)->create();
+        BalanceReconciliation::factory()->for($targetUser)->for($targetAccount)->create();
+
+        $this->assertSame(0, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $v12Path, '--force' => true]), Artisan::output());
+        $this->assertSame(1, $targetUser->accounts()->count());
+        $this->assertSame(0, $targetUser->balanceReconciliations()->count());
+    }
+
+    /**
+     * @return array<string, array{callable(array<string, mixed>): array<string, mixed>}>
+     */
+    public static function invalidBalanceReconciliations(): array
+    {
+        $row = ['account_id' => 0, 'reconciled_on' => '2026-03-31', 'bank_balance_minor_units' => 100];
+
+        return [
+            'key missing' => [fn (array $snapshot): array => array_diff_key($snapshot, ['balance_reconciliations' => 1])],
+            'unknown account' => [fn (array $snapshot): array => [...$snapshot, 'balance_reconciliations' => [[...$row, 'account_id' => 999999]]]],
+            'impossible day' => [fn (array $snapshot): array => [...$snapshot, 'balance_reconciliations' => [[...$row, 'account_id' => $snapshot['accounts'][0]['id'], 'reconciled_on' => '2026-02-30']]]],
+            'bank balance as text' => [fn (array $snapshot): array => [...$snapshot, 'balance_reconciliations' => [[...$row, 'account_id' => $snapshot['accounts'][0]['id'], 'bank_balance_minor_units' => '100']]]],
+            'two for one account and day' => [fn (array $snapshot): array => [...$snapshot, 'balance_reconciliations' => [
+                [...$row, 'account_id' => $snapshot['accounts'][0]['id']],
+                [...$row, 'account_id' => $snapshot['accounts'][0]['id'], 'bank_balance_minor_units' => 5],
+            ]]],
+        ];
+    }
+
+    /**
+     * @param  callable(array<string, mixed>): array<string, mixed>  $break
+     */
+    #[DataProvider('invalidBalanceReconciliations')]
+    public function test_restore_command_refuses_invalid_balance_reconciliations_in_a_v13_snapshot(callable $break): void
+    {
+        Storage::fake('local');
+
+        $sourceUser = User::factory()->create();
+        Account::factory()->for($sourceUser)->create();
+        $path = app(BackupUserData::class)->handle($sourceUser);
+        $snapshot = $break(json_decode(file_get_contents($path), true));
+        $badPath = Storage::disk('local')->path(BackupUserData::SNAPSHOT_DIRECTORY.'/bad-reconciliations.json');
+        file_put_contents($badPath, json_encode($snapshot, JSON_THROW_ON_ERROR));
+
+        $targetUser = User::factory()->create();
+        Account::factory()->for($targetUser)->create();
+
+        $this->assertSame(1, Artisan::call('user:restore', ['user' => $targetUser->email, 'path' => $badPath, '--force' => true]));
+        $this->assertSame(1, $targetUser->accounts()->count());
     }
 
     /**

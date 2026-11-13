@@ -16,6 +16,7 @@ class DashboardNotices
     /**
      * @param  Collection<int, Account>  $accounts
      * @param  Collection<int, TermDeposit>  $termDeposits
+     * @param  array{collected_minor_units: int, shortfall_minor_units: int}|null  $collectedCoverage
      * @return list<array{
      *     kind: 'negative_account',
      *     severity: 'exceeded'|'warning',
@@ -57,6 +58,12 @@ class DashboardNotices
      *     percent: int,
      *     elapsed_day: int,
      *     days_in_month: int,
+     * }|array{
+     *     kind: 'collected_not_covered',
+     *     severity: 'warning',
+     *     month: int,
+     *     shortfall_minor_units: int,
+     *     collected_minor_units: int,
      * }>
      *
      * The order of appending is the contract of the list: every exceeded notice
@@ -68,6 +75,7 @@ class DashboardNotices
         Collection $termDeposits,
         ?MonthToSpend $monthToSpend,
         CarbonImmutable $today,
+        ?array $collectedCoverage = null,
     ): array {
         $notices = [];
 
@@ -241,6 +249,16 @@ class DashboardNotices
                     'percent' => $pace['percent'],
                     'elapsed_day' => $pace['elapsed_day'],
                     'days_in_month' => $pace['days_in_month'],
+                ];
+            }
+
+            if ($collectedCoverage !== null && $collectedCoverage['shortfall_minor_units'] > 0) {
+                $notices[] = [
+                    'kind' => 'collected_not_covered',
+                    'severity' => DashboardNoticeSeverity::Warning->value,
+                    'month' => $today->month,
+                    'shortfall_minor_units' => $collectedCoverage['shortfall_minor_units'],
+                    'collected_minor_units' => $collectedCoverage['collected_minor_units'],
                 ];
             }
         }
