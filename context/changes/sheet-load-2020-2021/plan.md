@@ -451,12 +451,12 @@ Brak migracji. Wycofanie roku: `budget:unload-sheet {user} 2020` / `2021` jak dl
 
 #### Automated
 
-- [ ] 4.1 Pełna bramka na PostgreSQL: `docker run … --entrypoint composer sail-8.5/app ci:check` z `DB_DATABASE=testing_sheet_load_2020_2021` przechodzi
-- [ ] 4.2 `vendor/bin/sloppy ci` na hoście bez nowych znalezisk (wg `.ai/rules/sloppy.md`; gdy host nie uruchamia, w Sail, z adnotacją w raporcie)
+- [x] 4.1 Pełna bramka na PostgreSQL: `docker run … --entrypoint composer sail-8.5/app ci:check` z `DB_DATABASE=testing_sheet_load_2020_2021` przechodzi
+- [x] 4.2 `vendor/bin/sloppy ci` na hoście bez nowych znalezisk (wg `.ai/rules/sloppy.md`; gdy host nie uruchamia, w Sail, z adnotacją w raporcie)
 
 #### Manual
 
-- [ ] 4.3 README czyta się jako kompletna procedura dla 2020 i 2021 bez sięgania do planu
+- [x] 4.3 README czyta się jako kompletna procedura dla 2020 i 2021 bez sięgania do planu
 
 ### Phase 5: Wczytanie na produkcji
 

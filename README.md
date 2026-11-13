@@ -128,8 +128,8 @@ CI uruchamia dodatkowo [Sloppy](https://github.com/heyosseus/sloppy) (`vendor/bi
 | `demo:seed-previous-year {user}`    | Mock roku poprzedniego z bieżącego (tylko lokalnie; `--remove` usuwa)                                                           |
 | `backup:restore {path}`             | Restore backupu całej instancji (Spatie), nie `user:restore`; zob. [Wdrożenie i przywracanie](#wdrożenie-i-przywracanie)        |
 | `app:control-numbers`               | Liczby kontrolne (zapis `--output`, porównanie `--compare`); zob. [Liczby kontrolne](#liczby-kontrolne)                         |
-| `budget:load-sheet {user} {path}`   | Wczytanie roku ze starego arkusza (`--dry-run` tylko podgląd); zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20222025)       |
-| `budget:unload-sheet {user} {year}` | Wycofanie wczytanego roku; zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20222025)                                           |
+| `budget:load-sheet {user} {path}`   | Wczytanie roku ze starego arkusza (`--dry-run` tylko podgląd); zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20202025)       |
+| `budget:unload-sheet {user} {year}` | Wycofanie wczytanego roku; zob. [Wczytanie arkusza](#wczytanie-arkusza-lata-20202025)                                           |
 | `import:suggestion-accuracy {user}` | Trafność podpowiedzi Importu (tylko odczyt); zob. [Pomiar trafności podpowiedzi Importu](#pomiar-trafności-podpowiedzi-importu) |
 
 `{user}` to e-mail albo ID. Snapshoty lądują w `storage/app/private/user-snapshots/`.
@@ -217,9 +217,9 @@ Migracja `add_sheet_year_to_accounts_table` dodaje jedną nullable kolumnę (`ac
 
 Migracja `create_balance_reconciliations_table` dodaje tylko nową tabelę (ADR-0091) i nie zmienia żadnego wiersza, więc liczby kontrolne przed i po `migrate` są identyczne. Jej `down()` usuwa tabelę: znikają zapisane uzgodnienia sald, a konta, operacje i salda zostają. Uzgodnienia nie trafiają do snapshotu wersji 12 ani starszych, więc po cofnięciu zrób `user:backup` przed `migrate:rollback`, jeśli chcesz je zachować. Snapshot wersji 13 (`user:backup` po tej zmianie) nie wczyta się w kodzie sprzed zmiany; drogą powrotu jest `scripts/artisan.sh migrate:rollback --force` nowym kodem, potem `git revert` i `git pull` przed `scripts/deploy.sh`.
 
-#### Wczytanie arkusza (lata 2022–2025)
+#### Wczytanie arkusza (lata 2020–2025)
 
-Decyzja: [ADR-0085](context/foundation/adr/0085-sheet-load-of-past-years.md). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
+Decyzje: [ADR-0085](context/foundation/adr/0085-sheet-load-of-past-years.md) i [ADR-0092](context/foundation/adr/0092-sheet-load-of-2020-and-2021.md) (lata 2020 i 2021: starszy układ arkusza, „ruchy funduszu”). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
 
 Procedura na produkcji (`{user}` to e-mail albo ID):
 
@@ -228,7 +228,7 @@ Procedura na produkcji (`{user}` to e-mail albo ID):
     ```bash
     COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml"
     $COMPOSE exec -T -u sail app mkdir -p storage/app/private/sheet-load
-    for year in 2022 2023 2024 2025; do $COMPOSE cp "Budżet_${year}.xlsx" "app:/var/www/html/storage/app/private/sheet-load/Budżet_${year}.xlsx"; done
+    for year in 2020 2021 2022 2023 2024 2025; do $COMPOSE cp "Budżet_${year}.xlsx" "app:/var/www/html/storage/app/private/sheet-load/Budżet_${year}.xlsx"; done
     $COMPOSE exec -T -u root app chown -R sail:sail storage/app/private/sheet-load
     ```
 3. Snapshot i liczby kontrolne „przed”:
@@ -236,18 +236,20 @@ Procedura na produkcji (`{user}` to e-mail albo ID):
     scripts/artisan.sh user:backup {user}
     scripts/artisan.sh app:control-numbers --output=storage/app/private/control-numbers/$(date -u +%Y%m%d-%H%M%S)-sheet-before.json
     ```
-    Zapisz nazwę pliku „przed” i zachowaj jego kopię poza serwerem.
-4. Podgląd każdego pliku (`--dry-run` nic nie zapisuje): kod wyjścia 0, sumy przychodów i wydatków zgodne z „Analizą” (2022: 106 233,93 / 101 219,38; 2023: 117 847,66 / 122 115,75; 2024: 110 559,17 / 126 760,34; 2025: 134 670,58 / 134 852,23 zł), ostrzeżenia z adresami komórek do przejrzenia (2022 czerwiec, 2024 wrzesień), kategorie z mapowania istnieją z oczekiwaną nazwą i typem:
+    Zapisz nazwę pliku „przed” i zachowaj jego kopię poza serwerem. Wczytanie lat 2020 i 2021 wymaga nowego pliku „przed” zdjętego po wczytaniu 2022–2025; wcześniejszy (np. `20261112-…-sheet-before.json`) jest nieaktualny, bo `--compare` pokazałby wtedy lata 2022–2025 jako naruszenie.
+4. Podgląd każdego pliku (`--dry-run` nic nie zapisuje): kod wyjścia 0, sumy przychodów i wydatków zgodne z „Analizą” (2020: 74 011,82 / 69 557,28; 2021: 96 348,99 / 90 211,55; 2022: 106 233,93 / 101 219,38; 2023: 117 847,66 / 122 115,75; 2024: 110 559,17 / 126 760,34; 2025: 134 670,58 / 134 852,23 zł), ostrzeżenia z adresami komórek do przejrzenia (2022 czerwiec, 2024 wrzesień; 2020 i 2021 bez ostrzeżeń arkusza, 2021 z jednym przeniesieniem `grudzień!H8` → `grudzień!H7`), kategorie z mapowania istnieją z oczekiwaną nazwą i typem:
     ```bash
     scripts/artisan.sh budget:load-sheet {user} storage/app/private/sheet-load/Budżet_2022.xlsx --dry-run
     ```
-5. Wczytanie, po jednym roku (komenda pyta o potwierdzenie; `--force` pomija pytanie): `budget:load-sheet {user} <plik>` dla 2022, 2023, 2024, 2025. Błąd kończy się kodem 1 z nazwą arkusza i komórki, a transakcja się cofa.
+5. Wczytanie, po jednym roku (komenda pyta o potwierdzenie; `--force` pomija pytanie): `budget:load-sheet {user} <plik>` dla 2020, 2021, 2022, 2023, 2024, 2025 (na produkcji, gdzie 2022–2025 już są, tylko brakujące lata). Błąd kończy się kodem 1 z nazwą arkusza i komórki, a transakcja się cofa.
 6. Dowód „tylko dodano”: `scripts/artisan.sh app:control-numbers --compare=storage/app/private/control-numbers/<plik-przed> --allow-additions` ma dać kod 0 i podsumowanie dodań (Budżety, ich linie, konta arkusza, operacje, ewentualnie kategoria „Kosmetyki”). Każde naruszenie to STOP i wycofanie.
 7. Przegląd w aplikacji: saldo „Na kontach”, dashboard i szkic 2027 bez zmian; raport „ostatnie 12 miesięcy”, raport 2026 z kolumną 2025, Budżet 2024 i „Kategorie”. Zmieniają się celowo (ADR-0085): lata 2022–2027 w selektorze roku, kolumny roku poprzedniego, blokady „Usuń” na kategoriach z historią.
 
+Sumy z kroku 4 dla 2020 i 2021 to „operacje + ruchy funduszu” (2020: przychody 69 913,54 + 4 098,28, wydatki 65 239,23 + 4 318,05; 2021: 91 448,99 + 4 900,00 i 84 700,99 + 5 510,56). Ruchy funduszu (wpłaty do funduszu celowego i zwroty z niego) nie tworzą operacji, ale „Analiza” je liczy; `--dry-run` wypisuje je w sekcji „Ruchy funduszu” i pokazuje uzgodnienie. Lata 2022–2025 nie mają ruchów funduszu. `Budżet_2021.xlsx` musi być plikiem po poprawce formuły `E30` (lipiec–grudzień pomijały `D23`): SHA-256 `6c228b92db7931e60309cb1caac7987de480051638d548859ec38213393c0e18`, oryginał `9396b6b6…c872` jest zły (`Analiza!C16` 89 673,56 zamiast 90 211,55); szczegóły w `context/changes/sheet-load-2020-2021/workbook-fix.md`. Sprawdź `sha256sum` pliku na serwerze przed krokiem 4. Rok 2019 ma inny skoroszyt i nie jest obsługiwany.
+
 Operacje z arkusza nie mają edycji w UI, a rok wczytany jest zamknięty dla wpisu ręcznego i Importu. Błąd w mapowaniu poprawia się przez wycofanie roku i ponowne wczytanie.
 
-Wycofanie roku: `scripts/artisan.sh budget:unload-sheet {user} 2025` (potwierdzenie albo `--force`). Usuwa operacje, linie, Budżet i konto arkusza tego roku oraz zarchiwizowaną „Kosmetyki”, gdy nic jej już nie używa; odmawia, gdy Budżet ma plany miesięcy albo operacje na innym koncie. Po wycofaniu wszystkich wczytanych lat `app:control-numbers --compare=<plik-przed>` (bez `--allow-additions`) nie pokazuje różnic. Gdy wycofanie odmówi, drogą awaryjną jest snapshot z kroku 3 (`user:restore`) albo kopia instancji.
+Wycofanie roku: `scripts/artisan.sh budget:unload-sheet {user} 2025` (analogicznie 2020, 2021) (potwierdzenie albo `--force`). Usuwa operacje, linie, Budżet i konto arkusza tego roku oraz zarchiwizowaną „Kosmetyki”, gdy nic jej już nie używa; odmawia, gdy Budżet ma plany miesięcy albo operacje na innym koncie. Po wycofaniu wszystkich wczytanych lat `app:control-numbers --compare=<plik-przed>` (bez `--allow-additions`) nie pokazuje różnic. Gdy wycofanie odmówi, drogą awaryjną jest snapshot z kroku 3 (`user:restore`) albo kopia instancji.
 
 Próba na kopii produkcji (lokalnie, bez nadpisania bazy deweloperskiej): odtwórz archiwum `backup:run` z produkcji do bazy `restore_trial` według „Próba lokalna” wyżej (w tym `config:clear`, `db:show` pokazujące `restore_trial` i odłożenie `storage/app/private` oraz `public`), potem przejdź kroki 3–7 z `docker compose exec -e DB_DATABASE=restore_trial laravel.test php artisan …` zamiast `scripts/artisan.sh`, z plikami w `storage/app/restore-trial/`. Na próbie wykonaj też wycofanie wszystkich lat i ponowne wczytanie. Id kategorii w mapowaniu (`database/sheet-load/mapping.php`) pochodzą z kopii produkcji na devie; `--dry-run` na próbie potwierdza, że zgadzają się z produkcją.
 
