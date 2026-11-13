@@ -182,7 +182,7 @@ const labels: Record<SinkState, string> = {
     'confirm-destructive': 'Potwierdzenie destrukcyjne',
     'confirm-saving': 'Potwierdzenie: zapis w toku',
     'confirm-deficit': 'Potwierdzenie: ostrzeżenie o deficycie',
-    'confirm-align-plan': 'Potwierdzenie: zakończ kategorię',
+    'confirm-align-plan': 'Potwierdzenie: wyrównaj plan',
     'account-bank-new': 'Konto: nowe (bank)',
     'account-cash-new': 'Konto: nowe (gotówka, bez banku)',
     'account-edit': 'Konto: edycja',
@@ -778,9 +778,9 @@ function setOpen(state: SinkState, value: boolean): void {
         <ConfirmActionDialog
             :open="isOpen('confirm-align-plan')"
             :form="plainForm"
-            title="Zakończyć kategorię?"
+            title="Wyrównać plan do wykonania?"
             description="Plan bieżący zostanie ustawiony na kwotę wykonania. Pozostało będzie wynosić 0."
-            confirm-label="Zakończ"
+            confirm-label="Wyrównaj"
             cancel-label="Anuluj"
             @update:open="setOpen('confirm-align-plan', $event)"
         />

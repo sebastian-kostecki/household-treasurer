@@ -453,29 +453,29 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 
 #### Automated
 
-- [x] 2.1 Vitest for visit-scroll passes
-- [x] 2.2 Types pass
-- [x] 2.3 Full gate passes: composer ci:check
+- [x] 2.1 Vitest for visit-scroll passes — cb8c76f
+- [x] 2.2 Types pass — cb8c76f
+- [x] 2.3 Full gate passes: composer ci:check — cb8c76f
 
 #### Manual
 
-- [x] 2.4 Budget edit and Align leave the window on the row
-- [x] 2.5 Operations edit leaves the window in place
-- [x] 2.6 Kategorie, Plan miesiąca, Konta and Lokaty saves and validation errors do not jump
-- [x] 2.7 Year change, Import commit and login still start at the top
+- [x] 2.4 Budget edit and Align leave the window on the row — cb8c76f
+- [x] 2.5 Operations edit leaves the window in place — cb8c76f
+- [x] 2.6 Kategorie, Plan miesiąca, Konta and Lokaty saves and validation errors do not jump — cb8c76f
+- [x] 2.7 Year change, Import commit and login still start at the top — cb8c76f
 
 ### Phase 3: „Zakończ” becomes „Wyrównaj”
 
 #### Automated
 
-- [ ] 3.1 No „Zakończ” left in lang and resources/js
-- [ ] 3.2 Align tests pass
-- [ ] 3.3 Full gate passes: composer ci:check
+- [x] 3.1 No „Zakończ” left in lang and resources/js
+- [x] 3.2 Align tests pass
+- [x] 3.3 Full gate passes: composer ci:check
 
 #### Manual
 
-- [ ] 3.4 Budget menu, dialog and toast show the new Polish copy
-- [ ] 3.5 Dialogs kitchen sink shows the same copy
+- [x] 3.4 Budget menu, dialog and toast show the new Polish copy
+- [x] 3.5 Dialogs kitchen sink shows the same copy
 
 ### Phase 4: Polish server messages
 
