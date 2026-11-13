@@ -49,6 +49,20 @@ class OperationsFilterTest extends TestCase
             );
     }
 
+    public function test_a_page_past_the_end_redirects_to_the_last_page_keeping_filters(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, ['description' => 'Biedronka', 'operation_date' => '2026-03-01']);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['q' => 'biedronka', 'operations_page' => 5]))
+            ->assertRedirect(route('operations', [
+                'q' => 'biedronka',
+                'operations_page' => 1,
+                'section' => 'financial_operations',
+            ]));
+    }
+
     public function test_search_matches_counterparty_or_raw_statement_description(): void
     {
         $user = User::factory()->create();

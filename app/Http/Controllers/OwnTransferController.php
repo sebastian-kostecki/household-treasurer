@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\ManageOwnTransfer;
 use App\Actions\RebuildOperation;
+use App\Concerns\RedirectsToOperationsList;
 use App\Http\Requests\StoreOwnTransferRequest;
 use App\Http\Requests\UpdateOwnTransferRequest;
 use App\Models\OwnTransfer;
@@ -15,6 +16,7 @@ use Inertia\Inertia;
 class OwnTransferController extends Controller
 {
     use AuthorizesRequests;
+    use RedirectsToOperationsList;
 
     public function store(StoreOwnTransferRequest $request, ManageOwnTransfer $manageOwnTransfer): RedirectResponse
     {
@@ -25,7 +27,7 @@ class OwnTransferController extends Controller
             'message' => __('Own transfer recorded.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function update(
@@ -45,7 +47,7 @@ class OwnTransferController extends Controller
                 'message' => __('Capital movement recorded.'),
             ]);
 
-            return to_route('operations');
+            return $this->redirectToOperationsList($request);
         }
 
         $manageOwnTransfer->update($ownTransfer, $request->ownTransferPayload());
@@ -55,7 +57,7 @@ class OwnTransferController extends Controller
             'message' => __('Own transfer updated.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 
     public function destroy(Request $request, OwnTransfer $ownTransfer, ManageOwnTransfer $manageOwnTransfer): RedirectResponse
@@ -69,6 +71,6 @@ class OwnTransferController extends Controller
             'message' => __('Own transfer deleted.'),
         ]);
 
-        return to_route('operations');
+        return $this->redirectToOperationsList($request);
     }
 }

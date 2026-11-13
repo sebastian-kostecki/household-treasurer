@@ -16,6 +16,7 @@ import { formatMoneyAmount } from '@/lib/format';
 const props = defineProps<{
     category: BudgetCategoryRow;
     budgetId: number;
+    showArchived?: boolean;
     categoryType: 'income' | 'expense';
     phase: 'draft' | 'execution';
     showHandle: boolean;
@@ -238,6 +239,7 @@ const remainingLabel = computed(() =>
             class="budget-category-cell-actions"
             :category="category"
             :budget-id="budgetId"
+            :show-archived="showArchived"
             @edit="emit('edit')"
         />
     </div>

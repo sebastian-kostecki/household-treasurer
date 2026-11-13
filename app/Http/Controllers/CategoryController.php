@@ -54,7 +54,7 @@ class CategoryController extends Controller
             'message' => $joinedExisting ? __('Existing category joined.') : __('Category created.'),
         ]);
 
-        return to_route('budget');
+        return $this->redirectToBudget($request);
     }
 
     public function update(UpdateCategoryRequest $request, Budget $budget, Category $category, UpdateCategory $updateCategory): RedirectResponse
@@ -68,10 +68,10 @@ class CategoryController extends Controller
             'message' => __('Category updated.'),
         ]);
 
-        return to_route('budget');
+        return $this->redirectToBudget($request);
     }
 
-    public function destroy(Budget $budget, Category $category): RedirectResponse
+    public function destroy(Request $request, Budget $budget, Category $category): RedirectResponse
     {
         $line = $this->lineOf($budget, $category);
 
@@ -84,7 +84,7 @@ class CategoryController extends Controller
             'message' => __('Category deleted.'),
         ]);
 
-        return to_route('budget');
+        return $this->redirectToBudget($request);
     }
 
     public function archive(Category $category, ArchiveCategory $archiveCategory): RedirectResponse
@@ -130,7 +130,7 @@ class CategoryController extends Controller
             'message' => __('Category current plan aligned.'),
         ]);
 
-        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
+        return $this->redirectToBudget($request);
     }
 
     public function reorder(
@@ -153,5 +153,10 @@ class CategoryController extends Controller
     private function lineOf(Budget $budget, Category $category): BudgetLine
     {
         return $budget->budgetLines()->where('category_id', $category->id)->firstOrFail();
+    }
+
+    private function redirectToBudget(Request $request): RedirectResponse
+    {
+        return to_route('budget', $request->boolean('show_archived') ? ['show_archived' => 1] : []);
     }
 }

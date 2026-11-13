@@ -42,6 +42,7 @@ const props = defineProps<{
     open: boolean;
     mode: 'create' | 'edit';
     budgetId: number;
+    showArchived?: boolean;
     defaultType: 'income' | 'expense';
     category?: CategoryFormCategory | null;
     lockType?: boolean;
@@ -72,17 +73,24 @@ const plannedAmountInvalid = computed(
     () => plannedAmountMinorUnits.value === null,
 );
 
+const writeOptions = computed(() =>
+    props.showArchived ? { query: { show_archived: 1 } } : undefined,
+);
+
 const formBinding = computed(() => {
     if (props.form) {
         return props.form;
     }
 
     return props.mode === 'create'
-        ? CategoryController.store.form(props.budgetId)
-        : CategoryController.update.form({
-              budget: props.budgetId,
-              category: props.category?.id ?? 0,
-          });
+        ? CategoryController.store.form(props.budgetId, writeOptions.value)
+        : CategoryController.update.form(
+              {
+                  budget: props.budgetId,
+                  category: props.category?.id ?? 0,
+              },
+              writeOptions.value,
+          );
 });
 
 const previewFallbackName = computed(() =>

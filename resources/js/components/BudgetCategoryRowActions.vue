@@ -23,6 +23,7 @@ import { useTranslations } from '@/composables/useTranslations';
 const props = defineProps<{
     category: BudgetCategoryRow;
     budgetId: number;
+    showArchived?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +31,10 @@ const emit = defineEmits<{
 }>();
 
 const t = useTranslations();
+
+const writeOptions = computed(() =>
+    props.showArchived ? { query: { show_archived: 1 } } : undefined,
+);
 
 const alignDialogOpen = ref(false);
 const archiveDialogOpen = ref(false);
@@ -119,10 +124,13 @@ function openDeleteDialog(): void {
         <ConfirmActionDialog
             v-model:open="alignDialogOpen"
             :form="
-                CategoryController.alignCurrentPlan.form({
-                    budget: budgetId,
-                    category: category.id,
-                })
+                CategoryController.alignCurrentPlan.form(
+                    {
+                        budget: budgetId,
+                        category: category.id,
+                    },
+                    writeOptions,
+                )
             "
             :title="t.budget.align_current_plan_confirm_title"
             :description="t.budget.align_current_plan_confirm_body"
@@ -151,10 +159,13 @@ function openDeleteDialog(): void {
         <ConfirmActionDialog
             v-model:open="deleteDialogOpen"
             :form="
-                CategoryController.destroy.form({
-                    budget: budgetId,
-                    category: category.id,
-                })
+                CategoryController.destroy.form(
+                    {
+                        budget: budgetId,
+                        category: category.id,
+                    },
+                    writeOptions,
+                )
             "
             destructive
             :title="t.budget.delete_category_confirm_title"

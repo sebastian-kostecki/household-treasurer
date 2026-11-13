@@ -19,6 +19,7 @@ use App\Support\HandEntryMonthRemainingInputs;
 use App\Support\OperationsDaySums;
 use App\Support\OperationsFilterOptions;
 use App\Support\OperationsSectionTotals;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,7 +27,7 @@ class OperationsController extends Controller
 {
     private const int OPERATIONS_PER_PAGE = 50;
 
-    public function index(IndexOperationsRequest $request, OwnTransferImportSnapshots $ownTransferImportSnapshots): Response
+    public function index(IndexOperationsRequest $request, OwnTransferImportSnapshots $ownTransferImportSnapshots): Response|RedirectResponse
     {
         $user = $request->user();
         $filters = $request->filters();
@@ -124,6 +125,24 @@ class OperationsController extends Controller
                 'term_deposit_mark_url' => AccountIdentity::markUrl($movement->termDeposit->bank),
                 ...AccountIdentity::prefixedRowFields($movement->account, 'account'),
             ]);
+
+        $activePaginator = match ($request->section()) {
+            OperationsListSection::FinancialOperations => ['page' => 'operations_page', 'paginator' => $operations],
+            OperationsListSection::OwnTransfers => ['page' => 'own_transfers_page', 'paginator' => $ownTransfers],
+            OperationsListSection::CapitalMovements => ['page' => 'capital_movements_page', 'paginator' => $capitalMovements],
+        };
+
+        if ($activePaginator['paginator']->lastPage() >= 1 && $activePaginator['paginator']->currentPage() > $activePaginator['paginator']->lastPage()) {
+            return to_route('operations', [
+                ...array_filter($request->safe()->only(['q', 'year', 'category_id', 'account_id', 'term_deposit_id', 'date_from', 'date_to']), fn (mixed $value): bool => $value !== null),
+                ...array_filter(
+                    $request->only(['operations_page', 'own_transfers_page', 'capital_movements_page']),
+                    fn (mixed $value): bool => is_scalar($value),
+                ),
+                'section' => $request->section()->value,
+                $activePaginator['page'] => $activePaginator['paginator']->lastPage(),
+            ]);
+        }
 
         $termDeposits = $user->termDeposits()
             ->whereNull('archived_at')

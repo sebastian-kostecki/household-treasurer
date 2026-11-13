@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import {
+    computed,
+    nextTick,
+    onMounted,
+    onUnmounted,
+    provide,
+    ref,
+    watch,
+} from 'vue';
 import ExpenseFormDialog, {
     type ExpenseFormAccount,
     type ExpenseFormCategory,
@@ -29,7 +37,11 @@ import { type OwnTransferRowData } from '@/components/OwnTransferRow.vue';
 import { type PaginatedCollection } from '@/components/PaginationLinks.vue';
 import { useOperationsIntent } from '@/composables/useOperationsIntent';
 import { useTranslations } from '@/composables/useTranslations';
-import { operationsListQuery } from '@/lib/operations-list-query';
+import {
+    OPERATIONS_RETURN_QUERY,
+    operationsListQuery,
+    operationsReturnQuery,
+} from '@/lib/operations-list-query';
 import { listenForOperationsListVisits } from '@/lib/operations-list-visit';
 import { operations as operationsRoute } from '@/routes';
 
@@ -99,6 +111,17 @@ const editingCapitalMovement = ref<CapitalMovementRowData | null>(null);
 const addMenuOpen = ref(false);
 const { operationsIntent, clearOperationsIntent } = useOperationsIntent();
 const listBusy = ref(false);
+
+provide(
+    OPERATIONS_RETURN_QUERY,
+    computed(() =>
+        operationsReturnQuery(filters, section, {
+            operations: operations.current_page,
+            own_transfers: ownTransfers.current_page,
+            capital_movements: capitalMovements.current_page,
+        }),
+    ),
+);
 let stopListeningForListVisits: (() => void) | null = null;
 
 watch(

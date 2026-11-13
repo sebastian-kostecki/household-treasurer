@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import ExpenseController from '@/actions/App/Http/Controllers/ExpenseController';
 import IncomeController from '@/actions/App/Http/Controllers/IncomeController';
 import OperationRowMenu from '@/components/OperationRowMenu.vue';
 import { useTranslations } from '@/composables/useTranslations';
+import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 
 type OperationRow = {
     id: number;
@@ -19,6 +20,10 @@ const emit = defineEmits<{
 }>();
 
 const t = useTranslations();
+const operationsReturnQuery = inject(OPERATIONS_RETURN_QUERY, undefined);
+const writeOptions = computed(() =>
+    operationsReturnQuery ? { query: operationsReturnQuery.value } : undefined,
+);
 
 const isIncome = computed(() => operation.type === 'income');
 </script>
@@ -27,8 +32,8 @@ const isIncome = computed(() => operation.type === 'income');
     <OperationRowMenu
         :destroy-form="
             isIncome
-                ? IncomeController.destroy.form(operation)
-                : ExpenseController.destroy.form(operation)
+                ? IncomeController.destroy.form(operation, writeOptions)
+                : ExpenseController.destroy.form(operation, writeOptions)
         "
         :delete-title="
             isIncome
