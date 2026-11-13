@@ -164,6 +164,7 @@
     --field-height: 34px;
     --dialog-width: 460px;
     --form-panel-width: 640px;
+    --reconciliation-list-height: 14rem;
     --aside-width: clamp(18.75rem, 22vw, 26rem);
     --sidebar-panel-width: 224px;
     --command-palette-width: 520px;
@@ -1405,6 +1406,27 @@
     .category-merge-grid {
         @apply grid items-baseline gap-x-3 gap-y-1 text-sm;
         grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
+    /*
+     * Operacje rachunku w oknie „Uzgodnij saldo…” (ADR-0091): data | rodzaj i opis | kwota,
+     * lista przewijana w obrębie okna.
+     */
+    .reconciliation-operations {
+        @apply max-h-(--reconciliation-list-height) overflow-y-auto rounded-md border;
+    }
+
+    .reconciliation-operation-row {
+        @apply border-border-soft grid items-baseline gap-x-3 border-b px-3 py-1.5 text-sm last:border-b-0;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .reconciliation-operation-text {
+        @apply truncate;
+    }
+
+    .reconciliation-operation-amount {
+        @apply text-right tabular-nums;
     }
 
     .budget-category-row {

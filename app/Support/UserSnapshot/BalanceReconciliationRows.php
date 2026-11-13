@@ -2,6 +2,8 @@
 
 namespace App\Support\UserSnapshot;
 
+use App\Models\BalanceReconciliation;
+use App\Models\User;
 use DateTimeImmutable;
 
 /**
@@ -11,6 +13,27 @@ use DateTimeImmutable;
  */
 final class BalanceReconciliationRows
 {
+    /**
+     * The rows `user:backup` writes for a User, oldest first.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function forUser(User $user): array
+    {
+        return $user->balanceReconciliations()
+            ->orderBy('id')
+            ->get()
+            ->map(fn (BalanceReconciliation $reconciliation): array => [
+                'id' => $reconciliation->id,
+                'account_id' => $reconciliation->account_id,
+                'reconciled_on' => $reconciliation->reconciled_on->toDateString(),
+                'bank_balance_minor_units' => $reconciliation->bank_balance_minor_units,
+                'created_at' => $reconciliation->created_at?->toIso8601String(),
+                'updated_at' => $reconciliation->updated_at?->toIso8601String(),
+            ])
+            ->all();
+    }
+
     /**
      * @param  list<array<string, mixed>>  $accounts
      *

@@ -1824,7 +1824,7 @@ class UserSnapshotCommandTest extends TestCase
         $path = app(BackupUserData::class)->handle($user);
         app(RestoreUserData::class)->handle($user, $path);
 
-        $this->assertSame([[ '2026-03-31', 4200]], $user->balanceReconciliations()->get()
+        $this->assertSame([['2026-03-31', 4200]], $user->balanceReconciliations()->get()
             ->map(fn (BalanceReconciliation $row): array => [$row->reconciled_on->toDateString(), $row->bank_balance_minor_units])->all());
         $this->assertSame($user->accounts()->value('id'), $user->balanceReconciliations()->value('account_id'));
     }

@@ -155,6 +155,7 @@ class AccountController extends Controller
     }
 
     /**
+     * @param  array{reconciled_on: string, bank_balance_minor_units: int, balance_minor_units: int, difference_minor_units: int, agrees: bool}|null  $lastReconciliation
      * @return array{
      *     id: int,
      *     name: string,

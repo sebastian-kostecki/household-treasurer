@@ -96,7 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('accounts', AccountController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('accounts/{account}/reconciliation-preview', [AccountReconciliationController::class, 'preview'])->name('accounts.reconciliations.preview');
     Route::post('accounts/{account}/reconciliations', [AccountReconciliationController::class, 'store'])->name('accounts.reconciliations.store');
-    Route::post('accounts/{account}/archive',[AccountController::class, 'archive'])->name('accounts.archive');
+    Route::post('accounts/{account}/archive', [AccountController::class, 'archive'])->name('accounts.archive');
     Route::post('accounts/{account}/restore', [AccountController::class, 'restore'])->name('accounts.restore');
     Route::resource('term-deposits', TermDepositController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('term-deposits/{term_deposit}/archive', [TermDepositController::class, 'archive'])->name('term-deposits.archive');

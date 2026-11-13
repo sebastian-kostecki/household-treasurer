@@ -31,7 +31,7 @@ final class AccountReconciliationReading
     public static function lastForAccounts(Collection $accounts): array
     {
         $newest = BalanceReconciliation::query()
-            ->whereIn('account_id', $accounts->modelKeys())
+            ->whereIn('account_id', $accounts->pluck('id')->all())
             ->orderByDesc('reconciled_on')
             ->get()
             ->unique('account_id');
@@ -69,7 +69,7 @@ final class AccountReconciliationReading
      *     balance_minor_units: int,
      *     previous_reconciled_on: string|null,
      *     existing_bank_balance_minor_units: int|null,
-     *     operations: list<OperationRow>,
+     *     operations: array<int, OperationRow>,
      *     operations_count: int,
      * }
      */

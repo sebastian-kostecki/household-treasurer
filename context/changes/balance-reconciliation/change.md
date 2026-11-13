@@ -1,7 +1,7 @@
 ---
 change_id: balance-reconciliation
 title: Uzgodnienie salda rachunku z bankiem
-status: new
+status: implemented
 created: 2026-11-13
 updated: 2026-11-13
 archived_at: null
