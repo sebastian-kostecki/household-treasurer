@@ -20,13 +20,12 @@ const yearElapsedPercent = 84;
 const name = usePage().props.name;
 const views = useAppViews();
 
-/** A neutral sample user and years, not the visitor's data. */
+/** A neutral sample user and year, not the visitor's data. */
 const sampleUser = {
     initials: 'JK',
     name: 'Jan Kowalski',
     email: 'jan@example.com',
 };
-const years = [2025, 2026, 2027];
 const selectedYear = 2026;
 
 const shortcutsHint = t.shell.shortcuts_hint.replace(
@@ -132,14 +131,9 @@ const yearProgress = t.budget.year_progress.replace(
                 <div class="label-caps flex h-8 items-center px-2">
                     {{ t.shell.budget_year }}
                 </div>
-                <div class="sidebar-year-segments">
-                    <span
-                        v-for="year in years"
-                        :key="year"
-                        class="sidebar-year-segment flex items-center justify-center"
-                    >
-                        {{ year }}
-                    </span>
+                <div class="sidebar-year-trigger">
+                    <span class="tabular-nums">{{ selectedYear }}</span>
+                    <ChevronsUpDown class="ml-auto size-4" />
                 </div>
             </div>
             <div class="flex flex-1 flex-col gap-0.5">

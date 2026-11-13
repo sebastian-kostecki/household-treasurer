@@ -481,31 +481,31 @@ No schema or data migration. Stale `.sidebar-year-segment` classes disappear wit
 
 #### Automated
 
-- [x] 4.1 Translation key guard test passes
-- [x] 4.2 Full gate passes: composer ci:check
+- [x] 4.1 Translation key guard test passes — 7b7547c
+- [x] 4.2 Full gate passes: composer ci:check — 7b7547c
 
 #### Manual
 
-- [x] 4.3 Income, Account and Month Plan toasts are Polish
-- [x] 4.4 Import error without selected rows is Polish
-- [x] 4.5 User accepts the wording of the new translations
+- [x] 4.3 Income, Account and Month Plan toasts are Polish — 7b7547c
+- [x] 4.4 Import error without selected rows is Polish — 7b7547c
+- [x] 4.5 User accepts the wording of the new translations — 7b7547c
 
 ### Phase 5: The Budget year in a menu
 
 #### Automated
 
-- [ ] 5.1 Vitest for budget-year-menu and ui-contract passes
-- [ ] 5.2 UI literal check passes
-- [ ] 5.3 Types pass after build
+- [x] 5.1 Vitest for budget-year-menu and ui-contract passes
+- [x] 5.2 UI literal check passes
+- [x] 5.3 Types pass after build
 - [ ] 5.4 Year switcher e2e specs pass
-- [ ] 5.5 Full gate passes: composer ci:check
+- [x] 5.5 Full gate passes: composer ci:check
 
 #### Manual
 
-- [ ] 5.6 Sidebar shows one year button and the menu with years newest first and „Dodaj rok”
-- [ ] 5.7 Year choice keeps Reports and Trend and opens Budget at the top elsewhere
-- [ ] 5.8 Menu works on a phone and with the keyboard
-- [ ] 5.9 Sidebar kitchen sink and landing preview show the menu states
+- [x] 5.6 Sidebar shows one year button and the menu with years newest first and „Dodaj rok”
+- [x] 5.7 Year choice keeps Reports and Trend and opens Budget at the top elsewhere
+- [x] 5.8 Menu works on a phone and with the keyboard
+- [x] 5.9 Sidebar kitchen sink and landing preview show the menu states
 
 ### Phase 6: Category description on Budget
 

@@ -9,7 +9,7 @@ paths:
     - 'resources/js/lib/nav-active*.ts'
     - 'resources/js/lib/global-shortcuts*.ts'
     - 'resources/js/lib/command-palette*.ts'
-    - 'resources/js/lib/budget-year-segments*.ts'
+    - 'resources/js/lib/budget-year-menu*.ts'
 ---
 
 # Sidebar
@@ -32,7 +32,7 @@ The menu, the global shortcuts and the palette read one list, `useAppViews` (res
 
 ## The active item comes from isCurrentSection
 
-The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted. The year switcher is a `role="group"` of segments (`.sidebar-year-segments`, three per row, `aria-pressed`); the selected year segment uses `sidebar-strong`, the "+" segment opens the one shell-wide `CreateBudgetDialog` through `useCreateBudgetDialog`; the dialog is mounted in `AppSidebarLayout`, never inside `Sidebar` (on a phone the sidebar content is unmounted while the sheet is closed, so the palette could not open it). Check the mobile bar, the year segments (one, many, empty, pending) and both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).
+The active menu item uses `sidebar-primary` (also on hover); the app name, the user and the selected year use `sidebar-strong`; the sidebar has no `variant="inset"`, it sits flush against the content. The active menu item comes from `isCurrentSection` (resources/js/lib/nav-active.ts), not from `isCurrentUrl`, so sub-pages like `/operations/import` keep their section highlighted. The year switcher is a menu (ADR-0087): under the `SidebarGroupLabel` a full-width button (`.sidebar-year-trigger`, `aria-labelledby` of the label and the year, `aria-busy` while pending) with the selected year in `sidebar-strong` opens a `DropdownMenu` with a `DropdownMenuRadioGroup` of the years newest first, a separator and "Dodaj rok N" (`Plus`, `aria-label` from `t.shell.add_budget_for_year`); there is no `aria-pressed` and no segment. With no Budget the menu is replaced by one "Dodaj rok <current year>" button. The pure logic is `budgetYearMenu` in `resources/js/lib/budget-year-menu.ts`. "Dodaj rok" opens the one shell-wide `CreateBudgetDialog` through `useCreateBudgetDialog`; the dialog is mounted in `AppSidebarLayout`, never inside `Sidebar` (on a phone the sidebar content is unmounted while the sheet is closed, so the palette could not open it). Check the mobile bar and the year menu (one year, many years 2022–2027, no Budget, pending, open menu) in both themes in the kitchen sink at `/dev/ui/sidebar` (`local` only).
 
 The same calculation drives `is-active` and `aria-current="page"` on the link (Inertia's `Link` does not add the attribute). Section labels are `SidebarGroupLabel` (`label-caps`), never a hand-built `text-xs` caption. The width comes only from `--sidebar-panel-width` in app.css (not from `--sidebar-width`, which `SidebarProvider` overwrites inline); do not write `w-64` or `16rem` for it. The product mark is `BrandMark` (the house-with-a-coin drawing in `brand-foreground` on the `brand` tile, ADR-0059), with the name of the product next to it, not a Lucide icon and not the text "HT" (ADR-0053).
 

@@ -258,14 +258,15 @@ describe('sidebar follows the Atrament Sidebar component (ADR-0053)', () => {
         expect(read(file)).not.toContain('group-data-[collapsible=icon]');
     });
 
-    it('renders the budget year switcher as a labelled group of pressed-state segments', () => {
+    it('renders the budget year switcher as a labelled menu with radio years', () => {
         const switcher = read('components/BudgetYearSwitcher.vue');
 
-        expect(switcher).toContain('role="group"');
-        expect(switcher).toContain(':aria-labelledby="labelId"');
-        expect(switcher).toContain(':aria-pressed=');
+        expect(switcher).toContain('DropdownMenu');
+        expect(switcher).toContain('DropdownMenuRadioGroup');
+        expect(switcher).toContain('aria-labelledby=');
         expect(switcher).toContain('t.shell.add_budget_for_year');
-        expect(switcher).not.toContain('DropdownMenu');
+        expect(switcher).not.toContain('aria-pressed');
+        expect(switcher).not.toContain('role="group"');
     });
 
     it('renders section labels with label-caps', () => {

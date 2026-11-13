@@ -614,9 +614,9 @@
         @apply hidden text-right sm:block;
     }
 
-    /* Year switcher in the sidebar (ADR-0055): three segments per row, the selected year on sidebar-strong. */
-    .sidebar-year-segments {
-        @apply grid grid-cols-3 gap-1;
+    /* Year menu trigger in the sidebar (ADR-0087): the selected year on sidebar-strong, hover and open on sidebar-accent. */
+    .sidebar-year-trigger {
+        @apply h-control text-sidebar-strong hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground ring-sidebar-ring flex w-full items-center gap-2 rounded-md px-2 text-sm font-semibold outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
     }
 
     /* Shortcut marker: the key a view or action answers to (mono, outlined in the current colour). */
@@ -632,14 +632,6 @@
     /* "Szukaj i przejdź" button: sidebar-accent at rest, like the search field of the pattern. */
     .sidebar-search {
         @apply bg-sidebar-accent text-sidebar-foreground;
-    }
-
-    .sidebar-year-segment {
-        @apply h-control-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ring-sidebar-ring rounded-md px-2 text-xs/4 font-medium tabular-nums outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
-    }
-
-    .sidebar-year-segment[aria-pressed='true'] {
-        @apply bg-sidebar-strong text-sidebar font-semibold;
     }
 
     /* Command palette (ADR-0055): sidebar colours on the local DialogContent; the `!` beats its card utilities. */
