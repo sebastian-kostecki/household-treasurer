@@ -302,22 +302,22 @@ Odczyt używa już załadowanego `MonthToSpend` i kolekcji pozycji wydatkowych z
 
 #### Automated
 
-- [x] 1.1 Hasło i ADR istnieją (grep „Collected Coverage”)
-- [x] 1.2 Każdy dokument z listą rodzajów `warning` zna nowy rodzaj
-- [x] 1.3 Indeks reguł bez różnic po `boost:index-rules`
+- [x] 1.1 Hasło i ADR istnieją (grep „Collected Coverage”) — f58eff0
+- [x] 1.2 Każdy dokument z listą rodzajów `warning` zna nowy rodzaj — f58eff0
+- [x] 1.3 Indeks reguł bez różnic po `boost:index-rules` — f58eff0
 
 #### Manual
 
-- [x] 1.4 Użytkownik potwierdza regułę w słowniku i ADR-0090
+- [x] 1.4 Użytkownik potwierdza regułę w słowniku i ADR-0090 — f58eff0
 
 ### Phase 2: Odczyt Collected Coverage
 
 #### Automated
 
-- [ ] 2.1 Test jednostkowy przechodzi z czerwonego na zielony
-- [ ] 2.2 Test równości z planem miesiąca przechodzi
-- [ ] 2.3 Te same testy przechodzą na PostgreSQL
-- [ ] 2.4 Pint bez zmian na nowych plikach
+- [x] 2.1 Test jednostkowy przechodzi z czerwonego na zielony
+- [x] 2.2 Test równości z planem miesiąca przechodzi
+- [x] 2.3 Te same testy przechodzą na PostgreSQL
+- [x] 2.4 Pint bez zmian na nowych plikach
 
 ### Phase 3: Karta ostrzeżenia „Zebrane bez pokrycia”
 
