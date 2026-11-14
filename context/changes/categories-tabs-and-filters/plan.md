@@ -565,9 +565,9 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [x] 5.1 Test sinka (CategoriesKitchenSinkTest)
-- [x] 5.2 Vitest i typy
-- [x] 5.3 E2E Kategorii
+- [x] 5.1 Test sinka (CategoriesKitchenSinkTest) — 9504c6b
+- [x] 5.2 Vitest i typy — 9504c6b
+- [x] 5.3 E2E Kategorii — 9504c6b
 
 #### Manual
 
