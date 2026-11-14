@@ -291,9 +291,10 @@ final class PeriodReport
 
     /**
      * The archived mark of a row: the mark of its line, or of the list Category
-     * when the row has no line.
+     * when the row has no line. It reads only these two keys, so a row of
+     * `ReportYears` (with `cells` instead of `months`) fits as well.
      *
-     * @param  ReportRow  $row
+     * @param  array{category: Category, line: BudgetLine|null}  $row
      */
     public static function isArchivedRow(array $row): bool
     {
