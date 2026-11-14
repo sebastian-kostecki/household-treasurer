@@ -1,19 +1,33 @@
 <script setup lang="ts">
 import { computed, reactive, useId } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
-import ReportCategoryRow from '@/components/ReportCategoryRow.vue';
-import ReportGroupRow from '@/components/ReportGroupRow.vue';
+import ReportRankingGroupRow from '@/components/ReportRankingGroupRow.vue';
+import ReportRankingRow from '@/components/ReportRankingRow.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
 import { formatShareTenths } from '@/lib/format-share';
 import { planChangeToneClass } from '@/lib/plan-change-direction';
 import { reportDifferenceTone } from '@/lib/report-difference';
-import type { PeriodReportEntry, ReportRange } from '@/types/reports';
+import {
+    rankReportCategories,
+    rankReportGroups,
+    reportLargestAmount,
+    reportShareBarRatio,
+} from '@/lib/report-ranking';
+import type {
+    PeriodReportEntry,
+    ReportRange,
+    ReportRankingMode,
+} from '@/types/reports';
 
 const props = defineProps<{
     type: 'income' | 'expense';
     title: string;
     entries: PeriodReportEntry[];
+    mode: ReportRankingMode;
+    /** The "Kategorie | Grupy" switch stands in the header of this list only. */
+    showModeSwitch?: boolean;
     totalMinorUnits: number;
     /** Year of the viewed Budget; heads the amount column with a comparison. */
     budgetYear: number;
@@ -29,12 +43,36 @@ const props = defineProps<{
     differenceTotalMinorUnits?: number;
 }>();
 
+const emit = defineEmits<{
+    'update:mode': [mode: ReportRankingMode];
+}>();
+
 const t = useTranslations();
 
 const showShare = props.type === 'expense';
-const tableId = useId();
+const listId = useId();
 
 const compared = computed(() => props.comparisonYear !== undefined);
+
+const modeModel = computed({
+    get: () => props.mode,
+    set: (mode: ReportRankingMode) => emit('update:mode', mode),
+});
+
+const modeOptions = computed(() => [
+    { value: 'categories' as const, label: t.reports.ranking_categories },
+    { value: 'groups' as const, label: t.reports.ranking_groups },
+]);
+
+const rankedCategories = computed(() => rankReportCategories(props.entries));
+const rankedGroups = computed(() => rankReportGroups(props.entries));
+const largestAmount = computed(() =>
+    reportLargestAmount(props.entries, props.mode),
+);
+
+function barRatio(amountMinorUnits: number): number {
+    return reportShareBarRatio(amountMinorUnits, largestAmount.value);
+}
 
 const totalToneClass = computed(() => {
     const tone = reportDifferenceTone(
@@ -52,33 +90,46 @@ const previousLabel = computed(() =>
     ),
 );
 
-/** Groups start open; a collapsed id is remembered only for this visit. */
-const collapsed = reactive(new Set<number>());
+/** Groups start collapsed; an expanded id is remembered only for this visit. */
+const expanded = reactive(new Set<number>());
 
 function isOpen(groupId: number): boolean {
-    return !collapsed.has(groupId);
+    return expanded.has(groupId);
 }
 
 function toggle(groupId: number): void {
-    if (collapsed.has(groupId)) {
-        collapsed.delete(groupId);
+    if (expanded.has(groupId)) {
+        expanded.delete(groupId);
     } else {
-        collapsed.add(groupId);
+        expanded.add(groupId);
     }
 }
 
 function bodyId(groupId: number): string {
-    return `${tableId}-group-${groupId}`;
+    return `${listId}-group-${groupId}`;
 }
 </script>
 
 <template>
     <ListSurface flush>
         <template #header>
-            <h2 class="section-title">{{ title }}</h2>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="section-title">{{ title }}</h2>
+                <SegmentedControl
+                    v-if="showModeSwitch && entries.length > 0"
+                    v-model="modeModel"
+                    :options="modeOptions"
+                    :ariaLabel="t.reports.ranking_mode_label"
+                    tone="neutral"
+                />
+            </div>
         </template>
 
-        <div v-if="entries.length > 0" class="report-table">
+        <div
+            v-if="entries.length > 0"
+            class="report-table"
+            :data-ranking-list="type"
+        >
             <div
                 class="report-grid report-header-row"
                 :class="{
@@ -110,13 +161,13 @@ function bodyId(groupId: number): string {
                 </div>
             </div>
 
-            <template
-                v-for="entry in entries"
-                :key="`${entry.kind}-${entry.id}`"
-            >
-                <ReportCategoryRow
-                    v-if="entry.kind === 'category'"
-                    :category="entry"
+            <template v-if="mode === 'categories'">
+                <ReportRankingRow
+                    v-for="row in rankedCategories"
+                    :key="row.id"
+                    :category="row"
+                    :position="row.position"
+                    :bar-ratio="barRatio(row.amount_minor_units)"
                     :show-share="showShare"
                     :type="type"
                     :comparison-year="comparisonYear"
@@ -124,31 +175,55 @@ function bodyId(groupId: number): string {
                     :month="month"
                     :range="range"
                 />
-                <div v-else>
-                    <ReportGroupRow
-                        :group="entry"
+            </template>
+            <template v-else>
+                <template
+                    v-for="entry in rankedGroups"
+                    :key="`${entry.kind}-${entry.id}`"
+                >
+                    <ReportRankingRow
+                        v-if="entry.kind === 'category'"
+                        :category="entry"
+                        :position="null"
+                        :bar-ratio="barRatio(entry.amount_minor_units)"
                         :show-share="showShare"
                         :type="type"
                         :comparison-year="comparisonYear"
-                        :open="isOpen(entry.id)"
-                        :controls="bodyId(entry.id)"
-                        @toggle="toggle(entry.id)"
+                        :budget-year="budgetYear"
+                        :month="month"
+                        :range="range"
                     />
-                    <div v-show="isOpen(entry.id)" :id="bodyId(entry.id)">
-                        <ReportCategoryRow
-                            v-for="category in entry.categories"
-                            :key="category.id"
-                            nested
-                            :category="category"
+                    <div v-else>
+                        <ReportRankingGroupRow
+                            :group="entry"
+                            :bar-ratio="barRatio(entry.amount_minor_units)"
                             :show-share="showShare"
                             :type="type"
                             :comparison-year="comparisonYear"
-                            :budget-year="budgetYear"
-                            :month="month"
-                            :range="range"
+                            :open="isOpen(entry.id)"
+                            :controls="bodyId(entry.id)"
+                            @toggle="toggle(entry.id)"
                         />
+                        <div v-show="isOpen(entry.id)" :id="bodyId(entry.id)">
+                            <ReportRankingRow
+                                v-for="category in entry.categories"
+                                :key="category.id"
+                                nested
+                                :category="category"
+                                :position="null"
+                                :bar-ratio="
+                                    barRatio(category.amount_minor_units)
+                                "
+                                :show-share="showShare"
+                                :type="type"
+                                :comparison-year="comparisonYear"
+                                :budget-year="budgetYear"
+                                :month="month"
+                                :range="range"
+                            />
+                        </div>
                     </div>
-                </div>
+                </template>
             </template>
 
             <div
@@ -199,7 +274,14 @@ function bodyId(groupId: number): string {
 
         <template v-if="entries.length > 0" #footer>
             <p class="meta text-muted-foreground">
-                {{ t.reports.amounts_in_zl }}
+                {{
+                    compared
+                        ? t.reports.amounts_in_zl_difference.replace(
+                              ':year',
+                              String(comparisonYear),
+                          )
+                        : t.reports.amounts_in_zl
+                }}
             </p>
         </template>
     </ListSurface>

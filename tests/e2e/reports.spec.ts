@@ -1,9 +1,9 @@
 // E2E test: the „Raporty” view (S-28, FR-014, FR-015).
 // Risk it protects: the report is not reachable (menu or shortcut 8), the
-// charts or tables do not render in the browser (the chart is loaded lazily),
-// the period switch does not reach the URL (?month=N), a collapsed group still
-// shows its Categories, or changing the budget year in the sidebar throws the
-// user from „Raporty” to the Budget.
+// Ranking lists do not render in the browser, the period switch does not reach
+// the URL (?month=N), the Ranking mode (?ranking=groups) is lost on a period
+// change, a collapsed group still shows its Categories, or changing the budget
+// year in the sidebar throws the user from „Raporty” to the Budget.
 // The test user has the demo household (demo:seed-household). The tests that
 // need rows create their own operations and a group and delete them at the end
 // through the UI, also when an assertion fails.
@@ -19,9 +19,32 @@ import {
 } from './support/budget-year';
 import { assignCategoryToGroup } from './support/categories';
 
-function chart(page: Page, type: 'income' | 'expense'): Locator {
-    // The chart is aria-hidden, so it is found by its test id.
-    return page.getByTestId(`report-chart-${type}`);
+// Wayfinder orders the query keys itself, so the URL is checked by its params.
+async function expectReportsQuery(
+    page: Page,
+    expected: Record<string, string | RegExp>,
+): Promise<void> {
+    await expect
+        .poll(() => {
+            const url = new URL(page.url());
+            const params = Object.fromEntries(url.searchParams);
+            const matches = Object.entries(expected).every(([key, value]) =>
+                typeof value === 'string'
+                    ? params[key] === value
+                    : value.test(params[key] ?? ''),
+            );
+
+            return (
+                url.pathname === '/reports' &&
+                matches &&
+                Object.keys(params).length === Object.keys(expected).length
+            );
+        })
+        .toBe(true);
+}
+
+function ranking(page: Page, type: 'income' | 'expense'): Locator {
+    return page.locator(`[data-ranking-list="${type}"]`);
 }
 
 function groupBlock(page: Page, name: string): Locator {
@@ -82,7 +105,7 @@ async function deleteOperation(
     await expect(page.getByText(description, { exact: true })).toBeHidden();
 }
 
-test('shortcut 8 opens Raporty with the measures, both charts and both tables', async ({
+test('shortcut 8 opens Raporty with the measures and both Ranking lists with share bars', async ({
     page,
 }) => {
     // Two operations are added and two deleted through the UI around the
@@ -111,17 +134,35 @@ test('shortcut 8 opens Raporty with the measures, both charts and both tables', 
             ).toBeVisible();
             await expect(page.getByText('Wynik roku')).toBeVisible();
             await expect(
-                page.getByRole('heading', { level: 2, name: 'Wydatki' }),
+                page.getByRole('heading', {
+                    level: 2,
+                    name: 'Wydatki od największych',
+                }),
             ).toBeVisible();
             await expect(
-                page.getByRole('heading', { level: 2, name: 'Przychody' }),
+                page.getByRole('heading', {
+                    level: 2,
+                    name: 'Przychody od największych',
+                }),
             ).toBeVisible();
 
-            await expect(chart(page, 'expense')).toBeVisible();
-            await expect(chart(page, 'income')).toBeVisible();
+            // The share bar is aria-hidden, so it is found by its marker.
             await expect(
-                page.getByTestId('report-chart-expense').locator('svg'),
+                ranking(page, 'expense')
+                    .locator('[data-report-share-bar]')
+                    .first(),
             ).toBeVisible();
+            await expect(
+                ranking(page, 'income')
+                    .locator('[data-report-share-bar]')
+                    .first(),
+            ).toBeVisible();
+            await expect(
+                ranking(page, 'expense').getByText('Razem'),
+            ).toHaveCount(1);
+            await expect(
+                ranking(page, 'income').getByText('Razem'),
+            ).toHaveCount(1);
             await expect(page.getByText('Razem')).toHaveCount(2);
         } finally {
             await deleteOperation(page, 'dochód', incomeDescription);
@@ -156,10 +197,10 @@ test('Raporty of the current year compare it with the year before and drop the c
         page.getByText(new RegExp(`^${previousYear}:`)).first(),
     ).toBeVisible();
 
-    // The chart legend names both years.
-    const legend = page.getByTestId('report-chart-legend-expense');
-    await expect(legend).toContainText(`Rok ${year}`);
-    await expect(legend).toContainText(`Rok ${previousYear}`);
+    // The Ranking footer names the compared year.
+    await expect(
+        page.getByText(`Kwoty w zł · różnica do ${previousYear}`).first(),
+    ).toBeVisible();
 
     // The previous year has no year before it: no comparison.
     await selectBudgetYear(page, previousYear);
@@ -170,9 +211,7 @@ test('Raporty of the current year compare it with the year before and drop the c
         }),
     ).toBeVisible();
     await expect(page.getByText('Różnica', { exact: true })).toHaveCount(0);
-    await expect(page.getByTestId('report-chart-legend-expense')).toHaveCount(
-        0,
-    );
+    await expect(page.getByText(/^Kwoty w zł · różnica do/)).toHaveCount(0);
 });
 
 test('switching to Miesiąc and picking a month puts ?month=N in the URL', async ({
@@ -190,7 +229,9 @@ test('switching to Miesiąc and picking a month puts ?month=N in the URL', async
     ).toBeVisible();
 });
 
-test('collapsing a group hides its Categories', async ({ page }) => {
+test('in the Grupy mode a group starts collapsed, expands to its Categories and the mode survives the period switch', async ({
+    page,
+}) => {
     const group = `Grupa E2E raport ${Date.now()}`;
     const description = `E2E raport grupa ${Date.now()}`;
 
@@ -217,25 +258,49 @@ test('collapsing a group hides its Categories', async ({ page }) => {
         await addOperation(page, 'Wydatek', description);
         try {
             await page.goto('/reports');
+            await page
+                .getByRole('button', { name: 'Grupy', exact: true })
+                .click();
+            await expect(page).toHaveURL(/\/reports\?ranking=groups$/);
 
-            const groupRow = page
+            const groupRow = ranking(page, 'expense')
                 .locator('[data-report-row="group"]')
                 .filter({ hasText: group });
-            const categoryRow = page
+            const categoryRow = ranking(page, 'expense')
                 .locator('[data-report-row="category"]')
                 .filter({ hasText: 'Rozrywka' });
-            const toggle = groupRow.getByRole('button', {
-                name: `Zwiń grupę ${group}`,
-            });
+            // The accessible name flips to „Zwiń grupę …” once open, so the
+            // button is found by its row, not by its name.
+            const toggle = groupRow.locator('button[aria-expanded]');
 
+            await expect(toggle).toHaveAccessibleName(`Rozwiń grupę ${group}`);
+            await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            await expect(categoryRow).toBeHidden();
+            await toggle.click();
+            await expect(toggle).toHaveAttribute('aria-expanded', 'true');
             await expect(categoryRow).toBeVisible();
             await toggle.click();
             await expect(categoryRow).toBeHidden();
-            await expect(
-                groupRow.getByRole('button', {
-                    name: `Rozwiń grupę ${group}`,
-                }),
-            ).toHaveAttribute('aria-expanded', 'false');
+
+            // The mode travels through the period switch.
+            await page
+                .getByRole('button', { name: 'Miesiąc', exact: true })
+                .click();
+            await expectReportsQuery(page, {
+                month: /^\d+$/,
+                ranking: 'groups',
+            });
+            await page
+                .getByRole('button', { name: '12 miesięcy', exact: true })
+                .click();
+            await expectReportsQuery(page, {
+                view: 'last-12',
+                ranking: 'groups',
+            });
+            await page
+                .getByRole('button', { name: 'Rok', exact: true })
+                .click();
+            await expect(page).toHaveURL(/\/reports\?ranking=groups$/);
         } finally {
             await deleteOperation(page, 'wydatek', description);
         }

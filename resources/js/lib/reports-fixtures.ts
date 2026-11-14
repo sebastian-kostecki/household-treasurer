@@ -656,7 +656,11 @@ function spreadMonths(amount: number, count: number): (number | null)[] {
     const part = Math.trunc(amount / count);
 
     return Array.from({ length: 12 }, (_, index) =>
-        index >= count ? null : index === 0 ? amount - part * (count - 1) : part,
+        index >= count
+            ? null
+            : index === 0
+              ? amount - part * (count - 1)
+              : part,
     );
 }
 
@@ -704,11 +708,38 @@ function yearInProgressPanel(
     };
 }
 
+const tieReport: PeriodReportData = {
+    income_minor_units: 700000,
+    expense_minor_units: 470000,
+    result_minor_units: 230000,
+    has_operations: true,
+    comparison: null,
+    expense: [
+        {
+            kind: 'category',
+            ...category(21, 'Żywność', 'shopping-cart', 'green', 90000, 191),
+        },
+        {
+            kind: 'category',
+            ...category(22, 'Czynsz', 'home', 'blue', 180000, 383),
+        },
+        {
+            kind: 'category',
+            ...category(23, 'Prąd', 'zap', 'orange', 180000, 383),
+        },
+        {
+            kind: 'category',
+            ...category(24, 'Kino', 'film', 'pink', 20000, 43),
+        },
+    ],
+    income: [{ kind: 'category', ...salary, amount_minor_units: 700000 }],
+};
+
 export const reportScenarios: ReportScenario[] = [
     {
         key: 'year-in-progress',
         caption:
-            'Rok w toku: grupa rozwinięta, kategorie bez grupy; nazwa kategorii to link do operacji roku',
+            'Rok w toku: Ranking kategorii od największych; nazwa kategorii to link do operacji roku',
         props: {
             budgetYear: 2026,
             budgetPhase: 'execution',
@@ -1174,6 +1205,46 @@ export const reportScenarios: ReportScenario[] = [
             trend: null,
             rankingMode: 'categories',
             categoryPanel: null,
+        },
+    },
+    {
+        key: 'ranking-groups',
+        caption:
+            'Ranking w trybie Grupy: grupy zwinięte, grupy i kategorie bez grupy po sumie; po rozwinięciu kategorie grupy po kwocie',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            rankingMode: 'groups',
+            categoryPanel: yearInProgressPanel(yearReport),
+        },
+    },
+    {
+        key: 'ranking-tie',
+        caption:
+            'Remis kwot: Czynsz 1 800 i Prąd 1 800, wyżej ten wcześniejszy na liście kategorii',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: tieReport,
+            trend: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(tieReport),
         },
     },
 ];

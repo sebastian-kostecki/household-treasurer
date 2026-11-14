@@ -437,11 +437,11 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Automated
 
-- [x] 1.1 Testy Raportów przechodzą na PostgreSQL (ReportsPageTest, ReportCategoryPanelTest, PeriodReportTest, ReportTrendTest)
-- [x] 1.2 Test wyboru roku przechodzi (przekierowanie z category i ranking)
-- [x] 1.3 NFR roku z panelem mieści się w 2 s na PostgreSQL
-- [x] 1.4 npm run types:check przechodzi z nowymi typami i fixtures
-- [x] 1.5 Pint bez zmian i sloppy ci bez nowego znaleziska
+- [x] 1.1 Testy Raportów przechodzą na PostgreSQL (ReportsPageTest, ReportCategoryPanelTest, PeriodReportTest, ReportTrendTest) — 83bdb1b
+- [x] 1.2 Test wyboru roku przechodzi (przekierowanie z category i ranking) — 83bdb1b
+- [x] 1.3 NFR roku z panelem mieści się w 2 s na PostgreSQL — 83bdb1b
+- [x] 1.4 npm run types:check przechodzi z nowymi typami i fixtures — 83bdb1b
+- [x] 1.5 Pint bez zmian i sloppy ci bez nowego znaleziska — 83bdb1b
 
 #### Manual
 
@@ -451,13 +451,13 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Automated
 
-- [ ] 2.1 Vitest przechodzi, w tym report-ranking.test.ts i ui-contract.test.ts
-- [ ] 2.2 npm run types:check i npm run lint przechodzą
-- [ ] 2.3 npm run check:ui przechodzi z nową listą plików
-- [ ] 2.4 ReportsHardcodedUiTest i ReportsKitchenSinkTest przechodzą
-- [ ] 2.5 npm run build przechodzi i nie zostaje żaden import ReportBarChart ani report-chart
-- [ ] 2.6 E2E Raportów przechodzą (reports.spec.ts, reports-view.spec.ts)
-- [ ] 2.7 boost:index-rules daje glob report-ranking* zamiast report-chart*
+- [x] 2.1 Vitest przechodzi, w tym report-ranking.test.ts i ui-contract.test.ts
+- [x] 2.2 npm run types:check i npm run lint przechodzą
+- [x] 2.3 npm run check:ui przechodzi z nową listą plików
+- [x] 2.4 ReportsHardcodedUiTest i ReportsKitchenSinkTest przechodzą
+- [x] 2.5 npm run build przechodzi i nie zostaje żaden import ReportBarChart ani report-chart
+- [x] 2.6 E2E Raportów przechodzą (reports.spec.ts, reports-view.spec.ts)
+- [x] 2.7 boost:index-rules daje glob report-ranking* zamiast report-chart*
 
 #### Manual
 

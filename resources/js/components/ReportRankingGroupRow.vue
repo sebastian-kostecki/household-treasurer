@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
 import { computed } from 'vue';
+import ReportShareBar from '@/components/ReportShareBar.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
@@ -11,7 +12,9 @@ import type { PeriodReportGroupEntry } from '@/types/reports';
 
 const props = defineProps<{
     group: PeriodReportGroupEntry;
-    /** Expense tables show the Udział column; income does not. */
+    /** Width of the share bar, 0 to 1. */
+    barRatio: number;
+    /** Expense lists show the Udział column; income does not. */
     showShare: boolean;
     /** Decides which way a difference is favorable. */
     type: 'income' | 'expense';
@@ -63,25 +66,33 @@ const differenceToneClass = computed(() => {
         }"
         data-report-row="group"
     >
-        <div class="report-area-name report-cell-name">
-            <button
-                type="button"
-                class="budget-category-group-toggle"
-                :aria-expanded="open"
-                :aria-controls="controls"
-                :aria-label="toggleLabel"
-                @click="emit('toggle')"
-            >
-                <ChevronDown
-                    class="size-4 shrink-0 transition-transform"
-                    :class="open ? '' : '-rotate-90'"
-                    aria-hidden="true"
-                />
-                <span class="truncate">{{ group.name }}</span>
-            </button>
-            <Badge variant="neutral" :title="t.reports.group_category_count">
-                {{ group.categories.length }}
-            </Badge>
+        <div class="report-area-name report-rank-cell">
+            <div class="report-rank-body">
+                <div class="report-cell-name">
+                    <button
+                        type="button"
+                        class="budget-category-group-toggle"
+                        :aria-expanded="open"
+                        :aria-controls="controls"
+                        :aria-label="toggleLabel"
+                        @click="emit('toggle')"
+                    >
+                        <ChevronDown
+                            class="size-4 shrink-0 transition-transform"
+                            :class="open ? '' : '-rotate-90'"
+                            aria-hidden="true"
+                        />
+                        <span class="truncate">{{ group.name }}</span>
+                    </button>
+                    <Badge
+                        variant="neutral"
+                        :title="t.reports.group_category_count"
+                    >
+                        {{ group.categories.length }}
+                    </Badge>
+                </div>
+                <ReportShareBar :type="type" :ratio="barRatio" />
+            </div>
         </div>
         <div class="report-area-amount report-cell-amount amount-sum">
             {{

@@ -1839,6 +1839,41 @@
         @apply underline;
     }
 
+    /*
+     * Ranking row (ADR-0097): the position number beside the name cell, the
+     * share bar under the name. The bar is a CSS mark from tokens (expense
+     * `chart-1`, income `success`, on the `track`), `aria-hidden`; its width is
+     * `--report-share` (0 to 1) of the row's amount over the largest amount.
+     */
+    .report-rank-cell {
+        @apply flex min-w-0 items-start gap-1.5;
+    }
+
+    .report-rank {
+        @apply flex h-6 w-4 shrink-0 items-center justify-end;
+    }
+
+    .report-rank-body {
+        @apply flex min-w-0 flex-1 flex-col gap-1;
+    }
+
+    .report-share-bar {
+        @apply bg-track h-1 w-full overflow-hidden rounded-full;
+    }
+
+    .report-share-bar-fill {
+        @apply h-full rounded-full;
+        width: calc(var(--report-share, 0) * 100%);
+    }
+
+    .report-share-bar-fill-expense {
+        @apply bg-chart-1;
+    }
+
+    .report-share-bar-fill-income {
+        @apply bg-success;
+    }
+
     .report-cell-amount {
         @apply amount text-right;
     }

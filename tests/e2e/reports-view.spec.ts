@@ -39,7 +39,7 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
         expect(headingBox!.y).toBeLessThan(cardBox!.y);
     });
 
-    test('szkic budżetu z oknem 12 miesięcy: h1, przełącznik i tabela Wydatki', async ({
+    test('szkic budżetu z oknem 12 miesięcy: h1, przełącznik i Ranking wydatków', async ({
         page,
     }) => {
         const draftWindow = scenario(page, 'draft-last-12');
@@ -51,10 +51,15 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
             }),
         ).toBeVisible();
         await expect(
-            draftWindow.locator('.segmented-control-item'),
+            draftWindow
+                .locator('.segmented-control[aria-label="Okres raportu"]')
+                .locator('.segmented-control-item'),
         ).toHaveCount(4);
         await expect(
-            draftWindow.getByRole('heading', { name: 'Wydatki', exact: true }),
+            draftWindow.getByRole('heading', {
+                name: 'Wydatki od największych',
+                exact: true,
+            }),
         ).toBeVisible();
     });
 
@@ -73,9 +78,10 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
     });
 });
 
-// The chart is a lazy fragment: until it arrives the table must already stand
-// where it will stay, so the page does not jump when the chart appears.
-test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
+// The Trend chart is a lazy fragment: until it arrives the table must already
+// stand where it will stay, so the page does not jump when the chart appears.
+// (The Ranking has no chart and nothing to load, ADR-0097.)
+test.describe('Raporty: miejsce na wykres Trendu, gdy fragment jest w drodze', () => {
     // Holds the requests matching `pattern` until `release()`. `held()` counts
     // them: a test asserts it is above zero, so a renamed chunk (the pattern
     // matching nothing) fails loudly instead of measuring a page whose chart
@@ -98,35 +104,6 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
 
         return { release, held: () => heldCount };
     }
-
-    test('słupkowy: tabela Wydatki nie przeskakuje po doładowaniu wykresu', async ({
-        page,
-    }) => {
-        const { release, held } = await holdFragment(
-            page,
-            '**/build/assets/ReportBarChart-*.js',
-        );
-
-        await page.goto('/reports');
-
-        const heading = page
-            .getByRole('heading', { name: 'Wydatki', exact: true })
-            .first();
-        await expect(heading).toBeVisible();
-        // The chart is still in flight: the placeholder stands in its place.
-        await expect(
-            page.getByTestId('report-chart-placeholder-expense'),
-        ).toBeVisible();
-        await expect(page.getByTestId('report-chart-expense')).toHaveCount(0);
-        expect(held()).toBeGreaterThan(0);
-        const before = (await heading.boundingBox())!.y;
-
-        release();
-        await expect(page.getByTestId('report-chart-expense')).toBeVisible();
-        const after = (await heading.boundingBox())!.y;
-
-        expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
-    });
 
     test('Trend: tabela miar nie przeskakuje po doładowaniu wykresu', async ({
         page,

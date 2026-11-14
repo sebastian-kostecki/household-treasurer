@@ -134,6 +134,33 @@ function createYear(): void {
     createBudgetDialog.openForYear(menu.value.createYear);
 }
 
+/** The Reports year switch also carries the selected Category and the Ranking mode of the address. */
+function selectYearPayload(year: number): Record<string, string | number> {
+    if (destination.value === null) {
+        return { year };
+    }
+
+    const payload: Record<string, string | number> = {
+        year,
+        destination: destination.value,
+    };
+
+    if (destination.value === 'reports') {
+        const params = new URL(page.url, 'http://localhost').searchParams;
+        const category = params.get('category');
+
+        if (category !== null && /^\d+$/.test(category)) {
+            payload.report_category = Number(category);
+        }
+
+        if (params.get('ranking') === 'groups') {
+            payload.report_ranking = 'groups';
+        }
+    }
+
+    return payload;
+}
+
 function selectYear(value: unknown): void {
     const year = Number(value);
 
@@ -141,24 +168,18 @@ function selectYear(value: unknown): void {
         return;
     }
 
-    router.post(
-        BudgetController.selectYear().url,
-        destination.value === null
-            ? { year }
-            : { year, destination: destination.value },
-        {
-            preserveScroll: false,
-            onStart: () => {
-                pending.value = true;
-            },
-            onError: () => {
-                notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
-            },
-            onFinish: () => {
-                pending.value = false;
-            },
+    router.post(BudgetController.selectYear().url, selectYearPayload(year), {
+        preserveScroll: false,
+        onStart: () => {
+            pending.value = true;
         },
-    );
+        onError: () => {
+            notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
+        },
+        onFinish: () => {
+            pending.value = false;
+        },
+    });
 }
 </script>
 

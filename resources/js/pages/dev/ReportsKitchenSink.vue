@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent } from 'vue';
-import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
 import ReportTrendChartPlaceholder from '@/components/ReportTrendChartPlaceholder.vue';
-import {
-    comparedYearReport,
-    reportScenarios,
-    trendInProgress,
-    yearReport,
-} from '@/lib/reports-fixtures';
+import { reportScenarios, trendInProgress } from '@/lib/reports-fixtures';
 
 // Lazy on purpose: a static import would fold Reports.vue into this chunk and
 // drop it from the Vite manifest, so Inertia could no longer render /reports
@@ -18,7 +12,11 @@ const Reports = defineAsyncComponent(() => import('@/pages/Reports.vue'));
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze year-in-progress, month-closed, archived-in-group, refund-negative-share, non-positive-expenses poniżej.',
+        where: 'Ranking (kategorie od największych, numer, pasek udziału w chart-1, przychody w success, pusty track dla kwoty niedodatniej) w scenariuszach year-in-progress, month-closed, archived-in-group, refund-negative-share, non-positive-expenses poniżej.',
+    },
+    {
+        state: 'ranking',
+        where: 'Scenariusze ranking-groups (tryb Grupy: grupy zwinięte, po rozwinięciu kategorie po kwocie) i ranking-tie (remis Czynsz 1 800 i Prąd 1 800: wyżej wcześniejszy na liście).',
     },
     {
         state: 'comparison',
@@ -38,7 +36,7 @@ const stateMatrix = [
     },
     {
         state: 'loading',
-        where: 'Sekcja chart-loading: placeholdery wykresów (słupkowy bez i z porównaniem, Trend) o wysokości wykresu, widoczne do doładowania fragmentu.',
+        where: 'Sekcja chart-loading: placeholder wykresu Trendu o wysokości wykresu, widoczny do doładowania fragmentu (Ranking nie ma wykresu do doładowania).',
     },
     {
         state: 'error',
@@ -98,20 +96,9 @@ const stateMatrix = [
         <section class="space-y-3" data-section="chart-loading">
             <h2 class="section-title border-b pb-1">chart-loading</h2>
             <p class="text-muted-foreground text-sm">
-                Placeholdery wykresów: stoją od pierwszej klatki i trzymają
+                Placeholder wykresu Trendu: stoi od pierwszej klatki i trzyma
                 wysokość wykresu, dopóki fragment się nie doładuje.
             </p>
-            <ReportBarChartPlaceholder
-                type="expense"
-                :entries="yearReport.expense"
-                :budget-year="2026"
-            />
-            <ReportBarChartPlaceholder
-                type="expense"
-                :entries="comparedYearReport.expense"
-                :budget-year="2026"
-                :comparison-year="comparedYearReport.comparison?.year"
-            />
             <ReportTrendChartPlaceholder
                 :months="trendInProgress.months"
                 :in-progress-month="trendInProgress.in_progress_month"

@@ -560,7 +560,7 @@ describe('the Categories view follows the Atrament surface blocks', () => {
 
     it('links report category names to Operations through the Wayfinder route and the shared query', () => {
         for (const file of [
-            'components/ReportCategoryRow.vue',
+            'components/ReportRankingRow.vue',
             'components/ReportTrendTable.vue',
         ]) {
             const source = readFileSync(join(JS_ROOT, file), 'utf8');
@@ -571,14 +571,14 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         }
 
         const row = readFileSync(
-            join(JS_ROOT, 'components/ReportCategoryRow.vue'),
+            join(JS_ROOT, 'components/ReportRankingRow.vue'),
             'utf8',
         );
 
         expect(row).toContain('reportRangeOperationsQuery');
 
         const group = readFileSync(
-            join(JS_ROOT, 'components/ReportGroupRow.vue'),
+            join(JS_ROOT, 'components/ReportRankingGroupRow.vue'),
             'utf8',
         );
 

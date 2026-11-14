@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { computed, defineAsyncComponent } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportCoverageNote from '@/components/ReportCoverageNote.vue';
-import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
-import ReportEntryTable from '@/components/ReportEntryTable.vue';
+import ReportRanking from '@/components/ReportRanking.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
@@ -14,28 +13,63 @@ import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
-import type { ReportRange, ReportsPageProps } from '@/types/reports';
-
-const ReportBarChart = defineAsyncComponent({
-    loader: () => import('@/components/ReportBarChart.vue'),
-    loadingComponent: ReportBarChartPlaceholder,
-    delay: 0,
-});
+import type {
+    ReportRange,
+    ReportRankingMode,
+    ReportsPageProps,
+} from '@/types/reports';
 
 const props = defineProps<ReportsPageProps>();
 
 const t = useTranslations();
+const page = usePage();
+
+/** The Ranking mode travels through the period switch (the Trend has none). */
+function rankingQuery(): { ranking?: 'groups' } {
+    return props.rankingMode === 'groups' ? { ranking: 'groups' } : {};
+}
+
+function yearUrl(): string {
+    return reportsRoute({ query: rankingQuery() }).url;
+}
 
 function trendUrl(): string {
     return reportsRoute({ query: { view: 'trend' } }).url;
 }
 
 function lastTwelveUrl(): string {
-    return reportsRoute({ query: { view: 'last-12' } }).url;
+    return reportsRoute({ query: { view: 'last-12', ...rankingQuery() } }).url;
 }
 
 function monthUrl(month: number): string {
-    return reportsRoute({ query: { month } }).url;
+    return reportsRoute({ query: { month, ...rankingQuery() } }).url;
+}
+
+/** Switches the Ranking mode in place: the same address with `ranking` changed, no request. */
+function setRankingMode(mode: ReportRankingMode): void {
+    if (mode === props.rankingMode) {
+        return;
+    }
+
+    const query: Record<string, string> = {};
+
+    new URL(page.url, 'http://localhost').searchParams.forEach((value, key) => {
+        query[key] = value;
+    });
+
+    if (mode === 'groups') {
+        query.ranking = 'groups';
+    } else {
+        delete query.ranking;
+    }
+
+    router.replace({
+        url: reportsRoute({ query }).url,
+        props: (current) => ({ ...current, rankingMode: mode }),
+        preserveScroll: true,
+        preserveState: true,
+        preserveFlash: true,
+    });
 }
 
 const periodKind = computed({
@@ -47,7 +81,7 @@ const periodKind = computed({
 
         router.get(
             kind === 'year'
-                ? reportsRoute().url
+                ? yearUrl()
                 : kind === 'trend'
                   ? trendUrl()
                   : kind === 'last-12'
@@ -228,16 +262,12 @@ const title = computed(() => {
                 />
 
                 <template v-else>
-                    <ReportBarChart
+                    <ReportRanking
                         type="expense"
+                        :title="t.reports.ranking_expense"
                         :entries="report.expense"
-                        :budget-year="budgetYear"
-                        :comparison-year="report.comparison?.year"
-                    />
-                    <ReportEntryTable
-                        type="expense"
-                        :title="t.reports.expense"
-                        :entries="report.expense"
+                        :mode="rankingMode"
+                        show-mode-switch
                         :total-minor-units="report.expense_minor_units"
                         :budget-year="budgetYear"
                         :month="period.kind === 'month' ? period.month : null"
@@ -249,17 +279,13 @@ const title = computed(() => {
                         :difference-total-minor-units="
                             report.comparison?.expense_difference_minor_units
                         "
+                        @update:mode="setRankingMode"
                     />
-                    <ReportBarChart
+                    <ReportRanking
                         type="income"
+                        :title="t.reports.ranking_income"
                         :entries="report.income"
-                        :budget-year="budgetYear"
-                        :comparison-year="report.comparison?.year"
-                    />
-                    <ReportEntryTable
-                        type="income"
-                        :title="t.reports.income"
-                        :entries="report.income"
+                        :mode="rankingMode"
                         :total-minor-units="report.income_minor_units"
                         :budget-year="budgetYear"
                         :month="period.kind === 'month' ? period.month : null"
