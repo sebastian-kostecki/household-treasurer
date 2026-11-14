@@ -49,7 +49,7 @@ Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-00
 | ---- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------- | -------- |
 | F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | done        |
 | S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | proposed |
-| S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | in-progress |
+| S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | done        |
 | S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | proposed |
 | S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | done        |
 | S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | done |
@@ -117,7 +117,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy ranking i panel dotyczą też widoków Miesiąc i 12 miesięcy, czy tylko Roku? — Owner: user. Block: no. — Resolved by ADR-0097 (F-07): ranking w Roku, Miesiącu i 12 miesiącach; panel tylko w Roku.
 - **Risk:** Zastępuje wykres słupkowy i tabelę z S-28/S-29, więc nie może zgubić niczego, co raport dziś pokazuje (grupy, zarchiwizowane, porównanie do tego samego dnia, przejście do Operacji z S-31); panel potrzebuje miesięcy kategorii w widoku Rok i wyboru kategorii w adresie (zmiana propsów z testem `assertInertia`).
-- **Status:** in-progress
+- **Status:** done
 
 ### S-36: Zakładka „Lata” w panelu kategorii
 
@@ -230,3 +230,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-37: użytkownik może przeglądać „Kategorie” w zakładkach Wydatki, Przychody i Archiwum z licznikami, szukać po nazwie i opisie, filtrować wydatki po rytmie i widzieć lata w budżecie jako pasek komórek** — Archived 2026-11-14 → `context/archive/2026-11-14-categories-tabs-and-filters/`. Lesson: —.
 - **F-07: (foundation) ADR opisuje piątą pozycję okresu „Lata”, ranking z panelem kategorii w miejsce wykresu słupkowego i kolory wykresów (ADR-0097), a słownik nazywa nowy odczyt** — Archived 2026-11-14 → `context/archive/2026-11-14-report-redesign-decisions/`. Lesson: —.
 - **S-38: użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem, z latami w grupach Ostatnie i Starsze i podpisem „szkic z planem roku N−1” przy „Dodaj rok N”** — Archived 2026-11-14 → `context/archive/2026-11-14-budget-year-menu-state/`. Lesson: —.
+- **S-35: użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji** — Archived 2026-11-14 → `context/archive/2026-11-14-report-ranking-and-category-panel/`. Lesson: —.

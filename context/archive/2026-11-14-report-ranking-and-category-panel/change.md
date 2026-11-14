@@ -1,10 +1,10 @@
 ---
 change_id: report-ranking-and-category-panel
 title: Report ranking and category panel
-status: impl_reviewed
+status: archived
 created: 2026-11-14
 updated: 2026-11-14
-archived_at: null
+archived_at: 2026-11-14T15:37:21Z
 ---
 
 ## Notes
