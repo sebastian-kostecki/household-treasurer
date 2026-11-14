@@ -424,6 +424,44 @@ class BudgetTest extends TestCase
             ->assertRedirect(route('reports'));
     }
 
+    public function test_select_year_with_reports_destination_carries_the_category_and_the_ranking_mode(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), [
+                'year' => 2025,
+                'destination' => 'reports',
+                'report_category' => 12,
+                'report_ranking' => 'groups',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('reports', ['category' => 12, 'ranking' => 'groups']));
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'reports', 'report_ranking' => 'groups'])
+            ->assertRedirect(route('reports', ['ranking' => 'groups']));
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'reports-trend', 'report_category' => 12, 'report_ranking' => 'groups'])
+            ->assertRedirect(route('reports', ['view' => 'trend']));
+    }
+
+    public function test_select_year_rejects_an_unknown_ranking_mode_and_a_bad_category(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'reports', 'report_ranking' => 'x'])
+            ->assertSessionHasErrors('report_ranking');
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'reports', 'report_category' => 'abc'])
+            ->assertSessionHasErrors('report_category');
+    }
+
     public function test_select_year_with_reports_trend_destination_redirects_to_the_trend(): void
     {
         $user = User::factory()->create();

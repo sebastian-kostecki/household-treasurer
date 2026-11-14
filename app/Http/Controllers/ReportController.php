@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Support\BudgetViewedMonth;
 use App\Support\PeriodReport;
+use App\Support\ReportCategoryPanel;
 use App\Support\ReportComparisonPeriod;
 use App\Support\ReportTrend;
 use App\Support\ReportTwelveMonthWindow;
@@ -39,6 +40,8 @@ class ReportController extends Controller
                 ],
                 'report' => null,
                 'trend' => null,
+                'rankingMode' => $this->rankingMode($request),
+                'categoryPanel' => null,
             ]);
         }
 
@@ -53,6 +56,8 @@ class ReportController extends Controller
         $isTrend = $request->query('view') === 'trend';
         $month = $isTrend ? null : $this->requestedMonth($request->query('month'));
 
+        $periodReport = $budget->isExecution() && ! $isTrend ? $this->periodReport($budget, $month, $today) : null;
+
         return Inertia::render('Reports', [
             'budgetYear' => $budget->year,
             'budgetPhase' => $budget->phase->value,
@@ -63,8 +68,12 @@ class ReportController extends Controller
                 'is_in_progress' => ReportComparisonPeriod::isInProgress($budget->year, $month, $today),
                 'window' => null,
             ],
-            'report' => $budget->isExecution() && ! $isTrend ? $this->report($budget, $month, $today) : null,
+            'report' => $periodReport?->toArray(),
             'trend' => $budget->isExecution() && $isTrend ? $this->trend($budget, $today) : null,
+            'rankingMode' => $this->rankingMode($request),
+            'categoryPanel' => $month === null && $periodReport?->toArray()['has_operations'] === true
+                ? ReportCategoryPanel::forYear($budget, $periodReport, $request->query('category'), $today)->toArray()
+                : null,
         ]);
     }
 
@@ -88,6 +97,8 @@ class ReportController extends Controller
             ],
             'report' => PeriodReport::forWindow($window)->toArray(),
             'trend' => null,
+            'rankingMode' => $this->rankingMode($request),
+            'categoryPanel' => null,
         ]);
     }
 
@@ -115,16 +126,20 @@ class ReportController extends Controller
     }
 
     /**
-     * @return array<string, mixed>
+     * The Ranking lists Categories unless `?ranking=groups` asks for Groups.
      */
-    private function report(Budget $budget, ?int $month, CarbonImmutable $today): array
+    private function rankingMode(Request $request): string
+    {
+        return $request->query('ranking') === 'groups' ? 'groups' : 'categories';
+    }
+
+    private function periodReport(Budget $budget, ?int $month, CarbonImmutable $today): PeriodReport
     {
         $comparison = ReportComparisonPeriod::resolve($budget, $month, $today);
-        $report = $month === null
+
+        return $month === null
             ? PeriodReport::forYear($budget, $comparison)
             : PeriodReport::forMonth($budget, $month, $comparison);
-
-        return $report->toArray();
     }
 
     /**

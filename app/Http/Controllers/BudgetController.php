@@ -154,7 +154,10 @@ class BudgetController extends Controller
 
         return match ($validated['destination'] ?? 'budget') {
             'month-plan' => to_route('month-plan'),
-            'reports' => to_route('reports'),
+            'reports' => to_route('reports', array_filter([
+                'category' => $validated['report_category'] ?? null,
+                'ranking' => $validated['report_ranking'] ?? null,
+            ])),
             'reports-trend' => to_route('reports', ['view' => 'trend']),
             default => to_route('budget'),
         };

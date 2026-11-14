@@ -1,5 +1,8 @@
 import type {
     PeriodReportCategory,
+    ReportCategoryPanelData,
+    ReportCategoryPanelItem,
+    PeriodReportEntry,
     PeriodReportComparison,
     PeriodReportData,
     ReportPeriod,
@@ -648,6 +651,59 @@ const trendClosedPeriod: ReportPeriod = {
     window: null,
 };
 
+/** Months 1 to `count` carry the amount in whole parts (the remainder in January); the rest are empty. */
+function spreadMonths(amount: number, count: number): (number | null)[] {
+    const part = Math.trunc(amount / count);
+
+    return Array.from({ length: 12 }, (_, index) =>
+        index >= count ? null : index === 0 ? amount - part * (count - 1) : part,
+    );
+}
+
+/** Panel data for a year in progress (14 November 2026): ten closed months, November in progress. */
+function yearInProgressPanel(
+    report: PeriodReportData,
+    requestedCategoryId: number | null = null,
+): ReportCategoryPanelData {
+    const flat = (entries: PeriodReportEntry[]): PeriodReportCategory[] =>
+        entries.flatMap((entry) =>
+            entry.kind === 'group' ? entry.categories : [entry],
+        );
+    const categories: ReportCategoryPanelItem[] = [
+        ...flat(report.income),
+        ...flat(report.expense),
+    ].map((row) => {
+        const months = spreadMonths(row.amount_minor_units, 11);
+        const closedSum = months
+            .slice(0, 10)
+            .reduce<number>((sum, cell) => sum + (cell ?? 0), 0);
+        const previous = row.previous_minor_units;
+
+        return {
+            id: row.id,
+            rhythm: row.id >= 7 && row.id <= 8 ? null : 'running',
+            months,
+            closed_average_minor_units: Math.round(closedSum / 10),
+            highest_month: months.some((cell) => (cell ?? 0) > 0) ? 1 : null,
+            difference_tenths_percent:
+                previous === null || previous <= 0
+                    ? null
+                    : Math.round(
+                          ((row.amount_minor_units - previous) * 1000) /
+                              previous,
+                      ),
+        };
+    });
+
+    return {
+        requested_category_id: requestedCategoryId,
+        in_progress_month: 11,
+        through: '2026-11-14',
+        closed_month_count: 10,
+        categories,
+    };
+}
+
 export const reportScenarios: ReportScenario[] = [
     {
         key: 'year-in-progress',
@@ -665,6 +721,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: yearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(yearReport),
         },
     },
     {
@@ -683,6 +741,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: archivedInGroupReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -700,6 +760,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: archivedInGroupReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -717,6 +779,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: refundReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -734,6 +798,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: nonPositiveExpenseReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -751,6 +817,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: emptyReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -768,6 +836,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: null,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -785,6 +855,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: null,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -804,6 +876,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: archivedInGroupReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -822,6 +896,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedYearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(comparedYearReport),
         },
     },
     {
@@ -840,6 +916,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedMonthReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -858,6 +936,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedOnlyOneSideReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -876,6 +956,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedEmptyCurrentReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -895,6 +977,8 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedYearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(comparedYearReport),
         },
     },
     {
@@ -907,6 +991,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendInProgress,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -919,6 +1005,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendClosedPeriod,
             report: null,
             trend: trendClosed,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -931,6 +1019,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendIrregularAndZero,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -942,6 +1032,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendNegativeResult,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -954,6 +1046,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendClosedPeriod,
             report: null,
             trend: trendArchivedInGroup,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -965,6 +1059,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendEmpty,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -978,6 +1074,8 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendInProgress,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -990,6 +1088,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowFull),
             report: yearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1002,6 +1102,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1014,6 +1116,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartialEnd),
             report: archivedInGroupReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1026,6 +1130,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowNoCoverage),
             report: emptyReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1037,6 +1143,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowFull),
             report: emptyReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1050,6 +1158,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1062,6 +1172,8 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
 ];

@@ -143,10 +143,43 @@ export type ReportPeriod = {
     window: ReportWindow | null;
 };
 
+export type ReportRankingMode = 'categories' | 'groups';
+
+/** Mirror of one item of `App\Support\ReportCategoryPanel::toArray()['categories']`. */
+export type ReportCategoryPanelItem = {
+    /** Id of the list Category. */
+    id: number;
+    /** `Rhythm` value of the viewed month (`running`, `irregular`, ...); null for income. */
+    rhythm: string | null;
+    /** 12 cells, January first; null is a month without an operation, 0 a net-zero month. */
+    months: (number | null)[];
+    /** Average of the closed months, rounded half away from zero; null without a closed month. */
+    closed_average_minor_units: number | null;
+    /** 1 to 12, among the months that are not future; null when none is positive. */
+    highest_month: number | null;
+    /** (amount - previous) / previous in tenths of a percent; null without a usable comparison. */
+    difference_tenths_percent: number | null;
+};
+
+/** Mirror of `App\Support\ReportCategoryPanel::toArray()` (ADR-0097), only for the year in execution with operations. */
+export type ReportCategoryPanelData = {
+    /** The `?category` that has a row in the year report; null when absent or unknown. */
+    requested_category_id: number | null;
+    /** Month of today when the Budget year is the current one. */
+    in_progress_month: number | null;
+    /** Today, `Y-m-d`, with a month in progress. */
+    through: string | null;
+    /** 12 for a past year, the months before today's in the current year, 0 for a future year. */
+    closed_month_count: number;
+    categories: ReportCategoryPanelItem[];
+};
+
 export type ReportsPageProps = {
     budgetYear: number | null;
     budgetPhase: 'draft' | 'execution' | null;
     period: ReportPeriod;
     report: PeriodReportData | null;
     trend: ReportTrendData | null;
+    rankingMode: ReportRankingMode;
+    categoryPanel: ReportCategoryPanelData | null;
 };

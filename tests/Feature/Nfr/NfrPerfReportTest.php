@@ -63,8 +63,10 @@ class NfrPerfReportTest extends TestCase
                     ->where('period.kind', 'year')
                     ->where('period.is_in_progress', true)
                     ->where('report.comparison.year', 2025)
-                    ->has('report.expense')),
-            'Year report',
+                    ->has('report.expense')
+                    ->has('categoryPanel.categories', 37)
+                    ->where('categoryPanel.closed_month_count', 11)),
+            'Year report with the category panel',
         );
 
         $this->assertRequestWithinSeconds(
