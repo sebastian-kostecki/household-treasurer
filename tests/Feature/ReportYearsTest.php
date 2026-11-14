@@ -303,6 +303,47 @@ test('the change starts at the first year with an amount and is null when that y
         ->and(yearsEntry($shape['same_day']['expense'], 'Nowa')['change_first_year'])->toBeNull();
 });
 
+test('the change is null when the final year has no amount above zero', function () {
+    [$user, $account] = yearsUser();
+    $budgets = yearsBudgets($user, [2024, 2025, 2026]);
+    $stopped = yearsLines($budgets, yearsCategory($user, 'Bez wydatków'));
+    $refunded = yearsLines($budgets, yearsCategory($user, 'Zwrot'));
+
+    yearsOperation($user, $account, $stopped[2024], '2024-02-01', 5_000);
+    yearsOperation($user, $account, $stopped[2025], '2025-02-01', 3_000);
+    yearsOperation($user, $account, $refunded[2024], '2024-02-01', 4_000);
+    yearsOperation($user, $account, $refunded[2026], '2026-02-01', -200);
+
+    $shape = yearsShape($user);
+    $sameDayStopped = yearsEntry($shape['same_day']['expense'], 'Bez wydatków');
+    $sameDayRefunded = yearsEntry($shape['same_day']['expense'], 'Zwrot');
+
+    expect($sameDayStopped['cells'])->toBe([5_000, 3_000, 0])
+        ->and($sameDayStopped['change_tenths'])->toBeNull()
+        ->and($sameDayRefunded['cells'])->toBe([4_000, 0, -200])
+        ->and($sameDayRefunded['change_tenths'])->toBeNull()
+        ->and(yearsEntry($shape['full']['expense'], 'Bez wydatków')['change_tenths'])->toBe(-400)
+        ->and(yearsEntry($shape['full']['expense'], 'Zwrot')['change_tenths'])->toBeNull();
+});
+
+test('the archived mark follows the line of the last column and the list Category only without it', function () {
+    [$user, $account] = yearsUser();
+    $budgets = yearsBudgets($user, [2025, 2026]);
+
+    $lineArchived = yearsCategory($user, 'Linia zarchiwizowana');
+    yearsOperation($user, $account, yearsLine($budgets[2025], $lineArchived), '2025-02-01', 1_000);
+    yearsLine($budgets[2026], $lineArchived, archived: true);
+
+    $categoryArchived = yearsCategory($user, 'Kategoria zarchiwizowana', attributes: ['archived_at' => now()]);
+    yearsOperation($user, $account, yearsLine($budgets[2025], $categoryArchived, archived: true), '2025-02-01', 1_000);
+    yearsLine($budgets[2026], $categoryArchived);
+
+    $full = yearsShape($user)['full']['expense'];
+
+    expect(yearsEntry($full, 'Linia zarchiwizowana')['is_archived'])->toBeTrue()
+        ->and(yearsEntry($full, 'Kategoria zarchiwizowana')['is_archived'])->toBeFalse();
+});
+
 test('statistics follow the hand-computed oracle in both modes', function () {
     [$user, $account] = yearsUser();
     $budgets = yearsBudgets($user, [2020, 2021, 2022, 2023, 2024, 2025, 2026]);

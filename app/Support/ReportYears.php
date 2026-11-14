@@ -40,7 +40,7 @@ final class ReportYears
     private ?array $shape = null;
 
     /**
-     * @param  array<int, array<int, BudgetLine>>  $linesByCategory  list Category id => year => line
+     * @param  array<int, non-empty-array<int, BudgetLine>>  $linesByCategory  list Category id => year => line
      * @param  list<CategoryGroup>  $groups
      */
     private function __construct(
@@ -117,11 +117,6 @@ final class ReportYears
         $rows = [];
 
         foreach ($this->linesByCategory as $categoryId => $byYear) {
-            $lastLine = $byYear[array_key_last($byYear)] ?? null;
-            if ($lastLine === null) {
-                continue;
-            }
-
             $cells = [];
             $hasOperations = false;
 
@@ -133,7 +128,7 @@ final class ReportYears
 
             if ($hasOperations) {
                 $rows[$categoryId] = [
-                    'category' => $lastLine->category,
+                    'category' => reset($byYear)->category,
                     'line' => $lastYear === null ? null : ($byYear[$lastYear] ?? null),
                     'amount' => 0,
                     'has_operations' => true,
@@ -230,7 +225,9 @@ final class ReportYears
     }
 
     /**
-     * The change and the highest years over the first `$counted` columns.
+     * The change and the highest years over the first `$counted` columns. The
+     * change is `null` unless the final year has an amount above 0 (ADR-0097:15:
+     * 0 and „—” are no amount, as for the first year).
      *
      * @param  list<int|null>  $cells
      * @return YearsCells
@@ -242,7 +239,7 @@ final class ReportYears
         $final = $counted === 0 ? null : ($cells[$counted - 1] ?? null);
         $change = null;
 
-        if ($firstYear !== null && $final !== null && $firstYear !== ($columns[$counted - 1] ?? null)) {
+        if ($firstYear !== null && $final !== null && $final > 0 && $firstYear !== ($columns[$counted - 1] ?? null)) {
             $change = self::changeTenths($final, (int) $cells[(int) array_search($firstYear, $columns, true)]);
         }
 

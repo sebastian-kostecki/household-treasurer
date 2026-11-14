@@ -13,9 +13,9 @@ export function reportYearsCutLabel(
         .replace(':month', monthGenitive);
 }
 
-/** "14.11" */
+/** "14.11", "29.02" */
 export function reportYearsCutShort(cut: ReportYearsCut): string {
-    return `${cut.day}.${cut.month}`;
+    return `${cut.day}.${String(cut.month).padStart(2, '0')}`;
 }
 
 /** Tenths of a percent as "+19,4%", "−8,3%" (U+2212), "0,0%"; null is "—". */

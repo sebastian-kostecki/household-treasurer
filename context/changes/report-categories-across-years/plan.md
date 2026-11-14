@@ -132,6 +132,8 @@ Reguły (każda z ADR-0097; tu tylko to, czego ADR nie nazywa wprost):
 
 **Contract**: Przypadki w Testing Strategy. Operacje przez `ManageFinancialOperation` (jak `bookReportOperation`, `tests/Feature/PeriodReportTest.php:67`), żeby wykonanie linii było prawdziwe. Test strony: `assertInertia` z `period.kind = 'years'` i pełnym kształtem `years` bez `->etc()` na wierszu kategorii i grupy (lekcja S-30 F1). NFR: 7 Budżetów × 10 000 operacji, ≤ 2 s (`MeasuresRequestTime`), grupa `nfr`, PostgreSQL.
 
+**Odstępstwo (impl-review F5, 2026-11-14)**: przez `ManageFinancialOperation` idzie tylko test równości z raportem roku (`yearsBook`); pozostałe przypadki w `ReportYearsTest` tworzą operacje fabryką (`yearsOperation`), a operację Budżetu 2025 z datą w 2024 też fabryką zamiast `DB::table`. `ReportYears` czyta `financial_operations` bezpośrednio (`budget_line_id`, `operation_date`, `amount_minor_units`) i nie zależy od kolumn, które liczy akcja, więc fabryka daje ten sam odczyt, a równość z prawdziwym wykonaniem linii dowodzi test z `yearsBook`.
+
 ### Success Criteria:
 
 #### Automated Verification:

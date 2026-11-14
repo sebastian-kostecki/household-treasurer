@@ -657,9 +657,12 @@ const trendClosedPeriod: ReportPeriod = {
 
 /**
  * "Lata" fixtures (ADR-0097). Each row is a series of whole zloty for 2020 to
- * 2028 (the "Do D" amounts); the builder derives the "Pełne lata" amounts, the
- * change, the highest years and the statistics the way the server does, so
- * every scenario carries a complete `years` prop.
+ * 2028 (the "Do D" amounts) and, for the expense rows, the "Pełne lata" amounts
+ * of the completed years 2020–2025, chosen so that „Razem” is the ADR-0097
+ * example 42 000 → 74 000 (+76,2%, „Średnio rocznie” +12,0%). Later completed
+ * years and the income rows fall back to `YEARS_FULL_FACTOR`. The builder
+ * derives the change, the highest years and the statistics the way the server
+ * does, so every scenario carries a complete `years` prop.
  */
 type YearsSpec = {
     id: number;
@@ -669,6 +672,8 @@ type YearsSpec = {
     archived?: boolean;
     /** 2020 to 2028; null is a year without a Budget Line. */
     zloty: (number | null)[];
+    /** "Pełne lata" amounts of completed years from 2020; a missing year uses the factor. */
+    fullZloty?: (number | null)[];
 };
 
 type YearsGroupSpec = { id: number; name: string; categories: YearsSpec[] };
@@ -679,7 +684,7 @@ type YearsRows = { expense: YearsRowSpec[]; income: YearsRowSpec[] };
 
 const YEARS_FIRST = 2020;
 
-/** A completed year runs longer than the same day of it; the current year is the same. */
+/** A completed year without `fullZloty` runs this much longer than the same day of it. */
 const YEARS_FULL_FACTOR = 1.12;
 
 const yearsCzynsz: YearsSpec = {
@@ -688,6 +693,7 @@ const yearsCzynsz: YearsSpec = {
     icon: 'house',
     color: 'blue',
     zloty: [7800, 8400, 8700, 9300, 9600, 9900, 9900, 10200, 10500],
+    fullZloty: [9110, 9830, 10200, 10930, 11310, 11690],
 };
 const yearsInternet: YearsSpec = {
     id: 102,
@@ -695,6 +701,7 @@ const yearsInternet: YearsSpec = {
     icon: 'zap',
     color: 'teal',
     zloty: [1320, 1320, 1200, 1100, 1100, 1080, 1100, 1100, 1150],
+    fullZloty: [1540, 1540, 1410, 1290, 1300, 1280],
 };
 const yearsMeble: YearsSpec = {
     id: 103,
@@ -702,6 +709,7 @@ const yearsMeble: YearsSpec = {
     icon: 'sofa',
     color: 'orange',
     zloty: [0, null, 1800, 2600, 3300, 4200, 5040, 5200, 5600],
+    fullZloty: [0, null, 2110, 3060, 3890, 4960],
 };
 const yearsGroupHome: YearsGroupSpec = {
     id: 10,
@@ -714,6 +722,7 @@ const yearsFood: YearsSpec = {
     icon: 'shopping-cart',
     color: 'green',
     zloty: [9800, 10400, 11800, 13200, 14400, 15100, 16200, 16900, 17600],
+    fullZloty: [11440, 12170, 13840, 15510, 16960, 17830],
 };
 const yearsHolidays: YearsSpec = {
     id: 105,
@@ -721,6 +730,7 @@ const yearsHolidays: YearsSpec = {
     icon: 'plane',
     color: 'purple',
     zloty: [2200, 2800, 3500, 4900, 6400, 7400, 8600, 9000, 9800],
+    fullZloty: [2570, 3280, 4100, 5760, 7540, 8740],
 };
 const yearsCinema: YearsSpec = {
     id: 106,
@@ -729,6 +739,7 @@ const yearsCinema: YearsSpec = {
     color: 'pink',
     archived: true,
     zloty: [1500, 1400, 1300, 900, 700, null, null, null, null],
+    fullZloty: [1750, 1640, 1520, 1060, 820, null],
 };
 const yearsTransport: YearsSpec = {
     id: 107,
@@ -736,6 +747,7 @@ const yearsTransport: YearsSpec = {
     icon: 'car',
     color: 'red',
     zloty: [13360, 15200, 17800, 20400, 22300, 25000, 27400, 28000, 29000],
+    fullZloty: [15590, 17780, 20870, 23980, 26270, 29500],
 };
 const yearsSalary: YearsSpec = {
     id: 201,
@@ -775,7 +787,9 @@ function tenthsOfRatio(numerator: number, denominator: number): number {
 
 /** Annual growth in tenths of a percent between two amounts `years` apart. */
 function growthTenths(start: number, end: number, years: number): number {
-    return Math.round((Math.pow(end / start, 1 / years) - 1) * 1000);
+    const tenths = (Math.pow(end / start, 1 / years) - 1) * 1000;
+
+    return Math.sign(tenths) * Math.round(Math.abs(tenths));
 }
 
 function yearsCells(
@@ -791,6 +805,7 @@ function yearsCells(
     const first = firstIndex < 0 ? null : countedCells[firstIndex];
     const hasChange =
         final !== null &&
+        final > 0 &&
         first !== null &&
         first > 0 &&
         firstIndex !== finalIndex;
@@ -835,10 +850,15 @@ function yearsSeries(spec: YearsSpec, build: YearsBuild): (number | null)[] {
             return null;
         }
 
+        if (!build.full || year === build.currentYear) {
+            return value * 100;
+        }
+
+        const full = spec.fullZloty?.[year - YEARS_FIRST];
         const zloty =
-            build.full && year !== build.currentYear
+            full === undefined
                 ? Math.round(value * YEARS_FULL_FACTOR)
-                : value;
+                : (full ?? 0);
 
         return zloty * 100;
     });

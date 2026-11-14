@@ -26,9 +26,9 @@ describe('reportYearsCutLabel', () => {
 });
 
 describe('reportYearsCutShort', () => {
-    it('writes day and month without padding', () => {
+    it('writes the day and a two-digit month', () => {
         expect(reportYearsCutShort({ month: 11, day: 14 })).toBe('14.11');
-        expect(reportYearsCutShort({ month: 2, day: 9 })).toBe('9.2');
+        expect(reportYearsCutShort({ month: 2, day: 9 })).toBe('9.02');
     });
 });
 
