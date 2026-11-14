@@ -72,7 +72,7 @@ const busy = ref(false);
 const summaryText = computed((): string | undefined => {
     const summary = createBudgetSummary(
         targetYear.value,
-        props.budgetYears ?? shell.value.budgetYears,
+        props.budgetYears ?? shell.value.budgetYears.map((entry) => entry.year),
         props.activeCategoryCount ?? shell.value.activeCategoryCount,
     );
 

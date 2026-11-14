@@ -79,7 +79,7 @@ test('an irregular Category: a bill covered by the collected amount, then one ov
     // Setup: an expense Category „nieregularna” with 500,00 collected at the start.
     await page.goto('/categories');
     await page
-        .getByRole('button', { name: 'Dodaj kategorię: Wydatki' })
+        .getByRole('button', { name: 'Dodaj kategorię', exact: true })
         .click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa').fill(category);
@@ -141,7 +141,7 @@ test('an irregular Category: a bill covered by the collected amount, then one ov
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await expect(
             page
-                .locator('[data-section="expense"]')
+                .locator('[data-tab="expense"]')
                 .getByText(category, { exact: true }),
         ).toHaveCount(0);
     }

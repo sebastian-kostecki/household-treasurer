@@ -24,14 +24,24 @@ import { useTranslations } from '@/composables/useTranslations';
 import { activeCountForm, groupDeleteDescription } from '@/lib/category-list';
 import type { CategoryGroupItem } from '@/types/categories';
 
-const props = defineProps<{
-    group: CategoryGroupItem;
-    type: 'income' | 'expense';
-    /** How many Categories stand in the group. */
-    count: number;
-    canMoveUp: boolean;
-    canMoveDown: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        group: CategoryGroupItem;
+        type: 'income' | 'expense';
+        /** How many Categories stand in the group. */
+        count: number;
+        canMoveUp: boolean;
+        canMoveDown: boolean;
+        /** How many of them match the filter; differs from `count` only under a filter. */
+        visibleCount?: number;
+        /** False under a filter: no drag handle, no „W górę” / „W dół”. */
+        movable?: boolean;
+    }>(),
+    {
+        visibleCount: undefined,
+        movable: true,
+    },
+);
 
 const emit = defineEmits<{
     moveUp: [];
@@ -43,12 +53,21 @@ const t = useTranslations();
 const renameOpen = ref(false);
 const deleteOpen = ref(false);
 
-const countLabel = computed(() =>
-    t.categories[`group_count_${activeCountForm(props.count)}`].replace(
+const countLabel = computed(() => {
+    if (
+        props.visibleCount !== undefined &&
+        props.visibleCount !== props.count
+    ) {
+        return t.categories.group_count_filtered
+            .replace(':visible', String(props.visibleCount))
+            .replace(':count', String(props.count));
+    }
+
+    return t.categories[`group_count_${activeCountForm(props.count)}`].replace(
         ':count',
         String(props.count),
-    ),
-);
+    );
+});
 
 const deleteDescription = computed(() =>
     groupDeleteDescription(props.count, props.group.archived_count, {
@@ -65,6 +84,7 @@ const deleteDescription = computed(() =>
 <template>
     <div class="categories-group-row" data-group-row>
         <button
+            v-if="movable"
             type="button"
             class="categories-handle drag-handle"
             tabindex="-1"
@@ -101,6 +121,7 @@ const deleteDescription = computed(() =>
                     {{ t.categories.group_rename }}
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                    v-if="movable"
                     :disabled="!canMoveUp"
                     @select="emit('moveUp')"
                 >
@@ -108,6 +129,7 @@ const deleteDescription = computed(() =>
                     {{ t.categories.group_move_up }}
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                    v-if="movable"
                     :disabled="!canMoveDown"
                     @select="emit('moveDown')"
                 >

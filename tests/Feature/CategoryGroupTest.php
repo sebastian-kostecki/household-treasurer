@@ -40,6 +40,28 @@ class CategoryGroupTest extends TestCase
         $this->assertSame(2, $group->sort_order);
     }
 
+    public function test_a_group_write_returns_to_the_tab_it_came_from(): void
+    {
+        $user = User::factory()->create();
+        $group = CategoryGroup::factory()->for($user)->income()->create(['name' => 'Etat', 'sort_order' => 0]);
+        $incomeTab = route('categories.index', ['tab' => 'income']);
+
+        $this->actingAs($user)
+            ->from($incomeTab)
+            ->post(route('category-groups.store'), ['type' => 'income', 'name' => 'Premie'])
+            ->assertRedirect($incomeTab);
+
+        $this->actingAs($user)
+            ->from($incomeTab)
+            ->patch(route('category-groups.update', $group), ['name' => 'Umowa'])
+            ->assertRedirect($incomeTab);
+
+        $this->actingAs($user)
+            ->from($incomeTab)
+            ->delete(route('category-groups.destroy', $group))
+            ->assertRedirect($incomeTab);
+    }
+
     public function test_a_duplicate_name_in_the_same_type_is_a_name_error_but_the_other_type_may_reuse_it(): void
     {
         $user = User::factory()->create();

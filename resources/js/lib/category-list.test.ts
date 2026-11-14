@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vite-plus/test';
 import {
     activeCountForm,
     categoryAllYearsOperationsQuery,
-    categoryYearsLabel,
+    categoryYearCells,
+    categoryYearsRangeLabel,
     groupDeleteDescription,
 } from './category-list';
 
@@ -58,11 +59,38 @@ describe('categoryAllYearsOperationsQuery', () => {
     });
 });
 
-describe('categoryYearsLabel', () => {
-    it('joins the years with a middle dot', () => {
-        expect(categoryYearsLabel([2026, 2027])).toBe('2026 · 2027');
-        expect(categoryYearsLabel([2026])).toBe('2026');
-        expect(categoryYearsLabel([])).toBe('');
+describe('categoryYearsRangeLabel', () => {
+    it('collapses consecutive years into a range', () => {
+        expect(
+            categoryYearsRangeLabel([
+                2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027,
+            ]),
+        ).toBe('2020–2027');
+        expect(categoryYearsRangeLabel([2020, 2021, 2022, 2025])).toBe(
+            '2020–2022 · 2025',
+        );
+    });
+
+    it('separates single years with a dot', () => {
+        expect(categoryYearsRangeLabel([2020, 2022, 2024, 2027])).toBe(
+            '2020 · 2022 · 2024 · 2027',
+        );
+        expect(categoryYearsRangeLabel([2026])).toBe('2026');
+    });
+
+    it('is empty without years', () => {
+        expect(categoryYearsRangeLabel([])).toBe('');
+    });
+});
+
+describe('categoryYearCells', () => {
+    it('merges the axis with the budget years, ascending and unique', () => {
+        expect(categoryYearCells([2025, 2026, 2027], [2027, 2024])).toEqual([
+            { year: 2024, short: '24', on: true },
+            { year: 2025, short: '25', on: false },
+            { year: 2026, short: '26', on: false },
+            { year: 2027, short: '27', on: true },
+        ]);
     });
 });
 

@@ -8,6 +8,7 @@ use App\Actions\ReorderCategories;
 use App\Actions\RestoreCategory;
 use App\Actions\UpdateCategory;
 use App\Enums\CategoryType;
+use App\Http\Requests\IndexCategoriesRequest;
 use App\Http\Requests\ReorderCategoriesRequest;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
@@ -32,12 +33,13 @@ class CategoryController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(Request $request): InertiaResponse
+    public function index(IndexCategoriesRequest $request): InertiaResponse
     {
         $today = CarbonImmutable::today('UTC');
 
         return Inertia::render('Categories', [
             ...CategoryListReading::forUser($request->user()),
+            'tab' => $request->tab()->value,
             'rhythmChangeMonth' => ['year' => $today->year, 'month' => $today->month],
             'categoryAppearanceOptions' => CategoryAppearance::formOptions(),
         ]);

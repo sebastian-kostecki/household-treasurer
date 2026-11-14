@@ -364,15 +364,18 @@ class BudgetTest extends TestCase
     public function test_shell_exposes_budget_years_and_selected_year(): void
     {
         $user = User::factory()->create();
-        Budget::factory()->for($user)->create(['year' => 2025]);
-        Budget::factory()->for($user)->create(['year' => 2026]);
+        Budget::factory()->for($user)->create(['year' => 2025, 'phase' => BudgetPhase::Execution]);
+        Budget::factory()->for($user)->create(['year' => 2026, 'phase' => BudgetPhase::Draft]);
 
         $this->actingAs($user)
             ->withSession(['budget_year' => 2026])
             ->get(route('budget'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('shell.budgetYears', [2025, 2026])
+                ->where('shell.budgetYears', [
+                    ['year' => 2025, 'phase' => 'execution'],
+                    ['year' => 2026, 'phase' => 'draft'],
+                ])
                 ->where('shell.budgetYear', 2026)
                 ->where('shell.firstRun.hasBudget', true),
             );

@@ -494,7 +494,7 @@ const CATEGORIES_VIEW_FILES = [
     'pages/Categories.vue',
     'pages/dev/CategoriesKitchenSink.vue',
     'components/CategoryListRow.vue',
-    'components/CategoryArchiveSection.vue',
+    'components/CategoryYearsStrip.vue',
     'components/CategoryGroupRow.vue',
     'components/CategoryGroupAssignDialog.vue',
     'components/CategoryGroupFormDialog.vue',

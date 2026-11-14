@@ -1,3 +1,7 @@
+import { foldDiacritics } from './text-search';
+
+export { foldDiacritics };
+
 export type PaletteCategory = {
     id: number;
     name: string;
@@ -87,19 +91,6 @@ export function paletteActionSearchValue(action: PaletteAction): string {
 /** The text the search matches for a category: its name. */
 export function paletteCategorySearchValue(category: PaletteCategory): string {
     return category.name;
-}
-
-/**
- * The same text without Polish diacritics ("Żywność" -> "Zywnosc"), so a query
- * typed on a keyboard without them still matches. `ł` has no decomposition,
- * so it is mapped by hand.
- */
-export function foldDiacritics(text: string): string {
-    return text
-        .normalize('NFD')
-        .replace(/\p{M}/gu, '')
-        .replace(/ł/g, 'l')
-        .replace(/Ł/g, 'L');
 }
 
 /**

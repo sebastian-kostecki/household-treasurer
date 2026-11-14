@@ -3,24 +3,37 @@ import { GripVertical } from '@lucide/vue';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import CategoryListRowActions from '@/components/CategoryListRowActions.vue';
-import { useTranslations } from '@/composables/useTranslations';
-import { categoryYearsLabel } from '@/lib/category-list';
+import CategoryYearsStrip from '@/components/CategoryYearsStrip.vue';
+import { Badge } from '@/components/ui/badge';
+import { useShell, useTranslations } from '@/composables/useTranslations';
 import { formatDate } from '@/lib/format';
 import type { CategoryGroupItem, CategoryListItem } from '@/types/categories';
 
-const props = defineProps<{
-    category: CategoryListItem;
-    /** An archive row: muted, with the archive date under the name. */
-    archived?: boolean;
-    /** The groups of the Category's type; with it an active row gets a drag handle and „Zmień grupę…” in the menu. */
-    groups?: CategoryGroupItem[];
-    /** The row stands under a group: indented. */
-    nested?: boolean;
-    /** Whether another active Category of the type exists to merge into. */
-    canMerge?: boolean;
-    /** The order is being saved: „Zmień grupę…” is disabled meanwhile. */
-    reorderSaving?: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        category: CategoryListItem;
+        /** An archive row: muted, with the archive date under the name. */
+        archived?: boolean;
+        /** The groups of the Category's type; with it an active row gets a drag handle and „Zmień grupę…” in the menu. */
+        groups?: CategoryGroupItem[];
+        /** The row stands under a group: indented. */
+        nested?: boolean;
+        /** Whether another active Category of the type exists to merge into. */
+        canMerge?: boolean;
+        /** The order is being saved: „Zmień grupę…” is disabled meanwhile. */
+        reorderSaving?: boolean;
+        /** False under a phrase or a Rhythm filter: no drag handle, „Zmień grupę…” stays. */
+        draggable?: boolean;
+        /** The expense list has the Rhythm column; incomes do not. */
+        showRhythm?: boolean;
+        /** The years of the strip; the default is the user's Budget years (`shell.budgetYears`). */
+        axis?: number[];
+    }>(),
+    {
+        draggable: true,
+        showRhythm: false,
+    },
+);
 
 const emit = defineEmits<{
     edit: [];
@@ -29,8 +42,10 @@ const emit = defineEmits<{
 
 const t = useTranslations();
 
-const yearsLabel = computed(() =>
-    categoryYearsLabel(props.category.budget_years),
+const shell = useShell();
+
+const stripAxis = computed(
+    () => props.axis ?? shell.value.budgetYears.map((entry) => entry.year),
 );
 
 const archivedOn = computed(() =>
@@ -45,12 +60,12 @@ const archivedOn = computed(() =>
 const rhythmLabel = computed(() =>
     props.category.rhythm === null
         ? null
-        : t.categories[`rhythm_${props.category.rhythm}`],
+        : t.categories[`rhythm_option_${props.category.rhythm}`],
 );
 
-/** The muted second line under the chip: the Rhythm, the archive date and/or the description. */
+/** The muted second line under the chip: the archive date and/or the description. */
 const caption = computed(() =>
-    [rhythmLabel.value, archivedOn.value, props.category.description]
+    [archivedOn.value, props.category.description]
         .filter((part): part is string => part !== null && part !== '')
         .join(' · '),
 );
@@ -60,6 +75,7 @@ const caption = computed(() =>
     <div
         class="categories-grid categories-row"
         :class="{
+            'categories-grid-no-rhythm': !showRhythm,
             'categories-row-archived': archived,
             'categories-row-nested': nested,
         }"
@@ -67,7 +83,7 @@ const caption = computed(() =>
     >
         <div class="categories-cell-name">
             <button
-                v-if="groups !== undefined"
+                v-if="groups !== undefined && draggable"
                 type="button"
                 class="categories-handle drag-handle"
                 tabindex="-1"
@@ -89,13 +105,18 @@ const caption = computed(() =>
             </CategoryChip>
         </div>
 
-        <p class="categories-cell-years">
-            <template v-if="yearsLabel !== ''">{{ yearsLabel }}</template>
-            <template v-else>
-                <span aria-hidden="true">{{ t.categories.no_years }}</span>
-                <span class="sr-only">{{ t.categories.no_years_label }}</span>
-            </template>
-        </p>
+        <div v-if="showRhythm" class="categories-cell-rhythm">
+            <Badge v-if="rhythmLabel !== null" variant="neutral">
+                {{ rhythmLabel }}
+            </Badge>
+        </div>
+
+        <div class="categories-cell-years">
+            <CategoryYearsStrip
+                :years="category.budget_years"
+                :axis="stripAxis"
+            />
+        </div>
 
         <CategoryListRowActions
             :category="category"

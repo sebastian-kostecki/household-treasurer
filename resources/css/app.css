@@ -175,6 +175,8 @@
     --aside-width: clamp(18.75rem, 22vw, 26rem);
     --sidebar-panel-width: 224px;
     --command-palette-width: 520px;
+    --categories-rhythm-width: 7rem;
+    --categories-years-width: 14rem;
     --settings-nav-width: 200px;
     --settings-content-width: 640px;
     --auth-aside-width: 440px;
@@ -629,6 +631,52 @@
     /* Year menu trigger in the sidebar (ADR-0087): the selected year on sidebar-strong, hover and open on sidebar-accent. */
     .sidebar-year-trigger {
         @apply h-control text-sidebar-strong hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground ring-sidebar-ring flex w-full items-center gap-2 rounded-md px-2 text-sm font-semibold outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
+    }
+
+    /* State pills of a year (ADR-0098): "bieżący" outlined in sidebar-border, "szkic" in warning on warning-soft. */
+    .sidebar-year-states {
+        @apply ml-auto flex shrink-0 items-center gap-1;
+    }
+
+    .sidebar-year-state {
+        @apply inline-flex h-4 items-center rounded-full px-1.5 font-sans text-[11px]/4 font-medium;
+    }
+
+    .sidebar-year-state-current {
+        @apply border-sidebar-border text-sidebar-foreground border;
+    }
+
+    .sidebar-year-state-draft {
+        @apply bg-warning-soft text-warning;
+    }
+
+    /* Year menu (ADR-0098): dark like the command palette; the `!` beats the popover utilities of DropdownMenuContent. */
+    .sidebar-year-menu {
+        @apply bg-sidebar! text-sidebar-strong! border-sidebar-border! shadow-dialog rounded-lg!;
+    }
+
+    .sidebar-year-menu-item {
+        @apply focus:bg-sidebar-accent! focus:text-sidebar-accent-foreground! data-[state=checked]:bg-sidebar-accent ring-sidebar-ring [&_svg:not([class*='text-'])]:text-sidebar-foreground focus:ring-2;
+    }
+
+    .sidebar-year-menu-row {
+        @apply font-mono tabular-nums;
+    }
+
+    .sidebar-year-menu-group {
+        @apply label-caps text-sidebar-foreground! px-2 py-1.5;
+    }
+
+    .sidebar-year-menu-note {
+        @apply text-sidebar-foreground font-sans text-[11px]/4;
+    }
+
+    .sidebar-year-menu-caption {
+        @apply text-sidebar-foreground block px-2 pb-1 text-[11px]/4;
+    }
+
+    .sidebar-year-menu-separator {
+        @apply bg-sidebar-border!;
     }
 
     /* Shortcut marker: the key a view or action answers to (mono, outlined in the current colour). */
@@ -1376,12 +1424,27 @@
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'name actions'
+            'rhythm years';
+    }
+
+    .categories-grid-no-rhythm {
+        grid-template-areas:
+            'name actions'
             'years years';
     }
 
     @variant md {
         .categories-grid {
-            grid-template-columns: minmax(0, 1fr) 220px var(--control-height-sm);
+            grid-template-columns:
+                minmax(0, 1fr) var(--categories-rhythm-width)
+                var(--categories-years-width) var(--control-height-sm);
+            grid-template-areas: 'name rhythm years actions';
+        }
+
+        .categories-grid-no-rhythm {
+            grid-template-columns:
+                minmax(0, 1fr) var(--categories-years-width)
+                var(--control-height-sm);
             grid-template-areas: 'name years actions';
         }
     }
@@ -1409,9 +1472,52 @@
         @apply flex min-w-0 items-center gap-2;
     }
 
+    .categories-cell-rhythm {
+        grid-area: rhythm;
+        @apply flex min-w-0 items-center;
+    }
+
     .categories-cell-years {
         grid-area: years;
         @apply min-w-0 tabular-nums;
+    }
+
+    /** The years strip: one cell per year of the axis; a year with a Budget Line is on `accent`. */
+    .categories-years {
+        @apply flex min-w-0 gap-1;
+    }
+
+    .categories-years-cell {
+        @apply meta text-muted-foreground border-border min-w-0 flex-1 rounded-xs border text-center tabular-nums;
+    }
+
+    .categories-years-cell[data-state='on'] {
+        @apply bg-accent text-accent-foreground border-transparent;
+    }
+
+    /** The legend of the strip: two small cells without text, each with its caption. */
+    .categories-years-legend {
+        @apply meta text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1;
+    }
+
+    .categories-years-key {
+        @apply inline-flex items-center gap-2;
+    }
+
+    .categories-years-key .categories-years-cell {
+        @apply block size-3 flex-none;
+    }
+
+    .categories-toolbar {
+        @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2;
+    }
+
+    .categories-filters {
+        @apply flex flex-wrap items-center gap-2;
+    }
+
+    .categories-footer {
+        @apply meta text-muted-foreground border-border border-t px-4 py-3;
     }
 
     /**
