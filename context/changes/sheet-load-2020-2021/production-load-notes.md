@@ -19,9 +19,8 @@ Procedura: `README.md`, „Wczytanie arkusza (lata 2020–2025)”. Wzór: `cont
 
 ## 2. Pliki na serwerze — Progress 5.2
 
-- [ ] Wdrożony commit (`development` / `main`):
-- [ ] `sha256sum Budżet_2021.xlsx` = `6c228b92db7931e60309cb1caac7987de480051638d548859ec38213393c0e18` (oryginał `9396b6b6…c872` jest zły):
-- [ ] `sha256sum Budżet_2020.xlsx`:
+- Wydanie v1.4.5 (PR #230: poprawka mapowania, `063ea77`; CI zielone) scalone do `main` jako `799bdd6` i wdrożone przez użytkownika (`scripts/deploy.sh`: liczby `20261114-083644-before/after.json`, kopia `2026-11-14-08-36-47.zip`). Kontener `app` ma nowe mapowanie (`'internet' => 44`, `'netflix' => 45`, `42 => 'Chemia i kosmetyki'`).
+- Pliki przesłane z lokalnej kopii przez `/root/sheet-load-2020-2021/` (usunięty po kopiowaniu) do `storage/app/private/sheet-load/` (sail, 640). SHA-256 w kontenerze: `Budżet_2021.xlsx` = `6c228b92db7931e60309cb1caac7987de480051638d548859ec38213393c0e18` (po poprawce, jak w `workbook-fix.md`), `Budżet_2020.xlsx` = `7618a81d2a763ba71fe7e4d0f4356f162f3a10af1562554a0e6c87f4f266a5be`.
 
 ## 3. Produkcja — Progress 5.3
 
@@ -32,19 +31,20 @@ Oczekiwane sumy `--dry-run` (operacje + ruchy funduszu = „Analiza”):
 | 2020 | 69 913,54 + 4 098,28 = 74 011,82 | 65 239,23 + 4 318,05 = 69 557,28 | −4 674,31 | 0 ostrzeżeń arkusza, 0 reszt |
 | 2021 | 91 448,99 + 4 900,00 = 96 348,99 | 84 700,99 + 5 510,56 = 90 211,55 | −6 748,00 | 1 przeniesienie `grudzień!H8` → `grudzień!H7` |
 
-- [ ] Wdrożenie (`scripts/deploy.sh`, bez migracji, „Control numbers match”):
-- [ ] Pliki skopiowane do `storage/app/private/sheet-load/`, właściciel sail:
-- [ ] `user:backup 1` → plik:
-- [ ] `app:control-numbers --output=…-sheet-before.json` → plik (kopia poza serwerem):
-- [ ] `--dry-run` 2020 i 2021, wyniki:
-- [ ] Wczytanie 2020, potem 2021: id Budżetów, id kont „Arkusz RRRR”, liczba operacji:
-- [ ] `app:control-numbers --compare=<przed> --allow-additions`: kod, podsumowanie dodań:
-- [ ] Wycofanie, gdyby było potrzebne: `scripts/artisan.sh budget:unload-sheet 1 2021 --force`, potem `2020`, potem `--compare=<przed>` bez `--allow-additions`.
+Wykonane 2026-11-14 ok. 08:38–08:45 UTC:
+
+- Przed wczytaniem: `user:backup 1` → `storage/app/private/user-snapshots/1-20261114083810.json`; `app:control-numbers` → `storage/app/private/control-numbers/20261114-sheet-2020-2021-before.json` (plik „przed” do `--compare` i do wycofania; kopia pobrana poza serwer).
+- `--dry-run` 2020 i 2021: kod 0, sumy jak w tabeli, „Kategorie z mapowania istnieją u użytkownika z oczekiwaną nazwą i typem”, brak wiersza o „Kosmetyki”; wydruki identyczne z próbą (poza poprawionym wierszem o „Kosmetyki”). 2020: 435 operacji, 2021: 491 operacji, 1 przeniesienie `grudzień!H8` → `H7`.
+- Wczytanie (`--force`): 2020 → Budżet 7, konto 17 „Arkusz 2020”, 435 operacji; 2021 → Budżet 8, konto 18 „Arkusz 2021”, 491 operacji.
+- `app:control-numbers --compare=storage/app/private/control-numbers/20261114-sheet-2020-2021-before.json --allow-additions`: kod 0, „Only additions: budgets +2, lines +64, accounts +2, categories +0, financial_operations +926”.
+- Baza: konta 17 i 18 zarchiwizowane, saldo bieżące 0, otwarcie −4 674,31 / −6 748,00 zł; zwykłe konta bez zmian (np. „Konto Osobiste” 391 016 / 543 239 gr); Budżety 2020–2026 execution, 2027 draft (47 linii); 2020: 31 linii, 2021: 33 linie. Nie powstała żadna kategoria.
+- Wycofanie, gdyby było potrzebne: `scripts/artisan.sh budget:unload-sheet 1 2021 --force`, potem `2020`, potem `app:control-numbers --compare=storage/app/private/control-numbers/20261114-sheet-2020-2021-before.json` bez `--allow-additions`.
+- Sprzątanie lokalne: baza `restore_trial_sheet_2020` usunięta, `storage/app` worktree przywrócony, archiwum i xlsx usunięte z worktree.
 
 ## 4. Przegląd w aplikacji — Progress 5.4
 
 - [ ] Selektor roku: 2020–2027
 - [ ] Raport 2022 z kolumną 2021
 - [ ] Raport 2021 z kolumną 2020
-- [ ] Saldo „Na kontach” bez zmian (6 886,72 zł przed wczytaniem 2020–2021, jeśli nic się nie zmieniło)
+- [ ] Saldo „Na kontach” bez zmian (salda zwykłych kont potwierdzone liczbami kontrolnymi; do obejrzenia w UI)
 - [ ] Szkic 2027 bez zmian
