@@ -54,11 +54,24 @@ test('dry-run prints the plan and leaves the control numbers unchanged', functio
             ->expectsOutputToContain('Arkusz 2021')
             ->expectsOutputToContain('Operacji: 180')
             ->expectsOutputToContain('Saldo otwarcia konta arkusza:')
-            ->expectsOutputToContain('Kategoria „Kosmetyki” zostanie utworzona')
+            ->doesntExpectOutputToContain('Kosmetyki')
             ->assertExitCode(0);
     });
 
     expect(app(ControlNumbers::class)->collect())->toBe($before);
+});
+
+test('dry-run names the new Category only when the plan writes to it', function () {
+    $user = sheetLoadUserWithMappedCategories();
+    $data = require __DIR__.'/../../database/sheet-load/mapping.php';
+    $data['expenses']['kosmetyki'] = SheetMapping::NEW_CATEGORY;
+    app()->instance(SheetMapping::class, new SheetMapping($data));
+
+    SheetWorkbookFactory::with(['year' => 2021, 'months' => [3 => ['expenses' => ['Kosmetyki' => 100.00]]]], function (string $path) use ($user): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
+            ->expectsOutputToContain('Kategoria „Kosmetyki” zostanie utworzona')
+            ->assertExitCode(0);
+    });
 });
 
 test('writes nothing when the confirmation is declined', function () {

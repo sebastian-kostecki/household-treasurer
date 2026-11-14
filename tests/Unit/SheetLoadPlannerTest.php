@@ -167,7 +167,9 @@ test('2022 splits Codzienne wydatki by the breakdown and files the rest to groce
         array_filter($january, fn (PlannedOperation $op): bool => $op->category === $category && $op->type === FinancialOperationType::Expense),
     ));
 
-    expect($byCategory(29))->toBe(15_000)
+    // Higiena i kosmetyki go to Chemia i kosmetyki (42) since the list of 2026-11-13 (ADR-0096, decision 6).
+    expect($byCategory(42))->toBe(15_000)
+        ->and($byCategory(29))->toBe(0)
         ->and($byCategory(32))->toBe(5_000)
         ->and($byCategory(8))->toBe(100_000)
         ->and(collect($january)->where('description', 'Jedzenie (arkusz 2022)')->first()->amountMinorUnits)->toBe(60_000)
@@ -175,7 +177,7 @@ test('2022 splits Codzienne wydatki by the breakdown and files the rest to groce
         ->and($plan->expenseTotal())->toBe($plan->analysisExpense->amountMinorUnits);
 });
 
-test('a dash or empty irregular category goes to Pozostałe, kosmetyki to the new category, nameless items are named', function () {
+test('a dash or empty irregular category goes to Pozostałe, kosmetyki to Chemia i kosmetyki, nameless items are named', function () {
     $plan = planSheet(['months' => [1 => [
         'expenses' => ['Kosmetyczka' => 40.00],
         'irregular' => [['-', 'Pierwsza', 10.00], ['', 'Druga', 20.00], ['kosmetyki', 'Krem', 15.00], ['Ubrania', null, 30.00], ['Dom', 'Zwrot', -5.00]],
@@ -186,11 +188,12 @@ test('a dash or empty irregular category goes to Pozostałe, kosmetyki to the ne
 
     expect($descriptions['Pierwsza'])->toBe(10)
         ->and($descriptions['Druga'])->toBe(10)
-        ->and($descriptions['Krem'])->toBe(SheetMapping::NEW_CATEGORY)
-        ->and($descriptions['Kosmetyczka (arkusz 2025)'])->toBe(SheetMapping::NEW_CATEGORY)
+        ->and($descriptions['Krem'])->toBe(42)
+        ->and($descriptions['Kosmetyczka (arkusz 2025)'])->toBe(42)
         ->and($descriptions['bez nazwy (arkusz 2025)'])->toBe(27)
         ->and(collect($january)->firstWhere('description', 'Zwrot')->amountMinorUnits)->toBe(-500)
-        ->and($plan->categoryTotals()[SheetMapping::NEW_CATEGORY])->toBe(5_500);
+        ->and($plan->categoryTotals()[42])->toBe(5_500)
+        ->and($plan->categoryTotals())->not->toHaveKey(SheetMapping::NEW_CATEGORY);
 });
 
 test('refuses an unmapped expense label, income label and irregular category, naming the cell', function () {

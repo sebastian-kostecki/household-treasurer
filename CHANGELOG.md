@@ -6,6 +6,18 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.4.5] — 2026-11-14
+
+The Sheet Load mapping follows the Category list as it stands on production after it was rebuilt on 2026-11-13, so the years 2020 and 2021 load into the current Categories (ADR-0096, decision 6).
+
+### Changed
+
+- The Sheet Load expects the current names of the mapped Categories (the same ids). Hbo go and Netflix go to "Streaming", internet to "Internet", and the cosmetics labels, "higiena i kosmetyki" and "środki czystości" to "Chemia i kosmetyki"; a load no longer creates the archived "Kosmetyki". Years already loaded do not change.
+
+### Fixed
+
+- `budget:load-sheet` names the new "Kosmetyki" Category only when the plan writes to it; it used to announce it on every run.
+
 ## [1.4.4] — 2026-11-14
 
 The years 2020 and 2021 can be loaded from the older budget spreadsheets (ADR-0096), the dark theme, the pickers and the Month Plan on a phone are fixed after the 1.4.3 audit (ADR-0092–0095), and the Category dialog says what each Rhythm does.
@@ -235,7 +247,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.4...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.5...HEAD
+[1.4.5]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.1...v1.4.2

@@ -73,6 +73,24 @@ function householdBeforeSheetLoad(): array
 }
 
 /**
+ * The mapping with the cosmetics labels on SheetMapping::NEW_CATEGORY, as it was until "Kosmetyki" became Category 42
+ * on production (ADR-0096, decision 6). The load still creates the archived Category for such a target and the unload
+ * removes it, so these tests keep that path covered.
+ */
+function bindMappingThatCreatesKosmetyki(): void
+{
+    $data = require __DIR__.'/../../database/sheet-load/mapping.php';
+
+    foreach (['kosmetyki', 'kosmetyczka', 'fryzjer', 'kosmetyczka i fryzjer'] as $label) {
+        $data['expenses'][$label] = SheetMapping::NEW_CATEGORY;
+    }
+
+    $data['irregular_categories']['kosmetyki'] = SheetMapping::NEW_CATEGORY;
+
+    app()->instance(SheetMapping::class, new SheetMapping($data));
+}
+
+/**
  * 2025 has a mapping override on February's "pozostałe" income (the tax refund), so the workbook needs that cell.
  *
  * @return array<string, mixed>
@@ -131,6 +149,7 @@ function readingsOf(User $user): array
 
 it('loads two years as additions only and leaves the 2026 and 2027 readings as they were', function (): void {
     [$user, $real] = householdBeforeSheetLoad();
+    bindMappingThatCreatesKosmetyki();
     $this->travelTo('2026-11-11');
     $before = app(ControlNumbers::class)->collect();
     $file = tempnam(sys_get_temp_dir(), 'cn');
@@ -204,6 +223,7 @@ it('gives the 2026 report a prior-year column with the amounts of 2025', functio
 
 it('unloads every year back to the control numbers from before and loads again', function (): void {
     [$user] = householdBeforeSheetLoad();
+    bindMappingThatCreatesKosmetyki();
     $before = app(ControlNumbers::class)->collect();
 
     loadSheetYear($user, sheet2025Options());
@@ -239,8 +259,22 @@ it('refuses a mapped Category with another name and writes nothing', function ()
         ->and(app(ControlNumbers::class)->collect())->toBe($before);
 });
 
+it('loads the cosmetics into Chemia i kosmetyki and creates no Category', function (): void {
+    [$user] = householdBeforeSheetLoad();
+    $categories = Category::query()->where('user_id', $user->id)->count();
+
+    expect(loadSheetYear($user, sheet2025Options()))->toBe(0);
+
+    $line = $user->budgets()->where('year', 2025)->firstOrFail()->budgetLines()->where('category_id', 42)->firstOrFail();
+
+    expect($line->execution_minor_units)->toBe(10_000)
+        ->and(Category::query()->where('user_id', $user->id)->count())->toBe($categories)
+        ->and(Category::query()->where('name', 'Kosmetyki')->exists())->toBeFalse();
+});
+
 it('keeps an existing Kosmetyki with its Rhythm entries, on load and on unload', function (): void {
     [$user] = householdBeforeSheetLoad();
+    bindMappingThatCreatesKosmetyki();
     $cosmetics = Category::factory()->create(['user_id' => $user->id, 'name' => 'Kosmetyki', 'type' => CategoryType::Expense]);
     CategoryRhythm::query()->create(['category_id' => $cosmetics->id, 'start_year' => 2024, 'start_month' => 5, 'rhythm' => Rhythm::EvenAnnual]);
     CategoryRhythm::query()->create(['category_id' => $cosmetics->id, 'start_year' => 2026, 'start_month' => 2, 'rhythm' => Rhythm::Running]);
