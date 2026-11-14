@@ -254,3 +254,83 @@ test('refuses a workbook without a month sheet', function () {
 test('refuses a missing file', function () {
     expect(fn () => (new BudgetSheetReader)->read('/nonexistent/sheet.xlsx'))->toThrow(SheetReadException::class);
 });
+
+test('reads the 2020-2021 layout: year from grudzień!A1, income from H, lists from I to L, the treatment list without a name header', function () {
+    $sheet = readSheet(['layout' => '2020']);
+    $january = $sheet->months[1];
+
+    expect($sheet->year)->toBe(2020)
+        ->and($january->income)->toHaveCount(6)
+        ->and($january->income[0]->amountMinorUnits)->toBe(400_000)
+        ->and($january->income[0]->address)->toBe('styczeń!H3')
+        ->and($january->income[4]->label)->toBe('przychody rozłożone')
+        ->and($january->income[5]->label)->toBe('oszczędności')
+        ->and(array_map(fn ($e) => $e->label, $january->expenses))->toContain('lekarz - dentysta')->toContain('fundusz wydatków celowych')
+        ->and($january->irregularList)->toHaveCount(3)
+        ->and($january->irregularList[0]->category)->toBe('ubrania')
+        ->and($january->irregularList[0]->address)->toBe('styczeń!L4')
+        ->and($january->medicalList)->toHaveCount(2)
+        ->and($january->medicalList[0]->name)->toBe('Wizyta')
+        ->and($january->examsList)->toHaveCount(1)
+        ->and($january->examsList[0]->name)->toBe('Morfologia')
+        ->and($sheet->warnings())->toBe([]);
+});
+
+test('a 2020 month without a medical block ends the irregular list at the first blank row and leaves the lower lists out', function () {
+    $sheet = readSheet(['layout' => '2020', 'withoutMedical' => [1, 2]]);
+    $january = $sheet->months[1];
+
+    expect($january->irregularList)->toHaveCount(3)
+        ->and($january->medicalList)->toBe([])
+        ->and($january->examsList)->toBe([])
+        ->and($sheet->months[3]->medicalList)->toHaveCount(2)
+        ->and($sheet->warnings())->toBe([]);
+});
+
+test('a 2020 month without a medical block tolerates one blank row under the list header, as marzec!I4 does', function () {
+    $sheet = readSheet(['layout' => '2020', 'withoutMedical' => [1], 'months' => [1 => [
+        'irregular' => [null, ['Ubrania', 'Kurtka', 250.00], ['Dom', 'Żarówki', 30.50]],
+        'irregularTotal' => 280.50,
+    ]]]);
+
+    expect($sheet->months[1]->irregularList)->toHaveCount(2)
+        ->and($sheet->months[1]->irregularList[0]->name)->toBe('Kurtka')
+        ->and($sheet->warnings())->toBe([]);
+});
+
+test('the daily breakdown ends at Na tydzień', function () {
+    $january = readSheet(['layout' => '2020'])->months[1];
+
+    expect($january->dailyBreakdown)->toHaveCount(4)
+        ->and($january->dailyBreakdown[3]->label)->toBe('pieluchy');
+});
+
+test('refuses a workbook without Ustawienia that is not the 2020-2021 layout, naming the cell', function () {
+    $e = readSheetFailure(['layout' => '2020', 'mutate' => function (Spreadsheet $spreadsheet): void {
+        $spreadsheet->getSheetByName('styczeń')->setCellValue('I3', 'inne');
+    }]);
+
+    expect($e->address)->toBe('Ustawienia')
+        ->and($e->getMessage())->toContain('styczeń!I3');
+});
+
+test('refuses grudzień!A1 that is not the first of December', function (mixed $value) {
+    $e = readSheetFailure(['layout' => '2020', 'mutate' => function (Spreadsheet $spreadsheet) use ($value): void {
+        $spreadsheet->getSheetByName('grudzień')->setCellValue('A1', $value);
+    }]);
+
+    expect($e->address)->toBe('grudzień!A1');
+})->with([
+    'second of December' => [44167],
+    'text' => ['grudzień'],
+    'first of November' => [44136],
+]);
+
+test('warns when the Lekarz - dentysta row differs from its list', function () {
+    $sheet = readSheet(['layout' => '2020', 'months' => [5 => ['expenses' => ['Lekarz - dentysta' => 999.00]]]]);
+
+    $warnings = $sheet->months[5]->warnings;
+
+    expect($warnings)->toHaveCount(1)
+        ->and($warnings[0]->message)->toContain('lista leczenia');
+});

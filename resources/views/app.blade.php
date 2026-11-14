@@ -23,10 +23,12 @@
         <style>
             html {
                 background-color: #edf0f4;
+                color-scheme: light;
             }
 
             html.dark {
                 background-color: #0a111c;
+                color-scheme: dark;
             }
         </style>
 

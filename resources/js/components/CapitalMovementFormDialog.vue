@@ -21,7 +21,11 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { OPERATIONS_RETURN_QUERY } from '@/lib/operations-list-query';
 import { useOperationAmountInput } from '@/composables/useOperationAmountInput';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    termDepositPickerOptions,
+    type AccountBank,
+    type AccountPickerOption,
+} from '@/lib/account-identity';
 import { minorUnitsToMoneyInput } from '@/lib/format';
 import { previewHandEntryWarnings } from '@/lib/hand-entry-warning-preview';
 import {
@@ -50,6 +54,8 @@ export type CapitalMovementFormAccount = AccountPickerOption & {
 export type CapitalMovementFormTermDeposit = {
     id: number;
     name: string;
+    bank: AccountBank;
+    mark_url: string | null;
     opening_date: string;
     current_balance_minor_units: number;
 };
@@ -77,6 +83,9 @@ const description = ref('');
 const direction = ref<CapitalMovementDirection>('to_term_deposit');
 const accountId = ref<number | ''>('');
 const termDepositId = ref<number | ''>('');
+const termDepositOptions = computed(() =>
+    termDepositPickerOptions(props.termDeposits),
+);
 const amountInput = ref('0,00');
 const originalAmountMinorUnits = ref(0);
 const originalAccountId = ref<number | null>(null);
@@ -355,26 +364,16 @@ function closeDialog(): void {
                     :error="errors.term_deposit_id"
                     v-slot="{ id, describedBy, invalid }"
                 >
-                    <select
+                    <AccountSelect
                         :id="id"
-                        v-model="termDepositId"
                         name="term_deposit_id"
-                        class="native-select"
+                        v-model="termDepositId"
+                        :accounts="termDepositOptions"
+                        :placeholder="t.operations.term_deposit"
                         required
                         :aria-describedby="describedBy"
-                        :aria-invalid="invalid === 'true' ? 'true' : undefined"
-                    >
-                        <option value="">
-                            {{ t.operations.term_deposit }}
-                        </option>
-                        <option
-                            v-for="termDeposit in termDeposits"
-                            :key="termDeposit.id"
-                            :value="termDeposit.id"
-                        >
-                            {{ termDeposit.name }}
-                        </option>
-                    </select>
+                        :aria-invalid="invalid"
+                    />
                 </FormField>
 
                 <FormField

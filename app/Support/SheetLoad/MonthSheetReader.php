@@ -11,7 +11,7 @@ final class MonthSheetReader
 {
     private const FIRST_ROW = 3;
 
-    public function read(Worksheet $worksheet, int $month): MonthSheet
+    public function read(Worksheet $worksheet, int $month, SheetLayout $layout = SheetLayout::Since2022): MonthSheet
     {
         $cells = new SheetCells($worksheet);
 
@@ -21,19 +21,11 @@ final class MonthSheetReader
         $balance = $this->entry($cells, 'B', 'D', $irregularRow + 1);
 
         $savingsRow = $this->requireLabel($cells, 'G', 'oszczędności', self::FIRST_ROW);
-        $income = $this->entries($cells, 'G', 'I', self::FIRST_ROW, $savingsRow);
-        $fund = $this->fundWithdrawal($cells, $savingsRow + 1);
-        $daily = $this->dailyBreakdown($cells, $savingsRow + 1);
+        $income = $this->entries($cells, 'G', $layout->incomeColumn(), self::FIRST_ROW, $savingsRow);
+        $fund = $this->fundWithdrawal($cells, $savingsRow + 1, $layout);
+        $daily = $this->dailyBreakdown($cells, $savingsRow + 1, $layout);
 
-        $categoryRow = $this->requireLabel($cells, 'J', 'kategoria', 1);
-        $healthRow = $this->requireLabel($cells, 'J', 'opieka zdrowotna', $categoryRow + 1);
-        $treatmentRow = $this->requireLabel($cells, 'J', 'leczenie prywatne', $healthRow + 1);
-        $examsRow = $this->requireLabel($cells, 'J', 'badania', $treatmentRow + 1);
-        $headerRow = $this->requireLabel($cells, 'K', 'nazwa', $treatmentRow + 1, $examsRow - 1);
-
-        $irregularList = $this->listItems($cells, $categoryRow + 1, $healthRow - 1, true);
-        $medicalList = $this->listItems($cells, $headerRow + 1, $examsRow - 1, false);
-        $examsList = $this->listItems($cells, $this->examsStart($cells, $examsRow), $this->examsEnd($cells, $examsRow), false);
+        [$irregularList, $medicalList, $examsList] = $this->lists($cells, $layout);
 
         $warnings = $this->warnings(
             $cells, $expenses, $irregularTotal, $balance, $fund, $daily,
@@ -44,6 +36,53 @@ final class MonthSheetReader
             $month, $cells->name(), $expenses, $irregularTotal, $balance, $income, $fund,
             $irregularList, $medicalList, $examsList, $daily, $warnings,
         );
+    }
+
+    /**
+     * The irregular, treatment and exams lists. A 2020-2021 month may have no medical block: its irregular list then
+     * ends at the first blank list row, and the treatment and exams lists are empty.
+     *
+     * @return array{0: list<SheetListItem>, 1: list<SheetListItem>, 2: list<SheetListItem>}
+     */
+    private function lists(SheetCells $cells, SheetLayout $layout): array
+    {
+        $column = $layout->categoryColumn();
+        $categoryRow = $this->requireLabel($cells, $column, 'kategoria', 1);
+        $healthRow = $layout->requiresMedicalBlock()
+            ? $this->requireLabel($cells, $column, 'opieka zdrowotna', $categoryRow + 1)
+            : $this->findLabel($cells, $column, 'opieka zdrowotna', $categoryRow + 1);
+
+        if ($healthRow === null) {
+            // `marzec!I4` of 2020 is blank under the header and the list starts one row lower: one blank row there is no end.
+            $scanFrom = $this->isBlankListRow($cells, $layout, $categoryRow + 1) ? $categoryRow + 2 : $categoryRow + 1;
+            $irregular = $this->listItems($cells, $layout, $categoryRow + 1, $this->listEnd($cells, $layout, $scanFrom), true);
+
+            return [$irregular, [], []];
+        }
+
+        $treatmentRow = $this->requireLabel($cells, $column, $layout->treatmentLabel(), $healthRow + 1);
+        $examsRow = $this->requireLabel($cells, $column, 'badania', $treatmentRow + 1);
+        $medicalStart = $layout->requiresNameHeader()
+            ? $this->requireLabel($cells, $layout->nameColumn(), 'nazwa', $treatmentRow + 1, $examsRow - 1) + 1
+            : $treatmentRow + 1;
+        $examsStart = $this->examsStart($cells, $layout, $examsRow);
+
+        return [
+            $this->listItems($cells, $layout, $categoryRow + 1, $healthRow - 1, true),
+            $this->listItems($cells, $layout, $medicalStart, $examsRow - 1, false),
+            $this->listItems($cells, $layout, $examsStart, $this->listEnd($cells, $layout, $examsStart), false),
+        ];
+    }
+
+    private function findLabel(SheetCells $cells, string $column, string $label, int $from): ?int
+    {
+        for ($row = $from; $row <= $cells->highestRow(); $row++) {
+            if ($cells->label($column, $row) === $label) {
+                return $row;
+            }
+        }
+
+        return null;
     }
 
     private function requireLabel(SheetCells $cells, string $column, string $label, int $from, ?int $to = null): int
@@ -90,13 +129,13 @@ final class MonthSheetReader
         return $entries;
     }
 
-    private function fundWithdrawal(SheetCells $cells, int $from): int
+    private function fundWithdrawal(SheetCells $cells, int $from, SheetLayout $layout): int
     {
         $sum = 0;
 
         for ($row = $from; $row <= $cells->highestRow(); $row++) {
             if ($cells->label('G', $row) === 'wydatki z funduszu' || $cells->label('H', $row) === 'wydatki z funduszu') {
-                $sum += $cells->amount('I', $row);
+                $sum += $cells->amount($layout->incomeColumn(), $row);
             }
         }
 
@@ -104,11 +143,12 @@ final class MonthSheetReader
     }
 
     /**
-     * The 2022 breakdown under G "Codzienne wydatki" ends before an empty G or the "Do kiedy wydatki" row (a date in I).
+     * The breakdown under G "Codzienne wydatki" ends before an empty G, the "Do kiedy wydatki" row (a date in I) or,
+     * in 2020, the "Na tydzień" row.
      *
      * @return list<SheetEntry>|null
      */
-    private function dailyBreakdown(SheetCells $cells, int $from): ?array
+    private function dailyBreakdown(SheetCells $cells, int $from, SheetLayout $layout): ?array
     {
         for ($row = $from; $row <= $cells->highestRow(); $row++) {
             if (! in_array($cells->label('G', $row), ['codzienne', 'codzienne wydatki'], true)) {
@@ -117,8 +157,8 @@ final class MonthSheetReader
 
             $items = [];
 
-            for ($item = $row + 1; $item <= $cells->highestRow() && ! $cells->isEmpty('G', $item) && $cells->label('G', $item) !== 'do kiedy wydatki'; $item++) {
-                $items[] = $this->entry($cells, 'G', 'I', $item);
+            for ($item = $row + 1; $item <= $cells->highestRow() && ! $cells->isEmpty('G', $item) && ! in_array($cells->label('G', $item), ['do kiedy wydatki', 'na tydzień'], true); $item++) {
+                $items[] = $this->entry($cells, 'G', $layout->incomeColumn(), $item);
             }
 
             return $items;
@@ -130,28 +170,28 @@ final class MonthSheetReader
     /**
      * The exams list may carry the same header as the medical list; it is not an item.
      */
-    private function examsStart(SheetCells $cells, int $examsRow): int
+    private function examsStart(SheetCells $cells, SheetLayout $layout, int $examsRow): int
     {
-        return $cells->label('K', $examsRow + 1) === 'nazwa' ? $examsRow + 2 : $examsRow + 1;
+        return $cells->label($layout->nameColumn(), $examsRow + 1) === 'nazwa' ? $examsRow + 2 : $examsRow + 1;
     }
 
     /**
-     * The exams list ends before the first row empty in J to M.
+     * A list ends before the first row empty in all four list columns; lower lists are not its items.
      */
-    private function examsEnd(SheetCells $cells, int $examsRow): int
+    private function listEnd(SheetCells $cells, SheetLayout $layout, int $from): int
     {
-        $row = $this->examsStart($cells, $examsRow);
+        $row = $from;
 
-        while ($row <= $cells->highestRow() && ! $this->isBlankListRow($cells, $row)) {
+        while ($row <= $cells->highestRow() && ! $this->isBlankListRow($cells, $layout, $row)) {
             $row++;
         }
 
         return $row - 1;
     }
 
-    private function isBlankListRow(SheetCells $cells, int $row): bool
+    private function isBlankListRow(SheetCells $cells, SheetLayout $layout, int $row): bool
     {
-        foreach (['J', 'K', 'L', 'M'] as $column) {
+        foreach ($layout->listColumns() as $column) {
             if (! $cells->isEmpty($column, $row)) {
                 return false;
             }
@@ -161,32 +201,33 @@ final class MonthSheetReader
     }
 
     /**
-     * Rows without K, L and M and rows with dashes in K or M (anywhere in the list) are not items.
+     * Rows without name, plan and expense and rows with dashes in the name or the expense (anywhere in the list) are not items.
      *
      * @return list<SheetListItem>
      */
-    private function listItems(SheetCells $cells, int $from, int $to, bool $withCategory): array
+    private function listItems(SheetCells $cells, SheetLayout $layout, int $from, int $to, bool $withCategory): array
     {
         $items = [];
+        [$categoryColumn, $nameColumn, $planColumn, $spentColumn] = $layout->listColumns();
 
         for ($row = $from; $row <= $to; $row++) {
-            if ($cells->isEmpty('K', $row) && $cells->isEmpty('L', $row) && $cells->isEmpty('M', $row)) {
+            if ($cells->isEmpty($nameColumn, $row) && $cells->isEmpty($planColumn, $row) && $cells->isEmpty($spentColumn, $row)) {
                 continue;
             }
 
-            if ($cells->isDashes('K', $row) || $cells->isDashes('M', $row)) {
+            if ($cells->isDashes($nameColumn, $row) || $cells->isDashes($spentColumn, $row)) {
                 continue;
             }
 
-            $rawCategory = $withCategory ? $cells->text('J', $row) : null;
+            $rawCategory = $withCategory ? $cells->text($categoryColumn, $row) : null;
             $category = $rawCategory === null ? null : SheetCells::normalizeLabel($rawCategory);
 
             $items[] = new SheetListItem(
                 $category === '' || $category === '-' ? null : $category,
                 $rawCategory,
-                $cells->text('K', $row),
-                $cells->amount('M', $row),
-                $cells->address('M', $row),
+                $cells->text($nameColumn, $row),
+                $cells->amount($spentColumn, $row),
+                $cells->address($spentColumn, $row),
             );
         }
 
@@ -217,8 +258,8 @@ final class MonthSheetReader
         $this->compare($warnings, $irregularTotal, $this->sum($irregularList) - $fund, 'suma nieregularnych', 'lista (po odjęciu wydatków z funduszu)');
 
         foreach ($expenses as $expense) {
-            if ($expense->label === 'leczenie prywatne') {
-                $this->compare($warnings, $expense, $this->sum($medicalList), 'leczenie prywatne', 'lista leczenia');
+            if (in_array($expense->label, MonthSheet::TREATMENT_ROWS, true)) {
+                $this->compare($warnings, $expense, $this->sum($medicalList), $expense->label, 'lista leczenia');
             } elseif ($expense->label === 'badania') {
                 $this->compare($warnings, $expense, $this->sum($examsList), 'badania', 'lista badań');
             } elseif ($daily !== null && str_starts_with($expense->label, 'codzienne')) {

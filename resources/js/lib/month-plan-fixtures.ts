@@ -45,7 +45,7 @@ export const runningExpense = item({
     plan_minor_units: 200_000,
     actual_minor_units: 80_000,
     has_positive_amount: true,
-    deviation_minor_units: 120_000,
+    deviation_minor_units: -120_000,
     approved_minor_units: 180_000,
     year_comparison: {
         year_minor_units: 1_020_000,
@@ -130,7 +130,7 @@ export const evenAnnualLeft = item({
     current_plan_minor_units: 238_000,
     rhythm: 'even_annual',
     plan_minor_units: 19_833,
-    deviation_minor_units: 19_833,
+    deviation_minor_units: -19_833,
     approved_minor_units: 19_833,
     year_comparison: {
         year_minor_units: 100_000,
@@ -153,7 +153,7 @@ export const evenAnnualUsedUp = item({
     current_plan_minor_units: 54_100,
     rhythm: 'even_annual',
     plan_minor_units: 4_512,
-    deviation_minor_units: 4_512,
+    deviation_minor_units: -4_512,
     approved_minor_units: 4_512,
     year_comparison: {
         year_minor_units: 54_100,
@@ -175,7 +175,7 @@ export const evenAnnualOver = item({
     plan_minor_units: 10_000,
     actual_minor_units: 20_000,
     has_positive_amount: true,
-    deviation_minor_units: -10_000,
+    deviation_minor_units: 10_000,
     is_over_plan: true,
     approved_minor_units: 10_000,
     year_comparison: {
@@ -329,7 +329,7 @@ export const outsidePlanExpense = item({
     name: 'Zakupy dodatkowe',
     in_plan: false,
     actual_minor_units: 4_500,
-    deviation_minor_units: -4_500,
+    deviation_minor_units: 4_500,
     is_over_plan: true,
 });
 
@@ -343,7 +343,7 @@ export const overPlanExpense = item({
     plan_minor_units: 30_000,
     actual_minor_units: 41_000,
     has_positive_amount: true,
-    deviation_minor_units: -11_000,
+    deviation_minor_units: 11_000,
     is_over_plan: true,
     approved_minor_units: 35_000,
     year_comparison: {
@@ -361,7 +361,62 @@ export const longNameExpense = item({
     plan_minor_units: 99_900,
     actual_minor_units: 10_000,
     has_positive_amount: true,
-    deviation_minor_units: 89_900,
+    deviation_minor_units: -89_900,
+});
+
+/** Five- and six-figure amounts for the 390 px check: plan 123 456,78, actual 156,80, deviation -123 299,98. */
+export const longAmountsExpense = item({
+    category_id: 21,
+    sort_order: 200,
+    name: 'Remont domu',
+    plan_minor_units: 12_345_678,
+    actual_minor_units: 15_680,
+    has_positive_amount: true,
+    deviation_minor_units: -12_329_998,
+    approved_minor_units: 12_345_678,
+});
+
+/** An expense below plan, not over it: the Deviation is `success` (ADR-0092). */
+export const belowPlanExpense = item({
+    category_id: 22,
+    sort_order: 210,
+    name: 'Kosmetyki',
+    plan_minor_units: 50_000,
+    actual_minor_units: 30_000,
+    has_positive_amount: true,
+    deviation_minor_units: -20_000,
+    approved_minor_units: 50_000,
+});
+
+/** Even Annual with a positive Deviation of the month, year not over: no tone. */
+export const evenAnnualAboveMonth = item({
+    category_id: 23,
+    sort_order: 220,
+    name: 'Przegląd roczny',
+    rhythm: 'even_annual',
+    plan_minor_units: 10_000,
+    actual_minor_units: 31_667,
+    has_positive_amount: true,
+    year_execution_minor_units: 31_667,
+    current_plan_minor_units: 120_000,
+    deviation_minor_units: 21_667,
+    approved_minor_units: 10_000,
+});
+
+/** Even Annual over the year with a negative Deviation of the month: `destructive` by the year. */
+export const evenAnnualOverYearBelowMonth = item({
+    category_id: 24,
+    sort_order: 230,
+    name: 'Ubezpieczenie domu',
+    rhythm: 'even_annual',
+    plan_minor_units: 20_000,
+    actual_minor_units: 5_000,
+    has_positive_amount: true,
+    year_execution_minor_units: 130_000,
+    current_plan_minor_units: 120_000,
+    deviation_minor_units: -15_000,
+    is_over_plan: true,
+    approved_minor_units: 20_000,
 });
 
 export const fixedChargeUnpaid = item({
@@ -584,6 +639,74 @@ export const pastReading = buildMonthPlanReading({
     set_aside_minor_units: 50_000,
     summary: pastSummary,
 });
+
+/** Rows of the Deviation tone states: long amounts, below plan, annual with a positive month, annual over the year. */
+export const deviationToneRows: MonthPlanItem[] = [
+    longAmountsExpense,
+    belowPlanExpense,
+    overPlanExpense,
+    evenAnnualAboveMonth,
+    evenAnnualOverYearBelowMonth,
+    archivedExpense,
+];
+
+export const deviationToneReading = buildMonthPlanReading({
+    state: 'approved',
+    can_approve: false,
+    can_change: true,
+    month_pace: paceInNorm,
+    year_totals: yearTotals,
+    income_items: [],
+    expense_items: deviationToneRows,
+});
+
+/** Summary card, the favourable difference: less expense, more income, more set aside. */
+export const favourableSummary: MonthSummary = {
+    income: {
+        ...pastSummary.income,
+        actual_minor_units: 540_000,
+        deviation_minor_units: 20_000,
+    },
+    expense: {
+        ...pastSummary.expense,
+        actual_minor_units: 370_000,
+        deviation_minor_units: -20_000,
+    },
+    set_aside: {
+        ...pastSummary.set_aside,
+        real_minor_units: 60_000,
+        difference_minor_units: 10_000,
+    },
+    year_draw_minor_units: 0,
+};
+
+/** Summary card, the unfavourable difference: less income, more expense, less set aside. */
+export const unfavourableSummary: MonthSummary = {
+    income: {
+        ...pastSummary.income,
+        actual_minor_units: 480_000,
+        deviation_minor_units: -20_000,
+    },
+    expense: pastSummary.expense,
+    set_aside: pastSummary.set_aside,
+    year_draw_minor_units: 0,
+};
+
+/** Summary card, no difference: no tone. */
+export const evenSummary: MonthSummary = {
+    income: pastSummary.income,
+    expense: {
+        ...pastSummary.expense,
+        actual_minor_units: 390_000,
+        deviation_minor_units: 0,
+    },
+    set_aside: {
+        ...pastSummary.set_aside,
+        real_minor_units: 50_000,
+        difference_minor_units: 0,
+    },
+    year_draw_minor_units: 0,
+};
 
 /** Negative To Spend, drawing past the spendable liquidity. */
 export const negativeDrawReading = buildMonthPlanReading({

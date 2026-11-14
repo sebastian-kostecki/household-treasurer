@@ -6,6 +6,25 @@ Domain terms (_Current Plan_, _Own Transfer_, _Capital Movement_…) come from t
 
 ## [Unreleased]
 
+## [1.4.4] — 2026-11-14
+
+The years 2020 and 2021 can be loaded from the older budget spreadsheets (ADR-0096), the dark theme, the pickers and the Month Plan on a phone are fixed after the 1.4.3 audit (ADR-0092–0095), and the Category dialog says what each Rhythm does.
+
+### Added
+
+- `budget:load-sheet` reads `Budżet_2020.xlsx` and `Budżet_2021.xlsx`, the older layout without the `Ustawienia` sheet (the year comes from `grudzień!A1`). Payments into the targeted-expense fund and returns from it are fund movements: they make no operation, but count towards the reconciliation with "Analiza", and `--dry-run` lists them in "Ruchy funduszu". The "Lekarz - dentysta" row is split into the visits of its list, as "Leczenie prywatne" is. `Budżet_2021.xlsx` has to be the copy with the fixed `E30` formula (SHA-256 in the README, "Wczytanie arkusza") (`sheet-load-2020-2021`, ADR-0096, extends ADR-0085).
+- The Category dialog shows a one-sentence description of the selected Rhythm under "Stała / Bieżąca / Roczna / Nieregularna", e.g. that "Roczna" does not carry unspent money over (`rhythm-hints`).
+
+### Changed
+
+- The Operations category filter uses the same picker as the operation dialogs: "Wszystkie kategorie", Income and Expense sections, the list order with groups, and a suffix for an archived Category (`v1-4-3-fixes`, ADR-0093, amends ADR-0069 for the filter).
+- Term deposits are chosen with the Account avatar, as Accounts are, and a bank logo stands on a light plate (ADR-0094).
+- Month Plan on a phone shows the amounts 2×2 with the label above the value; the deviation and the month summary card are coloured by benefit: an overrun is red, spending below plan and income above it are green (ADR-0092).
+
+### Fixed
+
+- Dark theme: native controls (the calendar icon) are dark, the 24 Category colours can be told apart in the colour picker, and the Category tile icon has at least 3:1 contrast in both themes (ADR-0095).
+
 ## [1.4.3] — 2026-11-13
 
 The Dashboard now warns when the money "collected" for irregular Categories is not backed by Spendable Liquidity (ADR-0090), and an Account can be compared with the bank statement on a chosen day (ADR-0091).
@@ -216,7 +235,8 @@ The first version (MVP) deployed to production: a yearly household budget and li
 - Polish landing page, the Geist typeface with `latin-ext`, the first design system with colour tokens and amber non-blocking warnings.
 - Production Docker stack (behind Traefik and Cloudflare, HTTPS), a deploy script from `main`, CI in GitHub Actions, the NFR-PERF-01 performance test on PostgreSQL, PHPStan at level 7.
 
-[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.3...HEAD
+[Unreleased]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.4...HEAD
+[1.4.4]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/sebastian-kostecki/household-treasurer/compare/v1.4.0...v1.4.1

@@ -66,6 +66,7 @@
     --color-scrim: var(--scrim);
     --color-input: var(--input);
     --color-ring: var(--ring);
+    --color-bank-mark-plate: var(--bank-mark-plate);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -113,6 +114,7 @@
 }
 
 :root {
+    color-scheme: light;
     --background: #edf0f4;
     --foreground: #0f1b2d;
     --card: #ffffff;
@@ -153,6 +155,11 @@
     --chart-3: hsl(197 37% 24%);
     --chart-4: hsl(43 74% 66%);
     --chart-5: hsl(27 87% 67%);
+    /* Category colour (ADR-0095): tile share and icon share of --category-color; the contrast is guarded by CategoryTileContrastTest. */
+    --category-tile-tint: 15%;
+    --category-icon-tint: 60%;
+    /* Plate under a bank logo (ADR-0094). */
+    --bank-mark-plate: var(--muted);
     --radius: 10px;
     --control-height: 32px;
     --control-height-sm: 26px;
@@ -189,6 +196,7 @@
 }
 
 .dark {
+    color-scheme: dark;
     --background: #0a111c;
     --foreground: #e6ecf3;
     --card: #111a27;
@@ -229,6 +237,9 @@
     --chart-3: hsl(30 80% 55%);
     --chart-4: hsl(280 65% 60%);
     --chart-5: hsl(340 75% 55%);
+    --category-tile-tint: 15%;
+    --category-icon-tint: 80%;
+    --bank-mark-plate: #e9edf2;
     /* Sidebar background is --sidebar-background (there is no --sidebar). Roles: context/foundation/design-system.md, "Sidebar". */
     --sidebar-background: #070c14;
     --sidebar-foreground: #8b9ab0;
@@ -843,35 +854,104 @@
         @apply text-left sm:text-right;
     }
 
+    /**
+     * Category colour in both themes (ADR-0095): `--category-color` comes from the data (`categoryTileStyle`),
+     * the shares are tokens. Mixed in srgb so CategoryTileContrastTest computes the same colours.
+     */
+    .category-tile {
+        background-color: color-mix(
+            in srgb,
+            var(--category-color) var(--category-tile-tint),
+            transparent
+        );
+        color: color-mix(
+            in srgb,
+            var(--category-color) var(--category-icon-tint),
+            var(--foreground)
+        );
+    }
+
+    .category-swatch {
+        background-color: var(--category-color);
+    }
+
     /** CategoryChip `lg` (ADR-0060): the tile as tall as the name (20px) with its caption (14px). */
     .category-chip-lg {
         @apply size-9 rounded-lg;
     }
 
     /**
-     * Month plan table: one markup on every width. Below `xl` a row is three
-     * lines (name + status, kind, then approved / plan / actual / deviation);
-     * from `xl` it is one line of seven columns (Kategoria, Rodzaj,
-     * Zatwierdzony, Plan, Faktycznie, Odchylenie, Status).
+     * Month plan table: one markup on every width (ADR-0092). Below `sm` a row
+     * is four lines in two columns (name + status, kind, Approved | Plan,
+     * Actual | Deviation); from `sm` to `xl` three lines in four columns; from
+     * `xl` one line of seven columns (Kategoria, Rodzaj, Zatwierdzony, Plan,
+     * Faktycznie, Odchylenie, Status). The group row and the put-aside row
+     * have fewer amounts, so below `sm` they get their own areas.
      */
     .month-plan-grid {
         @apply grid w-full gap-x-3;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-areas:
-            'category category category status'
-            'kind kind kind kind'
-            'approved plan actual deviation';
+            'category status'
+            'kind kind'
+            'approved plan'
+            'actual deviation';
     }
 
     .month-plan-grid-no-kind {
         grid-template-areas:
-            'category category category status'
-            'approved plan actual deviation';
+            'category status'
+            'approved plan'
+            'actual deviation';
+    }
+
+    /* Category Group row: name + status, then Plan | Actual. */
+    .month-plan-grid-group {
+        grid-template-areas:
+            'category status'
+            'plan actual';
+    }
+
+    /* Put-aside row: name + status, the direction switch (edit only), then the amount. */
+    .month-plan-grid-set-aside {
+        grid-template-areas:
+            'category status'
+            'plan plan';
+    }
+
+    .month-plan-grid-set-aside-edit {
+        grid-template-areas:
+            'category status'
+            'kind kind'
+            'plan plan';
+    }
+
+    @variant sm {
+        .month-plan-grid,
+        .month-plan-grid-set-aside-edit {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-areas:
+                'category category category status'
+                'kind kind kind kind'
+                'approved plan actual deviation';
+        }
+
+        .month-plan-grid-no-kind,
+        .month-plan-grid-group,
+        .month-plan-grid-set-aside {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-areas:
+                'category category category status'
+                'approved plan actual deviation';
+        }
     }
 
     @variant xl {
         .month-plan-grid,
-        .month-plan-grid-no-kind {
+        .month-plan-grid-no-kind,
+        .month-plan-grid-group,
+        .month-plan-grid-set-aside,
+        .month-plan-grid-set-aside-edit {
             grid-template-columns: minmax(0, 1fr) 9rem 7rem 8rem 7rem 7rem 8rem;
             grid-template-areas: 'category kind approved plan actual deviation status';
         }

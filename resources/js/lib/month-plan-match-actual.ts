@@ -1,4 +1,4 @@
-import { minorUnitsToMoneyInput } from './format';
+import { minorUnitsToGroupedMoneyInput } from './format';
 import { MAX_PLAN_AMOUNT_MINOR_UNITS } from './month-plan-amount';
 import type { MonthPlanItem } from '@/types/month-plan';
 
@@ -28,7 +28,7 @@ export function changeModeAmountInputs(
     return Object.fromEntries(
         rows.map((row) => [
             row.category_id,
-            minorUnitsToMoneyInput(
+            minorUnitsToGroupedMoneyInput(
                 raisesToActualOnChange(row)
                     ? row.actual_minor_units
                     : row.plan_minor_units,

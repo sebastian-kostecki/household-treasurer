@@ -9,6 +9,12 @@ namespace App\Support\SheetLoad;
 final readonly class MonthSheet
 {
     /**
+     * Normalised labels of the expense row that the treatment list replaces ("Leczenie prywatne" since 2022,
+     * "Lekarz - dentysta" and "Lekarz (dentysta)" in 2020-2021).
+     */
+    public const TREATMENT_ROWS = ['leczenie prywatne', 'lekarz - dentysta', 'lekarz (dentysta)'];
+
+    /**
      * @param  list<SheetEntry>  $expenses
      * @param  list<SheetEntry>  $income
      * @param  list<SheetListItem>  $irregularList

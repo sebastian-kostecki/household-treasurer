@@ -11,8 +11,10 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
  * Builds a small budget workbook with literal values (no real user data) in the 2023-2025 or the 2022 layout.
  *
  * Options (all optional):
- * - layout: '2023' (default) or '2022' (8 income sources, empty plan column, daily breakdown, total one row lower)
- * - year: int, default 2025
+ * - layout: '2023' (default), '2022' (8 income sources, empty plan column, daily breakdown, total one row lower) or
+ *   '2020' (no Ustawienia, income in G/H, lists in I-L, medical block without a "nazwa" header, A1 formulas, fund rows)
+ * - year: int, default 2025 (2020 for layout '2020')
+ * - withoutMedical: layout '2020' only, month numbers without the medical block and rows, with an unrelated list below
  * - januaryOffset: extra empty rows in the January lists (1 or 2 in the real sheets)
  * - months: array<int, array> overrides per month number with keys expenses (label => zloty), income (label => zloty),
  *   irregular / medical / exams (list of [category, name, amount]; null is an empty row), daily (label => zloty,
@@ -53,9 +55,11 @@ final class SheetWorkbookFactory
         $spreadsheet = new Spreadsheet;
         $spreadsheet->removeSheetByIndex(0);
 
-        $settings = new Worksheet($spreadsheet, 'Ustawienia');
-        $spreadsheet->addSheet($settings);
-        $settings->setCellValue('B2', $options['year'] ?? 2025);
+        if ($layout !== '2020') {
+            $settings = new Worksheet($spreadsheet, 'Ustawienia');
+            $spreadsheet->addSheet($settings);
+            $settings->setCellValue('B2', $options['year'] ?? 2025);
+        }
 
         $incomeSum = 0;
         $expenseSum = 0;
@@ -93,18 +97,28 @@ final class SheetWorkbookFactory
     private static function month(Worksheet $sheet, int $number, string $layout, array $options, array $month): array
     {
         $is2022 = $layout === '2022';
-        $expenses = $month['expenses'] ?? [
-            'Rata kredytu' => 1800.50, 'Czynsz' => 700.00, 'Prąd**' => 120.10, 'Codzienne wydatki' => 900.00,
-            'Apteka' => 80.00, 'Badania' => 50.00, 'Leczenie prywatne' => 200.00, 'Oszczędności długoterminowe***' => 300.00,
-        ];
-        $income = $month['income'] ?? ($is2022
+        $is2020 = $layout === '2020';
+        $withoutMedical = $is2020 && in_array($number, $options['withoutMedical'] ?? [], true);
+        $expenses = $month['expenses'] ?? ($is2020
+            ? array_merge(
+                ['Rata kredytu' => 1800.50, 'Czynsz' => 700.00, 'Prąd**' => 120.10, 'Codzienne wydatki' => 900.00, 'Apteka' => 80.00],
+                $withoutMedical ? [] : ['Badania' => 50.00, 'Lekarz - dentysta' => 200.00],
+                ['Fundusz Wydatków Celowych*' => 100.00, 'Rezerwa na wydatki*' => 20.00, 'Nadpłata kredytu' => 50.00, 'Oszczędności długoterminowe***' => 300.00],
+            )
+            : [
+                'Rata kredytu' => 1800.50, 'Czynsz' => 700.00, 'Prąd**' => 120.10, 'Codzienne wydatki' => 900.00,
+                'Apteka' => 80.00, 'Badania' => 50.00, 'Leczenie prywatne' => 200.00, 'Oszczędności długoterminowe***' => 300.00,
+            ]);
+        $income = $month['income'] ?? ($is2020
+            ? ['Praca: Sebastian' => 4000.00, 'work: Jana' => 3000.00, '500+' => 800.00, 'odsetki' => 5.00, 'przychody rozłożone' => 150.00, 'oszczędności' => 300.00]
+            : ($is2022
             ? ['praca: Sebastian' => 4000.00, 'work: Jana' => 3000.00, '500+' => 800.00, 'darowizny' => 0.0, 'odsetki' => 5.00, 'pozostałe' => 0.0, 'przychody nieregularne' => 0.0, 'oszczędności' => 300.00]
-            : ['Praca: Sebastian' => 4000.00, 'work: Jana' => 3000.00, '500+' => 800.00, 'darowizny' => 0.0, 'odsetki' => 5.00, 'pozostałe' => 0.0, 'oszczędności' => 300.00]);
+            : ['Praca: Sebastian' => 4000.00, 'work: Jana' => 3000.00, '500+' => 800.00, 'darowizny' => 0.0, 'odsetki' => 5.00, 'pozostałe' => 0.0, 'oszczędności' => 300.00]));
         $irregular = $month['irregular'] ?? [['Ubrania', 'Kurtka', 250.00], ['Dom', 'Żarówki', 30.50], ['-', 'Bez kategorii', 19.50]];
         $medical = $month['medical'] ?? [['', 'Wizyta', 120.00], ['', 'Leki', 80.00]];
         $exams = $month['exams'] ?? [['', 'Morfologia', 50.00]];
         $fund = $month['fund'] ?? 0.0;
-        $daily = $is2022 ? ($month['daily'] ?? ['Jedzenie' => 600.00, 'Słodycze i inne' => 100.00, 'Higiena i kosmetyki' => 150.00, 'Pieluchy' => 50.00]) : null;
+        $daily = $is2022 || $is2020 ? ($month['daily'] ?? ['Jedzenie' => 600.00, 'Słodycze i inne' => 100.00, 'Higiena i kosmetyki' => 150.00, 'Pieluchy' => 50.00]) : null;
 
         $listSum = array_sum(array_map(fn (?array $row): int => self::grosze($row[2] ?? 0), $irregular));
         $irregularTotal = isset($month['irregularTotal']) ? self::grosze($month['irregularTotal']) : $listSum - self::grosze($fund);
@@ -113,7 +127,12 @@ final class SheetWorkbookFactory
         $balance = isset($month['balance']) ? self::grosze($month['balance']) : 0;
 
         $row = 3;
-        $sheet->setCellValue('A1', $number);
+
+        if ($is2020) {
+            $sheet->setCellValue('A1', $number === 1 ? 'Budżet domowy' : '=DATE('.($options['year'] ?? 2020).','.$number.',1)');
+        } else {
+            $sheet->setCellValue('A1', $number);
+        }
 
         foreach ($expenses as $label => $amount) {
             $sheet->setCellValue('A'.$row, 'Grupa');
@@ -133,24 +152,34 @@ final class SheetWorkbookFactory
 
         foreach ($income as $label => $amount) {
             $sheet->setCellValue('G'.$row, $label);
-            $sheet->setCellValue('I'.$row, $amount);
 
-            if (! $is2022) {
+            if ($is2020) {
                 $sheet->setCellValue('H'.$row, $amount);
+            } else {
+                $sheet->setCellValue('I'.$row, $amount);
+
+                if (! $is2022) {
+                    $sheet->setCellValue('H'.$row, $amount);
+                }
             }
 
             $row++;
         }
 
         $sheet->setCellValue('G16', 'Wydatki z funduszu');
-        $sheet->setCellValue('I16', $fund);
+        $sheet->setCellValue($is2020 ? 'H16' : 'I16', $fund);
 
         if ($daily !== null) {
-            self::dailyBreakdown($sheet, $daily);
+            self::dailyBreakdown($sheet, $daily, $is2020);
         }
 
         $offset = $number === 1 ? ($options['januaryOffset'] ?? 0) : 0;
-        self::lists($sheet, $irregular, $medical, $exams, $offset);
+
+        if ($is2020) {
+            self::lists2020($sheet, $irregular, $medical, $exams, $withoutMedical);
+        } else {
+            self::lists($sheet, $irregular, $medical, $exams, $offset);
+        }
 
         $excluded = array_sum(array_map(self::grosze(...), array_filter($expenses, fn (string $label): bool => str_starts_with($label, 'Oszczędności'), ARRAY_FILTER_USE_KEY)));
         $excludedIncome = self::grosze($income['oszczędności'] ?? 0);
@@ -162,17 +191,26 @@ final class SheetWorkbookFactory
      * As in the real 2022 sheets: the header "Codzienne wydatki" in G25, the items under it, then "Do kiedy wydatki"
      * with a date serial in H and I, then the item labels again without amounts.
      *
+     * In the 2020 layout the amounts sit in H and the breakdown ends with a "Na tydzień" row (250).
+     *
      * @param  array<string, float>  $daily
      */
-    private static function dailyBreakdown(Worksheet $sheet, array $daily): void
+    private static function dailyBreakdown(Worksheet $sheet, array $daily, bool $is2020 = false): void
     {
         $sheet->setCellValue('G25', 'Codzienne wydatki');
         $row = 26;
 
         foreach ($daily as $label => $amount) {
             $sheet->setCellValue('G'.$row, $label);
-            $sheet->setCellValue('I'.$row, $amount);
+            $sheet->setCellValue(($is2020 ? 'H' : 'I').$row, $amount);
             $row++;
+        }
+
+        if ($is2020) {
+            $sheet->setCellValue('G'.$row, 'Na tydzień');
+            $sheet->setCellValue('H'.$row, 250);
+
+            return;
         }
 
         $sheet->setCellValue('G'.$row, 'Do kiedy wydatki');
@@ -182,6 +220,38 @@ final class SheetWorkbookFactory
         foreach (array_keys($daily) as $label) {
             $sheet->setCellValue('G'.++$row, mb_strtolower($label));
         }
+    }
+
+    /**
+     * Lists in I-L; the medical block "Opieka zdrowotna" / "Lekarze - dentysta" has no "nazwa" header. A month without
+     * the block ends its list at a blank row and has an unrelated list below, as `styczeń!K48` in the real 2020 sheet.
+     *
+     * @param  list<array{0: ?string, 1: ?string, 2: float|string|null}|null>  $irregular
+     * @param  list<array{0: ?string, 1: ?string, 2: float|string|null}|null>  $medical
+     * @param  list<array{0: ?string, 1: ?string, 2: float|string|null}|null>  $exams
+     */
+    private static function lists2020(Worksheet $sheet, array $irregular, array $medical, array $exams, bool $withoutMedical): void
+    {
+        $sheet->fromArray(['kategoria', 'nazwa', 'plan', 'wydatek'], null, 'I3');
+        self::writeRows($sheet, $irregular, 4, true, ['I', 'J', 'K', 'L']);
+
+        if ($withoutMedical) {
+            $sheet->setCellValue('J'.(4 + count($irregular) + 1), 'Badania');
+            $sheet->setCellValue('L'.(4 + count($irregular) + 1), 155.90);
+
+            return;
+        }
+
+        $healthRow = 4 + max(17, count($irregular));
+        $sheet->setCellValue('I'.$healthRow, 'Opieka zdrowotna');
+        $sheet->setCellValue('I'.($healthRow + 1), 'Lekarze - dentysta');
+
+        $medicalStart = $healthRow + 2;
+        self::writeRows($sheet, $medical, $medicalStart, false, ['I', 'J', 'K', 'L']);
+
+        $examsRow = $medicalStart + max(6, count($medical));
+        $sheet->setCellValue('I'.$examsRow, 'Badania');
+        self::writeRows($sheet, $exams, $examsRow + 1, false, ['I', 'J', 'K', 'L']);
     }
 
     /**
@@ -209,8 +279,9 @@ final class SheetWorkbookFactory
 
     /**
      * @param  list<array{0: ?string, 1: ?string, 2: float|string|null}|null>  $rows
+     * @param  array{0: string, 1: string, 2: string, 3: string}  $columns  category, name, plan, expense
      */
-    private static function writeRows(Worksheet $sheet, array $rows, int $start, bool $withCategory): void
+    private static function writeRows(Worksheet $sheet, array $rows, int $start, bool $withCategory, array $columns = ['J', 'K', 'L', 'M']): void
     {
         foreach ($rows as $index => $item) {
             if ($item === null) {
@@ -220,16 +291,16 @@ final class SheetWorkbookFactory
             $row = $start + $index;
 
             if ($withCategory && $item[0] !== null && $item[0] !== '') {
-                $sheet->setCellValue('J'.$row, $item[0]);
+                $sheet->setCellValue($columns[0].$row, $item[0]);
             }
 
             if ($item[1] !== null) {
-                $sheet->setCellValue('K'.$row, $item[1]);
+                $sheet->setCellValue($columns[1].$row, $item[1]);
             }
 
             if ($item[2] !== null) {
-                $sheet->setCellValue('L'.$row, $item[2]);
-                $sheet->setCellValue('M'.$row, $item[2]);
+                $sheet->setCellValue($columns[2].$row, $item[2]);
+                $sheet->setCellValue($columns[3].$row, $item[2]);
             }
         }
     }

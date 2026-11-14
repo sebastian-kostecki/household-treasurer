@@ -479,7 +479,7 @@ class CsvImportController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, name: string, opening_date: string}>
+     * @return array<int, array{id: int, name: string, bank: string, mark_url: string|null, opening_date: string}>
      */
     private function termDeposits(Request $request): array
     {
@@ -490,6 +490,7 @@ class CsvImportController extends Controller
             ->map(fn (TermDeposit $termDeposit): array => [
                 'id' => $termDeposit->id,
                 'name' => $termDeposit->name,
+                ...AccountIdentity::termDepositIdentity($termDeposit),
                 'opening_date' => $termDeposit->opening_date->toDateString(),
             ])
             ->values()

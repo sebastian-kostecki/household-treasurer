@@ -102,3 +102,28 @@ test('refuses a plan that differs from Analiza', function () {
             ->assertExitCode(1);
     });
 });
+
+test('dry-run of a 2020-2021 workbook lists the fund movements and the agreed totals', function () {
+    $user = sheetLoadUserWithMappedCategories();
+
+    SheetWorkbookFactory::with(['layout' => '2020', 'year' => 2020], function (string $path) use ($user): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
+            ->expectsOutputToContain('Arkusz 2020')
+            ->expectsOutputToContain('Ruchy funduszu (bez operacji, liczone przez „Analizę”) (48):')
+            ->expectsOutputToContain('Fundusz Wydatków Celowych* 100,00 zł')
+            ->expectsOutputToContain('+ ruchy funduszu 1800,00 zł = „Analiza” Analiza!B16:')
+            ->expectsOutputToContain('+ ruchy funduszu 2040,00 zł = „Analiza” Analiza!C16:')
+            ->assertExitCode(0);
+    });
+});
+
+test('dry-run of a workbook without fund movements prints no fund section', function () {
+    $user = sheetLoadUserWithMappedCategories();
+
+    SheetWorkbookFactory::with(['year' => 2021], function (string $path) use ($user): void {
+        $this->artisan('budget:load-sheet', ['user' => (string) $user->id, 'path' => $path, '--dry-run' => true])
+            ->doesntExpectOutputToContain('Ruchy funduszu')
+            ->doesntExpectOutputToContain('+ ruchy funduszu')
+            ->assertExitCode(0);
+    });
+});

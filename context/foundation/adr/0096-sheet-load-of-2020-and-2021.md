@@ -1,0 +1,24 @@
+# Sheet Load: the years 2020 and 2021 from the older spreadsheets
+
+ADR-0085 loads 2022–2025 from `Budżet_RRRR.xlsx`. The User also has `Budżet_2020.xlsx` and `Budżet_2021.xlsx`; both share one older layout that the reader refuses today („Ustawienia: brak arkusza”): no `Ustawienia` sheet, income in G/H, lists in I–L, and a medical block without the „nazwa” header. Year 2019 is another workbook (`styczeń_19`, `grudzień_18`, `Podsumowanie`) and stays out. This ADR extends the scope of ADR-0085 to 2020 and 2021 and changes its decisions 1, 3, 4 and 7 for them, before the code (change `sheet-load-2020-2021`).
+
+Rule. The Sheet Load of ADR-0085 (`budget:load-sheet`, `--dry-run`, `budget:unload-sheet`, a Sheet Account per year, plan = execution) stays as it is; the reader gets the second known layout, and the planner gets one more kind of mapping target, a **fund movement**.
+
+Decisions of the planning:
+
+1. Scope and layout: 2020 and 2021, in the 2020–2021 layout, recognised by the absence of the `Ustawienia` sheet and the label „kategoria” in `styczeń!I3`. The year is the year of `grudzień!A1`, a date of 1 December. Any other layout is refused with the name of the cell; 2019 is out of scope. No `--year` option.
+2. Fund movement: payments into the targeted-expense fund (Fundusz Wydatków Celowych*, the „(oszcz.)” variant, Rezerwa na wydatki*, Święta*, Prezenty* as an expense row, and in 2020 Nadpłata kredytu) and returns from it („przychody rozłożone”, the income „fundusz wydatków nieregularnych”) are not operations. They count towards the reconciliation with „Analiza”: operations plus fund movements equal `Analiza!B16` and `Analiza!C16` to the grosz. `--dry-run` lists them; the opening balance of the Sheet Account and every total of the load count operations only. Nadpłata kredytu is a fund movement because in 2021 the same payment sits in the skipped savings block. Existing mappings of 2022–2025 do not change („fundusz wydatków nieregularnych” as an expense stays Category 10).
+3. „Analiza jest prawdą” holds without an exception in the code. `Budżet_2021.xlsx` had a formula bug from July (`E30` = `SUM(D3:D20)+SUM(D24:D29)` dropped `D23` „Rozrywka i wyjścia”), so its `Analiza!C16` was 537,99 zł short. The file is fixed at the source: `E30` of July–December, the stored values of all dependent cells, SHA-256 before and after, and a copy of the original (record: `context/changes/sheet-load-2020-2021/workbook-fix.md`). After the fix `Analiza!C16` is 90 211,55.
+4. The breakdown of „Codzienne wydatki” is read in 2020 and 2021 too; it ends at „Na tydzień” (2020) or „Do kiedy wydatki” (2021). The expense row „Lekarz - dentysta” / „Lekarz (dentysta)” is split into the items of the list „Lekarze - dentysta”, as „Leczenie prywatne” is (decision 7 of ADR-0085).
+5. Mapping of the new labels (global, as today): Hbo go / Netflix → Rozrywka; Ogrzewanie → Eksploatacja domu; Bilety i transport → Bilety i parking; Lekarz - dentysta → Leczenie prywatne; „pozostałe (premie, 13)” and „międzyokresowe” → Wynagrodzenie Sebastian (one source with the bonuses, otherwise the only negative cell of a source); the rest as in the plan of the change.
+
+Consequences. The stored values of 2026, 2027 and of the loaded 2022–2025 do not change. The proof is `app:control-numbers --compare=<before> --allow-additions`. The readings that change are those listed in ADR-0085 for the new years (year selector, Reports year before, Operations list, the lock of hand-entry and Import in a loaded year). A fix of the mapping goes through `budget:unload-sheet` and a new `budget:load-sheet`.
+
+We rejected:
+
+- correcting the amount of „Analiza” in `mapping.php` (a number the User never wrote in the sheet, and a precedent against „Analiza jest prawdą”);
+- reconciling with `Analiza!E16:K16`, the category columns (a second truth next to the one the User reads);
+- payments into and returns from the fund as an expense and an income (the variant of decision 3 of ADR-0085 for `**`: it would invent operations and move the opening balance of the Sheet Account);
+- a `--year` option (the year is in the sheet, a second source can disagree);
+- Nadpłata kredytu as an expense „Kredyt” (it is a movement to savings, as in 2021);
+- the bonuses in „Pozostałe” income (the Wynagrodzenie Sebastian source keeps them with the salary).

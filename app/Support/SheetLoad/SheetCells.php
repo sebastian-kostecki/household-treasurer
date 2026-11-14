@@ -89,6 +89,16 @@ final class SheetCells
         throw new SheetReadException($this->address($column, $row), 'tekst „'.$text.'” w komórce kwoty');
     }
 
+    /**
+     * The numeric stored value of the cell (an Excel date serial, for example), or null for an empty or non-numeric cell.
+     */
+    public function serial(string $column, int $row): int|float|null
+    {
+        $value = $this->value($column, $row);
+
+        return is_int($value) || is_float($value) || (is_string($value) && is_numeric($value)) ? $value + 0 : null;
+    }
+
     public static function normalizeLabel(string $text): string
     {
         $label = mb_strtolower(trim(str_replace("\u{00A0}", ' ', $text)));

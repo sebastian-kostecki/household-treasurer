@@ -11,6 +11,7 @@ import {
     formatSignedMoneyAmount,
     formatWholeMoney,
     formatWholeMoneyAmount,
+    minorUnitsToGroupedMoneyInput,
     operationDaySumClass,
     parseMoneyInputToMinorUnits,
 } from './format';
@@ -181,5 +182,23 @@ describe('formatWholeMoney', () => {
     it('adds the unit', () => {
         expect(formatWholeMoney(1234567)).toBe('12 346 zł');
         expect(formatWholeMoney(-49)).toBe('0 zł');
+    });
+});
+
+describe('minorUnitsToGroupedMoneyInput', () => {
+    it('groups thousands with the separator of formatMoneyAmount', () => {
+        expect(minorUnitsToGroupedMoneyInput(850000)).toBe('8 500,00');
+        expect(minorUnitsToGroupedMoneyInput(15000)).toBe('150,00');
+        expect(minorUnitsToGroupedMoneyInput(-12329998)).toBe('-123 299,98');
+    });
+
+    it('round-trips through parseMoneyInputToMinorUnits', () => {
+        for (const value of [0, 50, 850000, 12345678]) {
+            expect(
+                parseMoneyInputToMinorUnits(
+                    minorUnitsToGroupedMoneyInput(value),
+                ),
+            ).toBe(value);
+        }
     });
 });

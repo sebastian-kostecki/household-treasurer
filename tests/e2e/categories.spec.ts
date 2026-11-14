@@ -412,6 +412,9 @@ test('dragging a Category onto an empty group saves the membership', async ({
         // the group body is measured again after the first leg of the move.
         const handle = categoryRow(page, 'Rozrywka').locator('.drag-handle');
         const body = groupBlock(page, group).locator('.categories-group-body');
+        // The mouse works in viewport coordinates, and with the whole list the
+        // row and the new group lie below the fold; scroll them into view first.
+        await body.scrollIntoViewIfNeeded();
         const from = await handle.boundingBox();
         const firstLeg = await body.boundingBox();
         if (!from || !firstLeg) {

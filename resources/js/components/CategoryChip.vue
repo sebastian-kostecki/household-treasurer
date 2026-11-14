@@ -49,7 +49,7 @@ const tileStyle = computed(() => categoryTileStyle(props.color));
 <template>
     <span class="inline-flex max-w-full min-w-0 items-center gap-2">
         <span
-            class="inline-flex shrink-0 items-center justify-center"
+            class="category-tile inline-flex shrink-0 items-center justify-center"
             :class="[tileSizeClass, tileRadiusClass]"
             :style="tileStyle"
             aria-hidden="true"
