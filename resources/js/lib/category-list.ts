@@ -20,9 +20,44 @@ export function categoryAllYearsOperationsQuery(category: {
     );
 }
 
-/** Lata, w których kategoria ma pozycję, np. „2026 · 2027”. */
+/** Lata, w których kategoria ma pozycję, np. „2026 · 2027” (Faza 4 usuwa, gdy widok przejdzie na pasek). */
 export function categoryYearsLabel(years: number[]): string {
     return years.join(' · ');
+}
+
+/** Komórki paska lat: oś to suma osi i lat budżetu, rosnąco, `on` dla lat z pozycją kategorii. */
+export function categoryYearCells(
+    axis: number[],
+    budgetYears: number[],
+): { year: number; short: string; on: boolean }[] {
+    const on = new Set(budgetYears);
+
+    return [...new Set([...axis, ...budgetYears])]
+        .sort((a, b) => a - b)
+        .map((year) => ({
+            year,
+            short: String(year).slice(-2),
+            on: on.has(year),
+        }));
+}
+
+/** Etykieta lat z zakresów, np. „2020–2022 · 2025”; kolejne lata łączy myślnik. */
+export function categoryYearsRangeLabel(years: number[]): string {
+    const ranges: [number, number][] = [];
+
+    for (const year of [...new Set(years)].sort((a, b) => a - b)) {
+        const last = ranges[ranges.length - 1];
+
+        if (last !== undefined && year === last[1] + 1) {
+            last[1] = year;
+        } else {
+            ranges.push([year, year]);
+        }
+    }
+
+    return ranges
+        .map(([from, to]) => (from === to ? `${from}` : `${from}–${to}`))
+        .join(' · ');
 }
 
 type GroupDeleteCopy = Record<

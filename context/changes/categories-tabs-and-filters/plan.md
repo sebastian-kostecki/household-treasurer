@@ -535,17 +535,17 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [x] 2.1 Testy strony przechodzą (CategoriesPageTest)
-- [x] 2.2 Formatowanie pint
-- [x] 2.3 Typy: build i types:check
+- [x] 2.1 Testy strony przechodzą (CategoriesPageTest) — d2802a3
+- [x] 2.2 Formatowanie pint — d2802a3
+- [x] 2.3 Typy: build i types:check — d2802a3
 
 ### Phase 3: Logika w lib (Vitest)
 
 #### Automated
 
-- [ ] 3.1 Testy lib przechodzą (text-search, category-list-filter, category-list, command-palette-items)
-- [ ] 3.2 Typy: types:check
-- [ ] 3.3 Lint
+- [x] 3.1 Testy lib przechodzą (text-search, category-list-filter, category-list, command-palette-items)
+- [x] 3.2 Typy: types:check
+- [x] 3.3 Lint
 
 ### Phase 4: Widok
 
