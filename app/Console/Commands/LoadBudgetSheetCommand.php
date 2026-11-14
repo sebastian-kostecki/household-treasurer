@@ -45,7 +45,7 @@ class LoadBudgetSheetCommand extends Command
         $this->printPlan($plan, $mapping);
 
         $problems = $check->problems($user, $mapping);
-        $this->printCategoryCheck($problems, $check, $user, $mapping);
+        $this->printCategoryCheck($problems, $check, $user, $mapping, $plan);
 
         if ($problems !== []) {
             return self::FAILURE;
@@ -130,9 +130,11 @@ class LoadBudgetSheetCommand extends Command
     }
 
     /**
+     * The new Category is named only when the plan writes to it, as `LoadBudgetSheet` creates it only then.
+     *
      * @param  list<string>  $problems
      */
-    private function printCategoryCheck(array $problems, SheetMappingCategoryCheck $check, User $user, SheetMapping $mapping): void
+    private function printCategoryCheck(array $problems, SheetMappingCategoryCheck $check, User $user, SheetMapping $mapping, SheetLoadPlan $plan): void
     {
         foreach ($problems as $problem) {
             $this->components->error($problem);
@@ -140,6 +142,10 @@ class LoadBudgetSheetCommand extends Command
 
         if ($problems === []) {
             $this->components->info('Kategorie z mapowania istnieją u użytkownika z oczekiwaną nazwą i typem.');
+        }
+
+        if (! array_key_exists(SheetMapping::NEW_CATEGORY, $plan->categoryTotals())) {
+            return;
         }
 
         $existing = $check->existingNewCategory($user, $mapping);

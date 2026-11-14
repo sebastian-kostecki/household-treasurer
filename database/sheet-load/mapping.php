@@ -7,16 +7,16 @@ use App\Support\SheetLoad\SheetMapping;
  * Labels are normalised: lower case, no trailing `*`, "work:" written as "praca:". A target is a Category id,
  * SheetMapping::SKIP (a transfer, not an operation, outside "Analiza"), SheetMapping::FUND (a fund movement of 2020-2021,
  * ADR-0096: no operation, but "Analiza" counts it; only in `expenses` and `income`) or SheetMapping::NEW_CATEGORY
- * (the archived "Kosmetyki").
- * Ids 1-38 come from the production copy on dev; `categories` holds the name and type each id must have in the
- * target database (the command refuses on any difference).
+ * (the archived "Kosmetyki"; no label uses it since "Kosmetyki" became Category 42 "Chemia i kosmetyki").
+ * Ids come from production; `categories` holds the name and type each id must have in the target database (the
+ * command refuses on any difference), as the list stands after it was rebuilt on 2026-11-13 (ADR-0096, decision 6).
  */
 return [
     'expenses' => [
         'rata kredytu' => 9,
         'czynsz' => 11,
         'telefony' => 14,
-        'internet' => 14,
+        'internet' => 44,
         'abonamenty' => 23,
         'prąd' => 15,
         'przedszkole' => 18,
@@ -24,12 +24,12 @@ return [
         'żłobek/przedszkole' => 18,
         'ubezpieczenie' => 19,
         'codzienne wydatki' => 8,
-        'środki czystości' => 8,
+        'środki czystości' => 42,
         'jedzenie poza domem' => 24,
-        'kosmetyki' => SheetMapping::NEW_CATEGORY,
-        'kosmetyczka' => SheetMapping::NEW_CATEGORY,
-        'fryzjer' => SheetMapping::NEW_CATEGORY,
-        'kosmetyczka i fryzjer' => SheetMapping::NEW_CATEGORY,
+        'kosmetyki' => 42,
+        'kosmetyczka' => 42,
+        'fryzjer' => 42,
+        'kosmetyczka i fryzjer' => 42,
         'apteka' => 12,
         'badania' => 20,
         'dentysta - ortodoncja' => 20,
@@ -45,8 +45,8 @@ return [
         'oszczędności długoterminowe' => SheetMapping::SKIP,
 
         // 2020-2021 (ADR-0096).
-        'hbo go' => 23,
-        'netflix' => 23,
+        'hbo go' => 45,
+        'netflix' => 45,
         'ogrzewanie' => 35,
         'bilety i transport' => 22,
         'lekarz - dentysta' => 20,
@@ -65,9 +65,9 @@ return [
         'jedzenie poza domem' => 24,
         'jedzenie' => 8,
         'słodycze i inne' => 8,
-        'środki czystości' => 8,
+        'środki czystości' => 42,
         'pomoce kuchenne' => 8,
-        'higiena i kosmetyki' => 29,
+        'higiena i kosmetyki' => 42,
         'pieluchy' => 32,
     ],
 
@@ -75,7 +75,7 @@ return [
     'irregular_categories' => [
         'ubrania' => 27,
         'osobiste' => 29,
-        'kosmetyki' => SheetMapping::NEW_CATEGORY,
+        'kosmetyki' => 42,
         'usługi' => 33,
         'prezenty' => 31,
         'edukacja' => 30,
@@ -143,8 +143,8 @@ return [
     ],
 
     'categories' => [
-        1 => ['name' => 'Wynagrodzenie Sebastian', 'type' => 'income'],
-        2 => ['name' => 'Wynagrodzenie Janeczka', 'type' => 'income'],
+        1 => ['name' => 'Sebastian', 'type' => 'income'],
+        2 => ['name' => 'Janeczka', 'type' => 'income'],
         3 => ['name' => '800+', 'type' => 'income'],
         4 => ['name' => 'Darowizny', 'type' => 'income'],
         5 => ['name' => 'Odsetki', 'type' => 'income'],
@@ -155,30 +155,33 @@ return [
         10 => ['name' => 'Pozostałe', 'type' => 'expense'],
         11 => ['name' => 'Czynsz', 'type' => 'expense'],
         12 => ['name' => 'Apteka', 'type' => 'expense'],
-        14 => ['name' => 'Telefon + Internet', 'type' => 'expense'],
+        14 => ['name' => 'Telefony', 'type' => 'expense'],
         15 => ['name' => 'Prąd', 'type' => 'expense'],
         16 => ['name' => 'Paliwo', 'type' => 'expense'],
-        17 => ['name' => 'Serwis samochodu', 'type' => 'expense'],
-        18 => ['name' => 'Przedszkole', 'type' => 'expense'],
+        17 => ['name' => 'Eksploatacja auta', 'type' => 'expense'],
+        18 => ['name' => 'Czesne', 'type' => 'expense'],
         19 => ['name' => 'Ubezpieczenia na życie', 'type' => 'expense'],
-        20 => ['name' => 'Leczenie prywatne', 'type' => 'expense'],
+        20 => ['name' => 'Lekarze i badania', 'type' => 'expense'],
         21 => ['name' => 'Ubezpieczenie samochodu', 'type' => 'expense'],
-        22 => ['name' => 'Bilety i parking', 'type' => 'expense'],
-        23 => ['name' => 'Rozrywka', 'type' => 'expense'],
+        22 => ['name' => 'Komunikacja i parking', 'type' => 'expense'],
+        23 => ['name' => 'Wyjścia i rozrywka', 'type' => 'expense'],
         24 => ['name' => 'Jedzenie poza domem', 'type' => 'expense'],
-        25 => ['name' => 'Wakacje', 'type' => 'expense'],
+        25 => ['name' => 'Wakacje i wycieczki', 'type' => 'expense'],
         27 => ['name' => 'Ubrania', 'type' => 'expense'],
         28 => ['name' => 'Darowizny', 'type' => 'expense'],
         29 => ['name' => 'Rzeczy osobiste', 'type' => 'expense'],
         30 => ['name' => 'Edukacja', 'type' => 'expense'],
         31 => ['name' => 'Prezenty', 'type' => 'expense'],
-        32 => ['name' => 'Dzieci', 'type' => 'expense'],
-        33 => ['name' => 'Usługi', 'type' => 'expense'],
+        32 => ['name' => 'Rzeczy dla dzieci', 'type' => 'expense'],
+        33 => ['name' => 'Poczta i urzędy', 'type' => 'expense'],
         34 => ['name' => 'Książki', 'type' => 'expense'],
-        35 => ['name' => 'Eksploatacja domu', 'type' => 'expense'],
+        35 => ['name' => 'Remonty i naprawy', 'type' => 'expense'],
         36 => ['name' => 'Elektronika i AGD', 'type' => 'expense'],
-        37 => ['name' => 'Wyposażenie domu', 'type' => 'expense'],
+        37 => ['name' => 'Wyposażenie', 'type' => 'expense'],
         39 => ['name' => 'Handel', 'type' => 'income'],
+        42 => ['name' => 'Chemia i kosmetyki', 'type' => 'expense'],
+        44 => ['name' => 'Internet', 'type' => 'expense'],
+        45 => ['name' => 'Streaming', 'type' => 'expense'],
     ],
 
     // Created archived, without joining the drafts, with one Running entry of the Rhythm from 2022-01.

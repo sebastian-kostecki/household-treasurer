@@ -1,18 +1,21 @@
 # Wczytanie lat 2020 i 2021 na produkcji — notatki
 
-Szkielet do wypełniania w trakcie wykonania. Procedura: `README.md`, „Wczytanie arkusza (lata 2020–2025)”. Wzór: `context/archive/2026-11-12-legacy-budget-import/production-load-notes.md`. Nic poniżej nie jest jeszcze wykonane.
+Procedura: `README.md`, „Wczytanie arkusza (lata 2020–2025)”. Wzór: `context/archive/2026-11-12-legacy-budget-import/production-load-notes.md`.
 
-## 1. Próba na kopii produkcji (`restore_trial`) — Progress 5.1
+## 0. Wydanie v1.4.4 (2026-11-14)
 
-- [ ] Archiwum `backup:run` (nazwa, czas UTC):
-- [ ] Baza `restore_trial` odtworzona kodem worktree, `db:show` pokazał ją z 0 tabel przed restore, `migrate` bez zaległości:
-- [ ] Pliki xlsx w `storage/app/restore-trial/`, SHA-256 zgodne z produkcyjnymi (2021 = poprawiony):
-- [ ] `user:backup` i `app:control-numbers` „przed” (stan po 2022–2025, nie stary `20261112-…`):
-- [ ] `--dry-run` 2020 i 2021 (kod, sumy, ostrzeżenia, kategorie z mapowania):
-- [ ] Wczytanie 2020, potem 2021 (czas, liczba operacji):
-- [ ] `app:control-numbers --compare=<przed> --allow-additions`, kod 0, podsumowanie dodań:
-- [ ] Wycofanie 2021 → 2020 (`budget:unload-sheet --force`), `--compare` bez `--allow-additions` bez różnic:
-- [ ] Ponowne wczytanie obu lat, te same liczniki dodań:
+- PR #229 (`worktree-sheet-load-2020-2021` z wciągniętym lokalnym `development`: v1-4-3-fixes, rhythm-hints, balance-reconciliation) scalony do `main` jako `87efe555`. Wcześniej ADR tej zmiany przemianowany z 0092 na 0096 (`5941ecb`; 0092–0095 zajęła v1-4-3-fixes). Bramka na scalonym kodzie: `composer ci:check` na PostgreSQL 1705 testów zielonych, 2 pominięte; Sloppy przechodzi (1 istniejące znalezisko średniej wagi); CI PR zielone.
+- Wdrożenie na halina175 (`scripts/deploy.sh`, uruchomił użytkownik): liczby `20261114-080649-before/after.json`, kopia instancji `2026-11-14-08-06-54.zip` (bez hasła).
+
+## 1. Próba na kopii produkcji — Progress 5.1
+
+- Archiwum `2026-11-14-08-06-54.zip` (z deployu, SHA-256 `1a5d02bd…e26d` lokalnie = na serwerze) odtworzone **kodem worktree** (`docker run` obrazu `sail-8.5/app` z worktree zamontowanym, sieć Sail) do nowej bazy `restore_trial_sheet_2020`; `db:show` przed restore: ta baza, 0 tabel; po restore „No pending migrations”, `app:control-numbers --compare=<produkcyjny 20261114-080649-after.json>`: „Control numbers match”. Kopia = produkcja po deployu, z wczytanymi 2022–2025 (konta 12–15).
+- Pliki w `storage/app/restore-trial/` worktree: `Budżet_2020.xlsx` SHA-256 `7618a81d…a5be`, `Budżet_2021.xlsx` `6c228b92…0e18` (po poprawce). Liczby „przed” próby: `storage/app/restore-trial/trial-before.json`.
+- **Pierwszy `--dry-run` 2020 i 2021: kod 1.** Czytnik i sumy w porządku (2020: 435 operacji, saldo −4 674,31), ale 13 kategorii miało inne nazwy niż `mapping.php`: 13.11 o 07:40 użytkownik przebudował listę kategorii na produkcji (te same id, nowe nazwy, np. 1 „Sebastian”, 20 „Lekarze i badania”, 23 „Wyjścia i rozrywka”, 35 „Remonty i naprawy”; „Kosmetyki” id 42 odarchiwizowana jako „Chemia i kosmetyki”; nowe 43–49) i ręcznie przeniósł pojedyncze operacje 2022–2025 do 42 i 46–49 („Zmień kategorię”, po nazwie pozycji: domena, google one, decathlon…). Przy samej poprawce nazw wczytanie utworzyłoby drugą, zarchiwizowaną „Kosmetyki” obok 42.
+- Decyzja użytkownika (ADR-0096, decyzja 6): nazwy jak na produkcji, a etykiety przeniesione: hbo go / netflix → 45 Streaming, internet → 44 Internet, etykiety kosmetyczne + „higiena i kosmetyki” + „środki czystości” → 42 Chemia i kosmetyki. Przy okazji poprawka komendy: wiersz „Kategoria „Kosmetyki” zostanie utworzona” tylko, gdy plan naprawdę ją tworzy (test regresji czerwony przed poprawką).
+- `--dry-run` po zmianie: kod 0 dla obu lat, sumy jak w Fazie 3 (tabela niżej), 2020: 435 operacji, 42 ruchy funduszu; 2021: 491 operacji, 26 ruchów funduszu, 1 przeniesienie `grudzień!H8` → `H7`. Kategoria 42: 3 170,31 (2020) i 3 360,59 zł (2021); 44: 611,88 / 625,83; 45: 224,10 / 24,90.
+- Wczytanie 2020 (Budżet 7, konto 17, 435 operacji), potem 2021 (Budżet 8, konto 18, 491 operacji). `--compare=trial-before.json --allow-additions`: kod 0, „Only additions: budgets +2, lines +64, accounts +2, categories +0, financial_operations +926”. Konta „Arkusz 2020/2021” zarchiwizowane, saldo bieżące 0, otwarcie −4 674,31 / −6 748,00 zł.
+- Wycofanie 2021 → 2020 (`--force`), `--compare` bez `--allow-additions`: „Control numbers match: no differences”. Ponowne wczytanie obu lat: te same liczniki dodań, kod 0.
 
 ## 2. Pliki na serwerze — Progress 5.2
 
