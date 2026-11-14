@@ -360,12 +360,12 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Automated
 
-- [x] 1.1 Testy serwera na SQLite przechodzą
-- [x] 1.2 Te same testy przechodzą na PostgreSQL
-- [x] 1.3 Liczba zapytań odczytu „Lat” jest taka sama dla 2 i 7 Budżetów oraz dla 2 i 24 kategorii
-- [x] 1.4 NFR „Lata” ≤ 2 s przy 7 Budżetach × 10 000 operacji na PostgreSQL
-- [x] 1.5 Formatowanie i Sloppy bez nowych znalezisk
-- [x] 1.6 Typy frontu po zmianie propsa
+- [x] 1.1 Testy serwera na SQLite przechodzą — 7585580
+- [x] 1.2 Te same testy przechodzą na PostgreSQL — 7585580
+- [x] 1.3 Liczba zapytań odczytu „Lat” jest taka sama dla 2 i 7 Budżetów oraz dla 2 i 24 kategorii — 7585580
+- [x] 1.4 NFR „Lata” ≤ 2 s przy 7 Budżetach × 10 000 operacji na PostgreSQL — 7585580
+- [x] 1.5 Formatowanie i Sloppy bez nowych znalezisk — 7585580
+- [x] 1.6 Typy frontu po zmianie propsa — 7585580
 
 #### Manual
 
@@ -375,12 +375,12 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Automated
 
-- [ ] 2.1 Testy Vitest „Lat” przechodzą
-- [ ] 2.2 Budowanie i typy
-- [ ] 2.3 Strażnicy UI
-- [ ] 2.4 Kontrakt UI
-- [ ] 2.5 Indeks reguł zaktualizowany
-- [ ] 2.6 Pełna bramka na PostgreSQL i Sloppy
+- [x] 2.1 Testy Vitest „Lat” przechodzą
+- [x] 2.2 Budowanie i typy
+- [x] 2.3 Strażnicy UI
+- [x] 2.4 Kontrakt UI
+- [x] 2.5 Indeks reguł zaktualizowany
+- [x] 2.6 Pełna bramka na PostgreSQL i Sloppy
 
 #### Manual
 

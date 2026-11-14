@@ -9,6 +9,13 @@ import type {
     ReportTrendData,
     ReportTrendEntry,
     ReportTrendMonth,
+    ReportYearsCategory,
+    ReportYearsCells,
+    ReportYearsData,
+    ReportYearsEntry,
+    ReportYearsFastest,
+    ReportYearsMode,
+    ReportYearsSection,
 } from '@/types/reports';
 
 /** Scenarios of the Reports kitchen sink (`/dev/ui/reports`). */
@@ -648,6 +655,398 @@ const trendClosedPeriod: ReportPeriod = {
     window: null,
 };
 
+/**
+ * "Lata" fixtures (ADR-0097). Each row is a series of whole zloty for 2020 to
+ * 2028 (the "Do D" amounts); the builder derives the "Pełne lata" amounts, the
+ * change, the highest years and the statistics the way the server does, so
+ * every scenario carries a complete `years` prop.
+ */
+type YearsSpec = {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    archived?: boolean;
+    /** 2020 to 2028; null is a year without a Budget Line. */
+    zloty: (number | null)[];
+};
+
+type YearsGroupSpec = { id: number; name: string; categories: YearsSpec[] };
+
+type YearsRowSpec = YearsSpec | YearsGroupSpec;
+
+type YearsRows = { expense: YearsRowSpec[]; income: YearsRowSpec[] };
+
+const YEARS_FIRST = 2020;
+
+/** A completed year runs longer than the same day of it; the current year is the same. */
+const YEARS_FULL_FACTOR = 1.12;
+
+const yearsCzynsz: YearsSpec = {
+    id: 101,
+    name: 'Czynsz',
+    icon: 'house',
+    color: 'blue',
+    zloty: [7800, 8400, 8700, 9300, 9600, 9900, 9900, 10200, 10500],
+};
+const yearsInternet: YearsSpec = {
+    id: 102,
+    name: 'Internet',
+    icon: 'zap',
+    color: 'teal',
+    zloty: [1320, 1320, 1200, 1100, 1100, 1080, 1100, 1100, 1150],
+};
+const yearsMeble: YearsSpec = {
+    id: 103,
+    name: 'Meble',
+    icon: 'sofa',
+    color: 'orange',
+    zloty: [0, null, 1800, 2600, 3300, 4200, 5040, 5200, 5600],
+};
+const yearsGroupHome: YearsGroupSpec = {
+    id: 10,
+    name: 'Dom',
+    categories: [yearsCzynsz, yearsInternet, yearsMeble],
+};
+const yearsFood: YearsSpec = {
+    id: 104,
+    name: 'Żywność',
+    icon: 'shopping-cart',
+    color: 'green',
+    zloty: [9800, 10400, 11800, 13200, 14400, 15100, 16200, 16900, 17600],
+};
+const yearsHolidays: YearsSpec = {
+    id: 105,
+    name: 'Wakacje',
+    icon: 'plane',
+    color: 'purple',
+    zloty: [2200, 2800, 3500, 4900, 6400, 7400, 8600, 9000, 9800],
+};
+const yearsCinema: YearsSpec = {
+    id: 106,
+    name: 'Kino',
+    icon: 'film',
+    color: 'pink',
+    archived: true,
+    zloty: [1500, 1400, 1300, 900, 700, null, null, null, null],
+};
+const yearsTransport: YearsSpec = {
+    id: 107,
+    name: 'Transport',
+    icon: 'car',
+    color: 'red',
+    zloty: [13360, 15200, 17800, 20400, 22300, 25000, 27400, 28000, 29000],
+};
+const yearsSalary: YearsSpec = {
+    id: 201,
+    name: 'Wynagrodzenie',
+    icon: 'briefcase',
+    color: 'green',
+    zloty: [64000, 66000, 70000, 74000, 79000, 84000, 88000, 91000, 94000],
+};
+const yearsBonus: YearsSpec = {
+    id: 202,
+    name: 'Premia',
+    icon: 'gift',
+    color: 'teal',
+    zloty: [5900, 6100, 0, 7200, 8000, 8400, 9000, 9400, 9800],
+};
+
+const yearsRows: YearsRows = {
+    expense: [
+        yearsGroupHome,
+        yearsFood,
+        yearsHolidays,
+        yearsCinema,
+        yearsTransport,
+    ],
+    income: [yearsSalary, yearsBonus],
+};
+
+/** (numerator / denominator) in tenths of a percent, half away from zero, on integers. */
+function tenthsOfRatio(numerator: number, denominator: number): number {
+    const scaled = numerator * 1000;
+
+    return (
+        Math.sign(scaled) *
+        Math.floor((2 * Math.abs(scaled) + denominator) / (2 * denominator))
+    );
+}
+
+/** Annual growth in tenths of a percent between two amounts `years` apart. */
+function growthTenths(start: number, end: number, years: number): number {
+    return Math.round((Math.pow(end / start, 1 / years) - 1) * 1000);
+}
+
+function yearsCells(
+    cells: (number | null)[],
+    counted: number,
+): ReportYearsCells {
+    const countedCells = cells.slice(0, counted);
+    const finalIndex = counted - 1;
+    const final = countedCells[finalIndex] ?? null;
+    const firstIndex = countedCells.findIndex(
+        (cell) => cell !== null && cell > 0,
+    );
+    const first = firstIndex < 0 ? null : countedCells[firstIndex];
+    const hasChange =
+        final !== null &&
+        first !== null &&
+        first > 0 &&
+        firstIndex !== finalIndex;
+    const maximum = Math.max(0, ...countedCells.map((cell) => cell ?? 0));
+
+    return {
+        cells,
+        change_tenths: hasChange ? tenthsOfRatio(final - first, first) : null,
+        change_first_year: hasChange ? YEARS_FIRST + firstIndex : null,
+        max_years:
+            maximum <= 0
+                ? []
+                : countedCells.flatMap((cell, index) =>
+                      cell === maximum ? [YEARS_FIRST + index] : [],
+                  ),
+    };
+}
+
+function sumYearsCells(
+    rows: (number | null)[][],
+    width: number,
+): (number | null)[] {
+    return Array.from({ length: width }, (_, index) =>
+        rows.every((row) => row[index] === null)
+            ? null
+            : rows.reduce((sum, row) => sum + (row[index] ?? 0), 0),
+    );
+}
+
+type YearsBuild = {
+    columns: number[];
+    currentYear: number | null;
+    /** "Pełne lata": completed years in full, the current year out of the change. */
+    full: boolean;
+};
+
+function yearsSeries(spec: YearsSpec, build: YearsBuild): (number | null)[] {
+    return build.columns.map((year) => {
+        const value = spec.zloty[year - YEARS_FIRST] ?? null;
+
+        if (value === null) {
+            return null;
+        }
+
+        const zloty =
+            build.full && year !== build.currentYear
+                ? Math.round(value * YEARS_FULL_FACTOR)
+                : value;
+
+        return zloty * 100;
+    });
+}
+
+function yearsSection(
+    rows: YearsRowSpec[],
+    build: YearsBuild,
+    counted: number,
+): ReportYearsSection {
+    const width = build.columns.length;
+
+    const toCategory = (spec: YearsSpec): ReportYearsCategory => ({
+        ...yearsCells(yearsSeries(spec, build), counted),
+        kind: 'category',
+        id: spec.id,
+        name: spec.name,
+        icon: spec.icon,
+        color: spec.color,
+        is_archived: spec.archived ?? false,
+    });
+
+    const entries: ReportYearsEntry[] = rows.map((row) => {
+        if (!('categories' in row)) {
+            return toCategory(row);
+        }
+
+        const categories = row.categories.map(toCategory);
+
+        return {
+            ...yearsCells(
+                sumYearsCells(
+                    categories.map((category) => category.cells),
+                    width,
+                ),
+                counted,
+            ),
+            kind: 'group' as const,
+            id: row.id,
+            name: row.name,
+            categories,
+        };
+    });
+
+    const categories = entries.flatMap((entry) =>
+        entry.kind === 'group' ? entry.categories : [entry],
+    );
+    const totalCells = sumYearsCells(
+        categories.map((category) => category.cells),
+        width,
+    ).map((cell) => cell ?? 0);
+    const startIndex = totalCells
+        .slice(0, counted)
+        .findIndex((cell) => cell > 0);
+    const endTotal = counted > 0 ? totalCells[counted - 1] : 0;
+    const average =
+        startIndex >= 0 && startIndex < counted - 1
+            ? growthTenths(
+                  totalCells[startIndex],
+                  endTotal,
+                  counted - 1 - startIndex,
+              )
+            : null;
+
+    let fastest: ReportYearsFastest | null = null;
+
+    for (const category of categories) {
+        const positive = category.cells
+            .slice(0, counted)
+            .filter((cell) => cell !== null && cell > 0);
+        const end = category.cells[counted - 1] ?? null;
+        const startAt = category.cells
+            .slice(0, counted)
+            .findIndex((cell) => cell !== null && cell > 0);
+
+        if (
+            positive.length < 4 ||
+            end === null ||
+            end <= 0 ||
+            startAt >= counted - 1
+        ) {
+            continue;
+        }
+
+        const growth = growthTenths(
+            category.cells[startAt] as number,
+            end,
+            counted - 1 - startAt,
+        );
+
+        if (fastest === null || growth > fastest.growth_tenths) {
+            fastest = {
+                id: category.id,
+                name: category.name,
+                icon: category.icon,
+                color: category.color,
+                growth_tenths: growth,
+                first_year: YEARS_FIRST + startAt,
+            };
+        }
+    }
+
+    return {
+        entries,
+        total: yearsCells(totalCells, counted),
+        first_year: startIndex < 0 ? null : build.columns[startIndex],
+        average_yearly_growth_tenths: average,
+        fastest_growing: fastest,
+    };
+}
+
+function yearsMode(rows: YearsRows, build: YearsBuild): ReportYearsMode {
+    const counted =
+        build.full && build.currentYear !== null
+            ? build.columns.indexOf(build.currentYear)
+            : build.columns.length;
+
+    return {
+        final_year: counted > 0 ? build.columns[counted - 1] : null,
+        expense: yearsSection(rows.expense, build, counted),
+        income: yearsSection(rows.income, build, counted),
+    };
+}
+
+function buildYears(options: {
+    firstYear?: number;
+    lastYear: number;
+    currentYear: number | null;
+    cut: { month: number; day: number } | null;
+    rows?: YearsRows;
+}): ReportYearsData {
+    const first = options.firstYear ?? YEARS_FIRST;
+    const columns = Array.from(
+        { length: options.lastYear - first + 1 },
+        (_, index) => first + index,
+    );
+    const rows = options.rows ?? yearsRows;
+
+    return {
+        columns,
+        current_year: options.currentYear,
+        cut: options.cut,
+        same_day:
+            options.currentYear === null
+                ? null
+                : yearsMode(rows, {
+                      columns,
+                      currentYear: options.currentYear,
+                      full: false,
+                  }),
+        full: yearsMode(rows, {
+            columns,
+            currentYear: options.currentYear,
+            full: true,
+        }),
+    };
+}
+
+const yearsPeriod: ReportPeriod = {
+    kind: 'years',
+    month: null,
+    default_month: 11,
+    is_in_progress: false,
+    window: null,
+};
+
+const yearsNovemberCut = { month: 11, day: 14 };
+
+const yearsSameDay = buildYears({
+    lastYear: 2026,
+    currentYear: 2026,
+    cut: yearsNovemberCut,
+});
+
+const yearsNoCurrentYear = buildYears({
+    lastYear: 2026,
+    currentYear: null,
+    cut: null,
+});
+
+const yearsOnlyCurrent = buildYears({
+    firstYear: 2026,
+    lastYear: 2026,
+    currentYear: 2026,
+    cut: yearsNovemberCut,
+});
+
+const yearsLeap = buildYears({
+    firstYear: 2024,
+    lastYear: 2028,
+    currentYear: 2028,
+    cut: { month: 2, day: 29 },
+});
+
+const yearsNoCoverage = buildYears({
+    firstYear: 2027,
+    lastYear: 2026,
+    currentYear: null,
+    cut: null,
+});
+
+const yearsNoOperations = buildYears({
+    lastYear: 2026,
+    currentYear: 2026,
+    cut: yearsNovemberCut,
+    rows: { expense: [], income: [] },
+});
+
 export const reportScenarios: ReportScenario[] = [
     {
         key: 'year-in-progress',
@@ -1068,7 +1467,7 @@ export const reportScenarios: ReportScenario[] = [
     {
         key: 'last-12-phone',
         caption:
-            'Telefon (ramka 22rem): cztery segmenty przełącznika mieszczą się bez poziomego przewijania, notka pokrycia',
+            'Telefon (ramka 22rem): pięć segmentów przełącznika mieści się lub przewija się w swoim pasku, notka pokrycia',
         phone: true,
         props: {
             budgetYear: 2026,
@@ -1090,6 +1489,109 @@ export const reportScenarios: ReportScenario[] = [
             report: yearReport,
             trend: null,
             years: null,
+        },
+    },
+    {
+        key: 'years-same-day',
+        caption:
+            'Lata 2020–2026 „Do 14 listopada” (domyślny): kafelki, zakładki, grupa Dom z sumami, Meble „od 2022”, Kino zarchiwizowana, sparkline z rokiem bieżącym w foreground; „Pełne lata” i Przychody ogląda się kliknięciem (stan lokalny)',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsSameDay,
+        },
+    },
+    {
+        key: 'years-no-current-year',
+        caption:
+            'Styczeń 2027 ze szkicem: brak roku bieżącego, brak przełącznika zakresu, wszystkie lata w całości',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsNoCurrentYear,
+        },
+    },
+    {
+        key: 'years-only-current',
+        caption: 'Jeden rok w realizacji: zmiana i statystyki „—”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsOnlyCurrent,
+        },
+    },
+    {
+        key: 'years-leap',
+        caption: 'Cięcie 29 lutego: przełącznik „Do 29 lutego”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsLeap,
+        },
+    },
+    {
+        key: 'years-no-coverage',
+        caption:
+            'Brak budżetu w realizacji: stan pusty zamiast kafelków i tabeli',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsNoCoverage,
+        },
+    },
+    {
+        key: 'years-no-operations',
+        caption:
+            'Lata w realizacji bez operacji: kafelki „—” i „Brak pozycji w tym okresie.”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsNoOperations,
+        },
+    },
+    {
+        key: 'years-draft-selected',
+        caption:
+            'Wybrany szkic 2027 w sidebarze: widok „Lata” zostaje i pokazuje te same lata',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'draft',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsSameDay,
+        },
+    },
+    {
+        key: 'years-phone',
+        caption:
+            'Telefon (ramka 22rem): pięć segmentów w przewijanym pasku, tabela przewija się z przypiętą kolumną Kategoria',
+        phone: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: yearsPeriod,
+            report: null,
+            trend: null,
+            years: yearsSameDay,
         },
     },
 ];

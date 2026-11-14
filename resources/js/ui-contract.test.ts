@@ -473,6 +473,7 @@ const UNITLESS_TABLE_ROW_FILES = [
     'components/BudgetCategoryGroupRow.vue',
     'components/BudgetAmountCell.vue',
     'components/MonthPlanItemRow.vue',
+    'components/ReportYearsRow.vue',
 ];
 
 describe('table rows carry no amount unit (ADR-0058)', () => {

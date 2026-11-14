@@ -22,6 +22,11 @@ const REPORTS_VIEW_FILES = [
     'resources/js/components/ReportTrendChartPlaceholder.vue',
     'resources/js/components/ReportEmptyState.vue',
     'resources/js/components/ReportCoverageNote.vue',
+    'resources/js/components/ReportYearsView.vue',
+    'resources/js/components/ReportYearsStatPanel.vue',
+    'resources/js/components/ReportYearsTable.vue',
+    'resources/js/components/ReportYearsRow.vue',
+    'resources/js/components/ReportYearsSpark.vue',
 ];
 
 const REPORTS_FORBIDDEN_PATTERNS = [

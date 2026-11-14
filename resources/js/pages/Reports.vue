@@ -10,6 +10,7 @@ import ReportEntryTable from '@/components/ReportEntryTable.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
+import ReportYearsView from '@/components/ReportYearsView.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
@@ -34,6 +35,10 @@ function lastTwelveUrl(): string {
     return reportsRoute({ query: { view: 'last-12' } }).url;
 }
 
+function yearsUrl(): string {
+    return reportsRoute({ query: { view: 'years' } }).url;
+}
+
 function monthUrl(month: number): string {
     return reportsRoute({ query: { month } }).url;
 }
@@ -50,9 +55,11 @@ const periodKind = computed({
                 ? reportsRoute().url
                 : kind === 'trend'
                   ? trendUrl()
-                  : kind === 'last-12'
-                    ? lastTwelveUrl()
-                    : monthUrl(props.period.default_month),
+                  : kind === 'years'
+                    ? yearsUrl()
+                    : kind === 'last-12'
+                      ? lastTwelveUrl()
+                      : monthUrl(props.period.default_month),
             {},
             { preserveScroll: true },
         );
@@ -64,6 +71,7 @@ const periodOptions = computed(() => [
     { value: 'month' as const, label: t.reports.period_month },
     { value: 'last-12' as const, label: t.reports.period_last_12 },
     { value: 'trend' as const, label: t.reports.period_trend },
+    { value: 'years' as const, label: t.reports.period_years },
 ]);
 
 /** The last-12 window as the server resolved it; `null` in the other views. */
@@ -102,6 +110,16 @@ const title = computed(() => {
         return t.reports.title_last_12;
     }
 
+    if (props.period.kind === 'years') {
+        const columns = props.years?.columns ?? [];
+
+        return columns.length === 0
+            ? t.reports.title
+            : t.reports.title_years
+                  .replace(':from', String(columns[0]))
+                  .replace(':to', String(columns[columns.length - 1]));
+    }
+
     if (props.period.kind === 'trend') {
         return t.reports.title_trend.replace(':year', String(props.budgetYear));
     }
@@ -136,19 +154,24 @@ const title = computed(() => {
                     {{ windowLabel }}
                 </p>
             </div>
-            <SegmentedControl
-                v-if="budgetYear !== null"
-                v-model="periodKind"
-                :options="periodOptions"
-                :ariaLabel="t.reports.period_label"
-                tone="neutral"
-            />
+            <div v-if="budgetYear !== null" class="max-w-full overflow-x-auto">
+                <SegmentedControl
+                    v-model="periodKind"
+                    :options="periodOptions"
+                    :ariaLabel="t.reports.period_label"
+                    tone="neutral"
+                />
+            </div>
         </div>
 
         <ReportEmptyState v-if="budgetYear === null" kind="no-budget" />
 
         <ReportEmptyState
-            v-else-if="budgetPhase !== 'execution' && period.kind !== 'last-12'"
+            v-else-if="
+                budgetPhase !== 'execution' &&
+                period.kind !== 'last-12' &&
+                period.kind !== 'years'
+            "
             kind="draft"
         />
 
@@ -158,6 +181,15 @@ const title = computed(() => {
                 :title="t.reports.no_coverage_title"
                 :description="t.reports.no_coverage_description"
             />
+
+            <template v-else-if="period.kind === 'years' && years !== null">
+                <IndexEmptyState
+                    v-if="years.columns.length === 0"
+                    :title="t.reports.years_empty_title"
+                    :description="t.reports.years_empty_description"
+                />
+                <ReportYearsView v-else :years="years" />
+            </template>
 
             <template v-else-if="period.kind === 'trend' && trend !== null">
                 <ReportStatPanel

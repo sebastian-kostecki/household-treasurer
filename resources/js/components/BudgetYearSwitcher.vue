@@ -44,20 +44,23 @@ const staysOnReports = computed(() =>
     isCurrentSection(reports().url, page.url),
 );
 
-/** On the Trend view the switch stays on the Trend. */
-const staysOnTrend = computed(
-    () =>
-        staysOnReports.value &&
-        new URL(page.url, 'http://localhost').searchParams.get('view') ===
-            'trend',
+/** On the Trend and Years views the switch stays on that view. */
+const reportsView = computed(() =>
+    staysOnReports.value
+        ? new URL(page.url, 'http://localhost').searchParams.get('view')
+        : null,
 );
 
 const destination = computed(() => {
-    if (staysOnTrend.value) {
+    if (!staysOnReports.value) {
+        return null;
+    }
+
+    if (reportsView.value === 'trend') {
         return 'reports-trend';
     }
 
-    return staysOnReports.value ? 'reports' : null;
+    return reportsView.value === 'years' ? 'reports-years' : 'reports';
 });
 
 defineExpose({ pending });
