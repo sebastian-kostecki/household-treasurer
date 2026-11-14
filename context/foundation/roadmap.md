@@ -51,7 +51,7 @@ Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-00
 | S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | proposed |
 | S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | proposed |
 | S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | proposed |
-| S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | in-progress |
+| S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | done        |
 | S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | ready    |
 
 ## Streams
@@ -141,7 +141,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Archiwum jako zakładka zmienia ADR-0067 (sekcja archiwum pod listą), a przeciąganie musi zniknąć przy włączonym filtrze lub szukaniu, inaczej zapis kolejności z częściowej listy przestawi kategorie (reorder grup z S-22).
-- **Status:** in-progress
+- **Status:** done
 
 ### S-38: Stan roku w menu „Rok budżetu”
 
@@ -227,3 +227,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-32: użytkownik może wybrać okres raportu „ostatnie 12 miesięcy”** — Archived 2026-11-12 → `context/archive/2026-11-12-rolling-twelve-month-report/`. Lesson: —.
 - **S-33: użytkownik może ustawić domyślny procent planowanych przychodów, który propozycja planu wpisuje jako „odkładam”** — Archived 2026-11-12 → `context/archive/2026-11-12-default-set-aside-percent/`. Lesson: —.
 - **S-23: użytkownik może importować operacje z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej tak jak przed zmianą** — Archived 2026-11-12 → `context/archive/2026-11-12-import-suggestions-on-category-list/`. Lesson: —.
+- **S-37: użytkownik może przeglądać „Kategorie” w zakładkach Wydatki, Przychody i Archiwum z licznikami, szukać po nazwie i opisie, filtrować wydatki po rytmie i widzieć lata w budżecie jako pasek komórek** — Archived 2026-11-14 → `context/archive/2026-11-14-categories-tabs-and-filters/`. Lesson: —.
