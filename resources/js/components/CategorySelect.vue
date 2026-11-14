@@ -2,7 +2,15 @@
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import type { CategoryPickerOption } from '@/lib/category-appearance';
-import { groupSelectOptions } from '@/lib/category-tree';
+import {
+    categoryOptionName,
+    categorySections,
+    type CategorySectionLabels,
+} from '@/lib/category-filter-options';
+import {
+    groupSelectOptions,
+    type SelectOptionBlock,
+} from '@/lib/category-tree';
 import {
     Select,
     SelectContent,
@@ -26,6 +34,9 @@ const props = withDefaults(
         ariaLabel?: string;
         ariaDescribedby?: string;
         ariaInvalid?: 'true';
+        allOptionLabel?: string;
+        archivedSuffix?: string;
+        sectionLabels?: CategorySectionLabels;
     }>(),
     {
         required: false,
@@ -37,14 +48,51 @@ const emit = defineEmits<{
     'update:modelValue': [value: number | ''];
 }>();
 
+const ALL_CATEGORIES_VALUE = '__all__';
+
 const selectedCategoryId = computed({
-    get: () => (props.modelValue === '' ? undefined : String(props.modelValue)),
+    get: () => {
+        if (props.modelValue === '') {
+            return props.allOptionLabel === undefined
+                ? undefined
+                : ALL_CATEGORIES_VALUE;
+        }
+
+        return String(props.modelValue);
+    },
     set: (value: string | undefined) => {
-        emit('update:modelValue', value ? Number(value) : '');
+        emit(
+            'update:modelValue',
+            value && value !== ALL_CATEGORIES_VALUE ? Number(value) : '',
+        );
     },
 });
 
-const blocks = computed(() => groupSelectOptions(props.categories));
+const rows = computed<
+    (
+        | { kind: 'section'; type: string; label: string }
+        | SelectOptionBlock<CategoryPickerOption>
+    )[]
+>(() => {
+    if (props.sectionLabels === undefined) {
+        return groupSelectOptions(props.categories);
+    }
+
+    return categorySections(props.categories, props.sectionLabels).flatMap(
+        (section) => [
+            {
+                kind: 'section' as const,
+                type: section.type,
+                label: section.label,
+            },
+            ...section.blocks,
+        ],
+    );
+});
+
+function optionName(category: CategoryPickerOption): string {
+    return categoryOptionName(category, props.archivedSuffix);
+}
 
 const selectedCategory = computed(() =>
     props.categories.find((category) => category.id === props.modelValue),
@@ -64,42 +112,61 @@ const selectedCategory = computed(() =>
                 <SelectValue :placeholder="placeholder">
                     <CategoryChip
                         v-if="selectedCategory"
-                        :name="selectedCategory.name"
+                        :name="optionName(selectedCategory)"
                         :icon="selectedCategory.icon"
                         :color="selectedCategory.color"
                         size="sm"
                     />
+                    <span v-else-if="allOptionLabel !== undefined">
+                        {{ allOptionLabel }}
+                    </span>
                 </SelectValue>
             </SelectTrigger>
             <SelectContent>
+                <SelectItem
+                    v-if="allOptionLabel !== undefined"
+                    :value="ALL_CATEGORIES_VALUE"
+                >
+                    {{ allOptionLabel }}
+                </SelectItem>
                 <template
-                    v-for="block in blocks"
+                    v-for="row in rows"
                     :key="
-                        block.kind === 'group'
-                            ? `group-${block.group.id}-${block.options[0].id}`
-                            : block.option.id
+                        row.kind === 'section'
+                            ? `section-${row.type}`
+                            : row.kind === 'group'
+                              ? `group-${row.group.id}-${row.options[0].id}`
+                              : row.option.id
                     "
                 >
-                    <SelectGroup v-if="block.kind === 'group'">
-                        <SelectLabel>{{ block.group.name }}</SelectLabel>
+                    <SelectGroup v-if="row.kind === 'section'">
+                        <SelectLabel>{{ row.label }}</SelectLabel>
+                    </SelectGroup>
+                    <SelectGroup v-else-if="row.kind === 'group'">
+                        <SelectLabel>{{ row.group.name }}</SelectLabel>
                         <SelectItem
-                            v-for="category in block.options"
+                            v-for="category in row.options"
                             :key="category.id"
                             :value="String(category.id)"
+                            :text-value="optionName(category)"
                         >
                             <CategoryChip
-                                :name="category.name"
+                                :name="optionName(category)"
                                 :icon="category.icon"
                                 :color="category.color"
                                 size="sm"
                             />
                         </SelectItem>
                     </SelectGroup>
-                    <SelectItem v-else :value="String(block.option.id)">
+                    <SelectItem
+                        v-else
+                        :value="String(row.option.id)"
+                        :text-value="optionName(row.option)"
+                    >
                         <CategoryChip
-                            :name="block.option.name"
-                            :icon="block.option.icon"
-                            :color="block.option.color"
+                            :name="optionName(row.option)"
+                            :icon="row.option.icon"
+                            :color="row.option.color"
                             size="sm"
                         />
                     </SelectItem>

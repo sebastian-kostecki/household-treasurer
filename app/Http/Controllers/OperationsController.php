@@ -153,6 +153,7 @@ class OperationsController extends Controller
             ->map(fn (TermDeposit $termDeposit): array => [
                 'id' => $termDeposit->id,
                 'name' => $termDeposit->name,
+                ...AccountIdentity::termDepositIdentity($termDeposit),
                 'opening_date' => $termDeposit->opening_date->toDateString(),
                 'current_balance_minor_units' => $termDeposit->current_balance_minor_units,
             ]);

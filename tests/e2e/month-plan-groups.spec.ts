@@ -10,6 +10,10 @@
 // them at the end: the operation is deleted, the Category archived and the
 // group deleted.
 import { test, expect, type Page } from '@playwright/test';
+import {
+    expectSelectedBudgetYear,
+    selectBudgetYear,
+} from './support/budget-year';
 import { assignCategoryToGroup } from './support/categories';
 
 async function addExpense(
@@ -52,11 +56,9 @@ async function deleteExpense(page: Page, description: string) {
 // and an expense dated today lands in the budget of the current year.
 async function openCurrentMonthPlan(page: Page) {
     await page.goto('/month-plan');
-    const year = page
-        .locator('[data-sidebar="sidebar"]')
-        .getByRole('button', { name: String(new Date().getFullYear()) });
-    await year.click();
-    await expect(year).toHaveAttribute('aria-pressed', 'true');
+    const year = new Date().getFullYear();
+    await selectBudgetYear(page, year);
+    await expectSelectedBudgetYear(page, year);
     await page.goto('/month-plan');
 }
 

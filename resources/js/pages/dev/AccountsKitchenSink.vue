@@ -95,7 +95,7 @@ const stateMatrix = [
     },
     {
         state: 'hover',
-        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): wiersze listy i IconAction.',
+        where: 'Zrzuty z działającej aplikacji (stan zależny od interakcji): wiersze listy i IconAction. Płytka pod logo w AccountAvatar nie zmienia się przy hover: N/A.',
     },
     {
         state: 'focus-visible',
@@ -111,7 +111,7 @@ const stateMatrix = [
     },
     {
         state: 'empty',
-        where: 'Scenariusze empty-new-user (brak kont, bez przełącznika) i all-archived (wszystkie zarchiwizowane) poniżej.',
+        where: 'Scenariusze empty-new-user (brak kont, bez przełącznika) i all-archived (wszystkie zarchiwizowane) poniżej. Awatar bez logo i banku: kafel „Bank bez znaku” w sekcji „Znaki banków”; błąd obrazu: kafel „Błąd obrazu”.',
     },
     {
         state: 'reconciliation',

@@ -1,3 +1,4 @@
+import type { AccountBank } from './account-identity';
 import type { CategoryPickerGroup } from './category-appearance';
 import { parseMoneyInputToMinorUnits } from './format';
 import type { Rhythm } from '../types/rhythm';
@@ -38,6 +39,8 @@ export type CategoryRow = {
 export type TermDepositRow = {
     id: number;
     name: string;
+    bank: AccountBank;
+    mark_url: string | null;
     opening_date: string;
 };
 

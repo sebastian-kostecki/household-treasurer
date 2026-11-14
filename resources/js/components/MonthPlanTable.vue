@@ -380,7 +380,11 @@ const expenseRowsEmpty = computed(
             </div>
             <div
                 class="month-plan-grid month-plan-row"
-                :class="editable ? '' : 'month-plan-grid-no-kind'"
+                :class="
+                    editable
+                        ? 'month-plan-grid-set-aside-edit'
+                        : 'month-plan-grid-no-kind month-plan-grid-set-aside'
+                "
             >
                 <div class="month-plan-cell-category text-sm">
                     {{ directionLabel(shownDirection) }}

@@ -30,6 +30,28 @@ export type AccountPickerOption = AccountIdentityFields & {
     is_archived?: boolean;
 };
 
+export type TermDepositIdentityFields = {
+    id: number;
+    name: string;
+    bank: AccountBank;
+    mark_url: string | null;
+    is_archived?: boolean;
+};
+
+/** Term Deposits as `AccountSelect` options: always a bank mark, never cash (ADR-0054). */
+export function termDepositPickerOptions(
+    deposits: TermDepositIdentityFields[],
+): AccountPickerOption[] {
+    return deposits.map((deposit) => ({
+        id: deposit.id,
+        name: deposit.name,
+        type: 'bank',
+        bank: deposit.bank,
+        mark_url: deposit.mark_url,
+        is_archived: deposit.is_archived,
+    }));
+}
+
 export const bankOptions: AccountBank[] = [
     'alior',
     'bnp_paribas',

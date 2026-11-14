@@ -10,6 +10,10 @@
 // monthly rate is 0 and the collected amount only falls with the bills) and
 // deletes its operations and archives the Category at the end.
 import { test, expect, type Page } from '@playwright/test';
+import {
+    expectSelectedBudgetYear,
+    selectBudgetYear,
+} from './support/budget-year';
 
 async function addExpense(
     page: Page,
@@ -51,11 +55,9 @@ async function deleteExpense(page: Page, description: string) {
 // and a bill dated today lands in the budget of the current year.
 async function openCurrentMonthPlan(page: Page) {
     await page.goto('/month-plan');
-    const year = page
-        .locator('[data-sidebar="sidebar"]')
-        .getByRole('button', { name: String(new Date().getFullYear()) });
-    await year.click();
-    await expect(year).toHaveAttribute('aria-pressed', 'true');
+    const year = new Date().getFullYear();
+    await selectBudgetYear(page, year);
+    await expectSelectedBudgetYear(page, year);
     await page.goto('/month-plan');
 }
 

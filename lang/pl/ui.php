@@ -824,6 +824,8 @@ return [
         'filter_year_all' => 'Wszystkie lata',
         'filter_category' => 'Kategoria',
         'filter_category_all' => 'Wszystkie kategorie',
+        'filter_category_income' => 'Dochody',
+        'filter_category_expense' => 'Wydatki',
         'filter_account' => 'Konto',
         'filter_account_all' => 'Wszystkie konta',
         'filter_term_deposit' => 'Lokata',

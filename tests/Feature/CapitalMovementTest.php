@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Bank;
 use App\Enums\BudgetPhase;
 use App\Enums\CapitalMovementDirection;
 use App\Models\Account;
@@ -58,6 +59,48 @@ class CapitalMovementTest extends TestCase
             'description' => 'Parking on deposit',
             'raw_statement_description' => null,
         ]);
+    }
+
+    public function test_capital_movement_without_term_deposit_id_is_rejected_on_the_field(): void
+    {
+        $user = User::factory()->create();
+        [$account] = $this->createAccountAndTermDeposit($user);
+
+        $this->actingAs($user)->post(route('capital-movements.store'), [
+            'movement_date' => '2026-03-01',
+            'amount_minor_units' => 25000,
+            'description' => 'Parking on deposit',
+            'direction' => CapitalMovementDirection::ToTermDeposit->value,
+            'account_id' => $account->id,
+            'term_deposit_id' => '',
+        ])->assertSessionHasErrors('term_deposit_id');
+
+        $this->assertDatabaseCount('capital_movements', 0);
+    }
+
+    public function test_operations_page_term_deposits_carry_bank_identity(): void
+    {
+        $user = User::factory()->create();
+        $withLogo = TermDeposit::factory()->for($user)->create([
+            'name' => 'Alpha',
+            'bank' => Bank::LokatyFacto,
+        ]);
+        TermDeposit::factory()->for($user)->create([
+            'name' => 'Beta',
+            'bank' => Bank::Ing,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('termDeposits', 2)
+                ->where('termDeposits.0.id', $withLogo->id)
+                ->where('termDeposits.0.bank', 'lokaty_facto')
+                ->where('termDeposits.0.mark_url', url('/marks/lokaty-facto.svg'))
+                ->where('termDeposits.1.bank', 'ing')
+                ->where('termDeposits.1.mark_url', null),
+            );
     }
 
     public function test_creating_capital_movement_to_term_deposit_updates_both_balances(): void

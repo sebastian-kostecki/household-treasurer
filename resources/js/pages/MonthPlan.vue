@@ -18,7 +18,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import { formatMoney, minorUnitsToMoneyInput } from '@/lib/format';
+import {
+    formatMoney,
+    minorUnitsToGroupedMoneyInput,
+    minorUnitsToMoneyInput,
+} from '@/lib/format';
 import { drawExceedsSpendableLiquidity } from '@/lib/draw-warning';
 import { collectedAtEndMinorUnits } from '@/lib/collected-calculator';
 import { parsePlanAmountInput } from '@/lib/month-plan-amount';
@@ -101,7 +105,7 @@ function initialAmountInputs(): Record<number, string> {
     return Object.fromEntries(
         planRows.value.map((row) => [
             row.category_id,
-            minorUnitsToMoneyInput(row.plan_minor_units),
+            minorUnitsToGroupedMoneyInput(row.plan_minor_units),
         ]),
     );
 }
@@ -118,7 +122,7 @@ function initialSetAsideDirection(): SetAsideDirection {
 }
 
 function initialSetAsideInput(): string {
-    return minorUnitsToMoneyInput(
+    return minorUnitsToGroupedMoneyInput(
         Math.abs(props.monthPlan?.set_aside_minor_units ?? 0),
     );
 }
@@ -168,7 +172,7 @@ function matchActual(categoryId: number): void {
 
     amountInputs.value = {
         ...amountInputs.value,
-        [categoryId]: minorUnitsToMoneyInput(row.actual_minor_units),
+        [categoryId]: minorUnitsToGroupedMoneyInput(row.actual_minor_units),
     };
 }
 

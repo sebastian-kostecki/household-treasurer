@@ -46,8 +46,11 @@ const iconSizeClass = computed(
 
 <template>
     <span
-        class="bg-muted flex shrink-0 items-center justify-center overflow-hidden rounded-sm"
-        :class="tileSizeClass"
+        class="flex shrink-0 items-center justify-center overflow-hidden rounded-sm"
+        :class="[
+            tileSizeClass,
+            content.kind === 'logo' ? 'bg-bank-mark-plate' : 'bg-muted',
+        ]"
         aria-hidden="true"
     >
         <img
