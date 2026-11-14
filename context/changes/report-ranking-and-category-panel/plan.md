@@ -445,7 +445,7 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Manual
 
-- [ ] 1.6 /reports?category=<id> zwraca requested_category_id, ?category=abc daje null
+- [x] 1.6 /reports?category=<id> zwraca requested_category_id, ?category=abc daje null
 
 ### Phase 2: Ranking zamiast tabeli i wykresu
 
@@ -461,8 +461,8 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Manual
 
-- [ ] 2.8 /dev/ui/reports pokazuje Ranking we wszystkich scenariuszach w obu motywach
-- [ ] 2.9 Tryb Grupy: grupy zwinięte, rozwinięcie po kwocie, tryb zostaje po zmianie okresu i roku
+- [x] 2.8 /dev/ui/reports pokazuje Ranking we wszystkich scenariuszach w obu motywach
+- [x] 2.9 Tryb Grupy: grupy zwinięte, rozwinięcie po kwocie, tryb zostaje po zmianie okresu i roku
 
 ### Phase 3: Panel kategorii w Roku
 
@@ -476,7 +476,7 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Manual
 
-- [ ] 3.6 Scenariusze panel-* w kitchen sinku zgadzają się z kartą PageReports w obu motywach
-- [ ] 3.7 Aplikacja na danych 2025–2026: wybór bez przeładowania, odświeżenie zostawia wybór, Operacje z tą samą sumą
-- [ ] 3.8 Telefon: arkusz otwiera się i zamyka, lista nie przeskakuje, fokus wraca na nazwę
-- [ ] 3.9 Czytnik ekranu: wybrana nazwa ogłasza się jako bieżąca, słupki ukryte, lista miesięcy czytelna
+- [x] 3.6 Scenariusze panel-* w kitchen sinku zgadzają się z kartą PageReports w obu motywach
+- [x] 3.7 Aplikacja na danych 2025–2026: wybór bez przeładowania, odświeżenie zostawia wybór, Operacje z tą samą sumą
+- [x] 3.8 Telefon: arkusz otwiera się i zamyka, lista nie przeskakuje, fokus wraca na nazwę
+- [x] 3.9 Czytnik ekranu: wybrana nazwa ogłasza się jako bieżąca, słupki ukryte, lista miesięcy czytelna
