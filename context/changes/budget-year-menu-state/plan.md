@@ -398,7 +398,7 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Manual
 
-- [ ] 1.3 Treść ADR-0097 zgadza się z trzema decyzjami z planowania i z kartą `Sidebar` (wariant B)
+- [x] 1.3 Treść ADR-0097 zgadza się z trzema decyzjami z planowania i z kartą `Sidebar` (wariant B)
 
 ### Phase 2: Lata z fazą w `shell`
 
@@ -411,7 +411,7 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Manual
 
-- [ ] 2.5 `/dev/ui/sidebar` i Dashboard wyglądają tak samo jak przed zmianą, a przełączenie roku i „Dodaj rok” działają
+- [x] 2.5 `/dev/ui/sidebar` i Dashboard wyglądają tak samo jak przed zmianą, a przełączenie roku i „Dodaj rok” działają
 
 ### Phase 3: Menu ze stanem roku
 
@@ -424,7 +424,7 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Manual
 
-- [ ] 3.5 `/dev/ui/sidebar` w obu motywach pokazuje wszystkie stany z ramek zgodnie z kartą `Sidebar` (wariant B)
-- [ ] 3.6 Czytnik ekranu albo drzewo dostępności podaje nazwy bez stanu i stan jako opis
-- [ ] 3.7 Na telefonie menu roku w arkuszu sidebara wygląda i działa tak samo
-- [ ] 3.8 Strona powitalna pokazuje przycisk 2026 z pigułką „bieżący”
+- [x] 3.5 `/dev/ui/sidebar` w obu motywach pokazuje wszystkie stany z ramek zgodnie z kartą `Sidebar` (wariant B)
+- [x] 3.6 Czytnik ekranu albo drzewo dostępności podaje nazwy bez stanu i stan jako opis
+- [x] 3.7 Na telefonie menu roku w arkuszu sidebara wygląda i działa tak samo
+- [x] 3.8 Strona powitalna pokazuje przycisk 2026 z pigułką „bieżący”

@@ -53,7 +53,7 @@
   - Tradeoff: Needs a human with a browser; cannot be done from tests.
   - Confidence: HIGH — the plan marks them as required before closing.
   - Blind spot: Nobody has looked at the rendered menu in this review.
-- **Decision**: PENDING — six manual checks need a person in a browser (also compare the checked and the focused row).
+- **Decision**: RESOLVED — the six manual checks were done by the user on the preview (http://localhost:8091) and ticked in Progress.
 
 ### F3 — The accessibility contract has no automated guard
 
