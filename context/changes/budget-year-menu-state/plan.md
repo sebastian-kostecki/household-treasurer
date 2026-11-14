@@ -404,10 +404,10 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Automated
 
-- [x] 2.1 Testy shella przechodzą na PostgreSQL w worktree
-- [x] 2.2 Testy JS przechodzą
-- [x] 2.3 Typy przechodzą
-- [x] 2.4 Lint i formatowanie
+- [x] 2.1 Testy shella przechodzą na PostgreSQL w worktree — 7921a61
+- [x] 2.2 Testy JS przechodzą — 7921a61
+- [x] 2.3 Typy przechodzą — 7921a61
+- [x] 2.4 Lint i formatowanie — 7921a61
 
 #### Manual
 
@@ -417,10 +417,10 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Automated
 
-- [ ] 3.1 Testy logiki menu przechodzą
-- [ ] 3.2 Pełna bramka przechodzi w worktree
-- [ ] 3.3 Sloppy bez nowych znalezisk
-- [ ] 3.4 E2E roku budżetu przechodzą bez zmian helpera
+- [x] 3.1 Testy logiki menu przechodzą
+- [x] 3.2 Pełna bramka przechodzi w worktree
+- [x] 3.3 Sloppy bez nowych znalezisk
+- [x] 3.4 E2E roku budżetu przechodzą bez zmian helpera
 
 #### Manual
 

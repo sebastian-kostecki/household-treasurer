@@ -159,28 +159,77 @@ function showYearSelectionError(): void {
     notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
 }
 
-type YearFrame = SidebarFrame & { pending: boolean; open?: boolean };
+type YearFrame = SidebarFrame & {
+    currentYear: number;
+    pending: boolean;
+    open?: boolean;
+};
+
+/** The calendar year of the frames is fixed, so the marks do not move with the clock. */
+const frameCurrentYear = 2026;
+
+function draftYears(
+    years: number[],
+    ...draftYearList: number[]
+): BudgetYearEntry[] {
+    return years.map((year) => ({
+        year,
+        phase: draftYearList.includes(year) ? 'draft' : 'execution',
+    }));
+}
 
 const yearFrames: YearFrame[] = [
     {
         key: 'years-one',
-        label: 'Jeden rok',
+        label: 'Jeden rok bieżący w realizacji',
         budgetYears: executionYears(2026),
         budgetYear: 2026,
+        currentYear: frameCurrentYear,
         pending: false,
     },
     {
-        key: 'years-many',
-        label: 'Wiele lat',
-        budgetYears: executionYears(2022, 2023, 2024, 2025, 2026, 2027),
-        budgetYear: 2026,
+        key: 'years-draft',
+        label: 'Wybrany szkic, nie bieżący',
+        budgetYears: draftYears([2025, 2026, 2027], 2027),
+        budgetYear: 2027,
+        currentYear: frameCurrentYear,
         pending: false,
+    },
+    {
+        key: 'years-current-draft',
+        label: 'Rok bieżący będący szkicem',
+        budgetYears: draftYears([2026], 2026),
+        budgetYear: 2026,
+        currentYear: frameCurrentYear,
+        pending: false,
+    },
+    {
+        key: 'years-open-few',
+        label: 'Do 3 lat, otwarte menu',
+        budgetYears: executionYears(2024, 2025, 2026),
+        budgetYear: 2026,
+        currentYear: frameCurrentYear,
+        pending: false,
+        open: true,
+    },
+    {
+        key: 'years-open',
+        label: '2020–2027, otwarte menu',
+        budgetYears: draftYears(
+            [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027],
+            2027,
+        ),
+        budgetYear: 2026,
+        currentYear: frameCurrentYear,
+        pending: false,
+        open: true,
     },
     {
         key: 'years-empty',
         label: 'Bez budżetu',
         budgetYears: executionYears(),
         budgetYear: null,
+        currentYear: frameCurrentYear,
         pending: false,
     },
     {
@@ -188,15 +237,8 @@ const yearFrames: YearFrame[] = [
         label: 'Oczekiwanie',
         budgetYears: executionYears(2025, 2026),
         budgetYear: 2026,
+        currentYear: frameCurrentYear,
         pending: true,
-    },
-    {
-        key: 'years-open',
-        label: 'Otwarte menu',
-        budgetYears: executionYears(2022, 2023, 2024, 2025, 2026, 2027),
-        budgetYear: 2026,
-        pending: false,
-        open: true,
     },
 ];
 
@@ -312,13 +354,16 @@ const frames: SidebarFrame[] = [
                 years-*: Rok budżetu w menu
             </h2>
             <p class="text-muted-foreground text-sm">
-                Przełącznik w panelu 224 px: jeden rok, wiele lat (2022–2027),
-                brak budżetu (jeden przycisk „Dodaj rok”), oczekiwanie (przycisk
-                z aria-busy, wybór wyłączony) i otwarte menu (lata od
-                najnowszego, linia, „Dodaj rok N”). „Dodaj rok” otwiera okno
-                nowego budżetu tylko w ramkach z pełnym sidebarem (expanded-*).
+                Przełącznik w panelu 224 px, rok kalendarza stały (2026): jeden
+                rok bieżący w realizacji, wybrany szkic (2027), rok bieżący
+                będący szkicem, do 3 lat z otwartym menu (bez nagłówków),
+                2020–2027 z otwartym menu (grupy „Ostatnie” i „Starsze”), brak
+                budżetu (jeden przycisk „Dodaj rok”) i oczekiwanie (przycisk z
+                aria-busy, wybór wyłączony). Otwarte menu ma podpis pod „Dodaj
+                rok N”. „Dodaj rok” otwiera okno nowego budżetu tylko w ramkach
+                z pełnym sidebarem (expanded-*).
             </p>
-            <div class="grid grid-cols-5 gap-6">
+            <div class="grid grid-cols-4 gap-6">
                 <div
                     v-for="frame in yearFrames"
                     :key="frame.key"
@@ -335,6 +380,7 @@ const frames: SidebarFrame[] = [
                             :ref="frame.pending ? markPending : undefined"
                             :budget-years="frame.budgetYears"
                             :budget-year="frame.budgetYear"
+                            :current-year="frame.currentYear"
                             :preview-open="frame.open"
                         />
                     </SidebarProvider>
