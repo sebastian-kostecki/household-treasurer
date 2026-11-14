@@ -631,6 +631,52 @@
         @apply h-control text-sidebar-strong hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground ring-sidebar-ring flex w-full items-center gap-2 rounded-md px-2 text-sm font-semibold outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
     }
 
+    /* State pills of a year (ADR-0098): "bieżący" outlined in sidebar-border, "szkic" in warning on warning-soft. */
+    .sidebar-year-states {
+        @apply ml-auto flex shrink-0 items-center gap-1;
+    }
+
+    .sidebar-year-state {
+        @apply inline-flex h-4 items-center rounded-full px-1.5 font-sans text-[11px]/4 font-medium;
+    }
+
+    .sidebar-year-state-current {
+        @apply border-sidebar-border text-sidebar-foreground border;
+    }
+
+    .sidebar-year-state-draft {
+        @apply bg-warning-soft text-warning;
+    }
+
+    /* Year menu (ADR-0098): dark like the command palette; the `!` beats the popover utilities of DropdownMenuContent. */
+    .sidebar-year-menu {
+        @apply bg-sidebar! text-sidebar-strong! border-sidebar-border! shadow-dialog rounded-lg!;
+    }
+
+    .sidebar-year-menu-item {
+        @apply focus:bg-sidebar-accent! focus:text-sidebar-accent-foreground! data-[state=checked]:bg-sidebar-accent ring-sidebar-ring [&_svg:not([class*='text-'])]:text-sidebar-foreground focus:ring-2;
+    }
+
+    .sidebar-year-menu-row {
+        @apply font-mono tabular-nums;
+    }
+
+    .sidebar-year-menu-group {
+        @apply label-caps text-sidebar-foreground! px-2 py-1.5;
+    }
+
+    .sidebar-year-menu-note {
+        @apply text-sidebar-foreground font-sans text-[11px]/4;
+    }
+
+    .sidebar-year-menu-caption {
+        @apply text-sidebar-foreground block px-2 pb-1 text-[11px]/4;
+    }
+
+    .sidebar-year-menu-separator {
+        @apply bg-sidebar-border!;
+    }
+
     /* Shortcut marker: the key a view or action answers to (mono, outlined in the current colour). */
     .kbd {
         @apply ml-auto inline-flex min-w-5 items-center justify-center rounded-xs border border-current px-1 font-mono text-[11px]/4 font-medium;

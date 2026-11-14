@@ -52,7 +52,7 @@ Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-00
 | S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | proposed |
 | S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | proposed |
 | S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | ready    |
-| S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | ready    |
+| S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | done |
 
 ## Streams
 
@@ -153,7 +153,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Rozwija ADR-0087 i zmienia współdzielony props `shell.budgetYears` (lata z fazą), który czyta każda strona i paleta ⌘K; ciemne menu to klasa na `DropdownMenuContent`, bez edycji `components/ui`.
-- **Status:** ready
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -228,3 +228,4 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-33: użytkownik może ustawić domyślny procent planowanych przychodów, który propozycja planu wpisuje jako „odkładam”** — Archived 2026-11-12 → `context/archive/2026-11-12-default-set-aside-percent/`. Lesson: —.
 - **S-23: użytkownik może importować operacje z podpowiedziami wskazującymi kategorię listy, trafnymi co najmniej tak jak przed zmianą** — Archived 2026-11-12 → `context/archive/2026-11-12-import-suggestions-on-category-list/`. Lesson: —.
 - **F-07: (foundation) ADR opisuje piątą pozycję okresu „Lata”, ranking z panelem kategorii w miejsce wykresu słupkowego i kolory wykresów (ADR-0097), a słownik nazywa nowy odczyt** — Archived 2026-11-14 → `context/archive/2026-11-14-report-redesign-decisions/`. Lesson: —.
+- **S-38: użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem, z latami w grupach Ostatnie i Starsze i podpisem „szkic z planem roku N−1” przy „Dodaj rok N”** — Archived 2026-11-14 → `context/archive/2026-11-14-budget-year-menu-state/`. Lesson: —.

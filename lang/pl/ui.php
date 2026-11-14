@@ -20,6 +20,11 @@ return [
         'shortcuts_hint' => 'Skróty: 1–:last widoki, N nowa operacja, / szukaj, Esc zamknij.',
         'search_and_go' => 'Szukaj i przejdź',
         'select_year_failed' => 'Nie udało się otworzyć wybranego roku. Odśwież stronę i spróbuj ponownie.',
+        'year_current' => 'bieżący',
+        'year_draft' => 'szkic',
+        'years_recent' => 'Ostatnie',
+        'years_older' => 'Starsze',
+        'add_year_source' => 'szkic z planem roku :year',
     ],
     'palette' => [
         'placeholder' => 'Szukaj widoku, akcji lub kategorii',

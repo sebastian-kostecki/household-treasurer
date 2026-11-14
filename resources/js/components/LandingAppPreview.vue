@@ -132,8 +132,17 @@ const yearProgress = t.budget.year_progress.replace(
                     {{ t.shell.budget_year }}
                 </div>
                 <div class="sidebar-year-trigger">
-                    <span class="tabular-nums">{{ selectedYear }}</span>
-                    <ChevronsUpDown class="ml-auto size-4" />
+                    <span class="font-mono tabular-nums">{{
+                        selectedYear
+                    }}</span>
+                    <span class="sidebar-year-states">
+                        <span
+                            class="sidebar-year-state sidebar-year-state-current"
+                        >
+                            {{ t.shell.year_current }}
+                        </span>
+                    </span>
+                    <ChevronsUpDown class="size-4 shrink-0" />
                 </div>
             </div>
             <div class="flex flex-1 flex-col gap-0.5">
