@@ -587,6 +587,33 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(group).not.toContain('operations(');
     });
 
+    it('reports a failed year switch of every <Link> to the year selection, never silently', () => {
+        const linkFiles = sourceFiles(JS_ROOT).filter((path) => {
+            const source = readFileSync(path, 'utf8');
+
+            return (
+                path.endsWith('.vue') &&
+                source.includes('<Link') &&
+                source.includes('BudgetController.selectYear()')
+            );
+        });
+
+        expect(
+            linkFiles.map((path) =>
+                relative(JS_ROOT, path).split(sep).join('/'),
+            ),
+        ).toContain('components/ReportYearsTable.vue');
+
+        for (const path of linkFiles) {
+            const source = readFileSync(path, 'utf8');
+
+            expect(source, relative(JS_ROOT, path)).toContain('@error=');
+            expect(source, relative(JS_ROOT, path)).toContain(
+                'listenForBudgetYearSelectionFailure',
+            );
+        }
+    });
+
     it('marks the selected Report category with aria-current on a button, never aria-selected (ADR-0100)', () => {
         const row = readFileSync(
             join(JS_ROOT, 'components/ReportRankingRow.vue'),

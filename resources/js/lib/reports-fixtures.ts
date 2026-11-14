@@ -1102,6 +1102,11 @@ const panelClosed: PanelTiming = {
     through: null,
     closed_month_count: 12,
 };
+const panelFuture: PanelTiming = {
+    in_progress_month: null,
+    through: null,
+    closed_month_count: 0,
+};
 const panelJanuary: PanelTiming = {
     in_progress_month: 1,
     through: '2027-01-14',
@@ -1221,6 +1226,18 @@ function buildPanel(
         ...timing,
         years: yearsOptions.years ?? panelYearsSameDay,
         categories,
+    };
+}
+
+/** A year that is no column of the Years report (a future year): no years, `tab` always `months` (ADR-0101). */
+function withoutYearsTab(
+    panel: ReportCategoryPanelData,
+): ReportCategoryPanelData {
+    return {
+        ...panel,
+        tab: 'months',
+        years: null,
+        categories: panel.categories.map((item) => ({ ...item, years: null })),
     };
 }
 
@@ -2267,6 +2284,29 @@ export const reportScenarios: ReportScenario[] = [
                     },
                     counted: 7,
                 },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-future-year',
+        caption:
+            'Rok 2027 w realizacji przy bieżącym 2026 (z ?panel=years w adresie): 2027 nie jest kolumną „Lat”, więc panel nie ma przełącznika, tylko etykietę „Miesiące 2027”',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 1,
+                is_in_progress: false,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: withoutYearsTab(
+                buildPanel(yearReport, panelFuture, 1),
             ),
         },
     },

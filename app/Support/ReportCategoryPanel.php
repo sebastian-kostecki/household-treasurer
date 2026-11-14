@@ -27,13 +27,14 @@ use LogicException;
  * other year and without a current year, so the bars of the viewed year and of
  * the year before equal the tiles.
  *
- * A Budget of a future year is no column of the Years report, so its Categories
- * carry empty years.
+ * A Budget of a future year is no column of the Years report: its panel has no
+ * "Years" tab (`years` is null on the panel and on every Category, `tab` is
+ * always `months`), because the bars could not show the viewed year.
  *
  * @phpstan-type PanelYearsCells array{cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
  * @phpstan-type PanelYears array{columns: list<int>, current_year: int|null, cut: array{month: int, day: int}|null, mode: 'same_day'|'full'}
- * @phpstan-type PanelCategory array{id: int, rhythm: string|null, months: list<int|null>, closed_average_minor_units: int|null, highest_month: int|null, difference_tenths_percent: int|null, years: PanelYearsCells}
- * @phpstan-type PanelShape array{tab: 'months'|'years', requested_category_id: int|null, in_progress_month: int|null, through: string|null, closed_month_count: int, years: PanelYears, categories: list<PanelCategory>}
+ * @phpstan-type PanelCategory array{id: int, rhythm: string|null, months: list<int|null>, closed_average_minor_units: int|null, highest_month: int|null, difference_tenths_percent: int|null, years: PanelYearsCells|null}
+ * @phpstan-type PanelShape array{tab: 'months'|'years', requested_category_id: int|null, in_progress_month: int|null, through: string|null, closed_month_count: int, years: PanelYears|null, categories: list<PanelCategory>}
  */
 final class ReportCategoryPanel
 {
@@ -48,12 +49,6 @@ final class ReportCategoryPanel
         $sameDay = $yearsShape['current_year'] === $budget->year;
         $yearsByCategory = $reportYears->categoriesById($sameDay);
         $yearIsColumn = in_array($budget->year, $yearsShape['columns'], true);
-        $noYears = [
-            'cells' => array_fill(0, count($yearsShape['columns']), null),
-            'change_tenths' => null,
-            'change_first_year' => null,
-            'max_years' => [],
-        ];
 
         $inProgressMonth = $budget->year === $today->year ? $today->month : null;
         $closedMonthCount = match (true) {
@@ -88,22 +83,24 @@ final class ReportCategoryPanel
                 'difference_tenths_percent' => $category['previous_minor_units'] === null
                     ? null
                     : TenthsPercent::of($category['amount_minor_units'] - $category['previous_minor_units'], $category['previous_minor_units']),
-                'years' => $yearsByCategory[$id] ?? ($yearIsColumn ? throw new LogicException("The Years report has no row for Category {$id} in {$budget->year}.") : $noYears),
+                'years' => $yearIsColumn
+                    ? ($yearsByCategory[$id] ?? throw new LogicException("The Years report has no row for Category {$id} in {$budget->year}."))
+                    : null,
             ];
         }
 
         return new self([
-            'tab' => $tab === 'years' ? 'years' : 'months',
+            'tab' => $tab === 'years' && $yearIsColumn ? 'years' : 'months',
             'requested_category_id' => self::requestedCategoryId($requestedCategory, $categories),
             'in_progress_month' => $inProgressMonth,
             'through' => $inProgressMonth === null ? null : $today->toDateString(),
             'closed_month_count' => $closedMonthCount,
-            'years' => [
+            'years' => $yearIsColumn ? [
                 'columns' => $yearsShape['columns'],
                 'current_year' => $yearsShape['current_year'],
                 'cut' => $yearsShape['cut'],
                 'mode' => $sameDay ? 'same_day' : 'full',
-            ],
+            ] : null,
             'categories' => $panelCategories,
         ]);
     }

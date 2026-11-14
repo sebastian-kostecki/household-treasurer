@@ -292,6 +292,23 @@ describe('reportYearBarsAccessibleList', () => {
             '2023: 20 zł',
         ]);
     });
+
+    it('marks the year in progress like the Years table does in full years', () => {
+        const cells = [1000, null, -500, 2000];
+        const bars = reportYearBars(cells, columns, 2023);
+
+        expect(
+            reportYearBarsAccessibleList(bars, cells, money, 'brak pozycji', {
+                year: 2023,
+                label: 'w toku',
+            }),
+        ).toEqual([
+            '2020: 10 zł',
+            '2021: brak pozycji',
+            '2022: -5 zł',
+            '2023, w toku: 20 zł',
+        ]);
+    });
 });
 
 describe('years rows of the panel', () => {

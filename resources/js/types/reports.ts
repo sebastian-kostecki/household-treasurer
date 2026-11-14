@@ -222,8 +222,8 @@ export type ReportCategoryPanelItem = {
     highest_month: number | null;
     /** (amount - previous) / previous in tenths of a percent; null without a usable comparison. */
     difference_tenths_percent: number | null;
-    /** The row of the Category in the Years report in the mode of the panel (ADR-0101). */
-    years: ReportYearsCells;
+    /** The row of the Category in the Years report in the mode of the panel; null when the year is no column of that report (ADR-0101). */
+    years: ReportYearsCells | null;
 };
 
 export type ReportCategoryPanelTab = 'months' | 'years';
@@ -239,7 +239,7 @@ export type ReportCategoryPanelYears = {
 
 /** Mirror of `App\Support\ReportCategoryPanel::toArray()` (ADR-0097), only for the year in execution with operations. */
 export type ReportCategoryPanelData = {
-    /** `?panel=years` opens the years tab. */
+    /** `?panel=years` opens the years tab; always `months` when `years` is null. */
     tab: ReportCategoryPanelTab;
     /** The `?category` that has a row in the year report; null when absent or unknown. */
     requested_category_id: number | null;
@@ -249,7 +249,8 @@ export type ReportCategoryPanelData = {
     through: string | null;
     /** 12 for a past year, the months before today's in the current year, 0 for a future year. */
     closed_month_count: number;
-    years: ReportCategoryPanelYears;
+    /** Null for a year that is no column of the Years report (a future year): the panel has no "Lata" tab. */
+    years: ReportCategoryPanelYears | null;
     categories: ReportCategoryPanelItem[];
 };
 

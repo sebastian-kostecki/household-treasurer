@@ -314,6 +314,22 @@ test.describe('Raporty: zakładka „Lata” panelu i linki tabeli „Lat” w k
         await expect(
             panel.locator('[data-panel-row="years-range"]'),
         ).toContainText('Pełne lata');
+        await expect(
+            panel.locator('[data-report-year-bars] ul li').last(),
+        ).toHaveText(/^2026, w toku: /);
+    });
+
+    test('panel-years-future-year: rok spoza kolumn „Lat” bez przełącznika, na miesiącach', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-years-future-year').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(panel.locator('.segmented-control')).toHaveCount(0);
+        await expect(panel).toContainText('Miesiące 2027');
+        await expect(panel.locator('[data-report-year-bars]')).toHaveCount(0);
+        await expect(panel.locator('[data-panel-row="average"]')).toBeVisible();
     });
 
     test('years-same-day: Kino bez linku, pozostałe nazwy z linkiem', async ({

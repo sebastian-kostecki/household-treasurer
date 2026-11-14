@@ -152,7 +152,7 @@ Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`
 
 ## Wykresy
 
-Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): wykres z osią ma obok tabelę z tymi samymi liczbami, a sam jest `aria-hidden="true"`. Znaczniki w wierszu (pasek udziału rankingu, sparkline „Lat”) dublują liczby swojego wiersza i też są `aria-hidden`; słupki miesięcy panelu kategorii nie mają tabeli obok, więc niosą listę `sr-only` z 12 kwotami, a słupki lat panelu z kwotami wszystkich lat (ADR-0097, ADR-0101). Nagłówek sekcji panelu to przełącznik „Miesiące <rok> | Lata” (`SegmentedControl` `neutral`, ADR-0101). Biblioteka to shadcn-vue `chart` na Unovis; wygenerowane `components/ui/chart/**` nie jest edytowane dla jednego ekranu.
+Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): wykres z osią ma obok tabelę z tymi samymi liczbami, a sam jest `aria-hidden="true"`. Znaczniki w wierszu (pasek udziału rankingu, sparkline „Lat”) dublują liczby swojego wiersza i też są `aria-hidden`; słupki miesięcy panelu kategorii nie mają tabeli obok, więc niosą listę `sr-only` z 12 kwotami, a słupki lat panelu z kwotami wszystkich lat (ADR-0097, ADR-0101). Nagłówek sekcji panelu to przełącznik „Miesiące <rok> | Lata” (`SegmentedControl` `neutral`, ADR-0101); rok spoza kolumn „Lat” (przyszły rok w realizacji) ma zamiast niego samą etykietę „Miesiące <rok>” w `meta`. Biblioteka to shadcn-vue `chart` na Unovis; wygenerowane `components/ui/chart/**` nie jest edytowane dla jednego ekranu.
 
 | Token     | Rola na wykresie                                                                 |
 | --------- | --------------------------------------------------------------------------------- |

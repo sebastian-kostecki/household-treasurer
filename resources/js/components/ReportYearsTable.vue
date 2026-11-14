@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { ChevronDown } from '@lucide/vue';
-import { computed, reactive, useId } from 'vue';
+import { computed, onUnmounted, reactive, ref, useId } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import CategoryChip from '@/components/CategoryChip.vue';
 import ListSurface from '@/components/ListSurface.vue';
 import ReportYearsRow from '@/components/ReportYearsRow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    listenForBudgetYearSelectionFailure,
+    notifyBudgetYearSelectionFailed,
+} from '@/lib/budget-year-selection';
 import type { ReportYearsCategory, ReportYearsSection } from '@/types/reports';
 
 const props = defineProps<{
@@ -62,6 +66,21 @@ function categoryLinkData(
         report_panel: 'years',
     };
 }
+
+/** A year switch in flight: the links are disabled and a failure shows the same toast as the sidebar switch. */
+const panelLinkPending = ref(false);
+
+function onPanelLinkFailed(): void {
+    notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
+}
+
+// <Link> exposes no HTTP/network error callbacks, only validation `error`.
+onUnmounted(
+    listenForBudgetYearSelectionFailure(
+        () => panelLinkPending.value,
+        t.shell.select_year_failed,
+    ),
+);
 
 function panelLinkLabel(name: string): string {
     return t.reports.years_open_panel
@@ -144,9 +163,16 @@ function toggleLabel(name: string, open: boolean): string {
                                 :data="categoryLinkData(entry)"
                                 :preserve-scroll="false"
                                 :preserve-state="false"
+                                :disabled="panelLinkPending ? true : undefined"
+                                :aria-busy="
+                                    panelLinkPending ? 'true' : undefined
+                                "
                                 class="report-name-link cursor-pointer text-left"
                                 :aria-label="panelLinkLabel(entry.name)"
                                 data-report-years-link
+                                @start="panelLinkPending = true"
+                                @error="onPanelLinkFailed"
+                                @finish="panelLinkPending = false"
                             >
                                 <CategoryChip
                                     :name="entry.name"
@@ -237,11 +263,22 @@ function toggleLabel(name: string, open: boolean): string {
                                         :data="categoryLinkData(category)"
                                         :preserve-scroll="false"
                                         :preserve-state="false"
+                                        :disabled="
+                                            panelLinkPending ? true : undefined
+                                        "
+                                        :aria-busy="
+                                            panelLinkPending
+                                                ? 'true'
+                                                : undefined
+                                        "
                                         class="report-name-link cursor-pointer text-left"
                                         :aria-label="
                                             panelLinkLabel(category.name)
                                         "
                                         data-report-years-link
+                                        @start="panelLinkPending = true"
+                                        @error="onPanelLinkFailed"
+                                        @finish="panelLinkPending = false"
                                     >
                                         <CategoryChip
                                             :name="category.name"

@@ -17,6 +17,8 @@ const props = defineProps<{
     type: 'income' | 'expense';
     columns: number[];
     currentYear: number | null;
+    /** `full` marks the current year as in progress in the `sr-only` list, as the Years table does. */
+    mode: 'same_day' | 'full';
     /** Cells of the server in the order of `columns`; null is a year without a line. */
     cells: (number | null)[];
 }>();
@@ -33,6 +35,9 @@ const accessibleList = computed(() =>
         props.cells,
         formatMoney,
         t.reports.panel_years_no_line,
+        props.mode === 'full' && props.currentYear !== null
+            ? { year: props.currentYear, label: t.reports.years_in_progress }
+            : null,
     ),
 );
 

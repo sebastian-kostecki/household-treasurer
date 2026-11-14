@@ -1,5 +1,5 @@
 import type { RankedReportCategory } from './report-ranking';
-import { reportYearsCutLabel } from './report-years';
+import { reportYearsCutLabel, reportYearsSparkBars } from './report-years';
 import type { ReportYearsCut } from './report-years';
 
 /** The selected Category of the panel and the list it stands in. */
@@ -238,41 +238,42 @@ export type ReportYearBar = {
 
 /**
  * One bar per column of the panel's years tab (ADR-0101), scaled to the
- * largest positive amount of the row.
+ * largest positive amount of the row: the same scale as the sparkline of the
+ * Years table (`reportYearsSparkBars`).
  */
 export function reportYearBars(
     cells: (number | null)[],
     columns: number[],
     currentYear: number | null,
 ): ReportYearBar[] {
-    const largest = Math.max(0, ...cells.map((cell) => cell ?? 0));
-
-    return columns.map((year, index) => {
-        const cell = cells[index] ?? null;
-
-        return {
-            year,
-            ratio:
-                cell === null || cell <= 0 || largest <= 0
-                    ? 0
-                    : Math.min(1, cell / largest),
-            state: cell === null ? 'none' : 'amount',
-            isCurrent: year === currentYear,
-        };
-    });
+    return reportYearsSparkBars(cells, columns, currentYear).map((bar) => ({
+        year: bar.year,
+        ratio: bar.heightRatio,
+        state: bar.isEmpty ? 'none' : 'amount',
+        isCurrent: bar.isCurrent,
+    }));
 }
 
-/** Entries of the `sr-only` list: "2020: 10 280,00 zł", a year without a line as "2021: <noLineLabel>"; all columns. */
+/**
+ * Entries of the `sr-only` list: "2020: 10 280,00 zł", a year without a line as
+ * "2021: <noLineLabel>"; all columns. `inProgress` marks the year in progress
+ * as the Years table does in full years ("2026, w toku: …").
+ */
 export function reportYearBarsAccessibleList(
     bars: ReportYearBar[],
     cells: (number | null)[],
     formatAmount: (minorUnits: number) => string,
     noLineLabel: string,
+    inProgress: { year: number; label: string } | null = null,
 ): string[] {
     return bars.map((bar, index) => {
         const cell = cells[index] ?? null;
+        const year =
+            bar.year === inProgress?.year
+                ? `${bar.year}, ${inProgress.label}`
+                : String(bar.year);
 
-        return `${bar.year}: ${cell === null ? noLineLabel : formatAmount(cell)}`;
+        return `${year}: ${cell === null ? noLineLabel : formatAmount(cell)}`;
     });
 }
 

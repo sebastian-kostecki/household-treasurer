@@ -705,6 +705,16 @@ class ReportsPageTest extends TestCase
                 ->where('categoryPanel.years.mode', 'full')
                 ->where('categoryPanel.categories.0.years.cells', [8000, 12000]));
 
+        $this->bookExpense($user, 2027, 'Żywność', '2027-02-10', 3000);
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('reports', ['panel' => 'years']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYear', 2027)
+                ->where('categoryPanel.tab', 'months')
+                ->where('categoryPanel.years', null)
+                ->where('categoryPanel.categories.0.years', null));
+
         foreach ([['month' => 3, 'panel' => 'years'], ['view' => 'last-12'], ['view' => 'trend'], ['view' => 'years', 'panel' => 'years']] as $query) {
             $this->actingAs($user)->get(route('reports', $query))
                 ->assertInertia(fn (Assert $page) => $page->where('categoryPanel', null));

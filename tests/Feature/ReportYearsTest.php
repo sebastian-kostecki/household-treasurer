@@ -578,7 +578,6 @@ test('opens_panel equals having a row in the year report of the target year, in 
         'Tylko rok wcześniej przed D' => [2025 => '2025-11-10'],
         'Tylko rok wcześniej po D' => [2025 => '2025-11-20'],
         'Po dziś w roku docelowym' => [2026 => '2026-12-20'],
-        'Dawna' => [2020 => '2020-05-01', 2021 => '2021-05-01', 2022 => '2022-05-01'],
     ];
 
     foreach ($cases as $name => $operations) {
@@ -588,6 +587,11 @@ test('opens_panel equals having a row in the year report of the target year, in 
         }
     }
 
+    $archived = yearsCategory($user, 'Dawna', 'expense', ['archived_at' => now()]);
+    foreach ([2020, 2021, 2022] as $year) {
+        yearsOperation($user, $account, yearsLine($budgets[$year], $archived, true), "{$year}-05-01", 1_000);
+    }
+
     expect(yearsOpensPanel($user, $budgets, '2026-11-14'))->toEqual([
         'W roku docelowym' => true,
         'Tylko rok wcześniej przed D' => true,
@@ -595,6 +599,20 @@ test('opens_panel equals having a row in the year report of the target year, in 
         'Po dziś w roku docelowym' => true,
         'Dawna' => false,
     ]);
+});
+
+test('a column before the target year that is not the year before it does not count for the flag', function () {
+    [$user, $account] = yearsUser();
+    $budgets = yearsBudgets($user, [2024, 2026]);
+    $draft = Budget::factory()->for($user)->create(['year' => 2025]);
+    $category = yearsCategory($user, 'Przed przerwą');
+    $lines = yearsLines($budgets, $category);
+    yearsLine($draft, $category);
+    yearsOperation($user, $account, $lines[2024], '2024-03-01', 1_000);
+    $kept = yearsLines($budgets, yearsCategory($user, 'Bieżąca'));
+    yearsOperation($user, $account, $kept[2026], '2026-03-01', 1_000);
+
+    expect(yearsOpensPanel($user, $budgets, '2026-11-14'))->toEqual(['Przed przerwą' => false, 'Bieżąca' => true]);
 });
 
 test('without a current year the comparison year counts in full for the flag', function () {

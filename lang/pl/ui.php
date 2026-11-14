@@ -492,7 +492,6 @@ return [
         'panel_tab_label' => 'Zakres wykresu',
         'panel_tab_years' => 'Lata',
         'panel_years_list' => 'Kwoty według lat',
-        'panel_years_change' => 'Zmiana od :year',
         'panel_years_range_same_day' => 'Każdy rok do :date',
         'panel_years_range_full' => 'Pełne lata',
         'panel_years_no_line' => 'brak pozycji w budżecie',

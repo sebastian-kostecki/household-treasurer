@@ -194,8 +194,8 @@ final class ReportYears
 
         $target = $columns[count($columns) - 1];
         $years = [$target];
-        if (count($columns) > 1) {
-            $years[] = $columns[count($columns) - 2];
+        if (in_array($target - 1, $columns, true)) {
+            $years[] = $target - 1;
         }
 
         foreach ($years as $year) {

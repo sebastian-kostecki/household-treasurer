@@ -381,15 +381,30 @@ test('a past year panel uses full years and its 2025 and 2024 cells equal the ye
     expect(panelItem($panel, $lateOnly->id)['years']['cells'][1])->toBe(5_050);
 });
 
-test('a Budget of a future year has empty years instead of failing', function () {
+test('a year that is no column of the Years report has no years tab', function () {
+    [$user, $account] = panelUser();
+    $current = panelLine($user, panelBudget($user, 2026), 'expense', 'Żywność');
+    panelOperation($user, $account, $current, '2026-02-01', 300);
+    $future = panelBudget($user, 2027);
+    panelOperation($user, $account, panelLine($user, $future, 'expense', 'Żywność', $current->category), '2027-02-01', 100);
+
+    $panel = panelFor($future, '2026-11-14', null, false, 'years')['panel'];
+
+    expect($panel['tab'])->toBe('months')
+        ->and($panel['years'])->toBeNull()
+        ->and($panel['categories'][0]['years'])->toBeNull();
+});
+
+test('a future year without any column of the Years report has no years tab either', function () {
     [$user, $account] = panelUser();
     $budget = panelBudget($user, 2027);
     panelOperation($user, $account, panelLine($user, $budget, 'expense', 'Żywność'), '2027-02-01', 100);
 
     $panel = panelFor($budget, '2026-11-14', null, false, 'years')['panel'];
 
-    expect($panel['years']['mode'])->toBe('full')
-        ->and($panel['categories'][0]['years']['cells'])->toBe([]);
+    expect($panel['tab'])->toBe('months')
+        ->and($panel['years'])->toBeNull()
+        ->and($panel['categories'][0]['years'])->toBeNull();
 });
 
 test('without a current year the panel years are full years', function () {

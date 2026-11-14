@@ -406,6 +406,23 @@ Brak migracji i zmian danych. Nowe pola propsów i parametr `report_panel` są d
 - Kod: `app/Support/ReportCategoryPanel.php:31`, `app/Support/ReportYears.php:52`, `app/Support/YearsLineActuals.php:63`, `app/Http/Controllers/ReportController.php:82`, `app/Http/Controllers/BudgetController.php:148`, `resources/js/pages/Reports.vue:82`, `resources/js/components/ReportCategoryPanel.vue:236`, `resources/js/components/ReportMonthBars.vue`, `resources/js/components/ReportYearsTable.vue:109`, `resources/js/lib/budget-year-menu.ts:75`
 - Reguły: `.ai/rules/reports.md`, `.ai/rules/inertia-props.md`, `.ai/rules/js.md`, `.ai/rules/wayfinder.md`, `.ai/rules/css.md`
 
+## Addendum — przegląd implementacji (2026-11-14)
+
+Poprawki z `reviews/impl-review.md` (F1–F6), z testem przed poprawką:
+
+- **F1:** `opens_panel` liczy T − 1 tylko wtedy, gdy rok `T − 1` jest kolumną. Wcześniej brał przedostatnią kolumnę także przy przerwie w latach, a porównanie (`ReportComparisonPeriod`) patrzy tylko na rok `T − 1`. Test z przerwą (2025 w szkicu) jest w `ReportYearsTest`.
+- **F2:** plan zakładał w Key Discoveries, że każdy rok z panelem jest kolumną „Lat”. Nie dotyczy to przyszłego roku w realizacji (2027 przy bieżącym 2026).
+  - Taki rok nie ma zakładki „Lata”: `categoryPanel.years` i `categories.*.years` są `null`, a `tab` zawsze `months`.
+  - Nagłówek pokazuje samą etykietę „Miesiące 2027”.
+  - Scenariusz sinka `panel-years-future-year`, decyzja w ADR-0101.
+- **F3:** link z „Lat” ma stan oczekiwania i zgłasza nieudaną zmianę roku tak jak przełącznik w sidebarze (`@error` + `listenForBudgetYearSelectionFailure`). Pilnuje tego `ui-contract.test.ts`.
+- **F5:** `reportYearBars` bazuje na `reportYearsSparkBars`, a klucz `panel_years_change` usunięto na rzecz `years_change_since`.
+- **F6:** lista `sr-only` słupków w trybie `full` oznacza bieżący rok jako „<rok>, w toku”, jak tabela „Lata”.
+- **Przyjęte bez zmian (F4):**
+  - `opens_panel` liczy się w `rows($sameDay)` dla każdego trybu, nie raz poza pętlą. Wartość jest ta sama (oba człony z `$sameDay = true`, bez zapytania).
+  - Scenariusz `panel-years-phone` ma arkusz zamknięty do tapnięcia nazwy, tak jak `panel-phone`.
+  - Przypadek „Dawna” w teście flagi jest teraz zarchiwizowany, zgodnie z planem.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
