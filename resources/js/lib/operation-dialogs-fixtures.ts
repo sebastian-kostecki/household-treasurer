@@ -151,6 +151,14 @@ export const dialogTermDeposits: CapitalMovementFormTermDeposit[] = [
         opening_date: openingDate,
         current_balance_minor_units: 25000,
     },
+    {
+        id: 3,
+        name: 'Lokata Revolut',
+        bank: 'revolut',
+        mark_url: '/marks/revolut.svg',
+        opening_date: openingDate,
+        current_balance_minor_units: 500000,
+    },
 ];
 
 function allMonths(rhythm: Rhythm): Record<number, Rhythm> {

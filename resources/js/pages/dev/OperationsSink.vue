@@ -102,7 +102,7 @@ const filterMatrix = [
     },
     {
         state: 'empty',
-        where: 'Panel „Filtry bez opcji” poniżej: filtr kategorii bez kategorii i filtr lokaty bez lokat.',
+        where: 'Panel „Filtry bez opcji” poniżej: bez kategorii z operacjami i bez lokat oba filtry są ukryte (v-if w OperationsFilters), a nie puste.',
     },
     {
         state: 'loading',
@@ -306,8 +306,8 @@ const noRecords = {
             <OperationsListPanel v-bind="emptySection" />
             <h3 class="section-title">Filtry bez opcji</h3>
             <p class="meta text-muted-foreground">
-                Brak kategorii z operacjami i brak lokat: rozwiń „Filtry”, by
-                zobaczyć puste listy obu filtrów.
+                Brak kategorii z operacjami i brak lokat: po rozwinięciu
+                „Filtrów” oba filtry są ukryte, a nie puste.
             </p>
             <OperationsListPanel v-bind="noFilterOptions" />
 

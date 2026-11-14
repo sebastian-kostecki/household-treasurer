@@ -6,8 +6,9 @@ use App\Support\Categories\CategoryColors;
  * The category tile (ADR-0095) is `--category-color` at `--category-tile-tint` over the card,
  * with the icon in `--category-color` mixed with the foreground at `--category-icon-tint`.
  * Both mixes are done in sRGB, so the maths here is the maths of the browser (`color-mix(in srgb, ...)`).
- * A missing token falls back to the values from before ADR-0095 (tile 15%, icon 100%),
- * which keeps the test red for the old CSS.
+ * Both tints must be plain percentages in both blocks: a token missing from `.dark` would inherit
+ * the `:root` value in the browser, and one missing everywhere drops the whole `color-mix()`,
+ * so a fallback here would measure a pair that never renders.
  */
 const CATEGORY_TILE_MINIMUM_CONTRAST = 3.0;
 
@@ -95,9 +96,12 @@ function categoryTileContrast(array $first, array $second): float
 /**
  * @param  array<string, string>  $tokens
  */
-function categoryTileShare(array $tokens, string $name, float $fallback): float
+function categoryTileShare(array $tokens, string $name): float
 {
-    return isset($tokens[$name]) ? (float) rtrim($tokens[$name], '%') / 100 : $fallback;
+    expect(array_key_exists($name, $tokens))->toBeTrue("{$name} is missing from a token block in app.css")
+        ->and($tokens[$name])->toMatch('/^\d+(\.\d+)?%$/', "{$name} must be a plain percentage");
+
+    return (float) rtrim($tokens[$name], '%') / 100;
 }
 
 /**
@@ -109,8 +113,8 @@ function categoryTileIconContrast(array $tokens, string $color): float
     $foreground = categoryTileRgb($tokens['--foreground']);
     $category = categoryTileRgb($color);
 
-    $tile = categoryTileMix($category, categoryTileShare($tokens, '--category-tile-tint', 0.15), $card);
-    $icon = categoryTileMix($category, categoryTileShare($tokens, '--category-icon-tint', 1.0), $foreground);
+    $tile = categoryTileMix($category, categoryTileShare($tokens, '--category-tile-tint'), $card);
+    $icon = categoryTileMix($category, categoryTileShare($tokens, '--category-icon-tint'), $foreground);
 
     return categoryTileContrast($icon, $tile);
 }

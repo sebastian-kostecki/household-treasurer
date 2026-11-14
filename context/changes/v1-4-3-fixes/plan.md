@@ -468,6 +468,7 @@ C5a z P2 i P3 oraz D1 z P4: układ 2×2 poniżej `sm`, etykiety nad wartościami
   - roczna przekroczona rokiem z ujemnym odchyleniem miesiąca;
   - karta podsumowania z różnicą korzystną, niekorzystną i zerową;
   - ramka 390 px dla tabeli (nazwana klasa w `app.css`, wzór `.report-phone-frame`).
+    - _Addendum (impl-review F2): ramki nie zbudowano. Układ 2×2 przełącza media query `sm` (szerokość okna), więc ramka w szerokim oknie by go nie pokazała. Sink sprawdza się w oknie 390 px; zapisane w ADR-0092._
 
 #### 3. Ton odchylenia
 

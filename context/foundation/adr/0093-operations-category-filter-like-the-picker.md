@@ -11,7 +11,7 @@ Rule. The category filter of Operations is `CategorySelect` with:
 
 The server sends `{id, name, type, icon, color, group, is_archived}` per Category in that order; `name` stays the plain name (the active filter chip and the tests read it) and the component appends the suffix.
 
-Archive (P1). `is_archived` is read from the Budget Line of the selected year; with no year, from the newest line; when the Category has no line (a selected Category without operations), from `categories.archived_at`. This is the rule of the reports (ADR-0074). A Category keeps its place in the list, with no separate archive section. Example: "Transport" archived in 2026 is `false` for `year=2025`, `true` for `year=2026` and `true` with no year.
+Archive (P1). `is_archived` is read from the Budget Line of the selected year; with no year, from the newest line that has operations (the filter lists only Categories with operations, so a newer line without operations, archived or not, does not count); when the Category has no line (a selected Category without operations), from `categories.archived_at`. This is the rule of the reports (ADR-0074). A Category keeps its place in the list, with no separate archive section. Example: "Transport" archived in 2026 is `false` for `year=2025`, `true` for `year=2026` and `true` with no year.
 
 Scope. This replaces in ADR-0069 only the clause that the Operations filter stays flat; the command palette stays flat. The chip of the active filter is unchanged and has no suffix. The component gets optional props (`allOptionLabel`, `archivedSuffix`, `sectionLabels`); without them the dialogs, the merge dialog and the import row render as before.
 

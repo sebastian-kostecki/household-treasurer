@@ -32,7 +32,8 @@ class OperationsFilterOptions
      * The Categories of the filter in the order of the Categories list (ADR-0093):
      * income first, then expense, each type in the order of
      * `ReportCategoryTree::ofType`, flattened. `is_archived` is read from the
-     * Budget Line of the selected year, with no year from the newest line, and
+     * Budget Line of the selected year, with no year from the newest line that
+     * has operations (a newer line without operations does not count), and
      * from the list Category when the selected Category has no such line.
      *
      * @return list<array{id: int, name: string, type: string, icon: string, color: string, group: array{id: int, name: string}|null, is_archived: bool}>

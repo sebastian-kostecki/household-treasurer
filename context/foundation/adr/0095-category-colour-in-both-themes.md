@@ -16,7 +16,7 @@ The tokens `--category-tile-tint` and `--category-icon-tint` have a value in `:r
 
 The mix is in `srgb`, a linear interpolation of the encoded components; mixing with `transparent` gives an alpha that the test composes on `--card`. `oklab` would give other numbers than the test computes. `tests/Unit/CategoryTileContrastTest.php` reads the 24 colours of `CategoryColors`, `--card`, `--foreground` and both shares from `app.css` and requires at least 3:1 for all 48 pairs (24 colours, 2 themes), naming the colour and the theme on failure. Before the change it was red for 16 pairs (15 in the light theme, `#be185d` in the dark theme). A new palette colour or a changed token must keep it green.
 
-Category colour stays identity only (ADR-0071, `design-system.md`): never a status, a bar or an amount. The contrast is measured against `card`; on other surfaces (a popover, a `muted` row) the tiles are checked by eye in the kitchen sinks.
+Category colour stays identity only (ADR-0071, `design-system.md`): never a status, a bar or an amount. The contrast is measured against `card`; on other surfaces (a popover, a `muted` row, the `background` under the tiles of `CategoryIconPicker`) the tiles are checked by eye in the kitchen sinks. Because the tint is now a class in `@layer components` and no longer an inline style, a hover utility on the same element (`hover:bg-secondary` in `CategoryIconPicker`) replaces the tint while the pointer is over the tile; that is intended, the hover marks the pickable option.
 
 We rejected:
 

@@ -486,7 +486,7 @@ function removeFilter(key: OperationsFilterChipKey): void {
                         :model-value="filters.term_deposit_id ?? ''"
                         :accounts="termDepositOptions"
                         :all-option-label="t.operations.filter_term_deposit_all"
-                        :archived-suffix="t.accounts.archived_badge"
+                        :archived-suffix="t.term_deposits.archived_badge"
                         @update:model-value="
                             applyFilters({
                                 term_deposit_id: $event === '' ? null : $event,
