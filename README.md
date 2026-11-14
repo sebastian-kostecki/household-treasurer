@@ -219,7 +219,7 @@ Migracja `create_balance_reconciliations_table` dodaje tylko nową tabelę (ADR-
 
 #### Wczytanie arkusza (lata 2020–2025)
 
-Decyzje: [ADR-0085](context/foundation/adr/0085-sheet-load-of-past-years.md) i [ADR-0092](context/foundation/adr/0092-sheet-load-of-2020-and-2021.md) (lata 2020 i 2021: starszy układ arkusza, „ruchy funduszu”). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
+Decyzje: [ADR-0085](context/foundation/adr/0085-sheet-load-of-past-years.md) i [ADR-0096](context/foundation/adr/0096-sheet-load-of-2020-and-2021.md) (lata 2020 i 2021: starszy układ arkusza, „ruchy funduszu”). Jednorazowo wczytuje lata ze starego arkusza `Budżet_RRRR.xlsx` jako zwykłe Budżety w fazie execution na zarchiwizowane konto „Arkusz RRRR”. Nic istniejącego się nie zmienia: salda, płynność, Budżety 2026 i 2027 zostają. Komendy nie są częścią `scripts/deploy.sh`; uruchamia je człowiek, rok po roku, od najstarszego. Pliki xlsx zawierają prawdziwe dane: nie trafiają do repozytorium.
 
 Procedura na produkcji (`{user}` to e-mail albo ID):
 

@@ -31,7 +31,7 @@ Czytnik zna tylko układ 2022–2025: rok z `Ustawienia!B2`, przychody w kolumni
 
 ## Scope
 
-**In scope:** ADR-0092; poprawka `Budżet_2021.xlsx`; układ 2020–2021 w czytniku (`SheetLayout`); cel `FUND` w plannerze i wydruku komendy; 29 etykiet mapowania; fixture `'2020'` z formułami; testy; README; wczytanie na produkcji.
+**In scope:** ADR-0096; poprawka `Budżet_2021.xlsx`; układ 2020–2021 w czytniku (`SheetLayout`); cel `FUND` w plannerze i wydruku komendy; 29 etykiet mapowania; fixture `'2020'` z formułami; testy; README; wczytanie na produkcji.
 
 **Out of scope:** 2019; korekty kwot w kodzie; opcja `--year`; mapowanie per rok i zmiany wpisów 2022–2025; zmiany zapisu i wycofania, schematu, UI, glosariusza, rytmu „Kosmetyki”.
 
@@ -43,7 +43,7 @@ Enum `SheetLayout` (`Since2022`, `Before2022`) niesie kolumny i etykiety bloków
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. ADR-0092 i poprawka pliku 2021 | Decyzje przed kodem; plik z `C16` = 90 211,55 i dowodem, że zmieniło się tylko to | Edycja XML psuje plik albo pomija zależną komórkę (formuły współdzielone) |
+| 1. ADR-0096 i poprawka pliku 2021 | Decyzje przed kodem; plik z `C16` = 90 211,55 i dowodem, że zmieniło się tylko to | Edycja XML psuje plik albo pomija zależną komórkę (formuły współdzielone) |
 | 2. Czytnik układu 2020–2021 | Rozpoznanie, rok, kolumny, opcjonalny blok medyczny, „Na tydzień”; testy najpierw | Regres w układzie 2022–2025 |
 | 3. Planner, mapowanie, ruchy funduszu | `FUND`, 29 etykiet, wydruk, `--dry-run` sześciu prawdziwych plików | „Analiza” nie liczy któregoś wiersza funduszu tak, jak ustalono → różnica sum |
 | 4. Dokumentacja i bramka | README 2020–2025, `ci:check` na PostgreSQL, Sloppy | Nowe znalezisko Sloppy w czytniku |

@@ -6,7 +6,7 @@ Rule. A **Sheet Load** is a one-off administrative command (`budget:load-sheet`,
 
 Decisions of the planning (register 1–8):
 
-1. Scope: 2022, 2023, 2024, 2025. One parser finds the blocks by their labels; a mapping file holds the label variants. A layout that is not one of the four read ones is refused with the name of the cell. (Extended by ADR-0092: 2020 and 2021 in a second layout; ADR-0092 also changes decisions 3, 4 and 7 for those years.)
+1. Scope: 2022, 2023, 2024, 2025. One parser finds the blocks by their labels; a mapping file holds the label variants. A layout that is not one of the four read ones is refused with the name of the cell. (Extended by ADR-0096: 2020 and 2021 in a second layout; ADR-0096 also changes decisions 3, 4 and 7 for those years.)
 2. Account: a Sheet Account per year, left out of the liquidity at the start of the year (`BudgetDeficitWarning`), of Spendable Liquidity and of Total funds, hidden on the dashboard and the Accounts page, visible in the Operations Account filter.
 3. Rows: „Analiza jest prawdą”. Each year sums to `Analiza!B16` (income) and `Analiza!C16` (expense) of its file. Payments into savings and the „oszczędności” income row are skipped; the set-aside marks `**` (in 2022 also `*`) are an expense in their own Category; a month total larger than its list is one operation „reszta bez rozpisania”. Negative income cells (transfers between months) are carried as an expense correction or a refund in the same month, because income is at least 1.
 4. „Codzienne wydatki” goes to Artykuły spożywcze; in 2022 by its breakdown (hygiene and cosmetics to Rzeczy osobiste, nappies to Dzieci, the rest to Artykuły spożywcze).

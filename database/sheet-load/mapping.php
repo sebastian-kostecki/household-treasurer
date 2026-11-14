@@ -6,7 +6,7 @@ use App\Support\SheetLoad\SheetMapping;
  * The mapping of the old budget sheet to the Category list, accepted by the user (legacy-budget-import, ADR-0085).
  * Labels are normalised: lower case, no trailing `*`, "work:" written as "praca:". A target is a Category id,
  * SheetMapping::SKIP (a transfer, not an operation, outside "Analiza"), SheetMapping::FUND (a fund movement of 2020-2021,
- * ADR-0092: no operation, but "Analiza" counts it; only in `expenses` and `income`) or SheetMapping::NEW_CATEGORY
+ * ADR-0096: no operation, but "Analiza" counts it; only in `expenses` and `income`) or SheetMapping::NEW_CATEGORY
  * (the archived "Kosmetyki").
  * Ids 1-38 come from the production copy on dev; `categories` holds the name and type each id must have in the
  * target database (the command refuses on any difference).
@@ -44,7 +44,7 @@ return [
         'fundusz wydatków nieregularnych' => 10,
         'oszczędności długoterminowe' => SheetMapping::SKIP,
 
-        // 2020-2021 (ADR-0092).
+        // 2020-2021 (ADR-0096).
         'hbo go' => 23,
         'netflix' => 23,
         'ogrzewanie' => 35,
@@ -91,7 +91,7 @@ return [
         'praca' => 10,
         '' => 10,
 
-        // 2020-2021 (ADR-0092).
+        // 2020-2021 (ADR-0096).
         'lekarz' => 20,
         'badania' => 20,
         'gospodarstwo' => 37,
@@ -126,7 +126,7 @@ return [
         'inne' => 7,
         'oszczędności' => SheetMapping::SKIP,
 
-        // 2020-2021 (ADR-0092). The refunds of the fund are "Analiza" income without an operation.
+        // 2020-2021 (ADR-0096). The refunds of the fund are "Analiza" income without an operation.
         'przychody rozłożone' => SheetMapping::FUND,
         'fundusz wydatków nieregularnych' => SheetMapping::FUND,
         'pozostałe (premie, 13)' => 1,

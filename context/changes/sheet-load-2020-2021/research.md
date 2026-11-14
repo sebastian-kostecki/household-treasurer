@@ -32,7 +32,7 @@ Can the Sheet Load (ADR-0085, `budget:load-sheet`) load `storage/app/private/Bud
 - 2020 only: no medical block in January–April (doctor visits sit in the irregular list with categories "Lekarz"/"Badania"), so the irregular list has no end label in those months; the daily breakdown ends at "Na tydzień", not "Do kiedy wydatki".
 - 2021 workbook bug: from July `month!E30` is `SUM(D3:D20)+SUM(D24:D29)` (drops `D23` Rozrywka i wyjścia; June is `SUM(D23:D29)`), so `Analiza!C16` (sum of `E30`) is short by 537,99 zł (Jul 152,49, Aug 47,90, Sep 0, Oct 96,90, Nov 128,80, Dec 111,90). `Analiza!E16:K16` (category columns) sums to 90 211,55 = the planned total. "Analiza jest prawdą" (ADR-0085 decision 3) cannot hold to the grosz for 2021 expenses without an explicit decision.
 - Unmapped labels (table in §4): 2020 — 24 (12 expense, 2 income, 1 daily, 9 irregular); 2021 — 13 (7 expense, 3 income, 1 daily, 2 irregular). The planner refuses on any unmapped label, including zero-amount rows (`SheetLoadPlanner.php:56,93,145,241`).
-- Nothing in the domain blocks the years 2020/2021 (year validation 2000–2100, locks keyed by `accounts.sheet_year`, reports generic). ADR-0085 limits the scope to 2022–2025 only because those were the files supplied (`archive/.../plan.md:42`), so a new ADR (next free: 0092) amends decision 1 before code.
+- Nothing in the domain blocks the years 2020/2021 (year validation 2000–2100, locks keyed by `accounts.sheet_year`, reports generic). ADR-0085 limits the scope to 2022–2025 only because those were the files supplied (`archive/.../plan.md:42`), so a new ADR (next free: 0096) amends decision 1 before code.
 
 ## Detailed Findings
 
@@ -146,7 +146,7 @@ Notes: the planner links the medical list to the expense row by the exact label 
 
 ## Open Questions
 
-1. **2021 `Analiza!C16` bug (537,99 zł):** load against a corrected expected total (e.g. a per-year expected-total override recorded in `mapping.php` with the reason) or against `Analiza!E16:K16`; the user decides; ADR-0092 records it.
+1. **2021 `Analiza!C16` bug (537,99 zł):** load against a corrected expected total (e.g. a per-year expected-total override recorded in `mapping.php` with the reason) or against `Analiza!E16:K16`; the user decides; ADR-0096 records it.
 2. **Category for each new label** (table in §4), especially whether Fundusz Wydatków Celowych*, Rezerwa na wydatki*, Święta*, Prezenty* (2021 legend: transfers to "PNB oszczędnościowy") and Nadpłata kredytu are expenses in their own Category (ADR-0085 decision 3 precedent) — they must not be SKIP while Analiza counts them.
 3. **Possible double counting** of "przychody rozłożone" (2021: marzec 2800 = `marzec!L23` ortodonta 2800; kwiecień 2100 vs 2450 does not match) — unproven; follows Analiza if mapped as income.
 4. **Year source** for 2020 (no year number): command option, file name or `maj!A1`; for 2021 `styczeń!A1` works.

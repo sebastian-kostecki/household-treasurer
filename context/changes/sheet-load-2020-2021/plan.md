@@ -63,7 +63,7 @@ Pliki 2022–2025 dają przy `--dry-run` te same sumy co dziś (README: 2022 106
 
 ## Implementation Approach
 
-Najpierw decyzje (ADR-0092, ADR przed kodem wg `AGENTS.md`) i poprawka pliku 2021, żeby kod pracował na danych, które „Analiza” opisuje poprawnie. Potem czytnik: enum `SheetLayout` niesie wszystko, co różni dwa układy (kolumny, etykiety bloku medycznego, czy nagłówek „nazwa” i blok medyczny są wymagane), a `BudgetSheetReader` go rozpoznaje. Potem planner: nowy cel `SheetMapping::FUND` daje „ruch funduszu” bez operacji, który wchodzi do uzgodnienia z „Analizą” i do wydruku `--dry-run`; zapis i saldo otwarcia dalej liczą tylko operacje. Wiersz „Lekarz - dentysta” wiąże się z listą „Lekarze - dentysta” tak jak „Leczenie prywatne”. Na końcu dokumentacja, bramka i wczytanie na produkcji wg procedury z README.
+Najpierw decyzje (ADR-0096, ADR przed kodem wg `AGENTS.md`) i poprawka pliku 2021, żeby kod pracował na danych, które „Analiza” opisuje poprawnie. Potem czytnik: enum `SheetLayout` niesie wszystko, co różni dwa układy (kolumny, etykiety bloku medycznego, czy nagłówek „nazwa” i blok medyczny są wymagane), a `BudgetSheetReader` go rozpoznaje. Potem planner: nowy cel `SheetMapping::FUND` daje „ruch funduszu” bez operacji, który wchodzi do uzgodnienia z „Analizą” i do wydruku `--dry-run`; zapis i saldo otwarcia dalej liczą tylko operacje. Wiersz „Lekarz - dentysta” wiąże się z listą „Lekarze - dentysta” tak jak „Leczenie prywatne”. Na końcu dokumentacja, bramka i wczytanie na produkcji wg procedury z README.
 
 ## Critical Implementation Details
 
@@ -73,7 +73,7 @@ Najpierw decyzje (ADR-0092, ADR przed kodem wg `AGENTS.md`) i poprawka pliku 202
   docker run --rm -u 1000:1000 -e HOME=/tmp -e DB_CONNECTION=pgsql -e DB_HOST=pgsql -e DB_DATABASE=household_treasurer -e DB_USERNAME=sail -e DB_PASSWORD=password --network household-treasurer_sail -v "$PWD":/var/www/html -v /home/sebastian/my-projects/household-treasurer/storage/app/private:/sheets:ro -w /var/www/html --entrypoint php sail-8.5/app -d memory_limit=1G artisan budget:load-sheet 1 /sheets/Budżet_2020.xlsx --dry-run
   ```
 
-## Faza 1: ADR-0092 i poprawka pliku 2021
+## Faza 1: ADR-0096 i poprawka pliku 2021
 
 ### Overview
 
@@ -81,9 +81,9 @@ Zapisuje decyzje przed kodem i poprawia błąd formuły w `Budżet_2021.xlsx`, t
 
 ### Changes Required:
 
-#### 1. ADR-0092
+#### 1. ADR-0096
 
-**File**: `context/foundation/adr/0092-sheet-load-of-2020-and-2021.md`
+**File**: `context/foundation/adr/0096-sheet-load-of-2020-and-2021.md`
 
 **Intent**: Zmienia decyzje 1, 3, 4 i 7 ADR-0085 dla lat 2020 i 2021 i zapisuje rozstrzygnięcia tego planowania wraz z odrzuconymi wariantami.
 
@@ -99,7 +99,7 @@ Zapisuje decyzje przed kodem i poprawia błąd formuły w `Budżet_2021.xlsx`, t
 
 **File**: `context/foundation/adr/0085-sheet-load-of-past-years.md`
 
-**Intent**: Czytelnik ADR-0085 ma wiedzieć, że zakres i decyzje 3, 4, 7 rozszerza ADR-0092.
+**Intent**: Czytelnik ADR-0085 ma wiedzieć, że zakres i decyzje 3, 4, 7 rozszerza ADR-0096.
 
 **Contract**: Jedno zdanie przy decyzji 1 (na wzór „amended by ADR-0089”), bez przepisywania treści.
 
@@ -121,7 +121,7 @@ Zapisuje decyzje przed kodem i poprawia błąd formuły w `Budżet_2021.xlsx`, t
 
 #### Automated Verification:
 
-- `context/foundation/adr/0092-sheet-load-of-2020-and-2021.md` istnieje, a ADR-0085 odsyła do niego
+- `context/foundation/adr/0096-sheet-load-of-2020-and-2021.md` istnieje, a ADR-0085 odsyła do niego
 - Skrypt porównania kończy się kodem 0: różnią się tylko komórki oczekiwane, `Analiza!C16` = 90 211,55, `E30` lipiec–grudzień ma formułę `SUM(D3:D20)+SUM(D23:D29)`
 - `Budżet_2021.przed-korekta.xlsx` istnieje i ma SHA-256 sprzed poprawki zapisane w `workbook-fix.md`
 
@@ -271,7 +271,7 @@ Nowy cel mapowania „ruch funduszu”, rozbicie „Lekarz - dentysta” na pozy
 | irregular_categories | higiena | 29 Rzeczy osobiste |
 | irregular_categories | kary | 10 Pozostałe |
 
-Komentarz nagłówka pliku wymienia `FUND` i ADR-0092; komentarz przy „międzyokresowe” mówi, czemu 1 (to samo źródło co premie, inaczej jedyna ujemna komórka źródła).
+Komentarz nagłówka pliku wymienia `FUND` i ADR-0096; komentarz przy „międzyokresowe” mówi, czemu 1 (to samo źródło co premie, inaczej jedyna ujemna komórka źródła).
 
 #### 4. Wydruk komendy
 
@@ -329,7 +329,7 @@ README opisuje wczytanie lat 2020–2025, a pełna bramka przechodzi na PostgreS
 
 **Intent**: Procedura obejmuje 2020 i 2021: nagłówek, pętla kopiowania plików, oczekiwane sumy `--dry-run` (z ruchami funduszu), uwaga o poprawionym pliku 2021 (SHA-256 z `workbook-fix.md`) i o nowym pliku „przed” liczb kontrolnych (stary `20261112-…` jest nieaktualny po dodaniu lat).
 
-**Contract**: Sekcja „Wczytanie arkusza (lata 2020–2025)” z odwołaniem do ADR-0085 i ADR-0092; reszta README bez zmian.
+**Contract**: Sekcja „Wczytanie arkusza (lata 2020–2025)” z odwołaniem do ADR-0085 i ADR-0096; reszta README bez zmian.
 
 ### Success Criteria:
 
@@ -411,11 +411,11 @@ Brak migracji. Wycofanie roku: `budget:unload-sheet {user} 2020` / `2021` jak dl
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
 
-### Phase 1: ADR-0092 i poprawka pliku 2021
+### Phase 1: ADR-0096 i poprawka pliku 2021
 
 #### Automated
 
-- [x] 1.1 `context/foundation/adr/0092-sheet-load-of-2020-and-2021.md` istnieje, a ADR-0085 odsyła do niego — 49ca654
+- [x] 1.1 `context/foundation/adr/0096-sheet-load-of-2020-and-2021.md` istnieje, a ADR-0085 odsyła do niego — 49ca654
 - [x] 1.2 Skrypt porównania kończy się kodem 0: różnią się tylko komórki oczekiwane, `Analiza!C16` = 90 211,55, `E30` lipiec–grudzień ma formułę `SUM(D3:D20)+SUM(D23:D29)` — 49ca654
 - [x] 1.3 `Budżet_2021.przed-korekta.xlsx` istnieje i ma SHA-256 sprzed poprawki zapisane w `workbook-fix.md` — 49ca654
 
