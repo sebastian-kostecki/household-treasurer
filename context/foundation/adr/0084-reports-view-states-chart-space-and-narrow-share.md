@@ -20,3 +20,5 @@ We rejected:
 - breaking the category name over lines (a new prop in the shared `CategoryChip`) and deferring the narrow layout;
 - the share on the second line of the three columns, beside the previous year (it fits the grid, but the second line of a row with a comparison already holds two cells, so the share would have no place of its own);
 - leaving the share unchanged when a comparison is shown (two layouts of one column below 36rem, and the name is cut in the compared table too).
+
+Amended by ADR-0097: the switch has five segments, „Rok | Miesiąc | 12 miesięcy | Trend | Lata” (:5), and `ReportBarChart` with its reserved room `reportChartHeightRem(barCount, compared)` and the `Skeleton` goes away with the bar chart (:7).

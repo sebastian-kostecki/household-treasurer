@@ -69,7 +69,7 @@ Tekst musi mieć kontrast co najmniej 4,5:1, grafika 3:1. Pary tekstu z systemu 
 
 ## Kwoty
 
-Zapisywane jako całkowite Minor units. Wyświetlane przez `formatMoney`: `1 234,56 zł`, spacja tysięcy, przecinek, zawsze dwa miejsca, wyrównanie do prawej. W tabeli (każdy `ListSurface` z wierszami na siatce: komórki, wiersze dnia, wiersze sum i podpisy w wierszu, np. dostępny limit czy podsumowanie roczne) jednostka stoi w stopce panelu („Kwoty w zł”), więc kwota używa `formatMoneyAmount` (ta sama liczba bez „zł”) albo wariantu ze znakiem bez jednostki, ze stylem `amount`; to jedna zasada (ADR-0058) z jednym wyjątkiem: tabele Trendu w Raportach pokazują pełne złote (`formatWholeMoneyAmount`, zaokrąglenie połowy od zera, nigdy „-0”) ze stopką „Kwoty w zł, zaokrąglone do pełnych złotych” (ADR-0077). Miary (`StatPanel`), dialogi i pola `FormField`, karty alertów, paleta poleceń i teksty ciągłe zostają przy `formatMoney` z „zł”. Pola edycji: `minorUnitsToMoneyInput` / `parseMoneyInputToMinorUnits`. Znak minus przed kwotą, nie nawias.
+Zapisywane jako całkowite Minor units. Wyświetlane przez `formatMoney`: `1 234,56 zł`, spacja tysięcy, przecinek, zawsze dwa miejsca, wyrównanie do prawej. W tabeli (każdy `ListSurface` z wierszami na siatce: komórki, wiersze dnia, wiersze sum i podpisy w wierszu, np. dostępny limit czy podsumowanie roczne) jednostka stoi w stopce panelu („Kwoty w zł”), więc kwota używa `formatMoneyAmount` (ta sama liczba bez „zł”) albo wariantu ze znakiem bez jednostki, ze stylem `amount`; to jedna zasada (ADR-0058) z jednym wyjątkiem: tabele Trendu i „Lat” w Raportach pokazują pełne złote (`formatWholeMoneyAmount`, zaokrąglenie połowy od zera, nigdy „-0”) ze stopką „Kwoty w zł, zaokrąglone do pełnych złotych” (ADR-0077, ADR-0097). Miary (`StatPanel`), dialogi i pola `FormField`, karty alertów, paleta poleceń i teksty ciągłe zostają przy `formatMoney` z „zł”. Pola edycji: `minorUnitsToMoneyInput` / `parseMoneyInputToMinorUnits`. Znak minus przed kwotą, nie nawias.
 
 Kwota operacji w Operacjach (`formatFinancialOperationAmount`, bez „zł”) ma znak z typu: dochód i zwrot `+` w `text-success`, wydatek `−` w `text-foreground`, nie w `destructive` (ADR-0038; `financialOperationAmountClass`). Suma dnia w wierszu dnia (`formatOperationDaySum`, `operationDaySumClass`) ma ten sam znak i kolor: `> 0` → `+` w `text-success`, `< 0` → `−` w `text-foreground`, `0` → `0,00`. To suma z serwera (prop `operationDaySums`): dochód − wydatek, zwroty netto, bez transferów i ruchów kapitału, przy aktywnych filtrach, dla całego dnia. Etykieta dnia to data słowami z `formatDayLabel` („środa, 4 listopada”, z rokiem, gdy nie bieżący).
 
@@ -151,19 +151,22 @@ Tokeny `--sidebar-*` w `app.css` (w obu trybach). Tło to `--sidebar-background`
 
 ## Wykresy
 
-Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): obok stoi tabela z tymi samymi wierszami w tej samej kolejności, a wykres ma `aria-hidden="true"`. Biblioteka to shadcn-vue `chart` na Unovis; wygenerowane `components/ui/chart/**` nie jest edytowane dla jednego ekranu.
+Wykres jest dodatkiem do tabeli, nigdy jedyną formą danych (ADR-0071): wykres z osią ma obok tabelę z tymi samymi liczbami, a sam jest `aria-hidden="true"`. Znaczniki w wierszu (pasek udziału rankingu, sparkline „Lat”) dublują liczby swojego wiersza i też są `aria-hidden`; słupki miesięcy panelu kategorii nie mają tabeli obok, więc niosą listę `sr-only` z 12 kwotami (ADR-0097). Biblioteka to shadcn-vue `chart` na Unovis; wygenerowane `components/ui/chart/**` nie jest edytowane dla jednego ekranu.
 
 | Token     | Rola na wykresie                                                                 |
 | --------- | --------------------------------------------------------------------------------- |
-| `chart-1` | słupki wydatków (Atrament: `#0b6f8a` jasny, `#2fb4d4` ciemny)                     |
-| `chart-2` | słupki tego samego okresu rok wcześniej (Atrament: `#7a8797` jasny, `#8a97a8` ciemny); neutralne tło dla bieżącego okresu, bez znaczenia typu |
-| `success` | słupki przychodów                                                                 |
-| `track`   | tło pasa (nie niesie danych)                                                      |
+| `chart-1` | wypełnienie wydatku: słupki Trendu, pasek udziału rankingu, sparkline „Lat”, słupki miesięcy panelu i kreskowanie miesiąca w toku (Atrament: `#0b6f8a` jasny, `#2fb4d4` ciemny)                     |
+| `chart-2` | ten sam okres rok wcześniej; zarezerwowany, po ADR-0097 bez odbiorcy w aplikacji (Atrament: `#7a8797` jasny, `#8a97a8` ciemny); neutralne tło dla bieżącego okresu, bez znaczenia typu |
+| `success` | wypełnienie przychodu                                                             |
+| `foreground` | rok bieżący w sparkline „Lat”, najwyższy miesiąc w panelu kategorii            |
+| `track`   | tło pasa i rok bez pozycji w budżecie (kreska 2 px, pusty pasek); nie niesie kwoty, „—” niesie komórka tabeli, więc kreska nie musi mieć 3:1 wobec `card` |
 | `border`  | linie siatki w 50% (nie niosą danych); maluje je `ChartContainer` z `ui/chart`    |
 
-Grafika wykresu ma kontrast co najmniej 3:1 wobec `card` w obu trybach: `chart-1` 5,75:1 (jasny) i 7,16:1 (ciemny), `chart-2` 3,66:1 i 5,89:1, `success` 6,52:1 i 9,99:1. Kolor kategorii nigdy nie maluje słupków (zostaje w `CategoryChip`). `chart-3..5` są nieużywane; użyte po raz pierwszy wymagają sprawdzonego kontrastu w obu trybach i wpisu tutaj.
+Grafika wykresu ma kontrast co najmniej 3:1 wobec `card` w obu trybach: `chart-1` 5,75:1 (jasny) i 7,16:1 (ciemny), `chart-2` 3,66:1 i 5,89:1, `success` 6,52:1 i 9,99:1, `foreground` 17,28:1 i 14,70:1. Kolor kategorii nigdy nie maluje słupków (zostaje w `CategoryChip`). `chart-3..5` są nieużywane; użyte po raz pierwszy wymagają sprawdzonego kontrastu w obu trybach i wpisu tutaj.
 
 Wykres trendu (karta „Miesiące” widoku Trend, ADR-0077) to pionowe słupki: 12 miesięcy na osi X (`month_chip_N`), dwa słupki na miesiąc, przychody w `success` i wydatki w `chart-1`, na wspólnej skali z osią w pełnych złotych. Legenda ma dwie próbki, a gdy rok jest bieżący, dopisuje notkę „<miesiąc> w toku”. Nie dochodzi żaden token.
+
+Role wykresów po ADR-0097: wypełnienie wydatku to `chart-1` także w rankingu, „Latach” i panelu; karty Atramentu malują wypełnienia przez `chart-1`, nie `brand-text` (jeden token nie znaczy jednocześnie linku i wykresu).
 
 ## Tryb ciemny
 
