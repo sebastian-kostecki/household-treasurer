@@ -719,7 +719,7 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 - [x] 4.1 Testy tonu odchylenia czerwone przed modułem i zielone po nim, round-trip formattera przechodzi — ba7179a
 - [x] 4.2 MonthPlanHardcodedUiTest i MonthPlanPageTest przechodzą — ba7179a
 - [x] 4.3 npm run check:ui i npm run types:check przechodzą — ba7179a
-- [x] 4.4 Specy E2E irregular-collected i month-plan-groups przechodzą
+- [x] 4.4 Specy E2E irregular-collected i month-plan-groups przechodzą — beb1cff
 
 #### Manual
 
@@ -732,9 +732,9 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 
 #### Automated
 
-- [x] 5.1 composer ci:check na PostgreSQL przechodzi
-- [x] 5.2 sloppy ci bez nowych znalezisk
-- [x] 5.3 Skan wartości na sztywno: najwyżej 1 trafienie
+- [x] 5.1 composer ci:check na PostgreSQL przechodzi — beb1cff
+- [x] 5.2 sloppy ci bez nowych znalezisk — beb1cff
+- [x] 5.3 Skan wartości na sztywno: najwyżej 1 trafienie — beb1cff
 - [ ] 5.4 Pełny zestaw E2E przechodzi
 
 #### Manual
