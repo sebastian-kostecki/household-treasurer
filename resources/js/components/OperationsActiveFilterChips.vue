@@ -5,7 +5,7 @@ import AccountAvatar from '@/components/AccountAvatar.vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import type { AccountBank, AccountPickerOption } from '@/lib/account-identity';
 import { formatDate } from '@/lib/format';
 
 export type OperationsFilterChipKey =
@@ -44,6 +44,8 @@ type ChipAccount = AccountPickerOption & { is_archived: boolean };
 type ChipTermDeposit = {
     id: number;
     name: string;
+    bank: AccountBank;
+    mark_url: string | null;
 };
 
 const props = defineProps<{
@@ -67,6 +69,7 @@ type FilterChip = {
     removeLabel: string;
     category?: ChipCategory;
     account?: ChipAccount;
+    termDeposit?: ChipTermDeposit;
 };
 
 const selectedCategory = computed(() => {
@@ -196,6 +199,7 @@ const chips = computed((): FilterChip[] => {
             key: 'termDeposit',
             label,
             removeLabel: removeAriaLabel(label),
+            termDeposit: selectedTermDeposit.value,
         });
     } else if (props.filters.term_deposit_id !== null) {
         const label = String(props.filters.term_deposit_id);
@@ -260,6 +264,13 @@ const suppressedNote = computed(() => {
                     :type="chip.account.type"
                     :bank="chip.account.bank"
                     :mark_url="chip.account.mark_url"
+                />
+                <AccountAvatar
+                    v-else-if="chip.termDeposit"
+                    size="xs"
+                    type="bank"
+                    :bank="chip.termDeposit.bank"
+                    :mark_url="chip.termDeposit.mark_url"
                 />
                 <span class="truncate text-xs font-medium">{{
                     chip.label

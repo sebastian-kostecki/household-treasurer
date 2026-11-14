@@ -70,6 +70,7 @@ const states = [
     'category-list-name-archived',
     'category-list-saving',
     'category-list-rhythm',
+    'category-list-fixed-charge',
     'category-list-income',
     'category-list-rhythm-error',
     'category-list-irregular-new',
@@ -152,6 +153,7 @@ const labels: Record<SinkState, string> = {
     'category-list-saving': 'Kategoria listy: zapis w toku',
     'category-list-rhythm':
         'Kategoria listy: edycja rytmu (równomierna roczna)',
+    'category-list-fixed-charge': 'Kategoria listy: stała opłata',
     'category-list-income': 'Kategoria listy: przychód (bez pola Rytm)',
     'category-list-rhythm-error': 'Kategoria listy: błąd pola Rytm',
     'category-list-irregular-new':
@@ -366,6 +368,11 @@ const evenAnnualListCategory: CategoryListItem = {
     rhythm: 'even_annual',
 };
 
+const fixedChargeListCategory: CategoryListItem = {
+    ...listCategory,
+    rhythm: 'fixed_charge',
+};
+
 const irregularListCategory: CategoryListItem = {
     ...listCategory,
     name: 'Serwis auta',
@@ -453,6 +460,37 @@ function isOpen(state: SinkState): boolean {
 function setOpen(state: SinkState, value: boolean): void {
     openState.value = value ? state : null;
 }
+
+const pickerMatrix = [
+    {
+        state: 'default',
+        where: 'capital-new i capital-edit: select lokaty z AccountSelect i awatarem (Lokaty Facto, ING bez logo); category-list-new: 24 próbek koloru w pełnym kolorze i chip z ikoną na płytce.',
+    },
+    {
+        state: 'hover',
+        where: 'Pozycje listy lokaty po otwarciu (tło secondary) i próbki koloru (obwódka).',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Tab na wyzwalacz lokaty i przez próbki koloru: pierścień z tokenu ring.',
+    },
+    {
+        state: 'disabled',
+        where: 'N/A w oknach: lokata w ruchu kapitału jest zawsze wybieralna; stan wyłączonego selecta lokaty jest w /dev/import-preview (rows-disabled).',
+    },
+    {
+        state: 'error',
+        where: 'capital-errors: ruch kapitału bez lokaty (błąd pola pod selectem).',
+    },
+    {
+        state: 'empty',
+        where: 'N/A: ruch kapitału wymaga co najmniej jednej lokaty, bez niej akcja jest wyłączona na /operations (/dev/operations, „Wiersz tytułu”).',
+    },
+    {
+        state: 'loading',
+        where: 'N/A: okna nie mają deferred props; spinner zapisu jest w oknach ConfirmActionDialog i formularzy.',
+    },
+];
 </script>
 
 <template>
@@ -468,6 +506,32 @@ function setOpen(state: SinkState, value: boolean): void {
                 ich zwykłe trasy.
             </p>
         </header>
+
+        <section class="space-y-3" data-section="picker-matrix">
+            <h2 class="section-title">
+                Macierz 7 stanów: lokata w ruchu kapitału i kolor kategorii
+            </h2>
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr>
+                        <th class="table-header pb-2.5 text-left">Stan</th>
+                        <th class="table-header pb-2.5 text-left">
+                            Gdzie widoczny
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="row in pickerMatrix"
+                        :key="row.state"
+                        class="border-t align-top"
+                    >
+                        <td class="py-2 pr-4 font-mono">{{ row.state }}</td>
+                        <td class="py-2">{{ row.where }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
         <div class="flex flex-wrap gap-2">
             <Button
@@ -601,6 +665,15 @@ function setOpen(state: SinkState, value: boolean): void {
             :category-appearance-options="categoryAppearanceOptions"
             :rhythm-change-month="rhythmChangeMonth"
             @update:open="setOpen('category-list-rhythm', $event)"
+        />
+        <CategoryListFormDialog
+            :open="isOpen('category-list-fixed-charge')"
+            mode="edit"
+            default-type="expense"
+            :category="fixedChargeListCategory"
+            :category-appearance-options="categoryAppearanceOptions"
+            :rhythm-change-month="rhythmChangeMonth"
+            @update:open="setOpen('category-list-fixed-charge', $event)"
         />
         <CategoryListFormDialog
             :open="isOpen('category-list-income')"

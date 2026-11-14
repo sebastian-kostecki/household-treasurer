@@ -96,7 +96,7 @@ const stateMatrix = [
     },
     {
         state: 'hover',
-        where: 'Zrzut z działającej aplikacji: screenshots/preview-hover-1280-light.png.',
+        where: 'Zrzut z działającej aplikacji: screenshots/preview-hover-1280-light.png. Pozycje listy lokaty (AccountSelect z awatarem, w sekcji rows-default: Lokaty Facto, Revolut, ING bez logo) mają tło secondary.',
     },
     {
         state: 'focus-visible',
@@ -104,7 +104,7 @@ const stateMatrix = [
     },
     {
         state: 'disabled',
-        where: 'Sekcja rows-disabled (wiersz niepoprawny, checkbox wyłączony) i scenariusz submit-bar-blocked.',
+        where: 'Sekcja rows-disabled (wiersz niepoprawny, checkbox wyłączony; ruch kapitału bez kwalifikujących się lokat ma wyłączony select lokaty) i scenariusz submit-bar-blocked.',
     },
     {
         state: 'error',

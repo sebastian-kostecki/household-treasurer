@@ -74,6 +74,23 @@ function vueFilesOutsideUi(dir: string): string[] {
 }
 
 describe('ui contract', () => {
+    it('sets color-scheme in both token blocks of app.css and in the blade head', () => {
+        const css = readFileSync(join(JS_ROOT, '../css/app.css'), 'utf8');
+        const root = css.match(/^:root \{([\s\S]*?)^\}/m)?.[1] ?? '';
+        const dark = css.match(/^\.dark \{([\s\S]*?)^\}/m)?.[1] ?? '';
+
+        expect(root).toMatch(/color-scheme:\s*light;/);
+        expect(dark).toMatch(/color-scheme:\s*dark;/);
+
+        const blade = readFileSync(
+            join(JS_ROOT, '../views/app.blade.php'),
+            'utf8',
+        );
+
+        expect(blade).toMatch(/html \{[^}]*color-scheme:\s*light;/);
+        expect(blade).toMatch(/html\.dark \{[^}]*color-scheme:\s*dark;/);
+    });
+
     it.each(BUDGET_VIEW_FILES)(
         'has no hardcoded colours or arbitrary sizes in %s',
         (file) => {

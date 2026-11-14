@@ -13,6 +13,7 @@ use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\CapitalMovement;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\TermDeposit;
@@ -227,7 +228,8 @@ class OperationsFilterTest extends TestCase
             'category_type' => CategoryType::Expense,
             'operation_date' => '2026-03-01',
         ]);
-        $unused = BudgetLine::factory()->for(Budget::query()->where('user_id', $user->id)->firstOrFail())->expense()->create(['name' => 'Unused']);
+        Category::query()->where('user_id', $user->id)->where('name', 'Groceries')->update(['sort_order' => 1]);
+        $unused = BudgetLine::factory()->for(Budget::query()->where('user_id', $user->id)->firstOrFail())->expense()->create(['name' => 'Unused', 'sort_order' => 0]);
 
         $this->actingAs($user)
             ->get(route('operations', ['category_id' => $unused->category_id]))
@@ -235,8 +237,142 @@ class OperationsFilterTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('operations.data', 0)
                 ->has('filterCategories', 2)
-                ->where('filterCategories.1.id', $unused->category_id)
-                ->where('filterCategories.1.name', 'Unused'),
+                ->where('filterCategories.0.id', $unused->category_id)
+                ->where('filterCategories.0.name', 'Unused'),
+            );
+    }
+
+    public function test_category_filter_options_follow_the_order_of_the_list_not_the_name(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'category_name' => 'Auto',
+            'category_type' => CategoryType::Expense,
+            'category_sort_order' => 1,
+            'operation_date' => '2026-03-01',
+        ]);
+        $this->addOperation($user, [
+            'category_name' => 'Żywność',
+            'category_type' => CategoryType::Expense,
+            'category_sort_order' => 0,
+            'operation_date' => '2026-03-02',
+        ]);
+        $this->addOperation($user, [
+            'category_name' => 'Pensja',
+            'category_type' => CategoryType::Income,
+            'category_sort_order' => 5,
+            'operation_date' => '2026-03-03',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('filterCategories', 3)
+                ->where('filterCategories.0.name', 'Pensja')
+                ->where('filterCategories.1.name', 'Żywność')
+                ->where('filterCategories.2.name', 'Auto'),
+            );
+    }
+
+    public function test_category_filter_options_put_group_members_behind_the_group_and_loose_ones_between_groups(): void
+    {
+        $user = User::factory()->create();
+        $first = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom', 'sort_order' => 0]);
+        $second = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Transport', 'sort_order' => 2]);
+        $this->addOperation($user, [
+            'category_name' => 'Paliwo',
+            'category_type' => CategoryType::Expense,
+            'category_sort_order' => 3,
+            'category_group' => $second,
+            'operation_date' => '2026-03-01',
+        ]);
+        $this->addOperation($user, [
+            'category_name' => 'Czynsz',
+            'category_type' => CategoryType::Expense,
+            'category_sort_order' => 1,
+            'category_group' => $first,
+            'operation_date' => '2026-03-02',
+        ]);
+        $this->addOperation($user, [
+            'category_name' => 'Kino',
+            'category_type' => CategoryType::Expense,
+            'category_sort_order' => 1,
+            'operation_date' => '2026-03-03',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('operations'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('filterCategories', 3)
+                ->where('filterCategories.0.name', 'Czynsz')
+                ->where('filterCategories.0.group', ['id' => $first->id, 'name' => 'Dom'])
+                ->where('filterCategories.1.name', 'Kino')
+                ->where('filterCategories.1.group', null)
+                ->where('filterCategories.2.name', 'Paliwo')
+                ->where('filterCategories.2.group', ['id' => $second->id, 'name' => 'Transport']),
+            );
+    }
+
+    public function test_category_filter_options_mark_archived_by_the_line_of_the_selected_year(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'year' => 2025,
+            'category_name' => 'Transport',
+            'category_type' => CategoryType::Expense,
+            'operation_date' => '2025-03-01',
+        ]);
+        $this->addOperation($user, [
+            'year' => 2026,
+            'category_name' => 'Transport',
+            'category_type' => CategoryType::Expense,
+            'category_archived' => true,
+            'operation_date' => '2026-03-01',
+        ]);
+
+        foreach ([['year' => 2025, 'archived' => false], ['year' => 2026, 'archived' => true], ['year' => null, 'archived' => true]] as $case) {
+            $this->actingAs($user)
+                ->get(route('operations', array_filter(['year' => $case['year']])))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->has('filterCategories', 1)
+                    ->where('filterCategories.0.name', 'Transport')
+                    ->where('filterCategories.0.is_archived', $case['archived']),
+                );
+        }
+    }
+
+    public function test_a_selected_category_without_operations_is_archived_by_the_list(): void
+    {
+        $user = User::factory()->create();
+        $this->addOperation($user, [
+            'category_name' => 'Groceries',
+            'category_type' => CategoryType::Expense,
+            'operation_date' => '2026-03-01',
+        ]);
+        $active = Category::factory()->for($user)->expense()->create(['name' => 'Spare', 'sort_order' => 5]);
+        $archived = Category::factory()->for($user)->expense()->archived()->create(['name' => 'Retired', 'sort_order' => 6]);
+
+        $this->actingAs($user)
+            ->get(route('operations', ['category_id' => $active->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('filterCategories', 2)
+                ->where('filterCategories.0.is_archived', false)
+                ->where('filterCategories.1.id', $active->id)
+                ->where('filterCategories.1.is_archived', false)
+                ->where('filterCategories.1.group', null),
+            );
+
+        $this->actingAs($user)
+            ->get(route('operations', ['category_id' => $archived->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('filterCategories', 2)
+                ->where('filterCategories.1.id', $archived->id)
+                ->where('filterCategories.1.is_archived', true),
             );
     }
 
@@ -816,10 +952,12 @@ class OperationsFilterTest extends TestCase
         $user = User::factory()->create();
         $first = TermDeposit::factory()->for($user)->create([
             'name' => 'Alpha deposit',
+            'bank' => Bank::LokatyFacto,
             'opening_date' => '2026-01-01',
         ]);
         $second = TermDeposit::factory()->for($user)->create([
             'name' => 'Beta deposit',
+            'bank' => Bank::Ing,
             'opening_date' => '2026-01-01',
         ]);
 
@@ -830,8 +968,12 @@ class OperationsFilterTest extends TestCase
                 ->has('filterTermDeposits', 2)
                 ->where('filterTermDeposits.0.id', $first->id)
                 ->where('filterTermDeposits.0.name', 'Alpha deposit')
+                ->where('filterTermDeposits.0.bank', 'lokaty_facto')
+                ->where('filterTermDeposits.0.mark_url', url('/marks/lokaty-facto.svg'))
                 ->where('filterTermDeposits.1.id', $second->id)
-                ->where('filterTermDeposits.1.name', 'Beta deposit'),
+                ->where('filterTermDeposits.1.name', 'Beta deposit')
+                ->where('filterTermDeposits.1.bank', 'ing')
+                ->where('filterTermDeposits.1.mark_url', null),
             );
     }
 
@@ -992,8 +1134,13 @@ class OperationsFilterTest extends TestCase
             'type' => $categoryType,
             'icon' => $attributes['category_icon'] ?? 'tag',
             'color' => $attributes['category_color'] ?? '#868e96',
+            'sort_order' => $attributes['category_sort_order'] ?? 0,
             'archived_at' => ($attributes['category_archived'] ?? false) ? now() : null,
         ]);
+
+        if (($attributes['category_group'] ?? null) instanceof CategoryGroup) {
+            $category->category->update(['category_group_id' => $attributes['category_group']->id]);
+        }
 
         $operationType = $categoryType === CategoryType::Expense
             ? FinancialOperationType::Expense

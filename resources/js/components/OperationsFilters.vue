@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { ChevronDown, Search, SlidersHorizontal } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import AccountSelect from '@/components/AccountSelect.vue';
+import CategorySelect from '@/components/CategorySelect.vue';
 import OperationsActiveFilterChips, {
     type OperationsFilterChipKey,
     type OperationsListSection,
@@ -18,7 +19,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
-import type { AccountPickerOption } from '@/lib/account-identity';
+import {
+    termDepositPickerOptions,
+    type AccountBank,
+    type AccountPickerOption,
+} from '@/lib/account-identity';
 import { operationsListQuery } from '@/lib/operations-list-query';
 import { operations as operationsRoute } from '@/routes';
 
@@ -38,6 +43,8 @@ export type OperationsFilterCategory = {
     type: 'income' | 'expense';
     icon: string;
     color: string;
+    group: { id: number; name: string } | null;
+    is_archived: boolean;
 };
 
 export type OperationsFilterAccount = AccountPickerOption & {
@@ -47,6 +54,9 @@ export type OperationsFilterAccount = AccountPickerOption & {
 export type OperationsFilterTermDeposit = {
     id: number;
     name: string;
+    bank: AccountBank;
+    mark_url: string | null;
+    is_archived: boolean;
 };
 
 const props = defineProps<{
@@ -80,15 +90,8 @@ const hasPanelFilters = computed(
 
 const panelOpen = ref(hasPanelFilters.value);
 
-const incomeCategories = computed(() =>
-    props.categories.filter((category) => category.type === 'income'),
-);
-const expenseCategories = computed(() =>
-    props.categories.filter((category) => category.type === 'expense'),
-);
-
-const categoryValue = computed(() =>
-    props.filters.category_id === null ? '' : String(props.filters.category_id),
+const termDepositOptions = computed(() =>
+    termDepositPickerOptions(props.termDeposits),
 );
 
 const thisMonthRange = computed(() => monthRange(0));
@@ -223,16 +226,6 @@ function applyFilters(patch: Partial<OperationsListFilters>): void {
 function onYearChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     applyFilters({ year: value === '' ? null : Number(value) });
-}
-
-function onCategoryChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    applyFilters({ category_id: value === '' ? null : Number(value) });
-}
-
-function onTermDepositChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    applyFilters({ term_deposit_id: value === '' ? null : Number(value) });
 }
 
 function onDateFromChange(value: string | number): void {
@@ -442,40 +435,22 @@ function removeFilter(key: OperationsFilterChipKey): void {
                     >
                         {{ t.operations.filter_category }}
                     </Label>
-                    <select
+                    <CategorySelect
                         id="operations-filter-category"
-                        class="native-select"
-                        :value="categoryValue"
-                        @change="onCategoryChange"
-                    >
-                        <option value="">
-                            {{ t.operations.filter_category_all }}
-                        </option>
-                        <optgroup
-                            v-if="incomeCategories.length > 0"
-                            :label="t.operations.type_income"
-                        >
-                            <option
-                                v-for="category in incomeCategories"
-                                :key="category.id"
-                                :value="category.id"
-                            >
-                                {{ category.name }}
-                            </option>
-                        </optgroup>
-                        <optgroup
-                            v-if="expenseCategories.length > 0"
-                            :label="t.operations.type_expense"
-                        >
-                            <option
-                                v-for="category in expenseCategories"
-                                :key="category.id"
-                                :value="category.id"
-                            >
-                                {{ category.name }}
-                            </option>
-                        </optgroup>
-                    </select>
+                        :model-value="filters.category_id ?? ''"
+                        :categories="categories"
+                        :all-option-label="t.operations.filter_category_all"
+                        :archived-suffix="t.operations.category_archived_suffix"
+                        :section-labels="{
+                            income: t.operations.filter_category_income,
+                            expense: t.operations.filter_category_expense,
+                        }"
+                        @update:model-value="
+                            applyFilters({
+                                category_id: $event === '' ? null : $event,
+                            })
+                        "
+                    />
                 </div>
 
                 <div v-if="accounts.length > 0" class="grid gap-1">
@@ -506,23 +481,18 @@ function removeFilter(key: OperationsFilterChipKey): void {
                     >
                         {{ t.operations.filter_term_deposit }}
                     </Label>
-                    <select
+                    <AccountSelect
                         id="operations-filter-term-deposit"
-                        class="native-select"
-                        :value="filters.term_deposit_id ?? ''"
-                        @change="onTermDepositChange"
-                    >
-                        <option value="">
-                            {{ t.operations.filter_term_deposit_all }}
-                        </option>
-                        <option
-                            v-for="termDeposit in termDeposits"
-                            :key="termDeposit.id"
-                            :value="termDeposit.id"
-                        >
-                            {{ termDeposit.name }}
-                        </option>
-                    </select>
+                        :model-value="filters.term_deposit_id ?? ''"
+                        :accounts="termDepositOptions"
+                        :all-option-label="t.operations.filter_term_deposit_all"
+                        :archived-suffix="t.term_deposits.archived_badge"
+                        @update:model-value="
+                            applyFilters({
+                                term_deposit_id: $event === '' ? null : $event,
+                            })
+                        "
+                    />
                 </div>
 
                 <div class="grid gap-1 sm:col-span-2 lg:col-span-1">

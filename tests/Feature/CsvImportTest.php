@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Bank;
 use App\Enums\CapitalMovementDirection;
 use App\Enums\FinancialOperationType;
 use App\Models\Account;
@@ -1087,6 +1088,7 @@ CSV;
         [$user, $account] = $this->createImportFixture();
         $termDeposit = TermDeposit::factory()->for($user)->create([
             'name' => '12M Deposit',
+            'bank' => Bank::Revolut,
             'opening_date' => '2026-01-01',
         ]);
         $csv = <<<'CSV'
@@ -1103,8 +1105,77 @@ CSV;
                 ->has('termDeposits', 1)
                 ->where('termDeposits.0.id', $termDeposit->id)
                 ->where('termDeposits.0.name', '12M Deposit')
-                ->where('termDeposits.0.opening_date', '2026-01-01'),
+                ->where('termDeposits.0.opening_date', '2026-01-01')
+                ->where('termDeposits.0.bank', 'revolut')
+                ->where('termDeposits.0.mark_url', url('/marks/revolut.svg')),
             );
+    }
+
+    public function test_import_preview_term_deposit_without_logo_has_null_mark_url(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        TermDeposit::factory()->for($user)->create([
+            'bank' => Bank::Ing,
+            'opening_date' => '2026-01-01',
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->get(route('operations.import.preview'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('termDeposits.0.bank', 'ing')
+                ->where('termDeposits.0.mark_url', null),
+            );
+    }
+
+    public function test_import_accepts_empty_term_deposit_id_for_unselected_row_without_eligible_deposit(): void
+    {
+        $this->travelTo('2026-06-01');
+
+        [$user, $account] = $this->createImportFixture();
+        $termDeposit = TermDeposit::factory()->for($user)->create([
+            'opening_date' => '2026-02-01',
+            'opening_balance_minor_units' => 50000,
+            'current_balance_minor_units' => 50000,
+        ]);
+        $csv = <<<'CSV'
+date,description,amount
+2026-03-15,To deposit,-100.00
+2026-01-10,Before opening,-50.00
+CSV;
+
+        $this->previewCsv($user, $account, $csv);
+
+        $this->actingAs($user)
+            ->post(route('operations.import.store'), [
+                'duplicate_warning_acknowledged' => true,
+                'rows' => [
+                    [
+                        'index' => 0,
+                        'selected' => true,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => $termDeposit->id,
+                    ],
+                    [
+                        'index' => 1,
+                        'selected' => false,
+                        'type' => 'capital_movement',
+                        'term_deposit_id' => '',
+                    ],
+                ],
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('operations'));
+
+        $this->assertDatabaseCount('capital_movements', 1);
     }
 
     public function test_user_can_import_csv_row_as_capital_movement_to_term_deposit(): void

@@ -36,7 +36,7 @@ const toggleLabel = computed(() =>
 
 <template>
     <div
-        class="month-plan-grid month-plan-grid-no-kind month-plan-category-group-row"
+        class="month-plan-grid month-plan-grid-no-kind month-plan-grid-group month-plan-category-group-row"
         data-group-row
     >
         <div class="month-plan-cell-category budget-category-group-name">

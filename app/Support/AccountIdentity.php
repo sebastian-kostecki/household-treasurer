@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\Bank;
 use App\Models\Account;
+use App\Models\TermDeposit;
 
 class AccountIdentity
 {
@@ -38,6 +39,17 @@ class AccountIdentity
             'type' => $account->type->value,
             'bank' => $account->bank?->value,
             'mark_url' => self::markUrl($account->bank),
+        ];
+    }
+
+    /**
+     * @return array{bank: string, mark_url: string|null}
+     */
+    public static function termDepositIdentity(TermDeposit $termDeposit): array
+    {
+        return [
+            'bank' => $termDeposit->bank->value,
+            'mark_url' => self::markUrl($termDeposit->bank),
         ];
     }
 }

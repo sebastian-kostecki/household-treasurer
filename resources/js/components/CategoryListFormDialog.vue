@@ -139,13 +139,14 @@ const openingCollectedHint = computed(() => {
     return t.categories.opening_collected_hint_new;
 });
 
-const rhythmHint = computed(() =>
-    t.categories.rhythm_hint
-        .replace(
-            ':month',
-            t.categories[`month_genitive_${props.rhythmChangeMonth.month}`],
-        )
-        .replace(':year', String(props.rhythmChangeMonth.year)),
+const rhythmHint = computed(
+    () =>
+        `${t.categories[`rhythm_description_${rhythm.value}`]} ${t.categories.rhythm_hint
+            .replace(
+                ':month',
+                t.categories[`month_genitive_${props.rhythmChangeMonth.month}`],
+            )
+            .replace(':year', String(props.rhythmChangeMonth.year))}`,
 );
 
 const descriptionHint = computed(() =>

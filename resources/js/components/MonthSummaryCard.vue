@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
+import { monthSummaryDeviationTone } from '@/lib/month-plan-deviation-tone';
 import type { MonthSummary } from '@/types/month-plan';
 
 const props = defineProps<{
@@ -71,13 +72,6 @@ const setAsideRow = computed<SummaryRow>(() => {
         deviationMinorUnits: setAside.difference_minor_units,
     };
 });
-
-/** Worse than planned is destructive: less income or set aside, more expense. */
-function deviationClass(key: SummaryKey, minorUnits: number): string {
-    const isWorse = key === 'expense' ? minorUnits > 0 : minorUnits < 0;
-
-    return isWorse ? 'text-destructive' : '';
-}
 </script>
 
 <template>
@@ -141,7 +135,10 @@ function deviationClass(key: SummaryKey, minorUnits: number): string {
                     <span
                         class="amount whitespace-nowrap"
                         :class="
-                            deviationClass(row.key, row.deviationMinorUnits)
+                            monthSummaryDeviationTone(
+                                row.key,
+                                row.deviationMinorUnits,
+                            )
                         "
                     >
                         {{ formatSignedMoneyAmount(row.deviationMinorUnits) }}

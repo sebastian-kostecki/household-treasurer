@@ -6,6 +6,7 @@ import OperationsPageActions from '@/components/OperationsPageActions.vue';
 import { useTranslations } from '@/composables/useTranslations';
 import {
     accountFilterFixture,
+    categoryFilterFixture,
     capitalMovementFixtures,
     emptyPaginator,
     filterAccountsFixture,
@@ -65,6 +66,49 @@ const accountFiltered = {
     filters: accountFilterFixture,
     filtersActive: true,
 };
+
+const categoryFiltered = {
+    ...base,
+    filters: categoryFilterFixture,
+    filtersActive: true,
+};
+
+const noFilterOptions = {
+    ...base,
+    filterCategories: [],
+    filterTermDeposits: [],
+};
+
+const filterMatrix = [
+    {
+        state: 'default',
+        where: 'Filtr kategorii (CategorySelect z sekcjami Dochody i Wydatki, „Wszystkie kategorie”, sufiks archiwalnej) i filtr lokaty (AccountSelect z awatarem) w rozwiniętych „Filtrach” paneli poniżej; chip aktywnej kategorii i lokaty w sekcji „Aktywny filtr konta”.',
+    },
+    {
+        state: 'hover',
+        where: 'Pozycje list obu filtrów po otwarciu (tło secondary); wiersze listy jak w sekcji Hover.',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Tab na wyzwalacz filtra kategorii i lokaty: pierścień z tokenu ring (te same komponenty co w oknach operacji).',
+    },
+    {
+        state: 'disabled',
+        where: 'N/A: filtry Operacji nie mają stanu wyłączonego, bo zawsze da się zostawić „Wszystkie”. Wyłączona lokata jest w wierszu importu (/dev/import-preview, rows-disabled).',
+    },
+    {
+        state: 'error',
+        where: 'N/A: filtry nie walidują wartości, serwer odrzuca nieznany id i pokazuje listę bez filtra. Błąd „ruch kapitału bez lokaty” jest w /dev/ui/dialogs?open=capital-errors.',
+    },
+    {
+        state: 'empty',
+        where: 'Panel „Filtry bez opcji” poniżej: bez kategorii z operacjami i bez lokat oba filtry są ukryte (v-if w OperationsFilters), a nie puste.',
+    },
+    {
+        state: 'loading',
+        where: 'Sekcja Loading poniżej: panel z aria-busy="true" w czasie wizyty.',
+    },
+];
 
 const suppressedSection = {
     ...base,
@@ -165,6 +209,33 @@ const noRecords = {
         <section class="flex flex-col gap-3">
             <h2 class="section-title">Stany z macierzy</h2>
 
+            <h3 class="section-title">
+                Macierz 7 stanów: filtry kategorii i lokaty
+            </h3>
+            <table
+                class="w-full text-left text-sm"
+                data-section="filter-matrix"
+            >
+                <thead>
+                    <tr>
+                        <th class="table-header pb-2.5 text-left">Stan</th>
+                        <th class="table-header pb-2.5 text-left">
+                            Gdzie widoczny
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="row in filterMatrix"
+                        :key="row.state"
+                        class="border-t align-top"
+                    >
+                        <td class="py-2 pr-4 font-mono">{{ row.state }}</td>
+                        <td class="py-2">{{ row.where }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
             <h3 class="section-title">Hover</h3>
             <p class="meta text-muted-foreground">
                 Rytm, nie afordancja: tło wiersza zmienia się tylko po to, żeby
@@ -201,6 +272,7 @@ const noRecords = {
                 konta, zwrot z kontem w linii meta.
             </p>
             <OperationsListPanel v-bind="accountFiltered" />
+            <OperationsListPanel v-bind="categoryFiltered" />
 
             <h3 class="section-title">Disabled</h3>
             <p class="meta text-muted-foreground">
@@ -232,6 +304,12 @@ const noRecords = {
             <OperationsListPanel v-bind="filteredEmpty" />
             <OperationsListPanel v-bind="suppressedSection" />
             <OperationsListPanel v-bind="emptySection" />
+            <h3 class="section-title">Filtry bez opcji</h3>
+            <p class="meta text-muted-foreground">
+                Brak kategorii z operacjami i brak lokat: po rozwinięciu
+                „Filtrów” oba filtry są ukryte, a nie puste.
+            </p>
+            <OperationsListPanel v-bind="noFilterOptions" />
 
             <h3 class="section-title">Loading</h3>
             <p class="meta text-muted-foreground">
