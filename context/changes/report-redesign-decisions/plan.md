@@ -271,10 +271,10 @@ Nowe znaczenia kolorów trafiają na stronę design systemu i do artefaktu Atram
 
 #### Automated
 
-- [x] 3.1 Strona design systemu cytuje ADR i nowe role
-- [x] 3.2 Roadmapa zamyka pytania
-- [x] 3.3 Artefakt ma tokeny
-- [x] 3.4 Brak zmian w kodzie
+- [x] 3.1 Strona design systemu cytuje ADR i nowe role — abccce3
+- [x] 3.2 Roadmapa zamyka pytania — abccce3
+- [x] 3.3 Artefakt ma tokeny — abccce3
+- [x] 3.4 Brak zmian w kodzie — abccce3
 
 #### Manual
 
