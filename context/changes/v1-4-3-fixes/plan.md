@@ -716,25 +716,25 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 
 #### Automated
 
-- [x] 4.1 Testy tonu odchylenia czerwone przed modułem i zielone po nim, round-trip formattera przechodzi
-- [x] 4.2 MonthPlanHardcodedUiTest i MonthPlanPageTest przechodzą
-- [x] 4.3 npm run check:ui i npm run types:check przechodzą
-- [ ] 4.4 Specy E2E irregular-collected i month-plan-groups przechodzą
+- [x] 4.1 Testy tonu odchylenia czerwone przed modułem i zielone po nim, round-trip formattera przechodzi — ba7179a
+- [x] 4.2 MonthPlanHardcodedUiTest i MonthPlanPageTest przechodzą — ba7179a
+- [x] 4.3 npm run check:ui i npm run types:check przechodzą — ba7179a
+- [x] 4.4 Specy E2E irregular-collected i month-plan-groups przechodzą
 
 #### Manual
 
-- [x] 4.5 /dev/month-plan 390 px: długie kwoty 2×2 bez ucięcia, równe etykiety, wiersz grupy i odkładania czytelne
-- [x] 4.6 /dev/month-plan 1024 i 1440 px: cztery kolumny i układ desktopowy bez zmian
-- [x] 4.7 Odczyt i edycja w sinku dają ten sam kolor odchylenia
-- [x] 4.8 Tryb zmian startuje z separatorem, „Ustaw plan na wydatki” też, zapis bez zmian kwot
+- [x] 4.5 /dev/month-plan 390 px: długie kwoty 2×2 bez ucięcia, równe etykiety, wiersz grupy i odkładania czytelne — ba7179a
+- [x] 4.6 /dev/month-plan 1024 i 1440 px: cztery kolumny i układ desktopowy bez zmian — ba7179a
+- [x] 4.7 Odczyt i edycja w sinku dają ten sam kolor odchylenia — ba7179a
+- [x] 4.8 Tryb zmian startuje z separatorem, „Ustaw plan na wydatki” też, zapis bez zmian kwot — ba7179a
 
 ### Phase 5: Stany i bramka wizualna
 
 #### Automated
 
-- [ ] 5.1 composer ci:check na PostgreSQL przechodzi
-- [ ] 5.2 sloppy ci bez nowych znalezisk
-- [ ] 5.3 Skan wartości na sztywno: najwyżej 1 trafienie
+- [x] 5.1 composer ci:check na PostgreSQL przechodzi
+- [x] 5.2 sloppy ci bez nowych znalezisk
+- [x] 5.3 Skan wartości na sztywno: najwyżej 1 trafienie
 - [ ] 5.4 Pełny zestaw E2E przechodzi
 
 #### Manual

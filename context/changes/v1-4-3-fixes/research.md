@@ -54,6 +54,8 @@ Założenie do sprawdzenia: skan wartości na sztywno = 0.
 
 ### C1. Ciemny motyw nie ustawia `color-scheme` — natywne kontrolki zostają jasne (brakujący token)
 
+_Addressed in Phase 1._
+
 - **Dowód (źródło):** blok `.dark` (`resources/css/app.css:191-242`) i `:root` (`app.css:115-189`) nie mają `color-scheme`; `app.blade.php:22-30` ustawia tylko `background-color` dla `html` i `html.dark`. Wyszukiwanie `color-scheme|colorScheme` w `resources/` i `app/`: 0 trafień.
 - **Dowód (przeglądarka, `/operations`, filtry rozwinięte):** `colorScheme: normal` na `<html>`, `#operations-filter-category`, jego `<option>` i `#operations-filter-date-from`. `<select>` ma tło `input/30` (półprzezroczyste, `app.css:703-705` `.native-select … dark:bg-input/30 … bg-transparent`), `<option>` tło `rgba(0,0,0,0)` i tekst `rgb(230,236,243)`. Ikona kalendarza w polu daty jest ciemna na ciemnym polu: `screenshots/research-operations-filters-dark.png`.
 - **Wniosek (nieobserwowany w headless):** okno listy natywnego selecta rysuje przeglądarka/system w schemacie jasnym; opcje z przezroczystym tłem dostają tło UA (jasne), a tekst dziedziczy jasny `foreground`. Do potwierdzenia ręcznie w Chrome/Edge na Windows.
@@ -62,6 +64,8 @@ Założenie do sprawdzenia: skan wartości na sztywno = 0.
 - **Kierunek poprawki:** warstwa tokenów — `color-scheme: light` w `:root`, `color-scheme: dark` w `.dark` (i odpowiednio w stylu inline `app.blade.php`, żeby nie było błysku). Bez edycji klas komponentów.
 
 ### C2. Kolor kategorii liczony poza tokenami — w ciemnym motywie próbki palety są nieodróżnialne (brakujący token)
+
+_Addressed in Phase 1._
 
 - **Dowód (źródło):** `categoryTileStyle` (`resources/js/lib/category-appearance.ts:310-318`) zwraca `{ backgroundColor: \`${color}26\`, color }`; ta sama alfa w obu motywach, kolor z danych (`CategoryAppearance.php:25`, paleta `CategoryColors.php:12-37`). Konsumenci: `CategoryChip.vue:46` (kafelek z ikoną), `CategoryColorPicker.vue:39` (próbka bez ikony), `CategoryIconPicker.vue:35`. Reguła: `context/foundation/design-system.md:66` („kafelek ikony w `CategoryChip` (tło 15%)”).
 - **Dowód (liczby, 24 kolory):** kontrast ikony do kafelka — ciemny: 23/24 ≥ 3:1 (min 2,69:1 `#be185d`, max 6,87:1), jasny: 9/24 ≥ 3:1 (min 1,74:1 `#eab308`). Kafelek wobec karty: ciemny 1,08–1,33:1, jasny 1,10–1,28:1.
@@ -72,6 +76,8 @@ Założenie do sprawdzenia: skan wartości na sztywno = 0.
 
 ### C3. Filtr kategorii Operacji jako natywny select w innej kolejności niż reszta aplikacji (brakujący współdzielony komponent + przypadkowa architektura)
 
+_Addressed in Phase 3._
+
 - **Dowód (widok):** `OperationsFilters.vue:438-478` — natywny `<select>` z `optgroup` „Dochód”/„Wydatek” (`incomeCategories`/`expenseCategories`, `:83-88`), same nazwy, bez ikon i grup. W przeglądarce opcje: Dochód [Odsetki, Pensja], Wydatek [Inne, Mieszkanie, Rozrywka, Transport, Zdrowie, Żywność].
 - **Dowód (dane):** `OperationsFilterOptions::categories` (`app/Support/OperationsFilterOptions.php:32-81`) — kategorie z operacjami (opcjonalnie w roku), z archiwalnymi, plus wybrana; `usort` w `:78` po typie, potem `name` operatorem `<=>`. To porównanie bajtowe, nie kolejność listy (`sort_order`, `name_key`, id — `CategoryListReading.php:21-24`) i nie porządek polski: nazwy na Ł/Ś/Ż trafiają za Z, wielkie litery przed małymi (wniosek z semantyki `<=>` na UTF-8, nieuruchomione). Kształt `OperationsFilterCategory` (`OperationsFilters.vue:35-41`) nie ma `group`.
 - **Porównanie:** wszystkie inne pickery kategorii (`ExpenseFormDialog.vue:599`, `IncomeFormDialog.vue:489`, `OperationCategoryDialog.vue:207`, `ImportPreviewRow.vue:606, 627`, `CategoryMergeDialog.vue:79`) używają `CategorySelect` z `CategoryChip` i grupami z `groupSelectOptions` (`resources/js/lib/category-tree.ts:162-192`; nie sortuje, zachowuje kolejność serwera = kolejność listy). `design-system.md:16`: `Select` (Reka), gdy opcja pokazuje ikonę.
@@ -81,6 +87,8 @@ Założenie do sprawdzenia: skan wartości na sztywno = 0.
 - **Wpływ na użytkownika:** w filtrze kategorie są w innej kolejności i bez ikon niż na liście Kategorii i w oknie operacji, więc szuka się ich od nowa; nazwa na Ł/Ś stoi za „Zdrowie”; w ciemnym motywie lista dodatkowo dziedziczy C1.
 
 ### C4. Ikonki kont giną poza `AccountSelect`, a w ciemnym motywie ciemne logo znika na kafelku (przypadkowa architektura + brakujący token)
+
+_Addressed in Phase 1+2._
 
 - **`AccountSelect` działa (przeglądarka):** lista „Konto” w filtrze Operacji pokazuje `Coins` dla Gotówki i logo BNP oraz mBank (obrazy załadowane); po wyborze konta trigger i chip aktywnego filtra pokazują logo (`screenshots/research-operations-account-filter-dark.png`). Kod: slot `SelectValue` (`AccountSelect.vue:82-97`), `AccountAvatar` w opcji (`:112-118`), payload `AccountIdentity::payload()` (`app/Support/AccountIdentity.php:33-42`) we wszystkich pickerach kont.
 - **Gdzie giną (źródło):**
@@ -95,11 +103,15 @@ Założenie do sprawdzenia: skan wartości na sztywno = 0.
 
 **C5a — kwoty**
 
+_Addressed in Phase 4._
+
 - **Dowód (źródło):** `.month-plan-grid` poniżej `xl` to `repeat(4, minmax(0, 1fr))` z `gap-x-3` (12 px) (`app.css:857-870`); od `xl` stałe kolumny `9rem 7rem 8rem 7rem 7rem 8rem` (`:872-878`). Komórki „Zatwierdzony” i „Faktycznie” to `flex flex-wrap items-baseline` (`app.css:890-903`), „Plan” i „Odchylenie” mają etykietę `block` (`MonthPlanItemRow.vue:240, 284`).
 - **Dowód (przeglądarka):** przy 390 px kolumna ma ok. 72 px; po wpisaniu `123456,78` pole planu ucina wartość (`scrollWidth > clientWidth`), a `-123 299,98` łamie się na „-123 / 299,98” (`screenshots/research-month-plan-stress-390.png`). Przy 1100 i 390 px etykiety „Plan”/„Odchylenie” stoją wyżej niż „Zatwierdzony”/„Faktycznie” (`research-month-plan-dark-1100.png`, `-390.png`). Pole planu pokazuje `8500,00` bez separatora obok `2 500,00` w „Faktycznie” (`research-month-plan-dark-1440.png`). Na 1440 px te same kwoty mają ≥ 38 px odstępu między „Faktycznie” a „Odchylenie”.
 - **Wpływ na użytkownika:** na telefonie i tablecie kwoty pięciocyfrowe nachodzą na siebie lub łamią się, a nierówne etykiety utrudniają odczytanie, która liczba jest planem, a która faktem.
 
 **C5b — kolor i etykieta odchylenia**
+
+_Addressed in Phase 4._
 
 - **Dowód (źródło):** `deviationClass` (`MonthPlanItemRow.vue:116-130`): `null` → `muted-foreground`, `overPlan` → `destructive`, dochód > 0 → `success`, w pozostałych przypadkach brak klasy. Znak: faktycznie − plan dla obu typów (`app/Support/MonthItemDeviation.php:23-40`, `resources/js/lib/month-item-deviation.ts:18-37`).
 - **Dowód (przeglądarka):** „Żywność” (wydatek poniżej planu) `-1 343,20` w `rgb(230,236,243)` (`foreground`); „Mieszkanie” po obniżeniu planu do `1500,00` przy fakcie `2 500,00` ma `+1 000,00` w `destructive`.
@@ -170,3 +182,11 @@ Podjęte przez użytkownika 2026-11-13 po porównaniu wariantów (szkice na dany
 Rozstrzygnięte w `## Decisions` (D1–D4).
 
 Luki: wygląd okna listy natywnego selecta w ciemnym motywie jest wnioskiem (headless nie fotografuje okien systemowych); sortowanie `<=>` dla Ł/Ś nie zostało uruchomione na danych; Revolut/Lokaty Facto nie występują w danych demo, więc dowód pochodzi z kitchen sinka `/dev/ui/accounts`.
+
+## Skan wartości na sztywno po zmianie (Faza 5)
+
+Wyrażenie z `/10x-ui` (`grep -nE '#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\(|-\[[0-9.]+(px|rem)\]|\b(bg|text|border|ring|outline|from|via|to|fill|stroke|shadow|divide)-(slate|gray|…|white|black)\b'`) na plikach z researchu oraz nowych/zmienionych: `lib/category-filter-options.ts`, `lib/month-plan-deviation-tone.ts`, `CapitalMovementFormDialog.vue`, `ImportPreviewRow.vue` i pięciu sinkach (`MonthPlanSink`, `OperationsSink`, `AccountsKitchenSink`, `DialogsKitchenSink`, `ImportPreviewSink`): **1 trafienie** — `category-appearance.ts:145` `DEFAULT_CATEGORY_COLOR = '#868e96'` (wartość danych z palety).
+
+Dodatkowy skan na doklejaną alfę (`\$\{[a-zA-Z.]*[cC]olo[u]?r\}[0-9a-fA-F]{2}`): **0 trafień** (`categoryTileStyle` zwraca tylko `--category-color`; alfa liczona w `.category-tile` / `.category-swatch` w `app.css`, ADR-0095).
+
+Zrzuty: `screenshots/plan-{month-plan,operations-filters,bank-marks,new-category}-{light,dark}-{1440,390}.png`.

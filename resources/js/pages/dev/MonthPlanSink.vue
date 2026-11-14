@@ -97,11 +97,11 @@ const stateMatrix: { state: string; where: string }[] = [
     },
     {
         state: 'disabled',
-        where: 'Sekcja „Wyłączone”: „Zatwierdź” z licznikiem błędnych kwot i „Zapisz zmiany” bez zmian. „Zmień plan” znika przy `!can_change`, a komórka planu nie ma stanu wyłączonego: N/A.',
+        where: 'Wiersz zarchiwizowanej kategorii (wyciszony, bez tonu odchylenia) w tabeli „Ton odchylenia”. Sekcja „Wyłączone”: „Zatwierdź” z licznikiem błędnych kwot i „Zapisz zmiany” bez zmian. „Zmień plan” znika przy `!can_change`, a komórka planu nie ma stanu wyłączonego: N/A.',
     },
     {
         state: 'error',
-        where: 'Tabela „Błędy” (błędna kwota, błąd klienta i serwera pola odkładania) oraz sekcja „Błędy w pasie edycji”.',
+        where: 'Tabela „Błędy” (pole planu nieczytelne: błędna kwota, błąd klienta i serwera pola odkładania) oraz sekcja „Błędy w pasie edycji”.',
     },
     {
         state: 'empty',

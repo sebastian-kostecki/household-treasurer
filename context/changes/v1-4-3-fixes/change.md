@@ -3,7 +3,7 @@ change_id: v1-4-3-fixes
 title: Poprawki po 1.4.3 — czytelny plan miesiąca i listy wyboru w ciemnym motywie
 status: implementing
 created: 2026-11-13
-updated: 2026-11-13
+updated: 2026-11-14
 archived_at: null
 ---
 

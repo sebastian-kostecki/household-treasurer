@@ -74,7 +74,7 @@ class OperationsFilterOptions
             }
         }
 
-        $groups = CategoryGroup::query()->where('user_id', $user->id)->get()->all();
+        $groups = array_values(CategoryGroup::query()->where('user_id', $user->id)->get()->all());
         $options = [];
         foreach ([CategoryType::Income, CategoryType::Expense] as $type) {
             foreach (ReportCategoryTree::ofType($type, $categories, $groups) as $node) {

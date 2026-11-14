@@ -460,6 +460,37 @@ function isOpen(state: SinkState): boolean {
 function setOpen(state: SinkState, value: boolean): void {
     openState.value = value ? state : null;
 }
+
+const pickerMatrix = [
+    {
+        state: 'default',
+        where: 'capital-new i capital-edit: select lokaty z AccountSelect i awatarem (Lokaty Facto, ING bez logo); category-list-new: 24 próbek koloru w pełnym kolorze i chip z ikoną na płytce.',
+    },
+    {
+        state: 'hover',
+        where: 'Pozycje listy lokaty po otwarciu (tło secondary) i próbki koloru (obwódka).',
+    },
+    {
+        state: 'focus-visible',
+        where: 'Tab na wyzwalacz lokaty i przez próbki koloru: pierścień z tokenu ring.',
+    },
+    {
+        state: 'disabled',
+        where: 'N/A w oknach: lokata w ruchu kapitału jest zawsze wybieralna; stan wyłączonego selecta lokaty jest w /dev/import-preview (rows-disabled).',
+    },
+    {
+        state: 'error',
+        where: 'capital-errors: ruch kapitału bez lokaty (błąd pola pod selectem).',
+    },
+    {
+        state: 'empty',
+        where: 'N/A: ruch kapitału wymaga co najmniej jednej lokaty, bez niej akcja jest wyłączona na /operations (/dev/operations, „Wiersz tytułu”).',
+    },
+    {
+        state: 'loading',
+        where: 'N/A: okna nie mają deferred props; spinner zapisu jest w oknach ConfirmActionDialog i formularzy.',
+    },
+];
 </script>
 
 <template>
@@ -475,6 +506,32 @@ function setOpen(state: SinkState, value: boolean): void {
                 ich zwykłe trasy.
             </p>
         </header>
+
+        <section class="space-y-3" data-section="picker-matrix">
+            <h2 class="section-title">
+                Macierz 7 stanów: lokata w ruchu kapitału i kolor kategorii
+            </h2>
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr>
+                        <th class="table-header pb-2.5 text-left">Stan</th>
+                        <th class="table-header pb-2.5 text-left">
+                            Gdzie widoczny
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="row in pickerMatrix"
+                        :key="row.state"
+                        class="border-t align-top"
+                    >
+                        <td class="py-2 pr-4 font-mono">{{ row.state }}</td>
+                        <td class="py-2">{{ row.where }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
 
         <div class="flex flex-wrap gap-2">
             <Button
