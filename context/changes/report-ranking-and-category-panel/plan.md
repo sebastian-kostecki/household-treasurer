@@ -468,11 +468,11 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Automated
 
-- [x] 3.1 Vitest przechodzi, w tym report-category-panel.test.ts
-- [x] 3.2 npm run types:check, npm run lint i npm run check:ui przechodzą
-- [x] 3.3 E2E panelu i Raportów przechodzą
-- [x] 3.4 Pełna bramka composer ci:check na PostgreSQL w worktree
-- [x] 3.5 sloppy ci na hoście bez nowego znaleziska
+- [x] 3.1 Vitest przechodzi, w tym report-category-panel.test.ts — 18c4c80
+- [x] 3.2 npm run types:check, npm run lint i npm run check:ui przechodzą — 18c4c80
+- [x] 3.3 E2E panelu i Raportów przechodzą — 18c4c80
+- [x] 3.4 Pełna bramka composer ci:check na PostgreSQL w worktree — 18c4c80
+- [x] 3.5 sloppy ci na hoście bez nowego znaleziska — 18c4c80
 
 #### Manual
 
