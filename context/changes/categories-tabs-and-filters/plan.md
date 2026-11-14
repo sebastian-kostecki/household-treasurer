@@ -543,19 +543,19 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [x] 3.1 Testy lib przechodzą (text-search, category-list-filter, category-list, command-palette-items)
-- [x] 3.2 Typy: types:check
-- [x] 3.3 Lint
+- [x] 3.1 Testy lib przechodzą (text-search, category-list-filter, category-list, command-palette-items) — a57def3
+- [x] 3.2 Typy: types:check — a57def3
+- [x] 3.3 Lint — a57def3
 
 ### Phase 4: Widok
 
 #### Automated
 
-- [ ] 4.1 Strażnicy UI: check:ui i CategoriesHardcodedUiTest
-- [ ] 4.2 Vitest (w tym ui-contract.test.ts)
-- [ ] 4.3 Typy i build
-- [ ] 4.4 Brak martwej sekcji CategoryArchiveSection
-- [ ] 4.5 Pełna bramka: composer ci:check i sloppy ci
+- [x] 4.1 Strażnicy UI: check:ui i CategoriesHardcodedUiTest
+- [x] 4.2 Vitest (w tym ui-contract.test.ts)
+- [x] 4.3 Typy i build
+- [x] 4.4 Brak martwej sekcji CategoryArchiveSection
+- [x] 4.5 Pełna bramka: composer ci:check i sloppy ci
 
 #### Manual
 

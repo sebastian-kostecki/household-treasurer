@@ -3,7 +3,6 @@ import {
     activeCountForm,
     categoryAllYearsOperationsQuery,
     categoryYearCells,
-    categoryYearsLabel,
     categoryYearsRangeLabel,
     groupDeleteDescription,
 } from './category-list';
@@ -92,13 +91,6 @@ describe('categoryYearCells', () => {
             { year: 2026, short: '26', on: false },
             { year: 2027, short: '27', on: true },
         ]);
-    });
-});
-
-describe('categoryYearsLabel', () => {
-    it('joins the years with a middle dot', () => {
-        expect(categoryYearsLabel([2026, 2027])).toBe('2026 · 2027');
-        expect(categoryYearsLabel([])).toBe('');
     });
 });
 

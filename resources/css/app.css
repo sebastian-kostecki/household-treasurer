@@ -175,6 +175,8 @@
     --aside-width: clamp(18.75rem, 22vw, 26rem);
     --sidebar-panel-width: 224px;
     --command-palette-width: 520px;
+    --categories-rhythm-width: 7rem;
+    --categories-years-width: 14rem;
     --settings-nav-width: 200px;
     --settings-content-width: 640px;
     --auth-aside-width: 440px;
@@ -1376,12 +1378,27 @@
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             'name actions'
+            'rhythm years';
+    }
+
+    .categories-grid-no-rhythm {
+        grid-template-areas:
+            'name actions'
             'years years';
     }
 
     @variant md {
         .categories-grid {
-            grid-template-columns: minmax(0, 1fr) 220px var(--control-height-sm);
+            grid-template-columns:
+                minmax(0, 1fr) var(--categories-rhythm-width)
+                var(--categories-years-width) var(--control-height-sm);
+            grid-template-areas: 'name rhythm years actions';
+        }
+
+        .categories-grid-no-rhythm {
+            grid-template-columns:
+                minmax(0, 1fr) var(--categories-years-width)
+                var(--control-height-sm);
             grid-template-areas: 'name years actions';
         }
     }
@@ -1409,9 +1426,52 @@
         @apply flex min-w-0 items-center gap-2;
     }
 
+    .categories-cell-rhythm {
+        grid-area: rhythm;
+        @apply flex min-w-0 items-center;
+    }
+
     .categories-cell-years {
         grid-area: years;
         @apply min-w-0 tabular-nums;
+    }
+
+    /** The years strip: one cell per year of the axis; a year with a Budget Line is on `accent`. */
+    .categories-years {
+        @apply flex min-w-0 gap-1;
+    }
+
+    .categories-years-cell {
+        @apply meta text-muted-foreground border-border min-w-0 flex-1 rounded-xs border text-center tabular-nums;
+    }
+
+    .categories-years-cell[data-state='on'] {
+        @apply bg-accent text-accent-foreground border-transparent;
+    }
+
+    /** The legend of the strip: two small cells without text, each with its caption. */
+    .categories-years-legend {
+        @apply meta text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1;
+    }
+
+    .categories-years-key {
+        @apply inline-flex items-center gap-2;
+    }
+
+    .categories-years-key .categories-years-cell {
+        @apply block size-3 flex-none;
+    }
+
+    .categories-toolbar {
+        @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-2;
+    }
+
+    .categories-filters {
+        @apply flex flex-wrap items-center gap-2;
+    }
+
+    .categories-footer {
+        @apply meta text-muted-foreground border-border border-t px-4 py-3;
     }
 
     /**

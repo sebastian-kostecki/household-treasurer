@@ -20,11 +20,6 @@ export function categoryAllYearsOperationsQuery(category: {
     );
 }
 
-/** Lata, w których kategoria ma pozycję, np. „2026 · 2027” (Faza 4 usuwa, gdy widok przejdzie na pasek). */
-export function categoryYearsLabel(years: number[]): string {
-    return years.join(' · ');
-}
-
 /** Komórki paska lat: oś to suma osi i lat budżetu, rosnąco, `on` dla lat z pozycją kategorii. */
 export function categoryYearCells(
     axis: number[],

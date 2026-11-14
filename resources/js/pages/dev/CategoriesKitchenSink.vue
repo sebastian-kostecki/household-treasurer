@@ -2,7 +2,6 @@
 import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent, ref } from 'vue';
 import DialogsKitchenSinkController from '@/actions/App/Http/Controllers/Dev/DialogsKitchenSinkController';
-import CategoryArchiveSection from '@/components/CategoryArchiveSection.vue';
 import CategoryGroupFormDialog from '@/components/CategoryGroupFormDialog.vue';
 import CategoryGroupRow from '@/components/CategoryGroupRow.vue';
 import CategoryListRow from '@/components/CategoryListRow.vue';
@@ -11,7 +10,6 @@ import ListSurface from '@/components/ListSurface.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import {
-    archivedCategories,
     categoriesScenarios,
     expenseGroups,
     groupedExpenseCategories,
@@ -48,7 +46,7 @@ const mergeableCategory = { ...groupedExpenseCategories[3], can_delete: true };
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusz default poniżej: Badge „aktywnych” w tytule, sekcje Przychody i Wydatki z przyciskiem „Dodaj kategorię” w tytule i nagłówkiem kolumn (od md), uchwyt przeciągania i jedno menu „⋯” w każdym wierszu (pozycje „Operacje” z separatorem, „Edytuj”, „Zmień grupę…” (otwiera okno z listą radio, stany w /dev/ui/dialogs), „Archiwizuj”, „Scal z inną…” i, tylko przy can_delete, „Usuń” w kolorze destrukcyjnym; archiwizacja i usunięcie otwierają potwierdzenie z menu; potwierdzenie usunięcia otwiera się z menu; „Scal z inną…” otwiera okno z /dev/ui/dialogs, stany Scalanie: …), lata pozycji w kolejności rosnącej, kreska z tekstem dla czytnika ekranu przy kategorii bez pozycji. Rytm wydatku jako pierwszy człon przygaszonej drugiej linii pod nazwą (stała opłata: Bez pozycji w budżecie, Czynsz; bieżąca: Żywność, Rozrywka; równomierna roczna: Rekolekcje, Woda; nieregularna: Serwis auta, tylko etykieta rytmu, bez kwoty zebranego), przychód bez rytmu; w oknie kategorii pole „Rytm” tylko dla wydatku, z opisem wybranego rytmu i podpowiedzią „Zmiana działa od listopada 2026” (/dev/ui/dialogs: Kategoria listy: nowa, edycja, edycja rytmu, nowe oznaczenie nieregularnej, edycja nieregularnej, zła kwota zebranego startowego, przychód bez pola, błąd pola). Opis jako przygaszona druga linia pod nazwą: krótki (Wynagrodzenie) i długi, ucięty z pełnym tekstem w `title` (Żywność). „Usuń” w menu „⋯” tylko przy can_delete (Odsetki, Rekolekcje, Bez pozycji), reszta ma w menu „Edytuj”, „Archiwizuj” i „Scal z inną…”; typ zablokowany (can_change_type) w dialogu edycji Wynagrodzenia i Żywności (/dev/ui/dialogs). Scenariusze with-archive (zwinięte archiwum) i archive-open (rozwinięte: data archiwizacji pod nazwą i menu „⋯” z „Operacje”, „Przywróć”, „Scal z inną…” oraz „Usuń” gdy can_delete, bez uchwytu i edycji), one-type-empty i only-archived.',
+        where: 'Scenariusz default poniżej: Badge „aktywnych” w tytule, sekcje Przychody i Wydatki z przyciskiem „Dodaj kategorię” w tytule i nagłówkiem kolumn (od md), uchwyt przeciągania i jedno menu „⋯” w każdym wierszu (pozycje „Operacje” z separatorem, „Edytuj”, „Zmień grupę…” (otwiera okno z listą radio, stany w /dev/ui/dialogs), „Archiwizuj”, „Scal z inną…” i, tylko przy can_delete, „Usuń” w kolorze destrukcyjnym; archiwizacja i usunięcie otwierają potwierdzenie z menu; potwierdzenie usunięcia otwiera się z menu; „Scal z inną…” otwiera okno z /dev/ui/dialogs, stany Scalanie: …), lata pozycji w kolejności rosnącej, kreska z tekstem dla czytnika ekranu przy kategorii bez pozycji. Rytm wydatku jako pierwszy człon przygaszonej drugiej linii pod nazwą (stała opłata: Bez pozycji w budżecie, Czynsz; bieżąca: Żywność, Rozrywka; równomierna roczna: Rekolekcje, Woda; nieregularna: Serwis auta, tylko etykieta rytmu, bez kwoty zebranego), przychód bez rytmu; w oknie kategorii pole „Rytm” tylko dla wydatku, z opisem wybranego rytmu i podpowiedzią „Zmiana działa od listopada 2026” (/dev/ui/dialogs: Kategoria listy: nowa, edycja, edycja rytmu, nowe oznaczenie nieregularnej, edycja nieregularnej, zła kwota zebranego startowego, przychód bez pola, błąd pola). Opis jako przygaszona druga linia pod nazwą: krótki (Wynagrodzenie) i długi, ucięty z pełnym tekstem w `title` (Żywność). „Usuń” w menu „⋯” tylko przy can_delete (Odsetki, Rekolekcje, Bez pozycji), reszta ma w menu „Edytuj”, „Archiwizuj” i „Scal z inną…”; typ zablokowany (can_change_type) w dialogu edycji Wynagrodzenia i Żywności (/dev/ui/dialogs). Scenariusz archive-tab (zakładka Archiwum: data archiwizacji pod nazwą i menu „⋯” z „Operacje”, „Przywróć”, „Scal z inną…” oraz „Usuń” gdy can_delete, bez uchwytu i edycji), one-type-empty i only-archived.',
     },
     {
         state: 'hover',
@@ -278,20 +276,6 @@ const stateMatrix = [
                     reorder-saving
                 />
             </ListSurface>
-        </section>
-
-        <section class="space-y-2" data-scenario="archive-open">
-            <h2
-                class="text-muted-foreground border-border-soft border-b pb-1 font-mono text-sm font-semibold"
-            >
-                archive-open: rozwinięte archiwum z datą archiwizacji i długą
-                nazwą
-            </h2>
-            <CategoryArchiveSection
-                :categories="archivedCategories"
-                :can-merge="() => true"
-                default-open
-            />
         </section>
     </div>
 </template>

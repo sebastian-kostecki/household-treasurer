@@ -322,8 +322,8 @@ export const categoriesScenarios: CategoriesScenario[] = [
         },
     },
     {
-        key: 'with-archive',
-        title: 'with-archive: zwinięte archiwum „Archiwum (n)”',
+        key: 'archive-tab',
+        title: 'archive-tab: zakładka Archiwum z podsekcjami Wydatki i Przychody',
         props: {
             incomeCategories,
             expenseCategories,
@@ -331,7 +331,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
-            tab: 'expense',
+            tab: 'archive',
             rhythmChangeMonth,
         },
     },
