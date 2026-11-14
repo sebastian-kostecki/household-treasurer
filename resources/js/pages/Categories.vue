@@ -150,7 +150,7 @@ const tabModel = computed<CategoriesListTab>({
 });
 
 // The tab is the only state in the address; it replaces the history entry, so
-// Back from another page returns to the same tab (ADR-0097).
+// Back from another page returns to the same tab (ADR-0099).
 function changeTab(value: CategoriesListTab): void {
     if (value === activeTab.value) {
         return;

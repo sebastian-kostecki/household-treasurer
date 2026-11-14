@@ -16,7 +16,10 @@ function makeShell(
 ) {
     return {
         budgetYear,
-        budgetYears,
+        budgetYears: budgetYears.map((year) => ({
+            year,
+            phase: 'execution' as const,
+        })),
         firstRun: {
             hasAccount: true,
             hasBudget,
@@ -53,7 +56,10 @@ describe('useShell', () => {
         inertia.visit(makeShell(2027, [2026, 2027], true));
 
         expect(shell.value.budgetYear).toBe(2027);
-        expect(shell.value.budgetYears).toEqual([2026, 2027]);
+        expect(shell.value.budgetYears).toEqual([
+            { year: 2026, phase: 'execution' },
+            { year: 2027, phase: 'execution' },
+        ]);
     });
 });
 

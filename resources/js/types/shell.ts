@@ -6,9 +6,14 @@ export type FirstRunState = {
     showChecklist: boolean;
 };
 
+export type BudgetYearEntry = {
+    year: number;
+    phase: 'draft' | 'execution';
+};
+
 export type ShellState = {
     budgetYear: number | null;
-    budgetYears: number[];
+    budgetYears: BudgetYearEntry[];
     activeCategoryCount: number;
     firstRun: FirstRunState;
 };
@@ -33,6 +38,11 @@ export type UiTranslations = {
         search_and_go: string;
         select_year_failed: string;
         shortcuts_hint: string;
+        year_current: string;
+        year_draft: string;
+        years_recent: string;
+        years_older: string;
+        add_year_source: string;
     };
     palette: Record<string, string>;
     auth: Record<string, Record<string, string>>;

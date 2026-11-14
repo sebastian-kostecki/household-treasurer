@@ -12,7 +12,7 @@
 
 | Check | Result |
 |-------|--------|
-| 1.1 `ls context/foundation/adr \| grep -c '^0097-'` | 1 — pass |
+| 1.1 `ls context/foundation/adr \| grep -c '^0099-'` | 1 — pass |
 | 1.2 `grep 'Archiwum (n)' design-system.md` | no output — pass |
 | 4.4 `grep -rn CategoryArchiveSection resources tests scripts` | no output — pass |
 | `npx vitest run` | 61 files, 695 tests — pass |
@@ -47,7 +47,7 @@ Scope notes: changes to the `collected-year-start`, `irregular-collected`, `mont
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Safety & Quality
 - **Location**: app/Http/Controllers/CategoryGroupController.php:115
-- **Detail**: `done()` returns `to_route('categories.index')` without `tab`. It is used by `store`, `update`, `destroy` and `assign` (lines 37-70). The server then returns `tab = 'expense'` and the watch on `props.tab` in `Categories.vue` switches the view. In the Income tab "Dodaj grupę", rename, delete and "Zmień grupę…" throw the user onto Expenses, and a freshly added income group disappears from view. Other writes on the page (archive, restore, merge, `CategoryListController` store/update/destroy) use `back()` and keep the tab. Neither the Feature tests nor E2E cover a group action outside Expenses. The redirect existed before, but the tab made it a regression for this view (ADR-0097: the tab is the only state in the address).
+- **Detail**: `done()` returns `to_route('categories.index')` without `tab`. It is used by `store`, `update`, `destroy` and `assign` (lines 37-70). The server then returns `tab = 'expense'` and the watch on `props.tab` in `Categories.vue` switches the view. In the Income tab "Dodaj grupę", rename, delete and "Zmień grupę…" throw the user onto Expenses, and a freshly added income group disappears from view. Other writes on the page (archive, restore, merge, `CategoryListController` store/update/destroy) use `back()` and keep the tab. Neither the Feature tests nor E2E cover a group action outside Expenses. The redirect existed before, but the tab made it a regression for this view (ADR-0099: the tab is the only state in the address).
 - **Fix**: Make `done()` return `back()` like the neighbouring controllers, and add a Feature test (group created from `?tab=income` redirects back to it) plus an E2E step for an income group.
   - Strength: Matches `CategoryListController`; one line in one place covers all four actions.
   - Tradeoff: `back()` depends on the Referer; a direct non-browser call falls back to the previous URL — acceptable.
@@ -95,13 +95,13 @@ Scope notes: changes to the `collected-year-start`, `irregular-collected`, `mont
 - **Impact**: 🔎 MEDIUM — real tradeoff; pause to reason through it
 - **Dimension**: Plan Adherence
 - **Location**: resources/js/pages/Categories.vue (state `rhythm`), resources/js/lib/category-list-filter.ts (`categoryMatches`, `tabCounts`)
-- **Detail**: A rhythm picked in Expenses stays in state after switching to Income, where the chips are hidden (`v-if="activeTab !== 'income'"`); the Expense counter keeps using it with no visible cue. In Archive the rhythm filter narrows only expenses, so archived income always passes — with a rhythm set and only archived income present, "Brak kategorii o wybranym rytmie." never appears. Both follow the plan and ADR-0097 literally; nothing is lost.
-- **Fix**: Accept as designed and note it in ADR-0097, or show the active filters in the toolbar of every tab.
+- **Detail**: A rhythm picked in Expenses stays in state after switching to Income, where the chips are hidden (`v-if="activeTab !== 'income'"`); the Expense counter keeps using it with no visible cue. In Archive the rhythm filter narrows only expenses, so archived income always passes — with a rhythm set and only archived income present, "Brak kategorii o wybranym rytmie." never appears. Both follow the plan and ADR-0099 literally; nothing is lost.
+- **Fix**: Accept as designed and note it in ADR-0099, or show the active filters in the toolbar of every tab.
   - Strength: Accepting costs nothing and matches the decided behaviour.
   - Tradeoff: Showing the filter in every tab adds UI the card `PageCategories` does not have.
   - Confidence: MED — behaviour read in code, not seen in the browser.
   - Blind spot: How this feels with real data (manual step 4.6).
-- **Decision**: ACCEPTED — behaviour kept as designed and written into ADR-0097 (Rhythm paragraph)
+- **Decision**: ACCEPTED — behaviour kept as designed and written into ADR-0099 (Rhythm paragraph)
 
 ### F6 — Years strip may not fit on a long axis
 

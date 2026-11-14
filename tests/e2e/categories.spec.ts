@@ -487,7 +487,7 @@ test('dragging a Category onto an empty group saves the membership', async ({
     }
 });
 
-// Search and filters (ADR-0097). Risk it protects: under a phrase the list still
+// Search and filters (ADR-0099). Risk it protects: under a phrase the list still
 // offers dragging (the server accepts only the full tree of a type, so a drag of
 // the filtered tree would save a wrong order), the tab counts ignore the phrase,
 // a tab change drops the phrase, or after "Wyczyść filtry" the order no longer

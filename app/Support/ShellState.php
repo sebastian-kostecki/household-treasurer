@@ -11,7 +11,7 @@ class ShellState
     /**
      * @return array{
      *     budgetYear: int|null,
-     *     budgetYears: list<int>,
+     *     budgetYears: list<array{year: int, phase: 'draft'|'execution'}>,
      *     activeCategoryCount: int,
      *     firstRun: array{
      *         hasAccount: bool,
@@ -25,7 +25,7 @@ class ShellState
     public static function forRequest(?Request $request = null): array
     {
         $user = $request?->user();
-        $budgetYears = $user === null ? [] : SelectedBudgetYear::budgetYearsForUser($user);
+        $budgetYears = $user === null ? [] : SelectedBudgetYear::budgetYearEntriesForUser($user);
         $budgetYear = SelectedBudgetYear::resolve($request);
 
         $firstRun = [

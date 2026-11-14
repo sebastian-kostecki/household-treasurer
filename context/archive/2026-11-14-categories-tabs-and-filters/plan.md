@@ -12,7 +12,7 @@ Wycinek S-37 (MS-04) roadmapy M-4 wdraża kartę `PageCategories` (wariant B) z 
 
 Zakładka Archiwum zastępuje zwijaną sekcję „Archiwum (n)” i ma dwie podsekcje typu. Przy aktywnej frazie albo filtrze rytmu nie ma przeciągania ani przesuwania grup, bo zapis kolejności przyjmuje tylko pełne drzewo typu.
 
-Decyzja o układzie trafia do ADR-0097 w fazie 1, przed kodem. Zmiana nie rusza modelu danych, zapisu kolejności ani słownika.
+Decyzja o układzie trafia do ADR-0099 w fazie 1, przed kodem. Zmiana nie rusza modelu danych, zapisu kolejności ani słownika.
 
 ## Current State Analysis
 
@@ -55,7 +55,7 @@ Decyzja o układzie trafia do ADR-0097 w fazie 1, przed kodem. Zmiana nie rusza 
 - Archiwum ma podsekcje „Wydatki” i „Przychody”, każdą w kolejności listy. Podsekcja bez trafień znika, kolumna Rytm jest tylko w wydatkach, a filtr rytmu działa na zarchiwizowane wydatki.
 - Lata w budżecie to `CategoryYearsStrip`: jedna komórka na każdy rok z `shell.budgetYears`, rok z pozycją na `accent`, rok bez pozycji z obrysem `border`. Etykieta dostępna to zakresy („Lata w budżecie: 2020–2022 · 2025”). Obok zakładek stoi legenda.
 - Pusty wynik filtrów pokazuje „Brak kategorii dla „:query”.” albo „Brak kategorii o wybranym rytmie.” z przyciskiem „Wyczyść filtry”. Stopka panelu ma „n kategorii w m grupach” i podpowiedź o uchwycie, a przy filtrze „k z n kategorii” bez podpowiedzi.
-- Każdy z tych stanów ma scenariusz w `/dev/ui/categories`. ADR-0097 i `design-system.md` opisują widok tak, jak go zbudowano.
+- Każdy z tych stanów ma scenariusz w `/dev/ui/categories`. ADR-0099 i `design-system.md` opisują widok tak, jak go zbudowano.
 
 ### Key Discoveries:
 
@@ -77,7 +77,7 @@ Decyzja o układzie trafia do ADR-0097 w fazie 1, przed kodem. Zmiana nie rusza 
 
 ## Implementation Approach
 
-Najpierw decyzja i kontrakt widoku (ADR-0097 oraz `design-system.md`), potem jedyna zmiana backendu (prop `tab`), następnie czysta logika w `lib` z testami Vitest. Filtrowanie drzewa, liczniki i komórki paska to funkcje bez Vue, więc dają się sprawdzić test-first. Na końcu widok, który tylko składa wyniki tej logiki, oraz sink i E2E. Wszystko na istniejących elementach: `SegmentedControl` w tonie `neutral`, wzorzec pola szukania z `OperationsFilters.vue:329-353`, `Badge`, `ListSurface` i `CategoryChip`.
+Najpierw decyzja i kontrakt widoku (ADR-0099 oraz `design-system.md`), potem jedyna zmiana backendu (prop `tab`), następnie czysta logika w `lib` z testami Vitest. Filtrowanie drzewa, liczniki i komórki paska to funkcje bez Vue, więc dają się sprawdzić test-first. Na końcu widok, który tylko składa wyniki tej logiki, oraz sink i E2E. Wszystko na istniejących elementach: `SegmentedControl` w tonie `neutral`, wzorzec pola szukania z `OperationsFilters.vue:329-353`, `Badge`, `ListSurface` i `CategoryChip`.
 
 ## Critical Implementation Details
 
@@ -92,9 +92,9 @@ Zapisuje decyzję o układzie „Kategorii” przed kodem (zasada AGENTS.md: now
 
 ### Changes Required:
 
-#### 1. ADR-0097
+#### 1. ADR-0099
 
-**File**: `context/foundation/adr/0097-categories-tabs-filters-and-years-strip.md`
+**File**: `context/foundation/adr/0099-categories-tabs-filters-and-years-strip.md`
 
 **Intent**: Zapisuje układ widoku „Kategorie” wybrany w karcie `PageCategories` (B) oraz decyzje z planowania, z odrzuconymi wariantami. Uzupełnia ADR-0067 i ADR-0069 i nie zmienia żadnej ich reguły.
 
@@ -115,18 +115,18 @@ Odrzucone: płaska lista wyników, grupy zawsze widoczne, szukanie tylko w aktyw
 
 **Intent**: Przepisuje opis widoku tak, żeby zgadzał się z docelowym widokiem. Usuwa dwa panele, lata „ · ” i `Collapsible`, a dodaje zakładki, toolbar z legendą, filtry, kolumnę Rytm, `CategoryYearsStrip`, stopkę, pusty wynik, zakładkę Archiwum i macierz 7 stanów z nowymi scenariuszami.
 
-**Contract**: Nazwy klas i scenariuszy takie, jakie powstaną w fazach 4–5: `.categories-grid` z wariantem bez rytmu, `.categories-years*`, `.categories-toolbar`, `.categories-filters`, `.categories-footer`; scenariusze `default`, `with-groups`, `income-tab`, `archive-tab`, `search`, `rhythm-filter`, `no-results`, `one-type-empty`, `only-empty-group`, `only-archived`, `empty`. Link do ADR-0097.
+**Contract**: Nazwy klas i scenariuszy takie, jakie powstaną w fazach 4–5: `.categories-grid` z wariantem bez rytmu, `.categories-years*`, `.categories-toolbar`, `.categories-filters`, `.categories-footer`; scenariusze `default`, `with-groups`, `income-tab`, `archive-tab`, `search`, `rhythm-filter`, `no-results`, `one-type-empty`, `only-empty-group`, `only-archived`, `empty`. Link do ADR-0099.
 
 ### Success Criteria:
 
 #### Automated Verification:
 
-- ADR-0097 istnieje i jest jedynym plikiem o numerze 0097: `ls context/foundation/adr | grep -c '^0097-'` zwraca 1
+- ADR-0099 istnieje i jest jedynym plikiem o numerze 0099: `ls context/foundation/adr | grep -c '^0099-'` zwraca 1
 - `design-system.md` nie wspomina już zwijanego archiwum Kategorii: `grep -n 'Archiwum (n)' context/foundation/design-system.md` nic nie zwraca
 
 #### Manual Verification:
 
-- ADR-0097 i akapit design systemu opisują te same decyzje co tabela „Key Decisions” w `plan-brief.md`
+- ADR-0099 i akapit design systemu opisują te same decyzje co tabela „Key Decisions” w `plan-brief.md`
 
 **Implementation Note**: Po fazie poczekaj na potwierdzenie ręcznej weryfikacji, zanim przejdziesz dalej.
 
@@ -524,12 +524,12 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [x] 1.1 ADR-0097 istnieje i jest jedynym plikiem o numerze 0097 — 8c1abb8
+- [x] 1.1 ADR-0099 istnieje i jest jedynym plikiem o numerze 0099 — 8c1abb8
 - [x] 1.2 design-system.md nie wspomina już zwijanego archiwum Kategorii — 8c1abb8
 
 #### Manual
 
-- [ ] 1.3 ADR-0097 i akapit design systemu opisują te same decyzje co plan-brief.md
+- [ ] 1.3 ADR-0099 i akapit design systemu opisują te same decyzje co plan-brief.md
 
 ### Phase 2: Prop tab
 

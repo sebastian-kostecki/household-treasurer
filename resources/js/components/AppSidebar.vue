@@ -21,9 +21,10 @@ import { useAppViews } from '@/composables/useAppViews';
 import { useTranslations } from '@/composables/useTranslations';
 import { paletteShortcutLabel } from '@/lib/command-palette-items';
 import { dashboard } from '@/routes';
+import type { BudgetYearEntry } from '@/types/shell';
 
 type Props = {
-    budgetYears: number[];
+    budgetYears: BudgetYearEntry[];
     budgetYear: number | null;
 };
 

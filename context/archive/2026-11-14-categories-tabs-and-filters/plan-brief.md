@@ -40,7 +40,7 @@ Dziś „Kategorie” to dwa `ListSurface` jeden pod drugim (Przychody, Wydatki)
 | Chipy rytmu | `SegmentedControl` `neutral`, pojedynczy wybór z „Wszystkie rytmy” | Reguła `js.md`: wybór jednej wartości to `SegmentedControl` |
 | Oś paska lat | `shell.budgetYears` (lata Budżetów, szkic włącznie) | Bez nowego propsa; pasek pokazuje lata, które użytkownik ma |
 | Pusty wynik | Komunikat z frazą albo rytmem i przycisk „Wyczyść filtry” (czyści oba) | Jeden przycisk dla obu filtrów, jak w FilterBar |
-| Dokumenty | ADR-0097 + przepisany akapit `design-system.md:120`; słownik bez zmian | Żaden ADR nie opisywał sekcji archiwum; reguły ADR-0067 się nie zmieniają |
+| Dokumenty | ADR-0099 + przepisany akapit `design-system.md:120`; słownik bez zmian | Żaden ADR nie opisywał sekcji archiwum; reguły ADR-0067 się nie zmieniają |
 
 ## Scope
 
@@ -50,7 +50,7 @@ Dziś „Kategorie” to dwa `ListSurface` jeden pod drugim (Przychody, Wydatki)
 - logika filtrów i paska w `lib` z Vitest;
 - `CategoryYearsStrip` oraz zmiany w `CategoryListRow`, `CategoryGroupRow` i `Categories.vue`;
 - usunięcie `CategoryArchiveSection`, klasy CSS, copy i strażnicy UI;
-- sink, E2E, ADR-0097 i `design-system.md`.
+- sink, E2E, ADR-0099 i `design-system.md`.
 
 **Out of scope:**
 
@@ -74,7 +74,7 @@ Serwer dokłada tylko walidowany prop `tab`. Całe filtrowanie odbywa się po st
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Decyzja i kontrakt widoku | ADR-0097, akapit design systemu | Rozjazd opisu z tym, co powstanie w fazie 4 |
+| 1. Decyzja i kontrakt widoku | ADR-0099, akapit design systemu | Rozjazd opisu z tym, co powstanie w fazie 4 |
 | 2. Prop `tab` | Enum, FormRequest, prop, `assertInertia` | Zachowanie przy nieznanej wartości (iść za `section`) |
 | 3. Logika w `lib` | Filtr drzewa, liczniki, `foldDiacritics`, komórki paska z Vitest | Licznik grupy „k z n” pomylony z pełnym `count` |
 | 4. Widok | Zakładki, szukajka, rytm, archiwum, pasek, CSS, copy, strażnicy | Zapis kolejności z przefiltrowanego drzewa; potwierdzenie usunięcia grupy z liczbą po filtrze |
