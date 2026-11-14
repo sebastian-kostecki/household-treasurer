@@ -3,6 +3,8 @@ import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
 import ReportMonthBars from '@/components/ReportMonthBars.vue';
+import ReportYearBars from '@/components/ReportYearBars.vue';
+import SegmentedControl from '@/components/SegmentedControl.vue';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoney, formatSignedMoney } from '@/lib/format';
@@ -12,16 +14,21 @@ import {
     reportClosedRangeLabel,
     reportInProgressLabel,
     reportPanelCaption,
+    reportPanelHighestYearsLabel,
     reportPanelOperationsLabel,
+    reportPanelYearsChangeLabel,
+    reportPanelYearsRangeLabel,
 } from '@/lib/report-category-panel';
 import { reportCategoryOperationsQuery } from '@/lib/report-category-operations';
 import { reportDifferenceTone } from '@/lib/report-difference';
 import type { RankedReportCategory } from '@/lib/report-ranking';
+import { formatYearsChange } from '@/lib/report-years';
 import { reportMonthNamesFrom } from '@/lib/report-window';
 import { operations } from '@/routes';
 import type {
     ReportCategoryPanelData,
     ReportCategoryPanelItem,
+    ReportCategoryPanelTab,
 } from '@/types/reports';
 
 /**
@@ -42,6 +49,12 @@ const props = defineProps<{
     comparisonYear?: number;
     /** The panel stands in a sheet (no card around it). */
     inSheet?: boolean;
+    /** The tab of the section "... w czasie": the 12 months or the years (ADR-0101). */
+    tab?: ReportCategoryPanelTab;
+}>();
+
+const emit = defineEmits<{
+    'update:tab': [tab: ReportCategoryPanelTab];
 }>();
 
 const t = useTranslations();
@@ -53,6 +66,68 @@ const monthChips = computed(() =>
         (_, index) => t.budget[`month_chip_${index + 1}`],
     ),
 );
+
+const activeTab = computed({
+    get: () => props.tab ?? props.panel.tab,
+    set: (tab: ReportCategoryPanelTab) => emit('update:tab', tab),
+});
+
+const tabOptions = computed(() => [
+    {
+        value: 'months' as const,
+        label: t.reports.panel_months_label.replace(
+            ':year',
+            String(props.budgetYear),
+        ),
+    },
+    { value: 'years' as const, label: t.reports.panel_tab_years },
+]);
+
+const yearsChangeLabel = computed(() =>
+    reportPanelYearsChangeLabel(
+        props.item.years.change_first_year,
+        props.panel.years.columns[0],
+        t.reports.panel_years_change,
+    ),
+);
+
+const yearsChangeToneClass = computed(() => {
+    const tone = reportDifferenceTone(
+        props.item.years.change_tenths,
+        props.type,
+    );
+
+    return tone === null
+        ? ''
+        : planChangeToneClass(tone, props.category.is_archived);
+});
+
+const yearsHighestLabel = computed(() =>
+    reportPanelHighestYearsLabel(
+        props.item.years.max_years,
+        props.item.years.cells,
+        props.panel.years.columns,
+        formatMoney,
+    ),
+);
+
+const yearsRangeLabel = computed(() => {
+    const cut = props.panel.years.cut;
+
+    return reportPanelYearsRangeLabel(
+        props.panel.years.mode,
+        cut,
+        cut === null
+            ? null
+            : t.categories[
+                  `month_genitive_${cut.month}` as keyof typeof t.categories
+              ],
+        {
+            sameDay: t.reports.panel_years_range_same_day,
+            full: t.reports.panel_years_range_full,
+        },
+    );
+});
 
 const compared = computed(() => props.comparisonYear !== undefined);
 
@@ -235,23 +310,31 @@ const operationsLabel = computed(() =>
         <div class="grid gap-2">
             <div class="flex items-baseline justify-between gap-2">
                 <h3 class="section-title">{{ timeTitle }}</h3>
-                <span class="meta text-muted-foreground">{{
-                    t.reports.panel_months_label.replace(
-                        ':year',
-                        String(budgetYear),
-                    )
-                }}</span>
+                <SegmentedControl
+                    v-model="activeTab"
+                    :options="tabOptions"
+                    :ariaLabel="t.reports.panel_tab_label"
+                    tone="neutral"
+                />
             </div>
             <ReportMonthBars
+                v-if="activeTab === 'months'"
                 :type="type"
                 :months="item.months"
                 :closed-month-count="panel.closed_month_count"
                 :in-progress-month="panel.in_progress_month"
                 :highest-month="item.highest_month"
             />
+            <ReportYearBars
+                v-else
+                :type="type"
+                :columns="panel.years.columns"
+                :current-year="panel.years.current_year"
+                :cells="item.years.cells"
+            />
         </div>
 
-        <div class="report-panel-rows">
+        <div v-if="activeTab === 'months'" class="report-panel-rows">
             <div class="report-panel-row" data-panel-row="average">
                 <span class="text-muted-foreground">{{ averageLabel }}</span>
                 <span class="amount">{{
@@ -276,6 +359,28 @@ const operationsLabel = computed(() =>
                 <span class="text-muted-foreground">{{ inProgressLabel }}</span>
                 <span class="amount">{{
                     monthAmount(panel.in_progress_month)
+                }}</span>
+            </div>
+        </div>
+
+        <div v-else class="report-panel-rows">
+            <div class="report-panel-row" data-panel-row="years-change">
+                <span class="text-muted-foreground">{{
+                    yearsChangeLabel
+                }}</span>
+                <span class="amount" :class="yearsChangeToneClass">{{
+                    formatYearsChange(item.years.change_tenths)
+                }}</span>
+            </div>
+            <div class="report-panel-row" data-panel-row="years-highest">
+                <span class="text-muted-foreground">{{
+                    t.reports.panel_highest
+                }}</span>
+                <span class="amount">{{ yearsHighestLabel }}</span>
+            </div>
+            <div class="report-panel-row" data-panel-row="years-range">
+                <span class="meta text-muted-foreground">{{
+                    yearsRangeLabel
                 }}</span>
             </div>
         </div>

@@ -171,6 +171,14 @@ describe('reportYearSwitchParams', () => {
         });
     });
 
+    it('carries the years tab of the panel and no other tab', () => {
+        expect(
+            reportYearSwitchParams('/reports?category=12&panel=years'),
+        ).toEqual({ report_category: '12', report_panel: 'years' });
+        expect(reportYearSwitchParams('/reports?panel=months')).toEqual({});
+        expect(reportYearSwitchParams('/reports?panel=foo')).toEqual({});
+    });
+
     it('carries no other Ranking mode', () => {
         expect(reportYearSwitchParams('/reports?ranking=categories')).toEqual(
             {},

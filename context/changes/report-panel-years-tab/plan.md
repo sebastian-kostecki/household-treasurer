@@ -414,10 +414,10 @@ Brak migracji i zmian danych. Nowe pola propsów i parametr `report_panel` są d
 
 #### Automated
 
-- [x] 1.1 Testy serwera przechodzą na PostgreSQL w worktree
-- [x] 1.2 Typy TS zgadzają się z fiksturami
-- [x] 1.3 PHPStan i styl
-- [x] 1.4 Sloppy bez nowych zgłoszeń
+- [x] 1.1 Testy serwera przechodzą na PostgreSQL w worktree — 1018ea1
+- [x] 1.2 Typy TS zgadzają się z fiksturami — 1018ea1
+- [x] 1.3 PHPStan i styl — 1018ea1
+- [x] 1.4 Sloppy bez nowych zgłoszeń — 1018ea1
 
 #### Manual
 
@@ -427,10 +427,10 @@ Brak migracji i zmian danych. Nowe pola propsów i parametr `report_panel` są d
 
 #### Automated
 
-- [ ] 2.1 Testy JS przechodzą
-- [ ] 2.2 Typy
-- [ ] 2.3 Strażnicy UI
-- [ ] 2.4 Lint i format frontu
+- [x] 2.1 Testy JS przechodzą
+- [x] 2.2 Typy
+- [x] 2.3 Strażnicy UI
+- [x] 2.4 Lint i format frontu
 
 #### Manual
 

@@ -2003,6 +2003,29 @@
         @apply meta text-muted-foreground;
     }
 
+    /**
+     * Year bars of the Category Panel (ADR-0101): the track and the bar of
+     * the month bars, the column count in `--report-year-count`; the current
+     * year is `foreground`, a year without a line a 2 px stroke in `track`.
+     */
+    .report-year-bars {
+        @apply grid h-24 items-stretch gap-1;
+        grid-template-columns: repeat(
+            var(--report-year-count, 7),
+            minmax(0, 1fr)
+        );
+    }
+
+    .report-year-bar.is-current {
+        --report-bar-color: var(--foreground);
+    }
+
+    .report-year-bar.is-none {
+        @apply w-full;
+        height: 2px;
+        background-color: var(--track);
+    }
+
     .report-cell-amount {
         @apply amount text-right;
     }

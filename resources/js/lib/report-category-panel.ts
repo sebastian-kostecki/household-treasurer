@@ -1,4 +1,6 @@
 import type { RankedReportCategory } from './report-ranking';
+import { reportYearsCutLabel } from './report-years';
+import type { ReportYearsCut } from './report-years';
 
 /** The selected Category of the panel and the list it stands in. */
 export type SelectedReportCategory = {
@@ -221,4 +223,113 @@ export function remTokenToPixels(
     const match = /^\s*([0-9]*\.?[0-9]+)rem\s*$/.exec(value);
 
     return match === null ? null : Number(match[1]) * rootFontSizePx;
+}
+
+export type ReportYearBarState = 'amount' | 'none';
+
+export type ReportYearBar = {
+    year: number;
+    /** Height of the bar, 0 to 1; a negative, zero or missing year is 0. */
+    ratio: number;
+    /** `none` is a year without a Budget Line (a short stroke, "—"). */
+    state: ReportYearBarState;
+    isCurrent: boolean;
+};
+
+/**
+ * One bar per column of the panel's years tab (ADR-0101), scaled to the
+ * largest positive amount of the row.
+ */
+export function reportYearBars(
+    cells: (number | null)[],
+    columns: number[],
+    currentYear: number | null,
+): ReportYearBar[] {
+    const largest = Math.max(0, ...cells.map((cell) => cell ?? 0));
+
+    return columns.map((year, index) => {
+        const cell = cells[index] ?? null;
+
+        return {
+            year,
+            ratio:
+                cell === null || cell <= 0 || largest <= 0
+                    ? 0
+                    : Math.min(1, cell / largest),
+            state: cell === null ? 'none' : 'amount',
+            isCurrent: year === currentYear,
+        };
+    });
+}
+
+/** Entries of the `sr-only` list: "2020: 10 280,00 zł", a year without a line as "2021: <noLineLabel>"; all columns. */
+export function reportYearBarsAccessibleList(
+    bars: ReportYearBar[],
+    cells: (number | null)[],
+    formatAmount: (minorUnits: number) => string,
+    noLineLabel: string,
+): string[] {
+    return bars.map((bar, index) => {
+        const cell = cells[index] ?? null;
+
+        return `${bar.year}: ${cell === null ? noLineLabel : formatAmount(cell)}`;
+    });
+}
+
+/**
+ * "Zmiana od 2022" from the template with `:year`; the first column when the
+ * change is missing or starts there.
+ */
+export function reportPanelYearsChangeLabel(
+    changeFirstYear: number | null,
+    firstColumn: number,
+    template: string,
+): string {
+    return template.replace(':year', String(changeFirstYear ?? firstColumn));
+}
+
+/**
+ * "2025 · 14 230,00 zł", on a tie "2025, 2026 · 14 230,00 zł", "—" without a
+ * highest year. The amount is the cell of the first highest year.
+ */
+export function reportPanelHighestYearsLabel(
+    maxYears: number[],
+    cells: (number | null)[],
+    columns: number[],
+    formatAmount: (minorUnits: number) => string,
+): string {
+    if (maxYears.length === 0) {
+        return '—';
+    }
+
+    const cell = cells[columns.indexOf(maxYears[0])] ?? null;
+
+    if (cell === null) {
+        return '—';
+    }
+
+    return `${maxYears.join(', ')} · ${formatAmount(cell)}`;
+}
+
+export type ReportPanelYearsRangeLabels = {
+    /** Template with `:date` ("Każdy rok do :date"). */
+    sameDay: string;
+    full: string;
+};
+
+/** "Każdy rok do 14 listopada" in `same_day` (the cut in the format of `@/lib/report-years`), "Pełne lata" in `full`. */
+export function reportPanelYearsRangeLabel(
+    mode: 'same_day' | 'full',
+    cut: ReportYearsCut | null,
+    monthGenitive: string | null,
+    labels: ReportPanelYearsRangeLabels,
+): string {
+    if (mode === 'full' || cut === null || monthGenitive === null) {
+        return labels.full;
+    }
+
+    return labels.sameDay.replace(
+        ':date',
+        reportYearsCutLabel(cut, monthGenitive, ':day :month'),
+    );
 }

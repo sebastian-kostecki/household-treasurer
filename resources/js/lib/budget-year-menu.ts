@@ -63,13 +63,14 @@ export function budgetYearMenu(
 export type ReportYearSwitchParams = {
     report_category?: string;
     report_ranking?: 'groups';
+    report_panel?: 'years';
 };
 
 /**
  * What the year switch carries from a Reports address into the year it opens:
  * the Category of `?category` when the Reports page would accept it (up to 18
  * digits, at least 1, sent without leading zeros, because the `integer` rule
- * rejects "007" and a Number would round a long id) and `?ranking=groups`.
+ * rejects "007" and a Number would round a long id) `?ranking=groups` and `?panel=years` (the tab of the Category Panel, ADR-0101).
  * Anything else is left out, so it never fails the switch with a 422.
  */
 export function reportYearSwitchParams(url: string): ReportYearSwitchParams {
@@ -87,6 +88,10 @@ export function reportYearSwitchParams(url: string): ReportYearSwitchParams {
 
     if (params.get('ranking') === 'groups') {
         result.report_ranking = 'groups';
+    }
+
+    if (params.get('panel') === 'years') {
+        result.report_panel = 'years';
     }
 
     return result;

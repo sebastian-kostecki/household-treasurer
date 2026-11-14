@@ -5,6 +5,11 @@ import {
     reportInProgressLabel,
     reportMonthBars,
     reportMonthBarsAccessibleList,
+    reportPanelHighestYearsLabel,
+    reportPanelYearsChangeLabel,
+    reportPanelYearsRangeLabel,
+    reportYearBars,
+    reportYearBarsAccessibleList,
     reportPanelCaption,
     reportPanelLayout,
     reportPanelOperationsLabel,
@@ -232,5 +237,111 @@ describe('layout', () => {
         expect(remTokenToPixels('60rem', 16)).toBe(960);
         expect(remTokenToPixels(' 37.5rem ', 16)).toBe(600);
         expect(remTokenToPixels('960px', 16)).toBeNull();
+    });
+});
+
+const columns = [2020, 2021, 2022, 2023];
+const money = (minorUnits: number): string => `${minorUnits / 100} zł`;
+
+describe('reportYearBars', () => {
+    it('scales to the largest amount and marks the current year', () => {
+        const bars = reportYearBars([1000, 2000, 4000, 2000], columns, 2023);
+
+        expect(bars.map((bar) => bar.ratio)).toEqual([0.25, 0.5, 1, 0.5]);
+        expect(bars.map((bar) => bar.isCurrent)).toEqual([
+            false,
+            false,
+            false,
+            true,
+        ]);
+        expect(bars.every((bar) => bar.state === 'amount')).toBe(true);
+    });
+
+    it('marks a year without a line as none with a zero ratio', () => {
+        const bars = reportYearBars([1000, null, 2000, 2000], columns, null);
+
+        expect(bars[1]).toMatchObject({ state: 'none', ratio: 0 });
+        expect(bars.some((bar) => bar.isCurrent)).toBe(false);
+    });
+
+    it('draws a negative or zero year as a zero bar', () => {
+        const bars = reportYearBars([-500, 0, 2000, 1000], columns, 2023);
+
+        expect(bars.map((bar) => bar.ratio)).toEqual([0, 0, 1, 0.5]);
+        expect(bars[0].state).toBe('amount');
+    });
+
+    it('gives zero ratios when no amount is positive', () => {
+        const bars = reportYearBars([-500, 0, null, -1], columns, 2023);
+
+        expect(bars.map((bar) => bar.ratio)).toEqual([0, 0, 0, 0]);
+    });
+});
+
+describe('reportYearBarsAccessibleList', () => {
+    it('lists every column, a missing line with its label and the exact negative amount', () => {
+        const cells = [1000, null, -500, 2000];
+        const bars = reportYearBars(cells, columns, 2023);
+
+        expect(
+            reportYearBarsAccessibleList(bars, cells, money, 'brak pozycji'),
+        ).toEqual([
+            '2020: 10 zł',
+            '2021: brak pozycji',
+            '2022: -5 zł',
+            '2023: 20 zł',
+        ]);
+    });
+});
+
+describe('years rows of the panel', () => {
+    it('labels the change from the first year with an amount', () => {
+        expect(reportPanelYearsChangeLabel(2022, 2020, 'Zmiana od :year')).toBe(
+            'Zmiana od 2022',
+        );
+        expect(reportPanelYearsChangeLabel(null, 2020, 'Zmiana od :year')).toBe(
+            'Zmiana od 2020',
+        );
+    });
+
+    it('names the highest year, all of them on a tie, and a dash without one', () => {
+        const cells = [1000, 4000, 4000, 2000];
+
+        expect(
+            reportPanelHighestYearsLabel([2021], cells, columns, money),
+        ).toBe('2021 · 40 zł');
+        expect(
+            reportPanelHighestYearsLabel([2021, 2022], cells, columns, money),
+        ).toBe('2021, 2022 · 40 zł');
+        expect(reportPanelHighestYearsLabel([], cells, columns, money)).toBe(
+            '—',
+        );
+    });
+
+    it('labels the range in both modes', () => {
+        const labels = {
+            sameDay: 'Każdy rok do :date',
+            full: 'Pełne lata',
+        };
+
+        expect(
+            reportPanelYearsRangeLabel(
+                'same_day',
+                { month: 11, day: 14 },
+                'listopada',
+                labels,
+            ),
+        ).toBe('Każdy rok do 14 listopada');
+        expect(reportPanelYearsRangeLabel('full', null, null, labels)).toBe(
+            'Pełne lata',
+        );
+        expect(
+            reportPanelYearsRangeLabel(
+                'full',
+                { month: 11, day: 14 },
+                'listopada',
+                labels,
+            ),
+        ).toBe('Pełne lata');
     });
 });

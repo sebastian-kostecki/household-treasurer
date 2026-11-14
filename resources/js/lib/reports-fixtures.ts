@@ -2,6 +2,8 @@ import type {
     PeriodReportCategory,
     ReportCategoryPanelData,
     ReportCategoryPanelItem,
+    ReportCategoryPanelTab,
+    ReportCategoryPanelYears,
     PeriodReportEntry,
     PeriodReportComparison,
     PeriodReportData,
@@ -1108,6 +1110,24 @@ const panelJanuary: PanelTiming = {
 
 const PANEL_YEARS_COLUMNS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
+/** The `years` of a panel and its tab: the cells of a Category by id replace the default ones. */
+type PanelYearsOptions = {
+    tab?: ReportCategoryPanelTab;
+    /** 7 cells (2020 to 2026) per Category id. */
+    cellsById?: Record<number, (number | null)[]>;
+    /** The columns and mode the server sends; `same_day` for 2026 by default. */
+    years?: ReportCategoryPanelYears;
+    /** Number of columns that count for the change and the highest year (a year in progress is out in `full`). */
+    counted?: number;
+};
+
+const panelYearsSameDay: ReportCategoryPanelYears = {
+    columns: PANEL_YEARS_COLUMNS,
+    current_year: 2026,
+    cut: { month: 11, day: 14 },
+    mode: 'same_day',
+};
+
 /**
  * Panel data of a scenario: 12 cells per Category (the amount spread over the
  * months that have a value, the sum equal to the amount), `monthsById`
@@ -1119,6 +1139,7 @@ function buildPanel(
     requestedCategoryId: number | null = null,
     monthsById: Record<number, (number | null)[]> = {},
     rhythmById: Record<number, string> = {},
+    yearsOptions: PanelYearsOptions = {},
 ): ReportCategoryPanelData {
     const flat = (entries: PeriodReportEntry[]): PeriodReportCategory[] =>
         entries.flatMap((entry) =>
@@ -1148,21 +1169,32 @@ function buildPanel(
             { month: null, amount: 0 },
         );
 
+        const cellsOverride = yearsOptions.cellsById?.[row.id];
+
         return {
-            years: {
-                cells: [
-                    ...Array<number | null>(
-                        PANEL_YEARS_COLUMNS.length - 1,
-                    ).fill(null),
-                    row.amount_minor_units,
-                ],
-                change_tenths: null,
-                change_first_year: null,
-                max_years:
-                    row.amount_minor_units > 0
-                        ? [PANEL_YEARS_COLUMNS[PANEL_YEARS_COLUMNS.length - 1]]
-                        : [],
-            },
+            years: cellsOverride
+                ? yearsCells(
+                      cellsOverride,
+                      yearsOptions.counted ?? PANEL_YEARS_COLUMNS.length,
+                  )
+                : {
+                      cells: [
+                          ...Array<number | null>(
+                              PANEL_YEARS_COLUMNS.length - 1,
+                          ).fill(null),
+                          row.amount_minor_units,
+                      ],
+                      change_tenths: null,
+                      change_first_year: null,
+                      max_years:
+                          row.amount_minor_units > 0
+                              ? [
+                                    PANEL_YEARS_COLUMNS[
+                                        PANEL_YEARS_COLUMNS.length - 1
+                                    ],
+                                ]
+                              : [],
+                  },
             id: row.id,
             rhythm: incomeIds.has(row.id)
                 ? null
@@ -1184,15 +1216,10 @@ function buildPanel(
     });
 
     return {
-        tab: 'months',
+        tab: yearsOptions.tab ?? 'months',
         requested_category_id: requestedCategoryId,
         ...timing,
-        years: {
-            columns: PANEL_YEARS_COLUMNS,
-            current_year: 2026,
-            cut: { month: 11, day: 14 },
-            mode: 'same_day',
-        },
+        years: yearsOptions.years ?? panelYearsSameDay,
         categories,
     };
 }
@@ -1204,6 +1231,21 @@ function yearInProgressPanel(
 ): ReportCategoryPanelData {
     return buildPanel(report, panelInProgress, requestedCategoryId);
 }
+
+/** 2025 viewed in 2026: the comparison is the whole of 2024. */
+const pastYearComparedReport: PeriodReportData = {
+    ...comparedYearReport,
+    comparison:
+        comparedYearReport.comparison === null
+            ? null
+            : {
+                  ...comparedYearReport.comparison,
+                  year: 2024,
+                  from: '2024-01-01',
+                  through: '2024-12-31',
+                  is_partial: false,
+              },
+};
 
 const comparedCinemaOnlyReport: PeriodReportData = {
     ...comparedYearReport,
@@ -1937,6 +1979,293 @@ export const reportScenarios: ReportScenario[] = [
                 2,
                 {},
                 { 2: 'fixed_charge' },
+            ),
+        },
+    },
+    {
+        key: 'panel-years',
+        caption:
+            'Panel kategorii, zakładka „Lata” (Rok 2026 w toku): 7 słupków 2020–2026, rok bieżący w foreground, 2022 bez pozycji jako kreska w track, „Zmiana od 2020”, „Każdy rok do 14 listopada”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedYearReport,
+                panelInProgress,
+                1,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        1: [58000, 63000, null, 79000, 86000, 91000, 100000],
+                    },
+                    counted: 7,
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-younger',
+        caption:
+            'Panel „Lata” kategorii, która zaczęła się później: „Zmiana od 2022”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedYearReport,
+                panelInProgress,
+                2,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        2: [null, null, 18000, 22000, 28000, 35000, 30000],
+                    },
+                    counted: 7,
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-tie',
+        caption:
+            'Panel „Lata” z remisem: 2025 i 2026 mają to samo maksimum, „Najwięcej: 2025, 2026 · …”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                yearReport,
+                panelInProgress,
+                1,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        1: [60000, 70000, 80000, 90000, 95000, 100000, 100000],
+                    },
+                    counted: 7,
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-negative',
+        caption:
+            'Panel „Lata” z rokiem o ujemnej kwocie (zwroty): słupek zerowy, dokładna kwota na liście sr-only',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                yearReport,
+                panelInProgress,
+                3,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        3: [30000, -12000, 24000, 36000, 41000, 52000, 50000],
+                    },
+                    counted: 7,
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-no-current-year',
+        caption:
+            'Panel „Lata” bez roku bieżącego w realizacji: tryb „Pełne lata”, podpis „Pełne lata”',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedYearReport,
+                panelClosed,
+                1,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        1: [58000, 63000, 72000, 79000, 86000, 91000, 100000],
+                    },
+                    counted: 7,
+                    years: {
+                        columns: PANEL_YEARS_COLUMNS,
+                        current_year: null,
+                        cut: null,
+                        mode: 'full',
+                    },
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-past-year',
+        caption:
+            'Panel „Lata” w Roku 2025 przy bieżącym 2026: „Pełne lata”, słupki 2025 i 2024 równe kafelkom, 2026 w kolumnie, ale poza zmianą',
+        props: {
+            budgetYear: 2025,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: pastYearComparedReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                pastYearComparedReport,
+                panelClosed,
+                1,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        1: [58000, 63000, 72000, 85000, 91000, 100000, 84000],
+                    },
+                    counted: 6,
+                    years: {
+                        columns: PANEL_YEARS_COLUMNS,
+                        current_year: 2026,
+                        cut: { month: 11, day: 14 },
+                        mode: 'full',
+                    },
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-income',
+        caption:
+            'Panel „Lata” przychodu: słupki w success, rok bieżący w foreground, bez Udziału',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedYearReport,
+                panelInProgress,
+                7,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        7: [
+                            560000, 590000, 610000, 640000, 670000, 690000,
+                            700000,
+                        ],
+                    },
+                    counted: 7,
+                },
+            ),
+        },
+    },
+    {
+        key: 'panel-years-phone',
+        caption: 'Telefon (ramka 22rem): arkusz otwarty na „Latach”',
+        phone: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedYearReport,
+                panelInProgress,
+                1,
+                {},
+                {},
+                {
+                    tab: 'years',
+                    cellsById: {
+                        1: [58000, 63000, null, 79000, 86000, 91000, 100000],
+                    },
+                    counted: 7,
+                },
             ),
         },
     },

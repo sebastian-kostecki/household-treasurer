@@ -32,6 +32,7 @@ import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
 import type {
     ReportCategoryPanelData,
+    ReportCategoryPanelTab,
     ReportRange,
     ReportRankingMode,
     ReportsPageProps,
@@ -240,6 +241,31 @@ function setRequestedCategory(id: number | null): void {
                 : {
                       ...(current.categoryPanel as ReportCategoryPanelData),
                       requested_category_id: id,
+                  },
+    }));
+}
+
+/** Switches the tab of the panel in place: `?panel=years` added or removed, no request (ADR-0101). */
+function setPanelTab(tab: ReportCategoryPanelTab): void {
+    if (tab === props.categoryPanel?.tab) {
+        return;
+    }
+
+    const query = currentQuery();
+
+    if (tab === 'years') {
+        query.panel = 'years';
+    } else {
+        delete query.panel;
+    }
+
+    replaceInPlace(query, (current) => ({
+        categoryPanel:
+            current.categoryPanel === null
+                ? null
+                : {
+                      ...(current.categoryPanel as ReportCategoryPanelData),
+                      tab,
                   },
     }));
 }
@@ -595,6 +621,8 @@ const title = computed(() => {
                                 :panel="categoryPanel"
                                 :budget-year="budgetYear"
                                 :comparison-year="report.comparison?.year"
+                                :tab="categoryPanel.tab"
+                                @update:tab="setPanelTab"
                             />
                         </aside>
                     </div>
@@ -630,6 +658,8 @@ const title = computed(() => {
                                 :panel="categoryPanel"
                                 :budget-year="budgetYear"
                                 :comparison-year="report.comparison?.year"
+                                :tab="categoryPanel.tab"
+                                @update:tab="setPanelTab"
                             />
                             <SheetClose as-child>
                                 <Button variant="outline" class="w-full">{{
