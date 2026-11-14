@@ -369,7 +369,7 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Manual
 
-- [ ] 1.7 W lokalnej aplikacji `/reports?view=years` zwraca props `years`, a wybrany szkic nie zmienia odpowiedzi
+- [x] 1.7 W lokalnej aplikacji `/reports?view=years` zwraca props `years`, a wybrany szkic nie zmienia odpowiedzi
 
 ### Phase 2: Widok „Lata”
 
@@ -384,10 +384,10 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Manual
 
-- [ ] 2.7 `/dev/ui/reports` w obu motywach: scenariusze `years-*` zgodne z kartą `PageReportsYears`
-- [ ] 2.8 Ramka telefonu 22rem: segmenty i przewijana tabela z przypiętą kolumną
-- [ ] 2.9 1280 px z rozwiniętym sidebarem: tabela 7 lat bez poziomego przewijania
-- [ ] 2.10 Klawiatura: focus-visible na wszystkich kontrolkach widoku
+- [x] 2.7 `/dev/ui/reports` w obu motywach: scenariusze `years-*` zgodne z kartą `PageReportsYears`
+- [x] 2.8 Ramka telefonu 22rem: segmenty i przewijana tabela z przypiętą kolumną
+- [x] 2.9 1280 px z rozwiniętym sidebarem: tabela 7 lat bez poziomego przewijania
+- [x] 2.10 Klawiatura: focus-visible na wszystkich kontrolkach widoku
 
 ### Phase 3: E2E i przegląd na produkcji
 
