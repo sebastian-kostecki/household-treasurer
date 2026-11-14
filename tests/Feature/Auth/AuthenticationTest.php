@@ -41,7 +41,7 @@ class AuthenticationTest extends TestCase
             'HTTP_X_FORWARDED_PROTO' => 'https',
             'HTTP_X_FORWARDED_PORT' => '443',
             'SERVER_PORT' => '80',
-            'HTTP_HOST' => 'treasurer.kostecki.dev',
+            'HTTP_HOST' => 'budget.kostecki.dev',
         ])->post('/login', [
             'email' => $user->email,
             'password' => 'password',

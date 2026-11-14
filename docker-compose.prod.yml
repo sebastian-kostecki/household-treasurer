@@ -26,10 +26,19 @@ services:
         labels:
             - traefik.enable=true
             - traefik.docker.network=proxy
-            - traefik.http.routers.treasurer.rule=Host(`treasurer.kostecki.dev`)
+            - traefik.http.routers.treasurer.rule=Host(`budget.kostecki.dev`)
             - traefik.http.routers.treasurer.entrypoints=websecure
             - traefik.http.routers.treasurer.tls.certresolver=letsencrypt
             - traefik.http.services.treasurer.loadbalancer.server.port=80
+            # Old address treasurer.kostecki.dev: permanent redirect, path and query kept (301 GET, 308 POST).
+            - traefik.http.routers.treasurer-old.rule=Host(`treasurer.kostecki.dev`)
+            - traefik.http.routers.treasurer-old.entrypoints=websecure
+            - traefik.http.routers.treasurer-old.tls.certresolver=letsencrypt
+            - traefik.http.routers.treasurer-old.service=treasurer
+            - traefik.http.routers.treasurer-old.middlewares=treasurer-old-host
+            - traefik.http.middlewares.treasurer-old-host.redirectregex.regex=^https?://treasurer\.kostecki\.dev/(.*)
+            - traefik.http.middlewares.treasurer-old-host.redirectregex.replacement=https://budget.kostecki.dev/$${1}
+            - traefik.http.middlewares.treasurer-old-host.redirectregex.permanent=true
 
     pgsql:
         image: postgres:18-alpine
