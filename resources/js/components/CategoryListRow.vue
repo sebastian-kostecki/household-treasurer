@@ -26,6 +26,8 @@ const props = withDefaults(
         draggable?: boolean;
         /** The expense list has the Rhythm column; incomes do not. */
         showRhythm?: boolean;
+        /** The years of the strip; the default is the user's Budget years (`shell.budgetYears`). */
+        axis?: number[];
     }>(),
     {
         draggable: true,
@@ -108,7 +110,7 @@ const caption = computed(() =>
         <div class="categories-cell-years">
             <CategoryYearsStrip
                 :years="category.budget_years"
-                :axis="shell.budgetYears"
+                :axis="axis ?? shell.budgetYears"
             />
         </div>
 

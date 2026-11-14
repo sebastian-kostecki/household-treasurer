@@ -50,7 +50,14 @@ import type { Rhythm } from '@/types/rhythm';
 type SectionKey = 'income' | 'expense';
 type Tree = CategoryTreeItem<CategoryGroupItem, CategoryListItem>[];
 
-const props = defineProps<CategoriesPageProps>();
+const props = defineProps<
+    CategoriesPageProps & {
+        /** Kitchen sink only: the phrase and Rhythm the page starts with. */
+        initialFilter?: CategoryListFilter;
+        /** Kitchen sink only: the year axis of the strips instead of `shell.budgetYears`. */
+        yearAxis?: number[];
+    }
+>();
 
 const t = useTranslations();
 
@@ -89,8 +96,10 @@ watch(
 );
 
 const activeTab = ref<CategoriesListTab>(props.tab);
-const query = ref(EMPTY_CATEGORY_LIST_FILTER.query);
-const rhythm = ref<Rhythm | 'all'>(EMPTY_CATEGORY_LIST_FILTER.rhythm);
+const query = ref((props.initialFilter ?? EMPTY_CATEGORY_LIST_FILTER).query);
+const rhythm = ref<Rhythm | 'all'>(
+    (props.initialFilter ?? EMPTY_CATEGORY_LIST_FILTER).rhythm,
+);
 
 watch(
     () => props.tab,
@@ -592,6 +601,7 @@ function moveGroup(
                                 v-if="item.kind === 'category'"
                                 data-kind="category"
                                 :category="item.category"
+                                :axis="yearAxis"
                                 :groups="typeGroups"
                                 :draggable="!filterActive"
                                 :show-rhythm="typeKey === 'expense'"
@@ -652,6 +662,7 @@ function moveGroup(
                                                 data-kind="category"
                                                 nested
                                                 :category="category"
+                                                :axis="yearAxis"
                                                 :groups="typeGroups"
                                                 :draggable="!filterActive"
                                                 :show-rhythm="
@@ -727,6 +738,7 @@ function moveGroup(
                             v-for="category in block.categories"
                             :key="category.id"
                             :category="category"
+                            :axis="yearAxis"
                             archived
                             :show-rhythm="block.type === 'expense'"
                             :can-merge="canMerge(category)"

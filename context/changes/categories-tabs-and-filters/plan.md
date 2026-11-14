@@ -551,11 +551,11 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [x] 4.1 Strażnicy UI: check:ui i CategoriesHardcodedUiTest
-- [x] 4.2 Vitest (w tym ui-contract.test.ts)
-- [x] 4.3 Typy i build
-- [x] 4.4 Brak martwej sekcji CategoryArchiveSection
-- [x] 4.5 Pełna bramka: composer ci:check i sloppy ci
+- [x] 4.1 Strażnicy UI: check:ui i CategoriesHardcodedUiTest — a1fe427
+- [x] 4.2 Vitest (w tym ui-contract.test.ts) — a1fe427
+- [x] 4.3 Typy i build — a1fe427
+- [x] 4.4 Brak martwej sekcji CategoryArchiveSection — a1fe427
+- [x] 4.5 Pełna bramka: composer ci:check i sloppy ci — a1fe427
 
 #### Manual
 
@@ -565,9 +565,9 @@ Brak zmian danych. Stare linki `/categories` otwierają Wydatki.
 
 #### Automated
 
-- [ ] 5.1 Test sinka (CategoriesKitchenSinkTest)
-- [ ] 5.2 Vitest i typy
-- [ ] 5.3 E2E Kategorii
+- [x] 5.1 Test sinka (CategoriesKitchenSinkTest)
+- [x] 5.2 Vitest i typy
+- [x] 5.3 E2E Kategorii
 
 #### Manual
 
