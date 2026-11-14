@@ -278,6 +278,27 @@ class CategoriesPageTest extends TestCase
             );
     }
 
+    public function test_the_tab_defaults_to_expense(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('categories.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('tab', 'expense'));
+    }
+
+    public function test_the_tab_is_echoed_from_the_query(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('categories.index', ['tab' => 'archive']))
+            ->assertInertia(fn (Assert $page) => $page->where('tab', 'archive'));
+    }
+
+    public function test_an_unknown_tab_is_rejected(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('categories.index', ['tab' => 'foo']))
+            ->assertSessionHasErrors('tab');
+    }
+
     /**
      * Deleting a group takes the group from its archived Categories too, so the
      * confirmation needs their number; the view lists only active ones in a group.

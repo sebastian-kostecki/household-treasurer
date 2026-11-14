@@ -15,6 +15,13 @@ import {
 
 const currentYear = String(new Date().getFullYear());
 
+// A tab of the list: the SegmentedControl items carry the label and the count.
+function listTab(page: Page, label: string) {
+    return page
+        .locator('.segmented-control-tabs .segmented-control-item')
+        .filter({ hasText: label });
+}
+
 function categoryRow(page: Page, name: string) {
     return page
         .locator('[data-category-row]')
@@ -53,7 +60,11 @@ test('Kategorie opens from the menu and lists Rozrywka with the years of its lin
     await expect(
         page.getByRole('heading', { level: 1, name: 'Kategorie' }),
     ).toBeVisible();
-    await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
+    await expect(
+        categoryRow(page, 'Rozrywka').locator(
+            `.categories-years-cell[data-state="on"][title="${currentYear}"]`,
+        ),
+    ).toHaveCount(1);
 });
 
 test('the menu item Operacje leads to Operations filtered by the Category id over all years', async ({
@@ -81,7 +92,7 @@ test('an order the server refuses (422) is rolled back with a toast', async ({
     await page.goto('/categories');
 
     const rows = page
-        .locator('[data-section="expense"]')
+        .locator('[data-tab="expense"]')
         .locator('[data-category-row]');
     await expect(rows.nth(1)).toBeVisible();
     const orderBefore = await rows.allInnerTexts();
@@ -120,9 +131,9 @@ test('a Category is created with a description, edited, archived, restored and d
 
     await page.goto('/categories');
 
-    // Create in the Wydatki panel, with a description.
+    // Create on the Wydatki tab, with a description.
     await page
-        .getByRole('button', { name: 'Dodaj kategorię: Wydatki' })
+        .getByRole('button', { name: 'Dodaj kategorię', exact: true })
         .click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa').fill(name);
@@ -130,7 +141,7 @@ test('a Category is created with a description, edited, archived, restored and d
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
     await expect(dialog).toHaveCount(0);
 
-    const expensePanel = page.locator('[data-section="expense"]');
+    const expensePanel = page.locator('[data-tab="expense"]');
     const row = expensePanel
         .locator('[data-category-row]')
         .filter({ has: page.getByText(name, { exact: true }) });
@@ -146,28 +157,36 @@ test('a Category is created with a description, edited, archived, restored and d
     await expect(row).toContainText(editedDescription);
     await expect(row).not.toContainText(description);
 
-    // Archive: the row leaves the panel and lands in the collapsed archive.
+    // Archive: the row leaves the Wydatki tab and lands in the Archiwum tab.
     await row.getByRole('button', { name: rowMenu }).click();
     await page.getByRole('menuitem', { name: 'Archiwizuj' }).click();
     await dialog.getByRole('button', { name: 'Archiwizuj' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(row).toHaveCount(0);
 
-    const toggle = page.getByRole('button', { name: /^Archiwum \(\d+\)$/ });
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await toggle.click();
+    await listTab(page, 'Archiwum').click();
+    await expect(page).toHaveURL(/\/categories\?tab=archive$/);
     const archivedRow = page
-        .locator('[data-category-row]')
+        .locator('[data-tab="archive"] [data-category-row]')
         .filter({ has: page.getByText(name, { exact: true }) });
     await expect(archivedRow).toContainText(
         /Zarchiwizowana \d{2}\.\d{2}\.\d{4}/,
     );
 
-    // Restore: back in the Wydatki panel.
+    // Back from Operations keeps the Archiwum tab (the tab replaces the history
+    // entry, so the address the page returns to carries it).
+    await openCategoryOperations(page, archivedRow, name);
+    await expect(page).toHaveURL(/\/operations\?/);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/categories\?tab=archive$/);
+    await expect(archivedRow).toHaveCount(1);
+
+    // Restore: back on the Wydatki tab.
     await archivedRow.getByRole('button', { name: rowMenu }).click();
     await page.getByRole('menuitem', { name: 'Przywróć' }).click();
     await dialog.getByRole('button', { name: 'Przywróć' }).click();
     await expect(dialog).toHaveCount(0);
+    await listTab(page, 'Wydatki').click();
     await expect(row).toContainText(editedDescription);
 
     // Delete the fresh Category (no operations, so it can be deleted).
@@ -190,10 +209,7 @@ function groupBlock(page: Page, name: string) {
 }
 
 async function createGroup(page: Page, name: string) {
-    await page
-        .locator('[data-section="expense"]')
-        .getByRole('button', { name: 'Dodaj grupę' })
-        .click();
+    await page.getByRole('button', { name: 'Dodaj grupę' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa grupy').fill(name);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
@@ -244,7 +260,11 @@ test('a Category is put into a new group with "Zmień grupę…" and stays when 
     }
 
     await expect(categoryRow(page, 'Rozrywka')).toHaveCount(1);
-    await expect(categoryRow(page, 'Rozrywka')).toContainText(currentYear);
+    await expect(
+        categoryRow(page, 'Rozrywka').locator(
+            `.categories-years-cell[data-state="on"][title="${currentYear}"]`,
+        ),
+    ).toHaveCount(1);
 });
 
 // Risk: the „Zmień grupę…” dialog opens without the Category's current group
@@ -467,6 +487,132 @@ test('dragging a Category onto an empty group saves the membership', async ({
     }
 });
 
+// Search and filters (ADR-0099). Risk it protects: under a phrase the list still
+// offers dragging (the server accepts only the full tree of a type, so a drag of
+// the filtered tree would save a wrong order), the tab counts ignore the phrase,
+// a tab change drops the phrase, or after "Wyczyść filtry" the order no longer
+// saves. The test creates its own Category (the phrase is unique to it) and
+// deletes it at the end through the UI.
+test('a phrase hides the drag handles and keeps over tabs, and after clearing the filters the order saves', async ({
+    page,
+}) => {
+    const phrase = `e2efiltr${Date.now()}`;
+    const name = `E2E ${phrase}`;
+    const rowMenu = `Więcej działań kategorii ${name}`;
+    const search = page.getByRole('searchbox', { name: 'Szukaj kategorii' });
+    const allRows = page
+        .locator('[data-tab="expense"]')
+        .locator('[data-category-row]');
+
+    await page.goto('/categories');
+    await page
+        .getByRole('button', { name: 'Dodaj kategorię', exact: true })
+        .click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Nazwa').fill(name);
+    await dialog.getByRole('button', { name: 'Zapisz' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(categoryRow(page, name)).toHaveCount(1);
+
+    try {
+        // Without a phrase the list can be dragged.
+        await expect(page.locator('.drag-handle').first()).toBeVisible();
+
+        await search.fill(phrase);
+        await expect(allRows).toHaveCount(1);
+        await expect(page.locator('.drag-handle')).toHaveCount(0);
+        await expect(
+            listTab(page, 'Wydatki').locator('.segmented-control-count'),
+        ).toHaveText('1');
+        await expect(
+            listTab(page, 'Przychody').locator('.segmented-control-count'),
+        ).toHaveText('0');
+        await expect(
+            listTab(page, 'Archiwum').locator('.segmented-control-count'),
+        ).toHaveText('0');
+
+        // The phrase is shared by the tabs.
+        await listTab(page, 'Przychody').click();
+        await expect(page.locator('[data-tab="income"]')).toBeVisible();
+        await expect(search).toHaveValue(phrase);
+        await expect(
+            page.getByText(`Brak kategorii dla „${phrase}”.`),
+        ).toBeVisible();
+
+        await page.getByRole('button', { name: 'Wyczyść filtry' }).click();
+        await expect(search).toHaveValue('');
+        await listTab(page, 'Wydatki').click();
+        await expect(page.locator('[data-tab="expense"]')).toBeVisible();
+        await expect(page.locator('.drag-handle').first()).toBeVisible();
+
+        // The new Category is the last one; dragging it to the top saves the
+        // order, and it is still there after a reload. SortableJS needs several
+        // dragover events, so the pointer travels in steps.
+        await page.mouse.move(0, 0);
+        await expect(page.locator('[data-sonner-toast]')).toHaveCount(0);
+        const namesBefore = await allRows.allInnerTexts();
+        const indexBefore = namesBefore.findIndex((text) =>
+            text.includes(name),
+        );
+        expect(indexBefore).toBeGreaterThan(0);
+
+        const reorderSaved = page.waitForResponse(
+            (response) =>
+                response.url().endsWith('/categories/reorder') &&
+                response.request().method() === 'PATCH',
+        );
+        const handle = categoryRow(page, name).locator('.drag-handle');
+        await handle.scrollIntoViewIfNeeded();
+        const from = await handle.boundingBox();
+        const target = await allRows.first().boundingBox();
+        if (!from || !target) {
+            throw new Error(
+                'The drag handle or the first row is not on the page.',
+            );
+        }
+
+        try {
+            await page.mouse.move(
+                from.x + from.width / 2,
+                from.y + from.height / 2,
+            );
+            await page.mouse.down();
+            await page.mouse.move(from.x + 5, from.y - 5, { steps: 5 });
+            await page.mouse.move(
+                target.x + target.width / 2,
+                target.y + target.height / 4,
+                { steps: 25 },
+            );
+            await page.waitForTimeout(300);
+            await page.mouse.move(
+                target.x + target.width / 2 + 8,
+                target.y + target.height / 4,
+                { steps: 4 },
+            );
+            await page.mouse.up();
+        } catch (error) {
+            await page.mouse.up();
+            throw error;
+        }
+        expect((await reorderSaved).status()).toBe(204);
+
+        await page.reload();
+        const namesAfter = await allRows.allInnerTexts();
+        const indexAfter = namesAfter.findIndex((text) => text.includes(name));
+        expect(indexAfter).toBeGreaterThanOrEqual(0);
+        expect(indexAfter).toBeLessThan(indexBefore);
+    } finally {
+        await page.goto('/categories');
+        const leftover = categoryRow(page, name);
+        if ((await leftover.count()) > 0) {
+            await leftover.getByRole('button', { name: rowMenu }).click();
+            await page.getByRole('menuitem', { name: 'Usuń' }).click();
+            await dialog.getByRole('button', { name: 'Usuń' }).click();
+            await expect(dialog).toHaveCount(0);
+        }
+    }
+});
+
 // Category Merge (S-21, ADR-0078). Risk it protects: the first dialog that loads
 // a preview from the server before it confirms. The menu does not open the
 // dialog, the preview does not show the operations that will move, "Scal" is not
@@ -492,7 +638,7 @@ test('a Category is merged into another from the menu, with the preview, and its
     await page.goto('/categories');
     for (const name of [source, target]) {
         await page
-            .getByRole('button', { name: 'Dodaj kategorię: Wydatki' })
+            .getByRole('button', { name: 'Dodaj kategorię', exact: true })
             .click();
         const createDialog = page.getByRole('dialog');
         await createDialog.getByLabel('Nazwa').fill(name);

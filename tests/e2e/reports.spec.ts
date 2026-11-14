@@ -195,10 +195,7 @@ test('collapsing a group hides its Categories', async ({ page }) => {
     const description = `E2E raport grupa ${Date.now()}`;
 
     await page.goto('/categories');
-    await page
-        .locator('[data-section="expense"]')
-        .getByRole('button', { name: 'Dodaj grupę' })
-        .click();
+    await page.getByRole('button', { name: 'Dodaj grupę' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa grupy').fill(group);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
@@ -352,10 +349,7 @@ test('Trend groups start collapsed and expand to their Categories', async ({
     const description = `E2E trend grupa ${Date.now()}`;
 
     await page.goto('/categories');
-    await page
-        .locator('[data-section="expense"]')
-        .getByRole('button', { name: 'Dodaj grupę' })
-        .click();
+    await page.getByRole('button', { name: 'Dodaj grupę' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa grupy').fill(group);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();

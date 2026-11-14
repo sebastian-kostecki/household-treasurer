@@ -65,7 +65,7 @@ test('the next year Budget row shows the collected amount at the start of the ye
         // Setup: an expense Category „nieregularna” with 500,00 collected at the start.
         await page.goto('/categories');
         await page
-            .getByRole('button', { name: 'Dodaj kategorię: Wydatki' })
+            .getByRole('button', { name: 'Dodaj kategorię', exact: true })
             .click();
         const dialog = page.getByRole('dialog');
         await dialog.getByLabel('Nazwa').fill(category);

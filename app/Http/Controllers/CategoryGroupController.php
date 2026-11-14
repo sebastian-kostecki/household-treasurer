@@ -112,6 +112,6 @@ class CategoryGroupController extends Controller
             'message' => $message,
         ]);
 
-        return to_route('categories.index');
+        return back(fallback: route('categories.index'));
     }
 }

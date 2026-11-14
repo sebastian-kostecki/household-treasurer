@@ -32,6 +32,9 @@ export type CategoryGroupItem = {
     archived_count: number;
 };
 
+/** The tab of the Categories view, validated on the server from `?tab=`. */
+export type CategoriesListTab = 'expense' | 'income' | 'archive';
+
 export type CategoriesPageProps = {
     incomeCategories: CategoryListItem[];
     expenseCategories: CategoryListItem[];
@@ -39,6 +42,7 @@ export type CategoriesPageProps = {
     incomeGroups: CategoryGroupItem[];
     expenseGroups: CategoryGroupItem[];
     categoryAppearanceOptions: { icons: string[]; colors: string[] };
+    tab: CategoriesListTab;
     /** The month a Rhythm change made on the list starts in (the current month). */
     rhythmChangeMonth: { year: number; month: number };
 };
