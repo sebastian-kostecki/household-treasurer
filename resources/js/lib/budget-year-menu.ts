@@ -59,3 +59,35 @@ export function budgetYearMenu(
         createSourceYear: highestYear ?? null,
     };
 }
+
+export type ReportYearSwitchParams = {
+    report_category?: string;
+    report_ranking?: 'groups';
+};
+
+/**
+ * What the year switch carries from a Reports address into the year it opens:
+ * the Category of `?category` when the Reports page would accept it (up to 18
+ * digits, at least 1, sent without leading zeros, because the `integer` rule
+ * rejects "007" and a Number would round a long id) and `?ranking=groups`.
+ * Anything else is left out, so it never fails the switch with a 422.
+ */
+export function reportYearSwitchParams(url: string): ReportYearSwitchParams {
+    const params = new URL(url, 'http://localhost').searchParams;
+    const result: ReportYearSwitchParams = {};
+    const category = params.get('category');
+
+    if (category !== null && /^\d{1,18}$/.test(category)) {
+        const digits = category.replace(/^0+/, '');
+
+        if (digits !== '') {
+            result.report_category = digits;
+        }
+    }
+
+    if (params.get('ranking') === 'groups') {
+        result.report_ranking = 'groups';
+    }
+
+    return result;
+}

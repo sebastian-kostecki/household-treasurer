@@ -42,6 +42,7 @@ final class ReportWindowRows
                         'amount' => ($rows[$line->category_id]['amount'] ?? 0) + $actuals->actual($line->id),
                         'has_operations' => true,
                         'previous' => null,
+                        'months' => [],
                     ];
                 }
             }

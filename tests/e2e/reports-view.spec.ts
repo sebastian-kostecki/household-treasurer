@@ -39,7 +39,7 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
         expect(headingBox!.y).toBeLessThan(cardBox!.y);
     });
 
-    test('szkic budżetu z oknem 12 miesięcy: h1, przełącznik i tabela Wydatki', async ({
+    test('szkic budżetu z oknem 12 miesięcy: h1, przełącznik i Ranking wydatków', async ({
         page,
     }) => {
         const draftWindow = scenario(page, 'draft-last-12');
@@ -51,10 +51,15 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
             }),
         ).toBeVisible();
         await expect(
-            draftWindow.locator('.segmented-control-item'),
+            draftWindow
+                .locator('.segmented-control[aria-label="Okres raportu"]')
+                .locator('.segmented-control-item'),
         ).toHaveCount(5);
         await expect(
-            draftWindow.getByRole('heading', { name: 'Wydatki', exact: true }),
+            draftWindow.getByRole('heading', {
+                name: 'Wydatki od największych',
+                exact: true,
+            }),
         ).toBeVisible();
     });
 
@@ -73,9 +78,10 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
     });
 });
 
-// The chart is a lazy fragment: until it arrives the table must already stand
-// where it will stay, so the page does not jump when the chart appears.
-test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
+// The Trend chart is a lazy fragment: until it arrives the table must already
+// stand where it will stay, so the page does not jump when the chart appears.
+// (The Ranking has no chart and nothing to load, ADR-0097.)
+test.describe('Raporty: miejsce na wykres Trendu, gdy fragment jest w drodze', () => {
     // Holds the requests matching `pattern` until `release()`. `held()` counts
     // them: a test asserts it is above zero, so a renamed chunk (the pattern
     // matching nothing) fails loudly instead of measuring a page whose chart
@@ -98,35 +104,6 @@ test.describe('Raporty: miejsce na wykres, gdy fragment jest w drodze', () => {
 
         return { release, held: () => heldCount };
     }
-
-    test('słupkowy: tabela Wydatki nie przeskakuje po doładowaniu wykresu', async ({
-        page,
-    }) => {
-        const { release, held } = await holdFragment(
-            page,
-            '**/build/assets/ReportBarChart-*.js',
-        );
-
-        await page.goto('/reports');
-
-        const heading = page
-            .getByRole('heading', { name: 'Wydatki', exact: true })
-            .first();
-        await expect(heading).toBeVisible();
-        // The chart is still in flight: the placeholder stands in its place.
-        await expect(
-            page.getByTestId('report-chart-placeholder-expense'),
-        ).toBeVisible();
-        await expect(page.getByTestId('report-chart-expense')).toHaveCount(0);
-        expect(held()).toBeGreaterThan(0);
-        const before = (await heading.boundingBox())!.y;
-
-        release();
-        await expect(page.getByTestId('report-chart-expense')).toBeVisible();
-        const after = (await heading.boundingBox())!.y;
-
-        expect(Math.abs(after - before)).toBeLessThanOrEqual(1);
-    });
 
     test('Trend: tabela miar nie przeskakuje po doładowaniu wykresu', async ({
         page,
@@ -226,5 +203,72 @@ test.describe('Raporty: wąska karta pokazuje pełne nazwy i Udział pod kwotą'
         expect(badgeBox.y).toBeGreaterThanOrEqual(
             nameBox.y + nameBox.height - 1,
         );
+    });
+});
+
+// The Category Panel in the kitchen sink (S-35): the scenarios `panel-*` render
+// the real page, so the layout follows the width of the sink, not the window.
+test.describe('Raporty: panel kategorii w kitchen sinku', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/dev/ui/reports');
+    });
+
+    test('panel-comparison-only: Kino 0,00 / 600,00 / −600,00 i −100,0%, bez przycisku Operacje', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-comparison-only').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(panel).toContainText('Kino');
+        await expect(panel.locator('[data-panel-amount]')).toContainText(
+            '0,00',
+        );
+        await expect(panel.locator('[data-panel-previous]')).toContainText(
+            '600,00',
+        );
+        await expect(panel.locator('[data-panel-difference]')).toContainText(
+            '600,00',
+        );
+        await expect(panel.locator('[data-panel-percent]')).toContainText(
+            '−100,0%',
+        );
+        await expect(
+            panel.getByRole('link', { name: /^Operacje:/ }),
+        ).toHaveCount(0);
+    });
+
+    test('panel-year-in-progress: miesiąc w toku jest kreskowany, grudzień pusty, w wierszu „w toku”', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-year-in-progress').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(
+            panel.locator('[data-month="11"][data-state="in-progress"]'),
+        ).toHaveCount(1);
+        await expect(
+            panel.locator('[data-month="12"][data-state="future"]'),
+        ).toHaveCount(1);
+        await expect(
+            panel.locator('[data-panel-row="in-progress"]'),
+        ).toContainText('Listopad do 14.11 (w toku)');
+        await expect(panel.locator('[data-panel-row="average"]')).toContainText(
+            'sty–paź',
+        );
+    });
+
+    test('panel-phone: arkusz zamknięty, tapnięcie nazwy go otwiera', async ({
+        page,
+    }) => {
+        const phone = scenario(page, 'panel-phone');
+
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        await expect(phone.locator('[aria-current="true"]')).toHaveCount(0);
+
+        await phone.locator('[data-report-select]').first().click();
+
+        await expect(page.getByRole('dialog')).toBeVisible();
     });
 });

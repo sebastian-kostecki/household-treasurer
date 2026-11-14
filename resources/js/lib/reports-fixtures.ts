@@ -1,5 +1,8 @@
 import type {
     PeriodReportCategory,
+    ReportCategoryPanelData,
+    ReportCategoryPanelItem,
+    PeriodReportEntry,
     PeriodReportComparison,
     PeriodReportData,
     ReportPeriod,
@@ -1067,11 +1070,157 @@ const yearsNoOperations = buildYears({
     rows: { expense: [], income: [] },
 });
 
+/** Months 1 to `count` carry the amount in whole parts (the remainder in January); the rest are empty. */
+function spreadMonths(amount: number, count: number): (number | null)[] {
+    const part = Math.trunc(amount / count);
+
+    return Array.from({ length: 12 }, (_, index) =>
+        index >= count
+            ? null
+            : index === 0
+              ? amount - part * (count - 1)
+              : part,
+    );
+}
+
+type PanelTiming = {
+    in_progress_month: number | null;
+    through: string | null;
+    closed_month_count: number;
+};
+
+const panelInProgress: PanelTiming = {
+    in_progress_month: 11,
+    through: '2026-11-14',
+    closed_month_count: 10,
+};
+const panelClosed: PanelTiming = {
+    in_progress_month: null,
+    through: null,
+    closed_month_count: 12,
+};
+const panelJanuary: PanelTiming = {
+    in_progress_month: 1,
+    through: '2027-01-14',
+    closed_month_count: 0,
+};
+
+/**
+ * Panel data of a scenario: 12 cells per Category (the amount spread over the
+ * months that have a value, the sum equal to the amount), `monthsById`
+ * replaces the cells of a Category.
+ */
+function buildPanel(
+    report: PeriodReportData,
+    timing: PanelTiming,
+    requestedCategoryId: number | null = null,
+    monthsById: Record<number, (number | null)[]> = {},
+    rhythmById: Record<number, string> = {},
+): ReportCategoryPanelData {
+    const flat = (entries: PeriodReportEntry[]): PeriodReportCategory[] =>
+        entries.flatMap((entry) =>
+            entry.kind === 'group' ? entry.categories : [entry],
+        );
+    const incomeIds = new Set(flat(report.income).map((row) => row.id));
+    const valueMonths =
+        timing.closed_month_count + (timing.in_progress_month === null ? 0 : 1);
+    const categories: ReportCategoryPanelItem[] = [
+        ...flat(report.income),
+        ...flat(report.expense),
+    ].map((row) => {
+        const months =
+            monthsById[row.id] ??
+            (row.has_operations
+                ? spreadMonths(row.amount_minor_units, Math.max(valueMonths, 1))
+                : Array<null>(12).fill(null));
+        const closedSum = months
+            .slice(0, timing.closed_month_count)
+            .reduce<number>((sum, cell) => sum + (cell ?? 0), 0);
+        const previous = row.previous_minor_units;
+        const highest = months.reduce<{ month: number | null; amount: number }>(
+            (best, cell, index) =>
+                index < valueMonths && cell !== null && cell > best.amount
+                    ? { month: index + 1, amount: cell }
+                    : best,
+            { month: null, amount: 0 },
+        );
+
+        return {
+            id: row.id,
+            rhythm: incomeIds.has(row.id)
+                ? null
+                : (rhythmById[row.id] ?? 'running'),
+            months,
+            closed_average_minor_units:
+                timing.closed_month_count === 0
+                    ? null
+                    : Math.round(closedSum / timing.closed_month_count),
+            highest_month: highest.month,
+            difference_tenths_percent:
+                previous === null || previous <= 0
+                    ? null
+                    : Math.round(
+                          ((row.amount_minor_units - previous) * 1000) /
+                              previous,
+                      ),
+        };
+    });
+
+    return {
+        requested_category_id: requestedCategoryId,
+        ...timing,
+        categories,
+    };
+}
+
+/** Panel data for a year in progress (14 November 2026): ten closed months, November in progress. */
+function yearInProgressPanel(
+    report: PeriodReportData,
+    requestedCategoryId: number | null = null,
+): ReportCategoryPanelData {
+    return buildPanel(report, panelInProgress, requestedCategoryId);
+}
+
+const comparedCinemaOnlyReport: PeriodReportData = {
+    ...comparedYearReport,
+    expense: [
+        ...comparedYearReport.expense.slice(0, 2),
+        { kind: 'category', ...compared(cinema, 60000, false) },
+    ],
+};
+
+const tieReport: PeriodReportData = {
+    income_minor_units: 700000,
+    expense_minor_units: 470000,
+    result_minor_units: 230000,
+    has_operations: true,
+    comparison: null,
+    expense: [
+        {
+            kind: 'category',
+            ...category(21, 'Żywność', 'shopping-cart', 'green', 90000, 191),
+        },
+        {
+            kind: 'category',
+            ...category(22, 'Czynsz', 'home', 'blue', 180000, 383),
+        },
+        {
+            kind: 'category',
+            ...category(23, 'Prąd', 'zap', 'orange', 180000, 383),
+        },
+        {
+            kind: 'category',
+            ...category(24, 'Kino', 'film', 'pink', 20000, 43),
+        },
+    ],
+    income: [{ kind: 'category', ...salary, amount_minor_units: 700000 }],
+};
+
 export const reportScenarios: ReportScenario[] = [
     {
         key: 'year-in-progress',
         caption:
-            'Rok w toku: grupa rozwinięta, kategorie bez grupy; nazwa kategorii to link do operacji roku',
+            'Rok w toku: Ranking kategorii od największych; nazwa kategorii to link do operacji roku',
         props: {
             budgetYear: 2026,
             budgetPhase: 'execution',
@@ -1085,6 +1234,8 @@ export const reportScenarios: ReportScenario[] = [
             report: yearReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(yearReport),
         },
     },
     {
@@ -1104,6 +1255,8 @@ export const reportScenarios: ReportScenario[] = [
             report: archivedInGroupReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1122,6 +1275,8 @@ export const reportScenarios: ReportScenario[] = [
             report: archivedInGroupReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1140,6 +1295,8 @@ export const reportScenarios: ReportScenario[] = [
             report: refundReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1158,6 +1315,8 @@ export const reportScenarios: ReportScenario[] = [
             report: nonPositiveExpenseReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1176,6 +1335,8 @@ export const reportScenarios: ReportScenario[] = [
             report: emptyReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1194,6 +1355,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1212,6 +1375,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1232,6 +1397,8 @@ export const reportScenarios: ReportScenario[] = [
             report: archivedInGroupReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1251,6 +1418,8 @@ export const reportScenarios: ReportScenario[] = [
             report: comparedYearReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(comparedYearReport),
         },
     },
     {
@@ -1270,6 +1439,8 @@ export const reportScenarios: ReportScenario[] = [
             report: comparedMonthReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1289,6 +1460,8 @@ export const reportScenarios: ReportScenario[] = [
             report: comparedOnlyOneSideReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1308,6 +1481,8 @@ export const reportScenarios: ReportScenario[] = [
             report: comparedEmptyCurrentReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1328,6 +1503,8 @@ export const reportScenarios: ReportScenario[] = [
             report: comparedYearReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(comparedYearReport),
         },
     },
     {
@@ -1341,6 +1518,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendInProgress,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1354,6 +1533,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendClosed,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1367,6 +1548,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendIrregularAndZero,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1379,6 +1562,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendNegativeResult,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1392,6 +1577,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendArchivedInGroup,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1404,6 +1591,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendEmpty,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1418,6 +1607,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: trendInProgress,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1431,6 +1622,8 @@ export const reportScenarios: ReportScenario[] = [
             report: yearReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1444,6 +1637,8 @@ export const reportScenarios: ReportScenario[] = [
             report: yearReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1457,6 +1652,8 @@ export const reportScenarios: ReportScenario[] = [
             report: archivedInGroupReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1470,6 +1667,8 @@ export const reportScenarios: ReportScenario[] = [
             report: emptyReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1482,6 +1681,8 @@ export const reportScenarios: ReportScenario[] = [
             report: emptyReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1496,6 +1697,8 @@ export const reportScenarios: ReportScenario[] = [
             report: yearReport,
             trend: null,
             years: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1508,7 +1711,252 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            rankingMode: 'categories',
+            categoryPanel: null,
             years: null,
+        },
+    },
+    {
+        key: 'ranking-groups',
+        caption:
+            'Ranking w trybie Grupy: grupy zwinięte, grupy i kategorie bez grupy po sumie; po rozwinięciu kategorie grupy po kwocie',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'groups',
+            categoryPanel: yearInProgressPanel(yearReport),
+        },
+    },
+    {
+        key: 'ranking-tie',
+        caption:
+            'Remis kwot: Czynsz 1 800 i Prąd 1 800, wyżej ten wcześniejszy na liście kategorii',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: tieReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: yearInProgressPanel(tieReport),
+        },
+    },
+    {
+        key: 'panel-year-in-progress',
+        caption:
+            'Panel kategorii, rok w toku z porównaniem: Żywność, kreskowany listopad, „sty–paź”, najwyższy miesiąc w foreground, przyszły grudzień pusty',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(comparedYearReport, panelInProgress, 1),
+        },
+    },
+    {
+        key: 'panel-year-closed',
+        caption:
+            'Panel kategorii, rok zamknięty: 12 zamkniętych miesięcy „sty–gru”, bez wiersza „w toku”',
+        props: {
+            budgetYear: 2025,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: false,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(yearReport, panelClosed, 1),
+        },
+    },
+    {
+        key: 'panel-january',
+        caption:
+            'Panel kategorii w styczniu: brak zamkniętych miesięcy, „Średnio na pełny miesiąc” to „—”, styczeń w toku',
+        props: {
+            budgetYear: 2027,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(yearReport, panelJanuary, 1),
+        },
+    },
+    {
+        key: 'panel-comparison-only',
+        caption:
+            'Panel kategorii wiersza tylko z porównania: Kino 0,00 / 600,00 / −600,00, „−100,0%”, bez przycisku Operacje',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedCinemaOnlyReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                comparedCinemaOnlyReport,
+                panelInProgress,
+                5,
+            ),
+        },
+    },
+    {
+        key: 'panel-income',
+        caption: 'Panel przychodu: słupki w success, bez Udziału i rytmu',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: comparedYearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(comparedYearReport, panelInProgress, 7),
+        },
+    },
+    {
+        key: 'panel-negative-month',
+        caption:
+            'Panel kategorii z ujemnym miesiącem (zwrot): słupek zerowy, dokładna kwota na liście sr-only',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(yearReport, panelInProgress, 3, {
+                3: [20000, -10000, 40000, 0, ...Array<null>(8).fill(null)],
+            }),
+        },
+    },
+    {
+        key: 'panel-no-previous',
+        caption:
+            'Panel kategorii bez porównania: bez kwoty N−1, Różnicy i procentu',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(
+                yearReport,
+                panelInProgress,
+                2,
+                {},
+                { 2: 'fixed_charge' },
+            ),
+        },
+    },
+    {
+        key: 'panel-groups',
+        caption:
+            'Panel w trybie Grupy: wybrana kategoria (Media) leży w grupie Dom, ta grupa jest rozwinięta, pozostałe zwinięte',
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'groups',
+            categoryPanel: buildPanel(yearReport, panelInProgress, 2),
+        },
+    },
+    {
+        key: 'panel-phone',
+        caption:
+            'Telefon (ramka 22rem): Ranking bez podświetlenia, arkusz zamknięty do tapnięcia nazwy',
+        phone: true,
+        props: {
+            budgetYear: 2026,
+            budgetPhase: 'execution',
+            period: {
+                kind: 'year',
+                month: null,
+                default_month: 11,
+                is_in_progress: true,
+                window: null,
+            },
+            report: yearReport,
+            trend: null,
+            years: null,
+            rankingMode: 'categories',
+            categoryPanel: buildPanel(yearReport, panelInProgress, null),
         },
     },
     {
@@ -1522,6 +1970,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsSameDay,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1535,6 +1985,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsNoCurrentYear,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1547,6 +1999,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsOnlyCurrent,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1559,6 +2013,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsLeap,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1572,6 +2028,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsNoCoverage,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1585,6 +2043,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsNoOperations,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1598,6 +2058,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsSameDay,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
     {
@@ -1612,6 +2074,8 @@ export const reportScenarios: ReportScenario[] = [
             report: null,
             trend: null,
             years: yearsSameDay,
+            rankingMode: 'categories',
+            categoryPanel: null,
         },
     },
 ];

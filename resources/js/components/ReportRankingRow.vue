@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import CategoryChip from '@/components/CategoryChip.vue';
+import ReportShareBar from '@/components/ReportShareBar.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
@@ -18,7 +19,11 @@ import type { PeriodReportCategory, ReportRange } from '@/types/reports';
 
 const props = defineProps<{
     category: PeriodReportCategory;
-    /** Expense tables show the Udział column; income does not. */
+    /** Position in the Ranking of Categories; `null` in the groups mode. */
+    position: number | null;
+    /** Width of the share bar, 0 to 1. */
+    barRatio: number;
+    /** Expense lists show the Udział column; income does not. */
     showShare: boolean;
     /** Decides which way a difference is favorable. */
     type: 'income' | 'expense';
@@ -32,6 +37,16 @@ const props = defineProps<{
     month: number | null;
     /** The last-12 window (ADR-0081); replaces the month and the year in the link. */
     range?: ReportRange | null;
+    /** Year view with a Category Panel: the name is a button that selects the row (ADR-0100). */
+    selectable?: boolean;
+    /** The row is the one the panel shows (`aria-current`, `secondary` background). */
+    selected?: boolean;
+    /** Id of the panel the button controls. */
+    controls?: string;
+}>();
+
+const emit = defineEmits<{
+    select: [categoryId: number];
 }>();
 
 const t = useTranslations();
@@ -92,32 +107,59 @@ const differenceToneClass = computed(() => {
             'report-grid-no-share': !showShare,
             'report-grid-compare': compared,
             'report-row-nested': nested,
+            'report-row-selected': selected,
             'text-muted-foreground': category.is_archived,
         }"
         data-report-row="category"
     >
-        <div class="report-area-name report-cell-name">
-            <Link
-                v-if="operationsQuery !== null"
-                :href="operations({ query: operationsQuery })"
-                class="report-name-link"
-                :aria-label="operationsLinkLabel"
+        <div class="report-area-name report-rank-cell">
+            <span
+                v-if="position !== null"
+                class="report-rank amount text-muted-foreground"
+                data-report-rank
+                >{{ position }}</span
             >
-                <CategoryChip
-                    :name="category.name"
-                    :icon="category.icon ?? ''"
-                    :color="category.color"
-                />
-            </Link>
-            <CategoryChip
-                v-else
-                :name="category.name"
-                :icon="category.icon ?? ''"
-                :color="category.color"
-            />
-            <Badge v-if="category.is_archived" variant="neutral">
-                {{ t.reports.archived_badge }}
-            </Badge>
+            <div class="report-rank-body">
+                <div class="report-cell-name">
+                    <button
+                        v-if="selectable"
+                        type="button"
+                        class="report-name-link cursor-pointer text-left"
+                        :aria-current="selected ? 'true' : undefined"
+                        :aria-controls="controls"
+                        :data-report-select="category.id"
+                        @click="emit('select', category.id)"
+                    >
+                        <CategoryChip
+                            :name="category.name"
+                            :icon="category.icon ?? ''"
+                            :color="category.color"
+                        />
+                    </button>
+                    <Link
+                        v-else-if="operationsQuery !== null"
+                        :href="operations({ query: operationsQuery })"
+                        class="report-name-link"
+                        :aria-label="operationsLinkLabel"
+                    >
+                        <CategoryChip
+                            :name="category.name"
+                            :icon="category.icon ?? ''"
+                            :color="category.color"
+                        />
+                    </Link>
+                    <CategoryChip
+                        v-else
+                        :name="category.name"
+                        :icon="category.icon ?? ''"
+                        :color="category.color"
+                    />
+                    <Badge v-if="category.is_archived" variant="neutral">
+                        {{ t.reports.archived_badge }}
+                    </Badge>
+                </div>
+                <ReportShareBar :type="type" :ratio="barRatio" />
+            </div>
         </div>
         <div class="report-area-amount report-cell-amount">
             {{

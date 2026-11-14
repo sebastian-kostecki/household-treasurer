@@ -20,7 +20,7 @@ import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
-import { budgetYearMenu } from '@/lib/budget-year-menu';
+import { budgetYearMenu, reportYearSwitchParams } from '@/lib/budget-year-menu';
 import type { BudgetYearMenuEntry } from '@/lib/budget-year-menu';
 import { isCurrentSection } from '@/lib/nav-active';
 import { reports } from '@/routes';
@@ -137,6 +137,24 @@ function createYear(): void {
     createBudgetDialog.openForYear(menu.value.createYear);
 }
 
+/** The Reports year switch also carries the selected Category and the Ranking mode of the address. */
+function selectYearPayload(year: number): Record<string, string | number> {
+    if (destination.value === null) {
+        return { year };
+    }
+
+    const payload: Record<string, string | number> = {
+        year,
+        destination: destination.value,
+    };
+
+    if (destination.value === 'reports') {
+        return { ...payload, ...reportYearSwitchParams(page.url) };
+    }
+
+    return payload;
+}
+
 function selectYear(value: unknown): void {
     const year = Number(value);
 
@@ -144,24 +162,18 @@ function selectYear(value: unknown): void {
         return;
     }
 
-    router.post(
-        BudgetController.selectYear().url,
-        destination.value === null
-            ? { year }
-            : { year, destination: destination.value },
-        {
-            preserveScroll: false,
-            onStart: () => {
-                pending.value = true;
-            },
-            onError: () => {
-                notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
-            },
-            onFinish: () => {
-                pending.value = false;
-            },
+    router.post(BudgetController.selectYear().url, selectYearPayload(year), {
+        preserveScroll: false,
+        onStart: () => {
+            pending.value = true;
         },
-    );
+        onError: () => {
+            notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
+        },
+        onFinish: () => {
+            pending.value = false;
+        },
+    });
 }
 </script>
 
