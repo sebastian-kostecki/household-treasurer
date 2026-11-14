@@ -23,3 +23,5 @@ We rejected:
 - sums computed on the server as in the Budget (they would follow the typed plan only in read mode);
 - a status other than „ponad plan” on the group row;
 - letting the User collapse a group with an unreadable field (the red field would leave the view while „Zatwierdź” stays blocked).
+
+Amended by ADR-0097: the order of groups and Categories „as in the reports” (:5) holds for the Trend and „Lata”; the Year, the Month and the last twelve months are a Ranking by amount.

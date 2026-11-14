@@ -22,3 +22,5 @@ We rejected:
 - the year before inside the Trend (ADR-0074 keeps the comparison in the Year and Month views; two lines per cell would not fit);
 - a link from a month header to the report of that month (declined by the User);
 - colour or arrows for change from month to month (only the result row has a tone).
+
+Amended by ADR-0097: whole złoty and the sideways scrolling table cover the Trend and the Years view, not the Trend only (:9, :11).
