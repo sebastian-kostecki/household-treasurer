@@ -462,7 +462,7 @@ Brak migracji. Wycofanie roku: `budget:unload-sheet {user} 2020` / `2021` jak dl
 
 #### Manual
 
-- [ ] 5.1 Próba na kopii produkcji (`restore_trial`): wczytanie 2020 i 2021, `--compare --allow-additions` kod 0, wycofanie obu lat i ponowne wczytanie
-- [ ] 5.2 SHA-256 `Budżet_2021.xlsx` na serwerze równa się SHA-256 po poprawce z `workbook-fix.md`
-- [ ] 5.3 Produkcja: `--dry-run` 2020 i 2021 z sumami jak w Fazie 3, wczytanie obu lat, `app:control-numbers --compare=<przed> --allow-additions` kod 0
-- [ ] 5.4 Aplikacja na produkcji: lata 2020–2027 w selektorze roku, raport 2022 z kolumną 2021, raport 2021 z kolumną 2020, saldo „Na kontach” i szkic 2027 bez zmian
+- [x] 5.1 Próba na kopii produkcji (`restore_trial`): wczytanie 2020 i 2021, `--compare --allow-additions` kod 0, wycofanie obu lat i ponowne wczytanie — 51c9284
+- [x] 5.2 SHA-256 `Budżet_2021.xlsx` na serwerze równa się SHA-256 po poprawce z `workbook-fix.md` — 51c9284
+- [x] 5.3 Produkcja: `--dry-run` 2020 i 2021 z sumami jak w Fazie 3, wczytanie obu lat, `app:control-numbers --compare=<przed> --allow-additions` kod 0 — 51c9284
+- [x] 5.4 Aplikacja na produkcji: lata 2020–2027 w selektorze roku, raport 2022 z kolumną 2021, raport 2021 z kolumną 2020, saldo „Na kontach” i szkic 2027 bez zmian — 51c9284
