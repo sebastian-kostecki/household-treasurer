@@ -24,12 +24,12 @@ Przycisk pokazuje rok w JetBrains Mono z pigułkami „bieżący” i/lub „szk
 | Dostępność | Nazwy jak w ADR-0087, stan i podpis w `aria-describedby` | Kontrakt nazw i helper E2E zostają bez zmian. |
 | Ciemne menu | Klasy `.sidebar-year-menu*` w `app.css`, wzór `.command-palette` | Bez edycji `components/ui` i bez nowych tokenów. |
 | Rok bieżący | Zegar przeglądarki; prop `currentYear` tylko w kitchen sinku | Tak jak dziś liczy się `createYear`; stany kitchen sinka nie rozjadą się w 2027. |
-| Zapis decyzji | ADR-0097 rozwijający ADR-0087 | Zmienia zdanie ADR-0087, że `shell.budgetYears` się nie zmienia. |
+| Zapis decyzji | ADR-0098 rozwijający ADR-0087 | Zmienia zdanie ADR-0087, że `shell.budgetYears` się nie zmienia. |
 
 ## Scope
 
 **In scope:**
-- ADR-0097, `js-sidebar.md`, `design-system.md`
+- ADR-0098, `js-sidebar.md`, `design-system.md`
 - `shell.budgetYears` z fazą (PHP, TS, wszyscy konsumenci, testy `assertInertia`)
 - `budgetYearMenu` (grupy, stany, rok źródłowy) z testami, `BudgetYearSwitcher`, klasy CSS, teksty `shell.*`
 - Ramki kitchen sinka i pigułka „bieżący” na landingu
@@ -47,7 +47,7 @@ Serwer (`SelectedBudgetYear::budgetYearEntriesForUser`, jedno zapytanie) daje wp
 
 | Phase | What it delivers | Key risk |
 | --- | --- | --- |
-| 1. Decyzja i dokumentacja | ADR-0097, reguła sidebara, design system | Kolizja numeru ADR z równoległym F-07 |
+| 1. Decyzja i dokumentacja | ADR-0098, reguła sidebara, design system | Kolizja numeru ADR z równoległym F-07 |
 | 2. Lata z fazą w `shell` | Nowy kształt propsa po obu stronach, bez zmiany wyglądu | Przeoczony konsument (np. `.includes` na obiektach); łapią to typy i testy |
 | 3. Menu ze stanem roku | Wariant B w aplikacji, kitchen sink, landing | Przebicie klas `components/ui/dropdown-menu` w ciemnym menu bez edycji `ui` |
 
@@ -56,7 +56,7 @@ Serwer (`SelectedBudgetYear::budgetYearEntriesForUser`, jedno zapytanie) daje wp
 
 ## Open Risks & Assumptions
 
-- Jeśli F-07 scali się pierwszy z ADR-0097, ten ADR bierze następny numer (procedura w `parallel-changes.md`).
+- Jeśli F-07 scali się pierwszy z ADR-0098, ten ADR bierze następny numer (procedura w `parallel-changes.md`).
 - „Bieżący” z zegara przeglądarki może się różnić od roku serwera (UTC) przez godzinę w Nowy Rok. Przyjmujemy to, jak dziś przy `createYear`.
 
 ## Success Criteria (Summary)

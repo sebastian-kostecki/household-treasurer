@@ -631,7 +631,7 @@
         @apply h-control text-sidebar-strong hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground ring-sidebar-ring flex w-full items-center gap-2 rounded-md px-2 text-sm font-semibold outline-hidden transition-colors focus-visible:ring-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50;
     }
 
-    /* State pills of a year (ADR-0097): "bieżący" outlined in sidebar-border, "szkic" in warning on warning-soft. */
+    /* State pills of a year (ADR-0098): "bieżący" outlined in sidebar-border, "szkic" in warning on warning-soft. */
     .sidebar-year-states {
         @apply ml-auto flex shrink-0 items-center gap-1;
     }
@@ -648,7 +648,7 @@
         @apply bg-warning-soft text-warning;
     }
 
-    /* Year menu (ADR-0097): dark like the command palette; the `!` beats the popover utilities of DropdownMenuContent. */
+    /* Year menu (ADR-0098): dark like the command palette; the `!` beats the popover utilities of DropdownMenuContent. */
     .sidebar-year-menu {
         @apply bg-sidebar! text-sidebar-strong! border-sidebar-border! shadow-dialog rounded-lg!;
     }

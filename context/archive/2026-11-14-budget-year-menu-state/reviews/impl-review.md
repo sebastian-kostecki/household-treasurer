@@ -10,7 +10,7 @@
 
 ## Verification run
 
-- `ls context/foundation/adr | grep -c '^0097-'` → 1; `grep -l ADR-0097` returns both `.ai/rules/js-sidebar.md` and `context/foundation/design-system.md`.
+- `ls context/foundation/adr | grep -c '^0098-'` → 1; `grep -l ADR-0098` returns both `.ai/rules/js-sidebar.md` and `context/foundation/design-system.md`.
 - `npm test` → 59 files, 677 tests pass; `budget-year-menu.test.ts` 10 pass.
 - `npm run check` (format + lint), `npm run check:ui`, `npm run types:check` → pass.
 - PostgreSQL in the worktree: `BudgetTest`, `AppShellTest`, `LoadBudgetSheetTest` → 90 passed (1161 assertions).
@@ -63,7 +63,7 @@
 - **Location**: resources/js/components/BudgetYearSwitcher.vue (ids, `aria-describedby`, headings)
 - **Detail**: The pure logic is well tested, and `sidebar-year-refresh.spec.ts` keeps the accessible names ("2026", "Dodaj budżet na rok N"). Nothing asserts that each `aria-describedby` id points at an existing element, that the headings "Ostatnie"/"Starsze" appear only from 4 years, or that the caption is described. A rename of an id breaks the descriptions silently; 3.6 is checked by hand only.
 - **Fix**: Add one E2E assertion (or a small component test) on `aria-describedby` for the button, one draft row and "Dodaj rok", plus the headings from 4 years.
-  - Strength: Locks the ADR-0097 contract; the E2E helper and kitchen sink already exist.
+  - Strength: Locks the ADR-0098 contract; the E2E helper and kitchen sink already exist.
   - Tradeoff: One more browser-level test to maintain.
   - Confidence: MED — depends on whether the E2E data has a draft and 4+ years.
   - Blind spot: Have not checked what the existing spec seeds.

@@ -9,7 +9,7 @@ Menu „Rok budżetu” w sidebarze dostaje wariant B karty `Sidebar` z design s
 - „Dodaj rok N” ma podpis „szkic z planem roku N−1” (ADR-0068);
 - menu jest ciemne jak paleta ⌘K.
 
-Żeby to pokazać, `shell.budgetYears` przestaje być listą lat i staje się listą lat z fazą. Decyzję zapisuje nowy ADR-0097, który rozwija ADR-0087.
+Żeby to pokazać, `shell.budgetYears` przestaje być listą lat i staje się listą lat z fazą. Decyzję zapisuje nowy ADR-0098, który rozwija ADR-0087.
 
 ## Current State Analysis
 
@@ -64,7 +64,7 @@ Menu „Rok budżetu” w sidebarze dostaje wariant B karty `Sidebar` z design s
   - 2020–2027 z otwartym menu i grupami;
   - bez budżetu;
   - oczekiwanie.
-- ADR-0097, `.ai/rules/js-sidebar.md` i `context/foundation/design-system.md` („Sidebar”) opisują to zachowanie.
+- ADR-0098, `.ai/rules/js-sidebar.md` i `context/foundation/design-system.md` („Sidebar”) opisują to zachowanie.
 
 ### Key Discoveries:
 
@@ -101,9 +101,9 @@ Zapisanie reguły przed kodem: nowy ADR rozwijający ADR-0087 oraz aktualizacja 
 
 ### Changes Required:
 
-#### 1. ADR-0097
+#### 1. ADR-0098
 
-**File**: `context/foundation/adr/0097-budget-year-state-in-the-menu.md`
+**File**: `context/foundation/adr/0098-budget-year-state-in-the-menu.md`
 
 **Intent**: Zapisać zachowanie wariantu B karty `Sidebar` i trzy decyzje z planowania, tak żeby ADR-0087 dalej obowiązywał poza punktami, które ten ADR rozszerza.
 
@@ -122,13 +122,13 @@ Zapisanie reguły przed kodem: nowy ADR rozwijający ADR-0087 oraz aktualizacja 
   - „szkic wygrywa” na przycisku albo wszędzie (karta traktuje stany jako niezależne, w styczniu znikałby rok bieżący);
   - stały nagłówek „Ostatnie” przy ≤3 latach (nagłówek, który niczego nie oddziela);
   - stan w nazwie dostępnej (zmienia kontrakt nazw ADR-0087 i helpera E2E).
-- **Numer:** 0097. Jeśli F-07 scali się wcześniej z tym samym numerem, ten ADR bierze następny wolny (`context/foundation/agents/parallel-changes.md:27`).
+- **Numer:** 0098 (0097 zajął wcześniej scalony ADR „report-years-ranking-and-chart-colours”; przenumerowane przy merge do development). Jeśli F-07 scali się wcześniej z tym samym numerem, ten ADR bierze następny wolny (`context/foundation/agents/parallel-changes.md:27`).
 
 #### 2. Reguła sidebara
 
 **File**: `.ai/rules/js-sidebar.md`
 
-**Intent**: Uzupełnić akapit o przełączniku roku („The year switcher is a menu (ADR-0087)…”) o stan roku, grupy, podpis, ciemne menu i opisy dostępne, z odwołaniem do ADR-0097.
+**Intent**: Uzupełnić akapit o przełączniku roku („The year switcher is a menu (ADR-0087)…”) o stan roku, grupy, podpis, ciemne menu i opisy dostępne, z odwołaniem do ADR-0098.
 
 **Contract**: Sekcja „## The active item comes from isCurrentSection”, zdania o menu roku i o stanach kitchen sinka (dopisać nowe stany z Desired End State). Bez nowej sekcji. Plik indeksu się nie zmienia, więc `boost:index-rules` nie jest potrzebny, chyba że zmienią się `paths:`.
 
@@ -136,7 +136,7 @@ Zapisanie reguły przed kodem: nowy ADR rozwijający ADR-0087 oraz aktualizacja 
 
 **File**: `context/foundation/design-system.md`
 
-**Intent**: W sekcji „Sidebar” opisać pigułki stanu roku, ciemne menu roku na tokenach `--sidebar-*` i podpis „Dodaj rok”, a w zdaniu wstępu dopisać ADR-0097 obok ADR-0087.
+**Intent**: W sekcji „Sidebar” opisać pigułki stanu roku, ciemne menu roku na tokenach `--sidebar-*` i podpis „Dodaj rok”, a w zdaniu wstępu dopisać ADR-0098 obok ADR-0087.
 
 **Contract**: Tabela ról tokenów w „## Sidebar” (`sidebar-accent`: rok wybrany w menu, `sidebar-border`: obrys pigułki „bieżący”) i nowy punkt listy o menu roku. Bez nowych tokenów.
 
@@ -144,12 +144,12 @@ Zapisanie reguły przed kodem: nowy ADR rozwijający ADR-0087 oraz aktualizacja 
 
 #### Automated Verification:
 
-- ADR istnieje i nie dubluje numeru: `ls context/foundation/adr | grep -c '^0097-'` zwraca `1`
-- Reguła i strona design systemu odwołują się do ADR-0097: `grep -l "ADR-0097" .ai/rules/js-sidebar.md context/foundation/design-system.md` zwraca oba pliki
+- ADR istnieje i nie dubluje numeru: `ls context/foundation/adr | grep -c '^0098-'` zwraca `1`
+- Reguła i strona design systemu odwołują się do ADR-0098: `grep -l "ADR-0098" .ai/rules/js-sidebar.md context/foundation/design-system.md` zwraca oba pliki
 
 #### Manual Verification:
 
-- Treść ADR-0097 zgadza się z trzema decyzjami z planowania i z kartą `Sidebar` (wariant B)
+- Treść ADR-0098 zgadza się z trzema decyzjami z planowania i z kartą `Sidebar` (wariant B)
 
 **Implementation Note**: Po fazie i zielonej weryfikacji automatycznej zatrzymaj się na ręczne potwierdzenie przed fazą 2.
 
@@ -394,11 +394,11 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 #### Automated
 
 - [x] 1.1 ADR istnieje i nie dubluje numeru — 75062c9
-- [x] 1.2 Reguła i strona design systemu odwołują się do ADR-0097 — 75062c9
+- [x] 1.2 Reguła i strona design systemu odwołują się do ADR-0098 — 75062c9
 
 #### Manual
 
-- [x] 1.3 Treść ADR-0097 zgadza się z trzema decyzjami z planowania i z kartą `Sidebar` (wariant B)
+- [x] 1.3 Treść ADR-0098 zgadza się z trzema decyzjami z planowania i z kartą `Sidebar` (wariant B)
 
 ### Phase 2: Lata z fazą w `shell`
 
