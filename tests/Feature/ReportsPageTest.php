@@ -613,6 +613,293 @@ class ReportsPageTest extends TestCase
                 ->has('report.expense', 1));
     }
 
+    public function test_the_ranking_mode_is_categories_unless_groups_are_asked_for(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        foreach ([[], ['ranking' => 'categories'], ['ranking' => 'x'], ['ranking' => ['groups']]] as $query) {
+            $this->actingAs($user)
+                ->get(route('reports', $query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page->where('rankingMode', 'categories'));
+        }
+
+        foreach ([['ranking' => 'groups'], ['ranking' => 'groups', 'month' => 3], ['ranking' => 'groups', 'view' => 'last-12'], ['ranking' => 'groups', 'view' => 'trend'], ['ranking' => 'groups', 'view' => 'years']] as $query) {
+            $this->actingAs($user)
+                ->get(route('reports', $query))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page->where('rankingMode', 'groups'));
+        }
+    }
+
+    public function test_the_ranking_mode_is_present_without_a_budget_and_for_a_draft(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('reports', ['ranking' => 'groups']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYear', null)
+                ->where('rankingMode', 'groups')
+                ->where('categoryPanel', null));
+
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2026])
+            ->get(route('reports'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetPhase', 'draft')
+                ->where('rankingMode', 'categories')
+                ->where('categoryPanel', null));
+    }
+
+    public function test_the_category_panel_exists_only_for_a_year_in_execution_with_operations(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        $this->actingAs($user)->get(route('reports'))
+            ->assertInertia(fn (Assert $page) => $page->has('categoryPanel.categories', 1));
+
+        foreach ([['month' => 3], ['view' => 'last-12'], ['view' => 'trend'], ['view' => 'years']] as $query) {
+            $this->actingAs($user)->get(route('reports', $query))
+                ->assertInertia(fn (Assert $page) => $page->where('categoryPanel', null));
+        }
+
+        $empty = User::factory()->create();
+        Budget::factory()->for($empty)->execution()->create(['year' => 2026]);
+
+        $this->actingAs($empty)->get(route('reports'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('report.has_operations', false)
+                ->where('categoryPanel', null));
+    }
+
+    public function test_the_panel_tab_follows_the_panel_query_and_carries_the_years(): void
+    {
+        $this->travelTo('2026-11-14');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2025, 'Żywność', '2025-03-10', 8000);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        foreach (['years' => 'years', 'foo' => 'months', '' => 'months'] as $query => $tab) {
+            $this->actingAs($user)
+                ->get(route('reports', $query === '' ? [] : ['panel' => $query]))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('categoryPanel.tab', $tab)
+                    ->where('categoryPanel.years.columns', [2025, 2026])
+                    ->where('categoryPanel.years.mode', 'same_day')
+                    ->where('categoryPanel.years.current_year', 2026)
+                    ->where('categoryPanel.years.cut', ['month' => 11, 'day' => 14])
+                    ->where('categoryPanel.categories.0.years.cells', [8000, 12000]));
+        }
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2025])
+            ->get(route('reports', ['panel' => 'years']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('categoryPanel.years.mode', 'full')
+                ->where('categoryPanel.categories.0.years.cells', [8000, 12000]));
+
+        $this->bookExpense($user, 2027, 'Żywność', '2027-02-10', 3000);
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('reports', ['panel' => 'years']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('budgetYear', 2027)
+                ->where('categoryPanel.tab', 'months')
+                ->where('categoryPanel.years', null)
+                ->where('categoryPanel.categories.0.years', null));
+
+        foreach ([['month' => 3, 'panel' => 'years'], ['view' => 'last-12'], ['view' => 'trend'], ['view' => 'years', 'panel' => 'years']] as $query) {
+            $this->actingAs($user)->get(route('reports', $query))
+                ->assertInertia(fn (Assert $page) => $page->where('categoryPanel', null));
+        }
+    }
+
+    public function test_the_years_view_flags_the_categories_that_open_the_panel(): void
+    {
+        $this->travelTo('2026-11-14');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2025, 'Kino', '2025-03-10', 500);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'years']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('years.same_day.expense.entries.0.name', 'Kino')
+                ->where('years.same_day.expense.entries.0.opens_panel', true)
+                ->where('years.same_day.expense.entries.1.opens_panel', true)
+                ->where('years.full.expense.entries.0.opens_panel', true));
+    }
+
+    public function test_the_requested_category_must_have_a_row_in_the_year_report(): void
+    {
+        $this->travelTo('2026-11-12');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($user, 2026, 'Kino', '2026-03-10', 500, false);
+        $this->bookExpense($user, 2025, 'Prezenty', '2025-05-01', 1500);
+        $withRow = Category::query()->where('user_id', $user->id)->where('name', 'Żywność')->firstOrFail();
+        $comparisonOnly = Category::query()->where('user_id', $user->id)->where('name', 'Prezenty')->firstOrFail();
+        $withoutRow = Category::factory()->for($user)->expense()->create(['name' => 'Bez wiersza']);
+        $foreign = Category::factory()->for(User::factory()->create())->expense()->create();
+
+        $expected = [
+            (string) $withRow->id => $withRow->id,
+            (string) $comparisonOnly->id => $comparisonOnly->id,
+            (string) $withoutRow->id => null,
+            (string) $foreign->id => null,
+            '999999' => null,
+            'abc' => null,
+            '-1' => null,
+            '1.5' => null,
+            '99999999999999999999' => null,
+        ];
+
+        foreach ($expected as $query => $id) {
+            $this->actingAs($user)
+                ->get(route('reports', ['category' => $query]))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page->where('categoryPanel.requested_category_id', $id));
+        }
+    }
+
+    public function test_the_panel_months_follow_today_for_the_current_a_past_and_a_future_year(): void
+    {
+        $this->travelTo('2026-11-14');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+        $this->bookExpense($user, 2025, 'Żywność', '2025-03-10', 8000);
+        $this->bookExpense($user, 2027, 'Żywność', '2027-03-10', 7000);
+
+        $cases = [
+            2026 => [11, '2026-11-14', 10],
+            2025 => [null, null, 12],
+            2027 => [null, null, 0],
+        ];
+
+        foreach ($cases as $year => [$inProgress, $through, $closed]) {
+            $this->actingAs($user)
+                ->withSession(['budget_year' => $year])
+                ->get(route('reports'))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('categoryPanel.in_progress_month', $inProgress)
+                    ->where('categoryPanel.through', $through)
+                    ->where('categoryPanel.closed_month_count', $closed));
+        }
+    }
+
+    public function test_the_years_view_ignores_the_selected_draft_and_carries_the_years_props(): void
+    {
+        $this->travelTo('2026-11-14');
+        $user = User::factory()->create();
+        $group = CategoryGroup::factory()->for($user)->expense()->create(['name' => 'Dom']);
+        $this->bookExpense($user, 2025, 'Czynsz', '2025-03-10', 9000);
+        $this->bookExpense($user, 2026, 'Czynsz', '2026-03-10', 9900);
+        Category::query()->where('name', 'Czynsz')->update(['category_group_id' => $group->id]);
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 500, false);
+        Budget::factory()->for($user)->create(['year' => 2027]);
+
+        $this->actingAs($user)
+            ->withSession(['budget_year' => 2027])
+            ->get(route('reports', ['view' => 'years']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Reports')
+                ->where('budgetYear', 2027)
+                ->where('budgetPhase', 'draft')
+                ->where('period.kind', 'years')
+                ->where('period.window', null)
+                ->where('report', null)
+                ->where('trend', null)
+                ->where('years.columns', [2025, 2026])
+                ->where('years.current_year', 2026)
+                ->where('years.cut', ['month' => 11, 'day' => 14])
+                ->where('years.full.final_year', 2025)
+                ->where('years.same_day.final_year', 2026)
+                ->has('years.full.expense.entries', 2)
+                ->has('years.full.expense.entries.0', fn (Assert $entry) => $entry
+                    ->where('kind', 'group')
+                    ->where('name', 'Dom')
+                    ->where('cells', [9000, 9900])
+                    ->where('change_tenths', null)
+                    ->where('change_first_year', null)
+                    ->where('max_years', [2025])
+                    ->has('id')
+                    ->has('categories', 1, fn (Assert $category) => $category
+                        ->where('kind', 'category')
+                        ->where('name', 'Czynsz')
+                        ->where('cells', [9000, 9900])
+                        ->where('change_tenths', null)
+                        ->where('change_first_year', null)
+                        ->where('max_years', [2025])
+                        ->where('is_archived', false)
+                        ->where('opens_panel', true)
+                        ->has('id')
+                        ->has('icon')
+                        ->has('color')))
+                ->has('years.full.expense.entries.1', fn (Assert $entry) => $entry
+                    ->where('kind', 'category')
+                    ->where('name', 'Żywność')
+                    ->where('cells', [null, 500])
+                    ->where('change_tenths', null)
+                    ->where('change_first_year', null)
+                    ->where('max_years', [])
+                    ->where('is_archived', false)
+                    ->where('opens_panel', true)
+                    ->has('id')
+                    ->has('icon')
+                    ->has('color'))
+                ->where('years.full.expense.total.cells', [9000, 10400])
+                ->where('years.full.expense.first_year', 2025)
+                ->where('years.full.expense.average_yearly_growth_tenths', null)
+                ->where('years.full.expense.fastest_growing', null));
+    }
+
+    public function test_the_years_view_without_a_budget_keeps_the_year_kind(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'years']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'year')
+                ->where('years', null));
+    }
+
+    public function test_the_years_view_with_only_a_draft_has_no_columns(): void
+    {
+        $this->travelTo('2026-11-14');
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2026]);
+
+        $this->actingAs($user)
+            ->get(route('reports', ['view' => 'years']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('period.kind', 'years')
+                ->where('years.columns', [])
+                ->where('years.current_year', null)
+                ->where('years.same_day', null));
+    }
+
+    public function test_the_other_views_have_no_years_prop(): void
+    {
+        $this->travelTo('2026-11-14');
+        $user = User::factory()->create();
+        $this->bookExpense($user, 2026, 'Żywność', '2026-03-10', 12000);
+
+        foreach ([[], ['month' => 3], ['view' => 'trend'], ['view' => 'last-12']] as $query) {
+            $this->actingAs($user)
+                ->get(route('reports', $query))
+                ->assertInertia(fn (Assert $page) => $page->where('years', null));
+        }
+    }
+
     /**
      * Books one expense through the factories: enough for a report, which reads
      * the operations and does not use the line's Execution counter.

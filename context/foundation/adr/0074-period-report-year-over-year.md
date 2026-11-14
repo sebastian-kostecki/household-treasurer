@@ -24,3 +24,5 @@ We rejected:
 - no colour on the difference (the sign alone does not say whether it is good for an expense);
 - a „compare” toggle (the comparison is always shown when there is something to compare with);
 - a chart of differences (the table already holds them; a trend belongs to S-30).
+
+Amended by ADR-0097: the Years view adds its own Same-day Cut for finished years (:7), the series „rok wcześniej” (`chart-2`) has no chart left and stays reserved (:15), and a percent is allowed in „Lata” and in the caption of the Category Panel, while the column „Różnica” stays an amount (:23).

@@ -1,5 +1,7 @@
 import { DEFAULT_CATEGORY_COLOR } from '@/lib/category-appearance';
+import type { CategoryListFilter } from '@/lib/category-list-filter';
 import type {
+    CategoriesListTab,
     CategoriesPageProps,
     CategoryGroupItem,
     CategoryListItem,
@@ -16,7 +18,16 @@ export type CategoriesScenario = {
     key: string;
     title: string;
     props: CategoriesPageProps;
+    /** The tab the page starts on; defaults to `props.tab`. */
+    tab?: CategoriesListTab;
+    /** The phrase and Rhythm the page starts with; defaults to no filter. */
+    filter?: CategoryListFilter;
+    /** The axis of the year strips; defaults to `fixtureYearAxis`. */
+    yearAxis?: number[];
 };
+
+/** The axis of the year strips in the sink: the Budget years of the fixture user. */
+export const fixtureYearAxis = [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027];
 
 type CategoryFixtureOptions = Partial<
     Pick<
@@ -103,7 +114,7 @@ export const expenseCategories: CategoryListItem[] = [
         'expense',
         'shopping-cart',
         DEFAULT_CATEGORY_COLOR,
-        [2026, 2027],
+        [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027],
         {
             description: longDescription,
             can_change_type: false,
@@ -116,7 +127,7 @@ export const expenseCategories: CategoryListItem[] = [
         'expense',
         'film',
         DEFAULT_CATEGORY_COLOR,
-        [2026, 2027],
+        [2023, 2024, 2026, 2027],
         { can_delete: false },
     ),
     category(
@@ -174,6 +185,207 @@ export const archivedCategories: CategoryListItem[] = [
         DEFAULT_CATEGORY_COLOR,
         [2025, 2026],
         { archived_at: '2026-01-15', can_delete: false },
+    ),
+    category(
+        25,
+        'Premia roczna',
+        'income',
+        'wallet',
+        DEFAULT_CATEGORY_COLOR,
+        [2024, 2025],
+        { archived_at: '2025-12-31' },
+    ),
+];
+
+/**
+ * Kategorie do filtra rytmu: grupa „Dom” (5 kategorii, tylko Meble są roczne),
+ * grupa „Codzienne” bez rocznych (znika przy filtrze) i trzy roczne kategorie
+ * bez grupy (Zdrowie, Ubrania, OC).
+ */
+export const rhythmFilterGroups: CategoryGroupItem[] = [
+    { id: 41, name: 'Dom', sort_order: 1, archived_count: 0 },
+    { id: 42, name: 'Codzienne', sort_order: 6, archived_count: 0 },
+];
+
+export const rhythmFilterExpenseCategories: CategoryListItem[] = [
+    category(
+        51,
+        'Czynsz',
+        'expense',
+        'home',
+        DEFAULT_CATEGORY_COLOR,
+        [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027],
+        { group_id: 41, sort_order: 2, rhythm: 'fixed_charge' },
+    ),
+    category(
+        52,
+        'Prąd',
+        'expense',
+        'zap',
+        DEFAULT_CATEGORY_COLOR,
+        [2024, 2025, 2026, 2027],
+        { group_id: 41, sort_order: 3, rhythm: 'fixed_charge' },
+    ),
+    category(
+        53,
+        'Internet',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2025, 2026, 2027],
+        { group_id: 41, sort_order: 4, rhythm: 'fixed_charge' },
+    ),
+    category(54, 'Gaz', 'expense', 'tag', DEFAULT_CATEGORY_COLOR, [2026], {
+        group_id: 41,
+        sort_order: 5,
+        rhythm: 'running',
+    }),
+    category(
+        55,
+        'Meble',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2022, 2023, 2024, 2025, 2026, 2027],
+        { group_id: 41, sort_order: 6, rhythm: 'even_annual' },
+    ),
+    category(
+        56,
+        'Żywność',
+        'expense',
+        'shopping-cart',
+        DEFAULT_CATEGORY_COLOR,
+        [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027],
+        { group_id: 42, sort_order: 7 },
+    ),
+    category(
+        57,
+        'Transport',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2023, 2024, 2025, 2026, 2027],
+        { group_id: 42, sort_order: 8 },
+    ),
+    category(
+        58,
+        'Zdrowie',
+        'expense',
+        'heart',
+        DEFAULT_CATEGORY_COLOR,
+        [2025, 2026, 2027],
+        { sort_order: 9, rhythm: 'even_annual' },
+    ),
+    category(
+        59,
+        'Ubrania',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2024, 2026, 2027],
+        { sort_order: 10, rhythm: 'even_annual' },
+    ),
+    category(
+        60,
+        'OC',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2021, 2022, 2023, 2024, 2025, 2026, 2027],
+        { sort_order: 11, rhythm: 'even_annual' },
+    ),
+];
+
+/** Kategorie do szukajki „zwrot”: trafienia w nazwie i w opisie, w każdej zakładce. */
+export const searchExpenseCategories: CategoryListItem[] = [
+    category(
+        61,
+        'Żywność',
+        'expense',
+        'shopping-cart',
+        DEFAULT_CATEGORY_COLOR,
+        [2025, 2026, 2027],
+        { sort_order: 0 },
+    ),
+    category(
+        62,
+        'Apteka',
+        'expense',
+        'heart',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        {
+            group_id: 31,
+            sort_order: 2,
+            description: 'Leki, część kosztów podlega zwrotowi z ubezpieczenia',
+        },
+    ),
+    category(
+        63,
+        'Badania',
+        'expense',
+        'heart',
+        DEFAULT_CATEGORY_COLOR,
+        [2026],
+        { group_id: 31, sort_order: 3 },
+    ),
+    category(
+        64,
+        'Zwroty od pracodawcy',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2024, 2025, 2026, 2027],
+        { sort_order: 5, rhythm: 'irregular' },
+    ),
+    category(
+        65,
+        'Rozrywka',
+        'expense',
+        'film',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+        { sort_order: 6 },
+    ),
+];
+
+export const searchIncomeCategories: CategoryListItem[] = [
+    category(
+        66,
+        'Zwrot podatku',
+        'income',
+        'percent',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+    ),
+    category(
+        67,
+        'Wynagrodzenie',
+        'income',
+        'wallet',
+        DEFAULT_CATEGORY_COLOR,
+        [2026, 2027],
+    ),
+];
+
+export const searchArchivedCategories: CategoryListItem[] = [
+    category(
+        68,
+        'Zwrot z biura podróży',
+        'expense',
+        'plane',
+        DEFAULT_CATEGORY_COLOR,
+        [2025],
+        { archived_at: '2025-08-20' },
+    ),
+    category(
+        69,
+        'Stary kredyt',
+        'expense',
+        'tag',
+        DEFAULT_CATEGORY_COLOR,
+        [2024, 2025],
+        { archived_at: '2026-01-15' },
     ),
 ];
 
@@ -303,6 +515,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            tab: 'expense',
             rhythmChangeMonth,
         },
     },
@@ -316,12 +529,27 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups,
             expenseGroups,
             categoryAppearanceOptions,
+            tab: 'expense',
             rhythmChangeMonth,
         },
     },
     {
-        key: 'with-archive',
-        title: 'with-archive: zwinięte archiwum „Archiwum (n)”',
+        key: 'income-tab',
+        title: 'income-tab: zakładka Przychody z grupą „Pensje”, bez kolumny Rytm',
+        props: {
+            incomeCategories: groupedIncomeCategories,
+            expenseCategories,
+            archivedCategories: [],
+            incomeGroups,
+            expenseGroups: [],
+            categoryAppearanceOptions,
+            tab: 'income',
+            rhythmChangeMonth,
+        },
+    },
+    {
+        key: 'archive-tab',
+        title: 'archive-tab: zakładka Archiwum z podsekcjami Wydatki i Przychody',
         props: {
             incomeCategories,
             expenseCategories,
@@ -329,6 +557,66 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            tab: 'archive',
+            rhythmChangeMonth,
+        },
+    },
+    {
+        key: 'search',
+        title: 'search: fraza „zwrot” w Wydatkach (nazwa i opis), liczniki zakładek pokazują trafienia, grupa „1 z 2 kategorii”, bez uchwytów',
+        filter: { query: 'zwrot', rhythm: 'all' },
+        props: {
+            incomeCategories: searchIncomeCategories,
+            expenseCategories: searchExpenseCategories,
+            archivedCategories: searchArchivedCategories,
+            incomeGroups: [],
+            expenseGroups: [expenseGroups[0]],
+            categoryAppearanceOptions,
+            tab: 'expense',
+            rhythmChangeMonth,
+        },
+    },
+    {
+        key: 'rhythm-filter',
+        title: 'rhythm-filter: rytm „Roczna”, grupa „Dom” z „1 z 5 kategorii” (Meble), Zdrowie, Ubrania i OC bez grupy, grupa „Codzienne” znika',
+        filter: { query: '', rhythm: 'even_annual' },
+        props: {
+            incomeCategories,
+            expenseCategories: rhythmFilterExpenseCategories,
+            archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: rhythmFilterGroups,
+            categoryAppearanceOptions,
+            tab: 'expense',
+            rhythmChangeMonth,
+        },
+    },
+    {
+        key: 'no-results',
+        title: 'no-results: fraza bez trafień, komunikat i „Wyczyść filtry”',
+        filter: { query: 'zzz', rhythm: 'all' },
+        props: {
+            incomeCategories,
+            expenseCategories,
+            archivedCategories,
+            incomeGroups: [],
+            expenseGroups: [],
+            categoryAppearanceOptions,
+            tab: 'expense',
+            rhythmChangeMonth,
+        },
+    },
+    {
+        key: 'archive-empty',
+        title: 'archive-empty: zakładka Archiwum bez żadnej archiwalnej kategorii, komunikat „archive_empty”',
+        props: {
+            incomeCategories,
+            expenseCategories,
+            archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: [],
+            categoryAppearanceOptions,
+            tab: 'archive',
             rhythmChangeMonth,
         },
     },
@@ -342,6 +630,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            tab: 'expense',
             rhythmChangeMonth,
         },
     },
@@ -362,6 +651,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             ],
             expenseGroups: [],
             categoryAppearanceOptions,
+            tab: 'expense',
             rhythmChangeMonth,
         },
     },
@@ -375,8 +665,24 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            tab: 'archive',
             rhythmChangeMonth,
         },
+    },
+    {
+        key: 'long-axis',
+        title: 'long-axis: oś lat 2012–2027 (16 komórek), czy dwucyfrowe skróty mieszczą się w pasku',
+        props: {
+            incomeCategories,
+            expenseCategories,
+            archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: [],
+            categoryAppearanceOptions,
+            tab: 'expense',
+            rhythmChangeMonth,
+        },
+        yearAxis: Array.from({ length: 16 }, (_, index) => 2012 + index),
     },
     {
         key: 'empty',
@@ -388,6 +694,7 @@ export const categoriesScenarios: CategoriesScenario[] = [
             incomeGroups: [],
             expenseGroups: [],
             categoryAppearanceOptions,
+            tab: 'expense',
             rhythmChangeMonth,
         },
     },

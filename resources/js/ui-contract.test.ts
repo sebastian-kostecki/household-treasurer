@@ -473,6 +473,7 @@ const UNITLESS_TABLE_ROW_FILES = [
     'components/BudgetCategoryGroupRow.vue',
     'components/BudgetAmountCell.vue',
     'components/MonthPlanItemRow.vue',
+    'components/ReportYearsRow.vue',
 ];
 
 describe('table rows carry no amount unit (ADR-0058)', () => {
@@ -493,7 +494,7 @@ const CATEGORIES_VIEW_FILES = [
     'pages/Categories.vue',
     'pages/dev/CategoriesKitchenSink.vue',
     'components/CategoryListRow.vue',
-    'components/CategoryArchiveSection.vue',
+    'components/CategoryYearsStrip.vue',
     'components/CategoryGroupRow.vue',
     'components/CategoryGroupAssignDialog.vue',
     'components/CategoryGroupFormDialog.vue',
@@ -560,7 +561,7 @@ describe('the Categories view follows the Atrament surface blocks', () => {
 
     it('links report category names to Operations through the Wayfinder route and the shared query', () => {
         for (const file of [
-            'components/ReportCategoryRow.vue',
+            'components/ReportRankingRow.vue',
             'components/ReportTrendTable.vue',
         ]) {
             const source = readFileSync(join(JS_ROOT, file), 'utf8');
@@ -571,18 +572,56 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         }
 
         const row = readFileSync(
-            join(JS_ROOT, 'components/ReportCategoryRow.vue'),
+            join(JS_ROOT, 'components/ReportRankingRow.vue'),
             'utf8',
         );
 
         expect(row).toContain('reportRangeOperationsQuery');
 
         const group = readFileSync(
-            join(JS_ROOT, 'components/ReportGroupRow.vue'),
+            join(JS_ROOT, 'components/ReportRankingGroupRow.vue'),
             'utf8',
         );
 
         expect(group).not.toContain('reportCategoryOperationsQuery');
         expect(group).not.toContain('operations(');
+    });
+
+    it('reports a failed year switch of every <Link> to the year selection, never silently', () => {
+        const linkFiles = sourceFiles(JS_ROOT).filter((path) => {
+            const source = readFileSync(path, 'utf8');
+
+            return (
+                path.endsWith('.vue') &&
+                source.includes('<Link') &&
+                source.includes('BudgetController.selectYear()')
+            );
+        });
+
+        expect(
+            linkFiles.map((path) =>
+                relative(JS_ROOT, path).split(sep).join('/'),
+            ),
+        ).toContain('components/ReportYearsTable.vue');
+
+        for (const path of linkFiles) {
+            const source = readFileSync(path, 'utf8');
+
+            expect(source, relative(JS_ROOT, path)).toContain('@error=');
+            expect(source, relative(JS_ROOT, path)).toContain(
+                'listenForBudgetYearSelectionFailure',
+            );
+        }
+    });
+
+    it('marks the selected Report category with aria-current on a button, never aria-selected (ADR-0100)', () => {
+        const row = readFileSync(
+            join(JS_ROOT, 'components/ReportRankingRow.vue'),
+            'utf8',
+        );
+
+        expect(row).toContain(':aria-current=');
+        expect(row).toContain(':aria-controls=');
+        expect(row).not.toContain('aria-selected');
     });
 });

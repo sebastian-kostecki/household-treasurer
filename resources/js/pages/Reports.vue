@@ -1,58 +1,339 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { computed, defineAsyncComponent } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { useElementSize } from '@vueuse/core';
+import { computed, onMounted, ref, watch } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportCoverageNote from '@/components/ReportCoverageNote.vue';
-import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
+import ReportCategoryPanel from '@/components/ReportCategoryPanel.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
-import ReportEntryTable from '@/components/ReportEntryTable.vue';
+import ReportRanking from '@/components/ReportRanking.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
+import ReportYearsView from '@/components/ReportYearsView.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
+import { Button } from '@/components/ui/button';
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    remTokenToPixels,
+    reportPanelLayout,
+    resolveSelectedCategory,
+} from '@/lib/report-category-panel';
+import { rankReportCategories } from '@/lib/report-ranking';
 import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
-import type { ReportRange, ReportsPageProps } from '@/types/reports';
-
-const ReportBarChart = defineAsyncComponent({
-    loader: () => import('@/components/ReportBarChart.vue'),
-    loadingComponent: ReportBarChartPlaceholder,
-    delay: 0,
-});
+import type {
+    ReportCategoryPanelData,
+    ReportCategoryPanelTab,
+    ReportRange,
+    ReportRankingMode,
+    ReportsPageProps,
+} from '@/types/reports';
 
 const props = defineProps<ReportsPageProps>();
 
 const t = useTranslations();
+const page = usePage();
+
+/** The Ranking mode travels through the period switch (the Trend has none). */
+function rankingQuery(): { ranking?: 'groups' } {
+    return props.rankingMode === 'groups' ? { ranking: 'groups' } : {};
+}
+
+function yearUrl(): string {
+    return reportsRoute({ query: rankingQuery() }).url;
+}
 
 function trendUrl(): string {
     return reportsRoute({ query: { view: 'trend' } }).url;
 }
 
 function lastTwelveUrl(): string {
-    return reportsRoute({ query: { view: 'last-12' } }).url;
+    return reportsRoute({ query: { view: 'last-12', ...rankingQuery() } }).url;
+}
+
+function yearsUrl(): string {
+    return reportsRoute({ query: { view: 'years' } }).url;
 }
 
 function monthUrl(month: number): string {
-    return reportsRoute({ query: { month } }).url;
+    return reportsRoute({ query: { month, ...rankingQuery() } }).url;
+}
+
+/** The query of the current address, so a visit of the client keeps every parameter. */
+function currentQuery(): Record<string, string> {
+    const query: Record<string, string> = {};
+
+    new URL(page.url, 'http://localhost').searchParams.forEach((value, key) => {
+        query[key] = value;
+    });
+
+    return query;
+}
+
+/** Changes the address and the props in place (a visit of the client, no request, no history entry). */
+function replaceInPlace(
+    query: Record<string, string>,
+    update: (current: ReportsPageProps) => Partial<ReportsPageProps>,
+): void {
+    router.replace({
+        url: reportsRoute({ query }).url,
+        props: (current) => ({
+            ...current,
+            ...update(current as unknown as ReportsPageProps),
+        }),
+        preserveScroll: true,
+        preserveState: true,
+        preserveFlash: true,
+    });
+}
+
+/** Switches the Ranking mode in place: the same address with `ranking` changed, no request. */
+function setRankingMode(mode: ReportRankingMode): void {
+    if (mode === props.rankingMode) {
+        return;
+    }
+
+    const query = currentQuery();
+
+    if (mode === 'groups') {
+        query.ranking = 'groups';
+    } else {
+        delete query.ranking;
+    }
+
+    replaceInPlace(query, () => ({ rankingMode: mode }));
+}
+
+const PANEL_ID = 'report-category-panel';
+
+const shell = ref<HTMLElement | null>(null);
+const { width: shellWidth } = useElementSize(shell);
+const breakpointPx = ref(960);
+
+/** The breakpoint is the token of `app.css`, the same value the `@container` rule repeats. */
+onMounted(() => {
+    const styles = getComputedStyle(document.documentElement);
+    const px = remTokenToPixels(
+        styles.getPropertyValue('--report-panel-breakpoint'),
+        parseFloat(styles.fontSize),
+    );
+
+    if (px !== null) {
+        breakpointPx.value = px;
+    }
+});
+
+const panelLayout = computed(() =>
+    reportPanelLayout(shellWidth.value, breakpointPx.value),
+);
+
+const rankedExpense = computed(() =>
+    rankReportCategories(props.report?.expense ?? []),
+);
+const rankedIncome = computed(() =>
+    rankReportCategories(props.report?.income ?? []),
+);
+
+const hasPanel = computed(
+    () =>
+        props.period.kind === 'year' &&
+        props.categoryPanel !== null &&
+        props.report !== null,
+);
+
+const selected = computed(() =>
+    hasPanel.value
+        ? resolveSelectedCategory(
+              props.categoryPanel?.requested_category_id ?? null,
+              rankedExpense.value,
+              rankedIncome.value,
+          )
+        : null,
+);
+
+const selectedItem = computed(() =>
+    selected.value === null
+        ? undefined
+        : props.categoryPanel?.categories.find(
+              (item) => item.id === selected.value?.category.id,
+          ),
+);
+
+const sheetOpen = ref(false);
+
+type ShownCategory = {
+    selected: NonNullable<typeof selected.value>;
+    item: NonNullable<typeof selectedItem.value>;
+};
+
+/**
+ * The Category a closing sheet keeps showing while it slides out: the close
+ * takes `category` off the address at once, and the selection would fall back
+ * to the default under the closing sheet. Cleared once the focus is returned.
+ */
+const closingSheetCategory = ref<ShownCategory | null>(null);
+
+const sheetSelected = computed(
+    () => closingSheetCategory.value?.selected ?? selected.value,
+);
+const sheetItem = computed(
+    () => closingSheetCategory.value?.item ?? selectedItem.value,
+);
+
+/** The panel is in the page: `aria-controls` only points at it then. */
+const panelInPage = computed(
+    () => panelLayout.value !== 'sheet' || sheetOpen.value,
+);
+
+watch(
+    panelLayout,
+    (layout) => {
+        if (layout !== 'sheet') {
+            sheetOpen.value = false;
+
+            return;
+        }
+
+        if (props.categoryPanel?.requested_category_id != null) {
+            sheetOpen.value = true;
+        }
+    },
+    { immediate: true },
+);
+
+/** Without an open sheet in the narrow layout no row is highlighted. */
+const highlightedCategoryId = computed(() => {
+    if (selected.value === null) {
+        return null;
+    }
+
+    if (panelLayout.value === 'aside') {
+        return selected.value.category.id;
+    }
+
+    return panelLayout.value === 'sheet' && sheetOpen.value
+        ? selected.value.category.id
+        : null;
+});
+
+function setRequestedCategory(id: number | null): void {
+    const query = currentQuery();
+
+    if (id === null) {
+        delete query.category;
+    } else {
+        query.category = String(id);
+    }
+
+    replaceInPlace(query, (current) => ({
+        categoryPanel:
+            current.categoryPanel === null
+                ? null
+                : {
+                      ...(current.categoryPanel as ReportCategoryPanelData),
+                      requested_category_id: id,
+                  },
+    }));
+}
+
+/** Switches the tab of the panel in place: `?panel=years` added or removed, no request (ADR-0101). */
+function setPanelTab(tab: ReportCategoryPanelTab): void {
+    if (tab === props.categoryPanel?.tab) {
+        return;
+    }
+
+    const query = currentQuery();
+
+    if (tab === 'years') {
+        query.panel = 'years';
+    } else {
+        delete query.panel;
+    }
+
+    replaceInPlace(query, (current) => ({
+        categoryPanel:
+            current.categoryPanel === null
+                ? null
+                : {
+                      ...(current.categoryPanel as ReportCategoryPanelData),
+                      tab,
+                  },
+    }));
+}
+
+function selectCategory(id: number): void {
+    closingSheetCategory.value = null;
+    setRequestedCategory(id);
+
+    if (panelLayout.value === 'sheet') {
+        sheetOpen.value = true;
+    }
+}
+
+function onSheetOpenChange(open: boolean): void {
+    if (open) {
+        return;
+    }
+
+    if (selected.value !== null && selectedItem.value !== undefined) {
+        closingSheetCategory.value = {
+            selected: selected.value,
+            item: selectedItem.value,
+        };
+    }
+
+    sheetOpen.value = false;
+    setRequestedCategory(null);
+}
+
+/**
+ * The sheet has no trigger (it opens from a name or from the address), so
+ * reka-ui has nowhere to return the focus and drops it on `<body>`: send it
+ * back to the name of the Category the sheet showed.
+ */
+function onSheetCloseAutoFocus(event: Event): void {
+    const id = closingSheetCategory.value?.selected.category.id;
+    closingSheetCategory.value = null;
+
+    const name =
+        id === undefined
+            ? null
+            : shell.value?.querySelector<HTMLElement>(
+                  `[data-report-select="${id}"]`,
+              );
+
+    if (name) {
+        event.preventDefault();
+        name.focus();
+    }
 }
 
 const periodKind = computed({
     get: () => props.period.kind,
-    set: (kind: 'year' | 'month' | 'last-12' | 'trend') => {
+    set: (kind: 'year' | 'month' | 'last-12' | 'trend' | 'years') => {
         if (kind === props.period.kind) {
             return;
         }
 
         router.get(
             kind === 'year'
-                ? reportsRoute().url
+                ? yearUrl()
                 : kind === 'trend'
                   ? trendUrl()
-                  : kind === 'last-12'
-                    ? lastTwelveUrl()
-                    : monthUrl(props.period.default_month),
+                  : kind === 'years'
+                    ? yearsUrl()
+                    : kind === 'last-12'
+                      ? lastTwelveUrl()
+                      : monthUrl(props.period.default_month),
             {},
             { preserveScroll: true },
         );
@@ -64,6 +345,7 @@ const periodOptions = computed(() => [
     { value: 'month' as const, label: t.reports.period_month },
     { value: 'last-12' as const, label: t.reports.period_last_12 },
     { value: 'trend' as const, label: t.reports.period_trend },
+    { value: 'years' as const, label: t.reports.period_years },
 ]);
 
 /** The last-12 window as the server resolved it; `null` in the other views. */
@@ -102,6 +384,16 @@ const title = computed(() => {
         return t.reports.title_last_12;
     }
 
+    if (props.period.kind === 'years') {
+        const columns = props.years?.columns ?? [];
+
+        return columns.length === 0
+            ? t.reports.title
+            : t.reports.title_years
+                  .replace(':from', String(columns[0]))
+                  .replace(':to', String(columns[columns.length - 1]));
+    }
+
     if (props.period.kind === 'trend') {
         return t.reports.title_trend.replace(':year', String(props.budgetYear));
     }
@@ -136,19 +428,24 @@ const title = computed(() => {
                     {{ windowLabel }}
                 </p>
             </div>
-            <SegmentedControl
-                v-if="budgetYear !== null"
-                v-model="periodKind"
-                :options="periodOptions"
-                :ariaLabel="t.reports.period_label"
-                tone="neutral"
-            />
+            <div v-if="budgetYear !== null" class="max-w-full overflow-x-auto">
+                <SegmentedControl
+                    v-model="periodKind"
+                    :options="periodOptions"
+                    :ariaLabel="t.reports.period_label"
+                    tone="neutral"
+                />
+            </div>
         </div>
 
         <ReportEmptyState v-if="budgetYear === null" kind="no-budget" />
 
         <ReportEmptyState
-            v-else-if="budgetPhase !== 'execution' && period.kind !== 'last-12'"
+            v-else-if="
+                budgetPhase !== 'execution' &&
+                period.kind !== 'last-12' &&
+                period.kind !== 'years'
+            "
             kind="draft"
         />
 
@@ -158,6 +455,15 @@ const title = computed(() => {
                 :title="t.reports.no_coverage_title"
                 :description="t.reports.no_coverage_description"
             />
+
+            <template v-else-if="period.kind === 'years' && years !== null">
+                <IndexEmptyState
+                    v-if="years.columns.length === 0"
+                    :title="t.reports.years_empty_title"
+                    :description="t.reports.years_empty_description"
+                />
+                <ReportYearsView v-else :years="years" />
+            </template>
 
             <template v-else-if="period.kind === 'trend' && trend !== null">
                 <ReportStatPanel
@@ -215,7 +521,9 @@ const title = computed(() => {
                     :expense-minor-units="report.expense_minor_units"
                     :result-minor-units="report.result_minor_units"
                     :period-kind="
-                        period.kind === 'trend' ? 'year' : period.kind
+                        period.kind === 'trend' || period.kind === 'years'
+                            ? 'year'
+                            : period.kind
                     "
                     :is-in-progress="period.is_in_progress"
                     :comparison="report.comparison"
@@ -227,52 +535,140 @@ const title = computed(() => {
                     :description="t.reports.no_operations_description"
                 />
 
-                <template v-else>
-                    <ReportBarChart
-                        type="expense"
-                        :entries="report.expense"
-                        :budget-year="budgetYear"
-                        :comparison-year="report.comparison?.year"
-                    />
-                    <ReportEntryTable
-                        type="expense"
-                        :title="t.reports.expense"
-                        :entries="report.expense"
-                        :total-minor-units="report.expense_minor_units"
-                        :budget-year="budgetYear"
-                        :month="period.kind === 'month' ? period.month : null"
-                        :range="range"
-                        :comparison-year="report.comparison?.year"
-                        :previous-total-minor-units="
-                            report.comparison?.expense_minor_units
+                <div v-else ref="shell" class="report-year-shell">
+                    <div
+                        class="report-year-grid"
+                        :class="{ 'report-year-grid-panel': hasPanel }"
+                    >
+                        <div class="report-year-main">
+                            <ReportRanking
+                                type="expense"
+                                :title="t.reports.ranking_expense"
+                                :entries="report.expense"
+                                :mode="rankingMode"
+                                show-mode-switch
+                                :total-minor-units="report.expense_minor_units"
+                                :budget-year="budgetYear"
+                                :month="
+                                    period.kind === 'month'
+                                        ? period.month
+                                        : null
+                                "
+                                :range="range"
+                                :comparison-year="report.comparison?.year"
+                                :previous-total-minor-units="
+                                    report.comparison?.expense_minor_units
+                                "
+                                :difference-total-minor-units="
+                                    report.comparison
+                                        ?.expense_difference_minor_units
+                                "
+                                :selectable="hasPanel"
+                                :selected-category-id="highlightedCategoryId"
+                                :expand-category-id="
+                                    selected?.category.id ?? null
+                                "
+                                :panel-id="panelInPage ? PANEL_ID : undefined"
+                                @update:mode="setRankingMode"
+                                @select="selectCategory"
+                            />
+                            <ReportRanking
+                                type="income"
+                                :title="t.reports.ranking_income"
+                                :entries="report.income"
+                                :mode="rankingMode"
+                                :total-minor-units="report.income_minor_units"
+                                :budget-year="budgetYear"
+                                :month="
+                                    period.kind === 'month'
+                                        ? period.month
+                                        : null
+                                "
+                                :range="range"
+                                :comparison-year="report.comparison?.year"
+                                :previous-total-minor-units="
+                                    report.comparison?.income_minor_units
+                                "
+                                :difference-total-minor-units="
+                                    report.comparison
+                                        ?.income_difference_minor_units
+                                "
+                                :selectable="hasPanel"
+                                :selected-category-id="highlightedCategoryId"
+                                :expand-category-id="
+                                    selected?.category.id ?? null
+                                "
+                                :panel-id="panelInPage ? PANEL_ID : undefined"
+                                @select="selectCategory"
+                            />
+                        </div>
+
+                        <aside
+                            v-if="
+                                panelLayout !== 'sheet' &&
+                                selected !== null &&
+                                selectedItem !== undefined &&
+                                categoryPanel !== null
+                            "
+                            class="report-year-aside"
+                            :aria-label="t.reports.panel_label"
+                        >
+                            <ReportCategoryPanel
+                                :id="PANEL_ID"
+                                :category="selected.category"
+                                :type="selected.type"
+                                :item="selectedItem"
+                                :panel="categoryPanel"
+                                :budget-year="budgetYear"
+                                :comparison-year="report.comparison?.year"
+                                :tab="categoryPanel.tab"
+                                @update:tab="setPanelTab"
+                            />
+                        </aside>
+                    </div>
+
+                    <Sheet
+                        v-if="
+                            panelLayout === 'sheet' &&
+                            sheetSelected !== null &&
+                            sheetItem !== undefined &&
+                            categoryPanel !== null
                         "
-                        :difference-total-minor-units="
-                            report.comparison?.expense_difference_minor_units
-                        "
-                    />
-                    <ReportBarChart
-                        type="income"
-                        :entries="report.income"
-                        :budget-year="budgetYear"
-                        :comparison-year="report.comparison?.year"
-                    />
-                    <ReportEntryTable
-                        type="income"
-                        :title="t.reports.income"
-                        :entries="report.income"
-                        :total-minor-units="report.income_minor_units"
-                        :budget-year="budgetYear"
-                        :month="period.kind === 'month' ? period.month : null"
-                        :range="range"
-                        :comparison-year="report.comparison?.year"
-                        :previous-total-minor-units="
-                            report.comparison?.income_minor_units
-                        "
-                        :difference-total-minor-units="
-                            report.comparison?.income_difference_minor_units
-                        "
-                    />
-                </template>
+                        :open="sheetOpen"
+                        @update:open="onSheetOpenChange"
+                    >
+                        <SheetContent
+                            side="bottom"
+                            class="report-panel-sheet"
+                            :show-close-button="false"
+                            @close-auto-focus="onSheetCloseAutoFocus"
+                        >
+                            <SheetTitle class="sr-only">{{
+                                sheetSelected.category.name
+                            }}</SheetTitle>
+                            <SheetDescription class="sr-only">{{
+                                t.reports.panel_label
+                            }}</SheetDescription>
+                            <ReportCategoryPanel
+                                :id="PANEL_ID"
+                                in-sheet
+                                :category="sheetSelected.category"
+                                :type="sheetSelected.type"
+                                :item="sheetItem"
+                                :panel="categoryPanel"
+                                :budget-year="budgetYear"
+                                :comparison-year="report.comparison?.year"
+                                :tab="categoryPanel.tab"
+                                @update:tab="setPanelTab"
+                            />
+                            <SheetClose as-child>
+                                <Button variant="outline" class="w-full">{{
+                                    t.reports.panel_close
+                                }}</Button>
+                            </SheetClose>
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </template>
         </template>
     </div>

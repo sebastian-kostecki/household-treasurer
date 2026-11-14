@@ -134,13 +134,124 @@ export type ReportRange = {
     label: string;
 };
 
+/** Mirror of `App\Support\ReportYears::toArray()` (ADR-0097). Cells are minor units in the order of `columns`; null is "—" (no Budget Line in the year). */
+export type ReportYearsCells = {
+    cells: (number | null)[];
+    /** Change from the first year with an amount to the final year, tenths of a percent; null without both. */
+    change_tenths: number | null;
+    change_first_year: number | null;
+    /** Years with the highest amount of the row (all of them on a tie). */
+    max_years: number[];
+};
+
+export type ReportYearsCategory = ReportYearsCells & {
+    kind: 'category';
+    /** Id of the list Category (not of the budget line). */
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    is_archived: boolean;
+    /** The name opens the category panel of the target year (a row in that year's report, ADR-0101). */
+    opens_panel: boolean;
+};
+
+export type ReportYearsGroup = ReportYearsCells & {
+    kind: 'group';
+    id: number;
+    name: string;
+    categories: ReportYearsCategory[];
+};
+
+export type ReportYearsEntry = ReportYearsCategory | ReportYearsGroup;
+
+export type ReportYearsFastest = {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    growth_tenths: number;
+    first_year: number;
+};
+
+export type ReportYearsSection = {
+    entries: ReportYearsEntry[];
+    total: ReportYearsCells;
+    first_year: number | null;
+    average_yearly_growth_tenths: number | null;
+    fastest_growing: ReportYearsFastest | null;
+};
+
+export type ReportYearsMode = {
+    final_year: number | null;
+    expense: ReportYearsSection;
+    income: ReportYearsSection;
+};
+
+export type ReportYearsData = {
+    columns: number[];
+    current_year: number | null;
+    cut: { month: number; day: number } | null;
+    /** Null without a Budget in execution in the current year. */
+    same_day: ReportYearsMode | null;
+    full: ReportYearsMode;
+};
+
 export type ReportPeriod = {
-    kind: 'year' | 'month' | 'last-12' | 'trend';
+    kind: 'year' | 'month' | 'last-12' | 'trend' | 'years';
     month: number | null;
     default_month: number;
     is_in_progress: boolean;
     /** Only for `last-12`, otherwise null. */
     window: ReportWindow | null;
+};
+
+export type ReportRankingMode = 'categories' | 'groups';
+
+/** Mirror of one item of `App\Support\ReportCategoryPanel::toArray()['categories']`. */
+export type ReportCategoryPanelItem = {
+    /** Id of the list Category. */
+    id: number;
+    /** `Rhythm` value of the viewed month (`running`, `irregular`, ...); null for income. */
+    rhythm: string | null;
+    /** 12 cells, January first; null is a month without an operation, 0 a net-zero month. */
+    months: (number | null)[];
+    /** Average of the closed months, rounded half away from zero; null without a closed month. */
+    closed_average_minor_units: number | null;
+    /** 1 to 12, among the months that are not future; null when none is positive. */
+    highest_month: number | null;
+    /** (amount - previous) / previous in tenths of a percent; null without a usable comparison. */
+    difference_tenths_percent: number | null;
+    /** The row of the Category in the Years report in the mode of the panel; null when the year is no column of that report (ADR-0101). */
+    years: ReportYearsCells | null;
+};
+
+export type ReportCategoryPanelTab = 'months' | 'years';
+
+/** Columns and mode of the `years` of every panel Category (ADR-0101). */
+export type ReportCategoryPanelYears = {
+    columns: number[];
+    current_year: number | null;
+    cut: { month: number; day: number } | null;
+    /** `same_day` for the current year, `full` for every other one. */
+    mode: 'same_day' | 'full';
+};
+
+/** Mirror of `App\Support\ReportCategoryPanel::toArray()` (ADR-0097), only for the year in execution with operations. */
+export type ReportCategoryPanelData = {
+    /** `?panel=years` opens the years tab; always `months` when `years` is null. */
+    tab: ReportCategoryPanelTab;
+    /** The `?category` that has a row in the year report; null when absent or unknown. */
+    requested_category_id: number | null;
+    /** Month of today when the Budget year is the current one. */
+    in_progress_month: number | null;
+    /** Today, `Y-m-d`, with a month in progress. */
+    through: string | null;
+    /** 12 for a past year, the months before today's in the current year, 0 for a future year. */
+    closed_month_count: number;
+    /** Null for a year that is no column of the Years report (a future year): the panel has no "Lata" tab. */
+    years: ReportCategoryPanelYears | null;
+    categories: ReportCategoryPanelItem[];
 };
 
 export type ReportsPageProps = {
@@ -149,4 +260,7 @@ export type ReportsPageProps = {
     period: ReportPeriod;
     report: PeriodReportData | null;
     trend: ReportTrendData | null;
+    years: ReportYearsData | null;
+    rankingMode: ReportRankingMode;
+    categoryPanel: ReportCategoryPanelData | null;
 };

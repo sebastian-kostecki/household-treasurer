@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { defineAsyncComponent } from 'vue';
-import ReportBarChartPlaceholder from '@/components/ReportBarChartPlaceholder.vue';
 import ReportTrendChartPlaceholder from '@/components/ReportTrendChartPlaceholder.vue';
-import {
-    comparedYearReport,
-    reportScenarios,
-    trendInProgress,
-    yearReport,
-} from '@/lib/reports-fixtures';
+import { reportScenarios, trendInProgress } from '@/lib/reports-fixtures';
 
 // Lazy on purpose: a static import would fold Reports.vue into this chunk and
 // drop it from the Vite manifest, so Inertia could no longer render /reports
@@ -18,7 +12,15 @@ const Reports = defineAsyncComponent(() => import('@/pages/Reports.vue'));
 const stateMatrix = [
     {
         state: 'default',
-        where: 'Scenariusze year-in-progress, month-closed, archived-in-group, refund-negative-share, non-positive-expenses poniżej.',
+        where: 'Ranking (kategorie od największych, numer, pasek udziału w chart-1, przychody w success, pusty track dla kwoty niedodatniej) w scenariuszach year-in-progress, month-closed, archived-in-group, refund-negative-share, non-positive-expenses poniżej.',
+    },
+    {
+        state: 'ranking',
+        where: 'Scenariusze ranking-groups (tryb Grupy: grupy zwinięte, po rozwinięciu kategorie po kwocie) i ranking-tie (remis Czynsz 1 800 i Prąd 1 800: wyżej wcześniejszy na liście).',
+    },
+    {
+        state: 'panel',
+        where: 'Scenariusze panel-year-in-progress (kreskowany miesiąc w toku, „sty–paź”, przyszły miesiąc pusty), panel-year-closed („sty–gru”, bez wiersza „w toku”), panel-january („Średnio” „—”), panel-comparison-only (Kino 0,00 / 600,00 / −600,00, bez przycisku Operacje), panel-income (success, bez Udziału i rytmu), panel-negative-month (słupek zerowy, kwota w sr-only), panel-no-previous (bez N−1 i Różnicy), panel-groups (grupa wybranej kategorii rozwinięta) i panel-phone (arkusz zamknięty, Ranking bez podświetlenia; tapnięcie nazwy otwiera arkusz). Scenariusze są statyczne: klik nazwy albo „Grupy” robi prawdziwą wizytę klienta na /reports (adres zmienia się na /reports?…, odświeżenie opuszcza sink), a scenariusz z fixtures nie przerysowuje wyboru ani trybu, więc każdy stan ma własny scenariusz. Wszystkie instancje dzielą id report-category-panel.',
     },
     {
         state: 'comparison',
@@ -30,15 +32,19 @@ const stateMatrix = [
     },
     {
         state: 'last-12',
-        where: 'Scenariusze last-12-full (pełne pokrycie), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (cztery segmenty w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
+        where: 'Scenariusze last-12-full (pełne pokrycie), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (pięć segmentów w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
+    },
+    {
+        state: 'years',
+        where: 'Scenariusze years-same-day (domyślny: „Do 14 listopada”, Wydatki; tryb „Pełne lata” i zakładkę Przychody ogląda się kliknięciem, bo stan jest lokalny), years-no-current-year (brak przełącznika zakresu), years-only-current (zmiana i statystyki „—”), years-leap („Do 29 lutego”), years-no-coverage (stan pusty), years-no-operations, years-draft-selected (szkic w sidebarze, widok zostaje) i years-phone (przewijanie z przypiętą nazwą, pięć segmentów).',
     },
     {
         state: 'empty',
-        where: 'Scenariusze no-operations, trend-no-operations, last-12-no-coverage, last-12-no-operations, draft, draft-last-12 i no-budget poniżej.',
+        where: 'Scenariusze no-operations, trend-no-operations, last-12-no-coverage, last-12-no-operations, years-no-coverage, years-no-operations, draft, draft-last-12 i no-budget poniżej.',
     },
     {
         state: 'loading',
-        where: 'Sekcja chart-loading: placeholdery wykresów (słupkowy bez i z porównaniem, Trend) o wysokości wykresu, widoczne do doładowania fragmentu.',
+        where: 'Sekcja chart-loading: placeholder wykresu Trendu o wysokości wykresu, widoczny do doładowania fragmentu (Ranking nie ma wykresu do doładowania).',
     },
     {
         state: 'error',
@@ -46,15 +52,15 @@ const stateMatrix = [
     },
     {
         state: 'disabled',
-        where: 'N/A: przełącznik okresu i wiersze grup nie mają stanu wyłączonego.',
+        where: 'Przełącznik zakresu „Do D | Pełne lata” jest ukryty, gdy nie ma roku bieżącego (years-no-current-year); poza tym N/A: przełącznik okresu i wiersze grup nie mają stanu wyłączonego.',
     },
     {
         state: 'hover',
-        where: 'Nagłówek grupy i przyciski miesięcy w scenariuszach poniżej (najechanie myszą).',
+        where: 'Nagłówek grupy, przyciski miesięcy, segmenty przełącznika okresu, zakładki Wydatki | Przychody i przełącznik zakresu „Lat” w scenariuszach poniżej (najechanie myszą).',
     },
     {
         state: 'focus-visible',
-        where: 'Kolejność Tab w scenariuszach: przełącznik okresu, miesiące, przyciski zwijania grup.',
+        where: 'Kolejność Tab w scenariuszach: przełącznik okresu, miesiące, zakładki i przełącznik zakresu „Lat”, region przewijany tabeli, przyciski zwijania grup.',
     },
 ];
 </script>
@@ -98,20 +104,9 @@ const stateMatrix = [
         <section class="space-y-3" data-section="chart-loading">
             <h2 class="section-title border-b pb-1">chart-loading</h2>
             <p class="text-muted-foreground text-sm">
-                Placeholdery wykresów: stoją od pierwszej klatki i trzymają
+                Placeholder wykresu Trendu: stoi od pierwszej klatki i trzyma
                 wysokość wykresu, dopóki fragment się nie doładuje.
             </p>
-            <ReportBarChartPlaceholder
-                type="expense"
-                :entries="yearReport.expense"
-                :budget-year="2026"
-            />
-            <ReportBarChartPlaceholder
-                type="expense"
-                :entries="comparedYearReport.expense"
-                :budget-year="2026"
-                :comparison-year="comparedYearReport.comparison?.year"
-            />
             <ReportTrendChartPlaceholder
                 :months="trendInProgress.months"
                 :in-progress-month="trendInProgress.in_progress_month"

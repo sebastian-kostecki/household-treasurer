@@ -7,7 +7,7 @@
 const CATEGORIES_VIEW_FILES = [
     'resources/js/pages/Categories.vue',
     'resources/js/components/CategoryListRow.vue',
-    'resources/js/components/CategoryArchiveSection.vue',
+    'resources/js/components/CategoryYearsStrip.vue',
     'resources/js/components/CategoryListRowActions.vue',
     'resources/js/components/CategoryListFormDialog.vue',
     'resources/js/components/CategoryAppearanceFields.vue',

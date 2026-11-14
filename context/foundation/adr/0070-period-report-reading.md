@@ -17,3 +17,5 @@ We rejected:
 - a separate archive section in the report, like the Budget (a group would then show a sum of Categories that are not listed under it, and the report total would depend on a toggle);
 - a denominator made of the positive amounts only (the share would not match the „Wydatki” figure on the same page, and a refund would raise the others' shares instead of lowering the total);
 - sorting rows by amount (the order would differ from the Budget and the Categories list and would move when an operation is booked).
+
+Amended by ADR-0097: the Year, Month and last-twelve-months reports are a Ranking by amount (ties by the order of the list); the Trend and the Years view keep the order of the list, so „The report never sorts by amount” (:11) and the rejection of sorting rows by amount (:19) no longer hold for the Ranking.

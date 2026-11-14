@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { router, usePage } from '@inertiajs/vue3';
-import { ChevronsUpDown, Plus } from '@lucide/vue';
+import { Check, ChevronsUpDown, Plus } from '@lucide/vue';
 import { computed, onUnmounted, ref, useId } from 'vue';
 import BudgetController from '@/actions/App/Http/Controllers/BudgetController';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuLabel,
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
     DropdownMenuSeparator,
@@ -19,23 +20,32 @@ import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
-import { budgetYearMenu } from '@/lib/budget-year-menu';
+import { budgetYearMenu, reportYearSwitchParams } from '@/lib/budget-year-menu';
+import type { BudgetYearMenuEntry } from '@/lib/budget-year-menu';
 import { isCurrentSection } from '@/lib/nav-active';
 import { reports } from '@/routes';
+import type { BudgetYearEntry } from '@/types/shell';
 
 type Props = {
-    budgetYears: number[];
+    budgetYears: BudgetYearEntry[];
     budgetYear: number | null;
+    /** Kitchen sink only: pins the calendar year the "bieżący" mark follows. */
+    currentYear?: number;
     /** Kitchen sink only: renders the menu open and non-modal. */
     previewOpen?: boolean;
 };
 
-const props = withDefaults(defineProps<Props>(), { previewOpen: false });
+const props = withDefaults(defineProps<Props>(), {
+    currentYear: undefined,
+    previewOpen: false,
+});
 
 const t = useTranslations();
 const createBudgetDialog = useCreateBudgetDialog();
 const labelId = useId();
 const valueId = useId();
+const statesId = useId();
+const captionId = useId();
 const pending = ref(false);
 const page = usePage();
 
@@ -44,20 +54,23 @@ const staysOnReports = computed(() =>
     isCurrentSection(reports().url, page.url),
 );
 
-/** On the Trend view the switch stays on the Trend. */
-const staysOnTrend = computed(
-    () =>
-        staysOnReports.value &&
-        new URL(page.url, 'http://localhost').searchParams.get('view') ===
-            'trend',
+/** On the Trend and Years views the switch stays on that view. */
+const reportsView = computed(() =>
+    staysOnReports.value
+        ? new URL(page.url, 'http://localhost').searchParams.get('view')
+        : null,
 );
 
 const destination = computed(() => {
-    if (staysOnTrend.value) {
+    if (!staysOnReports.value) {
+        return null;
+    }
+
+    if (reportsView.value === 'trend') {
         return 'reports-trend';
     }
 
-    return staysOnReports.value ? 'reports' : null;
+    return reportsView.value === 'years' ? 'reports-years' : 'reports';
 });
 
 defineExpose({ pending });
@@ -66,8 +79,26 @@ const menu = computed(() =>
     budgetYearMenu(
         props.budgetYears,
         props.budgetYear,
-        new Date().getFullYear(),
+        props.currentYear ?? new Date().getFullYear(),
     ),
+);
+
+/** The headings appear only when there are older years to set apart. */
+const groups = computed(() =>
+    menu.value.older.length === 0
+        ? [{ key: 'all', heading: null, entries: menu.value.recent }]
+        : [
+              {
+                  key: 'recent',
+                  heading: t.shell.years_recent,
+                  entries: menu.value.recent,
+              },
+              {
+                  key: 'older',
+                  heading: t.shell.years_older,
+                  entries: menu.value.older,
+              },
+          ],
 );
 
 const stopListeningForYearSelectionFailure =
@@ -78,12 +109,24 @@ const stopListeningForYearSelectionFailure =
 
 onUnmounted(stopListeningForYearSelectionFailure);
 
+function hasState(entry: BudgetYearMenuEntry | null): boolean {
+    return entry !== null && (entry.current || entry.draft);
+}
+
+function rowStateId(year: number): string {
+    return `${statesId}-${year}`;
+}
+
 function addBudgetLabel(year: number): string {
     return t.shell.add_budget_for_year.replace(':year', String(year));
 }
 
 function addYearText(year: number): string {
     return t.shell.add_year.replace(':year', String(year));
+}
+
+function addYearSourceText(year: number): string {
+    return t.shell.add_year_source.replace(':year', String(year));
 }
 
 function createYear(): void {
@@ -94,6 +137,24 @@ function createYear(): void {
     createBudgetDialog.openForYear(menu.value.createYear);
 }
 
+/** The Reports year switch also carries the selected Category and the Ranking mode of the address. */
+function selectYearPayload(year: number): Record<string, string | number> {
+    if (destination.value === null) {
+        return { year };
+    }
+
+    const payload: Record<string, string | number> = {
+        year,
+        destination: destination.value,
+    };
+
+    if (destination.value === 'reports') {
+        return { ...payload, ...reportYearSwitchParams(page.url) };
+    }
+
+    return payload;
+}
+
 function selectYear(value: unknown): void {
     const year = Number(value);
 
@@ -101,24 +162,18 @@ function selectYear(value: unknown): void {
         return;
     }
 
-    router.post(
-        BudgetController.selectYear().url,
-        destination.value === null
-            ? { year }
-            : { year, destination: destination.value },
-        {
-            preserveScroll: false,
-            onStart: () => {
-                pending.value = true;
-            },
-            onError: () => {
-                notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
-            },
-            onFinish: () => {
-                pending.value = false;
-            },
+    router.post(BudgetController.selectYear().url, selectYearPayload(year), {
+        preserveScroll: false,
+        onStart: () => {
+            pending.value = true;
         },
-    );
+        onError: () => {
+            notifyBudgetYearSelectionFailed(t.shell.select_year_failed);
+        },
+        onFinish: () => {
+            pending.value = false;
+        },
+    });
 }
 </script>
 
@@ -128,7 +183,7 @@ function selectYear(value: unknown): void {
             {{ t.shell.budget_year }}
         </SidebarGroupLabel>
         <button
-            v-if="menu.years.length === 0"
+            v-if="menu.recent.length === 0"
             type="button"
             class="sidebar-year-trigger"
             :aria-label="addBudgetLabel(menu.createYear)"
@@ -145,17 +200,42 @@ function selectYear(value: unknown): void {
                     type="button"
                     class="sidebar-year-trigger"
                     :aria-labelledby="`${labelId} ${valueId}`"
+                    :aria-describedby="
+                        hasState(menu.selected) ? statesId : undefined
+                    "
                     :aria-busy="pending"
                     :aria-disabled="pending"
                 >
-                    <span :id="valueId" class="tabular-nums">
+                    <span :id="valueId" class="font-mono tabular-nums">
                         {{ budgetYear }}
                     </span>
-                    <ChevronsUpDown class="ml-auto size-4" />
+                    <span
+                        v-if="menu.selected !== null && hasState(menu.selected)"
+                        :id="statesId"
+                        class="sidebar-year-states"
+                        aria-hidden="true"
+                    >
+                        <span
+                            v-if="menu.selected.current"
+                            class="sidebar-year-state sidebar-year-state-current"
+                        >
+                            {{ t.shell.year_current }}
+                        </span>
+                        <span
+                            v-if="menu.selected.draft"
+                            class="sidebar-year-state sidebar-year-state-draft"
+                        >
+                            {{ t.shell.year_draft }}
+                        </span>
+                    </span>
+                    <ChevronsUpDown
+                        class="size-4 shrink-0"
+                        :class="{ 'ml-auto': !hasState(menu.selected) }"
+                    />
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-                class="w-(--reka-dropdown-menu-trigger-width) min-w-40 rounded-lg"
+                class="sidebar-year-menu w-(--reka-dropdown-menu-trigger-width) min-w-40"
                 side="bottom"
                 align="start"
                 :side-offset="4"
@@ -164,25 +244,72 @@ function selectYear(value: unknown): void {
                     :model-value="String(budgetYear)"
                     @update:model-value="selectYear"
                 >
-                    <DropdownMenuRadioItem
-                        v-for="entry in menu.years"
-                        :key="entry.year"
-                        :value="String(entry.year)"
-                        class="tabular-nums"
-                        :disabled="pending"
-                    >
-                        {{ entry.year }}
-                    </DropdownMenuRadioItem>
+                    <template v-for="group in groups" :key="group.key">
+                        <DropdownMenuLabel
+                            v-if="group.heading !== null"
+                            class="sidebar-year-menu-group"
+                        >
+                            {{ group.heading }}
+                        </DropdownMenuLabel>
+                        <DropdownMenuRadioItem
+                            v-for="entry in group.entries"
+                            :key="entry.year"
+                            :value="String(entry.year)"
+                            class="sidebar-year-menu-item sidebar-year-menu-row"
+                            :aria-describedby="
+                                hasState(entry)
+                                    ? rowStateId(entry.year)
+                                    : undefined
+                            "
+                            :disabled="pending"
+                        >
+                            <template #indicator-icon>
+                                <Check class="size-4" />
+                            </template>
+                            {{ entry.year }}
+                            <span
+                                v-if="hasState(entry)"
+                                :id="rowStateId(entry.year)"
+                                class="sidebar-year-states"
+                                aria-hidden="true"
+                            >
+                                <span
+                                    v-if="entry.current"
+                                    class="sidebar-year-menu-note"
+                                >
+                                    {{ t.shell.year_current }}
+                                </span>
+                                <span
+                                    v-if="entry.draft"
+                                    class="sidebar-year-state sidebar-year-state-draft"
+                                >
+                                    {{ t.shell.year_draft }}
+                                </span>
+                            </span>
+                        </DropdownMenuRadioItem>
+                    </template>
                 </DropdownMenuRadioGroup>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator class="sidebar-year-menu-separator" />
                 <DropdownMenuItem
+                    class="sidebar-year-menu-item"
                     :aria-label="addBudgetLabel(menu.createYear)"
+                    :aria-describedby="
+                        menu.createSourceYear !== null ? captionId : undefined
+                    "
                     :disabled="pending"
                     @select="createYear"
                 >
                     <Plus />
                     {{ addYearText(menu.createYear) }}
                 </DropdownMenuItem>
+                <small
+                    v-if="menu.createSourceYear !== null"
+                    :id="captionId"
+                    class="sidebar-year-menu-caption"
+                    aria-hidden="true"
+                >
+                    {{ addYearSourceText(menu.createSourceYear) }}
+                </small>
             </DropdownMenuContent>
         </DropdownMenu>
     </div>

@@ -38,23 +38,24 @@ use App\Models\CategoryGroup;
  * @phpstan-type ReportEntry ReportGroup|array{kind: 'category', id: int, name: string, icon: string|null, color: string, amount_minor_units: int, share_tenths_percent: int|null, is_archived: bool, has_operations: bool, previous_minor_units: int|null, difference_minor_units: int|null}
  * @phpstan-type ReportComparison array{year: int, from: string, through: string, is_partial: bool, income_minor_units: int, expense_minor_units: int, result_minor_units: int, income_difference_minor_units: int, expense_difference_minor_units: int, result_difference_minor_units: int}
  * @phpstan-type ReportShape array{income_minor_units: int, expense_minor_units: int, result_minor_units: int, has_operations: bool, comparison: ReportComparison|null, income: list<ReportEntry>, expense: list<ReportEntry>}
- * @phpstan-type ReportRow array{category: Category, line: BudgetLine|null, amount: int, has_operations: bool, previous: int|null}
+ * @phpstan-type ReportRow array{category: Category, line: BudgetLine|null, amount: int, has_operations: bool, previous: int|null, months: list<int|null>}
  */
 final class PeriodReport
 {
     /**
      * @param  ReportShape  $report
+     * @param  array<int, list<int|null>>  $categoryMonths  list Category id => 12 monthly cells; empty unless the report is a year's
      */
-    private function __construct(private readonly array $report) {}
+    private function __construct(private readonly array $report, private readonly array $categoryMonths = []) {}
 
     public static function forMonth(Budget $budget, int $month, ?ReportComparisonPeriod $comparison = null): self
     {
-        return self::build($budget, [$month], $comparison);
+        return self::build($budget, [$month], $comparison, keepMonths: false);
     }
 
     public static function forYear(Budget $budget, ?ReportComparisonPeriod $comparison = null): self
     {
-        return self::build($budget, range(1, 12), $comparison);
+        return self::build($budget, range(1, 12), $comparison, keepMonths: true);
     }
 
     /**
@@ -81,22 +82,35 @@ final class PeriodReport
     }
 
     /**
-     * @param  list<int>  $months
+     * The 12 monthly amounts of every row of a year report by list Category id,
+     * `null` for a month without an operation (the cells of `ReportTrend`), so
+     * their sum is the row's `amount_minor_units`. Empty for the other periods.
+     *
+     * @return array<int, list<int|null>>
      */
-    private static function build(Budget $budget, array $months, ?ReportComparisonPeriod $comparison): self
+    public function categoryMonths(): array
+    {
+        return $this->categoryMonths;
+    }
+
+    /**
+     * @param  list<int>  $months
+     * @param  bool  $keepMonths  keep the monthly cells for `categoryMonths()` (only the year report)
+     */
+    private static function build(Budget $budget, array $months, ?ReportComparisonPeriod $comparison, bool $keepMonths): self
     {
         $rows = self::rows($budget, $months, $comparison);
 
         $groups = CategoryGroup::query()->where('user_id', $budget->user_id)->get();
 
-        return self::fromRows($rows, array_values($groups->all()), $comparison);
+        return self::fromRows($rows, array_values($groups->all()), $comparison, $keepMonths);
     }
 
     /**
      * @param  array<int, ReportRow>  $rows
      * @param  list<CategoryGroup>  $groupList
      */
-    private static function fromRows(array $rows, array $groupList, ?ReportComparisonPeriod $comparison): self
+    private static function fromRows(array $rows, array $groupList, ?ReportComparisonPeriod $comparison, bool $keepMonths = false): self
     {
         $hasComparison = $comparison !== null;
         $income = self::entriesOfType(CategoryType::Income, $rows, $groupList, $hasComparison);
@@ -115,7 +129,7 @@ final class PeriodReport
                 : self::comparisonTotals($comparison, $income, $expense, $incomeTotal, $expenseTotal),
             'income' => $income,
             'expense' => self::withShares($expense, $expenseTotal),
-        ]);
+        ], $keepMonths ? array_map(fn (array $row): array => $row['months'], $rows) : []);
     }
 
     /**
@@ -136,9 +150,11 @@ final class PeriodReport
         foreach ($currentLines as $categoryId => $line) {
             $amount = 0;
             $hasOperations = false;
+            $cells = [];
             foreach ($actuals as $monthActuals) {
                 $amount += $monthActuals->actual($line->id);
                 $hasOperations = $hasOperations || $monthActuals->hasOperations($line->id);
+                $cells[] = $monthActuals->hasOperations($line->id) ? $monthActuals->actual($line->id) : null;
             }
 
             if ($hasOperations || isset($previous[$categoryId])) {
@@ -148,6 +164,7 @@ final class PeriodReport
                     'amount' => $amount,
                     'has_operations' => $hasOperations,
                     'previous' => $previous[$categoryId]['amount'] ?? null,
+                    'months' => $cells,
                 ];
             }
         }
@@ -159,6 +176,7 @@ final class PeriodReport
                 'amount' => 0,
                 'has_operations' => false,
                 'previous' => $entry['amount'],
+                'months' => array_fill(0, 12, null),
             ];
         }
 
@@ -264,11 +282,23 @@ final class PeriodReport
             'color' => $category->color,
             'amount_minor_units' => $row['amount'],
             'share_tenths_percent' => null,
-            'is_archived' => $row['line'] === null ? $category->isArchived() : $row['line']->isArchived(),
+            'is_archived' => self::isArchivedRow($row),
             'has_operations' => $row['has_operations'],
             'previous_minor_units' => $row['previous'],
             'difference_minor_units' => $hasComparison ? $row['amount'] - ($row['previous'] ?? 0) : null,
         ];
+    }
+
+    /**
+     * The archived mark of a row: the mark of its line, or of the list Category
+     * when the row has no line. It reads only these two keys, so a row of
+     * `ReportYears` (with `cells` instead of `months`) fits as well.
+     *
+     * @param  array{category: Category, line: BudgetLine|null}  $row
+     */
+    public static function isArchivedRow(array $row): bool
+    {
+        return $row['line'] === null ? $row['category']->isArchived() : $row['line']->isArchived();
     }
 
     /**
@@ -294,11 +324,11 @@ final class PeriodReport
     private static function withShares(array $entries, int $total): array
     {
         return array_map(function (array $entry) use ($total): array {
-            $entry['share_tenths_percent'] = $entry['has_operations'] ? self::shareTenthsPercent($entry['amount_minor_units'], $total) : null;
+            $entry['share_tenths_percent'] = $entry['has_operations'] ? TenthsPercent::of($entry['amount_minor_units'], $total) : null;
 
             if ($entry['kind'] === 'group') {
                 $entry['categories'] = array_map(function (array $category) use ($total): array {
-                    $category['share_tenths_percent'] = $category['has_operations'] ? self::shareTenthsPercent($category['amount_minor_units'], $total) : null;
+                    $category['share_tenths_percent'] = $category['has_operations'] ? TenthsPercent::of($category['amount_minor_units'], $total) : null;
 
                     return $category;
                 }, $entry['categories']);
@@ -306,21 +336,5 @@ final class PeriodReport
 
             return $entry;
         }, $entries);
-    }
-
-    /**
-     * The share of an amount in the total, in tenths of a percent, rounded half
-     * away from zero with integer arithmetic only; null when the total is not
-     * positive.
-     */
-    private static function shareTenthsPercent(int $amount, int $total): ?int
-    {
-        if ($total <= 0) {
-            return null;
-        }
-
-        $rounded = intdiv(abs($amount) * 2000 + $total, 2 * $total);
-
-        return $amount < 0 ? -$rounded : $rounded;
     }
 }

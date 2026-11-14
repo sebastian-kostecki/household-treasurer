@@ -29,3 +29,5 @@ We rejected:
 - CSS bars (a `div` per row with a width in %): no axis, no scale shared between rows, and each later chart type would need its own code.
 - Hand-drawn SVG: the same work as a library for the first chart and more for trends, with the accessibility and sizing details left to us.
 - A ring (donut) chart: it hides the order of the list, makes small shares unreadable and invites one colour per Category, which the design system forbids.
+
+Amended by ADR-0097: the share bar, the sparkline of „Lata” and the 12 month bars of the Category Panel are CSS or SVG marks without Unovis (:13, :29); expense fill is `chart-1` and income `success`, with `foreground`, `track` and a hatched `chart-1` for the new marks (:15, :23); the bar chart of :19 is replaced by the Ranking, and marks that repeat their row are `aria-hidden` while the month bars of the panel carry an `sr-only` list (:17).

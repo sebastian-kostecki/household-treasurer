@@ -25,3 +25,5 @@ We rejected:
 - a comparison with the same window a year earlier when fully covered, or on the months both sides share: two rules for one column, and the figure would change meaning with the data;
 - staying on the view when the Budget year changes (`reports-last-12`): the window does not depend on the year, so the switch would do nothing;
 - the segment before „Rok”: the Year stays the first and the default view.
+
+Amended by ADR-0097: the switch has a fifth segment, „Lata”; a change of the Budget year in the sidebar still leads from „12 miesięcy” to the year report (:17), but leaves the User in „Lata”.

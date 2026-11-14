@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Enums\BudgetPhase;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -60,5 +61,25 @@ class SelectedBudgetYear
         }
 
         return $years;
+    }
+
+    /**
+     * @return list<array{year: int, phase: 'draft'|'execution'}>
+     */
+    public static function budgetYearEntriesForUser(User $user): array
+    {
+        $entries = [];
+
+        foreach ($user->budgets()->orderBy('year')->get(['year', 'phase']) as $budget) {
+            $entries[] = [
+                'year' => (int) $budget->year,
+                'phase' => match ($budget->phase) {
+                    BudgetPhase::Draft => 'draft',
+                    BudgetPhase::Execution => 'execution',
+                },
+            ];
+        }
+
+        return $entries;
     }
 }

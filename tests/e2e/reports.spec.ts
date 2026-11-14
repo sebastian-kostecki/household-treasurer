@@ -1,14 +1,16 @@
 // E2E test: the „Raporty” view (S-28, FR-014, FR-015).
 // Risk it protects: the report is not reachable (menu or shortcut 8), the
-// charts or tables do not render in the browser (the chart is loaded lazily),
-// the period switch does not reach the URL (?month=N), a collapsed group still
-// shows its Categories, or changing the budget year in the sidebar throws the
-// user from „Raporty” to the Budget.
+// Ranking lists do not render in the browser, the period switch does not reach
+// the URL (?month=N), the Ranking mode (?ranking=groups) is lost on a period
+// change, a collapsed group still shows its Categories, or changing the budget
+// year in the sidebar throws the user from „Raporty” to the Budget.
 // The test user has the demo household (demo:seed-household). The tests that
 // need rows create their own operations and a group and delete them at the end
 // through the UI, also when an assertion fails.
-// The year-over-year test needs the mock of the previous year in the E2E
-// database (`demo:seed-previous-year`, see README, section „Uruchomienie”).
+// The year-over-year test and the „Lata” test need the mock of the previous
+// year in the E2E database (`demo:seed-previous-year`, see README, section
+// „Uruchomienie”): the UI creates only a draft of the next year, so the tests
+// do not create a Budget in progress themselves.
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import {
     budgetYearCount,
@@ -19,9 +21,32 @@ import {
 } from './support/budget-year';
 import { assignCategoryToGroup } from './support/categories';
 
-function chart(page: Page, type: 'income' | 'expense'): Locator {
-    // The chart is aria-hidden, so it is found by its test id.
-    return page.getByTestId(`report-chart-${type}`);
+// Wayfinder orders the query keys itself, so the URL is checked by its params.
+async function expectReportsQuery(
+    page: Page,
+    expected: Record<string, string | RegExp>,
+): Promise<void> {
+    await expect
+        .poll(() => {
+            const url = new URL(page.url());
+            const params = Object.fromEntries(url.searchParams);
+            const matches = Object.entries(expected).every(([key, value]) =>
+                typeof value === 'string'
+                    ? params[key] === value
+                    : value.test(params[key] ?? ''),
+            );
+
+            return (
+                url.pathname === '/reports' &&
+                matches &&
+                Object.keys(params).length === Object.keys(expected).length
+            );
+        })
+        .toBe(true);
+}
+
+function ranking(page: Page, type: 'income' | 'expense'): Locator {
+    return page.locator(`[data-ranking-list="${type}"]`);
 }
 
 function groupBlock(page: Page, name: string): Locator {
@@ -82,7 +107,7 @@ async function deleteOperation(
     await expect(page.getByText(description, { exact: true })).toBeHidden();
 }
 
-test('shortcut 8 opens Raporty with the measures, both charts and both tables', async ({
+test('shortcut 8 opens Raporty with the measures and both Ranking lists with share bars', async ({
     page,
 }) => {
     // Two operations are added and two deleted through the UI around the
@@ -111,17 +136,35 @@ test('shortcut 8 opens Raporty with the measures, both charts and both tables', 
             ).toBeVisible();
             await expect(page.getByText('Wynik roku')).toBeVisible();
             await expect(
-                page.getByRole('heading', { level: 2, name: 'Wydatki' }),
+                page.getByRole('heading', {
+                    level: 2,
+                    name: 'Wydatki od największych',
+                }),
             ).toBeVisible();
             await expect(
-                page.getByRole('heading', { level: 2, name: 'Przychody' }),
+                page.getByRole('heading', {
+                    level: 2,
+                    name: 'Przychody od największych',
+                }),
             ).toBeVisible();
 
-            await expect(chart(page, 'expense')).toBeVisible();
-            await expect(chart(page, 'income')).toBeVisible();
+            // The share bar is aria-hidden, so it is found by its marker.
             await expect(
-                page.getByTestId('report-chart-expense').locator('svg'),
+                ranking(page, 'expense')
+                    .locator('[data-report-share-bar]')
+                    .first(),
             ).toBeVisible();
+            await expect(
+                ranking(page, 'income')
+                    .locator('[data-report-share-bar]')
+                    .first(),
+            ).toBeVisible();
+            await expect(
+                ranking(page, 'expense').getByText('Razem'),
+            ).toHaveCount(1);
+            await expect(
+                ranking(page, 'income').getByText('Razem'),
+            ).toHaveCount(1);
             await expect(page.getByText('Razem')).toHaveCount(2);
         } finally {
             await deleteOperation(page, 'dochód', incomeDescription);
@@ -156,10 +199,10 @@ test('Raporty of the current year compare it with the year before and drop the c
         page.getByText(new RegExp(`^${previousYear}:`)).first(),
     ).toBeVisible();
 
-    // The chart legend names both years.
-    const legend = page.getByTestId('report-chart-legend-expense');
-    await expect(legend).toContainText(`Rok ${year}`);
-    await expect(legend).toContainText(`Rok ${previousYear}`);
+    // The Ranking footer names the compared year.
+    await expect(
+        page.getByText(`Kwoty w zł · różnica do ${previousYear}`).first(),
+    ).toBeVisible();
 
     // The previous year has no year before it: no comparison.
     await selectBudgetYear(page, previousYear);
@@ -170,9 +213,7 @@ test('Raporty of the current year compare it with the year before and drop the c
         }),
     ).toBeVisible();
     await expect(page.getByText('Różnica', { exact: true })).toHaveCount(0);
-    await expect(page.getByTestId('report-chart-legend-expense')).toHaveCount(
-        0,
-    );
+    await expect(page.getByText(/^Kwoty w zł · różnica do/)).toHaveCount(0);
 });
 
 test('switching to Miesiąc and picking a month puts ?month=N in the URL', async ({
@@ -190,15 +231,14 @@ test('switching to Miesiąc and picking a month puts ?month=N in the URL', async
     ).toBeVisible();
 });
 
-test('collapsing a group hides its Categories', async ({ page }) => {
+test('in the Grupy mode a group starts collapsed, expands to its Categories and the mode survives the period switch', async ({
+    page,
+}) => {
     const group = `Grupa E2E raport ${Date.now()}`;
     const description = `E2E raport grupa ${Date.now()}`;
 
     await page.goto('/categories');
-    await page
-        .locator('[data-section="expense"]')
-        .getByRole('button', { name: 'Dodaj grupę' })
-        .click();
+    await page.getByRole('button', { name: 'Dodaj grupę' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa grupy').fill(group);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
@@ -220,25 +260,49 @@ test('collapsing a group hides its Categories', async ({ page }) => {
         await addOperation(page, 'Wydatek', description);
         try {
             await page.goto('/reports');
+            await page
+                .getByRole('button', { name: 'Grupy', exact: true })
+                .click();
+            await expect(page).toHaveURL(/\/reports\?ranking=groups$/);
 
-            const groupRow = page
+            const groupRow = ranking(page, 'expense')
                 .locator('[data-report-row="group"]')
                 .filter({ hasText: group });
-            const categoryRow = page
+            const categoryRow = ranking(page, 'expense')
                 .locator('[data-report-row="category"]')
                 .filter({ hasText: 'Rozrywka' });
-            const toggle = groupRow.getByRole('button', {
-                name: `Zwiń grupę ${group}`,
-            });
+            // The accessible name flips to „Zwiń grupę …” once open, so the
+            // button is found by its row, not by its name.
+            const toggle = groupRow.locator('button[aria-expanded]');
 
+            await expect(toggle).toHaveAccessibleName(`Rozwiń grupę ${group}`);
+            await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            await expect(categoryRow).toBeHidden();
+            await toggle.click();
+            await expect(toggle).toHaveAttribute('aria-expanded', 'true');
             await expect(categoryRow).toBeVisible();
             await toggle.click();
             await expect(categoryRow).toBeHidden();
-            await expect(
-                groupRow.getByRole('button', {
-                    name: `Rozwiń grupę ${group}`,
-                }),
-            ).toHaveAttribute('aria-expanded', 'false');
+
+            // The mode travels through the period switch.
+            await page
+                .getByRole('button', { name: 'Miesiąc', exact: true })
+                .click();
+            await expectReportsQuery(page, {
+                month: /^\d+$/,
+                ranking: 'groups',
+            });
+            await page
+                .getByRole('button', { name: '12 miesięcy', exact: true })
+                .click();
+            await expectReportsQuery(page, {
+                view: 'last-12',
+                ranking: 'groups',
+            });
+            await page
+                .getByRole('button', { name: 'Rok', exact: true })
+                .click();
+            await expect(page).toHaveURL(/\/reports\?ranking=groups$/);
         } finally {
             await deleteOperation(page, 'wydatek', description);
         }
@@ -352,10 +416,7 @@ test('Trend groups start collapsed and expand to their Categories', async ({
     const description = `E2E trend grupa ${Date.now()}`;
 
     await page.goto('/categories');
-    await page
-        .locator('[data-section="expense"]')
-        .getByRole('button', { name: 'Dodaj grupę' })
-        .click();
+    await page.getByRole('button', { name: 'Dodaj grupę' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nazwa grupy').fill(group);
     await dialog.getByRole('button', { name: 'Zapisz' }).click();
@@ -560,5 +621,225 @@ test('changing the budget year in the sidebar from the 12 months view leads to t
                 .poll(() => budgetYearCount(page))
                 .toBe(initialYearCount);
         }
+    }
+});
+
+test('the Lata view shows a category in two years, switches the tab and range without a request and survives a year change', async ({
+    page,
+}) => {
+    test.slow();
+
+    const description = `E2E lata wydatek ${Date.now()}`;
+
+    await addOperation(page, 'Wydatek', description);
+    let created = false;
+    let newYear = 0;
+    let initialYearCount = 0;
+
+    try {
+        await page.goto('/reports');
+        // The panel has its own „Lata” tab: pick the one of the period switch.
+        await page
+            .getByRole('group', { name: 'Okres raportu' })
+            .getByRole('button', { name: 'Lata', exact: true })
+            .click();
+
+        await expect(page).toHaveURL(/\/reports\?view=years$/);
+        const heading = page.getByRole('heading', {
+            level: 1,
+            name: /^Raport: lata \d{4}–\d{4}$/,
+        });
+        await expect(heading).toBeVisible();
+        const [firstYear, lastYear] = ((await heading.textContent()) ?? '')
+            .match(/\d{4}/g)!
+            .map(Number);
+        expect(lastYear).toBeGreaterThan(firstYear);
+        const previousYear = lastYear - 1;
+
+        const expenseTable = page.locator('[data-years-table="expense"]');
+        await expect(
+            expenseTable.getByRole('columnheader', {
+                name: String(previousYear),
+                exact: true,
+            }),
+        ).toHaveCount(1);
+
+        // Rozrywka has an amount in both the current and the previous year.
+        let row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' });
+        if ((await row.count()) === 0 || !(await row.first().isVisible())) {
+            const toggles = expenseTable.getByRole('button', {
+                name: /^Rozwiń grupę/,
+            });
+            for (let i = (await toggles.count()) - 1; i >= 0; i--) {
+                await toggles.nth(i).click();
+            }
+        }
+        row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' })
+            .first();
+        await expect(row).toBeVisible();
+        const columnCount = lastYear - firstYear + 1;
+        const cells = row.getByRole('cell');
+        await expect(cells.nth(columnCount - 1)).toHaveText(/\d/);
+        await expect(cells.nth(columnCount - 2)).toHaveText(/\d/);
+
+        // Tab and range are local: no new request, no change of the URL.
+        const requests: string[] = [];
+        page.on('request', (request) => {
+            if (request.resourceType() !== 'image') {
+                requests.push(request.url());
+            }
+        });
+
+        await page
+            .getByRole('button', { name: 'Przychody', exact: true })
+            .click();
+        const incomeTable = page.locator('[data-years-table="income"]');
+        await expect(incomeTable).toBeVisible();
+        await expect(expenseTable).toHaveCount(0);
+        await expect(
+            incomeTable.getByRole('heading', { level: 2 }),
+        ).toBeVisible();
+        // The tab changes the rows, not only the heading: the expense
+        // Category is not among the income rows.
+        await expect(incomeTable.getByText('Rozrywka')).toHaveCount(0);
+
+        const incomeSameDay = await incomeTable.innerText();
+        await page
+            .getByRole('button', { name: 'Pełne lata', exact: true })
+            .click();
+        await expect(page.getByTestId('report-years-subtitle')).toContainText(
+            'Zakończone lata liczone w całości',
+        );
+        await expect
+            .poll(async () => incomeTable.innerText())
+            .not.toBe(incomeSameDay);
+
+        await expect(page).toHaveURL(/\/reports\?view=years$/);
+        expect(requests).toEqual([]);
+        page.removeAllListeners('request');
+
+        // The sidebar year change keeps „Lata”.
+        await page.goto('/budget');
+        initialYearCount = await budgetYearCount(page);
+        newYear = await nextBudgetYear(page);
+        expect(newYear).toBeGreaterThan(2000);
+
+        await openCreateBudgetDialog(page);
+        const dialog = page.getByRole('dialog', { name: 'Nowy budżet' });
+        await dialog.getByRole('button', { name: 'Utwórz budżet' }).click();
+        await expect(dialog).toBeHidden();
+        created = true;
+
+        await page.goto('/reports?view=years');
+        await selectBudgetYear(page, newYear - 1);
+
+        await expect(page).toHaveURL(/\/reports\?view=years$/);
+        await expect(
+            page.getByRole('heading', {
+                level: 1,
+                name: /^Raport: lata \d{4}–\d{4}$/,
+            }),
+        ).toBeVisible();
+        await expect(
+            page.locator('[data-years-table="expense"]'),
+        ).toBeVisible();
+    } finally {
+        try {
+            if (created) {
+                await page.goto('/budget');
+                await selectBudgetYear(page, newYear);
+                await page
+                    .getByRole('button', { name: 'Akcje budżetu' })
+                    .click();
+                await page
+                    .getByRole('menuitem', { name: 'Usuń budżet' })
+                    .click();
+                await page
+                    .getByRole('dialog', { name: 'Usunąć budżet?' })
+                    .getByRole('button', { name: 'Usuń budżet' })
+                    .click();
+                await expect
+                    .poll(() => budgetYearCount(page))
+                    .toBe(initialYearCount);
+            }
+        } finally {
+            await deleteOperation(page, 'wydatek', description);
+        }
+    }
+});
+
+test('a category name in the Lata table opens the panel of the Year view on its Lata tab', async ({
+    page,
+}) => {
+    test.slow();
+
+    const description = `E2E lata link ${Date.now()}`;
+
+    await addOperation(page, 'Wydatek', description);
+
+    try {
+        await page.goto('/reports?view=years');
+        const heading = page.getByRole('heading', {
+            level: 1,
+            name: /^Raport: lata \d{4}–\d{4}$/,
+        });
+        await expect(heading).toBeVisible();
+        const [firstYear, lastYear] = ((await heading.textContent()) ?? '')
+            .match(/\d{4}/g)!
+            .map(Number);
+        const columnCount = lastYear - firstYear + 1;
+
+        const expenseTable = page.locator('[data-years-table="expense"]');
+        // The footer hint names the link.
+        await expect(expenseTable).toContainText(
+            'Kliknij kategorię, aby zobaczyć jej lata w panelu',
+        );
+
+        let row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' });
+        if ((await row.count()) === 0 || !(await row.first().isVisible())) {
+            const toggles = expenseTable.getByRole('button', {
+                name: /^Rozwiń grupę/,
+            });
+            for (let i = (await toggles.count()) - 1; i >= 0; i--) {
+                await toggles.nth(i).click();
+            }
+        }
+        row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' })
+            .first();
+        await expect(row).toBeVisible();
+
+        await row.locator('[data-report-years-link]').click();
+
+        await expectReportsQuery(page, {
+            category: /^\d+$/,
+            panel: 'years',
+        });
+        await expect(
+            page.getByRole('heading', {
+                level: 1,
+                name: `Raport roku ${lastYear}`,
+            }),
+        ).toBeVisible();
+
+        const aside = page.getByRole('complementary', {
+            name: 'Panel kategorii',
+        });
+        await expect(aside).toContainText('Rozrywka');
+        await expect(
+            aside.locator('.segmented-control-item', { hasText: 'Lata' }),
+        ).toHaveAttribute('data-state', 'on');
+        await expect(
+            aside.locator('[data-report-year-bars] [data-year]'),
+        ).toHaveCount(columnCount);
+    } finally {
+        await deleteOperation(page, 'wydatek', description);
     }
 });
