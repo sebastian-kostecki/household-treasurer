@@ -1899,6 +1899,37 @@
         @apply meta text-muted-foreground font-normal normal-case;
     }
 
+    /**
+     * Report Years table (ADR-0097): Kategoria | one column per year | Zmiana |
+     * sparkline, in one line inside `.report-trend-scroll` with the pinned
+     * `.report-trend-name` cell. The number of years grows every January, so
+     * `ReportYearsTable` sets `--report-years-count`; the minimum width is the
+     * fixed columns (8rem name, 5.5rem change, 5rem sparkline, the gaps and the
+     * row padding) plus 4rem per year (3.5rem and a gap). Seven years fit the
+     * Reports card beside the expanded sidebar at 1280 px without scrolling.
+     */
+    .report-years-grid {
+        @apply grid items-center gap-x-2;
+        min-width: calc(var(--report-years-count) * 4rem + 22rem);
+        grid-template-columns:
+            minmax(8rem, 1.6fr)
+            repeat(var(--report-years-count), minmax(3.5rem, 1fr))
+            minmax(5.5rem, 1.1fr)
+            5rem;
+    }
+
+    .report-years-grid.report-row-nested {
+        @apply pl-4;
+    }
+
+    .report-years-change {
+        @apply amount flex flex-col items-end text-right;
+    }
+
+    .report-years-spark {
+        @apply block h-6 w-full;
+    }
+
     .budget-category-header-row {
         @apply table-header border-border/60 hidden border-b px-4 py-2.5;
     }

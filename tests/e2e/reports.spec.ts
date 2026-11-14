@@ -7,8 +7,10 @@
 // The test user has the demo household (demo:seed-household). The tests that
 // need rows create their own operations and a group and delete them at the end
 // through the UI, also when an assertion fails.
-// The year-over-year test needs the mock of the previous year in the E2E
-// database (`demo:seed-previous-year`, see README, section „Uruchomienie”).
+// The year-over-year test and the „Lata” test need the mock of the previous
+// year in the E2E database (`demo:seed-previous-year`, see README, section
+// „Uruchomienie”): the UI creates only a draft of the next year, so the tests
+// do not create a Budget in progress themselves.
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import {
     budgetYearCount,
@@ -553,6 +555,150 @@ test('changing the budget year in the sidebar from the 12 months view leads to t
             await expect
                 .poll(() => budgetYearCount(page))
                 .toBe(initialYearCount);
+        }
+    }
+});
+
+test('the Lata view shows a category in two years, switches the tab and range without a request and survives a year change', async ({
+    page,
+}) => {
+    test.slow();
+
+    const description = `E2E lata wydatek ${Date.now()}`;
+
+    await addOperation(page, 'Wydatek', description);
+    let created = false;
+    let newYear = 0;
+    let initialYearCount = 0;
+
+    try {
+        await page.goto('/reports');
+        await page.getByRole('button', { name: 'Lata', exact: true }).click();
+
+        await expect(page).toHaveURL(/\/reports\?view=years$/);
+        const heading = page.getByRole('heading', {
+            level: 1,
+            name: /^Raport: lata \d{4}–\d{4}$/,
+        });
+        await expect(heading).toBeVisible();
+        const [firstYear, lastYear] = ((await heading.textContent()) ?? '')
+            .match(/\d{4}/g)!
+            .map(Number);
+        expect(lastYear).toBeGreaterThan(firstYear);
+        const previousYear = lastYear - 1;
+
+        const expenseTable = page.locator('[data-years-table="expense"]');
+        await expect(
+            expenseTable.getByRole('columnheader', {
+                name: String(previousYear),
+                exact: true,
+            }),
+        ).toHaveCount(1);
+
+        // Rozrywka has an amount in both the current and the previous year.
+        let row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' });
+        if ((await row.count()) === 0 || !(await row.first().isVisible())) {
+            const toggles = expenseTable.getByRole('button', {
+                name: /^Rozwiń grupę/,
+            });
+            for (let i = (await toggles.count()) - 1; i >= 0; i--) {
+                await toggles.nth(i).click();
+            }
+        }
+        row = expenseTable
+            .locator('[data-report-row="category"]')
+            .filter({ hasText: 'Rozrywka' })
+            .first();
+        await expect(row).toBeVisible();
+        const columnCount = lastYear - firstYear + 1;
+        const cells = row.getByRole('cell');
+        await expect(cells.nth(columnCount - 1)).toHaveText(/\d/);
+        await expect(cells.nth(columnCount - 2)).toHaveText(/\d/);
+
+        // Tab and range are local: no new request, no change of the URL.
+        const requests: string[] = [];
+        page.on('request', (request) => {
+            if (request.resourceType() !== 'image') {
+                requests.push(request.url());
+            }
+        });
+
+        await page
+            .getByRole('button', { name: 'Przychody', exact: true })
+            .click();
+        const incomeTable = page.locator('[data-years-table="income"]');
+        await expect(incomeTable).toBeVisible();
+        await expect(expenseTable).toHaveCount(0);
+        await expect(
+            incomeTable.getByRole('heading', { level: 2 }),
+        ).toBeVisible();
+        // The tab changes the rows, not only the heading: the expense
+        // Category is not among the income rows.
+        await expect(incomeTable.getByText('Rozrywka')).toHaveCount(0);
+
+        const incomeSameDay = await incomeTable.innerText();
+        await page
+            .getByRole('button', { name: 'Pełne lata', exact: true })
+            .click();
+        await expect(page.getByTestId('report-years-subtitle')).toContainText(
+            'Zakończone lata liczone w całości',
+        );
+        await expect
+            .poll(async () => incomeTable.innerText())
+            .not.toBe(incomeSameDay);
+
+        await expect(page).toHaveURL(/\/reports\?view=years$/);
+        expect(requests).toEqual([]);
+        page.removeAllListeners('request');
+
+        // The sidebar year change keeps „Lata”.
+        await page.goto('/budget');
+        initialYearCount = await budgetYearCount(page);
+        newYear = await nextBudgetYear(page);
+        expect(newYear).toBeGreaterThan(2000);
+
+        await openCreateBudgetDialog(page);
+        const dialog = page.getByRole('dialog', { name: 'Nowy budżet' });
+        await dialog.getByRole('button', { name: 'Utwórz budżet' }).click();
+        await expect(dialog).toBeHidden();
+        created = true;
+
+        await page.goto('/reports?view=years');
+        await selectBudgetYear(page, newYear - 1);
+
+        await expect(page).toHaveURL(/\/reports\?view=years$/);
+        await expect(
+            page.getByRole('heading', {
+                level: 1,
+                name: /^Raport: lata \d{4}–\d{4}$/,
+            }),
+        ).toBeVisible();
+        await expect(
+            page.locator('[data-years-table="expense"]'),
+        ).toBeVisible();
+    } finally {
+        try {
+            if (created) {
+                await page.goto('/budget');
+                await selectBudgetYear(page, newYear);
+                await page
+                    .getByRole('button', { name: 'Akcje budżetu' })
+                    .click();
+                await page
+                    .getByRole('menuitem', { name: 'Usuń budżet' })
+                    .click();
+                await page
+                    .getByRole('dialog', { name: 'Usunąć budżet?' })
+                    .getByRole('button', { name: 'Usuń budżet' })
+                    .click();
+                await expect
+                    .poll(() => budgetYearCount(page))
+                    .toBe(initialYearCount);
+            }
+        } finally {
+            await deleteOperation(page, 'wydatek', description);
         }
     }
 });

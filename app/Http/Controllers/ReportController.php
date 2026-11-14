@@ -8,6 +8,8 @@ use App\Support\PeriodReport;
 use App\Support\ReportComparisonPeriod;
 use App\Support\ReportTrend;
 use App\Support\ReportTwelveMonthWindow;
+use App\Support\ReportYears;
+use App\Support\ReportYearsRange;
 use App\Support\SelectedBudgetYear;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -39,6 +41,7 @@ class ReportController extends Controller
                 ],
                 'report' => null,
                 'trend' => null,
+                'years' => null,
             ]);
         }
 
@@ -48,6 +51,10 @@ class ReportController extends Controller
 
         if ($request->query('view') === 'last-12') {
             return $this->lastTwelveMonths($request, $budget, $today);
+        }
+
+        if ($request->query('view') === 'years') {
+            return $this->years($request, $budget, $today);
         }
 
         $isTrend = $request->query('view') === 'trend';
@@ -65,6 +72,30 @@ class ReportController extends Controller
             ],
             'report' => $budget->isExecution() && ! $isTrend ? $this->report($budget, $month, $today) : null,
             'trend' => $budget->isExecution() && $isTrend ? $this->trend($budget, $today) : null,
+            'years' => null,
+        ]);
+    }
+
+    /**
+     * The Categories across the years of the Budgets in execution (ADR-0097):
+     * independent of the phase of the selected Budget, which only keeps the
+     * sidebar state.
+     */
+    private function years(Request $request, Budget $selected, CarbonImmutable $today): Response
+    {
+        return Inertia::render('Reports', [
+            'budgetYear' => $selected->year,
+            'budgetPhase' => $selected->phase->value,
+            'period' => [
+                'kind' => 'years',
+                'month' => null,
+                'default_month' => BudgetViewedMonth::defaultForYear($selected->year, $today),
+                'is_in_progress' => false,
+                'window' => null,
+            ],
+            'report' => null,
+            'trend' => null,
+            'years' => ReportYears::for(ReportYearsRange::resolve($request->user(), $today))->toArray(),
         ]);
     }
 
@@ -88,6 +119,7 @@ class ReportController extends Controller
             ],
             'report' => PeriodReport::forWindow($window)->toArray(),
             'trend' => null,
+            'years' => null,
         ]);
     }
 
