@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslations } from '@/composables/useTranslations';
 import { collectedAtEndMinorUnits } from '@/lib/collected-calculator';
-import { minorUnitsToMoneyInput } from '@/lib/format';
+import { minorUnitsToGroupedMoneyInput } from '@/lib/format';
 import {
     isMonthItemOverPlan,
     monthItemDeviationMinorUnits,
@@ -41,6 +41,9 @@ import {
     approvedNoPaceReading,
     approvedReading,
     buildMonthPlanReading,
+    deviationToneReading,
+    evenSummary,
+    favourableSummary,
     futureProposalReading,
     groupedReading,
     joinCandidateExpense,
@@ -49,6 +52,7 @@ import {
     pastReading,
     pastSummary,
     runningExpense,
+    unfavourableSummary,
     yearTotals,
 } from '@/lib/month-plan-fixtures';
 import { budget as budgetRoute } from '@/routes';
@@ -152,7 +156,7 @@ function inputsFor(reading: MonthPlanReading): Record<number, string> {
     return Object.fromEntries(
         [...reading.income_items, ...reading.expense_items].map((row) => [
             row.category_id,
-            minorUnitsToMoneyInput(row.plan_minor_units),
+            minorUnitsToGroupedMoneyInput(row.plan_minor_units),
         ]),
     );
 }
@@ -181,7 +185,7 @@ function tableConfig(
         flagged: false,
         idleOpen: false,
         direction: setAside < 0 ? 'draw' : 'set_aside',
-        setAsideInput: minorUnitsToMoneyInput(Math.abs(setAside)),
+        setAsideInput: minorUnitsToGroupedMoneyInput(Math.abs(setAside)),
         setAsideDefault: null,
         ...overrides,
     };
@@ -216,7 +220,8 @@ const tables = reactive<TableConfig[]>([
                     ...approvedReading.income_items,
                     ...approvedReading.expense_items,
                 ]),
-                [runningExpense.category_id]: minorUnitsToMoneyInput(50_000),
+                [runningExpense.category_id]:
+                    minorUnitsToGroupedMoneyInput(50_000),
             },
         },
     ),
@@ -233,7 +238,7 @@ const tables = reactive<TableConfig[]>([
             amountInputs: {
                 ...inputsFor(approvedReading),
                 [joinCandidateExpense.category_id]:
-                    minorUnitsToMoneyInput(8_000),
+                    minorUnitsToGroupedMoneyInput(8_000),
             },
         },
     ),
@@ -290,6 +295,11 @@ const tables = reactive<TableConfig[]>([
             },
             invalidIds: [paidBill.category_id],
         },
+    ),
+    tableConfig(
+        'deviation-tone',
+        'Ton odchylenia w odczycie (ADR-0092): długie kwoty 123 456,78 / -123 299,98 (przy oknie 390 px w układzie 2×2), wydatek poniżej planu zielony, przekroczony czerwony, roczna +216,67 bez koloru, roczna przekroczona rokiem z ujemnym odchyleniem miesiąca czerwona, zarchiwizowana bez koloru',
+        deviationToneReading,
     ),
     tableConfig(
         'empty',
@@ -517,7 +527,7 @@ function matchActualIn(config: TableConfig, categoryId: number): void {
     ].find((item) => item.category_id === categoryId);
 
     if (row) {
-        config.amountInputs[categoryId] = minorUnitsToMoneyInput(
+        config.amountInputs[categoryId] = minorUnitsToGroupedMoneyInput(
             row.actual_minor_units,
         );
     }
@@ -669,6 +679,12 @@ const stripMonth = ref(11);
                 Podsumowanie minionego miesiąca
             </h2>
             <MonthSummaryCard :summary="pastSummary" />
+            <h3 class="section-title">Różnica korzystna</h3>
+            <MonthSummaryCard :summary="favourableSummary" />
+            <h3 class="section-title">Różnica niekorzystna</h3>
+            <MonthSummaryCard :summary="unfavourableSummary" />
+            <h3 class="section-title">Różnica zerowa (bez koloru)</h3>
+            <MonthSummaryCard :summary="evenSummary" />
         </section>
 
         <section

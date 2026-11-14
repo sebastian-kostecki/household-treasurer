@@ -881,29 +881,77 @@
     }
 
     /**
-     * Month plan table: one markup on every width. Below `xl` a row is three
-     * lines (name + status, kind, then approved / plan / actual / deviation);
-     * from `xl` it is one line of seven columns (Kategoria, Rodzaj,
-     * Zatwierdzony, Plan, Faktycznie, Odchylenie, Status).
+     * Month plan table: one markup on every width (ADR-0092). Below `sm` a row
+     * is four lines in two columns (name + status, kind, Approved | Plan,
+     * Actual | Deviation); from `sm` to `xl` three lines in four columns; from
+     * `xl` one line of seven columns (Kategoria, Rodzaj, Zatwierdzony, Plan,
+     * Faktycznie, Odchylenie, Status). The group row and the put-aside row
+     * have fewer amounts, so below `sm` they get their own areas.
      */
     .month-plan-grid {
         @apply grid w-full gap-x-3;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-areas:
-            'category category category status'
-            'kind kind kind kind'
-            'approved plan actual deviation';
+            'category status'
+            'kind kind'
+            'approved plan'
+            'actual deviation';
     }
 
     .month-plan-grid-no-kind {
         grid-template-areas:
-            'category category category status'
-            'approved plan actual deviation';
+            'category status'
+            'approved plan'
+            'actual deviation';
+    }
+
+    /* Category Group row: name + status, then Plan | Actual. */
+    .month-plan-grid-group {
+        grid-template-areas:
+            'category status'
+            'plan actual';
+    }
+
+    /* Put-aside row: name + status, the direction switch (edit only), then the amount. */
+    .month-plan-grid-set-aside {
+        grid-template-areas:
+            'category status'
+            'plan plan';
+    }
+
+    .month-plan-grid-set-aside-edit {
+        grid-template-areas:
+            'category status'
+            'kind kind'
+            'plan plan';
+    }
+
+    @variant sm {
+        .month-plan-grid,
+        .month-plan-grid-set-aside-edit {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-areas:
+                'category category category status'
+                'kind kind kind kind'
+                'approved plan actual deviation';
+        }
+
+        .month-plan-grid-no-kind,
+        .month-plan-grid-group,
+        .month-plan-grid-set-aside {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-areas:
+                'category category category status'
+                'approved plan actual deviation';
+        }
     }
 
     @variant xl {
         .month-plan-grid,
-        .month-plan-grid-no-kind {
+        .month-plan-grid-no-kind,
+        .month-plan-grid-group,
+        .month-plan-grid-set-aside,
+        .month-plan-grid-set-aside-edit {
             grid-template-columns: minmax(0, 1fr) 9rem 7rem 8rem 7rem 7rem 8rem;
             grid-template-areas: 'category kind approved plan actual deviation status';
         }

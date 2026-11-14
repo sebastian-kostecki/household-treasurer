@@ -86,6 +86,15 @@ export function minorUnitsToMoneyInput(minorUnits: number): string {
 }
 
 /**
+ * Like minorUnitsToMoneyInput, with the thousands separator of
+ * formatMoneyAmount, e.g. 850000 -> "8 500,00". The start value of the Month
+ * Plan field (ADR-0092); the parser drops the spaces.
+ */
+export function minorUnitsToGroupedMoneyInput(minorUnits: number): string {
+    return formatMoneyAmount(minorUnits);
+}
+
+/**
  * Parse Polish PLN input to integer minor units.
  */
 export function parseMoneyInputToMinorUnits(value: string): number | null {

@@ -8,6 +8,7 @@ import PlanChangeArrow from '@/components/PlanChangeArrow.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from '@/composables/useTranslations';
 import { formatMoneyAmount, formatSignedMoneyAmount } from '@/lib/format';
+import { monthItemDeviationTone } from '@/lib/month-plan-deviation-tone';
 import type { MatchActualState } from '@/lib/month-plan-match-actual';
 import type { MonthItemStatus } from '@/lib/month-plan-status';
 import type { MonthPlanItem } from '@/types/month-plan';
@@ -113,21 +114,14 @@ const deviationText = computed(() =>
     props.deviation === null ? '—' : formatSignedMoneyAmount(props.deviation),
 );
 
-const deviationClass = computed(() => {
-    if (props.deviation === null) {
-        return 'text-muted-foreground';
-    }
-
-    if (props.overPlan) {
-        return 'text-destructive';
-    }
-
-    if (props.row.type === 'income' && props.deviation > 0) {
-        return 'text-success';
-    }
-
-    return '';
-});
+const deviationClass = computed(() =>
+    monthItemDeviationTone({
+        deviation: props.deviation,
+        overPlan: props.overPlan,
+        type: props.row.type,
+        isArchived: props.row.is_archived,
+    }),
+);
 </script>
 
 <template>
