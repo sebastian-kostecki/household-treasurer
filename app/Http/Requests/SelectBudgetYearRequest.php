@@ -27,6 +27,7 @@ class SelectBudgetYearRequest extends FormRequest
             'destination' => ['sometimes', Rule::in(['budget', 'month-plan', 'reports', 'reports-trend', 'reports-years'])],
             'report_category' => ['sometimes', 'integer', 'min:1'],
             'report_ranking' => ['sometimes', Rule::in(['groups'])],
+            'report_panel' => ['sometimes', Rule::in(['years'])],
         ];
     }
 }

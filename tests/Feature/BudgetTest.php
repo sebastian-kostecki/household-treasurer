@@ -448,6 +448,26 @@ class BudgetTest extends TestCase
             ->assertRedirect(route('reports', ['view' => 'trend']));
     }
 
+    public function test_select_year_carries_the_panel_tab_to_the_reports(): void
+    {
+        $user = User::factory()->create();
+        Budget::factory()->for($user)->create(['year' => 2025]);
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), [
+                'year' => 2025,
+                'destination' => 'reports',
+                'report_category' => 12,
+                'report_panel' => 'years',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('reports', ['category' => 12, 'panel' => 'years']));
+
+        $this->actingAs($user)
+            ->post(route('budget.select-year'), ['year' => 2025, 'destination' => 'reports', 'report_panel' => 'months'])
+            ->assertSessionHasErrors('report_panel');
+    }
+
     public function test_select_year_rejects_an_unknown_ranking_mode_and_a_bad_category(): void
     {
         $user = User::factory()->create();

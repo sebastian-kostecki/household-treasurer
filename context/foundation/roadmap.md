@@ -50,7 +50,7 @@ Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-00
 | F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | done        |
 | S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | done        |
 | S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | done        |
-| S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | planning |
+| S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | in-progress |
 | S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | done        |
 | S-38 | budget-year-menu-state             | użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem                            | —             | MS-05               | done |
 
@@ -129,7 +129,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Łączy dwa wycinki, więc stoi na końcu strumienia; lata w panelu muszą pochodzić z tego samego odczytu co tabela „Lata”, inaczej liczby rozjadą się między dwoma miejscami.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-37: Kategorie w zakładkach z filtrami
 

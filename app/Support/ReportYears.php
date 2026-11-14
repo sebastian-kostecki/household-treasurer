@@ -24,13 +24,13 @@ use App\Models\CategoryGroup;
  * to tenths of a percent, half away from zero, and compared as an `int`.
  *
  * @phpstan-type YearsCells array{cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
- * @phpstan-type YearsCategory array{kind: 'category', id: int, name: string, icon: string, color: string, is_archived: bool, cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
+ * @phpstan-type YearsCategory array{kind: 'category', id: int, name: string, icon: string, color: string, is_archived: bool, opens_panel: bool, cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
  * @phpstan-type YearsGroup array{kind: 'group', id: int, name: string, categories: list<YearsCategory>, cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
  * @phpstan-type YearsFastest array{id: int, name: string, icon: string, color: string, growth_tenths: int, first_year: int}
  * @phpstan-type YearsSection array{entries: list<YearsCategory|YearsGroup>, total: YearsCells, first_year: int|null, average_yearly_growth_tenths: int|null, fastest_growing: YearsFastest|null}
  * @phpstan-type YearsMode array{final_year: int|null, expense: YearsSection, income: YearsSection}
  * @phpstan-type YearsShape array{columns: list<int>, current_year: int|null, cut: array{month: int, day: int}|null, same_day: YearsMode|null, full: YearsMode}
- * @phpstan-type YearsRow array{category: Category, line: BudgetLine|null, amount: int, has_operations: bool, previous: int|null, cells: list<int|null>}
+ * @phpstan-type YearsRow array{category: Category, line: BudgetLine|null, amount: int, has_operations: bool, previous: int|null, cells: list<int|null>, opens_panel: bool}
  */
 final class ReportYears
 {
@@ -38,6 +38,9 @@ final class ReportYears
 
     /** @var YearsShape|null */
     private ?array $shape = null;
+
+    /** @var array<int, array<int, YearsCells>> */
+    private array $categoriesByMode = [];
 
     /**
      * @param  array<int, non-empty-array<int, BudgetLine>>  $linesByCategory  list Category id => year => line
@@ -88,6 +91,36 @@ final class ReportYears
     }
 
     /**
+     * The rows of the Categories (not groups) of a mode by Category id, the
+     * shape of the "Years" table, for readers that must equal it to the grosz
+     * (the Category Panel).
+     *
+     * @return array<int, YearsCells>
+     */
+    public function categoriesById(bool $sameDay): array
+    {
+        if (isset($this->categoriesByMode[(int) $sameDay])) {
+            return $this->categoriesByMode[(int) $sameDay];
+        }
+
+        $mode = $this->toArray()[$sameDay ? 'same_day' : 'full'];
+        $byId = [];
+
+        foreach ([...($mode['expense']['entries'] ?? []), ...($mode['income']['entries'] ?? [])] as $entry) {
+            foreach ($entry['kind'] === 'group' ? $entry['categories'] : [$entry] as $category) {
+                $byId[$category['id']] = [
+                    'cells' => $category['cells'],
+                    'change_tenths' => $category['change_tenths'],
+                    'change_first_year' => $category['change_first_year'],
+                    'max_years' => $category['max_years'],
+                ];
+            }
+        }
+
+        return $this->categoriesByMode[(int) $sameDay] = $byId;
+    }
+
+    /**
      * @return YearsMode
      */
     private function mode(bool $sameDay): array
@@ -134,11 +167,45 @@ final class ReportYears
                     'has_operations' => true,
                     'previous' => null,
                     'cells' => $cells,
+                    'opens_panel' => $this->opensPanel($byYear),
                 ];
             }
         }
 
         return $rows;
+    }
+
+    /**
+     * Whether the Category has a row in the year report of the target year (the
+     * last column), the rule `ReportCategoryPanel` accepts for `?category`: an
+     * operation in the target year, or in the year before it (when that is a
+     * column) up to the comparison day. Both parts count with the cut, the same
+     * in both modes.
+     *
+     * @param  array<int, BudgetLine>  $byYear
+     */
+    private function opensPanel(array $byYear): bool
+    {
+        $columns = $this->range->columns();
+
+        if ($columns === [] || $this->actuals === null) {
+            return false;
+        }
+
+        $target = $columns[count($columns) - 1];
+        $years = [$target];
+        if (count($columns) > 1) {
+            $years[] = $columns[count($columns) - 2];
+        }
+
+        foreach ($years as $year) {
+            $line = $byYear[$year] ?? null;
+            if ($line !== null && $this->actuals->hasOperations($line->id, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -189,6 +256,7 @@ final class ReportYears
             'icon' => $category->icon,
             'color' => $category->color,
             'is_archived' => PeriodReport::isArchivedRow($row),
+            'opens_panel' => $row['opens_panel'],
         ] + $this->cellsShape($row['cells'], $counted);
     }
 

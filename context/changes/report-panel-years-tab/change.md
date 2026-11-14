@@ -1,7 +1,7 @@
 ---
 change_id: report-panel-years-tab
 title: Report panel years tab
-status: plan_reviewed
+status: implementing
 created: 2026-11-14
 updated: 2026-11-14
 ---

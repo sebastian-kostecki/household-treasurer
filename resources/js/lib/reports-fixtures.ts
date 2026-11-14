@@ -882,6 +882,7 @@ function yearsSection(
         icon: spec.icon,
         color: spec.color,
         is_archived: spec.archived ?? false,
+        opens_panel: true,
     });
 
     const entries: ReportYearsEntry[] = rows.map((row) => {
@@ -1105,6 +1106,8 @@ const panelJanuary: PanelTiming = {
     closed_month_count: 0,
 };
 
+const PANEL_YEARS_COLUMNS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+
 /**
  * Panel data of a scenario: 12 cells per Category (the amount spread over the
  * months that have a value, the sum equal to the amount), `monthsById`
@@ -1146,6 +1149,20 @@ function buildPanel(
         );
 
         return {
+            years: {
+                cells: [
+                    ...Array<number | null>(
+                        PANEL_YEARS_COLUMNS.length - 1,
+                    ).fill(null),
+                    row.amount_minor_units,
+                ],
+                change_tenths: null,
+                change_first_year: null,
+                max_years:
+                    row.amount_minor_units > 0
+                        ? [PANEL_YEARS_COLUMNS[PANEL_YEARS_COLUMNS.length - 1]]
+                        : [],
+            },
             id: row.id,
             rhythm: incomeIds.has(row.id)
                 ? null
@@ -1167,8 +1184,15 @@ function buildPanel(
     });
 
     return {
+        tab: 'months',
         requested_category_id: requestedCategoryId,
         ...timing,
+        years: {
+            columns: PANEL_YEARS_COLUMNS,
+            current_year: 2026,
+            cut: { month: 11, day: 14 },
+            mode: 'same_day',
+        },
         categories,
     };
 }

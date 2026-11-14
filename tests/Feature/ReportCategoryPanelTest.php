@@ -7,12 +7,15 @@ use App\Models\Account;
 use App\Models\Budget;
 use App\Models\BudgetLine;
 use App\Models\Category;
+use App\Models\CategoryGroup;
 use App\Models\CategoryRhythm;
 use App\Models\FinancialOperation;
 use App\Models\User;
 use App\Support\PeriodReport;
 use App\Support\ReportCategoryPanel;
 use App\Support\ReportComparisonPeriod;
+use App\Support\ReportYears;
+use App\Support\ReportYearsRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -57,16 +60,21 @@ function panelOperation(User $user, Account $account, BudgetLine $line, string $
 /**
  * @return array{panel: array<string, mixed>, report: array<string, mixed>}
  */
-function panelFor(Budget $budget, string $today, mixed $requested = null, bool $compare = false): array
+function panelFor(Budget $budget, string $today, mixed $requested = null, bool $compare = false, string $tab = 'months'): array
 {
     $todayDate = CarbonImmutable::parse($today, 'UTC');
     $comparison = $compare ? ReportComparisonPeriod::resolve($budget, null, $todayDate) : null;
     $report = PeriodReport::forYear($budget, $comparison);
 
     return [
-        'panel' => ReportCategoryPanel::forYear($budget, $report, $requested, $todayDate)->toArray(),
+        'panel' => ReportCategoryPanel::forYear($budget, $report, $requested, $todayDate, $tab, panelYears($budget->user, $todayDate))->toArray(),
         'report' => $report->toArray(),
     ];
+}
+
+function panelYears(User $user, CarbonImmutable $today): ReportYears
+{
+    return ReportYears::for(ReportYearsRange::resolve($user, $today));
 }
 
 /**
@@ -300,7 +308,7 @@ test('the panel adds a constant number of queries whatever the number of categor
         $report = PeriodReport::forYear($budget);
         DB::flushQueryLog();
         DB::enableQueryLog();
-        ReportCategoryPanel::forYear($budget, $report, '1', CarbonImmutable::parse('2026-11-14', 'UTC'))->toArray();
+        ReportCategoryPanel::forYear($budget, $report, '1', CarbonImmutable::parse('2026-11-14', 'UTC'), 'years', panelYears($user, CarbonImmutable::parse('2026-11-14', 'UTC')))->toArray();
         $count = count(DB::getQueryLog());
         DB::disableQueryLog();
 
@@ -320,3 +328,146 @@ test('the year report keeps its shape and only a year report keeps months', func
         ->and(PeriodReport::forYear($budget)->categoryMonths())->toHaveCount(1)
         ->and(PeriodReport::forMonth($budget, 3)->categoryMonths())->toBe([]);
 });
+
+test('the panel years of a current year equal the row of the Years report in same day mode, also in a group and for income', function () {
+    [$user, $account] = panelUser();
+    $budgets = [2024 => panelBudget($user, 2024), 2025 => panelBudget($user, 2025), 2026 => panelBudget($user, 2026)];
+    $group = CategoryGroup::factory()->for($user)->create();
+    $food = Category::factory()->for($user)->expense()->create(['name' => 'Żywność', 'category_group_id' => $group->id]);
+    $salary = Category::factory()->for($user)->income()->create(['name' => 'Pensja']);
+    foreach ([$food, $salary] as $category) {
+        foreach ($budgets as $year => $budget) {
+            $line = panelLine($user, $budget, 'expense', 'x', $category);
+            panelOperation($user, $account, $line, "{$year}-02-03", 10_001 * ($year - 2023));
+            panelOperation($user, $account, $line, "{$year}-12-20", 777);
+        }
+    }
+
+    $panel = panelFor($budgets[2026], '2026-11-14', null, false, 'years')['panel'];
+    $years = ReportYears::for(ReportYearsRange::resolve($user, CarbonImmutable::parse('2026-11-14', 'UTC')))->toArray();
+
+    expect($panel['tab'])->toBe('years')
+        ->and($panel['years'])->toBe(['columns' => [2024, 2025, 2026], 'current_year' => 2026, 'cut' => ['month' => 11, 'day' => 14], 'mode' => 'same_day']);
+
+    foreach (['food' => [$food, 'expense'], 'salary' => [$salary, 'income']] as [$category, $type]) {
+        $expected = yearsRowOf($years['same_day'][$type]['entries'], $category->id);
+
+        expect(panelItem($panel, $category->id)['years'])->toBe($expected);
+    }
+});
+
+test('a past year panel uses full years and its 2025 and 2024 cells equal the year report amounts', function () {
+    [$user, $account] = panelUser();
+    $budgets = [2024 => panelBudget($user, 2024), 2025 => panelBudget($user, 2025), 2026 => panelBudget($user, 2026)];
+    $category = Category::factory()->for($user)->expense()->create(['name' => 'Żywność']);
+    $lateOnly = Category::factory()->for($user)->expense()->create(['name' => 'Późna']);
+    foreach ($budgets as $year => $budget) {
+        panelOperation($user, $account, panelLine($user, $budget, 'expense', 'x', $category), "{$year}-03-03", 1_234 * ($year - 2023));
+    }
+    panelOperation($user, $account, panelLine($user, $budgets[2025], 'expense', 'x', $lateOnly), '2025-12-24', 5_050);
+    panelOperation($user, $account, panelLine($user, $budgets[2026], 'expense', 'x', $lateOnly), '2026-01-02', 1);
+    panelOperation($user, $account, panelLine($user, $budgets[2024], 'expense', 'x', $lateOnly), '2024-12-24', 4_040);
+
+    ['panel' => $panel, 'report' => $report] = panelFor($budgets[2025], '2026-11-14', null, true);
+
+    expect($panel['years']['mode'])->toBe('full')
+        ->and($panel['years']['columns'])->toBe([2024, 2025, 2026]);
+
+    foreach ($report['expense'] as $row) {
+        $cells = panelItem($panel, $row['id'])['years']['cells'];
+        expect($cells[1])->toBe($row['amount_minor_units'])
+            ->and($cells[0])->toBe($row['previous_minor_units']);
+    }
+    expect(panelItem($panel, $lateOnly->id)['years']['cells'][1])->toBe(5_050);
+});
+
+test('a Budget of a future year has empty years instead of failing', function () {
+    [$user, $account] = panelUser();
+    $budget = panelBudget($user, 2027);
+    panelOperation($user, $account, panelLine($user, $budget, 'expense', 'Żywność'), '2027-02-01', 100);
+
+    $panel = panelFor($budget, '2026-11-14', null, false, 'years')['panel'];
+
+    expect($panel['years']['mode'])->toBe('full')
+        ->and($panel['categories'][0]['years']['cells'])->toBe([]);
+});
+
+test('without a current year the panel years are full years', function () {
+    [$user, $account] = panelUser();
+    $budget = panelBudget($user, 2025);
+    panelOperation($user, $account, panelLine($user, $budget, 'expense', 'Żywność'), '2025-12-24', 900);
+
+    $panel = panelFor($budget, '2026-11-14', null, false, 'years')['panel'];
+
+    expect($panel['years'])->toBe(['columns' => [2025], 'current_year' => null, 'cut' => null, 'mode' => 'full'])
+        ->and($panel['categories'][0]['years']['cells'])->toBe([900]);
+});
+
+test('a category that has only a comparison row with an operation before day D still has years', function () {
+    [$user, $account] = panelUser();
+    $budgets = [2025 => panelBudget($user, 2025), 2026 => panelBudget($user, 2026)];
+    $kept = panelLine($user, $budgets[2026], 'expense', 'Żywność');
+    panelOperation($user, $account, $kept, '2026-02-01', 100);
+    $previousOnly = panelLine($user, $budgets[2025], 'expense', 'Kino');
+    panelOperation($user, $account, $previousOnly, '2025-03-01', 700);
+
+    $panel = panelFor($budgets[2026], '2026-11-14', null, true)['panel'];
+
+    expect(panelItem($panel, $previousOnly->category_id)['years']['cells'])->toBe([700, null]);
+});
+
+test('a category without a row in the Years report makes the panel fail loudly', function () {
+    [$user, $account] = panelUser();
+    $budget = panelBudget($user, 2026);
+    panelOperation($user, $account, panelLine($user, $budget, 'expense', 'Żywność'), '2026-02-01', 100);
+    $report = PeriodReport::forYear($budget);
+    $other = User::factory()->create();
+    panelBudget($other, 2026);
+    $empty = ReportYears::for(ReportYearsRange::resolve($other, CarbonImmutable::parse('2026-11-14', 'UTC')));
+
+    ReportCategoryPanel::forYear($budget, $report, null, CarbonImmutable::parse('2026-11-14', 'UTC'), 'months', $empty);
+})->throws(LogicException::class);
+
+test('the panel queries do not depend on the number of Budgets', function () {
+    $countQueries = function (int $budgetCount): int {
+        [$user, $account] = panelUser();
+        $budgets = array_map(fn (int $year): Budget => panelBudget($user, $year), range(2026 - $budgetCount + 1, 2026));
+        foreach ($budgets as $budget) {
+            panelOperation($user, $account, panelLine($user, $budget, 'expense', 'Kategoria '.$budget->year), "{$budget->year}-02-05", 100);
+        }
+        $budget = end($budgets);
+        $today = CarbonImmutable::parse('2026-11-14', 'UTC');
+        $report = PeriodReport::forYear($budget);
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        ReportCategoryPanel::forYear($budget, $report, '1', $today, 'years', panelYears($user, $today))->toArray();
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
+    };
+
+    expect($countQueries(7))->toBe($countQueries(2));
+});
+
+/**
+ * @param  list<array<string, mixed>>  $entries
+ * @return array{cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
+ */
+function yearsRowOf(array $entries, int $categoryId): array
+{
+    foreach ($entries as $entry) {
+        foreach ($entry['kind'] === 'group' ? $entry['categories'] : [$entry] as $category) {
+            if ($category['id'] === $categoryId) {
+                return [
+                    'cells' => $category['cells'],
+                    'change_tenths' => $category['change_tenths'],
+                    'change_first_year' => $category['change_first_year'],
+                    'max_years' => $category['max_years'],
+                ];
+            }
+        }
+    }
+
+    throw new LogicException("No years row for {$categoryId}.");
+}

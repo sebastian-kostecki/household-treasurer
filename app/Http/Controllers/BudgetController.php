@@ -157,6 +157,7 @@ class BudgetController extends Controller
             'reports' => to_route('reports', array_filter([
                 'category' => $validated['report_category'] ?? null,
                 'ranking' => $validated['report_ranking'] ?? null,
+                'panel' => $validated['report_panel'] ?? null,
             ])),
             'reports-trend' => to_route('reports', ['view' => 'trend']),
             'reports-years' => to_route('reports', ['view' => 'years']),

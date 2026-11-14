@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Budget;
 use Carbon\CarbonImmutable;
+use LogicException;
 
 /**
  * What the Category Panel of the year Report needs beyond `PeriodReport`
@@ -21,8 +22,18 @@ use Carbon\CarbonImmutable;
  * It reads nothing but one query for the Rhythms of the report's Categories;
  * the months come from the year report that is already built.
  *
- * @phpstan-type PanelCategory array{id: int, rhythm: string|null, months: list<int|null>, closed_average_minor_units: int|null, highest_month: int|null, difference_tenths_percent: int|null}
- * @phpstan-type PanelShape array{requested_category_id: int|null, in_progress_month: int|null, through: string|null, closed_month_count: int, categories: list<PanelCategory>}
+ * The "Years" tab (ADR-0101) carries per Category the row of `ReportYears` in the
+ * mode of the panel: "same day" for the current year, full years for every
+ * other year and without a current year, so the bars of the viewed year and of
+ * the year before equal the tiles.
+ *
+ * A Budget of a future year is no column of the Years report, so its Categories
+ * carry empty years.
+ *
+ * @phpstan-type PanelYearsCells array{cells: list<int|null>, change_tenths: int|null, change_first_year: int|null, max_years: list<int>}
+ * @phpstan-type PanelYears array{columns: list<int>, current_year: int|null, cut: array{month: int, day: int}|null, mode: 'same_day'|'full'}
+ * @phpstan-type PanelCategory array{id: int, rhythm: string|null, months: list<int|null>, closed_average_minor_units: int|null, highest_month: int|null, difference_tenths_percent: int|null, years: PanelYearsCells}
+ * @phpstan-type PanelShape array{tab: 'months'|'years', requested_category_id: int|null, in_progress_month: int|null, through: string|null, closed_month_count: int, years: PanelYears, categories: list<PanelCategory>}
  */
 final class ReportCategoryPanel
 {
@@ -31,8 +42,19 @@ final class ReportCategoryPanel
      */
     private function __construct(private readonly array $panel) {}
 
-    public static function forYear(Budget $budget, PeriodReport $report, mixed $requestedCategory, CarbonImmutable $today): self
+    public static function forYear(Budget $budget, PeriodReport $report, mixed $requestedCategory, CarbonImmutable $today, string $tab, ReportYears $reportYears): self
     {
+        $yearsShape = $reportYears->toArray();
+        $sameDay = $yearsShape['current_year'] === $budget->year;
+        $yearsByCategory = $reportYears->categoriesById($sameDay);
+        $yearIsColumn = in_array($budget->year, $yearsShape['columns'], true);
+        $noYears = [
+            'cells' => array_fill(0, count($yearsShape['columns']), null),
+            'change_tenths' => null,
+            'change_first_year' => null,
+            'max_years' => [],
+        ];
+
         $inProgressMonth = $budget->year === $today->year ? $today->month : null;
         $closedMonthCount = match (true) {
             $budget->year < $today->year => 12,
@@ -66,14 +88,22 @@ final class ReportCategoryPanel
                 'difference_tenths_percent' => $category['previous_minor_units'] === null
                     ? null
                     : TenthsPercent::of($category['amount_minor_units'] - $category['previous_minor_units'], $category['previous_minor_units']),
+                'years' => $yearsByCategory[$id] ?? ($yearIsColumn ? throw new LogicException("The Years report has no row for Category {$id} in {$budget->year}.") : $noYears),
             ];
         }
 
         return new self([
+            'tab' => $tab === 'years' ? 'years' : 'months',
             'requested_category_id' => self::requestedCategoryId($requestedCategory, $categories),
             'in_progress_month' => $inProgressMonth,
             'through' => $inProgressMonth === null ? null : $today->toDateString(),
             'closed_month_count' => $closedMonthCount,
+            'years' => [
+                'columns' => $yearsShape['columns'],
+                'current_year' => $yearsShape['current_year'],
+                'cut' => $yearsShape['cut'],
+                'mode' => $sameDay ? 'same_day' : 'full',
+            ],
             'categories' => $panelCategories,
         ]);
     }

@@ -152,6 +152,8 @@ export type ReportYearsCategory = ReportYearsCells & {
     icon: string;
     color: string;
     is_archived: boolean;
+    /** The name opens the category panel of the target year (a row in that year's report, ADR-0101). */
+    opens_panel: boolean;
 };
 
 export type ReportYearsGroup = ReportYearsCells & {
@@ -220,10 +222,25 @@ export type ReportCategoryPanelItem = {
     highest_month: number | null;
     /** (amount - previous) / previous in tenths of a percent; null without a usable comparison. */
     difference_tenths_percent: number | null;
+    /** The row of the Category in the Years report in the mode of the panel (ADR-0101). */
+    years: ReportYearsCells;
+};
+
+export type ReportCategoryPanelTab = 'months' | 'years';
+
+/** Columns and mode of the `years` of every panel Category (ADR-0101). */
+export type ReportCategoryPanelYears = {
+    columns: number[];
+    current_year: number | null;
+    cut: { month: number; day: number } | null;
+    /** `same_day` for the current year, `full` for every other one. */
+    mode: 'same_day' | 'full';
 };
 
 /** Mirror of `App\Support\ReportCategoryPanel::toArray()` (ADR-0097), only for the year in execution with operations. */
 export type ReportCategoryPanelData = {
+    /** `?panel=years` opens the years tab. */
+    tab: ReportCategoryPanelTab;
     /** The `?category` that has a row in the year report; null when absent or unknown. */
     requested_category_id: number | null;
     /** Month of today when the Budget year is the current one. */
@@ -232,6 +249,7 @@ export type ReportCategoryPanelData = {
     through: string | null;
     /** 12 for a past year, the months before today's in the current year, 0 for a future year. */
     closed_month_count: number;
+    years: ReportCategoryPanelYears;
     categories: ReportCategoryPanelItem[];
 };
 

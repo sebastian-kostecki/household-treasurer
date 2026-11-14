@@ -13,6 +13,7 @@ use App\Models\FinancialOperation;
 use App\Models\OwnTransfer;
 use App\Models\User;
 use App\Support\PeriodReport;
+use App\Support\ReportComparisonPeriod;
 use App\Support\ReportYears;
 use App\Support\ReportYearsRange;
 use Carbon\CarbonImmutable;
@@ -534,4 +535,75 @@ test('the number of queries does not grow with Budgets or Categories', function 
     $large = yearsQueryCount(7, 24);
 
     expect($large)->toBe($small);
+});
+
+/**
+ * Every Category of both modes must carry the flag of the real year report of
+ * the target year; returns the flags by Category name.
+ *
+ * @param  array<int, Budget>  $budgets
+ * @return array<string, bool>
+ */
+function yearsOpensPanel(User $user, array $budgets, string $today): array
+{
+    $shape = yearsShape($user, $today);
+    $target = $budgets[array_key_last($budgets)];
+    $report = PeriodReport::forYear($target, ReportComparisonPeriod::resolve($target, null, CarbonImmutable::parse($today, 'UTC')))->toArray();
+    $rowIds = [];
+    foreach ([...$report['expense'], ...$report['income']] as $entry) {
+        foreach ($entry['kind'] === 'group' ? $entry['categories'] : [$entry] as $category) {
+            $rowIds[$category['id']] = true;
+        }
+    }
+
+    $flags = [];
+    foreach (['same_day', 'full'] as $mode) {
+        foreach ([...($shape[$mode]['expense']['entries'] ?? []), ...($shape[$mode]['income']['entries'] ?? [])] as $entry) {
+            foreach ($entry['kind'] === 'group' ? $entry['categories'] : [$entry] as $category) {
+                expect($category['opens_panel'])->toBe(array_key_exists($category['id'], $rowIds), "{$category['name']} in {$mode}");
+                $flags[$category['name']] = $category['opens_panel'];
+            }
+        }
+    }
+
+    return $flags;
+}
+
+test('opens_panel equals having a row in the year report of the target year, in both modes', function () {
+    [$user, $account] = yearsUser();
+    $budgets = yearsBudgets($user, [2020, 2021, 2022, 2025, 2026]);
+
+    $cases = [
+        'W roku docelowym' => [2026 => '2026-03-01'],
+        'Tylko rok wcześniej przed D' => [2025 => '2025-11-10'],
+        'Tylko rok wcześniej po D' => [2025 => '2025-11-20'],
+        'Po dziś w roku docelowym' => [2026 => '2026-12-20'],
+        'Dawna' => [2020 => '2020-05-01', 2021 => '2021-05-01', 2022 => '2022-05-01'],
+    ];
+
+    foreach ($cases as $name => $operations) {
+        $lines = yearsLines($budgets, yearsCategory($user, $name));
+        foreach ($operations as $year => $date) {
+            yearsOperation($user, $account, $lines[$year], $date, 1_000);
+        }
+    }
+
+    expect(yearsOpensPanel($user, $budgets, '2026-11-14'))->toEqual([
+        'W roku docelowym' => true,
+        'Tylko rok wcześniej przed D' => true,
+        'Tylko rok wcześniej po D' => false,
+        'Po dziś w roku docelowym' => true,
+        'Dawna' => false,
+    ]);
+});
+
+test('without a current year the comparison year counts in full for the flag', function () {
+    [$user, $account] = yearsUser();
+    $budgets = yearsBudgets($user, [2024, 2025]);
+    $late = yearsLines($budgets, yearsCategory($user, 'Późna'));
+    yearsOperation($user, $account, $late[2024], '2024-12-24', 1_000);
+    $old = yearsLines($budgets, yearsCategory($user, 'Dawna'));
+    yearsOperation($user, $account, $old[2025], '2025-01-02', 1_000);
+
+    expect(yearsOpensPanel($user, $budgets, '2027-02-01'))->toEqual(['Późna' => true, 'Dawna' => true]);
 });

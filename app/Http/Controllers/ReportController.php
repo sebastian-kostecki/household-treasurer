@@ -64,6 +64,16 @@ class ReportController extends Controller
         $month = $isTrend ? null : $this->requestedMonth($request->query('month'));
 
         $periodReport = $budget->isExecution() && ! $isTrend ? $this->periodReport($budget, $month, $today) : null;
+        $categoryPanel = $month === null && $periodReport?->toArray()['has_operations'] === true
+            ? ReportCategoryPanel::forYear(
+                $budget,
+                $periodReport,
+                $request->query('category'),
+                $today,
+                $this->panelTab($request),
+                ReportYears::for(ReportYearsRange::resolve($request->user(), $today)),
+            )->toArray()
+            : null;
 
         return Inertia::render('Reports', [
             'budgetYear' => $budget->year,
@@ -79,9 +89,7 @@ class ReportController extends Controller
             'trend' => $budget->isExecution() && $isTrend ? $this->trend($budget, $today) : null,
             'years' => null,
             'rankingMode' => $this->rankingMode($request),
-            'categoryPanel' => $month === null && $periodReport?->toArray()['has_operations'] === true
-                ? ReportCategoryPanel::forYear($budget, $periodReport, $request->query('category'), $today)->toArray()
-                : null,
+            'categoryPanel' => $categoryPanel,
         ]);
     }
 
@@ -165,6 +173,14 @@ class ReportController extends Controller
     private function rankingMode(Request $request): string
     {
         return $request->query('ranking') === 'groups' ? 'groups' : 'categories';
+    }
+
+    /**
+     * The Category Panel opens on "Lata" for `?panel=years`, otherwise on the months.
+     */
+    private function panelTab(Request $request): string
+    {
+        return $request->query('panel') === 'years' ? 'years' : 'months';
     }
 
     private function periodReport(Budget $budget, ?int $month, CarbonImmutable $today): PeriodReport
