@@ -375,12 +375,12 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Automated
 
-- [x] 2.1 Testy Vitest „Lat” przechodzą
-- [x] 2.2 Budowanie i typy
-- [x] 2.3 Strażnicy UI
-- [x] 2.4 Kontrakt UI
-- [x] 2.5 Indeks reguł zaktualizowany
-- [x] 2.6 Pełna bramka na PostgreSQL i Sloppy
+- [x] 2.1 Testy Vitest „Lat” przechodzą — 09d652a
+- [x] 2.2 Budowanie i typy — 09d652a
+- [x] 2.3 Strażnicy UI — 09d652a
+- [x] 2.4 Kontrakt UI — 09d652a
+- [x] 2.5 Indeks reguł zaktualizowany — 09d652a
+- [x] 2.6 Pełna bramka na PostgreSQL i Sloppy — 09d652a
 
 #### Manual
 
@@ -393,7 +393,7 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Automated
 
-- [ ] 3.1 E2E „Lat” przechodzi
+- [x] 3.1 E2E „Lat” przechodzi
 
 #### Manual
 
