@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, useId } from 'vue';
+import { computed, reactive, useId, watch } from 'vue';
 import ListSurface from '@/components/ListSurface.vue';
 import ReportRankingGroupRow from '@/components/ReportRankingGroupRow.vue';
 import ReportRankingRow from '@/components/ReportRankingRow.vue';
@@ -41,10 +41,19 @@ const props = defineProps<{
     previousTotalMinorUnits?: number;
     /** Current minus previous total of this type (with `comparisonYear`). */
     differenceTotalMinorUnits?: number;
+    /** Year view with a Category Panel: names select a row instead of linking (ADR-0100). */
+    selectable?: boolean;
+    /** The highlighted row (`aria-current`); `null` highlights none. */
+    selectedCategoryId?: number | null;
+    /** The Category whose group starts expanded in the groups mode. */
+    expandCategoryId?: number | null;
+    /** Id of the panel the name buttons control. */
+    panelId?: string;
 }>();
 
 const emit = defineEmits<{
     'update:mode': [mode: ReportRankingMode];
+    select: [categoryId: number];
 }>();
 
 const t = useTranslations();
@@ -92,6 +101,33 @@ const previousLabel = computed(() =>
 
 /** Groups start collapsed; an expanded id is remembered only for this visit. */
 const expanded = reactive(new Set<number>());
+
+/**
+ * The group of the shown Category starts expanded when the groups mode is on
+ * (also when it is switched on); a later change of the selection leaves the
+ * groups as they are.
+ */
+watch(
+    () => props.mode,
+    (mode) => {
+        if (mode !== 'groups' || !props.expandCategoryId) {
+            return;
+        }
+
+        const group = props.entries.find(
+            (entry) =>
+                entry.kind === 'group' &&
+                entry.categories.some(
+                    (category) => category.id === props.expandCategoryId,
+                ),
+        );
+
+        if (group !== undefined) {
+            expanded.add(group.id);
+        }
+    },
+    { immediate: true },
+);
 
 function isOpen(groupId: number): boolean {
     return expanded.has(groupId);
@@ -174,6 +210,10 @@ function bodyId(groupId: number): string {
                     :budget-year="budgetYear"
                     :month="month"
                     :range="range"
+                    :selectable="selectable"
+                    :selected="selectedCategoryId === row.id"
+                    :controls="panelId"
+                    @select="emit('select', $event)"
                 />
             </template>
             <template v-else>
@@ -192,6 +232,10 @@ function bodyId(groupId: number): string {
                         :budget-year="budgetYear"
                         :month="month"
                         :range="range"
+                        :selectable="selectable"
+                        :selected="selectedCategoryId === entry.id"
+                        :controls="panelId"
+                        @select="emit('select', $event)"
                     />
                     <div v-else>
                         <ReportRankingGroupRow
@@ -220,6 +264,10 @@ function bodyId(groupId: number): string {
                                 :budget-year="budgetYear"
                                 :month="month"
                                 :range="range"
+                                :selectable="selectable"
+                                :selected="selectedCategoryId === category.id"
+                                :controls="panelId"
+                                @select="emit('select', $event)"
                             />
                         </div>
                     </div>

@@ -13,6 +13,8 @@ const REPORTS_VIEW_FILES = [
     'resources/js/components/ReportRankingRow.vue',
     'resources/js/components/ReportRankingGroupRow.vue',
     'resources/js/components/ReportShareBar.vue',
+    'resources/js/components/ReportCategoryPanel.vue',
+    'resources/js/components/ReportMonthBars.vue',
     'resources/js/components/ReportTrendRow.vue',
     'resources/js/components/ReportTrendSummary.vue',
     'resources/js/components/ReportTrendTable.vue',

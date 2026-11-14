@@ -451,13 +451,13 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Automated
 
-- [x] 2.1 Vitest przechodzi, w tym report-ranking.test.ts i ui-contract.test.ts
-- [x] 2.2 npm run types:check i npm run lint przechodzą
-- [x] 2.3 npm run check:ui przechodzi z nową listą plików
-- [x] 2.4 ReportsHardcodedUiTest i ReportsKitchenSinkTest przechodzą
-- [x] 2.5 npm run build przechodzi i nie zostaje żaden import ReportBarChart ani report-chart
-- [x] 2.6 E2E Raportów przechodzą (reports.spec.ts, reports-view.spec.ts)
-- [x] 2.7 boost:index-rules daje glob report-ranking* zamiast report-chart*
+- [x] 2.1 Vitest przechodzi, w tym report-ranking.test.ts i ui-contract.test.ts — 7fc91e4
+- [x] 2.2 npm run types:check i npm run lint przechodzą — 7fc91e4
+- [x] 2.3 npm run check:ui przechodzi z nową listą plików — 7fc91e4
+- [x] 2.4 ReportsHardcodedUiTest i ReportsKitchenSinkTest przechodzą — 7fc91e4
+- [x] 2.5 npm run build przechodzi i nie zostaje żaden import ReportBarChart ani report-chart — 7fc91e4
+- [x] 2.6 E2E Raportów przechodzą (reports.spec.ts, reports-view.spec.ts) — 7fc91e4
+- [x] 2.7 boost:index-rules daje glob report-ranking* zamiast report-chart* — 7fc91e4
 
 #### Manual
 
@@ -468,11 +468,11 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 
 #### Automated
 
-- [ ] 3.1 Vitest przechodzi, w tym report-category-panel.test.ts
-- [ ] 3.2 npm run types:check, npm run lint i npm run check:ui przechodzą
-- [ ] 3.3 E2E panelu i Raportów przechodzą
-- [ ] 3.4 Pełna bramka composer ci:check na PostgreSQL w worktree
-- [ ] 3.5 sloppy ci na hoście bez nowego znaleziska
+- [x] 3.1 Vitest przechodzi, w tym report-category-panel.test.ts
+- [x] 3.2 npm run types:check, npm run lint i npm run check:ui przechodzą
+- [x] 3.3 E2E panelu i Raportów przechodzą
+- [x] 3.4 Pełna bramka composer ci:check na PostgreSQL w worktree
+- [x] 3.5 sloppy ci na hoście bez nowego znaleziska
 
 #### Manual
 

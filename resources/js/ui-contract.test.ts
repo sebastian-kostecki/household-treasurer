@@ -585,4 +585,15 @@ describe('the Categories view follows the Atrament surface blocks', () => {
         expect(group).not.toContain('reportCategoryOperationsQuery');
         expect(group).not.toContain('operations(');
     });
+
+    it('marks the selected Report category with aria-current on a button, never aria-selected (ADR-0100)', () => {
+        const row = readFileSync(
+            join(JS_ROOT, 'components/ReportRankingRow.vue'),
+            'utf8',
+        );
+
+        expect(row).toContain(':aria-current=');
+        expect(row).toContain(':aria-controls=');
+        expect(row).not.toContain('aria-selected');
+    });
 });

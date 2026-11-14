@@ -19,6 +19,10 @@ const stateMatrix = [
         where: 'Scenariusze ranking-groups (tryb Grupy: grupy zwinięte, po rozwinięciu kategorie po kwocie) i ranking-tie (remis Czynsz 1 800 i Prąd 1 800: wyżej wcześniejszy na liście).',
     },
     {
+        state: 'panel',
+        where: 'Scenariusze panel-year-in-progress (kreskowany miesiąc w toku, „sty–paź”, przyszły miesiąc pusty), panel-year-closed („sty–gru”, bez wiersza „w toku”), panel-january („Średnio” „—”), panel-comparison-only (Kino 0,00 / 600,00 / −600,00, bez przycisku Operacje), panel-income (success, bez Udziału i rytmu), panel-negative-month (słupek zerowy, kwota w sr-only), panel-no-previous (bez N−1 i Różnicy), panel-groups (grupa wybranej kategorii rozwinięta) i panel-phone (arkusz zamknięty, Ranking bez podświetlenia; tapnięcie nazwy otwiera arkusz).',
+    },
+    {
         state: 'comparison',
         where: 'Scenariusze compared-year-in-progress (z notką), compared-month-closed, compared-one-side-only, compared-empty-current i compared-phone (dwie linie wiersza); scenariusze bez przedrostka compared- to raport bez porównania.',
     },

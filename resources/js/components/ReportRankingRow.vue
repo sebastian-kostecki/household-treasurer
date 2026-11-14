@@ -37,6 +37,16 @@ const props = defineProps<{
     month: number | null;
     /** The last-12 window (ADR-0081); replaces the month and the year in the link. */
     range?: ReportRange | null;
+    /** Year view with a Category Panel: the name is a button that selects the row (ADR-0100). */
+    selectable?: boolean;
+    /** The row is the one the panel shows (`aria-current`, `secondary` background). */
+    selected?: boolean;
+    /** Id of the panel the button controls. */
+    controls?: string;
+}>();
+
+const emit = defineEmits<{
+    select: [categoryId: number];
 }>();
 
 const t = useTranslations();
@@ -97,6 +107,7 @@ const differenceToneClass = computed(() => {
             'report-grid-no-share': !showShare,
             'report-grid-compare': compared,
             'report-row-nested': nested,
+            'report-row-selected': selected,
             'text-muted-foreground': category.is_archived,
         }"
         data-report-row="category"
@@ -110,8 +121,23 @@ const differenceToneClass = computed(() => {
             >
             <div class="report-rank-body">
                 <div class="report-cell-name">
+                    <button
+                        v-if="selectable"
+                        type="button"
+                        class="report-name-link cursor-pointer text-left"
+                        :aria-current="selected ? 'true' : undefined"
+                        :aria-controls="controls"
+                        data-report-select
+                        @click="emit('select', category.id)"
+                    >
+                        <CategoryChip
+                            :name="category.name"
+                            :icon="category.icon ?? ''"
+                            :color="category.color"
+                        />
+                    </button>
                     <Link
-                        v-if="operationsQuery !== null"
+                        v-else-if="operationsQuery !== null"
                         :href="operations({ query: operationsQuery })"
                         class="report-name-link"
                         :aria-label="operationsLinkLabel"

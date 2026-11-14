@@ -1,19 +1,36 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { useElementSize } from '@vueuse/core';
+import { computed, onMounted, ref, watch } from 'vue';
 import BudgetMonthPicker from '@/components/BudgetMonthPicker.vue';
 import IndexEmptyState from '@/components/IndexEmptyState.vue';
 import ReportCoverageNote from '@/components/ReportCoverageNote.vue';
+import ReportCategoryPanel from '@/components/ReportCategoryPanel.vue';
 import ReportEmptyState from '@/components/ReportEmptyState.vue';
 import ReportRanking from '@/components/ReportRanking.vue';
 import ReportStatPanel from '@/components/ReportStatPanel.vue';
 import ReportTrendSummary from '@/components/ReportTrendSummary.vue';
 import ReportTrendTable from '@/components/ReportTrendTable.vue';
 import SegmentedControl from '@/components/SegmentedControl.vue';
+import { Button } from '@/components/ui/button';
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { useTranslations } from '@/composables/useTranslations';
+import {
+    remTokenToPixels,
+    reportPanelLayout,
+    resolveSelectedCategory,
+} from '@/lib/report-category-panel';
+import { rankReportCategories } from '@/lib/report-ranking';
 import { reportMonthNamesFrom, reportWindowRange } from '@/lib/report-window';
 import { reports as reportsRoute } from '@/routes';
 import type {
+    ReportCategoryPanelData,
     ReportRange,
     ReportRankingMode,
     ReportsPageProps,
@@ -45,17 +62,41 @@ function monthUrl(month: number): string {
     return reportsRoute({ query: { month, ...rankingQuery() } }).url;
 }
 
+/** The query of the current address, so a visit of the client keeps every parameter. */
+function currentQuery(): Record<string, string> {
+    const query: Record<string, string> = {};
+
+    new URL(page.url, 'http://localhost').searchParams.forEach((value, key) => {
+        query[key] = value;
+    });
+
+    return query;
+}
+
+/** Changes the address and the props in place (a visit of the client, no request, no history entry). */
+function replaceInPlace(
+    query: Record<string, string>,
+    update: (current: ReportsPageProps) => Partial<ReportsPageProps>,
+): void {
+    router.replace({
+        url: reportsRoute({ query }).url,
+        props: (current) => ({
+            ...current,
+            ...update(current as unknown as ReportsPageProps),
+        }),
+        preserveScroll: true,
+        preserveState: true,
+        preserveFlash: true,
+    });
+}
+
 /** Switches the Ranking mode in place: the same address with `ranking` changed, no request. */
 function setRankingMode(mode: ReportRankingMode): void {
     if (mode === props.rankingMode) {
         return;
     }
 
-    const query: Record<string, string> = {};
-
-    new URL(page.url, 'http://localhost').searchParams.forEach((value, key) => {
-        query[key] = value;
-    });
+    const query = currentQuery();
 
     if (mode === 'groups') {
         query.ranking = 'groups';
@@ -63,13 +104,132 @@ function setRankingMode(mode: ReportRankingMode): void {
         delete query.ranking;
     }
 
-    router.replace({
-        url: reportsRoute({ query }).url,
-        props: (current) => ({ ...current, rankingMode: mode }),
-        preserveScroll: true,
-        preserveState: true,
-        preserveFlash: true,
-    });
+    replaceInPlace(query, () => ({ rankingMode: mode }));
+}
+
+const PANEL_ID = 'report-category-panel';
+
+const shell = ref<HTMLElement | null>(null);
+const { width: shellWidth } = useElementSize(shell);
+const breakpointPx = ref(960);
+
+/** The breakpoint is the token of `app.css`, the same value the `@container` rule repeats. */
+onMounted(() => {
+    const styles = getComputedStyle(document.documentElement);
+    const px = remTokenToPixels(
+        styles.getPropertyValue('--report-panel-breakpoint'),
+        parseFloat(styles.fontSize),
+    );
+
+    if (px !== null) {
+        breakpointPx.value = px;
+    }
+});
+
+const panelLayout = computed(() =>
+    reportPanelLayout(shellWidth.value, breakpointPx.value),
+);
+
+const rankedExpense = computed(() =>
+    rankReportCategories(props.report?.expense ?? []),
+);
+const rankedIncome = computed(() =>
+    rankReportCategories(props.report?.income ?? []),
+);
+
+const hasPanel = computed(
+    () =>
+        props.period.kind === 'year' &&
+        props.categoryPanel !== null &&
+        props.report !== null,
+);
+
+const selected = computed(() =>
+    hasPanel.value
+        ? resolveSelectedCategory(
+              props.categoryPanel?.requested_category_id ?? null,
+              rankedExpense.value,
+              rankedIncome.value,
+          )
+        : null,
+);
+
+const selectedItem = computed(() =>
+    selected.value === null
+        ? undefined
+        : props.categoryPanel?.categories.find(
+              (item) => item.id === selected.value?.category.id,
+          ),
+);
+
+const sheetOpen = ref(false);
+
+watch(
+    panelLayout,
+    (layout) => {
+        if (layout !== 'sheet') {
+            sheetOpen.value = false;
+
+            return;
+        }
+
+        if (props.categoryPanel?.requested_category_id != null) {
+            sheetOpen.value = true;
+        }
+    },
+    { immediate: true },
+);
+
+/** Without an open sheet in the narrow layout no row is highlighted. */
+const highlightedCategoryId = computed(() => {
+    if (selected.value === null) {
+        return null;
+    }
+
+    if (panelLayout.value === 'aside') {
+        return selected.value.category.id;
+    }
+
+    return panelLayout.value === 'sheet' && sheetOpen.value
+        ? selected.value.category.id
+        : null;
+});
+
+function setRequestedCategory(id: number | null): void {
+    const query = currentQuery();
+
+    if (id === null) {
+        delete query.category;
+    } else {
+        query.category = String(id);
+    }
+
+    replaceInPlace(query, (current) => ({
+        categoryPanel:
+            current.categoryPanel === null
+                ? null
+                : {
+                      ...(current.categoryPanel as ReportCategoryPanelData),
+                      requested_category_id: id,
+                  },
+    }));
+}
+
+function selectCategory(id: number): void {
+    setRequestedCategory(id);
+
+    if (panelLayout.value === 'sheet') {
+        sheetOpen.value = true;
+    }
+}
+
+function onSheetOpenChange(open: boolean): void {
+    if (open) {
+        return;
+    }
+
+    sheetOpen.value = false;
+    setRequestedCategory(null);
 }
 
 const periodKind = computed({
@@ -261,44 +421,131 @@ const title = computed(() => {
                     :description="t.reports.no_operations_description"
                 />
 
-                <template v-else>
-                    <ReportRanking
-                        type="expense"
-                        :title="t.reports.ranking_expense"
-                        :entries="report.expense"
-                        :mode="rankingMode"
-                        show-mode-switch
-                        :total-minor-units="report.expense_minor_units"
-                        :budget-year="budgetYear"
-                        :month="period.kind === 'month' ? period.month : null"
-                        :range="range"
-                        :comparison-year="report.comparison?.year"
-                        :previous-total-minor-units="
-                            report.comparison?.expense_minor_units
+                <div v-else ref="shell" class="report-year-shell">
+                    <div
+                        class="report-year-grid"
+                        :class="{ 'report-year-grid-panel': hasPanel }"
+                    >
+                        <div class="report-year-main">
+                            <ReportRanking
+                                type="expense"
+                                :title="t.reports.ranking_expense"
+                                :entries="report.expense"
+                                :mode="rankingMode"
+                                show-mode-switch
+                                :total-minor-units="report.expense_minor_units"
+                                :budget-year="budgetYear"
+                                :month="
+                                    period.kind === 'month'
+                                        ? period.month
+                                        : null
+                                "
+                                :range="range"
+                                :comparison-year="report.comparison?.year"
+                                :previous-total-minor-units="
+                                    report.comparison?.expense_minor_units
+                                "
+                                :difference-total-minor-units="
+                                    report.comparison
+                                        ?.expense_difference_minor_units
+                                "
+                                :selectable="hasPanel"
+                                :selected-category-id="highlightedCategoryId"
+                                :expand-category-id="
+                                    selected?.category.id ?? null
+                                "
+                                :panel-id="PANEL_ID"
+                                @update:mode="setRankingMode"
+                                @select="selectCategory"
+                            />
+                            <ReportRanking
+                                type="income"
+                                :title="t.reports.ranking_income"
+                                :entries="report.income"
+                                :mode="rankingMode"
+                                :total-minor-units="report.income_minor_units"
+                                :budget-year="budgetYear"
+                                :month="
+                                    period.kind === 'month'
+                                        ? period.month
+                                        : null
+                                "
+                                :range="range"
+                                :comparison-year="report.comparison?.year"
+                                :previous-total-minor-units="
+                                    report.comparison?.income_minor_units
+                                "
+                                :difference-total-minor-units="
+                                    report.comparison
+                                        ?.income_difference_minor_units
+                                "
+                                :selectable="hasPanel"
+                                :selected-category-id="highlightedCategoryId"
+                                :expand-category-id="
+                                    selected?.category.id ?? null
+                                "
+                                :panel-id="PANEL_ID"
+                                @select="selectCategory"
+                            />
+                        </div>
+
+                        <aside
+                            v-if="
+                                panelLayout !== 'sheet' &&
+                                selected !== null &&
+                                selectedItem !== undefined &&
+                                categoryPanel !== null
+                            "
+                            class="report-year-aside"
+                            :aria-label="t.reports.panel_label"
+                        >
+                            <ReportCategoryPanel
+                                :id="PANEL_ID"
+                                :category="selected.category"
+                                :type="selected.type"
+                                :item="selectedItem"
+                                :panel="categoryPanel"
+                                :budget-year="budgetYear"
+                                :comparison-year="report.comparison?.year"
+                            />
+                        </aside>
+                    </div>
+
+                    <Sheet
+                        v-if="
+                            panelLayout === 'sheet' &&
+                            selected !== null &&
+                            selectedItem !== undefined &&
+                            categoryPanel !== null
                         "
-                        :difference-total-minor-units="
-                            report.comparison?.expense_difference_minor_units
-                        "
-                        @update:mode="setRankingMode"
-                    />
-                    <ReportRanking
-                        type="income"
-                        :title="t.reports.ranking_income"
-                        :entries="report.income"
-                        :mode="rankingMode"
-                        :total-minor-units="report.income_minor_units"
-                        :budget-year="budgetYear"
-                        :month="period.kind === 'month' ? period.month : null"
-                        :range="range"
-                        :comparison-year="report.comparison?.year"
-                        :previous-total-minor-units="
-                            report.comparison?.income_minor_units
-                        "
-                        :difference-total-minor-units="
-                            report.comparison?.income_difference_minor_units
-                        "
-                    />
-                </template>
+                        :open="sheetOpen"
+                        @update:open="onSheetOpenChange"
+                    >
+                        <SheetContent side="bottom" class="report-panel-sheet">
+                            <SheetTitle class="sr-only">{{
+                                selected.category.name
+                            }}</SheetTitle>
+                            <SheetDescription class="sr-only">{{
+                                t.reports.panel_label
+                            }}</SheetDescription>
+                            <ReportCategoryPanel
+                                :id="PANEL_ID"
+                                in-sheet
+                                :category="selected.category"
+                                :type="selected.type"
+                                :item="selectedItem"
+                                :panel="categoryPanel"
+                                :budget-year="budgetYear"
+                                :comparison-year="report.comparison?.year"
+                            />
+                            <SheetClose as-child>
+                                <Button variant="outline" class="w-full">{{
+                                    t.reports.panel_close
+                                }}</Button>
+                            </SheetClose>
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </template>
         </template>
     </div>

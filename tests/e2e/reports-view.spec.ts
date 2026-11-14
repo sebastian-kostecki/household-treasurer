@@ -205,3 +205,70 @@ test.describe('Raporty: wąska karta pokazuje pełne nazwy i Udział pod kwotą'
         );
     });
 });
+
+// The Category Panel in the kitchen sink (S-35): the scenarios `panel-*` render
+// the real page, so the layout follows the width of the sink, not the window.
+test.describe('Raporty: panel kategorii w kitchen sinku', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/dev/ui/reports');
+    });
+
+    test('panel-comparison-only: Kino 0,00 / 600,00 / −600,00 i −100,0%, bez przycisku Operacje', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-comparison-only').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(panel).toContainText('Kino');
+        await expect(panel.locator('[data-panel-amount]')).toContainText(
+            '0,00',
+        );
+        await expect(panel.locator('[data-panel-previous]')).toContainText(
+            '600,00',
+        );
+        await expect(panel.locator('[data-panel-difference]')).toContainText(
+            '600,00',
+        );
+        await expect(panel.locator('[data-panel-percent]')).toContainText(
+            '−100,0%',
+        );
+        await expect(
+            panel.getByRole('link', { name: /^Operacje:/ }),
+        ).toHaveCount(0);
+    });
+
+    test('panel-year-in-progress: miesiąc w toku jest kreskowany, grudzień pusty, w wierszu „w toku”', async ({
+        page,
+    }) => {
+        const panel = scenario(page, 'panel-year-in-progress').locator(
+            '[data-report-panel]',
+        );
+
+        await expect(
+            panel.locator('[data-month="11"][data-state="in-progress"]'),
+        ).toHaveCount(1);
+        await expect(
+            panel.locator('[data-month="12"][data-state="future"]'),
+        ).toHaveCount(1);
+        await expect(
+            panel.locator('[data-panel-row="in-progress"]'),
+        ).toContainText('Listopad do 14.11 (w toku)');
+        await expect(panel.locator('[data-panel-row="average"]')).toContainText(
+            'sty–paź',
+        );
+    });
+
+    test('panel-phone: arkusz zamknięty, tapnięcie nazwy go otwiera', async ({
+        page,
+    }) => {
+        const phone = scenario(page, 'panel-phone');
+
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        await expect(phone.locator('[aria-current="true"]')).toHaveCount(0);
+
+        await phone.locator('[data-report-select]').first().click();
+
+        await expect(page.getByRole('dialog')).toBeVisible();
+    });
+});

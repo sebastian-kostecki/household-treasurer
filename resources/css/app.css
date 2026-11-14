@@ -173,6 +173,10 @@
     --form-panel-width: 640px;
     --reconciliation-list-height: 14rem;
     --aside-width: clamp(18.75rem, 22vw, 26rem);
+    /* Reports, Category Panel (ADR-0097): the content width from which the panel stands beside the Rankings (the JS reads this token, the `@container` rule repeats it), the panel width and the height of the panel in a sheet. */
+    --report-panel-breakpoint: 60rem;
+    --report-panel-width: 22rem;
+    --report-sheet-max-height: 85svh;
     --sidebar-panel-width: 224px;
     --command-palette-width: 520px;
     --categories-rhythm-width: 7rem;
@@ -1872,6 +1876,131 @@
 
     .report-share-bar-fill-income {
         @apply bg-success;
+    }
+
+    /*
+     * Year view with the Category Panel (ADR-0097, ADR-0100): the wrapper is a
+     * size container, so the layout follows the width of the content area (the
+     * kitchen sink phone frame included), not the window. From
+     * `--report-panel-breakpoint` the panel stands in a sticky `aside` beside
+     * the Rankings; below it the `aside` is hidden and the panel opens in a
+     * sheet. A container query cannot read a custom property, so the 60rem
+     * below repeats the token on purpose.
+     */
+    .report-year-shell {
+        container-type: inline-size;
+    }
+
+    .report-year-grid {
+        @apply grid gap-4;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .report-year-main {
+        @apply grid min-w-0 content-start gap-4;
+    }
+
+    .report-year-aside {
+        @apply hidden;
+    }
+
+    @container (min-width: 60rem) {
+        .report-year-grid-panel {
+            grid-template-columns: minmax(0, 1fr) var(--report-panel-width);
+        }
+
+        .report-year-aside {
+            @apply sticky top-4 block self-start;
+        }
+    }
+
+    .report-row-selected {
+        @apply bg-secondary;
+    }
+
+    .report-panel {
+        @apply flex min-w-0 flex-col gap-4;
+    }
+
+    .report-panel-card {
+        @apply bg-card rounded-lg border p-4;
+    }
+
+    .report-panel-sheet {
+        @apply overflow-y-auto px-4 pb-4;
+        max-height: var(--report-sheet-max-height);
+    }
+
+    .report-panel-kpis {
+        @apply grid grid-cols-2 gap-3;
+    }
+
+    .report-panel-kpi {
+        @apply grid min-w-0 content-start gap-0.5;
+    }
+
+    .report-panel-kpi-label {
+        @apply meta text-muted-foreground;
+    }
+
+    .report-panel-kpi-value {
+        @apply amount;
+    }
+
+    .report-panel-kpi-main {
+        @apply kpi;
+    }
+
+    .report-panel-rows {
+        @apply grid gap-2;
+    }
+
+    .report-panel-row {
+        @apply border-border-soft flex items-baseline justify-between gap-3 border-t pt-2 text-sm;
+    }
+
+    .report-month-bars {
+        @apply grid h-24 items-stretch gap-1;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .report-month-col {
+        @apply flex min-w-0 flex-col items-center gap-1;
+    }
+
+    .report-month-track {
+        @apply border-border-soft flex w-full flex-1 items-end border-b;
+    }
+
+    .report-month-bar {
+        @apply w-full rounded-t-sm;
+        height: calc(var(--report-bar-ratio, 0) * 100%);
+        background-color: var(--report-bar-color);
+    }
+
+    .report-month-bar-expense {
+        --report-bar-color: var(--chart-1);
+    }
+
+    .report-month-bar-income {
+        --report-bar-color: var(--success);
+    }
+
+    .report-month-bar.is-highest {
+        --report-bar-color: var(--foreground);
+    }
+
+    .report-month-bar.is-in-progress {
+        background-color: transparent;
+        background-image: repeating-linear-gradient(
+            135deg,
+            var(--report-bar-color) 0 2px,
+            transparent 2px 5px
+        );
+    }
+
+    .report-month-label {
+        @apply meta text-muted-foreground;
     }
 
     .report-cell-amount {
