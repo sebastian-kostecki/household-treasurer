@@ -44,6 +44,10 @@ const t = useTranslations();
 
 const shell = useShell();
 
+const stripAxis = computed(
+    () => props.axis ?? shell.value.budgetYears.map((entry) => entry.year),
+);
+
 const archivedOn = computed(() =>
     props.category.archived_at === null
         ? null
@@ -110,7 +114,7 @@ const caption = computed(() =>
         <div class="categories-cell-years">
             <CategoryYearsStrip
                 :years="category.budget_years"
-                :axis="axis ?? shell.budgetYears"
+                :axis="stripAxis"
             />
         </div>
 
