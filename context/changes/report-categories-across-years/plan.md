@@ -393,7 +393,7 @@ Brak migracji i zmian danych. Widok czyta istniejące Budżety 2020–2026 (ADR-
 
 #### Automated
 
-- [x] 3.1 E2E „Lat” przechodzi
+- [x] 3.1 E2E „Lat” przechodzi — 8ae3b99
 
 #### Manual
 
