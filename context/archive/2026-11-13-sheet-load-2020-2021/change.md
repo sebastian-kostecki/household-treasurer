@@ -1,10 +1,10 @@
 ---
 change_id: sheet-load-2020-2021
 title: Wczytanie lat 2020 i 2021 ze starszych arkuszy budżetu
-status: implemented
+status: archived
 created: 2026-11-13
 updated: 2026-11-14
-archived_at: null
+archived_at: 2026-11-14T09:42:03Z
 ---
 
 ## Notes
