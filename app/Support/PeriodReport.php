@@ -50,12 +50,12 @@ final class PeriodReport
 
     public static function forMonth(Budget $budget, int $month, ?ReportComparisonPeriod $comparison = null): self
     {
-        return self::build($budget, [$month], $comparison);
+        return self::build($budget, [$month], $comparison, keepMonths: false);
     }
 
     public static function forYear(Budget $budget, ?ReportComparisonPeriod $comparison = null): self
     {
-        return self::build($budget, range(1, 12), $comparison);
+        return self::build($budget, range(1, 12), $comparison, keepMonths: true);
     }
 
     /**
@@ -95,14 +95,15 @@ final class PeriodReport
 
     /**
      * @param  list<int>  $months
+     * @param  bool  $keepMonths  keep the monthly cells for `categoryMonths()` (only the year report)
      */
-    private static function build(Budget $budget, array $months, ?ReportComparisonPeriod $comparison): self
+    private static function build(Budget $budget, array $months, ?ReportComparisonPeriod $comparison, bool $keepMonths): self
     {
         $rows = self::rows($budget, $months, $comparison);
 
         $groups = CategoryGroup::query()->where('user_id', $budget->user_id)->get();
 
-        return self::fromRows($rows, array_values($groups->all()), $comparison, count($months) === 12);
+        return self::fromRows($rows, array_values($groups->all()), $comparison, $keepMonths);
     }
 
     /**

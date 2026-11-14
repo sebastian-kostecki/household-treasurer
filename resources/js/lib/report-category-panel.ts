@@ -173,15 +173,27 @@ export function reportPanelCaption(
 ): string {
     const parts = [type === 'expense' ? labels.expense : labels.income];
 
+    // A function, not a string: a name with `$&` or `$'` is not a replacement pattern.
     if (groupName !== null) {
-        parts.push(labels.group.replace(':name', groupName));
+        parts.push(labels.group.replace(':name', () => groupName));
     }
 
     if (type === 'expense' && rhythmLabel !== null) {
-        parts.push(labels.rhythm.replace(':rhythm', rhythmLabel));
+        parts.push(labels.rhythm.replace(':rhythm', () => rhythmLabel));
     }
 
     return parts.join(' · ');
+}
+
+/** "Operacje: Kino, 2026" from the template with `:name` and `:year`, the name taken as typed. */
+export function reportPanelOperationsLabel(
+    template: string,
+    categoryName: string,
+    budgetYear: number,
+): string {
+    return template
+        .replace(':name', () => categoryName)
+        .replace(':year', String(budgetYear));
 }
 
 export type ReportPanelLayout = 'unknown' | 'aside' | 'sheet';

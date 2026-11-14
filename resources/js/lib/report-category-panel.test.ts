@@ -7,6 +7,7 @@ import {
     reportMonthBarsAccessibleList,
     reportPanelCaption,
     reportPanelLayout,
+    reportPanelOperationsLabel,
     resolveSelectedCategory,
 } from './report-category-panel';
 import type { RankedReportCategory } from './report-ranking';
@@ -192,6 +193,30 @@ describe('labels', () => {
         );
         expect(reportPanelCaption('income', 'Praca', null, labels)).toBe(
             'Przychód · grupa Praca',
+        );
+    });
+
+    it('keeps a dollar sign of a group name as typed', () => {
+        const labels = {
+            expense: 'Wydatek',
+            income: 'Przychód',
+            group: 'grupa :name',
+            rhythm: 'rytm :rhythm',
+        };
+
+        expect(
+            reportPanelCaption('expense', "Dom $& $' $`", null, labels),
+        ).toBe("Wydatek · grupa Dom $& $' $`");
+    });
+
+    it('names the Operations button with the Category and the year', () => {
+        const template = 'Operacje: :name, :year';
+
+        expect(reportPanelOperationsLabel(template, 'Kino', 2026)).toBe(
+            'Operacje: Kino, 2026',
+        );
+        expect(reportPanelOperationsLabel(template, 'Bar $&', 2026)).toBe(
+            'Operacje: Bar $&, 2026',
         );
     });
 });

@@ -20,7 +20,7 @@ import {
     listenForBudgetYearSelectionFailure,
     notifyBudgetYearSelectionFailed,
 } from '@/lib/budget-year-selection';
-import { budgetYearMenu } from '@/lib/budget-year-menu';
+import { budgetYearMenu, reportYearSwitchParams } from '@/lib/budget-year-menu';
 import type { BudgetYearMenuEntry } from '@/lib/budget-year-menu';
 import { isCurrentSection } from '@/lib/nav-active';
 import { reports } from '@/routes';
@@ -146,16 +146,7 @@ function selectYearPayload(year: number): Record<string, string | number> {
     };
 
     if (destination.value === 'reports') {
-        const params = new URL(page.url, 'http://localhost').searchParams;
-        const category = params.get('category');
-
-        if (category !== null && /^\d+$/.test(category)) {
-            payload.report_category = Number(category);
-        }
-
-        if (params.get('ranking') === 'groups') {
-            payload.report_ranking = 'groups';
-        }
+        return { ...payload, ...reportYearSwitchParams(page.url) };
     }
 
     return payload;

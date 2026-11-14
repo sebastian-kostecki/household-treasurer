@@ -164,6 +164,30 @@ const selectedItem = computed(() =>
 
 const sheetOpen = ref(false);
 
+type ShownCategory = {
+    selected: NonNullable<typeof selected.value>;
+    item: NonNullable<typeof selectedItem.value>;
+};
+
+/**
+ * The Category a closing sheet keeps showing while it slides out: the close
+ * takes `category` off the address at once, and the selection would fall back
+ * to the default under the closing sheet. Cleared once the focus is returned.
+ */
+const closingSheetCategory = ref<ShownCategory | null>(null);
+
+const sheetSelected = computed(
+    () => closingSheetCategory.value?.selected ?? selected.value,
+);
+const sheetItem = computed(
+    () => closingSheetCategory.value?.item ?? selectedItem.value,
+);
+
+/** The panel is in the page: `aria-controls` only points at it then. */
+const panelInPage = computed(
+    () => panelLayout.value !== 'sheet' || sheetOpen.value,
+);
+
 watch(
     panelLayout,
     (layout) => {
@@ -216,6 +240,7 @@ function setRequestedCategory(id: number | null): void {
 }
 
 function selectCategory(id: number): void {
+    closingSheetCategory.value = null;
     setRequestedCategory(id);
 
     if (panelLayout.value === 'sheet') {
@@ -228,8 +253,37 @@ function onSheetOpenChange(open: boolean): void {
         return;
     }
 
+    if (selected.value !== null && selectedItem.value !== undefined) {
+        closingSheetCategory.value = {
+            selected: selected.value,
+            item: selectedItem.value,
+        };
+    }
+
     sheetOpen.value = false;
     setRequestedCategory(null);
+}
+
+/**
+ * The sheet has no trigger (it opens from a name or from the address), so
+ * reka-ui has nowhere to return the focus and drops it on `<body>`: send it
+ * back to the name of the Category the sheet showed.
+ */
+function onSheetCloseAutoFocus(event: Event): void {
+    const id = closingSheetCategory.value?.selected.category.id;
+    closingSheetCategory.value = null;
+
+    const name =
+        id === undefined
+            ? null
+            : shell.value?.querySelector<HTMLElement>(
+                  `[data-report-select="${id}"]`,
+              );
+
+    if (name) {
+        event.preventDefault();
+        name.focus();
+    }
 }
 
 const periodKind = computed({
@@ -454,7 +508,7 @@ const title = computed(() => {
                                 :expand-category-id="
                                     selected?.category.id ?? null
                                 "
-                                :panel-id="PANEL_ID"
+                                :panel-id="panelInPage ? PANEL_ID : undefined"
                                 @update:mode="setRankingMode"
                                 @select="selectCategory"
                             />
@@ -484,7 +538,7 @@ const title = computed(() => {
                                 :expand-category-id="
                                     selected?.category.id ?? null
                                 "
-                                :panel-id="PANEL_ID"
+                                :panel-id="panelInPage ? PANEL_ID : undefined"
                                 @select="selectCategory"
                             />
                         </div>
@@ -514,16 +568,21 @@ const title = computed(() => {
                     <Sheet
                         v-if="
                             panelLayout === 'sheet' &&
-                            selected !== null &&
-                            selectedItem !== undefined &&
+                            sheetSelected !== null &&
+                            sheetItem !== undefined &&
                             categoryPanel !== null
                         "
                         :open="sheetOpen"
                         @update:open="onSheetOpenChange"
                     >
-                        <SheetContent side="bottom" class="report-panel-sheet">
+                        <SheetContent
+                            side="bottom"
+                            class="report-panel-sheet"
+                            :show-close-button="false"
+                            @close-auto-focus="onSheetCloseAutoFocus"
+                        >
                             <SheetTitle class="sr-only">{{
-                                selected.category.name
+                                sheetSelected.category.name
                             }}</SheetTitle>
                             <SheetDescription class="sr-only">{{
                                 t.reports.panel_label
@@ -531,9 +590,9 @@ const title = computed(() => {
                             <ReportCategoryPanel
                                 :id="PANEL_ID"
                                 in-sheet
-                                :category="selected.category"
-                                :type="selected.type"
-                                :item="selectedItem"
+                                :category="sheetSelected.category"
+                                :type="sheetSelected.type"
+                                :item="sheetItem"
                                 :panel="categoryPanel"
                                 :budget-year="budgetYear"
                                 :comparison-year="report.comparison?.year"

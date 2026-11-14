@@ -20,7 +20,7 @@ const stateMatrix = [
     },
     {
         state: 'panel',
-        where: 'Scenariusze panel-year-in-progress (kreskowany miesiąc w toku, „sty–paź”, przyszły miesiąc pusty), panel-year-closed („sty–gru”, bez wiersza „w toku”), panel-january („Średnio” „—”), panel-comparison-only (Kino 0,00 / 600,00 / −600,00, bez przycisku Operacje), panel-income (success, bez Udziału i rytmu), panel-negative-month (słupek zerowy, kwota w sr-only), panel-no-previous (bez N−1 i Różnicy), panel-groups (grupa wybranej kategorii rozwinięta) i panel-phone (arkusz zamknięty, Ranking bez podświetlenia; tapnięcie nazwy otwiera arkusz).',
+        where: 'Scenariusze panel-year-in-progress (kreskowany miesiąc w toku, „sty–paź”, przyszły miesiąc pusty), panel-year-closed („sty–gru”, bez wiersza „w toku”), panel-january („Średnio” „—”), panel-comparison-only (Kino 0,00 / 600,00 / −600,00, bez przycisku Operacje), panel-income (success, bez Udziału i rytmu), panel-negative-month (słupek zerowy, kwota w sr-only), panel-no-previous (bez N−1 i Różnicy), panel-groups (grupa wybranej kategorii rozwinięta) i panel-phone (arkusz zamknięty, Ranking bez podświetlenia; tapnięcie nazwy otwiera arkusz). Scenariusze są statyczne: klik nazwy albo „Grupy” robi prawdziwą wizytę klienta na /reports (adres zmienia się na /reports?…, odświeżenie opuszcza sink), a scenariusz z fixtures nie przerysowuje wyboru ani trybu, więc każdy stan ma własny scenariusz. Wszystkie instancje dzielą id report-category-panel.',
     },
     {
         state: 'comparison',

@@ -119,6 +119,11 @@ test.describe('wide window: the panel stands beside the Rankings', () => {
             )?.trim() ?? '';
         expect(secondName).not.toBe('');
 
+        // A marker on the window survives a visit of the client, not a page load.
+        await page.evaluate(() => {
+            (window as unknown as { __noReload?: boolean }).__noReload = true;
+        });
+
         await second.click();
 
         await expectReportsQuery(page, { category: /^\d+$/ });
@@ -133,6 +138,12 @@ test.describe('wide window: the panel stands beside the Rankings', () => {
             panelAside(page).locator('[data-panel-amount]'),
         ).toContainText(secondAmount);
         // A click is a visit of the client: the page was not reloaded.
+        expect(
+            await page.evaluate(
+                () =>
+                    (window as unknown as { __noReload?: boolean }).__noReload,
+            ),
+        ).toBe(true);
         await expect(page.getByRole('dialog')).toHaveCount(0);
     });
 
@@ -169,21 +180,21 @@ test.describe('wide window: the panel stands beside the Rankings', () => {
         const daySums = page.locator('.operations-cell-amount.amount-sum');
         await expect(daySums.first()).toBeVisible();
 
-        if (
+        // The list has no total across pages: say so instead of passing quietly.
+        test.skip(
             (await page
                 .getByRole('navigation', { name: /paginacja/i })
-                .count()) === 0
-        ) {
-            const texts = await daySums.allTextContents();
-            const total = texts.reduce(
-                (sum, text) => sum + amountToMinorUnits(text),
-                0,
-            );
+                .count()) > 0,
+            'The Operations of the first Category span several pages; the list has no total to compare.',
+        );
 
-            expect(Math.abs(total)).toBe(
-                Math.abs(amountToMinorUnits(panelAmount)),
-            );
-        }
+        const texts = await daySums.allTextContents();
+        const total = texts.reduce(
+            (sum, text) => sum + amountToMinorUnits(text),
+            0,
+        );
+
+        expect(Math.abs(total)).toBe(Math.abs(amountToMinorUnits(panelAmount)));
     });
 
     test('(e) a refresh with ?category shows the same panel and never a sheet', async ({
@@ -362,26 +373,50 @@ test.describe('phone width: the panel is a sheet from the bottom', () => {
         const names = expenseNames(page);
         await expect(names.first()).toBeVisible();
 
-        // Without a selection no row is highlighted and no sheet is open.
+        // Without a selection no row is highlighted and no sheet is open, and
+        // no button points at a panel that is not in the page.
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await expect(names.first()).not.toHaveAttribute('aria-current', 'true');
+        await expect(names.first()).not.toHaveAttribute('aria-controls');
         await expect(panelAside(page)).toHaveCount(0);
 
-        const name = (await names.first().textContent())?.trim() ?? '';
-        await names.first().click();
+        // The second name: closing must not fall back to the default (the first) on the way out.
+        const second = names.nth(1);
+        const name = (await second.textContent())?.trim() ?? '';
+        await second.click();
 
         const sheet = page.getByRole('dialog');
         await expect(sheet).toBeVisible();
         await expect(sheet).toContainText(name);
+        await expect(second).toHaveAttribute(
+            'aria-controls',
+            'report-category-panel',
+        );
         await expectReportsQuery(page, { category: /^\d+$/ });
+
+        // One close button, with a Polish name: no built-in „Close” of the sheet.
+        await expect(sheet.getByRole('button', { name: 'Close' })).toHaveCount(
+            0,
+        );
+        await expect(
+            sheet.getByRole('button', { name: /zamknij/i }),
+        ).toHaveCount(1);
 
         await sheet
             .getByRole('button', { name: 'Zamknij panel kategorii' })
             .click();
 
+        // While the sheet slides out it still shows the Category that was open.
+        const closing = page.locator('[data-slot="sheet-content"]');
+        if ((await closing.count()) > 0) {
+            expect((await closing.textContent()) ?? '').toContain(name);
+        }
+
         await expect(page.getByRole('dialog')).toHaveCount(0);
         await expectReportsQuery(page, {});
         await expect(names.first()).not.toHaveAttribute('aria-current', 'true');
+        // Focus goes back to the name that opened the sheet.
+        await expect(second).toBeFocused();
     });
 
     test('(c) an address with ?category opens the sheet at once', async ({
@@ -393,6 +428,14 @@ test.describe('phone width: the panel is a sheet from the bottom', () => {
 
         await page.reload();
 
-        await expect(page.getByRole('dialog')).toBeVisible();
+        const sheet = page.getByRole('dialog');
+        await expect(sheet).toBeVisible();
+
+        // Opened by the address, not by a tap: closing still returns focus to the name.
+        await sheet
+            .getByRole('button', { name: 'Zamknij panel kategorii' })
+            .click();
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        await expect(expenseNames(page).first()).toBeFocused();
     });
 });

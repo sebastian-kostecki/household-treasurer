@@ -429,6 +429,16 @@ Brak migracji danych. Stare linki `/reports` i `/reports?month=…` działają b
 - Wzorce: `app/Support/ReportTrend.php:47-106` (komórki miesięcy), `resources/js/pages/Categories.vue:154-185` (parametr w adresie), `app/Http/Controllers/ReportController.php:106-115` (cichy fallback), `resources/css/app.css:1680` i `@container (min-width: 36rem)` (układ po szerokości karty)
 - Poprzednie zmiany: `context/archive/2026-11-12-reports-view/`, `context/archive/2026-11-12-report-to-operations/`, `context/archive/2026-11-11-year-over-year-report/`
 
+## Addendum (impl-review 2026-11-14)
+
+Zachowania przyjęte po przeglądzie implementacji (`reviews/impl-review.md`, F9), bez zmiany kodu:
+
+- Arkusz otwiera się z `requested_category_id` przy każdym przejściu układu w `sheet`, także przy zwężeniu okna z `aside` (nie tylko z `unknown`): wybrana kategoria nie znika z widoku przy zmianie szerokości.
+- Gdy miesiąc w toku jest też najwyższy (`highest_month`), jego kreskowanie dostaje `foreground` zamiast koloru typu: „najwyższy” wygrywa, jak w pozostałych miesiącach.
+- Wiersz „Najwięcej” pokazuje miesiąc i jego kwotę („<Miesiąc> · <kwota>”), jak karta `PageReports`.
+
+Poprawki z przeglądu (F1–F8, F10) zmieniły: zamknięcie arkusza zwraca fokus na nazwę i nie podmienia kategorii w trakcie animacji, `SheetContent` dostał ogólny prop `showCloseButton` (wzorem `ui/dialog`), `aria-controls` tylko przy panelu w stronie, menu roku przenosi `?category` przez `reportYearSwitchParams` (bez 422), etykiety z nazwą przez funkcję w `replace`, `PeriodReport::forYear` przekazuje `keepMonths` jawnie.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

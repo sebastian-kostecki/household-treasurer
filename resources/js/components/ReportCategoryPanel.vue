@@ -12,6 +12,7 @@ import {
     reportClosedRangeLabel,
     reportInProgressLabel,
     reportPanelCaption,
+    reportPanelOperationsLabel,
 } from '@/lib/report-category-panel';
 import { reportCategoryOperationsQuery } from '@/lib/report-category-operations';
 import { reportDifferenceTone } from '@/lib/report-difference';
@@ -155,9 +156,11 @@ const operationsQuery = computed(() =>
 );
 
 const operationsLabel = computed(() =>
-    t.reports.panel_open_operations
-        .replace(':name', props.category.name)
-        .replace(':year', String(props.budgetYear)),
+    reportPanelOperationsLabel(
+        t.reports.panel_open_operations,
+        props.category.name,
+        props.budgetYear,
+    ),
 );
 </script>
 

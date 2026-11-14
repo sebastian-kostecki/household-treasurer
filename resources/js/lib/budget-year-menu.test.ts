@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 import type { BudgetYearEntry } from '@/types/shell';
-import { budgetYearMenu } from './budget-year-menu';
+import { budgetYearMenu, reportYearSwitchParams } from './budget-year-menu';
 
 function entries(...years: number[]): BudgetYearEntry[] {
     return years.map((year) => ({ year, phase: 'execution' }));
@@ -133,5 +133,47 @@ describe('budgetYearMenu', () => {
 
         expect(menu.recent).toHaveLength(1);
         expect(menu.recent[0].draft).toBe(true);
+    });
+});
+
+describe('reportYearSwitchParams', () => {
+    it('carries the Category and the groups mode of the Reports address', () => {
+        expect(
+            reportYearSwitchParams('/reports?category=12&ranking=groups'),
+        ).toEqual({ report_category: '12', report_ranking: 'groups' });
+        expect(reportYearSwitchParams('/reports')).toEqual({});
+    });
+
+    it('leaves out a Category the year switch would reject', () => {
+        for (const category of [
+            '0',
+            '000',
+            'abc',
+            '-1',
+            '1.5',
+            '1'.repeat(19),
+        ]) {
+            expect(
+                reportYearSwitchParams(`/reports?category=${category}`),
+            ).toEqual({});
+        }
+
+        // The same ids the Reports page accepts: up to 18 digits, at least 1.
+        // Sent as digits without leading zeros: `integer` rejects "007", and a
+        // Number would round an 18-digit id.
+        expect(reportYearSwitchParams('/reports?category=007')).toEqual({
+            report_category: '7',
+        });
+        expect(
+            reportYearSwitchParams(`/reports?category=${'9'.repeat(18)}`),
+        ).toEqual({
+            report_category: '9'.repeat(18),
+        });
+    });
+
+    it('carries no other Ranking mode', () => {
+        expect(reportYearSwitchParams('/reports?ranking=categories')).toEqual(
+            {},
+        );
     });
 });

@@ -127,7 +127,7 @@ const differenceToneClass = computed(() => {
                         class="report-name-link cursor-pointer text-left"
                         :aria-current="selected ? 'true' : undefined"
                         :aria-controls="controls"
-                        data-report-select
+                        :data-report-select="category.id"
                         @click="emit('select', category.id)"
                     >
                         <CategoryChip
