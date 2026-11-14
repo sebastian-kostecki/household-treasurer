@@ -669,7 +669,6 @@ return [
         'empty_title' => 'Brak kategorii',
         'empty_description' => 'Dodaj pierwszą kategorię przychodu lub wydatku.',
         'add' => 'Dodaj kategorię',
-        'add_label' => 'Dodaj kategorię: :section',
         'edit' => 'Edytuj',
         'delete' => 'Usuń',
         'archive' => 'Archiwizuj',

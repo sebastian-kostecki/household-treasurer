@@ -56,6 +56,8 @@ const props = defineProps<
         initialFilter?: CategoryListFilter;
         /** Kitchen sink only: the year axis of the strips instead of `shell.budgetYears`. */
         yearAxis?: number[];
+        /** Kitchen sink only: a tab click changes the local tab and sends no visit. */
+        localTabs?: boolean;
     }
 >();
 
@@ -155,6 +157,20 @@ function changeTab(value: CategoriesListTab): void {
     }
 
     activeTab.value = value;
+
+    if (props.localTabs) {
+        return;
+    }
+
+    // A cancelled or failed visit leaves `props.tab` as it was, so the watch
+    // above never corrects the local tab; do it here, unless a newer click has
+    // already moved on.
+    const backToServerTab = (): void => {
+        if (activeTab.value === value) {
+            activeTab.value = props.tab;
+        }
+    };
+
     router.get(
         categoriesIndex({ query: value === 'expense' ? {} : { tab: value } }),
         {},
@@ -163,6 +179,9 @@ function changeTab(value: CategoriesListTab): void {
             preserveScroll: true,
             replace: true,
             only: ['tab'],
+            onCancel: backToServerTab,
+            onError: backToServerTab,
+            onNetworkError: backToServerTab,
         },
     );
 }
@@ -288,7 +307,9 @@ const showDragHint = computed(
 
 const noResultsText = computed(() =>
     query.value.trim() !== ''
-        ? t.categories.no_results_query.replace(':query', query.value.trim())
+        ? t.categories.no_results_query.replace(':query', () =>
+              query.value.trim(),
+          )
         : t.categories.no_results_rhythm,
 );
 

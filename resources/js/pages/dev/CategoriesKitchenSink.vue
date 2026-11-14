@@ -137,7 +137,8 @@ const stateMatrix = [
                 v-bind="scenario.props"
                 :tab="scenario.tab ?? scenario.props.tab"
                 :initial-filter="scenario.filter"
-                :year-axis="fixtureYearAxis"
+                :year-axis="scenario.yearAxis ?? fixtureYearAxis"
+                local-tabs
             />
         </section>
 

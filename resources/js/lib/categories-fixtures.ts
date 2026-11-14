@@ -22,6 +22,8 @@ export type CategoriesScenario = {
     tab?: CategoriesListTab;
     /** The phrase and Rhythm the page starts with; defaults to no filter. */
     filter?: CategoryListFilter;
+    /** The axis of the year strips; defaults to `fixtureYearAxis`. */
+    yearAxis?: number[];
 };
 
 /** The axis of the year strips in the sink: the Budget years of the fixture user. */
@@ -666,6 +668,21 @@ export const categoriesScenarios: CategoriesScenario[] = [
             tab: 'archive',
             rhythmChangeMonth,
         },
+    },
+    {
+        key: 'long-axis',
+        title: 'long-axis: oś lat 2012–2027 (16 komórek), czy dwucyfrowe skróty mieszczą się w pasku',
+        props: {
+            incomeCategories,
+            expenseCategories,
+            archivedCategories: [],
+            incomeGroups: [],
+            expenseGroups: [],
+            categoryAppearanceOptions,
+            tab: 'expense',
+            rhythmChangeMonth,
+        },
+        yearAxis: Array.from({ length: 16 }, (_, index) => 2012 + index),
     },
     {
         key: 'empty',

@@ -278,10 +278,6 @@ class CategoriesPageTest extends TestCase
             );
     }
 
-    /**
-     * Deleting a group takes the group from its archived Categories too, so the
-     * confirmation needs their number; the view lists only active ones in a group.
-     */
     public function test_the_tab_defaults_to_expense(): void
     {
         $this->actingAs(User::factory()->create())

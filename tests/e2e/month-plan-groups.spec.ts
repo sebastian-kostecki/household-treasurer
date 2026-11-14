@@ -97,10 +97,7 @@ test('a collapsed month plan group keeps the over-plan signal and opens again', 
     try {
         // Setup: an expense group with an own running Category (plan 0) in it.
         await page.goto('/categories');
-        await page
-
-            .getByRole('button', { name: 'Dodaj grupę' })
-            .click();
+        await page.getByRole('button', { name: 'Dodaj grupę' }).click();
         const groupDialog = page.getByRole('dialog');
         await groupDialog.getByLabel('Nazwa grupy').fill(group);
         await groupDialog.getByRole('button', { name: 'Zapisz' }).click();
