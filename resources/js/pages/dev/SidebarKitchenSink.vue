@@ -19,13 +19,18 @@ import { useTranslations } from '@/composables/useTranslations';
 import { paletteFixtureCategories } from '@/lib/command-palette-fixtures';
 import type { PaletteCategories } from '@/lib/command-palette-items';
 import { notifyBudgetYearSelectionFailed } from '@/lib/budget-year-selection';
+import type { BudgetYearEntry } from '@/types/shell';
 
 type SidebarFrame = {
     key: string;
     label: string;
-    budgetYears: number[];
+    budgetYears: BudgetYearEntry[];
     budgetYear: number | null;
 };
+
+function executionYears(...years: number[]): BudgetYearEntry[] {
+    return years.map((year) => ({ year, phase: 'execution' }));
+}
 
 const t = useTranslations();
 const appName = usePage().props.name;
@@ -160,35 +165,35 @@ const yearFrames: YearFrame[] = [
     {
         key: 'years-one',
         label: 'Jeden rok',
-        budgetYears: [2026],
+        budgetYears: executionYears(2026),
         budgetYear: 2026,
         pending: false,
     },
     {
         key: 'years-many',
         label: 'Wiele lat',
-        budgetYears: [2022, 2023, 2024, 2025, 2026, 2027],
+        budgetYears: executionYears(2022, 2023, 2024, 2025, 2026, 2027),
         budgetYear: 2026,
         pending: false,
     },
     {
         key: 'years-empty',
         label: 'Bez budżetu',
-        budgetYears: [],
+        budgetYears: executionYears(),
         budgetYear: null,
         pending: false,
     },
     {
         key: 'years-pending',
         label: 'Oczekiwanie',
-        budgetYears: [2025, 2026],
+        budgetYears: executionYears(2025, 2026),
         budgetYear: 2026,
         pending: true,
     },
     {
         key: 'years-open',
         label: 'Otwarte menu',
-        budgetYears: [2022, 2023, 2024, 2025, 2026, 2027],
+        budgetYears: executionYears(2022, 2023, 2024, 2025, 2026, 2027),
         budgetYear: 2026,
         pending: false,
         open: true,
@@ -207,13 +212,13 @@ const frames: SidebarFrame[] = [
     {
         key: 'expanded-years',
         label: 'Z latami',
-        budgetYears: [2025, 2026],
+        budgetYears: executionYears(2025, 2026),
         budgetYear: 2026,
     },
     {
         key: 'expanded-empty',
         label: 'Bez lat',
-        budgetYears: [],
+        budgetYears: executionYears(),
         budgetYear: null,
     },
 ];
@@ -450,7 +455,7 @@ const frames: SidebarFrame[] = [
                     </SidebarMenuItem>
                 </SidebarMenu>
                 <BudgetYearSwitcher
-                    :budget-years="[2025, 2026]"
+                    :budget-years="executionYears(2025, 2026)"
                     :budget-year="2026"
                 />
             </SidebarProvider>

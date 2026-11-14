@@ -1,3 +1,5 @@
+import type { BudgetYearEntry } from '@/types/shell';
+
 export type BudgetYearMenuEntry = {
     year: number;
     selected: boolean;
@@ -14,11 +16,13 @@ export type BudgetYearMenu = {
  * current calendar year when there is no budget).
  */
 export function budgetYearMenu(
-    budgetYears: number[],
+    budgetYears: BudgetYearEntry[],
     selectedYear: number | null,
     currentYear: number,
 ): BudgetYearMenu {
-    const years = [...new Set(budgetYears)].sort((a, b) => b - a);
+    const years = [...new Set(budgetYears.map((entry) => entry.year))].sort(
+        (a, b) => b - a,
+    );
     const highestYear = years[0];
 
     return {

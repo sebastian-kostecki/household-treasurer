@@ -393,8 +393,8 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Automated
 
-- [x] 1.1 ADR istnieje i nie dubluje numeru
-- [x] 1.2 Reguła i strona design systemu odwołują się do ADR-0097
+- [x] 1.1 ADR istnieje i nie dubluje numeru — 75062c9
+- [x] 1.2 Reguła i strona design systemu odwołują się do ADR-0097 — 75062c9
 
 #### Manual
 
@@ -404,10 +404,10 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Automated
 
-- [ ] 2.1 Testy shella przechodzą na PostgreSQL w worktree
-- [ ] 2.2 Testy JS przechodzą
-- [ ] 2.3 Typy przechodzą
-- [ ] 2.4 Lint i formatowanie
+- [x] 2.1 Testy shella przechodzą na PostgreSQL w worktree
+- [x] 2.2 Testy JS przechodzą
+- [x] 2.3 Typy przechodzą
+- [x] 2.4 Lint i formatowanie
 
 #### Manual
 

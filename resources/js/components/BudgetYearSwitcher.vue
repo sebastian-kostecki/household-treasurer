@@ -22,9 +22,10 @@ import {
 import { budgetYearMenu } from '@/lib/budget-year-menu';
 import { isCurrentSection } from '@/lib/nav-active';
 import { reports } from '@/routes';
+import type { BudgetYearEntry } from '@/types/shell';
 
 type Props = {
-    budgetYears: number[];
+    budgetYears: BudgetYearEntry[];
     budgetYear: number | null;
     /** Kitchen sink only: renders the menu open and non-modal. */
     previewOpen?: boolean;

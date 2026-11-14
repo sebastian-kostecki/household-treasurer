@@ -6,9 +6,14 @@ export type FirstRunState = {
     showChecklist: boolean;
 };
 
+export type BudgetYearEntry = {
+    year: number;
+    phase: 'draft' | 'execution';
+};
+
 export type ShellState = {
     budgetYear: number | null;
-    budgetYears: number[];
+    budgetYears: BudgetYearEntry[];
     activeCategoryCount: number;
     firstRun: FirstRunState;
 };
