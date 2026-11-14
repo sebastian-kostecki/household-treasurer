@@ -120,4 +120,18 @@ describe('budgetYearMenu', () => {
         expect(yearsOf(menu.recent)).toEqual([2026, 2024, 2019]);
         expect(menu.older).toEqual([]);
     });
+
+    it('takes the phase of the last entry when a year repeats with different phases', () => {
+        const menu = budgetYearMenu(
+            [
+                { year: 2026, phase: 'execution' },
+                { year: 2026, phase: 'draft' },
+            ],
+            2026,
+            2025,
+        );
+
+        expect(menu.recent).toHaveLength(1);
+        expect(menu.recent[0].draft).toBe(true);
+    });
 });

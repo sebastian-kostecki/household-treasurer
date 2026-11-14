@@ -240,7 +240,7 @@ function selectYear(value: unknown): void {
                             v-for="entry in group.entries"
                             :key="entry.year"
                             :value="String(entry.year)"
-                            class="sidebar-year-menu-item"
+                            class="sidebar-year-menu-item sidebar-year-menu-row"
                             :aria-describedby="
                                 hasState(entry)
                                     ? rowStateId(entry.year)
