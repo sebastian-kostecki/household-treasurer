@@ -739,6 +739,6 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 
 #### Manual
 
-- [ ] 5.5 Macierz 7 stanów pokazana albo N/A z powodem w każdym sinku
-- [ ] 5.6 Zrzuty jasny/ciemny 1440 i 390 px potwierdzają C1–C5
-- [ ] 5.7 Lista natywnego selecta ciemna w Chrome/Edge na Windows
+- [x] 5.5 Macierz 7 stanów pokazana albo N/A z powodem w każdym sinku — beb1cff
+- [x] 5.6 Zrzuty jasny/ciemny 1440 i 390 px potwierdzają C1–C5 — beb1cff
+- [x] 5.7 Lista natywnego selecta ciemna w Chrome/Edge na Windows — beb1cff
