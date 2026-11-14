@@ -242,11 +242,11 @@ Nowe znaczenia kolorów trafiają na stronę design systemu i do artefaktu Atram
 
 #### Automated
 
-- [x] 1.1 ADR istnieje
-- [x] 1.2 ADR-0097 cytuje każdy zmieniany ADR
-- [x] 1.3 Każdy zmieniany ADR ma odsyłacz i nie stracił linii
-- [x] 1.4 Frazy wspólne są w ADR
-- [x] 1.5 Zakres zmian
+- [x] 1.1 ADR istnieje — 54348b3
+- [x] 1.2 ADR-0097 cytuje każdy zmieniany ADR — 54348b3
+- [x] 1.3 Każdy zmieniany ADR ma odsyłacz i nie stracił linii — 54348b3
+- [x] 1.4 Frazy wspólne są w ADR — 54348b3
+- [x] 1.5 Zakres zmian — 54348b3
 
 #### Manual
 
@@ -257,9 +257,9 @@ Nowe znaczenia kolorów trafiają na stronę design systemu i do artefaktu Atram
 
 #### Automated
 
-- [ ] 2.1 Frazy wspólne są w słowniku i ADR
-- [ ] 2.2 Akapity istnieją
-- [ ] 2.3 Stare zakazy zniknęły
+- [x] 2.1 Frazy wspólne są w słowniku i ADR
+- [x] 2.2 Akapity istnieją
+- [x] 2.3 Stare zakazy zniknęły
 - [ ] 2.4 Zakres zmian fazy
 
 #### Manual
