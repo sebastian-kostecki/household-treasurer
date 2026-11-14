@@ -417,10 +417,10 @@ Bez migracji. `phase` już jest w tabeli `budgets`.
 
 #### Automated
 
-- [x] 3.1 Testy logiki menu przechodzą
-- [x] 3.2 Pełna bramka przechodzi w worktree
-- [x] 3.3 Sloppy bez nowych znalezisk
-- [x] 3.4 E2E roku budżetu przechodzą bez zmian helpera
+- [x] 3.1 Testy logiki menu przechodzą — 3b449d6
+- [x] 3.2 Pełna bramka przechodzi w worktree — 3b449d6
+- [x] 3.3 Sloppy bez nowych znalezisk — 3b449d6
+- [x] 3.4 E2E roku budżetu przechodzą bez zmian helpera — 3b449d6
 
 #### Manual
 
