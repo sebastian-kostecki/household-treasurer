@@ -735,7 +735,7 @@ Brak migracji i zmian danych. Nowe klucze w propach są addytywne, a wartości w
 - [x] 5.1 composer ci:check na PostgreSQL przechodzi — beb1cff
 - [x] 5.2 sloppy ci bez nowych znalezisk — beb1cff
 - [x] 5.3 Skan wartości na sztywno: najwyżej 1 trafienie — beb1cff
-- [ ] 5.4 Pełny zestaw E2E przechodzi
+- [x] 5.4 Pełny zestaw E2E przechodzi — 51790d9
 
 #### Manual
 
