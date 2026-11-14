@@ -32,11 +32,15 @@ const stateMatrix = [
     },
     {
         state: 'last-12',
-        where: 'Scenariusze last-12-full (pełne pokrycie), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (cztery segmenty w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
+        where: 'Scenariusze last-12-full (pełne pokrycie), last-12-partial (notka, brak na początku), last-12-partial-end (notka, brak na końcu), last-12-no-coverage (stan pusty), last-12-no-operations i last-12-phone (pięć segmentów w 22rem). Okno bez paska miesięcy, bez porównania i bez Trendu.',
+    },
+    {
+        state: 'years',
+        where: 'Scenariusze years-same-day (domyślny: „Do 14 listopada”, Wydatki; tryb „Pełne lata” i zakładkę Przychody ogląda się kliknięciem, bo stan jest lokalny), years-no-current-year (brak przełącznika zakresu), years-only-current (zmiana i statystyki „—”), years-leap („Do 29 lutego”), years-no-coverage (stan pusty), years-no-operations, years-draft-selected (szkic w sidebarze, widok zostaje) i years-phone (przewijanie z przypiętą nazwą, pięć segmentów).',
     },
     {
         state: 'empty',
-        where: 'Scenariusze no-operations, trend-no-operations, last-12-no-coverage, last-12-no-operations, draft, draft-last-12 i no-budget poniżej.',
+        where: 'Scenariusze no-operations, trend-no-operations, last-12-no-coverage, last-12-no-operations, years-no-coverage, years-no-operations, draft, draft-last-12 i no-budget poniżej.',
     },
     {
         state: 'loading',
@@ -48,15 +52,15 @@ const stateMatrix = [
     },
     {
         state: 'disabled',
-        where: 'N/A: przełącznik okresu i wiersze grup nie mają stanu wyłączonego.',
+        where: 'Przełącznik zakresu „Do D | Pełne lata” jest ukryty, gdy nie ma roku bieżącego (years-no-current-year); poza tym N/A: przełącznik okresu i wiersze grup nie mają stanu wyłączonego.',
     },
     {
         state: 'hover',
-        where: 'Nagłówek grupy i przyciski miesięcy w scenariuszach poniżej (najechanie myszą).',
+        where: 'Nagłówek grupy, przyciski miesięcy, segmenty przełącznika okresu, zakładki Wydatki | Przychody i przełącznik zakresu „Lat” w scenariuszach poniżej (najechanie myszą).',
     },
     {
         state: 'focus-visible',
-        where: 'Kolejność Tab w scenariuszach: przełącznik okresu, miesiące, przyciski zwijania grup.',
+        where: 'Kolejność Tab w scenariuszach: przełącznik okresu, miesiące, zakładki i przełącznik zakresu „Lat”, region przewijany tabeli, przyciski zwijania grup.',
     },
 ];
 </script>

@@ -282,11 +282,22 @@ final class PeriodReport
             'color' => $category->color,
             'amount_minor_units' => $row['amount'],
             'share_tenths_percent' => null,
-            'is_archived' => $row['line'] === null ? $category->isArchived() : $row['line']->isArchived(),
+            'is_archived' => self::isArchivedRow($row),
             'has_operations' => $row['has_operations'],
             'previous_minor_units' => $row['previous'],
             'difference_minor_units' => $hasComparison ? $row['amount'] - ($row['previous'] ?? 0) : null,
         ];
+    }
+
+    /**
+     * The archived mark of a row: the mark of its line, or of the list Category
+     * when the row has no line.
+     *
+     * @param  ReportRow  $row
+     */
+    public static function isArchivedRow(array $row): bool
+    {
+        return $row['line'] === null ? $row['category']->isArchived() : $row['line']->isArchived();
     }
 
     /**

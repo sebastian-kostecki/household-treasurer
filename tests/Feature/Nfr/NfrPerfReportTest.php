@@ -117,6 +117,37 @@ class NfrPerfReportTest extends TestCase
         );
     }
 
+    public function test_years_report_opens_within_two_seconds_across_seven_budgets_of_ten_thousand_operations(): void
+    {
+        $this->travelTo('2026-11-14');
+
+        $user = $this->seedReportDataset();
+
+        foreach (range(2020, 2024) as $year) {
+            $budget = Budget::factory()->for($user)->create(['year' => $year, 'phase' => BudgetPhase::Execution]);
+            $lines = Category::query()->where('user_id', $user->id)->get()->map(
+                fn (Category $category): BudgetLine => BudgetLine::factory()->for($budget)->create(['category_id' => $category->id]),
+            );
+            $incomeLine = $lines->first(fn (BudgetLine $line): bool => $line->category->name === 'Salary');
+            $expenseLines = $lines->reject(fn (BudgetLine $line): bool => $line->category->name === 'Salary')->values()->all();
+
+            $this->insertOperations($user, Account::query()->where('user_id', $user->id)->firstOrFail(), $budget, $expenseLines, $incomeLine);
+        }
+
+        $this->assertRequestWithinSeconds(
+            fn () => $this->actingAs($user)
+                ->withSession(['budget_year' => 2026])
+                ->get(route('reports', ['view' => 'years']))
+                ->assertOk()
+                ->assertInertia(fn ($page) => $page
+                    ->where('period.kind', 'years')
+                    ->has('years.columns', 7)
+                    ->has('years.same_day.expense.entries')
+                    ->has('years.full.expense.entries')),
+            'Years report',
+        );
+    }
+
     private function seedReportDataset(): User
     {
         $user = User::factory()->create();

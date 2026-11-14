@@ -24,7 +24,7 @@ class SelectBudgetYearRequest extends FormRequest
                 'integer',
                 Rule::exists('budgets', 'year')->where(fn ($query) => $query->where('user_id', $this->user()?->id)),
             ],
-            'destination' => ['sometimes', Rule::in(['budget', 'month-plan', 'reports', 'reports-trend'])],
+            'destination' => ['sometimes', Rule::in(['budget', 'month-plan', 'reports', 'reports-trend', 'reports-years'])],
             'report_category' => ['sometimes', 'integer', 'min:1'],
             'report_ranking' => ['sometimes', Rule::in(['groups'])],
         ];

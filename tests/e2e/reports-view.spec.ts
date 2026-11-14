@@ -18,7 +18,7 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
         await page.goto('/dev/ui/reports');
     });
 
-    test('szkic budżetu: h1, przełącznik z czterema segmentami i kartka pod nimi', async ({
+    test('szkic budżetu: h1, przełącznik z pięcioma segmentami i kartka pod nimi', async ({
         page,
     }) => {
         const draft = scenario(page, 'draft');
@@ -31,7 +31,7 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
         });
 
         await expect(heading).toBeVisible();
-        await expect(draft.locator('.segmented-control-item')).toHaveCount(4);
+        await expect(draft.locator('.segmented-control-item')).toHaveCount(5);
         await expect(card).toBeVisible();
 
         const headingBox = await heading.boundingBox();
@@ -54,7 +54,7 @@ test.describe('Raporty: stany bez raportu leżą pod wierszem tytułu', () => {
             draftWindow
                 .locator('.segmented-control[aria-label="Okres raportu"]')
                 .locator('.segmented-control-item'),
-        ).toHaveCount(4);
+        ).toHaveCount(5);
         await expect(
             draftWindow.getByRole('heading', {
                 name: 'Wydatki od największych',

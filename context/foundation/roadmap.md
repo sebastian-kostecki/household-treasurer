@@ -48,7 +48,7 @@ Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-00
 | ID   | Change ID                          | Outcome (user can …)                                                                                                   | Prerequisites | PRD refs            | Status   |
 | ---- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------- | -------- |
 | F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | done        |
-| S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | proposed |
+| S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | done        |
 | S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | done        |
 | S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | proposed |
 | S-37 | categories-tabs-and-filters        | użytkownik może przeglądać „Kategorie” w zakładkach z archiwum, szukać ich, filtrować po rytmie i widzieć lata w budżecie | —             | MS-04               | done        |
@@ -104,7 +104,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy wczytane lata 2020–2021 (ADR-0096) mają kategorie i grupy na tyle spójne, że „—” oznacza brak pozycji, a nie lukę po wczytaniu? — Owner: user. Block: no.
 - **Risk:** Pierwszy odczyt przez więcej niż dwa lata: suma roku w tabeli musi równać się wydatkom tego roku w raporcie Rok, a liczenie siedmiu lat nie może iść zapytaniami w pętli po latach (Sloppy). Zarchiwizowane i scalone kategorie łatwo zgubić albo policzyć podwójnie.
-- **Status:** proposed
+- **Status:** done
 
 ### S-35: Ranking kategorii i panel kategorii
 
@@ -230,4 +230,5 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **S-37: użytkownik może przeglądać „Kategorie” w zakładkach Wydatki, Przychody i Archiwum z licznikami, szukać po nazwie i opisie, filtrować wydatki po rytmie i widzieć lata w budżecie jako pasek komórek** — Archived 2026-11-14 → `context/archive/2026-11-14-categories-tabs-and-filters/`. Lesson: —.
 - **F-07: (foundation) ADR opisuje piątą pozycję okresu „Lata”, ranking z panelem kategorii w miejsce wykresu słupkowego i kolory wykresów (ADR-0097), a słownik nazywa nowy odczyt** — Archived 2026-11-14 → `context/archive/2026-11-14-report-redesign-decisions/`. Lesson: —.
 - **S-38: użytkownik może zobaczyć w menu „Rok budżetu”, który rok jest bieżący, a który jest szkicem, z latami w grupach Ostatnie i Starsze i podpisem „szkic z planem roku N−1” przy „Dodaj rok N”** — Archived 2026-11-14 → `context/archive/2026-11-14-budget-year-menu-state/`. Lesson: —.
+- **S-34: użytkownik może otworzyć Raporty → „Lata” i porównać każdą kategorię i grupę w latach 2020–2026, licząc każdy rok do tego samego dnia albo w pełnych latach, ze zmianą od 2020 i mini-wykresem, dla wydatków i przychodów** — Archived 2026-11-14 → `context/archive/2026-11-14-report-categories-across-years/`. Lesson: —.
 - **S-35: użytkownik może zobaczyć raport roku jako listę kategorii od największych z paskiem udziału i różnicą do poprzedniego roku, przełączyć na grupy i otworzyć panel jednej kategorii z kwotą 2026 i 2025, różnicą, udziałem, miesiącami roku i przejściem do Operacji** — Archived 2026-11-14 → `context/archive/2026-11-14-report-ranking-and-category-panel/`. Lesson: —.

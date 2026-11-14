@@ -159,6 +159,7 @@ class BudgetController extends Controller
                 'ranking' => $validated['report_ranking'] ?? null,
             ])),
             'reports-trend' => to_route('reports', ['view' => 'trend']),
+            'reports-years' => to_route('reports', ['view' => 'years']),
             default => to_route('budget'),
         };
     }
