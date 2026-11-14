@@ -156,6 +156,7 @@ class BudgetController extends Controller
             'month-plan' => to_route('month-plan'),
             'reports' => to_route('reports'),
             'reports-trend' => to_route('reports', ['view' => 'trend']),
+            'reports-years' => to_route('reports', ['view' => 'years']),
             default => to_route('budget'),
         };
     }

@@ -40,7 +40,7 @@ function monthUrl(month: number): string {
 
 const periodKind = computed({
     get: () => props.period.kind,
-    set: (kind: 'year' | 'month' | 'last-12' | 'trend') => {
+    set: (kind: 'year' | 'month' | 'last-12' | 'trend' | 'years') => {
         if (kind === props.period.kind) {
             return;
         }
@@ -215,7 +215,9 @@ const title = computed(() => {
                     :expense-minor-units="report.expense_minor_units"
                     :result-minor-units="report.result_minor_units"
                     :period-kind="
-                        period.kind === 'trend' ? 'year' : period.kind
+                        period.kind === 'trend' || period.kind === 'years'
+                            ? 'year'
+                            : period.kind
                     "
                     :is-in-progress="period.is_in_progress"
                     :comparison="report.comparison"

@@ -665,6 +665,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: yearReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -683,6 +684,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: archivedInGroupReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -700,6 +702,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: archivedInGroupReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -717,6 +720,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: refundReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -734,6 +738,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: nonPositiveExpenseReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -751,6 +756,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: emptyReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -768,6 +774,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: null,
             trend: null,
+            years: null,
         },
     },
     {
@@ -785,6 +792,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: null,
             trend: null,
+            years: null,
         },
     },
     {
@@ -804,6 +812,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: archivedInGroupReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -822,6 +831,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedYearReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -840,6 +850,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedMonthReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -858,6 +869,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedOnlyOneSideReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -876,6 +888,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedEmptyCurrentReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -895,6 +908,7 @@ export const reportScenarios: ReportScenario[] = [
             },
             report: comparedYearReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -907,6 +921,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendInProgress,
+            years: null,
         },
     },
     {
@@ -919,6 +934,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendClosedPeriod,
             report: null,
             trend: trendClosed,
+            years: null,
         },
     },
     {
@@ -931,6 +947,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendIrregularAndZero,
+            years: null,
         },
     },
     {
@@ -942,6 +959,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendNegativeResult,
+            years: null,
         },
     },
     {
@@ -954,6 +972,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendClosedPeriod,
             report: null,
             trend: trendArchivedInGroup,
+            years: null,
         },
     },
     {
@@ -965,6 +984,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendEmpty,
+            years: null,
         },
     },
     {
@@ -978,6 +998,7 @@ export const reportScenarios: ReportScenario[] = [
             period: trendPeriod,
             report: null,
             trend: trendInProgress,
+            years: null,
         },
     },
     {
@@ -990,6 +1011,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowFull),
             report: yearReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -1002,6 +1024,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -1014,6 +1037,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartialEnd),
             report: archivedInGroupReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -1026,6 +1050,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowNoCoverage),
             report: emptyReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -1037,6 +1062,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowFull),
             report: emptyReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -1050,6 +1076,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            years: null,
         },
     },
     {
@@ -1062,6 +1089,7 @@ export const reportScenarios: ReportScenario[] = [
             period: lastTwelvePeriod(windowPartial),
             report: yearReport,
             trend: null,
+            years: null,
         },
     },
 ];

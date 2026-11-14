@@ -134,8 +134,69 @@ export type ReportRange = {
     label: string;
 };
 
+/** Mirror of `App\Support\ReportYears::toArray()` (ADR-0097). Cells are minor units in the order of `columns`; null is "—" (no Budget Line in the year). */
+export type ReportYearsCells = {
+    cells: (number | null)[];
+    /** Change from the first year with an amount to the final year, tenths of a percent; null without both. */
+    change_tenths: number | null;
+    change_first_year: number | null;
+    /** Years with the highest amount of the row (all of them on a tie). */
+    max_years: number[];
+};
+
+export type ReportYearsCategory = ReportYearsCells & {
+    kind: 'category';
+    /** Id of the list Category (not of the budget line). */
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    is_archived: boolean;
+};
+
+export type ReportYearsGroup = ReportYearsCells & {
+    kind: 'group';
+    id: number;
+    name: string;
+    categories: ReportYearsCategory[];
+};
+
+export type ReportYearsEntry = ReportYearsCategory | ReportYearsGroup;
+
+export type ReportYearsFastest = {
+    id: number;
+    name: string;
+    icon: string;
+    color: string;
+    growth_tenths: number;
+    first_year: number;
+};
+
+export type ReportYearsSection = {
+    entries: ReportYearsEntry[];
+    total: ReportYearsCells;
+    first_year: number | null;
+    average_yearly_growth_tenths: number | null;
+    fastest_growing: ReportYearsFastest | null;
+};
+
+export type ReportYearsMode = {
+    final_year: number | null;
+    expense: ReportYearsSection;
+    income: ReportYearsSection;
+};
+
+export type ReportYearsData = {
+    columns: number[];
+    current_year: number | null;
+    cut: { month: number; day: number } | null;
+    /** Null without a Budget in execution in the current year. */
+    same_day: ReportYearsMode | null;
+    full: ReportYearsMode;
+};
+
 export type ReportPeriod = {
-    kind: 'year' | 'month' | 'last-12' | 'trend';
+    kind: 'year' | 'month' | 'last-12' | 'trend' | 'years';
     month: number | null;
     default_month: number;
     is_in_progress: boolean;
@@ -149,4 +210,5 @@ export type ReportsPageProps = {
     period: ReportPeriod;
     report: PeriodReportData | null;
     trend: ReportTrendData | null;
+    years: ReportYearsData | null;
 };
