@@ -442,10 +442,10 @@ Brak migracji i zmian danych. Nowe pola propsów i parametr `report_panel` są d
 
 #### Automated
 
-- [x] 3.1 E2E przechodzą
-- [x] 3.2 Pełna bramka na PostgreSQL w worktree
-- [x] 3.3 Sloppy
-- [x] 3.4 Styl PHP
+- [x] 3.1 E2E przechodzą — 59a9db0
+- [x] 3.2 Pełna bramka na PostgreSQL w worktree — 59a9db0
+- [x] 3.3 Sloppy — 59a9db0
+- [x] 3.4 Styl PHP — 59a9db0
 
 #### Manual
 
