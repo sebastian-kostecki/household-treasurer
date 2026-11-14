@@ -47,7 +47,7 @@ Raporty porównują dziś tylko okres z tym samym okresem rok wcześniej (ADR-00
 
 | ID   | Change ID                          | Outcome (user can …)                                                                                                   | Prerequisites | PRD refs            | Status   |
 | ---- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------- | -------- |
-| F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | ready    |
+| F-07 | report-redesign-decisions          | (foundation) ADR i słownik opisują odczyt „Lata”, „Pełne lata”, ranking zamiast wykresu słupkowego i kolory wykresów Raportów | —             | MS-01, MS-02, MS-03 | in-progress |
 | S-34 | report-categories-across-years     | użytkownik może porównać każdą kategorię w latach 2020–2026 w widoku Raportów „Lata”                                   | F-07          | MS-01               | proposed |
 | S-35 | report-ranking-and-category-panel  | użytkownik może zobaczyć raport roku jako ranking kategorii i otworzyć panel jednej kategorii z jej miesiącami          | F-07          | MS-02               | proposed |
 | S-36 | report-panel-years-tab             | użytkownik może przejść z tabeli „Lata” do panelu kategorii i zobaczyć w nim jej lata 2020–2026                         | S-34, S-35    | MS-03               | proposed |
@@ -89,7 +89,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Stoi przed widokami, bo AGENTS.md wymaga wpisu w słowniku i ADR przed kodem, a `S-34` i `S-35` dzielą kolory i przełącznik okresu; bez wspólnej decyzji dwa równoległe plany rozstrzygnęłyby je inaczej. Tylko dokumenty, bez kodu.
-- **Status:** ready
+- **Status:** in-progress
 
 ## Slices
 
@@ -115,7 +115,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Parallel with:** S-34, S-37, S-38
 - **Blockers:** —
 - **Unknowns:**
-  - Czy ranking i panel dotyczą też widoków Miesiąc i 12 miesięcy, czy tylko Roku? — Owner: user. Block: no.
+  - Czy ranking i panel dotyczą też widoków Miesiąc i 12 miesięcy, czy tylko Roku? — Owner: user. Block: no. — Resolved by ADR-0097 (F-07): ranking w Roku, Miesiącu i 12 miesiącach; panel tylko w Roku.
 - **Risk:** Zastępuje wykres słupkowy i tabelę z S-28/S-29, więc nie może zgubić niczego, co raport dziś pokazuje (grupy, zarchiwizowane, porównanie do tego samego dnia, przejście do Operacji z S-31); panel potrzebuje miesięcy kategorii w widoku Rok i wyboru kategorii w adresie (zmiana propsów z testem `assertInertia`).
 - **Status:** proposed
 
@@ -170,8 +170,8 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 
 ## Open Roadmap Questions
 
-1. **Kolory wykresów Raportów.** Aplikacja ma tokeny `chart-1` i `chart-2`, design system Atrament ich nie ma, a karty Raportów używają `brand-text`, `success` i `foreground`. Dopisać tokeny wykresu do design systemu czy zastąpić je w aplikacji? — Owner: user. Block: rozstrzyga F-07; gates S-34, S-35.
-2. **Nazwa odczytu „Lata” w słowniku.** Odczyt wielu lat do tego samego dnia potrzebuje terminu po polsku i angielsku obok „Rok do roku” (S-29) i Trendu (S-30). — Owner: user. Block: rozstrzyga F-07; gates S-34.
+1. **Kolory wykresów Raportów.** Aplikacja ma tokeny `chart-1` i `chart-2`, design system Atrament ich nie ma, a karty Raportów używają `brand-text`, `success` i `foreground`. Dopisać tokeny wykresu do design systemu czy zastąpić je w aplikacji? — Owner: user. Block: rozstrzyga F-07; gates S-34, S-35. — Resolved by ADR-0097 (F-07): zostają tokeny aplikacji; wypełnienie wydatku to `chart-1`, przychodu `success`, rok bieżący i najwyższy miesiąc `foreground`, rok bez pozycji `track`; `chart-1` i `chart-2` trafiają do `tokens.json` Atramentu, a karty malują przez `chart-1`, nie `brand-text`.
+2. **Nazwa odczytu „Lata” w słowniku.** Odczyt wielu lat do tego samego dnia potrzebuje terminu po polsku i angielsku obok „Rok do roku” (S-29) i Trendu (S-30). — Owner: user. Block: rozstrzyga F-07; gates S-34. — Resolved by ADR-0097 (F-07): akapit „Years” we wpisie Period Report, adres `?view=years`, segment „Lata”; terminy Same-day Cut, Full Years, Change since First Year, Average Yearly Growth, Fastest Growing.
 
 ## Parked
 

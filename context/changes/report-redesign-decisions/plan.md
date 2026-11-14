@@ -257,10 +257,10 @@ Nowe znaczenia kolorów trafiają na stronę design systemu i do artefaktu Atram
 
 #### Automated
 
-- [x] 2.1 Frazy wspólne są w słowniku i ADR
-- [x] 2.2 Akapity istnieją
-- [x] 2.3 Stare zakazy zniknęły
-- [ ] 2.4 Zakres zmian fazy
+- [x] 2.1 Frazy wspólne są w słowniku i ADR — 74fafda
+- [x] 2.2 Akapity istnieją — 74fafda
+- [x] 2.3 Stare zakazy zniknęły — 74fafda
+- [x] 2.4 Zakres zmian fazy — 74fafda
 
 #### Manual
 
@@ -271,10 +271,10 @@ Nowe znaczenia kolorów trafiają na stronę design systemu i do artefaktu Atram
 
 #### Automated
 
-- [ ] 3.1 Strona design systemu cytuje ADR i nowe role
-- [ ] 3.2 Roadmapa zamyka pytania
-- [ ] 3.3 Artefakt ma tokeny
-- [ ] 3.4 Brak zmian w kodzie
+- [x] 3.1 Strona design systemu cytuje ADR i nowe role
+- [x] 3.2 Roadmapa zamyka pytania
+- [x] 3.3 Artefakt ma tokeny
+- [x] 3.4 Brak zmian w kodzie
 
 #### Manual
 
